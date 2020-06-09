@@ -1,0 +1,103 @@
+dn: ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: organizationalunit
+
+dn: ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: organizationalunit
+
+dn: uid=corey.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Corey
+sn: Test
+mail: corey.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=william.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: William
+sn: Test
+mail: william.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=linda.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Linda
+sn: Test
+mail: linda.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=lindy.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Lindy
+sn: Test
+mail: lindy.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=george.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: George
+sn: Test
+mail: george.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=jesus.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Jesus
+sn: Test
+mail: jesus.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=carlos.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Carlos
+sn: Test
+mail: carlos.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=jesse.test,ou=users,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+cn: Jesse
+sn: Test
+mail: jesse.test@simulator.amazonses.com
+userPassword: Password1
+
+dn: cn=engineering,ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=corey.test,ou=users,dc=mm,dc=test,dc=com
+member: cn=qa,ou=groups,dc=mm,dc=test,dc=com
+member: cn=developers,ou=groups,dc=mm,dc=test,dc=com
+
+dn: cn=qa,ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=lindy.test,ou=users,dc=mm,dc=test,dc=com
+member: uid=linda.test,ou=users,dc=mm,dc=test,dc=com
+
+dn: cn=developers,ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=william.test,ou=users,dc=mm,dc=test,dc=com
+member: cn=xyz,ou=groups,dc=mm,dc=test,dc=com
+member: cn=abc,ou=groups,dc=mm,dc=test,dc=com
+
+dn: cn=xyz,ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=jesus.test,ou=users,dc=mm,dc=test,dc=com
+member: uid=george.test,ou=users,dc=mm,dc=test,dc=com
+
+dn: cn=abc,ou=groups,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: groupOfNames
+member: uid=carlos.test,ou=users,dc=mm,dc=test,dc=com
+member: uid=jesse.test,ou=users,dc=mm,dc=test,dc=com

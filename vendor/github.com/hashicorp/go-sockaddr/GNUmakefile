@@ -55,7 +55,7 @@ doc::
 
 world::
 	@set -e; \
-	for os in solaris darwin freebsd linux windows; do \
+	for os in solaris darwin freebsd linux windows android; do \
 		for arch in amd64; do \
 			printf "Building on %s-%s\n" "$${os}" "$${arch}" ; \
 			env GOOS="$${os}" GOARCH="$${arch}" go build -o /dev/null; \

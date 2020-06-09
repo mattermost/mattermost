@@ -1,46 +1,34 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 )
 
 const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
-var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
+var openGraphDataCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: OPEN_GRAPH_METADATA_CACHE_SIZE,
+})
 
 func (api *API) InitOpenGraph() {
 	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
-	api.App.AddConfigListener(func(before, after *model.Config) {
-		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
-			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyType) {
+	api.ConfigService.AddConfigListener(func(before, after *model.Config) {
+		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
+			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
+			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
 			openGraphDataCache.Purge()
 		}
 	})
-}
-
-func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
-	for _, image := range ogdata.Images {
-		var url string
-		if image.SecureURL != "" {
-			url = image.SecureURL
-		} else {
-			url = image.URL
-		}
-
-		image.URL = ""
-		image.SecureURL = toProxyURL(url)
-	}
-
-	return ogdata
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -58,21 +46,16 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ogJSONGeneric, ok := openGraphDataCache.Get(url)
-	if ok {
-		w.Write(ogJSONGeneric.([]byte))
+	var ogJSONGeneric []byte
+	err := openGraphDataCache.Get(url, &ogJSONGeneric)
+	if err == nil {
+		w.Write(ogJSONGeneric)
 		return
 	}
 
 	og := c.App.GetOpenGraphMetadata(url)
-
-	// If image proxy enabled modify open graph data to feed though proxy
-	if toProxyURL := c.App.ImageProxyAdder(); toProxyURL != nil {
-		og = OpenGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
-	}
-
 	ogJSON, err := og.ToJSON()
-	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 hour
+	openGraphDataCache.SetWithExpiry(url, ogJSON, 1*time.Hour)
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
 		return

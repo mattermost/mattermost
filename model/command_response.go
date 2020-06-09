@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
 )
 
 const (
@@ -18,14 +18,18 @@ const (
 )
 
 type CommandResponse struct {
-	ResponseType string             `json:"response_type"`
-	Text         string             `json:"text"`
-	Username     string             `json:"username"`
-	IconURL      string             `json:"icon_url"`
-	Type         string             `json:"type"`
-	Props        StringInterface    `json:"props"`
-	GotoLocation string             `json:"goto_location"`
-	Attachments  []*SlackAttachment `json:"attachments"`
+	ResponseType     string             `json:"response_type"`
+	Text             string             `json:"text"`
+	Username         string             `json:"username"`
+	ChannelId        string             `json:"channel_id"`
+	IconURL          string             `json:"icon_url"`
+	Type             string             `json:"type"`
+	Props            StringInterface    `json:"props"`
+	GotoLocation     string             `json:"goto_location"`
+	TriggerId        string             `json:"trigger_id"`
+	SkipSlackParsing bool               `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	Attachments      []*SlackAttachment `json:"attachments"`
+	ExtraResponses   []*CommandResponse `json:"extra_responses"`
 }
 
 func (o *CommandResponse) ToJson() string {
@@ -62,6 +66,12 @@ func CommandResponseFromJson(data io.Reader) (*CommandResponse, error) {
 	}
 
 	o.Attachments = StringifySlackFieldValue(o.Attachments)
+
+	if o.ExtraResponses != nil {
+		for _, resp := range o.ExtraResponses {
+			resp.Attachments = StringifySlackFieldValue(resp.Attachments)
+		}
+	}
 
 	return &o, nil
 }

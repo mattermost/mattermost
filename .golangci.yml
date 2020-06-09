@@ -1,0 +1,52 @@
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+  skip-dirs:
+    - store/storetest/mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - gofmt
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - scopelint
+    - structcheck
+    - staticcheck
+    - unconvert
+    - unused
+    - varcheck
+    # TODO: enable this later
+    # - errcheck
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+
+    - linters:
+      - scopelint
+      # ignore warnings from table tests. https://github.com/kyoh86/scopelint/issues/4
+      path: ".*_test.go|store/storetest"
+
+    - linters:
+      - staticcheck
+      path: ".*_test.go|store/storetest"
+
+    - linters:
+      # ignore golint error for a lot of packages for now
+      - golint
+      path: "api4|app|cmd|einterface|enterprise|jobs|migrations|mlog|model|testlib|services|store|utils|web|wsapi|plugin/plugintest/api.go|plugin/api.go|plugin/context.go|plugin/client.go|plugin/client_rpc.go|plugin/client_rpc_generated.go|plugin/api_timer_layer_generated.go|plugin/hooks_timer_layer_generated|plugin/environment.go|plugin/health_check.go|plugin/hooks.go|plugin/supervisor.go|plugin/valid.go"

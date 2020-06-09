@@ -9,6 +9,8 @@ package cpu
 const cacheLineSize = 64
 
 func init() {
+	Initialized = true
+
 	maxID, _, _, _ := cpuid(0, 0)
 
 	if maxID < 1 {
@@ -27,6 +29,7 @@ func init() {
 	X86.HasPOPCNT = isSet(23, ecx1)
 	X86.HasAES = isSet(25, ecx1)
 	X86.HasOSXSAVE = isSet(27, ecx1)
+	X86.HasRDRAND = isSet(30, ecx1)
 
 	osSupportsAVX := false
 	// For XGETBV, OSXSAVE bit is required and sufficient.
@@ -47,6 +50,7 @@ func init() {
 	X86.HasAVX2 = isSet(5, ebx7) && osSupportsAVX
 	X86.HasBMI2 = isSet(8, ebx7)
 	X86.HasERMS = isSet(9, ebx7)
+	X86.HasRDSEED = isSet(18, ebx7)
 	X86.HasADX = isSet(19, ebx7)
 }
 

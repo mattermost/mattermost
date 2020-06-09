@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,15 +8,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetPreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
+	// recreate basic user (cached has no default preferences)
+	th.BasicUser = th.CreateUser()
 	th.LoginBasic()
+
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -42,24 +47,20 @@ func TestGetPreferences(t *testing.T) {
 
 	prefs, resp := Client.GetPreferences(user1.Id)
 	CheckNoError(t, resp)
-	if len(prefs) != 4 {
-		t.Fatal("received the wrong number of preferences")
-	}
+	require.Equal(t, len(prefs), 4, "received the wrong number of preferences")
 
 	for _, preference := range prefs {
-		if preference.UserId != th.BasicUser.Id {
-			t.Fatal("user id does not match")
-		}
+		require.Equal(t, preference.UserId, th.BasicUser.Id, "user id does not match")
 	}
 
+	// recreate basic user2
+	th.BasicUser2 = th.CreateUser()
 	th.LoginBasic2()
 
 	prefs, resp = Client.GetPreferences(th.BasicUser2.Id)
 	CheckNoError(t, resp)
 
-	if len(prefs) == 0 {
-		t.Fatal("received the wrong number of preferences")
-	}
+	require.Greater(t, len(prefs), 0, "received the wrong number of preferences")
 
 	_, resp = Client.GetPreferences(th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
@@ -70,7 +71,7 @@ func TestGetPreferences(t *testing.T) {
 }
 
 func TestGetPreferencesByCategory(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -101,9 +102,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	prefs, resp := Client.GetPreferencesByCategory(user1.Id, category)
 	CheckNoError(t, resp)
 
-	if len(prefs) != 2 {
-		t.Fatalf("received the wrong number of preferences %v:%v", len(prefs), 2)
-	}
+	require.Equal(t, len(prefs), 2, "received the wrong number of preferences")
 
 	_, resp = Client.GetPreferencesByCategory(user1.Id, "junk")
 	CheckNotFoundStatus(t, resp)
@@ -119,9 +118,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	prefs, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
 	CheckNotFoundStatus(t, resp)
 
-	if len(prefs) != 0 {
-		t.Fatal("received the wrong number of preferences")
-	}
+	require.Equal(t, len(prefs), 0, "received the wrong number of preferences")
 
 	Client.Logout()
 	_, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, category)
@@ -129,7 +126,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 }
 
 func TestGetPreferenceByCategoryAndName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -158,9 +155,9 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	pref, resp := Client.GetPreferenceByCategoryAndName(user.Id, model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW, name)
 	CheckNoError(t, resp)
 
-	if (pref.UserId != preferences[0].UserId) && (pref.Category != preferences[0].Category) && (pref.Name != preferences[0].Name) {
-		t.Fatal("preference saved incorrectly")
-	}
+	require.Equal(t, preferences[0].UserId, pref.UserId, "UserId preference not saved")
+	require.Equal(t, preferences[0].Category, pref.Category, "Category preference not saved")
+	require.Equal(t, preferences[0].Name, pref.Name, "Name preference not saved")
 
 	preferences[0].Value = model.NewId()
 	Client.UpdatePreferences(user.Id, &preferences)
@@ -184,7 +181,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 }
 
 func TestUpdatePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -243,19 +240,16 @@ func TestUpdatePreferences(t *testing.T) {
 }
 
 func TestUpdatePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	WebSocketClient.Listen()
 	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	wsResp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, wsResp.Status, model.STATUS_OK, "expected OK from auth challenge")
 
 	userId := th.BasicUser.Id
 	preferences := &model.Preferences{
@@ -270,6 +264,7 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 			Name:     model.NewId(),
 		},
 	}
+
 	_, resp := th.Client.UpdatePreferences(userId, preferences)
 	CheckNoError(t, resp)
 
@@ -279,31 +274,29 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
+			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_CHANGED {
 				// Ignore any other events
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
-			if err != nil {
-				t.Fatal(err)
-			}
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
+			require.NoError(t, err)
 
-			for i, preference := range *preferences {
-				if preference.UserId != received[i].UserId || preference.Category != received[i].Category || preference.Name != received[i].Name {
-					t.Fatal("received incorrect preference")
-				}
+			for i, p := range *preferences {
+				require.Equal(t, received[i].UserId, p.UserId, "received incorrect UserId")
+				require.Equal(t, received[i].Category, p.Category, "received incorrect Category")
+				require.Equal(t, received[i].Name, p.Name, "received incorrect Name")
 			}
 
 			waiting = false
 		case <-timeout:
-			t.Fatal("timed out waiting for preference update event")
+			require.Fail(t, "timed timed out waiting for preference update event")
 		}
 	}
 }
 
 func TestDeletePreferences(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -340,9 +333,7 @@ func TestDeletePreferences(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	prefs, _ = Client.GetPreferences(th.BasicUser.Id)
-	if len(prefs) != originalCount {
-		t.Fatal("should've deleted preferences")
-	}
+	require.Len(t, prefs, originalCount, "should've deleted preferences")
 
 	Client.Logout()
 	_, resp = Client.DeletePreferences(th.BasicUser.Id, &preferences)
@@ -350,7 +341,7 @@ func TestDeletePreferences(t *testing.T) {
 }
 
 func TestDeletePreferencesWebsocket(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	userId := th.BasicUser.Id
@@ -370,15 +361,11 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	CheckNoError(t, resp)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	WebSocketClient.Listen()
-	time.Sleep(300 * time.Millisecond)
-	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
-		t.Fatal("should have responded OK to authentication challenge")
-	}
+	wsResp := <-WebSocketClient.ResponseChannel
+	require.Equal(t, model.STATUS_OK, wsResp.Status, "should have responded OK to authentication challenge")
 
 	_, resp = th.Client.DeletePreferences(userId, preferences)
 	CheckNoError(t, resp)
@@ -389,25 +376,23 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	for waiting {
 		select {
 		case event := <-WebSocketClient.EventChannel:
-			if event.Event != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
+			if event.EventType() != model.WEBSOCKET_EVENT_PREFERENCES_DELETED {
 				// Ignore any other events
 				continue
 			}
 
-			received, err := model.PreferencesFromJson(strings.NewReader(event.Data["preferences"].(string)))
-			if err != nil {
-				t.Fatal(err)
-			}
+			received, err := model.PreferencesFromJson(strings.NewReader(event.GetData()["preferences"].(string)))
+			require.Nil(t, err)
 
 			for i, preference := range *preferences {
-				if preference.UserId != received[i].UserId || preference.Category != received[i].Category || preference.Name != received[i].Name {
-					t.Fatal("received incorrect preference")
-				}
+				require.Equal(t, preference.UserId, received[i].UserId)
+				require.Equal(t, preference.Category, received[i].Category)
+				require.Equal(t, preference.Name, received[i].Name)
 			}
 
 			waiting = false
 		case <-timeout:
-			t.Fatal("timed out waiting for preference delete event")
+			require.Fail(t, "timed out waiting for preference delete event")
 		}
 	}
 }

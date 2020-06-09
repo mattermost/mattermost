@@ -1,19 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitWebSocket() {
-	api.BaseRoutes.ApiRoot.Handle("/websocket", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
+	// Optionally supports a trailing slash
+	api.BaseRoutes.ApiRoot.Handle("/{websocket:websocket(?:\\/)?}", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -25,14 +25,14 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("websocket connect err: %v", err))
+		mlog.Error("websocket connect err.", mlog.Err(err))
 		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
-	wc := c.App.NewWebConn(ws, c.Session, c.T, "")
+	wc := c.App.NewWebConn(ws, *c.App.Session(), c.App.T, "")
 
-	if len(c.Session.UserId) > 0 {
+	if len(c.App.Session().UserId) > 0 {
 		c.App.HubRegister(wc)
 	}
 

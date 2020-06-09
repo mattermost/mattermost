@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,6 +9,7 @@ import (
 
 	"fmt"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
 )
 
@@ -87,6 +88,11 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
+	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("file", args[1])
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -138,15 +144,18 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("")
 
 	if err, lineNumber := a.BulkImport(fileReader, !apply, workers); err != nil {
-		CommandPrettyPrintln(err.Error())
+		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
-			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
+			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
 		}
 		return err
 	}
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
+		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
+		auditRec.AddMeta("file", args[0])
+		a.LogAuditRec(auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}

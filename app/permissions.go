@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -18,55 +18,54 @@ const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents coll
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
-	if result := <-a.Srv.Store.Team().ResetAllTeamSchemes(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Team().ResetAllTeamSchemes(); err != nil {
+		return err
 	}
 
 	// Reset all Channels to not have a scheme.
-	if result := <-a.Srv.Store.Channel().ResetAllChannelSchemes(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Channel().ResetAllChannelSchemes(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to Users.
-	if result := <-a.Srv.Store.User().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.User().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to TeamMembers.
-	if result := <-a.Srv.Store.Team().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Team().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Reset all Custom Role assignments to ChannelMembers.
-	if result := <-a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
+		return err
 	}
 
 	// Purge all schemes from the database.
-	if result := <-a.Srv.Store.Scheme().PermanentDeleteAll(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Scheme().PermanentDeleteAll(); err != nil {
+		return err
 	}
 
 	// Purge all roles from the database.
-	if result := <-a.Srv.Store.Role().PermanentDeleteAll(); result.Err != nil {
-		return result.Err
+	if err := a.Srv().Store.Role().PermanentDeleteAll(); err != nil {
+		return err
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.
-	if result := <-a.Srv.Store.System().PermanentDeleteByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
+		return err
 	}
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	a.DoAppMigrations()
 
 	return nil
 }
 
 func (a *App) ExportPermissions(w io.Writer) error {
 
-	next := a.SchemesIterator(permissionsExportBatchSize)
+	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
@@ -76,8 +75,10 @@ func (a *App) ExportPermissions(w io.Writer) error {
 			roleNames := []string{
 				scheme.DefaultTeamAdminRole,
 				scheme.DefaultTeamUserRole,
+				scheme.DefaultTeamGuestRole,
 				scheme.DefaultChannelAdminRole,
 				scheme.DefaultChannelUserRole,
+				scheme.DefaultChannelGuestRole,
 			}
 
 			roles := []*model.Role{}
@@ -99,8 +100,10 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				Scope:        scheme.Scope,
 				TeamAdmin:    scheme.DefaultTeamAdminRole,
 				TeamUser:     scheme.DefaultTeamUserRole,
+				TeamGuest:    scheme.DefaultTeamGuestRole,
 				ChannelAdmin: scheme.DefaultChannelAdminRole,
 				ChannelUser:  scheme.DefaultChannelUserRole,
+				ChannelGuest: scheme.DefaultChannelGuestRole,
 				Roles:        roles,
 			})
 			if err != nil {
@@ -185,8 +188,10 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		roleNameTuples := [][]string{
 			{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
 			{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
+			{schemeCreated.DefaultTeamGuestRole, schemeIn.DefaultTeamGuestRole},
 			{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
 			{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
+			{schemeCreated.DefaultChannelGuestRole, schemeIn.DefaultChannelGuestRole},
 		}
 		for _, roleNameTuple := range roleNameTuples {
 			if len(roleNameTuple[0]) == 0 || len(roleNameTuple[1]) == 0 {

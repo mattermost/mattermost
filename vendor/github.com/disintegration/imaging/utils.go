@@ -2,6 +2,7 @@ package imaging
 
 import (
 	"image"
+	"math"
 	"runtime"
 	"sync"
 )
@@ -62,10 +63,12 @@ func reverse(pix []uint8) {
 	i := 0
 	j := len(pix) - 4
 	for i < j {
-		pix[i+0], pix[j+0] = pix[j+0], pix[i+0]
-		pix[i+1], pix[j+1] = pix[j+1], pix[i+1]
-		pix[i+2], pix[j+2] = pix[j+2], pix[i+2]
-		pix[i+3], pix[j+3] = pix[j+3], pix[i+3]
+		pi := pix[i : i+4 : i+4]
+		pj := pix[j : j+4 : j+4]
+		pi[0], pj[0] = pj[0], pi[0]
+		pi[1], pj[1] = pj[1], pi[1]
+		pi[2], pj[2] = pj[2], pi[2]
+		pi[3], pj[3] = pj[3], pi[3]
 		i += 4
 		j -= 4
 	}
@@ -80,4 +83,85 @@ func toNRGBA(img image.Image) *image.NRGBA {
 		}
 	}
 	return Clone(img)
+}
+
+// rgbToHSL converts a color from RGB to HSL.
+func rgbToHSL(r, g, b uint8) (float64, float64, float64) {
+	rr := float64(r) / 255
+	gg := float64(g) / 255
+	bb := float64(b) / 255
+
+	max := math.Max(rr, math.Max(gg, bb))
+	min := math.Min(rr, math.Min(gg, bb))
+
+	l := (max + min) / 2
+
+	if max == min {
+		return 0, 0, l
+	}
+
+	var h, s float64
+	d := max - min
+	if l > 0.5 {
+		s = d / (2 - max - min)
+	} else {
+		s = d / (max + min)
+	}
+
+	switch max {
+	case rr:
+		h = (gg - bb) / d
+		if g < b {
+			h += 6
+		}
+	case gg:
+		h = (bb-rr)/d + 2
+	case bb:
+		h = (rr-gg)/d + 4
+	}
+	h /= 6
+
+	return h, s, l
+}
+
+// hslToRGB converts a color from HSL to RGB.
+func hslToRGB(h, s, l float64) (uint8, uint8, uint8) {
+	var r, g, b float64
+	if s == 0 {
+		v := clamp(l * 255)
+		return v, v, v
+	}
+
+	var q float64
+	if l < 0.5 {
+		q = l * (1 + s)
+	} else {
+		q = l + s - l*s
+	}
+	p := 2*l - q
+
+	r = hueToRGB(p, q, h+1/3.0)
+	g = hueToRGB(p, q, h)
+	b = hueToRGB(p, q, h-1/3.0)
+
+	return clamp(r * 255), clamp(g * 255), clamp(b * 255)
+}
+
+func hueToRGB(p, q, t float64) float64 {
+	if t < 0 {
+		t++
+	}
+	if t > 1 {
+		t--
+	}
+	if t < 1/6.0 {
+		return p + (q-p)*6*t
+	}
+	if t < 1/2.0 {
+		return q
+	}
+	if t < 2/3.0 {
+		return p + (q-p)*(2/3.0-t)*6
+	}
+	return p
 }

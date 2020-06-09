@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSessionStore(t *testing.T, ss store.Store) {
@@ -25,272 +26,284 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 	t.Run("SessionRemoveToken", func(t *testing.T) { testSessionRemoveToken(t, ss) })
 	t.Run("SessionUpdateDeviceId", func(t *testing.T) { testSessionUpdateDeviceId(t, ss) })
 	t.Run("SessionUpdateDeviceId2", func(t *testing.T) { testSessionUpdateDeviceId2(t, ss) })
+	t.Run("UpdateExpiresAt", func(t *testing.T) { testSessionStoreUpdateExpiresAt(t, ss) })
 	t.Run("UpdateLastActivityAt", func(t *testing.T) { testSessionStoreUpdateLastActivityAt(t, ss) })
 	t.Run("SessionCount", func(t *testing.T) { testSessionCount(t, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 
-	if err := (<-ss.Session().Save(&s1)).Err; err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 }
 
 func testSessionGet(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
-	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
-			t.Fatal("should match")
-		}
-	}
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
 
-	if rs2 := (<-ss.Session().GetSessions(s1.UserId)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
-	} else {
-		if len(rs2.Data.([]*model.Session)) != 3 {
-			t.Fatal("should match len")
-		}
-	}
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
+
+	data, err := ss.Session().GetSessions(s1.UserId)
+	require.Nil(t, err)
+	require.Len(t, data, 3, "should match len")
 }
 
 func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 10000
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 	s2.DeviceId = model.NewId()
 	s2.ExpiresAt = model.GetMillis() + 10000
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = s1.UserId
 	s3.ExpiresAt = 1
 	s3.DeviceId = model.NewId()
-	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if len(rs1.Data.([]*model.Session)) != 1 {
-			t.Fatal("should match len")
-		}
-	}
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
+
+	data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)
+	require.Nil(t, err)
+	require.Len(t, data, 1, "should match len")
 }
 
 func testSessionRemove(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
-			t.Fatal("should match")
-		}
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Id))
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
-		t.Fatal("should have been removed")
-	}
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+
+	_, err = ss.Session().Get(s1.Id)
+	require.NotNil(t, err, "should have been removed")
 }
 
 func testSessionRemoveAll(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
-			t.Fatal("should match")
-		}
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	store.Must(ss.Session().RemoveAllSessions())
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
-		t.Fatal("should have been removed")
-	}
+	removeErr := ss.Session().RemoveAllSessions()
+	require.Nil(t, removeErr)
+
+	_, err = ss.Session().Get(s1.Id)
+	require.NotNil(t, err, "should have been removed")
 }
 
 func testSessionRemoveByUser(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
-			t.Fatal("should match")
-		}
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	store.Must(ss.Session().PermanentDeleteSessionsByUser(s1.UserId))
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
-		t.Fatal("should have been removed")
-	}
+	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
+	require.Nil(t, deleteErr)
+
+	_, err = ss.Session().Get(s1.Id)
+	require.NotNil(t, err, "should have been removed")
 }
 
 func testSessionRemoveToken(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
-			t.Fatal("should match")
-		}
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Token))
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.Equal(t, session.Id, s1.Id, "should match")
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
-		t.Fatal("should have been removed")
-	}
+	removeErr := ss.Session().Remove(s1.Token)
+	require.Nil(t, removeErr)
 
-	if rs3 := (<-ss.Session().GetSessions(s1.UserId)); rs3.Err != nil {
-		t.Fatal(rs3.Err)
-	} else {
-		if len(rs3.Data.([]*model.Session)) != 0 {
-			t.Fatal("should match len")
-		}
-	}
+	_, err = ss.Session().Get(s1.Id)
+	require.NotNil(t, err, "should have been removed")
+
+	data, err := ss.Session().GetSessions(s1.UserId)
+	require.Nil(t, err)
+	require.Empty(t, data, "should match len")
 }
 
 func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	s2 := model.Session{}
+	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s2))
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
-	}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)
+	require.Nil(t, err)
 }
 
 func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	s2 := model.Session{}
+	_, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s2))
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
-	}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	_, err = ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)
+	require.Nil(t, err)
+}
+
+func testSessionStoreUpdateExpiresAt(t *testing.T, ss store.Store) {
+	s1 := &model.Session{}
+	s1.UserId = model.NewId()
+
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	err = ss.Session().UpdateExpiresAt(s1.Id, 1234567890)
+	require.Nil(t, err)
+
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.EqualValues(t, session.ExpiresAt, 1234567890, "ExpiresAt not updated correctly")
 }
 
 func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
-	store.Must(ss.Session().Save(&s1))
 
-	if err := (<-ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
-		t.Fatal(err)
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
-	if r1 := <-ss.Session().Get(s1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Session).LastActivityAt != 1234567890 {
-			t.Fatal("LastActivityAt not updated correctly")
-		}
-	}
+	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
+	require.Nil(t, err)
 
+	session, err := ss.Session().Get(s1.Id)
+	require.Nil(t, err)
+	require.EqualValues(t, session.LastActivityAt, 1234567890, "LastActivityAt not updated correctly")
 }
 
 func testSessionCount(t *testing.T, ss store.Store) {
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = model.GetMillis() + 100000
-	store.Must(ss.Session().Save(&s1))
 
-	if r1 := <-ss.Session().AnalyticsSessionCount(); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(int64) == 0 {
-			t.Fatal("should have at least 1 session")
-		}
-	}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	count, err := ss.Session().AnalyticsSessionCount()
+	require.Nil(t, err)
+	require.NotZero(t, count, "should have at least 1 session")
 }
 
 func testSessionCleanup(t *testing.T, ss store.Store) {
 	now := model.GetMillis()
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
-	store.Must(ss.Session().Save(&s1))
 
-	s2 := model.Session{}
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
+
+	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 	s2.ExpiresAt = now + 1000000 // expires in the future
-	store.Must(ss.Session().Save(&s2))
 
-	s3 := model.Session{}
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
+
+	s3 := &model.Session{}
 	s3.UserId = model.NewId()
 	s3.ExpiresAt = 1 // expired
-	store.Must(ss.Session().Save(&s3))
 
-	s4 := model.Session{}
+	s3, err = ss.Session().Save(s3)
+	require.Nil(t, err)
+
+	s4 := &model.Session{}
 	s4.UserId = model.NewId()
 	s4.ExpiresAt = 2 // expired
-	store.Must(ss.Session().Save(&s4))
+
+	s4, err = ss.Session().Save(s4)
+	require.Nil(t, err)
 
 	ss.Session().Cleanup(now, 1)
 
-	err := (<-ss.Session().Get(s1.Id)).Err
+	_, err = ss.Session().Get(s1.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s2.Id)).Err
+	_, err = ss.Session().Get(s2.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s3.Id)).Err
+	_, err = ss.Session().Get(s3.Id)
 	assert.NotNil(t, err)
 
-	err = (<-ss.Session().Get(s4.Id)).Err
+	_, err = ss.Session().Get(s4.Id)
 	assert.NotNil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Id))
-	store.Must(ss.Session().Remove(s2.Id))
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+
+	removeErr = ss.Session().Remove(s2.Id)
+	require.Nil(t, removeErr)
 }

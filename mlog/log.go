@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mlog
 
@@ -28,12 +28,15 @@ const (
 type Field = zapcore.Field
 
 var Int64 = zap.Int64
+var Int32 = zap.Int32
 var Int = zap.Int
 var Uint32 = zap.Uint32
 var String = zap.String
 var Any = zap.Any
 var Err = zap.Error
+var NamedErr = zap.NamedError
 var Bool = zap.Bool
+var Duration = zap.Duration
 
 type LoggerConfiguration struct {
 	EnableConsole bool
@@ -84,7 +87,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableConsole {
-		writer := zapcore.Lock(os.Stdout)
+		writer := zapcore.Lock(os.Stderr)
 		core := zapcore.NewCore(makeEncoder(config.ConsoleJson), writer, logger.consoleLevel)
 		cores = append(cores, core)
 	}
@@ -102,7 +105,6 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	combinedCore := zapcore.NewTee(cores...)
 
 	logger.zap = zap.New(combinedCore,
-		zap.AddCallerSkip(1),
 		zap.AddCaller(),
 	)
 
@@ -126,6 +128,11 @@ func (l *Logger) With(fields ...Field) *Logger {
 
 func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
+}
+
+// StdLogAt returns *log.Logger which writes to supplied zap logger at required level.
+func (l *Logger) StdLogAt(level string, fields ...Field) (*log.Logger, error) {
+	return zap.NewStdLogAt(l.With(fields...).zap.WithOptions(getStdLogOption()), getZapLevel(level))
 }
 
 // StdLogWriter returns a writer that can be hooked up to the output of a golang standard logger

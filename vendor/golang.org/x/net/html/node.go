@@ -18,6 +18,11 @@ const (
 	ElementNode
 	CommentNode
 	DoctypeNode
+	// RawNode nodes are not returned by the parser, but can be part of the
+	// Node tree passed to func Render to insert raw HTML (without escaping).
+	// If so, this package makes no guarantee that the rendered HTML is secure
+	// (from e.g. Cross Site Scripting attacks) or well-formed.
+	RawNode
 	scopeMarkerNode
 )
 
@@ -177,7 +182,7 @@ func (s *nodeStack) index(n *Node) int {
 // contains returns whether a is within s.
 func (s *nodeStack) contains(a atom.Atom) bool {
 	for _, n := range *s {
-		if n.DataAtom == a {
+		if n.DataAtom == a && n.Namespace == "" {
 			return true
 		}
 	}

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package einterfaces
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type LdapInterface interface {
@@ -14,9 +14,12 @@ type LdapInterface interface {
 	CheckPassword(id string, password string) *model.AppError
 	CheckPasswordAuthData(authData string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError
-	ValidateFilter(filter string) *model.AppError
 	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
+	GetGroup(groupUID string) (*model.Group, *model.AppError)
+	GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError)
+	FirstLoginSync(userID, userAuthService, userAuthData, email string) *model.AppError
+	UpdateProfilePictureIfNecessary(*model.User, *model.Session)
 }

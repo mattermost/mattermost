@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type RoleState struct {
@@ -82,7 +82,7 @@ func TestSetRolePermissionsFromConfig(t *testing.T) {
 		for policyValue, rolesMappings := range v {
 
 			config := mockConfig()
-			updateConfig(config, policyName, policyValue)
+			updateConfig(config, "DEPRECATED_DO_NOT_USE_"+policyName, policyValue)
 			roles := model.MakeDefaultRoles()
 			SetRolePermissionsFromConfig(roles, config, true)
 

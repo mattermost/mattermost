@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -20,6 +20,9 @@ func TestCommandResponseFromHTTPBody(t *testing.T) {
 		{"text/plain", "foo", "foo"},
 		{"application/json", `{"text": "foo"}`, "foo"},
 		{"application/json; charset=utf-8", `{"text": "foo"}`, "foo"},
+		{"application/json", `{"text": "` + "```" + `haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n` + "```" + `", "skip_slack_parsing": true}`,
+			"```haskell\nlet\n\nf1 = [ 3 | a <- [1]]\nf2 = [ 4 | b <- [2]]\nf3 = \\p -> 5\n\nin 1\n```",
+		},
 	} {
 		response, err := CommandResponseFromHTTPBody(test.ContentType, strings.NewReader(test.Body))
 		assert.NoError(t, err)
@@ -35,33 +38,29 @@ func TestCommandResponseFromPlainText(t *testing.T) {
 func TestCommandResponseFromJson(t *testing.T) {
 	t.Parallel()
 
-	sToP := func(s string) *string {
-		return &s
-	}
-
 	testCases := []struct {
 		Description             string
 		Json                    string
 		ExpectedCommandResponse *CommandResponse
-		ExpectedError           *string
+		ShouldError             bool
 	}{
 		{
 			"empty response",
 			"",
 			nil,
-			sToP("parsing error at line 1, character 1: unexpected end of JSON input"),
+			true,
 		},
 		{
 			"malformed response",
 			`{"text": }`,
 			nil,
-			sToP("parsing error at line 1, character 11: invalid character '}' looking for beginning of value"),
+			true,
 		},
 		{
 			"invalid response",
 			`{"text": "test", "response_type": 5}`,
 			nil,
-			sToP("parsing error at line 1, character 36: json: cannot unmarshal number into Go struct field CommandResponse.response_type of type string"),
+			true,
 		},
 		{
 			"ephemeral response",
@@ -69,6 +68,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 				"response_type": "ephemeral",
 				"text": "response text",
 				"username": "response username",
+				"channel_id": "response channel id",
 				"icon_url": "response icon url",
 				"goto_location": "response goto location",
 				"attachments": [{
@@ -91,6 +91,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 				ResponseType: "ephemeral",
 				Text:         "response text",
 				Username:     "response username",
+				ChannelId:    "response channel id",
 				IconURL:      "response icon url",
 				GotoLocation: "response goto location",
 				Attachments: []*SlackAttachment{
@@ -115,7 +116,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 			},
-			nil,
+			false,
 		},
 		{
 			"null array items",
@@ -133,7 +134,72 @@ func TestCommandResponseFromJson(t *testing.T) {
 					},
 				},
 			},
-			nil,
+			false,
+		},
+		{
+			"multiple responses returned",
+			`
+			{
+				"text": "message 1",
+				"extra_responses": [
+					{"text": "message 2"}
+				]
+			}
+			`,
+			&CommandResponse{
+				Text: "message 1",
+				ExtraResponses: []*CommandResponse{
+					{
+						Text: "message 2",
+					},
+				},
+			},
+			false,
+		},
+		{
+			"multiple responses returned, with attachments",
+			`
+			{
+				"text": "message 1",
+				"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}]}],
+				"extra_responses": [
+					{
+						"text": "message 2",
+						"attachments":[{"fields":[{"title":"foo 2","value":"bar 2","short":false}]}]
+					}
+				]
+			}`,
+			&CommandResponse{
+				Text: "message 1",
+				Attachments: []*SlackAttachment{
+					{
+						Fields: []*SlackAttachmentField{
+							{
+								Title: "foo",
+								Value: "bar",
+								Short: true,
+							},
+						},
+					},
+				},
+				ExtraResponses: []*CommandResponse{
+					{
+						Text: "message 2",
+						Attachments: []*SlackAttachment{
+							{
+								Fields: []*SlackAttachmentField{
+									{
+										Title: "foo 2",
+										Value: "bar 2",
+										Short: false,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			false,
 		},
 	}
 
@@ -143,8 +209,7 @@ func TestCommandResponseFromJson(t *testing.T) {
 			t.Parallel()
 
 			response, err := CommandResponseFromJson(strings.NewReader(testCase.Json))
-			if testCase.ExpectedError != nil {
-				assert.EqualError(t, err, *testCase.ExpectedError)
+			if testCase.ShouldError {
 				assert.Nil(t, response)
 			} else {
 				assert.NoError(t, err)

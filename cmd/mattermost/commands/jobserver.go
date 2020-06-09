@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,14 +8,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
 )
 
 var JobserverCmd = &cobra.Command{
 	Use:   "jobserver",
 	Short: "Start the Mattermost job server",
-	Run:   jobserverCmdF,
+	RunE:  jobserverCmdF,
 }
 
 func init() {
@@ -25,15 +27,17 @@ func init() {
 	RootCmd.AddCommand(JobserverCmd)
 }
 
-func jobserverCmdF(command *cobra.Command, args []string) {
+func jobserverCmdF(command *cobra.Command, args []string) error {
 	// Options
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
+	config := viper.GetString("config")
+
 	// Initialize
-	a, err := InitDBCommandContext("config.json")
+	a, err := InitDBCommandContext(config)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 	defer a.Shutdown()
 
@@ -44,12 +48,17 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 	defer mlog.Info("Stopped Mattermost job server")
 
 	if !noJobs {
-		a.Jobs.StartWorkers()
-		defer a.Jobs.StopWorkers()
+		a.Srv().Jobs.StartWorkers()
+		defer a.Srv().Jobs.StopWorkers()
 	}
 	if !noSchedule {
-		a.Jobs.StartSchedulers()
-		defer a.Jobs.StopSchedulers()
+		a.Srv().Jobs.StartSchedulers()
+		defer a.Srv().Jobs.StopSchedulers()
+	}
+
+	if !noJobs || !noSchedule {
+		auditRec := a.MakeAuditRecord("jobServer", audit.Success)
+		a.LogAuditRec(auditRec, nil)
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -58,4 +67,6 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 
 	// Cleanup anything that isn't handled by a defer statement
 	mlog.Info("Stopping Mattermost job server")
+
+	return nil
 }

@@ -179,19 +179,20 @@ viper.GetBool("verbose") // true
 ### Working with Environment Variables
 
 Viper has full support for environment variables. This enables 12 factor
-applications out of the box. There are four methods that exist to aid working
+applications out of the box. There are five methods that exist to aid working
 with ENV:
 
  * `AutomaticEnv()`
  * `BindEnv(string...) : error`
  * `SetEnvPrefix(string)`
  * `SetEnvKeyReplacer(string...) *strings.Replacer`
+  * `AllowEmptyEnvVar(bool)`
 
 _When working with ENV variables, it’s important to recognize that Viper
 treats ENV variables as case sensitive._
 
 Viper provides a mechanism to try to ensure that ENV variables are unique. By
-using `SetEnvPrefix`, you can tell Viper to use add a prefix while reading from
+using `SetEnvPrefix`, you can tell Viper to use a prefix while reading from
 the environment variables. Both `BindEnv` and `AutomaticEnv` will use this
 prefix.
 
@@ -216,6 +217,10 @@ prefixed with the `EnvPrefix` if set.
 keys to an extent. This is useful if you want to use `-` or something in your
 `Get()` calls, but want your environmental variables to use `_` delimiters. An
 example of using it can be found in `viper_test.go`.
+
+By default empty environment variables are considered unset and will fall back to
+the next configuration source. To treat empty environment variables as set, use
+the `AllowEmptyEnv` method.
 
 #### Env example
 
@@ -373,10 +378,31 @@ how to use Consul.
 
 ### Remote Key/Value Store Example - Unencrypted
 
+#### etcd
 ```go
 viper.AddRemoteProvider("etcd", "http://127.0.0.1:4001","/config/hugo.json")
 viper.SetConfigType("json") // because there is no file extension in a stream of bytes, supported extensions are "json", "toml", "yaml", "yml", "properties", "props", "prop"
 err := viper.ReadRemoteConfig()
+```
+
+#### Consul
+You need to set a key to Consul key/value storage with JSON value containing your desired config.  
+For example, create a Consul key/value store key `MY_CONSUL_KEY` with value:
+
+```json
+{
+    "port": 8080,
+    "hostname": "myhostname.com"
+}
+```
+
+```go
+viper.AddRemoteProvider("consul", "localhost:8500", "MY_CONSUL_KEY")
+viper.SetConfigType("json") // Need to explicitly set this to json
+err := viper.ReadRemoteConfig()
+
+fmt.Println(viper.Get("port")) // 8080
+fmt.Println(viper.Get("hostname")) // myhostname.com
 ```
 
 ### Remote Key/Value Store Example - Encrypted
@@ -437,6 +463,7 @@ The following functions and methods exist:
  * `GetTime(key string) : time.Time`
  * `GetDuration(key string) : time.Duration`
  * `IsSet(key string) : bool`
+ * `AllSettings() : map[string]interface{}`
 
 One important thing to recognize is that each Get function will return a zero
 value if it’s not found. To check if a given key exists, the `IsSet()` method
@@ -587,6 +614,27 @@ var C config
 err := Unmarshal(&C)
 if err != nil {
 	t.Fatalf("unable to decode into struct, %v", err)
+}
+```
+
+### Marshalling to string
+
+You may need to marhsal all the settings held in viper into a string rather than write them to a file. 
+You can use your favorite format's marshaller with the config returned by `AllSettings()`.
+
+```go
+import (
+    yaml "gopkg.in/yaml.v2"
+    // ...
+) 
+
+func yamlStringSettings() string {
+    c := viper.AllSettings()
+	bs, err := yaml.Marshal(c)
+	if err != nil {
+        t.Fatalf("unable to marshal config to YAML: %v", err)
+    }
+	return string(bs)
 }
 ```
 

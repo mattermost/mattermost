@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -10,15 +10,15 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
@@ -36,7 +36,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error decoding license, err=%v", err.Error()))
+		mlog.Error("Encountered error decoding license", mlog.Err(err))
 		return false, ""
 	}
 
@@ -57,7 +57,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	public, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error signing license, err=%v", err.Error()))
+		mlog.Error("Encountered error signing license", mlog.Err(err))
 		return false, ""
 	}
 
@@ -69,7 +69,7 @@ func ValidateLicense(signed []byte) (bool, string) {
 
 	err = rsa.VerifyPKCS1v15(rsaPublic, crypto.SHA512, d, signature)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Invalid signature, err=%v", err.Error()))
+		mlog.Error("Invalid signature", mlog.Err(err))
 		return false, ""
 	}
 
@@ -80,15 +80,15 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 	fileName := GetLicenseFileLocation(location)
 
 	if _, err := os.Stat(fileName); err != nil {
-		mlog.Debug(fmt.Sprintf("We could not find the license key in the database or on disk at %v", fileName))
+		mlog.Debug("We could not find the license key in the database or on disk at", mlog.String("filename", fileName))
 		return nil, nil
 	}
 
-	mlog.Info(fmt.Sprintf("License key has not been uploaded.  Loading license key from disk at %v", fileName))
+	mlog.Info("License key has not been uploaded.  Loading license key from disk at", mlog.String("filename", fileName))
 	licenseBytes := GetLicenseFileFromDisk(fileName)
 
 	if success, licenseStr := ValidateLicense(licenseBytes); !success {
-		mlog.Error(fmt.Sprintf("Found license key at %v but it appears to be invalid.", fileName))
+		mlog.Error("Found license key at %v but it appears to be invalid.", mlog.String("filename", fileName))
 		return nil, nil
 	} else {
 		return model.LicenseFromJson(strings.NewReader(licenseStr)), licenseBytes
@@ -98,14 +98,14 @@ func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte)
 func GetLicenseFileFromDisk(fileName string) []byte {
 	file, err := os.Open(fileName)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Failed to open license key from disk at %v err=%v", fileName, err.Error()))
+		mlog.Error("Failed to open license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
 		return nil
 	}
 	defer file.Close()
 
 	licenseBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Failed to read license key from disk at %v err=%v", fileName, err.Error()))
+		mlog.Error("Failed to read license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
 		return nil
 	}
 
@@ -114,7 +114,7 @@ func GetLicenseFileFromDisk(fileName string) []byte {
 
 func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		configDir, _ := FindDir("config")
+		configDir, _ := fileutils.FindDir("config")
 		return filepath.Join(configDir, "mattermost.mattermost-license")
 	} else {
 		return fileLocation
@@ -128,8 +128,11 @@ func GetClientLicense(l *model.License) map[string]string {
 
 	if l != nil {
 		props["Id"] = l.Id
+		props["SkuName"] = l.SkuName
+		props["SkuShortName"] = l.SkuShortName
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
+		props["LDAPGroups"] = strconv.FormatBool(*l.Features.LDAPGroups)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
 		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["Cluster"] = strconv.FormatBool(*l.Features.Cluster)
@@ -141,16 +144,20 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["Announcement"] = strconv.FormatBool(*l.Features.Announcement)
 		props["Elasticsearch"] = strconv.FormatBool(*l.Features.Elasticsearch)
 		props["DataRetention"] = strconv.FormatBool(*l.Features.DataRetention)
+		props["IDLoadedPushNotifications"] = strconv.FormatBool(*l.Features.IDLoadedPushNotifications)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)
 		props["StartsAt"] = strconv.FormatInt(l.StartsAt, 10)
 		props["ExpiresAt"] = strconv.FormatInt(l.ExpiresAt, 10)
 		props["Name"] = l.Customer.Name
 		props["Email"] = l.Customer.Email
 		props["Company"] = l.Customer.Company
-		props["PhoneNumber"] = l.Customer.PhoneNumber
 		props["EmailNotificationContents"] = strconv.FormatBool(*l.Features.EmailNotificationContents)
 		props["MessageExport"] = strconv.FormatBool(*l.Features.MessageExport)
 		props["CustomPermissionsSchemes"] = strconv.FormatBool(*l.Features.CustomPermissionsSchemes)
+		props["GuestAccounts"] = strconv.FormatBool(*l.Features.GuestAccounts)
+		props["GuestAccountsPermissions"] = strconv.FormatBool(*l.Features.GuestAccountsPermissions)
+		props["CustomTermsOfService"] = strconv.FormatBool(*l.Features.CustomTermsOfService)
+		props["LockTeammateNameDisplay"] = strconv.FormatBool(*l.Features.LockTeammateNameDisplay)
 	}
 
 	return props

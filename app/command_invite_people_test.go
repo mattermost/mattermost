@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,18 +8,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestInvitePeopleProvider(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
 
 	cmd := InvitePeopleProvider{}
 

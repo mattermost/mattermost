@@ -1,11 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"fmt"
+	"regexp"
 )
+
+var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 type SlackAttachment struct {
 	Id         int64                   `json:"id"`
@@ -27,10 +30,110 @@ type SlackAttachment struct {
 	Actions    []*PostAction           `json:"actions,omitempty"`
 }
 
+func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
+	// Direct comparison of simple types
+
+	if s.Id != input.Id {
+		return false
+	}
+
+	if s.Fallback != input.Fallback {
+		return false
+	}
+
+	if s.Color != input.Color {
+		return false
+	}
+
+	if s.Pretext != input.Pretext {
+		return false
+	}
+
+	if s.AuthorName != input.AuthorName {
+		return false
+	}
+
+	if s.AuthorLink != input.AuthorLink {
+		return false
+	}
+
+	if s.AuthorIcon != input.AuthorIcon {
+		return false
+	}
+
+	if s.Title != input.Title {
+		return false
+	}
+
+	if s.TitleLink != input.TitleLink {
+		return false
+	}
+
+	if s.Text != input.Text {
+		return false
+	}
+
+	if s.ImageURL != input.ImageURL {
+		return false
+	}
+
+	if s.ThumbURL != input.ThumbURL {
+		return false
+	}
+
+	if s.Footer != input.Footer {
+		return false
+	}
+
+	if s.FooterIcon != input.FooterIcon {
+		return false
+	}
+
+	// Compare length & slice values of fields
+	if len(s.Fields) != len(input.Fields) {
+		return false
+	}
+
+	for j := range s.Fields {
+		if !s.Fields[j].Equals(input.Fields[j]) {
+			return false
+		}
+	}
+
+	// Compare length & slice values of actions
+	if len(s.Actions) != len(input.Actions) {
+		return false
+	}
+
+	for j := range s.Actions {
+		if !s.Actions[j].Equals(input.Actions[j]) {
+			return false
+		}
+	}
+
+	return s.Timestamp == input.Timestamp
+}
+
 type SlackAttachmentField struct {
-	Title string      `json:"title"`
-	Value interface{} `json:"value"`
-	Short bool        `json:"short"`
+	Title string              `json:"title"`
+	Value interface{}         `json:"value"`
+	Short SlackCompatibleBool `json:"short"`
+}
+
+func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
+	if s.Title != input.Title {
+		return false
+	}
+
+	if s.Value != input.Value {
+		return false
+	}
+
+	if s.Short != input.Short {
+		return false
+	}
+
+	return true
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
@@ -56,4 +159,35 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 		attachment.Fields = nonNilFields
 	}
 	return nonNilAttachments
+}
+
+// This method only parses and processes the attachments,
+// all else should be set in the post which is passed
+func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
+	if post.Type == "" {
+		post.Type = POST_SLACK_ATTACHMENT
+	}
+
+	postAttachments := []*SlackAttachment{}
+
+	for _, attachment := range attachments {
+		if attachment == nil {
+			continue
+		}
+
+		attachment.Text = ParseSlackLinksToMarkdown(attachment.Text)
+		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				field.Value = ParseSlackLinksToMarkdown(value)
+			}
+		}
+		postAttachments = append(postAttachments, attachment)
+	}
+	post.AddProp("attachments", postAttachments)
+}
+
+func ParseSlackLinksToMarkdown(text string) string {
+	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }

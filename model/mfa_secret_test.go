@@ -1,11 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMfaSecretJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestMfaSecretJson(t *testing.T) {
 	json := secret.ToJson()
 	result := MfaSecretFromJson(strings.NewReader(json))
 
-	if secret.Secret != result.Secret {
-		t.Fatal("Secrets do not match")
-	}
+	require.Equal(t, secret.Secret, result.Secret, "Secrets do not match")
 }

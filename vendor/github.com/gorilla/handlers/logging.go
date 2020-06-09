@@ -16,7 +16,7 @@ import (
 
 // Logging
 
-// FormatterParams is the structure any formatter will be handed when time to log comes
+// LogFormatterParams is the structure any formatter will be handed when time to log comes
 type LogFormatterParams struct {
 	Request    *http.Request
 	URL        url.URL
@@ -43,6 +43,9 @@ func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	url := *req.URL
 
 	h.handler.ServeHTTP(logger, req)
+	if req.MultipartForm != nil {
+		req.MultipartForm.RemoveAll()
+	}
 
 	params := LogFormatterParams{
 		Request:    req,

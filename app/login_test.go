@@ -1,15 +1,17 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestCheckForClienSideCert(t *testing.T) {
-	th := Setup()
+func TestCheckForClientSideCert(t *testing.T) {
+	th := Setup(t)
 	defer th.TearDown()
 
 	var tests = []struct {
@@ -28,10 +30,8 @@ func TestCheckForClienSideCert(t *testing.T) {
 		r.Header.Add("X-SSL-Client-Cert", tt.pem)
 		r.Header.Add("X-SSL-Client-Cert-Subject-DN", tt.subject)
 
-		_, _, actualEmail := th.App.CheckForClienSideCert(r)
+		_, _, actualEmail := th.App.CheckForClientSideCert(r)
 
-		if actualEmail != tt.expectedEmail {
-			t.Fatalf("CheckForClienSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
-		}
+		require.Equal(t, actualEmail, tt.expectedEmail, "CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
 	}
 }

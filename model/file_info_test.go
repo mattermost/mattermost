@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"encoding/base64"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	_ "image/gif"
 	_ "image/png"
 	"io/ioutil"
@@ -22,179 +24,182 @@ func TestFileInfoIsValid(t *testing.T) {
 		Path:      "fake/path.png",
 	}
 
-	if err := info.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("Valid File Info", func(t *testing.T) {
+		assert.Nil(t, info.IsValid())
+	})
 
-	info.Id = ""
-	if err := info.IsValid(); err == nil {
-		t.Fatal("empty Id isn't valid")
-	}
+	t.Run("Empty ID is not valid", func(t *testing.T) {
+		info.Id = ""
+		assert.NotNil(t, info.IsValid(), "empty Id isn't valid")
+		info.Id = NewId()
+	})
 
-	info.Id = NewId()
-	info.CreateAt = 0
-	if err := info.IsValid(); err == nil {
-		t.Fatal("empty CreateAt isn't valid")
-	}
+	t.Run("CreateAt 0 is not valid", func(t *testing.T) {
+		info.CreateAt = 0
+		assert.NotNil(t, info.IsValid(), "empty CreateAt isn't valid")
+		info.CreateAt = 1234
+	})
 
-	info.CreateAt = 1234
-	info.UpdateAt = 0
-	if err := info.IsValid(); err == nil {
-		t.Fatal("empty UpdateAt isn't valid")
-	}
+	t.Run("UpdateAt 0 is not valid", func(t *testing.T) {
+		info.UpdateAt = 0
+		assert.NotNil(t, info.IsValid(), "empty UpdateAt isn't valid")
+		info.UpdateAt = 1234
+	})
 
-	info.UpdateAt = 1234
-	info.PostId = NewId()
-	if err := info.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("New Post ID is valid", func(t *testing.T) {
+		info.PostId = NewId()
+		assert.Nil(t, info.IsValid())
+	})
 
-	info.Path = ""
-	if err := info.IsValid(); err == nil {
-		t.Fatal("empty Path isn't valid")
-	}
-
-	info.Path = "fake/path.png"
-	if err := info.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("Empty path is not valid", func(t *testing.T) {
+		info.Path = ""
+		assert.NotNil(t, info.IsValid(), "empty Path isn't valid")
+		info.Path = "fake/path.png"
+	})
 }
 
 func TestFileInfoIsImage(t *testing.T) {
-	info := &FileInfo{
-		MimeType: "image/png",
-	}
+	info := &FileInfo{}
+	t.Run("MimeType set to image/png is considered an image", func(t *testing.T) {
+		info.MimeType = "image/png"
+		assert.True(t, info.IsImage(), "PNG file should be considered as an image")
+	})
 
-	if !info.IsImage() {
-		t.Fatal("file is an image")
-	}
-
-	info.MimeType = "text/plain"
-	if info.IsImage() {
-		t.Fatal("file is not an image")
-	}
+	t.Run("MimeType set to text/plain is not considered an image", func(t *testing.T) {
+		info.MimeType = "text/plain"
+		assert.False(t, info.IsImage(), "Text file should not be considered as an image")
+	})
 }
 
 func TestGetInfoForFile(t *testing.T) {
 	fakeFile := make([]byte, 1000)
 
-	if info, err := GetInfoForBytes("file.txt", fakeFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "file.txt" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "txt" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 1000 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
-	} else if !strings.HasPrefix(info.MimeType, "text/plain") {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
-	} else if info.Width != 0 {
-		t.Fatalf("Got incorrect width: %v", info.Width)
-	} else if info.Height != 0 {
-		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if info.HasPreviewImage {
-		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
-	}
-
 	pngFile, err := ioutil.ReadFile("../tests/test.png")
-	if err != nil {
-		t.Fatalf("Failed to load test.png: %v", err.Error())
-	}
-	if info, err := GetInfoForBytes("test.png", pngFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "test.png" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "png" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 279591 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
-	} else if info.MimeType != "image/png" {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
-	} else if info.Width != 408 {
-		t.Fatalf("Got incorrect width: %v", info.Width)
-	} else if info.Height != 336 {
-		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if !info.HasPreviewImage {
-		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
-	}
+	require.Nilf(t, err, "Failed to load test.png")
 
 	// base 64 encoded version of handtinywhite.gif from http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
 	gifFile, _ := base64.StdEncoding.DecodeString("R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=")
-	if info, err := GetInfoForBytes("handtinywhite.gif", gifFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "handtinywhite.gif" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "gif" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 35 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
-	} else if info.MimeType != "image/gif" {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
-	} else if info.Width != 1 {
-		t.Fatalf("Got incorrect width: %v", info.Width)
-	} else if info.Height != 1 {
-		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if !info.HasPreviewImage {
-		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
-	}
 
 	animatedGifFile, err := ioutil.ReadFile("../tests/testgif.gif")
-	if err != nil {
-		t.Fatalf("Failed to load testgif.gif: %v", err.Error())
-	}
-	if info, err := GetInfoForBytes("testgif.gif", animatedGifFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "testgif.gif" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "gif" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 38689 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
-	} else if info.MimeType != "image/gif" {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
-	} else if info.Width != 118 {
-		t.Fatalf("Got incorrect width: %v", info.Width)
-	} else if info.Height != 118 {
-		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if info.HasPreviewImage {
-		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
+	require.Nilf(t, err, "Failed to load testgif.gif")
+
+	var ttc = []struct {
+		testName                string
+		filename                string
+		file                    []byte
+		usePrefixForMime        bool
+		expectedExtension       string
+		expectedSize            int
+		expectedMime            string
+		expectedWidth           int
+		expectedHeight          int
+		expectedHasPreviewImage bool
+	}{
+		{
+			testName:                "Text File",
+			filename:                "file.txt",
+			file:                    fakeFile,
+			usePrefixForMime:        true,
+			expectedExtension:       "txt",
+			expectedSize:            1000,
+			expectedMime:            "text/plain",
+			expectedWidth:           0,
+			expectedHeight:          0,
+			expectedHasPreviewImage: false,
+		},
+		{
+			testName:                "PNG file",
+			filename:                "test.png",
+			file:                    pngFile,
+			usePrefixForMime:        false,
+			expectedExtension:       "png",
+			expectedSize:            279591,
+			expectedMime:            "image/png",
+			expectedWidth:           408,
+			expectedHeight:          336,
+			expectedHasPreviewImage: true,
+		},
+		{
+			testName:                "Static Gif File",
+			filename:                "handtinywhite.gif",
+			file:                    gifFile,
+			usePrefixForMime:        false,
+			expectedExtension:       "gif",
+			expectedSize:            35,
+			expectedMime:            "image/gif",
+			expectedWidth:           1,
+			expectedHeight:          1,
+			expectedHasPreviewImage: true,
+		},
+		{
+			testName:                "Animated Gif File",
+			filename:                "testgif.gif",
+			file:                    animatedGifFile,
+			usePrefixForMime:        false,
+			expectedExtension:       "gif",
+			expectedSize:            38689,
+			expectedMime:            "image/gif",
+			expectedWidth:           118,
+			expectedHeight:          118,
+			expectedHasPreviewImage: false,
+		},
+		{
+			testName:                "No extension File",
+			filename:                "filewithoutextension",
+			file:                    fakeFile,
+			usePrefixForMime:        false,
+			expectedExtension:       "",
+			expectedSize:            1000,
+			expectedMime:            "",
+			expectedWidth:           0,
+			expectedHeight:          0,
+			expectedHasPreviewImage: false,
+		},
+		{
+			// Always make the extension lower case to make it easier to use in other places
+			testName:                "Uppercase extension File",
+			filename:                "file.TXT",
+			file:                    fakeFile,
+			usePrefixForMime:        true,
+			expectedExtension:       "txt",
+			expectedSize:            1000,
+			expectedMime:            "text/plain",
+			expectedWidth:           0,
+			expectedHeight:          0,
+			expectedHasPreviewImage: false,
+		},
+		{
+			// Don't error out for image formats we don't support
+			testName:                "Not supported File",
+			filename:                "file.tif",
+			file:                    fakeFile,
+			usePrefixForMime:        false,
+			expectedExtension:       "tif",
+			expectedSize:            1000,
+			expectedMime:            "image/tiff",
+			expectedWidth:           0,
+			expectedHeight:          0,
+			expectedHasPreviewImage: false,
+		},
 	}
 
-	if info, err := GetInfoForBytes("filewithoutextension", fakeFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "filewithoutextension" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.Size != 1000 {
-		t.Fatalf("Got incorrect size: %v", info.Size)
-	} else if info.MimeType != "" {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
-	} else if info.Width != 0 {
-		t.Fatalf("Got incorrect width: %v", info.Width)
-	} else if info.Height != 0 {
-		t.Fatalf("Got incorrect height: %v", info.Height)
-	} else if info.HasPreviewImage {
-		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
-	}
+	for _, tc := range ttc {
+		t.Run(tc.testName, func(t *testing.T) {
+			info, errApp := GetInfoForBytes(tc.filename, tc.file)
+			require.Nil(t, errApp)
 
-	// Always make the extension lower case to make it easier to use in other places
-	if info, err := GetInfoForBytes("file.TXT", fakeFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "file.TXT" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "txt" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	}
+			assert.Equalf(t, tc.filename, info.Name, "Got incorrect filename: %v", info.Name)
+			assert.Equalf(t, tc.expectedExtension, info.Extension, "Got incorrect extension: %v", info.Extension)
+			assert.EqualValuesf(t, tc.expectedSize, info.Size, "Got incorrect size: %v", info.Size)
+			assert.Equalf(t, tc.expectedWidth, info.Width, "Got incorrect width: %v", info.Width)
+			assert.Equalf(t, tc.expectedHeight, info.Height, "Got incorrect height: %v", info.Height)
+			assert.Equalf(t, tc.expectedHasPreviewImage, info.HasPreviewImage, "Got incorrect has preview image: %v", info.HasPreviewImage)
 
-	// Don't error out for image formats we don't support
-	if info, err := GetInfoForBytes("file.tif", fakeFile); err != nil {
-		t.Fatal(err)
-	} else if info.Name != "file.tif" {
-		t.Fatalf("Got incorrect filename: %v", info.Name)
-	} else if info.Extension != "tif" {
-		t.Fatalf("Got incorrect extension: %v", info.Extension)
-	} else if info.MimeType != "image/tiff" && info.MimeType != "image/x-tiff" {
-		t.Fatalf("Got incorrect mime type: %v", info.MimeType)
+			if tc.usePrefixForMime {
+				assert.Truef(t, strings.HasPrefix(info.MimeType, tc.expectedMime), "Got incorrect mime type: %v", info.MimeType)
+			} else {
+				assert.Equalf(t, tc.expectedMime, info.MimeType, "Got incorrect mime type: %v", info.MimeType)
+			}
+		})
 	}
 }

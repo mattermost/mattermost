@@ -1,40 +1,68 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User, rootId string) {
+func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
+	if channel.Type != model.CHANNEL_DIRECT {
+		return false, nil
+	}
+
+	if sender.IsBot {
+		return false, nil
+	}
+
+	receiverId := channel.GetOtherUserIdForDM(sender.Id)
+	if receiverId == "" {
+		// User direct messaged themself, let them test their auto-responder.
+		receiverId = sender.Id
+	}
+
+	receiver, err := a.GetUser(receiverId)
+	if err != nil {
+		return false, err
+	}
+
+	return a.SendAutoResponse(channel, receiver)
+}
+
+func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError) {
 	if receiver == nil || receiver.NotifyProps == nil {
-		return
+		return false, nil
 	}
 
-	active := receiver.NotifyProps["auto_responder_active"] == "true"
-	message := receiver.NotifyProps["auto_responder_message"]
+	active := receiver.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	message := receiver.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
 
-	if active && message != "" {
-		autoResponderPost := &model.Post{
-			ChannelId: channel.Id,
-			Message:   message,
-			RootId:    rootId,
-			ParentId:  rootId,
-			Type:      model.POST_AUTO_RESPONDER,
-			UserId:    receiver.Id,
-		}
-
-		if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
-			mlog.Error(err.Error())
-		}
+	if !active || message == "" {
+		return false, nil
 	}
+
+	autoResponderPost := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		RootId:    "",
+		ParentId:  "",
+		Type:      model.POST_AUTO_RESPONDER,
+		UserId:    receiver.Id,
+	}
+
+	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
+		mlog.Error(err.Error())
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
-	active := user.NotifyProps["auto_responder_active"] == "true"
-	oldActive := oldNotifyProps["auto_responder_active"] == "true"
+	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	oldActive := oldNotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
 	autoResponderEnabled := !oldActive && active
 	autoResponderDisabled := oldActive && !active
@@ -52,12 +80,12 @@ func (a *App) DisableAutoResponder(userId string, asAdmin bool) *model.AppError 
 		return err
 	}
 
-	active := user.NotifyProps["auto_responder_active"] == "true"
+	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
 	if active {
 		patch := &model.UserPatch{}
 		patch.NotifyProps = user.NotifyProps
-		patch.NotifyProps["auto_responder_active"] = "false"
+		patch.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] = "false"
 
 		_, err := a.PatchUser(userId, patch, asAdmin)
 		if err != nil {

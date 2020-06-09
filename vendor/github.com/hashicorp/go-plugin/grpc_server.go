@@ -8,10 +8,13 @@ import (
 	"io"
 	"net"
 
+	hclog "github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin/internal/plugin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 // GRPCServiceName is the name of the service that the health check should
@@ -49,9 +52,12 @@ type GRPCServer struct {
 	Stdout io.Reader
 	Stderr io.Reader
 
-	config GRPCServerConfig
-	server *grpc.Server
-	broker *GRPCBroker
+	config      GRPCServerConfig
+	server      *grpc.Server
+	broker      *GRPCBroker
+	stdioServer *grpcStdioServer
+
+	logger hclog.Logger
 }
 
 // ServerProtocol impl.
@@ -69,11 +75,22 @@ func (s *GRPCServer) Init() error {
 		GRPCServiceName, grpc_health_v1.HealthCheckResponse_SERVING)
 	grpc_health_v1.RegisterHealthServer(s.server, healthCheck)
 
+	// Register the reflection service
+	reflection.Register(s.server)
+
 	// Register the broker service
 	brokerServer := newGRPCBrokerServer()
-	RegisterGRPCBrokerServer(s.server, brokerServer)
+	plugin.RegisterGRPCBrokerServer(s.server, brokerServer)
 	s.broker = newGRPCBroker(brokerServer, s.TLS)
 	go s.broker.Run()
+
+	// Register the controller
+	controllerServer := &grpcControllerServer{server: s}
+	plugin.RegisterGRPCControllerServer(s.server, controllerServer)
+
+	// Register the stdio service
+	s.stdioServer = newGRPCStdioServer(s.logger, s.Stdout, s.Stderr)
+	plugin.RegisterGRPCStdioServer(s.server, s.stdioServer)
 
 	// Register all our plugins onto the gRPC server.
 	for k, raw := range s.Plugins {
@@ -83,7 +100,7 @@ func (s *GRPCServer) Init() error {
 		}
 
 		if err := p.GRPCServer(s.broker, s.server); err != nil {
-			return fmt.Errorf("error registring %q: %s", k, err)
+			return fmt.Errorf("error registering %q: %s", k, err)
 		}
 	}
 
@@ -117,11 +134,11 @@ func (s *GRPCServer) Config() string {
 }
 
 func (s *GRPCServer) Serve(lis net.Listener) {
-	// Start serving in a goroutine
-	go s.server.Serve(lis)
-
-	// Wait until graceful completion
-	<-s.DoneCh
+	defer close(s.DoneCh)
+	err := s.server.Serve(lis)
+	if err != nil {
+		s.logger.Error("grpc server", "error", err)
+	}
 }
 
 // GRPCServerConfig is the extra configuration passed along for consumers

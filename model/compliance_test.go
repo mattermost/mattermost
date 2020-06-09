@@ -1,11 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCompliance(t *testing.T) {
@@ -13,7 +15,5 @@ func TestCompliance(t *testing.T) {
 	json := o.ToJson()
 	result := ComplianceFromJson(strings.NewReader(json))
 
-	if o.Desc != result.Desc {
-		t.Fatal("JobName do not match")
-	}
+	require.Equal(t, o.Desc, result.Desc, "JobName do not match")
 }

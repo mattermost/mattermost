@@ -1,18 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitReaction() {
 	api.BaseRoutes.Reactions.Handle("", api.ApiSessionRequired(saveReaction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/reactions", api.ApiSessionRequired(getReactions)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.ApiSessionRequired(deleteReaction)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.ApiSessionRequired(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -22,17 +23,17 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(reaction.UserId) != 26 || len(reaction.PostId) != 26 || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
+	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if reaction.UserId != c.Session.UserId {
+	if reaction.UserId != c.App.Session().UserId {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, reaction.PostId, model.PERMISSION_ADD_REACTION) {
+	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), reaction.PostId, model.PERMISSION_ADD_REACTION) {
 		c.SetPermissionError(model.PERMISSION_ADD_REACTION)
 		return
 	}
@@ -52,7 +53,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -82,12 +83,12 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_REMOVE_REACTION) {
+	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_REMOVE_REACTION) {
 		c.SetPermissionError(model.PERMISSION_REMOVE_REACTION)
 		return
 	}
 
-	if c.Params.UserId != c.Session.UserId && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_REMOVE_OTHERS_REACTIONS) {
+	if c.Params.UserId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_REMOVE_OTHERS_REACTIONS) {
 		c.SetPermissionError(model.PERMISSION_REMOVE_OTHERS_REACTIONS)
 		return
 	}
@@ -105,4 +106,21 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
+	postIds := model.ArrayFromJson(r.Body)
+	for _, postId := range postIds {
+		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), postId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	}
+	reactions, err := c.App.GetBulkReactionsForPosts(postIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.MapPostIdToReactionsToJson(reactions)))
 }

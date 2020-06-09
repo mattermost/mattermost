@@ -1,43 +1,43 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
-	if result := <-a.Srv.Store.Preference().GetAll(userId); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else {
-		return result.Data.(model.Preferences), nil
+	preferences, err := a.Srv().Store.Preference().GetAll(userId)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
-	if result := <-a.Srv.Store.Preference().GetCategory(userId, category); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else if len(result.Data.(model.Preferences)) == 0 {
+	preferences, err := a.Srv().Store.Preference().GetCategory(userId, category)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
+	}
+	if len(preferences) == 0 {
 		err := model.NewAppError("getPreferenceCategory", "api.preference.preferences_category.get.app_error", nil, "", http.StatusNotFound)
 		return nil, err
-	} else {
-		return result.Data.(model.Preferences), nil
 	}
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
-	if result := <-a.Srv.Store.Preference().Get(userId, category, preferenceName); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	} else {
-		data := result.Data.(model.Preference)
-		return &data, nil
+	res, err := a.Srv().Store.Preference().Get(userId, category, preferenceName)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
+	return res, nil
 }
 
 func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
@@ -48,9 +48,9 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		}
 	}
 
-	if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return result.Err
+	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
@@ -70,9 +70,9 @@ func (a *App) DeletePreferences(userId string, preferences model.Preferences) *m
 	}
 
 	for _, preference := range preferences {
-		if result := <-a.Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
-			result.Err.StatusCode = http.StatusBadRequest
-			return result.Err
+		if err := a.Srv().Store.Preference().Delete(userId, preference.Category, preference.Name); err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return err
 		}
 	}
 

@@ -1,18 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().Get(id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Job), nil
-	}
+	return a.Srv().Store.Job().Get(id)
 }
 
 func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
@@ -20,11 +16,7 @@ func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError)
 }
 
 func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().GetAllPage(offset, limit); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Job), nil
-	}
+	return a.Srv().Store.Job().GetAllPage(offset, limit)
 }
 
 func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
@@ -32,17 +24,13 @@ func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model
 }
 
 func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-a.Srv.Store.Job().GetAllByTypePage(jobType, offset, limit); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.Job), nil
-	}
+	return a.Srv().Store.Job().GetAllByTypePage(jobType, offset, limit)
 }
 
 func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
-	return a.Jobs.CreateJob(job.Type, job.Data)
+	return a.Srv().Jobs.CreateJob(job.Type, job.Data)
 }
 
 func (a *App) CancelJob(jobId string) *model.AppError {
-	return a.Jobs.RequestCancellation(jobId)
+	return a.Srv().Jobs.RequestCancellation(jobId)
 }

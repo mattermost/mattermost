@@ -1,11 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSamlCertificateStatusJson(t *testing.T) {
@@ -13,12 +15,8 @@ func TestSamlCertificateStatusJson(t *testing.T) {
 	json := status.ToJson()
 	rstatus := SamlCertificateStatusFromJson(strings.NewReader(json))
 
-	if status.IdpCertificateFile != rstatus.IdpCertificateFile {
-		t.Fatal("IdpCertificateFile do not match")
-	}
+	require.Equal(t, status.IdpCertificateFile, rstatus.IdpCertificateFile, "IdpCertificateFile do not match")
 
 	rstatus = SamlCertificateStatusFromJson(strings.NewReader("junk"))
-	if rstatus != nil {
-		t.Fatal("should be nil")
-	}
+	require.Nil(t, rstatus, "should be nil")
 }

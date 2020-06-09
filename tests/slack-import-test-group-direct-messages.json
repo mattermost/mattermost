@@ -1,0 +1,69 @@
+[
+    {
+        "id": "G1XSSNBTP",
+        "name": "mpdm-mcauly--sutton--barker--lankford-1",
+        "created": 1470239933,
+        "creator": "U1FFMLSKC",
+        "is_archived": false,
+        "members": [
+            "U1934896U",
+            "U1TTSPAGP",
+            "U1FFMLSKC",
+            "U1U234D4P"
+        ],
+        "topic": {
+            "value": "Group messaging",
+            "creator": "U1FFMLSKC",
+            "last_set": "1470239933"
+        },
+        "purpose": {
+            "value": "Group messaging with: @mcauly @sutton @barker @lankford",
+            "creator": "U1FFMLSKC",
+            "last_set": "1470239933"
+        }
+    },
+    {
+        "id": "G22KV02G2",
+        "name": "mpdm-mcauly--wolfgram--weddington-1",
+        "created": 1471532476,
+        "creator": "U1K9SEY9K",
+        "is_archived": false,
+        "members": [
+            "U1934896U",
+            "U1K9SEY9K",
+            "U1YTGR5CP"
+        ],
+        "topic": {
+            "value": "Group messaging",
+            "creator": "U1K9SEY9K",
+            "last_set": "1471532476"
+        },
+        "purpose": {
+            "value": "Group messaging with: @mcauly @wolfgram @weddington",
+            "creator": "U1K9SEY9K",
+            "last_set": "1471532476"
+        }
+    },
+    {
+        "id": "G2436812A",
+        "name": "mpdm-mcauly--lovell--buck-1",
+        "created": 1471964085,
+        "creator": "U1934896U",
+        "is_archived": false,
+        "members": [
+            "U1934896U",
+            "U1YYZNDJP",
+            "U1JSZSPR7"
+        ],
+        "topic": {
+            "value": "Group messaging",
+            "creator": "U1934896U",
+            "last_set": "1471964085"
+        },
+        "purpose": {
+            "value": "Group messaging with: @mcauly @lovell @buck",
+            "creator": "U1934896U",
+            "last_set": "1471964085"
+        }
+    }
+]

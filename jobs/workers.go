@@ -1,18 +1,19 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
 )
 
 type Workers struct {
 	startOnce     sync.Once
-	ConfigService ConfigService
+	ConfigService configservice.ConfigService
 	Watcher       *Watcher
 
 	DataRetention            model.Worker
@@ -21,6 +22,8 @@ type Workers struct {
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
 	Migrations               model.Worker
+	Plugins                  model.Worker
+	BleveIndexing            model.Worker
 
 	listenerId string
 }
@@ -55,6 +58,14 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Migrations = migrationsInterface.MakeWorker()
 	}
 
+	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
+		workers.Plugins = pluginsInterface.MakeWorker()
+	}
+
+	if bleveIndexerInterface := srv.BleveIndexer; bleveIndexerInterface != nil {
+		workers.BleveIndexing = bleveIndexerInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -84,6 +95,14 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Migrations != nil {
 			go workers.Migrations.Run()
+		}
+
+		if workers.Plugins != nil {
+			go workers.Plugins.Run()
+		}
+
+		if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
+			go workers.BleveIndexing.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -136,6 +155,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.LdapSync.Stop()
 		}
 	}
+
+	if workers.BleveIndexing != nil {
+		if !*oldConfig.BleveSettings.EnableIndexing && *newConfig.BleveSettings.EnableIndexing {
+			go workers.BleveIndexing.Run()
+		} else if *oldConfig.BleveSettings.EnableIndexing && !*newConfig.BleveSettings.EnableIndexing {
+			workers.BleveIndexing.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
@@ -165,6 +192,14 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Migrations != nil {
 		workers.Migrations.Stop()
+	}
+
+	if workers.Plugins != nil {
+		workers.Plugins.Stop()
+	}
+
+	if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing {
+		workers.BleveIndexing.Stop()
 	}
 
 	mlog.Info("Stopped workers")

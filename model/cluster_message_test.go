@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -22,7 +22,6 @@ func TestClusterMessage(t *testing.T) {
 	require.Equal(t, "hello", result.Data)
 
 	badresult := ClusterMessageFromJson(strings.NewReader("junk"))
-	if badresult != nil {
-		t.Fatal("should not have parsed")
-	}
+
+	require.Nil(t, badresult, "should not have parsed")
 }

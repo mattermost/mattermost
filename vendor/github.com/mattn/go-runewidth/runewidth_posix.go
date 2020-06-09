@@ -1,4 +1,6 @@
-// +build !windows,!js
+// +build !windows
+// +build !js
+// +build !appengine
 
 package runewidth
 
@@ -60,7 +62,10 @@ func isEastAsian(locale string) bool {
 
 // IsEastAsian return true if the current locale is CJK
 func IsEastAsian() bool {
-	locale := os.Getenv("LC_CTYPE")
+	locale := os.Getenv("LC_ALL")
+	if locale == "" {
+		locale = os.Getenv("LC_CTYPE")
+	}
 	if locale == "" {
 		locale = os.Getenv("LANG")
 	}

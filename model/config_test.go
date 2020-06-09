@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -55,40 +55,165 @@ func TestConfigDefaults(t *testing.T) {
 	})
 }
 
+func TestConfigEmptySiteName(t *testing.T) {
+	c1 := Config{
+		TeamSettings: TeamSettings{
+			SiteName: NewString(""),
+		},
+	}
+	c1.SetDefaults()
+
+	require.Equal(t, *c1.TeamSettings.SiteName, TEAM_SETTINGS_DEFAULT_SITE_NAME)
+}
+
+func TestConfigEnableDeveloper(t *testing.T) {
+	testCases := []struct {
+		Description     string
+		EnableDeveloper *bool
+		ExpectedSiteURL string
+	}{
+		{"enable developer is true", NewBool(true), SERVICE_SETTINGS_DEFAULT_SITE_URL},
+		{"enable developer is false", NewBool(false), ""},
+		{"enable developer is nil", nil, ""},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			c1 := Config{
+				ServiceSettings: ServiceSettings{
+					EnableDeveloper: testCase.EnableDeveloper,
+				},
+			}
+			c1.SetDefaults()
+
+			require.Equal(t, testCase.ExpectedSiteURL, *c1.ServiceSettings.SiteURL)
+		})
+	}
+}
+
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if c1.FileSettings.Directory != "./data/" {
-		t.Fatal("FileSettings.Directory should default to './data/'")
-	}
+	require.Equal(t, *c1.FileSettings.Directory, "./data/")
 }
 
 func TestConfigDefaultEmailNotificationContentsType(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.EmailSettings.EmailNotificationContentsType != EMAIL_NOTIFICATION_CONTENTS_FULL {
-		t.Fatal("EmailSettings.EmailNotificationContentsType should default to 'full'")
-	}
+	require.Equal(t, *c1.EmailSettings.EmailNotificationContentsType, EMAIL_NOTIFICATION_CONTENTS_FULL)
 }
 
 func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.FileSettings.AmazonS3SSE {
-		t.Fatal("FileSettings.AmazonS3SSE should default to false")
+	require.False(t, *c1.FileSettings.AmazonS3SSE)
+}
+
+func TestConfigDefaultSignatureAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, SAML_SETTINGS_DEFAULT_SIGNATURE_ALGORITHM)
+	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, SAML_SETTINGS_DEFAULT_CANONICAL_ALGORITHM)
+}
+
+func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
+	const testAlgorithm = "FakeAlgorithm"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			CanonicalAlgorithm: NewString(testAlgorithm),
+			SignatureAlgorithm: NewString(testAlgorithm),
+		},
 	}
+
+	c1.SetDefaults()
+
+	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, testAlgorithm)
+	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, testAlgorithm)
+}
+
+func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	require.Nil(t, err)
+}
+
+func TestConfigIsValidFakeAlgorithm(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	*c1.SamlSettings.Enable = true
+	*c1.SamlSettings.Verify = false
+	*c1.SamlSettings.Encrypt = false
+
+	*c1.SamlSettings.IdpUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpMetadataUrl = "http://test.url.com"
+	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.EmailAttribute = "Email"
+	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	temp := *c1.SamlSettings.CanonicalAlgorithm
+	*c1.SamlSettings.CanonicalAlgorithm = "Fake Algorithm"
+	err := c1.SamlSettings.isValid()
+	require.NotNil(t, err)
+
+	require.Equal(t, "model.config.is_valid.saml_canonical_algorithm.app_error", err.Message)
+	*c1.SamlSettings.CanonicalAlgorithm = temp
+
+	*c1.SamlSettings.SignatureAlgorithm = "Fake Algorithm"
+	err = c1.SamlSettings.isValid()
+	require.NotNil(t, err)
+
+	require.Equal(t, "model.config.is_valid.saml_signature_algorithm.app_error", err.Message)
+}
+
+func TestConfigOverwriteGuestSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			GuestAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	require.Equal(t, *c1.SamlSettings.GuestAttribute, attribute)
+}
+
+func TestConfigOverwriteAdminSettings(t *testing.T) {
+	const attribute = "FakeAttributeName"
+	c1 := Config{
+		SamlSettings: SamlSettings{
+			AdminAttribute: NewString(attribute),
+		},
+	}
+
+	c1.SetDefaults()
+
+	require.Equal(t, *c1.SamlSettings.AdminAttribute, attribute)
 }
 
 func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should default to 'disabled'")
-	}
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DISABLED)
 
 	// This setting was briefly a boolean, so ensure that those values still work as expected
 	c1 = Config{
@@ -98,9 +223,7 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set true to 'default on'")
-	}
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 
 	c1 = Config{
 		ServiceSettings: ServiceSettings{
@@ -109,9 +232,65 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 	c1.SetDefaults()
 
-	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
-		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
-	}
+	require.Equal(t, *c1.ServiceSettings.ExperimentalGroupUnreadChannels, GROUP_UNREAD_CHANNELS_DISABLED)
+}
+
+func TestConfigDefaultNPSPluginState(t *testing.T) {
+	t.Run("should enable NPS plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(false),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not re-enable NPS plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.nps": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+}
+
+func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+	c1.TeamSettings.SiteName = NewString("")
+
+	// should not fail if ts.SiteName is not set, defaults are used
+	require.Nil(t, c1.TeamSettings.isValid())
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
@@ -360,6 +539,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
@@ -367,12 +547,13 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -381,7 +562,7 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
@@ -425,6 +606,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 }
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(false),
 		ExportFromTimestamp: NewInt64(12345),
@@ -433,7 +615,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 
 	require.False(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(12345), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
@@ -466,7 +648,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "containing hyphen",
@@ -476,7 +658,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "starting with number",
@@ -509,7 +691,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.CustomUrlSchemes = &test.value
+			ds.CustomUrlSchemes = test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
 				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
@@ -550,7 +732,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 		ss := &ServiceSettings{
 			ListenAddress: NewString(key),
 		}
-		ss.SetDefaults()
+		ss.SetDefaults(true)
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {
@@ -560,4 +742,539 @@ func TestListenAddressIsValidated(t *testing.T) {
 		}
 	}
 
+}
+
+func TestImageProxySettingsSetDefaults(t *testing.T) {
+	ss := ServiceSettings{
+		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
+		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
+	}
+
+	t.Run("default, no old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ServiceSettings{})
+
+		assert.Equal(t, false, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, "", *ips.RemoteImageProxyURL)
+		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("default, old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("not default, old settings", func(t *testing.T) {
+		url := "http://images.mattermost.com"
+		options := "aaaaaaaa"
+
+		ips := ImageProxySettings{
+			Enable:                  NewBool(false),
+			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
+			RemoteImageProxyURL:     &url,
+			RemoteImageProxyOptions: &options,
+		}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, false, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, url, *ips.RemoteImageProxyURL)
+		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
+	})
+}
+
+func TestImageProxySettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name                    string
+		Enable                  bool
+		ImageProxyType          string
+		RemoteImageProxyURL     string
+		RemoteImageProxyOptions string
+		ExpectError             bool
+	}{
+		{
+			Name:        "disabled",
+			Enable:      false,
+			ExpectError: false,
+		},
+		{
+			Name:                    "disabled with bad values",
+			Enable:                  false,
+			ImageProxyType:          "garbage",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:           "missing type",
+			Enable:         true,
+			ImageProxyType: "",
+			ExpectError:    true,
+		},
+		{
+			Name:                    "local",
+			Enable:                  true,
+			ImageProxyType:          "local",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "someoptions",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo, missing url",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, missing options",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "",
+			ExpectError:             true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			ips := &ImageProxySettings{
+				Enable:                  &test.Enable,
+				ImageProxyType:          &test.ImageProxyType,
+				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
+				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+			}
+
+			err := ips.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestLdapSettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name         string
+		LdapSettings LdapSettings
+		ExpectError  bool
+	}{
+		{
+			Name: "disabled",
+			LdapSettings: LdapSettings{
+				Enable: NewBool(false),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "missing server",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString(""),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString(""),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "empty user filter",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString(""),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid user filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid user filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid user filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid user filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid user filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid user filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid user filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+
+		{
+			Name: "valid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid guest filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid guest filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid guest filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				GuestFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+
+		{
+			Name: "valid Admin filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid Admin filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid Admin filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid Admin filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid Admin filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid Admin filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid Admin filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				AdminFilter:       NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			test.LdapSettings.SetDefaults()
+
+			err := test.LdapSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestConfigSanitize(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	*c.LdapSettings.BindPassword = "foo"
+	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.EmailSettings.SMTPPassword = "baz"
+	*c.GitLabSettings.Secret = "bingo"
+	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
+	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
+
+	c.Sanitize()
+
+	assert.Equal(t, FAKE_SETTING, *c.LdapSettings.BindPassword)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.PublicLinkSalt)
+	assert.Equal(t, FAKE_SETTING, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FAKE_SETTING, *c.EmailSettings.SMTPPassword)
+	assert.Equal(t, FAKE_SETTING, *c.GitLabSettings.Secret)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.DataSource)
+	assert.Equal(t, FAKE_SETTING, *c.SqlSettings.AtRestEncryptKey)
+	assert.Equal(t, FAKE_SETTING, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceReplicas[0])
+	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
+}
+
+func TestConfigMarketplaceDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("no marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("old marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = PLUGIN_SETTINGS_OLD_MARKETPLACE_URL
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL, *c.PluginSettings.MarketplaceUrl)
+	})
+
+	t.Run("custom marketplace url", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		*c.PluginSettings.MarketplaceUrl = "https://marketplace.example.com"
+		c.SetDefaults()
+
+		require.True(t, *c.PluginSettings.EnableMarketplace)
+		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
+	})
 }

@@ -209,63 +209,60 @@ func rotatedSize(w, h int, angle float64) (int, int) {
 }
 
 func interpolatePoint(dst *image.NRGBA, dstX, dstY int, src *image.NRGBA, xf, yf float64, bgColor color.NRGBA) {
-	dstIndex := dstY*dst.Stride + dstX*4
+	j := dstY*dst.Stride + dstX*4
+	d := dst.Pix[j : j+4 : j+4]
 
 	x0 := int(math.Floor(xf))
 	y0 := int(math.Floor(yf))
 	bounds := src.Bounds()
 	if !image.Pt(x0, y0).In(image.Rect(bounds.Min.X-1, bounds.Min.Y-1, bounds.Max.X, bounds.Max.Y)) {
-		dst.Pix[dstIndex+0] = bgColor.R
-		dst.Pix[dstIndex+1] = bgColor.G
-		dst.Pix[dstIndex+2] = bgColor.B
-		dst.Pix[dstIndex+3] = bgColor.A
+		d[0] = bgColor.R
+		d[1] = bgColor.G
+		d[2] = bgColor.B
+		d[3] = bgColor.A
 		return
 	}
 
 	xq := xf - float64(x0)
 	yq := yf - float64(y0)
-
-	var pxs [4]color.NRGBA
-	var cfs [4]float64
-
-	for i := 0; i < 2; i++ {
-		for j := 0; j < 2; j++ {
-			k := i*2 + j
-			pt := image.Pt(x0+j, y0+i)
-			if pt.In(bounds) {
-				l := pt.Y*src.Stride + pt.X*4
-				pxs[k].R = src.Pix[l+0]
-				pxs[k].G = src.Pix[l+1]
-				pxs[k].B = src.Pix[l+2]
-				pxs[k].A = src.Pix[l+3]
-			} else {
-				pxs[k] = bgColor
-			}
-		}
+	points := [4]image.Point{
+		{x0, y0},
+		{x0 + 1, y0},
+		{x0, y0 + 1},
+		{x0 + 1, y0 + 1},
 	}
-
-	cfs[0] = (1 - xq) * (1 - yq)
-	cfs[1] = xq * (1 - yq)
-	cfs[2] = (1 - xq) * yq
-	cfs[3] = xq * yq
+	weights := [4]float64{
+		(1 - xq) * (1 - yq),
+		xq * (1 - yq),
+		(1 - xq) * yq,
+		xq * yq,
+	}
 
 	var r, g, b, a float64
-	for i := range pxs {
-		wa := float64(pxs[i].A) * cfs[i]
-		r += float64(pxs[i].R) * wa
-		g += float64(pxs[i].G) * wa
-		b += float64(pxs[i].B) * wa
-		a += wa
+	for i := 0; i < 4; i++ {
+		p := points[i]
+		w := weights[i]
+		if p.In(bounds) {
+			i := p.Y*src.Stride + p.X*4
+			s := src.Pix[i : i+4 : i+4]
+			wa := float64(s[3]) * w
+			r += float64(s[0]) * wa
+			g += float64(s[1]) * wa
+			b += float64(s[2]) * wa
+			a += wa
+		} else {
+			wa := float64(bgColor.A) * w
+			r += float64(bgColor.R) * wa
+			g += float64(bgColor.G) * wa
+			b += float64(bgColor.B) * wa
+			a += wa
+		}
 	}
-
 	if a != 0 {
-		r /= a
-		g /= a
-		b /= a
+		aInv := 1 / a
+		d[0] = clamp(r * aInv)
+		d[1] = clamp(g * aInv)
+		d[2] = clamp(b * aInv)
+		d[3] = clamp(a)
 	}
-
-	dst.Pix[dstIndex+0] = clamp(r)
-	dst.Pix[dstIndex+1] = clamp(g)
-	dst.Pix[dstIndex+2] = clamp(b)
-	dst.Pix[dstIndex+3] = clamp(a)
 }

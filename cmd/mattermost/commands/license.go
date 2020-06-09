@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/spf13/cobra"
 )
 
@@ -49,6 +50,10 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("Uploaded license file")
+
+	auditRec := a.MakeAuditRecord("uploadLicense", audit.Success)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

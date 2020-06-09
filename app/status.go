@@ -1,37 +1,27 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
-
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
-
-func ClearStatusCache() {
-	statusCache.Purge()
-}
-
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
-	statusCache.Add(status.UserId, status)
+	a.Srv().statusCache.Set(status.UserId, status)
 }
 
 func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
-	if a.Cluster != nil {
+	if a.Cluster() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     status.ToClusterJson(),
 		}
-		a.Cluster.SendClusterMessage(msg)
+		a.Cluster().SendClusterMessage(msg)
 	}
 }
 
@@ -40,20 +30,15 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 		return map[string]*model.Status{}
 	}
 
-	userIds := statusCache.Keys()
 	statusMap := map[string]*model.Status{}
-
-	for _, userId := range userIds {
-		if id, ok := userId.(string); !ok {
-			continue
-		} else {
-			status := GetStatusFromCache(id)
+	if userIds, err := a.Srv().statusCache.Keys(); err == nil {
+		for _, userId := range userIds {
+			status := a.GetStatusFromCache(userId)
 			if status != nil {
-				statusMap[id] = status
+				statusMap[userId] = status
 			}
 		}
 	}
-
 	return statusMap
 }
 
@@ -63,12 +48,13 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	statusMap := map[string]interface{}{}
-	metrics := a.Metrics
+	metrics := a.Metrics()
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
-			statusMap[userId] = result.(*model.Status).Status
+		var status *model.Status
+		if err := a.Srv().statusCache.Get(userId, &status); err == nil {
+			statusMap[userId] = status.Status
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
 			}
@@ -81,16 +67,16 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
-			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCacheSkipClusterSend(s)
-				statusMap[s.UserId] = s.Status
-			}
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+			statusMap[s.UserId] = s.Status
+		}
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -110,12 +96,13 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	var statusMap []*model.Status
-	metrics := a.Metrics
+	metrics := a.Metrics()
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
-		if result, ok := statusCache.Get(userId); ok {
-			statusMap = append(statusMap, result.(*model.Status))
+		var status *model.Status
+		if err := a.Srv().statusCache.Get(userId, &status); err == nil {
+			statusMap = append(statusMap, status)
 			if metrics != nil {
 				metrics.IncrementMemCacheHitCounter("Status")
 			}
@@ -128,17 +115,17 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
-			return nil, result.Err
-		} else {
-			statuses := result.Data.([]*model.Status)
-
-			for _, s := range statuses {
-				a.AddStatusCacheSkipClusterSend(s)
-			}
-
-			statusMap = append(statusMap, statuses...)
+		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
+
+		for _, s := range statuses {
+			a.AddStatusCacheSkipClusterSend(s)
+		}
+
+		statusMap = append(statusMap, statuses...)
+
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -185,8 +172,8 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	broadcast := false
 
 	var oldStatus string = model.STATUS_OFFLINE
-	var oldTime int64 = 0
-	var oldManual bool = false
+	var oldTime int64
+	var oldManual bool
 	var status *model.Status
 	var err *model.AppError
 
@@ -216,16 +203,14 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
-
-		var schan store.StoreChannel
 		if broadcast {
-			schan = a.Srv.Store.Status().SaveOrUpdate(status)
+			if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		} else {
-			schan = a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-		}
-
-		if result := <-schan; result.Err != nil {
-			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			if err := a.Srv().Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+				mlog.Error("Failed to save status", mlog.String("user_id", userId), mlog.Err(err), mlog.String("user_id", userId))
+			}
 		}
 	}
 
@@ -235,6 +220,10 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 }
 
 func (a *App) BroadcastStatus(status *model.Status) {
+	if a.Srv().Busy.IsBusy() {
+		// this is considered a non-critical service and will be disabled when server busy.
+		return
+	}
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
@@ -308,8 +297,8 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
+	if err := a.Srv().Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error("Failed to save status", mlog.String("user_id", status.UserId), mlog.Err(err))
 	}
 
 	a.BroadcastStatus(status)
@@ -332,9 +321,9 @@ func (a *App) SetStatusOutOfOffice(userId string) {
 	a.SaveAndBroadcastStatus(status)
 }
 
-func GetStatusFromCache(userId string) *model.Status {
-	if result, ok := statusCache.Get(userId); ok {
-		status := result.(*model.Status)
+func (a *App) GetStatusFromCache(userId string) *model.Status {
+	var status *model.Status
+	if err := a.Srv().statusCache.Get(userId, &status); err == nil {
 		statusCopy := &model.Status{}
 		*statusCopy = *status
 		return statusCopy
@@ -348,16 +337,12 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return &model.Status{}, nil
 	}
 
-	status := GetStatusFromCache(userId)
+	status := a.GetStatusFromCache(userId)
 	if status != nil {
 		return status, nil
 	}
 
-	if result := <-a.Srv.Store.Status().Get(userId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Status), nil
-	}
+	return a.Srv().Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

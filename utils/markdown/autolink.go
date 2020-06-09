@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -76,6 +76,10 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 	start := position - 1
 	for start > 0 && isAlphanumericByte(data[start-1]) {
 		start -= 1
+	}
+
+	if start < 0 || position >= len(data) {
+		return Range{}, false
 	}
 
 	// Ensure that the URL scheme is allowed and that at least one character after the scheme is valid.

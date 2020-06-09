@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -12,10 +12,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 	"github.com/spf13/cobra"
 )
 
@@ -53,13 +53,13 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router)
-	wsapi.Init(a, a.Srv.WebSocketRouter)
+	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	wsapi.Init(a, a.Srv().WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
 
@@ -74,13 +74,13 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router)
-	wsapi.Init(a, a.Srv.WebSocketRouter)
+	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	wsapi.Init(a, a.Srv().WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 
 	c := make(chan os.Signal, 1)
@@ -93,10 +93,9 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 func setupClientTests(cfg *model.Config) {
 	*cfg.TeamSettings.EnableOpenServer = true
 	*cfg.ServiceSettings.EnableCommands = false
-	*cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
 	*cfg.ServiceSettings.EnableCustomEmoji = true
-	cfg.ServiceSettings.EnableIncomingWebhooks = false
-	cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	*cfg.ServiceSettings.EnableIncomingWebhooks = false
+	*cfg.ServiceSettings.EnableOutgoingWebhooks = false
 }
 
 func executeTestCommand(command *exec.Cmd) {

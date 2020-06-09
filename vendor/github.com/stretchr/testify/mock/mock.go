@@ -147,7 +147,7 @@ func (c *Call) After(d time.Duration) *Call {
 }
 
 // Run sets a handler to be called before returning. It can be used when
-// mocking a method such as unmarshalers that takes a pointer to a struct and
+// mocking a method (such as an unmarshaler) that takes a pointer to a struct and
 // sets properties in such struct
 //
 //    Mock.On("Unmarshal", AnythingOfType("*map[string]interface{}").Return().Run(func(args Arguments) {
@@ -176,6 +176,7 @@ func (c *Call) Maybe() *Call {
 //    Mock.
 //       On("MyMethod", 1).Return(nil).
 //       On("MyOtherMethod", 'a', 'b', 'c').Return(errors.New("Some Error"))
+//go:noinline
 func (c *Call) On(methodName string, arguments ...interface{}) *Call {
 	return c.Parent.On(methodName, arguments...)
 }
@@ -261,17 +262,21 @@ func (m *Mock) On(methodName string, arguments ...interface{}) *Call {
 // */
 
 func (m *Mock) findExpectedCall(method string, arguments ...interface{}) (int, *Call) {
-	for i, call := range m.ExpectedCalls {
-		if call.Method == method && call.Repeatability > -1 {
+	var expectedCall *Call
 
+	for i, call := range m.ExpectedCalls {
+		if call.Method == method {
 			_, diffCount := call.Arguments.Diff(arguments)
 			if diffCount == 0 {
-				return i, call
+				expectedCall = call
+				if call.Repeatability > -1 {
+					return i, call
+				}
 			}
-
 		}
 	}
-	return -1, nil
+
+	return -1, expectedCall
 }
 
 func (m *Mock) findClosestCall(method string, arguments ...interface{}) (*Call, string) {
@@ -343,13 +348,17 @@ func (m *Mock) MethodCalled(methodName string, arguments ...interface{}) Argumen
 	found, call := m.findExpectedCall(methodName, arguments...)
 
 	if found < 0 {
+		// expected call found but it has already been called with repeatable times
+		if call != nil {
+			m.mutex.Unlock()
+			m.fail("\nassert: mock: The method has been called over %d times.\n\tEither do one more Mock.On(\"%s\").Return(...), or remove extra call.\n\tThis call was unexpected:\n\t\t%s\n\tat: %s", call.totalCalls, methodName, callString(methodName, arguments, true), assert.CallerInfo())
+		}
 		// we have to fail here - because we don't know what to do
 		// as the return arguments.  This is because:
 		//
 		//   a) this is a totally unexpected call to this method,
 		//   b) the arguments are not what was expected, or
 		//   c) the developer has forgotten to add an accompanying On...Return pair.
-
 		closestCall, mismatch := m.findClosestCall(methodName, arguments...)
 		m.mutex.Unlock()
 
@@ -569,6 +578,23 @@ func AnythingOfType(t string) AnythingOfTypeArgument {
 	return AnythingOfTypeArgument(t)
 }
 
+// IsTypeArgument is a struct that contains the type of an argument
+// for use when type checking.  This is an alternative to AnythingOfType.
+// Used in Diff and Assert.
+type IsTypeArgument struct {
+	t interface{}
+}
+
+// IsType returns an IsTypeArgument object containing the type to check for.
+// You can provide a zero-value of the type to check.  This is an
+// alternative to AnythingOfType.  Used in Diff and Assert.
+//
+// For example:
+// Assert(t, IsType(""), IsType(0))
+func IsType(t interface{}) *IsTypeArgument {
+	return &IsTypeArgument{t: t}
+}
+
 // argumentMatcher performs custom argument matching, returning whether or
 // not the argument is matched by the expectation fixture function.
 type argumentMatcher struct {
@@ -691,7 +717,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actualFmt, matcher)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: PASS:  %s not matched by %s\n", output, i, actualFmt, matcher)
+				output = fmt.Sprintf("%s\t%d: FAIL:  %s not matched by %s\n", output, i, actualFmt, matcher)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
@@ -702,6 +728,12 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actualFmt)
 			}
 
+		} else if reflect.TypeOf(expected) == reflect.TypeOf((*IsTypeArgument)(nil)) {
+			t := expected.(*IsTypeArgument).t
+			if reflect.TypeOf(t) != reflect.TypeOf(actual) {
+				differences++
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, reflect.TypeOf(t).Name(), reflect.TypeOf(actual).Name(), actualFmt)
+			}
 		} else {
 
 			// normal checking

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -16,8 +16,16 @@ import (
 	"time"
 
 	"github.com/icrowley/fake"
-	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
+)
+
+const (
+	DEACTIVATED_USER = "deactivated"
+	GUEST_USER       = "guest"
 )
 
 var SampleDataCmd = &cobra.Command{
@@ -31,6 +39,8 @@ func init() {
 	SampleDataCmd.Flags().IntP("teams", "t", 2, "The number of sample teams.")
 	SampleDataCmd.Flags().Int("channels-per-team", 10, "The number of sample channels per team.")
 	SampleDataCmd.Flags().IntP("users", "u", 15, "The number of sample users.")
+	SampleDataCmd.Flags().IntP("guests", "g", 1, "The number of sample guests.")
+	SampleDataCmd.Flags().Int("deactivated-users", 0, "The number of deactivated users.")
 	SampleDataCmd.Flags().Int("team-memberships", 2, "The number of sample team memberships per user.")
 	SampleDataCmd.Flags().Int("channel-memberships", 5, "The number of sample channel memberships per user in a team.")
 	SampleDataCmd.Flags().Int("posts-per-channel", 100, "The number of sample post per channel.")
@@ -42,15 +52,6 @@ func init() {
 	SampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	SampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 	RootCmd.AddCommand(SampleDataCmd)
-}
-
-func sliceIncludes(vs []string, t string) bool {
-	for _, v := range vs {
-		if v == t {
-			return true
-		}
-	}
-	return false
 }
 
 func randomPastTime(seconds int) int64 {
@@ -164,6 +165,14 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if err != nil || users < 0 {
 		return errors.New("Invalid users parameter")
 	}
+	deactivatedUsers, err := command.Flags().GetInt("deactivated-users")
+	if err != nil || deactivatedUsers < 0 {
+		return errors.New("Invalid deactivated-users parameter")
+	}
+	guests, err := command.Flags().GetInt("guests")
+	if err != nil || guests < 0 {
+		return errors.New("Invalid guests parameter")
+	}
 	teamMemberships, err := command.Flags().GetInt("team-memberships")
 	if err != nil || teamMemberships < 0 {
 		return errors.New("Invalid team-memberships parameter")
@@ -202,14 +211,16 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	}
 	profileImages := []string{}
 	if profileImagesPath != "" {
-		profileImagesStat, err := os.Stat(profileImagesPath)
+		var profileImagesStat os.FileInfo
+		profileImagesStat, err = os.Stat(profileImagesPath)
 		if os.IsNotExist(err) {
 			return errors.New("Profile images folder doesn't exists.")
 		}
 		if !profileImagesStat.IsDir() {
 			return errors.New("profile-images parameters must be a folder path.")
 		}
-		profileImagesFiles, err := ioutil.ReadDir(profileImagesPath)
+		var profileImagesFiles []os.FileInfo
+		profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
 		if err != nil {
 			return errors.New("Invalid profile-images parameter")
 		}
@@ -276,7 +287,17 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 
 	allUsers := []string{}
 	for i := 0; i < users; i++ {
-		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages)
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, "")
+		encoder.Encode(userLine)
+		allUsers = append(allUsers, *userLine.User.Username)
+	}
+	for i := 0; i < guests; i++ {
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, GUEST_USER)
+		encoder.Encode(userLine)
+		allUsers = append(allUsers, *userLine.User.Username)
+	}
+	for i := 0; i < deactivatedUsers; i++ {
+		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, DEACTIVATED_USER)
 		encoder.Encode(userLine)
 		allUsers = append(allUsers, *userLine.User.Username)
 	}
@@ -297,6 +318,11 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		user2 := allUsers[rand.Intn(len(allUsers))]
 		channelLine := createDirectChannel([]string{user1, user2})
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < directChannels; i++ {
+		user1 := allUsers[rand.Intn(len(allUsers))]
+		user2 := allUsers[rand.Intn(len(allUsers))]
 
 		dates := sortedRandomDates(postsPerDirectChannel)
 		for j := 0; j < postsPerDirectChannel; j++ {
@@ -310,12 +336,23 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !sliceIncludes(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}
 		channelLine := createDirectChannel(users)
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < groupChannels; i++ {
+		users := []string{}
+		totalUsers := 3 + rand.Intn(3)
+		for len(users) < totalUsers {
+			user := allUsers[rand.Intn(len(allUsers))]
+			if !utils.StringInSlice(user, users) {
+				users = append(users, user)
+			}
+		}
 
 		dates := sortedRandomDates(postsPerGroupChannel)
 		for j := 0; j < postsPerGroupChannel; j++ {
@@ -329,10 +366,15 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.New("Unable to read correctly the temporary file.")
 		}
+
+		var importErr *model.AppError
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
+		auditRec := a.MakeAuditRecord("sampleData", audit.Success)
+		auditRec.AddMeta("file", bulkFile.Name())
+		a.LogAuditRec(auditRec, nil)
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {
@@ -343,23 +385,44 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string) app.LineImportData {
-	password := fmt.Sprintf("user-%d", idx)
-	email := fmt.Sprintf("user-%d@sample.mattermost.com", idx)
+func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string, userType string) app.LineImportData {
 	firstName := fake.FirstName()
 	lastName := fake.LastName()
-	username := fmt.Sprintf("%s.%s", strings.ToLower(firstName), strings.ToLower(lastName))
-	if idx == 0 {
-		username = "sysadmin"
-		password = "sysadmin"
-		email = "sysadmin@sample.mattermost.com"
-	} else if idx == 1 {
-		username = "user-1"
-	}
 	position := fake.JobTitle()
+
+	username := fmt.Sprintf("%s.%s", strings.ToLower(firstName), strings.ToLower(lastName))
 	roles := "system_user"
-	if idx%5 == 0 {
-		roles = "system_admin system_user"
+
+	var password string
+	var email string
+
+	switch userType {
+	case GUEST_USER:
+		password = fmt.Sprintf("SampleGu@st-%d", idx)
+		email = fmt.Sprintf("guest-%d@sample.mattermost.com", idx)
+		roles = "system_guest"
+		if idx == 0 {
+			username = "guest"
+			password = "SampleGu@st1"
+			email = "guest@sample.mattermost.com"
+		}
+	case DEACTIVATED_USER:
+		password = fmt.Sprintf("SampleDe@ctivated-%d", idx)
+		email = fmt.Sprintf("deactivated-%d@sample.mattermost.com", idx)
+	default:
+		password = fmt.Sprintf("SampleUs@r-%d", idx)
+		email = fmt.Sprintf("user-%d@sample.mattermost.com", idx)
+		if idx == 0 {
+			username = "sysadmin"
+			password = "Sys@dmin-sample1"
+			email = "sysadmin@sample.mattermost.com"
+		} else if idx == 1 {
+			username = "user-1"
+		}
+
+		if idx%5 == 0 {
+			roles = "system_admin system_user"
+		}
 	}
 
 	// The 75% of the users have custom profile image
@@ -397,15 +460,18 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		nickname = fake.Company()
 	}
 
-	// Half of users skip tutorial
+	// sysadmin, user-1 and user-2 users skip tutorial steps
+	// Other half of users also skip tutorial steps
 	tutorialStep := "999"
-	switch rand.Intn(6) {
-	case 1:
-		tutorialStep = "1"
-	case 2:
-		tutorialStep = "2"
-	case 3:
-		tutorialStep = "3"
+	if idx > 2 {
+		switch rand.Intn(6) {
+		case 1:
+			tutorialStep = "1"
+		case 2:
+			tutorialStep = "2"
+		case 3:
+			tutorialStep = "3"
+		}
 	}
 
 	teams := []app.UserTeamImportData{}
@@ -422,8 +488,13 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		team := possibleTeams[position]
 		possibleTeams = append(possibleTeams[:position], possibleTeams[position+1:]...)
 		if teamChannels, err := teamsAndChannels[team]; err {
-			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team))
+			teams = append(teams, createTeamMembership(channelMemberships, teamChannels, &team, userType == GUEST_USER))
 		}
+	}
+
+	var deleteAt int64
+	if userType == DEACTIVATED_USER {
+		deleteAt = model.GetMillis()
 	}
 
 	user := app.UserImportData{
@@ -442,6 +513,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		MessageDisplay:     &messageDisplay,
 		ChannelDisplayMode: &channelDisplayMode,
 		TutorialStep:       &tutorialStep,
+		DeleteAt:           &deleteAt,
 	}
 	return app.LineImportData{
 		Type: "user",
@@ -449,9 +521,11 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 }
 
-func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string) app.UserTeamImportData {
+func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string, guest bool) app.UserTeamImportData {
 	roles := "team_user"
-	if rand.Intn(5) == 0 {
+	if guest {
+		roles = "team_guest"
+	} else if rand.Intn(5) == 0 {
 		roles = "team_user team_admin"
 	}
 	channels := []app.UserChannelImportData{}
@@ -463,7 +537,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 		position := rand.Intn(len(teamChannelsCopy))
 		channelName := teamChannelsCopy[position]
 		teamChannelsCopy = append(teamChannelsCopy[:position], teamChannelsCopy[position+1:]...)
-		channels = append(channels, createChannelMembership(channelName))
+		channels = append(channels, createChannelMembership(channelName, guest))
 	}
 
 	return app.UserTeamImportData{
@@ -473,9 +547,11 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 	}
 }
 
-func createChannelMembership(channelName string) app.UserChannelImportData {
+func createChannelMembership(channelName string, guest bool) app.UserChannelImportData {
 	roles := "channel_user"
-	if rand.Intn(5) == 0 {
+	if guest {
+		roles = "channel_guest"
+	} else if rand.Intn(5) == 0 {
 		roles = "channel_user channel_admin"
 	}
 	favorite := rand.Intn(5) == 0

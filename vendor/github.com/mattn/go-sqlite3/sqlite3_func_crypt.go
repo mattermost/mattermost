@@ -13,7 +13,7 @@ import (
 
 // This file provides several different implementations for the
 // default embedded sqlite_crypt function.
-// This function is uses a ceasar-cypher by default
+// This function is uses a caesar-cypher by default
 // and is used within the UserAuthentication module to encode
 // the password.
 //
@@ -40,7 +40,7 @@ import (
 // password X, sqlite_crypt(X,NULL) is run.  A new random salt is selected
 // when the second argument is NULL.
 //
-// The built-in version of of sqlite_crypt() uses a simple Ceasar-cypher
+// The built-in version of of sqlite_crypt() uses a simple Caesar-cypher
 // which prevents passwords from being revealed by searching the raw database
 // for ASCII text, but is otherwise trivally broken.  For better password
 // security, the database should be encrypted using the SQLite Encryption
@@ -83,13 +83,13 @@ func CryptEncoderSSHA256(salt string) func(pass []byte, hash interface{}) []byte
 	}
 }
 
-// CryptEncoderSHA384 encodes a password with SHA256
+// CryptEncoderSHA384 encodes a password with SHA384
 func CryptEncoderSHA384(pass []byte, hash interface{}) []byte {
 	h := sha512.Sum384(pass)
 	return h[:]
 }
 
-// CryptEncoderSSHA384 encodes a password with SHA256
+// CryptEncoderSSHA384 encodes a password with SHA384
 // with the configured salt
 func CryptEncoderSSHA384(salt string) func(pass []byte, hash interface{}) []byte {
 	return func(pass []byte, hash interface{}) []byte {
@@ -100,13 +100,13 @@ func CryptEncoderSSHA384(salt string) func(pass []byte, hash interface{}) []byte
 	}
 }
 
-// CryptEncoderSHA512 encodes a password with SHA256
+// CryptEncoderSHA512 encodes a password with SHA512
 func CryptEncoderSHA512(pass []byte, hash interface{}) []byte {
 	h := sha512.Sum512(pass)
 	return h[:]
 }
 
-// CryptEncoderSSHA512 encodes a password with SHA256
+// CryptEncoderSSHA512 encodes a password with SHA512
 // with the configured salt
 func CryptEncoderSSHA512(salt string) func(pass []byte, hash interface{}) []byte {
 	return func(pass []byte, hash interface{}) []byte {

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -60,13 +60,13 @@ func (ad *AccessData) IsValid() *AppError {
 	return nil
 }
 
-func (me *AccessData) IsExpired() bool {
+func (ad *AccessData) IsExpired() bool {
 
-	if me.ExpiresAt <= 0 {
+	if ad.ExpiresAt <= 0 {
 		return false
 	}
 
-	if GetMillis() > me.ExpiresAt {
+	if GetMillis() > ad.ExpiresAt {
 		return true
 	}
 

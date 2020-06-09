@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
 import (
-	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (w *Web) InitWebhooks() {
@@ -28,9 +28,33 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	var err *model.AppError
+	var mediaType string
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
+	// Content-Type header is optional so could be empty
+	if contentType != "" {
+		var mimeErr error
+		mediaType, _, mimeErr = mime.ParseMediaType(contentType)
+		if mimeErr != nil && mimeErr != mime.ErrInvalidMediaParameter {
+			c.Err = model.NewAppError("incomingWebhook",
+				"api.webhook.incoming.error",
+				nil,
+				"webhook_id="+id+", error: "+mimeErr.Error(),
+				http.StatusBadRequest,
+			)
+			return
+		}
+	}
+
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging {
+			if c.Err != nil {
+				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId()), mlog.String("payload", incomingWebhookPayload.ToJson()))
+			}
+		}
+	}()
+
+	if mediaType == "application/x-www-form-urlencoded" {
 		payload := strings.NewReader(r.FormValue("payload"))
 
 		incomingWebhookPayload, err = decodePayload(payload)
@@ -38,14 +62,19 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	} else if strings.HasPrefix(contentType, "multipart/form-data") {
+	} else if mediaType == "multipart/form-data" {
 		r.ParseMultipartForm(0)
 
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 
 		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusBadRequest)
+			c.Err = model.NewAppError("incomingWebhook",
+				"api.webhook.incoming.error",
+				nil,
+				"webhook_id="+id+", error: "+err.Error(),
+				http.StatusBadRequest,
+			)
 			return
 		}
 	} else {
@@ -54,10 +83,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
-	}
-
-	if c.App.Config().LogSettings.EnableWebhookDebugging {
-		mlog.Debug(fmt.Sprint("Incoming webhook received. Content=", incomingWebhookPayload.ToJson()))
 	}
 
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)

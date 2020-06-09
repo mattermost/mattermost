@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -18,5 +18,8 @@ func TestPluginKeyIsValid(t *testing.T) {
 
 	kv.PluginId = "someid"
 	kv.Key = ""
+	assert.NotNil(t, kv.IsValid())
+
+	kv.Key = "this is an extremely long key and should be invalid and this is being verified in this test"
 	assert.NotNil(t, kv.IsValid())
 }

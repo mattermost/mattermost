@@ -25,11 +25,11 @@ var platformNames = map[uasurfer.Platform]string{
 func getPlatformName(ua *uasurfer.UserAgent) string {
 	platform := ua.OS.Platform
 
-	if name, ok := platformNames[platform]; !ok {
+	name, ok := platformNames[platform]
+	if !ok {
 		return platformNames[uasurfer.PlatformUnknown]
-	} else {
-		return name
 	}
+	return name
 }
 
 var osNames = map[uasurfer.OSName]string{
@@ -53,57 +53,60 @@ func getOSName(ua *uasurfer.UserAgent) string {
 		major := os.Version.Major
 		minor := os.Version.Minor
 
-		name := "Windows"
-
-		// Adapted from https://github.com/mssola/user_agent/blob/master/operating_systems.go#L26
-		if major == 5 {
-			if minor == 0 {
-				name = "Windows 2000"
-			} else if minor == 1 {
-				name = "Windows XP"
-			} else if minor == 2 {
-				name = "Windows XP x64 Edition"
-			}
-		} else if major == 6 {
-			if minor == 0 {
-				name = "Windows Vista"
-			} else if minor == 1 {
-				name = "Windows 7"
-			} else if minor == 2 {
-				name = "Windows 8"
-			} else if minor == 3 {
-				name = "Windows 8.1"
-			}
-		} else if major == 10 {
-			name = "Windows 10"
+		switch {
+		case major == 5 && minor == 0:
+			return "Windows 2000"
+		case major == 5 && minor == 1:
+			return "Windows XP"
+		case major == 5 && minor == 2:
+			return "Windows XP x64 Edition"
+		case major == 6 && minor == 0:
+			return "Windows Vista"
+		case major == 6 && minor == 1:
+			return "Windows 7"
+		case major == 6 && minor == 2:
+			return "Windows 8"
+		case major == 6 && minor == 3:
+			return "Windows 8.1"
+		case major == 10:
+			return "Windows 10"
+		default:
+			return "Windows"
 		}
-
-		return name
-	} else if name, ok := osNames[os.Name]; ok {
-		return name
-	} else {
-		return osNames[uasurfer.OSUnknown]
 	}
+
+	name, ok := osNames[os.Name]
+	if ok {
+		return name
+	}
+
+	return osNames[uasurfer.OSUnknown]
 }
 
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
 	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
 		afterVersion := userAgentString[index+len("Mattermost/"):]
 		return strings.Fields(afterVersion)[0]
-	} else if index := strings.Index(userAgentString, "Franz/"); index != -1 {
+	}
+
+	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
+		afterVersion := userAgentString[index+len("mmctl/"):]
+		return strings.Fields(afterVersion)[0]
+	}
+
+	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
 		afterVersion := userAgentString[index+len("Franz/"):]
 		return strings.Fields(afterVersion)[0]
-	} else {
-		return getUAVersion(ua.Browser.Version)
 	}
+
+	return getUAVersion(ua.Browser.Version)
 }
 
 func getUAVersion(version uasurfer.Version) string {
 	if version.Patch == 0 {
 		return fmt.Sprintf("%v.%v", version.Major, version.Minor)
-	} else {
-		return fmt.Sprintf("%v.%v.%v", version.Major, version.Minor, version.Patch)
 	}
+	return fmt.Sprintf("%v.%v.%v", version.Major, version.Minor, version.Patch)
 }
 
 var browserNames = map[uasurfer.BrowserName]string{
@@ -122,11 +125,20 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 
 	if strings.Contains(userAgentString, "Mattermost") {
 		return "Desktop App"
-	} else if browser == uasurfer.BrowserIE && ua.Browser.Version.Major > 11 {
-		return "Edge"
-	} else if name, ok := browserNames[browser]; ok {
-		return name
-	} else {
-		return browserNames[uasurfer.BrowserUnknown]
 	}
+
+	if strings.Contains(userAgentString, "mmctl") {
+		return "mmctl"
+	}
+
+	if browser == uasurfer.BrowserIE && ua.Browser.Version.Major > 11 {
+		return "Edge"
+	}
+
+	if name, ok := browserNames[browser]; ok {
+		return name
+	}
+
+	return browserNames[uasurfer.BrowserUnknown]
+
 }

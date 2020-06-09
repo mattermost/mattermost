@@ -33,6 +33,7 @@
         "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
         "AllowCookiesForSubdomains": false,
+        "ExtendSessionLengthWithActivity": true,
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
@@ -49,6 +50,7 @@
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
+        "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
@@ -64,7 +66,6 @@
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -107,7 +108,7 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
@@ -163,14 +164,14 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
         "SMTPPassword": "",
-        "SMTPServer": "dockerhost",
+        "SMTPServer": "localhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "n3mceqsek4j5ichs5hw9sudwx3cfbtqa",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -234,7 +235,7 @@
         "Scope": "profile email",
         "AuthEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
         "TokenEndpoint": "https://www.googleapis.com/oauth2/v4/token",
-        "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+        "UserApiEndpoint": "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
     },
     "Office365Settings": {
         "Enable": false,
@@ -243,7 +244,8 @@
         "Scope": "User.Read",
         "AuthEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
         "TokenEndpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me"
+        "UserApiEndpoint": "https://graph.microsoft.com/v1.0/me",
+        "DirectoryId": ""
     },
     "LdapSettings": {
         "Enable": false,
@@ -289,6 +291,7 @@
         "Encrypt": true,
         "IdpUrl": "",
         "IdpDescriptorUrl": "",
+        "IdpMetadataUrl": "",
         "AssertionConsumerServiceURL": "",
         "ScopingIDPProviderId": "",
         "ScopingIDPName": "",
@@ -337,25 +340,20 @@
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
     },
-    "WebrtcSettings": {
-        "Enable": false,
-        "GatewayWebsocketUrl": "",
-        "GatewayAdminUrl": "",
-        "GatewayAdminSecret": "",
-        "StunURI": "",
-        "TurnURI": "",
-        "TurnUsername": "",
-        "TurnSharedKey": ""
-    },
     "ElasticsearchSettings": {
-        "ConnectionUrl": "http://dockerhost:9200",
+        "ConnectionUrl": "http://localhost:9200",
         "Username": "elastic",
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
+        "EnableAutocomplete": false,
         "Sniff": true,
         "PostIndexReplicas": 1,
         "PostIndexShards": 1,
+        "ChannelIndexReplicas": 1,
+        "ChannelIndexShards": 1,
+        "UserIndexReplicas": 1,
+        "UserIndexShards": 1,
         "AggregatePostsAfterDays": 365,
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
@@ -405,8 +403,5 @@
     "DisplaySettings": {
         "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
-    },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
     }
 }

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -6,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type testWriter struct {
@@ -18,7 +21,7 @@ func (tw testWriter) Write(p []byte) (int, error) {
 }
 
 func TestExportPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var scheme *model.Scheme
@@ -69,8 +72,10 @@ func TestExportPermissions(t *testing.T) {
 		scheme.Scope:                   func(str string) string { return row["scope"].(string) },
 		scheme.DefaultTeamAdminRole:    func(str string) string { return getRoleByName(str) },
 		scheme.DefaultTeamUserRole:     func(str string) string { return getRoleByName(str) },
+		scheme.DefaultTeamGuestRole:    func(str string) string { return getRoleByName(str) },
 		scheme.DefaultChannelAdminRole: func(str string) string { return getRoleByName(str) },
 		scheme.DefaultChannelUserRole:  func(str string) string { return getRoleByName(str) },
+		scheme.DefaultChannelGuestRole: func(str string) string { return getRoleByName(str) },
 	}
 
 	for key, valF := range expectations {
@@ -84,7 +89,7 @@ func TestExportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	name := model.NewId()
@@ -137,6 +142,11 @@ func TestImportPermissions(t *testing.T) {
 		t.Error(appErr)
 	}
 
+	channelGuestRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelGuestRole)
+	if appErr != nil {
+		t.Error(appErr)
+	}
+
 	expectations := map[string]string{
 		newScheme.DisplayName:          displayName,
 		newScheme.Name:                 name,
@@ -144,8 +154,10 @@ func TestImportPermissions(t *testing.T) {
 		newScheme.Scope:                scope,
 		newScheme.DefaultTeamAdminRole: "",
 		newScheme.DefaultTeamUserRole:  "",
+		newScheme.DefaultTeamGuestRole: "",
 		channelAdminRole.Name:          newScheme.DefaultChannelAdminRole,
 		channelUserRole.Name:           newScheme.DefaultChannelUserRole,
+		channelGuestRole.Name:          newScheme.DefaultChannelGuestRole,
 	}
 
 	for actual, expected := range expectations {
@@ -157,7 +169,7 @@ func TestImportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions_idempotentScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	name := model.NewId()
@@ -200,7 +212,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 }
 
 func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	name := model.NewId()
@@ -243,11 +255,11 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 
 func withMigrationMarkedComplete(th *TestHelper, f func()) {
 	// Mark the migration as done.
-	<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 	// Un-mark the migration at the end of the test.
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 	f()
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 const (
 	EMOJI_NAME_MAX_LENGTH = 64
 	EMOJI_SORT_BY_NAME    = "name"
 )
+
+var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -28,8 +31,13 @@ func inSystemEmoji(emojiName string) bool {
 	return ok
 }
 
+func GetSystemEmojiId(emojiName string) (string, bool) {
+	id, found := SystemEmojis[emojiName]
+	return id, found
+}
+
 func (emoji *Emoji) IsValid() *AppError {
-	if len(emoji.Id) != 26 {
+	if !IsValidId(emoji.Id) {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

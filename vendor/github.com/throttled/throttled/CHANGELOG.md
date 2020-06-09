@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 2.2.4 - 2018-11-19
+* [#52](https://github.com/throttled/throttled/pull/52) Handle the possibility of `RemoteAddr` without port in `VaryBy`
+
+## 2.2.3 - 2018-11-13
+* [#49](https://github.com/throttled/throttled/pull/49) Handle the possibility of an empty `RemoteAddr` in `VaryBy`
+
+## 2.2.2 - 2018-10-18
+* [#47](https://github.com/throttled/throttled/pull/47) Don't include origin port in the identifier when using `throttled.VaryBy{RemoteAddr: true}`
+
 ## 2.2.1 - 2018-03-21
 * [#40](https://github.com/throttled/throttled/pull/40) Replace unmaintained `garyburd/redigo` with `gomodule/redigo`
 

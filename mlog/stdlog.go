@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mlog
 
@@ -81,7 +81,7 @@ type loggerWriter struct {
 func (l *loggerWriter) Write(p []byte) (int, error) {
 	trimmed := string(bytes.TrimSpace(p))
 	for _, line := range strings.Split(trimmed, "\n") {
-		l.logFunc(string(line))
+		l.logFunc(line)
 	}
 	return len(p), nil
 }

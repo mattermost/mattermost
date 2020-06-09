@@ -1,17 +1,16 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var echoSem chan bool
@@ -78,7 +77,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	echoSem <- true
-	a.Go(func() {
+	a.Srv().Go(func() {
 		defer func() { <-echoSem }()
 		post := &model.Post{}
 		post.ChannelId = args.ChannelId
@@ -90,7 +89,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		time.Sleep(time.Duration(delay) * time.Second)
 
 		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
-			mlog.Error(fmt.Sprintf("Unable to create /echo post, err=%v", err))
+			mlog.Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})
 

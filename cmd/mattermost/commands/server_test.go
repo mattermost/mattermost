@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -10,22 +10,24 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/stretchr/testify/require"
 )
 
 type ServerTestHelper struct {
-	configPath         string
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
 	originalInterval   int
 }
 
-func SetupServerTest() *ServerTestHelper {
-	// Build a channel that will be used by the server to receive system signals…
+func SetupServerTest(t testing.TB) *ServerTestHelper {
+	if testing.Short() {
+		t.SkipNow()
+	}
+	// Build a channel that will be used by the server to receive system signals...
 	interruptChan := make(chan os.Signal, 1)
-	// …and sent it immediately a SIGINT value.
+	// ...and sent it immediately a SIGINT value.
 	// This will make the server loop stop as soon as it started successfully.
 	interruptChan <- syscall.SIGINT
 
@@ -36,7 +38,6 @@ func SetupServerTest() *ServerTestHelper {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = 200
 
 	th := &ServerTestHelper{
-		configPath:         utils.FindConfigFile("config.json"),
 		disableConfigWatch: true,
 		interruptChan:      interruptChan,
 		originalInterval:   originalInterval,
@@ -49,31 +50,18 @@ func (th *ServerTestHelper) TearDownServerTest() {
 }
 
 func TestRunServerSuccess(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
 }
 
-func TestRunServerInvalidConfigFile(t *testing.T) {
-	th := SetupServerTest()
-	defer th.TearDownServerTest()
-
-	// Start the server with an unreadable config file
-	unreadableConfigFile, err := ioutil.TempFile("", "mattermost-unreadable-config-file-")
-	if err != nil {
-		panic(err)
-	}
-	os.Chmod(unreadableConfigFile.Name(), 0200)
-	defer os.Remove(unreadableConfigFile.Name())
-
-	err = runServer(unreadableConfigFile.Name(), th.disableConfigWatch, false, th.interruptChan)
-	require.Error(t, err)
-}
-
 func TestRunServerSystemdNotification(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Get a random temporary filename for using as a mock systemd socket
@@ -105,16 +93,19 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	socketReader := make(chan string)
 	go func(ch chan string) {
 		buffer := make([]byte, 512)
-		count, err := connection.Read(buffer)
-		if err != nil {
-			panic(err)
+		count, readErr := connection.Read(buffer)
+		if readErr != nil {
+			panic(readErr)
 		}
 		data := buffer[0:count]
 		ch <- string(data)
 	}(socketReader)
 
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+
 	// Start and stop the server
-	err = runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
 
 	// Ensure the notification has been sent on the socket and is correct
@@ -123,7 +114,7 @@ func TestRunServerSystemdNotification(t *testing.T) {
 }
 
 func TestRunServerNoSystemd(t *testing.T) {
-	th := SetupServerTest()
+	th := SetupServerTest(t)
 	defer th.TearDownServerTest()
 
 	// Temporarily remove any Systemd socket defined in the environment
@@ -131,6 +122,9 @@ func TestRunServerNoSystemd(t *testing.T) {
 	os.Unsetenv("NOTIFY_SOCKET")
 	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
 
-	err := runServer(th.configPath, th.disableConfigWatch, false, th.interruptChan)
+	configStore, err := config.NewMemoryStore()
+	require.NoError(t, err)
+
+	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
 }

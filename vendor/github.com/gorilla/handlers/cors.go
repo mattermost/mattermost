@@ -19,14 +19,16 @@ type cors struct {
 	maxAge                 int
 	ignoreOptions          bool
 	allowCredentials       bool
+	optionStatusCode       int
 }
 
 // OriginValidator takes an origin string and returns whether or not that origin is allowed.
 type OriginValidator func(string) bool
 
 var (
-	defaultCorsMethods = []string{"GET", "HEAD", "POST"}
-	defaultCorsHeaders = []string{"Accept", "Accept-Language", "Content-Language", "Origin"}
+	defaultCorsOptionStatusCode = 200
+	defaultCorsMethods          = []string{"GET", "HEAD", "POST"}
+	defaultCorsHeaders          = []string{"Accept", "Accept-Language", "Content-Language", "Origin"}
 	// (WebKit/Safari v9 sends the Origin header by default in AJAX requests)
 )
 
@@ -130,6 +132,7 @@ func (ch *cors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(corsAllowOriginHeader, returnOrigin)
 
 	if r.Method == corsOptionMethod {
+		w.WriteHeader(ch.optionStatusCode)
 		return
 	}
 	ch.h.ServeHTTP(w, r)
@@ -164,9 +167,10 @@ func CORS(opts ...CORSOption) func(http.Handler) http.Handler {
 
 func parseCORSOptions(opts ...CORSOption) *cors {
 	ch := &cors{
-		allowedMethods: defaultCorsMethods,
-		allowedHeaders: defaultCorsHeaders,
-		allowedOrigins: []string{},
+		allowedMethods:   defaultCorsMethods,
+		allowedHeaders:   defaultCorsHeaders,
+		allowedOrigins:   []string{},
+		optionStatusCode: defaultCorsOptionStatusCode,
 	}
 
 	for _, option := range opts {
@@ -251,7 +255,20 @@ func AllowedOriginValidator(fn OriginValidator) CORSOption {
 	}
 }
 
-// ExposeHeaders can be used to specify headers that are available
+// OptionStatusCode sets a custom status code on the OPTIONS requests.
+// Default behaviour sets it to 200 to reflect best practices. This is option is not mandatory
+// and can be used if you need a custom status code (i.e 204).
+//
+// More informations on the spec:
+// https://fetch.spec.whatwg.org/#cors-preflight-fetch
+func OptionStatusCode(code int) CORSOption {
+	return func(ch *cors) error {
+		ch.optionStatusCode = code
+		return nil
+	}
+}
+
+// ExposedHeaders can be used to specify headers that are available
 // and will not be stripped out by the user-agent.
 func ExposedHeaders(headers []string) CORSOption {
 	return func(ch *cors) error {

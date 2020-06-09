@@ -90,27 +90,8 @@ in-line code
 
 ### In-line Images
 
-Mattermost/platform build status:  [![Build Status](https://travis-ci.org/mattermost/platform.svg?branch=master)](https://travis-ci.org/mattermost/platform)  
+(These image tests were moved into Se: MessagingMan.html)  
 
-GitHub favicon:  ![Github](https://assets-cdn.github.com/favicon.ico)
-
-GIF Image:  
-![gif](http://i.giphy.com/xNrM4cGJ8u3ao.gif)
-
-4K Wallpaper Image (11Mb):  
-![4K Image](http://4kwallpaper.xyz/wallpaper/Large-Galaxy-Lightyears-Space-4K-wallpaper.png)
-
-Panorama Image:  
-![Pano](http://amardeepphotography.com/wp-content/uploads/2012/11/Untitled_Panorama6small.jpg)
-
-Tall Portrait Image:  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg)
-
-Tall Portrait Image (resized):  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =x200)
-
-Tall Portrait Image (resized to a square):  
-![Portrait](http://www.maniacworld.com/now-this-is-a-tall-building.jpg =200x200)
 
 ### Lines
 

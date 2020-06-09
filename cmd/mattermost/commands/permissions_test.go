@@ -1,40 +1,29 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"os"
-	"os/exec"
-	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestPermissionsExport_rejectsUnlicensed(t *testing.T) {
-	permissionsLicenseRequiredTest(t, "export")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	actual, _ := th.RunCommandWithOutput(t, "permissions", "export")
+	assert.Contains(t, actual, utils.T("cli.license.critical"))
 }
 
 func TestPermissionsImport_rejectsUnlicensed(t *testing.T) {
-	permissionsLicenseRequiredTest(t, "import")
-}
-
-func permissionsLicenseRequiredTest(t *testing.T, subcommand string) {
-	th := api4.Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	path, err := os.Executable()
-	if err != nil {
-		t.Fail()
-	}
-	args := []string{"-test.run", "ExecCommand", "--", "--disableconfigwatch", "permissions", subcommand}
-	output, _ := exec.Command(path, args...).CombinedOutput()
+	actual, _ := th.RunCommandWithOutput(t, "permissions", "import")
 
-	actual := string(output)
-	expected := utils.T("cli.license.critical")
-	if !strings.Contains(actual, expected) {
-		t.Errorf("Expected '%v' but got '%v'.", expected, actual)
-	}
+	assert.Contains(t, actual, utils.T("cli.license.critical"))
 }

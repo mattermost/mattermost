@@ -52,7 +52,6 @@ var isSpecialElementMap = map[string]bool{
 	"iframe":     true,
 	"img":        true,
 	"input":      true,
-	"isindex":    true, // The 'isindex' element has been removed, but keep it for backwards compatibility.
 	"keygen":     true,
 	"li":         true,
 	"link":       true,
@@ -97,8 +96,16 @@ func isSpecialElement(element *Node) bool {
 	switch element.Namespace {
 	case "", "html":
 		return isSpecialElementMap[element.Data]
+	case "math":
+		switch element.Data {
+		case "mi", "mo", "mn", "ms", "mtext", "annotation-xml":
+			return true
+		}
 	case "svg":
-		return element.Data == "foreignObject"
+		switch element.Data {
+		case "foreignObject", "desc", "title":
+			return true
+		}
 	}
 	return false
 }

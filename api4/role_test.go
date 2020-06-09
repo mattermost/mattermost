@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetRole(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -24,10 +25,9 @@ func TestGetRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	res1 := <-th.App.Srv.Store.Role().Save(role)
-	assert.Nil(t, res1.Err)
-	role = res1.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	role, err := th.App.Srv().Store.Role().Save(role)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	received, resp := th.Client.GetRole(role.Id)
 	CheckNoError(t, resp)
@@ -47,7 +47,7 @@ func TestGetRole(t *testing.T) {
 }
 
 func TestGetRoleByName(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -58,10 +58,9 @@ func TestGetRoleByName(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	res1 := <-th.App.Srv.Store.Role().Save(role)
-	assert.Nil(t, res1.Err)
-	role = res1.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	role, err := th.App.Srv().Store.Role().Save(role)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	received, resp := th.Client.GetRoleByName(role.Name)
 	CheckNoError(t, resp)
@@ -81,7 +80,7 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRolesByNames(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role1 := &model.Role{
@@ -106,20 +105,17 @@ func TestGetRolesByNames(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	res1 := <-th.App.Srv.Store.Role().Save(role1)
-	assert.Nil(t, res1.Err)
-	role1 = res1.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role1.Id)
+	role1, err := th.App.Srv().Store.Role().Save(role1)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role1.Id)
 
-	res2 := <-th.App.Srv.Store.Role().Save(role2)
-	assert.Nil(t, res2.Err)
-	role2 = res2.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role2.Id)
+	role2, err = th.App.Srv().Store.Role().Save(role2)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role2.Id)
 
-	res3 := <-th.App.Srv.Store.Role().Save(role3)
-	assert.Nil(t, res3.Err)
-	role3 = res3.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role3.Id)
+	role3, err = th.App.Srv().Store.Role().Save(role3)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role3.Id)
 
 	// Check all three roles can be found.
 	received, resp := th.Client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
@@ -147,7 +143,7 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestPatchRole(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	role := &model.Role{
@@ -158,13 +154,12 @@ func TestPatchRole(t *testing.T) {
 		SchemeManaged: true,
 	}
 
-	res1 := <-th.App.Srv.Store.Role().Save(role)
-	assert.Nil(t, res1.Err)
-	role = res1.Data.(*model.Role)
-	defer th.App.Srv.Store.Job().Delete(role.Id)
+	role, err := th.App.Srv().Store.Role().Save(role)
+	assert.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
-		Permissions: &[]string{"manage_system", "create_public_channel", "manage_webhooks"},
+		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
 	received, resp := th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -174,7 +169,7 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Name, role.Name)
 	assert.Equal(t, received.DisplayName, role.DisplayName)
 	assert.Equal(t, received.Description, role.Description)
-	assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_webhooks"})
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 	// Check a no-op patch succeeds.
@@ -192,14 +187,16 @@ func TestPatchRole(t *testing.T) {
 
 	// Check a change that the license would not allow.
 	patch = &model.RolePatch{
-		Permissions: &[]string{"manage_system", "manage_webhooks"},
+		Permissions: &[]string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
 	_, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
 	CheckNotImplementedStatus(t, resp)
 
 	// Add a license.
-	th.App.SetLicense(model.NewTestLicense())
+	license := model.NewTestLicense()
+	license.Features.GuestAccountsPermissions = model.NewBool(false)
+	th.App.SetLicense(license)
 
 	// Try again, should succeed
 	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -209,6 +206,27 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Name, role.Name)
 	assert.Equal(t, received.DisplayName, role.DisplayName)
 	assert.Equal(t, received.Description, role.Description)
-	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_webhooks"})
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
+
+	t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
+		license := model.NewTestLicense()
+		license.Features.GuestAccountsPermissions = model.NewBool(false)
+		th.App.SetLicense(license)
+
+		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
+		require.Nil(t, err)
+		received, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
+		license := model.NewTestLicense()
+		license.Features.GuestAccountsPermissions = model.NewBool(true)
+		th.App.SetLicense(license)
+		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
+		require.Nil(t, err)
+		_, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)
+		CheckNoError(t, resp)
+	})
 }

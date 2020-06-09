@@ -1,52 +1,32 @@
 .DEFAULT_GOAL = all
 
-numcpus  := $(shell cat /proc/cpuinfo | grep '^processor\s*:' | wc -l)
 version  := $(shell git rev-list --count HEAD).$(shell git rev-parse --short HEAD)
 
 name     := uarand
 package  := github.com/corpix/$(name)
 
 .PHONY: all
-all:: dependencies
-
-.PHONY: tools
-tools::
-	@if [ ! -e "$(GOPATH)"/bin/glide ]; then go get github.com/Masterminds/glide; fi
-	@if [ ! -e "$(GOPATH)"/bin/glide-cleanup ]; then go get github.com/ngdinhtoan/glide-cleanup; fi
-	@if [ ! -e "$(GOPATH)"/bin/glide-vc ]; then go get github.com/sgotti/glide-vc; fi
-	@if [ ! -e "$(GOPATH)"/bin/godef ]; then go get github.com/rogpeppe/godef; fi
-	@if [ ! -e "$(GOPATH)"/bin/gocode ]; then go get github.com/nsf/gocode; fi
-	@if [ ! -e "$(GOPATH)"/bin/gometalinter ]; then go get github.com/alecthomas/gometalinter && gometalinter --install; fi
-	@if [ ! -e "$(GOPATH)"/src/github.com/stretchr/testify/assert ]; then go get github.com/stretchr/testify/assert; fi
-
-.PHONY: dependencies
-dependencies:: tools
-	glide install
-
-.PHONY: clean
-clean:: tools
-	glide cache-clear
+all:: useragents.go
 
 .PHONY: test
-test:: dependencies
-	go test -v \
-           $(shell glide novendor)
-
-.PHONY: bench
-bench:: dependencies
-	go test        \
-           -bench=. -v \
-           $(shell glide novendor)
+test:
+	go test -v ./...
 
 .PHONY: lint
-lint:: dependencies
-	go vet $(shell glide novendor)
-	gometalinter                     \
-		--deadline=5m            \
-		--concurrency=$(numcpus) \
-		$(shell glide novendor)
+lint:
+.PHONY: lint
+lint:
+	golangci-lint --color=always                                                       \
+		--exclude='uses unkeyed fields'                                            \
+		--exclude='type .* is unused'                                              \
+		--exclude='should merge variable declaration with assignment on next line' \
+		--deadline=120s                                                            \
+		run ./...
 
 .PHONY: check
-check:: lint test
+check: lint test
 
-include useragents.mk
+.PHONY: useragents.go
+useragents.go:
+	./scripts/fetch-user-agents | ./scripts/generate-useragents-go $(name) > $@
+	go fmt $@

@@ -4,13 +4,18 @@
 package plugin
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/rpc"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 type httpResponseWriterRPCServer struct {
-	w http.ResponseWriter
+	w   http.ResponseWriter
+	log *mlog.Logger
 }
 
 func (w *httpResponseWriterRPCServer) Header(args struct{}, reply *http.Header) error {
@@ -24,6 +29,12 @@ func (w *httpResponseWriterRPCServer) Write(args []byte, reply *struct{}) error 
 }
 
 func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) error {
+	// Check if args is a valid http status code. This prevents plugins from crashing the server with a panic.
+	// This is a copy of the checkWriteHeaderCode function in net/http/server.go in the go source.
+	if args < 100 || args > 999 {
+		w.log.Error(fmt.Sprintf("Plugin tried to write an invalid http status code: %v. Did not write the invalid header.", args))
+		return errors.New("invalid http status code")
+	}
 	w.w.WriteHeader(args)
 	return nil
 }
@@ -72,8 +83,8 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
-func (h *httpResponseWriterRPCClient) Close() error {
-	return h.client.Close()
+func (w *httpResponseWriterRPCClient) Close() error {
+	return w.client.Close()
 }
 
 func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCClient {

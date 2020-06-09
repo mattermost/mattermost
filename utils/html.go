@@ -1,12 +1,11 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"path/filepath"
@@ -15,8 +14,9 @@ import (
 	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 type HTMLTemplateWatcher struct {
@@ -26,8 +26,8 @@ type HTMLTemplateWatcher struct {
 }
 
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
-	templatesDir, _ := FindDir(directory)
-	mlog.Debug(fmt.Sprintf("Parsing server templates at %v", templatesDir))
+	templatesDir, _ := fileutils.FindDir(directory)
+	mlog.Debug("Parsing server templates", mlog.String("templates_directory", templatesDir))
 
 	ret := &HTMLTemplateWatcher{
 		stop:    make(chan struct{}),
@@ -59,15 +59,15 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					mlog.Info(fmt.Sprintf("Re-parsing templates because of modified file %v", event.Name))
+					mlog.Info("Re-parsing templates because of modified file", mlog.String("file_name", event.Name))
 					if htmlTemplates, err := template.ParseGlob(filepath.Join(templatesDir, "*.html")); err != nil {
-						mlog.Error(fmt.Sprintf("Failed to parse templates %v", err))
+						mlog.Error("Failed to parse templates.", mlog.Err(err))
 					} else {
 						ret.templates.Store(htmlTemplates)
 					}
 				}
 			case err := <-watcher.Errors:
-				mlog.Error(fmt.Sprintf("Failed in directory watcher %s", err))
+				mlog.Error("Failed in directory watcher", mlog.Err(err))
 			}
 		}
 	}()
@@ -112,7 +112,7 @@ func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
 	}
 
 	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
-		mlog.Error(fmt.Sprintf("Error rendering template %v err=%v", t.TemplateName, err))
+		mlog.Error("Error rendering template", mlog.String("template_name", t.TemplateName), mlog.Err(err))
 		return err
 	}
 
@@ -139,7 +139,11 @@ func escapeForHtml(arg interface{}) interface{} {
 		}
 		return safeArg
 	default:
-		mlog.Warn(fmt.Sprintf("Unable to escape value for HTML template %v of type %v", arg, reflect.ValueOf(arg).Type()))
+		mlog.Warn(
+			"Unable to escape value for HTML template",
+			mlog.Any("html_template", arg),
+			mlog.String("template_type", reflect.ValueOf(arg).Type().String()),
+		)
 		return ""
 	}
 }

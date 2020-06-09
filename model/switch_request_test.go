@@ -1,11 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSwitchRequestJson(t *testing.T) {
@@ -13,7 +15,5 @@ func TestSwitchRequestJson(t *testing.T) {
 	json := o.ToJson()
 	ro := SwitchRequestFromJson(strings.NewReader(json))
 
-	if o.Email != ro.Email {
-		t.Fatal("Emails do not match")
-	}
+	require.Equal(t, o.Email, ro.Email, "Emails do not match")
 }

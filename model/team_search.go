@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -9,12 +9,18 @@ import (
 )
 
 type TeamSearch struct {
-	Term string `json:"term"`
+	Term    string `json:"term"`
+	Page    *int   `json:"page,omitempty"`
+	PerPage *int   `json:"per_page,omitempty"`
+}
+
+func (t *TeamSearch) IsPaginated() bool {
+	return t.Page != nil && t.PerPage != nil
 }
 
 // ToJson convert a TeamSearch to json string
-func (c *TeamSearch) ToJson() string {
-	b, err := json.Marshal(c)
+func (t *TeamSearch) ToJson() string {
+	b, err := json.Marshal(t)
 	if err != nil {
 		return ""
 	}

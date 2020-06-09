@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type TokenLocation int
 
 const (
-	TokenLocationNotFound = iota
+	TokenLocationNotFound TokenLocation = iota
 	TokenLocationHeader
 	TokenLocationCookie
 	TokenLocationQueryString
@@ -36,6 +37,11 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
+
+	if *a.Config().ServiceSettings.EnableDeveloper {
+		return nil
+	}
+
 	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
@@ -45,8 +51,34 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return passErr
+		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
+
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
+		// about the MFA state of the user in question
+		if mfaToken != "" {
+			if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+				return passErr
+			}
+		}
+
+		a.InvalidateCacheForUser(user.Id)
+
+		return err
+	}
+
+	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+		return passErr
+	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
@@ -56,58 +88,60 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			return passErr
+		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
+
+	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+		return passErr
+	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	return nil
 }
 
 func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
-		}
-
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	} else {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-			return result.Err
-		}
-
-		return nil
 	}
+
+	return nil
 }
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	if a.Ldap == nil || ldapId == nil {
+	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	var user *model.User
-	if ldapUser, err := a.Ldap.DoLogin(*ldapId, password); err != nil {
+	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
+	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
-	} else {
-		user = ldapUser
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.CheckUserMfa(ldapUser, mfaToken); err != nil {
 		return nil, err
 	}
 
-	if err := checkUserNotDisabled(user); err != nil {
+	if err := checkUserNotDisabled(ldapUser); err != nil {
 		return nil, err
 	}
 
 	// user successfully authenticated
-	return user, nil
+	return ldapUser, nil
 }
 
 func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
@@ -123,11 +157,11 @@ func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken stri
 }
 
 func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
 
-	if err := checkUserNotDisabled(user); err != nil {
+	if err := checkUserNotBot(user); err != nil {
 		return err
 	}
 
@@ -139,7 +173,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 }
 
 func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -147,17 +181,17 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 }
 
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if license := a.License(); !user.MfaActive || license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
-	if a.Mfa == nil {
-		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
+	mfaService := mfa.New(a, a.Srv().Store)
+	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
+	if err != nil {
+		return err
 	}
 
-	if ok, err := a.Mfa.ValidateToken(user.MfaSecret, token); err != nil {
-		return err
-	} else if !ok {
+	if !ok {
 		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.bad_code.app_error", nil, "", http.StatusUnauthorized)
 	}
 
@@ -179,51 +213,67 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 	return nil
 }
 
+func checkUserNotBot(user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("Login", "api.user.login.bot_login_forbidden.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+	return nil
+}
+
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	license := a.License()
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
-		} else if ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
+		}
+
+		ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken)
+		if err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
-		} else {
-			// slightly redundant to get the user again, but we need to get it from the LDAP server
-			return ldapUser, nil
 		}
-	} else if user.AuthService != "" {
+
+		// slightly redundant to get the user again, but we need to get it from the LDAP server
+		return ldapUser, nil
+	}
+
+	if user.AuthService != "" {
 		authService := user.AuthService
 		if authService == model.USER_AUTH_SERVICE_SAML {
 			authService = strings.ToUpper(authService)
 		}
 		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
 		return user, err
-	} else {
-		if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
-			err.StatusCode = http.StatusUnauthorized
-			return user, err
-		} else {
-			return user, nil
-		}
 	}
+
+	if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+		err.StatusCode = http.StatusUnauthorized
+		return user, err
+	}
+
+	return user, nil
 }
 
 func ParseAuthTokenFromRequest(r *http.Request) (string, TokenLocation) {
 	authHeader := r.Header.Get(model.HEADER_AUTH)
-	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
-		// Default session token
-		return authHeader[7:], TokenLocationHeader
-	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
-		// OAuth token
-		return authHeader[6:], TokenLocationHeader
-	}
 
 	// Attempt to parse the token from the cookie
 	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
 		return cookie.Value, TokenLocationCookie
+	}
+
+	// Parse the token from the header
+	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
+		// Default session token
+		return authHeader[7:], TokenLocationHeader
+	}
+
+	if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
+		// OAuth token
+		return authHeader[6:], TokenLocationHeader
 	}
 
 	// Attempt to parse token out of the query string

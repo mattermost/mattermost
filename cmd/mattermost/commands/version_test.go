@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,5 +8,8 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	CheckCommand(t, "version")
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	th.CheckCommand(t, "version")
 }

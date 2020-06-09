@@ -1,18 +1,17 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
@@ -23,9 +22,10 @@ type RateLimiter struct {
 	useAuth              bool
 	useIP                bool
 	header               string
+	trustedProxyIPHeader []string
 }
 
-func NewRateLimiter(settings *model.RateLimitSettings) (*RateLimiter, error) {
+func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []string) (*RateLimiter, error) {
 	store, err := memstore.New(*settings.MemoryStoreSize)
 	if err != nil {
 		return nil, errors.Wrap(err, utils.T("api.server.start_server.rate_limiting_memory_store"))
@@ -46,6 +46,7 @@ func NewRateLimiter(settings *model.RateLimitSettings) (*RateLimiter, error) {
 		useAuth:              *settings.VaryByUser,
 		useIP:                *settings.VaryByRemoteAddr,
 		header:               settings.VaryByHeader,
+		trustedProxyIPHeader: trustedProxyIPHeader,
 	}, nil
 }
 
@@ -57,10 +58,10 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 		if tokenLocation != TokenLocationNotFound {
 			key += token
 		} else if rl.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
-			key += utils.GetIpAddress(r)
+			key += utils.GetIpAddress(r, rl.trustedProxyIPHeader)
 		}
 	} else if rl.useIP { // Only if Auth based is not enabed do we use a plain IP based
-		key += utils.GetIpAddress(r)
+		key += utils.GetIpAddress(r, rl.trustedProxyIPHeader)
 	}
 
 	// Note that most of the time the user won't have to set this because the utils.GetIpAddress above tries the
@@ -75,14 +76,14 @@ func (rl *RateLimiter) GenerateKey(r *http.Request) string {
 func (rl *RateLimiter) RateLimitWriter(key string, w http.ResponseWriter) bool {
 	limited, context, err := rl.throttledRateLimiter.RateLimit(key, 1)
 	if err != nil {
-		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken. Error:" + err.Error())
+		mlog.Critical("Internal server error when rate limiting. Rate Limiting broken.", mlog.Err(err))
 		return false
 	}
 
 	setRateLimitHeaders(w, context)
 
 	if limited {
-		mlog.Error(fmt.Sprintf("Denied due to throttling settings code=429 key=%v", key))
+		mlog.Error("Denied due to throttling settings code=429", mlog.String("key", key))
 		http.Error(w, "limit exceeded", 429)
 	}
 

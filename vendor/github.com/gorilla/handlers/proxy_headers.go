@@ -31,8 +31,8 @@ var (
 // ProxyHeaders inspects common reverse proxy headers and sets the corresponding
 // fields in the HTTP request struct. These are X-Forwarded-For and X-Real-IP
 // for the remote (client) IP address, X-Forwarded-Proto or X-Forwarded-Scheme
-// for the scheme (http|https) and the RFC7239 Forwarded header, which may
-// include both client IPs and schemes.
+// for the scheme (http|https), X-Forwarded-Host for the host and the RFC7239
+// Forwarded header, which may include both client IPs and schemes.
 //
 // NOTE: This middleware should only be used when behind a reverse
 // proxy like nginx, HAProxy or Apache. Reverse proxies that don't (or are

@@ -1,12 +1,12 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -25,7 +25,8 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
-		user, err := a.GetUser(reaction.UserId)
+		var user *model.User
+		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
 			return nil, err
 		}
@@ -35,14 +36,15 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	result := <-a.Srv.Store.Reaction().Save(reaction)
-	if result.Err != nil {
-		return nil, result.Err
+	reaction, err = a.Srv().Store.Reaction().Save(reaction)
+	if err != nil {
+		return nil, err
 	}
 
-	reaction = result.Data.(*model.Reaction)
+	// The post is always modified since the UpdateAt always changes
+	a.invalidateCacheForChannelPosts(post.ChannelId)
 
-	a.Go(func() {
+	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
 	})
 
@@ -50,11 +52,35 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	return a.Srv().Store.Reaction().GetForPost(postId, true)
+}
+
+func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+	reactions := make(map[string][]*model.Reaction)
+
+	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIds)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Reaction), nil
+
+	for _, reaction := range allReactions {
+		reactionsForPost := reactions[reaction.PostId]
+		reactionsForPost = append(reactionsForPost, reaction)
+
+		reactions[reaction.PostId] = reactionsForPost
+	}
+
+	reactions = populateEmptyReactions(postIds, reactions)
+	return reactions, nil
+}
+
+func populateEmptyReactions(postIds []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
+	for _, postId := range postIds {
+		if _, present := reactions[postId]; !present {
+			reactions[postId] = []*model.Reaction{}
+		}
+	}
+	return reactions
 }
 
 func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
@@ -88,11 +114,14 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		hasReactions = false
 	}
 
-	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
+		return err
 	}
 
-	a.Go(func() {
+	// The post is always modified since the UpdateAt always changes
+	a.invalidateCacheForChannelPosts(post.ChannelId)
+
+	a.Srv().Go(func() {
 		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
 	})
 
@@ -104,12 +133,4 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
 	a.Publish(message)
-
-	// The post is always modified since the UpdateAt always changes
-	a.InvalidateCacheForChannelPosts(post.ChannelId)
-	post.HasReactions = hasReactions
-	post.UpdateAt = model.GetMillis()
-	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	umessage.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-	a.Publish(umessage)
 }

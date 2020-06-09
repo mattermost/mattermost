@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -20,9 +20,7 @@ func TestEmojiIsValid(t *testing.T) {
 		Name:      "name",
 	}
 
-	if err := emoji.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, emoji.IsValid())
 
 	emoji.Id = "1234"
 	require.NotNil(t, emoji.IsValid())

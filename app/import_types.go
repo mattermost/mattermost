@@ -1,32 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import "github.com/mattermost/mattermost-server/v5/model"
 
 // Import Data Models
 
 type LineImportData struct {
 	Type          string                   `json:"type"`
-	Scheme        *SchemeImportData        `json:"scheme"`
-	Team          *TeamImportData          `json:"team"`
-	Channel       *ChannelImportData       `json:"channel"`
-	User          *UserImportData          `json:"user"`
-	Post          *PostImportData          `json:"post"`
-	DirectChannel *DirectChannelImportData `json:"direct_channel"`
-	DirectPost    *DirectPostImportData    `json:"direct_post"`
-	Emoji         *EmojiImportData         `json:"emoji"`
-	Version       *int                     `json:"version"`
+	Scheme        *SchemeImportData        `json:"scheme,omitempty"`
+	Team          *TeamImportData          `json:"team,omitempty"`
+	Channel       *ChannelImportData       `json:"channel,omitempty"`
+	User          *UserImportData          `json:"user,omitempty"`
+	Post          *PostImportData          `json:"post,omitempty"`
+	DirectChannel *DirectChannelImportData `json:"direct_channel,omitempty"`
+	DirectPost    *DirectPostImportData    `json:"direct_post,omitempty"`
+	Emoji         *EmojiImportData         `json:"emoji,omitempty"`
+	Version       *int                     `json:"version,omitempty"`
 }
 
 type TeamImportData struct {
 	Name            *string `json:"name"`
 	DisplayName     *string `json:"display_name"`
 	Type            *string `json:"type"`
-	Description     *string `json:"description"`
-	AllowOpenInvite *bool   `json:"allow_open_invite"`
-	Scheme          *string `json:"scheme"`
+	Description     *string `json:"description,omitempty"`
+	AllowOpenInvite *bool   `json:"allow_open_invite,omitempty"`
+	Scheme          *string `json:"scheme,omitempty"`
 }
 
 type ChannelImportData struct {
@@ -34,35 +34,40 @@ type ChannelImportData struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`
 	Type        *string `json:"type"`
-	Header      *string `json:"header"`
-	Purpose     *string `json:"purpose"`
-	Scheme      *string `json:"scheme"`
+	Header      *string `json:"header,omitempty"`
+	Purpose     *string `json:"purpose,omitempty"`
+	Scheme      *string `json:"scheme,omitempty"`
 }
 
 type UserImportData struct {
-	ProfileImage *string `json:"profile_image"`
-	Username     *string `json:"username"`
-	Email        *string `json:"email"`
-	AuthService  *string `json:"auth_service"`
-	AuthData     *string `json:"auth_data"`
-	Password     *string `json:"password"`
-	Nickname     *string `json:"nickname"`
-	FirstName    *string `json:"first_name"`
-	LastName     *string `json:"last_name"`
-	Position     *string `json:"position"`
-	Roles        *string `json:"roles"`
-	Locale       *string `json:"locale"`
+	ProfileImage       *string `json:"profile_image,omitempty"`
+	Username           *string `json:"username"`
+	Email              *string `json:"email"`
+	AuthService        *string `json:"auth_service"`
+	AuthData           *string `json:"auth_data,omitempty"`
+	Password           *string `json:"password,omitempty"`
+	Nickname           *string `json:"nickname"`
+	FirstName          *string `json:"first_name"`
+	LastName           *string `json:"last_name"`
+	Position           *string `json:"position"`
+	Roles              *string `json:"roles"`
+	Locale             *string `json:"locale"`
+	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
+	UseFormatting      *string `json:"formatting,omitempty"`
+	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64  `json:"delete_at,omitempty"`
 
-	Teams *[]UserTeamImportData `json:"teams"`
+	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 
-	Theme              *string `json:"theme"`
-	UseMilitaryTime    *string `json:"military_time"`
-	CollapsePreviews   *string `json:"link_previews"`
-	MessageDisplay     *string `json:"message_display"`
-	ChannelDisplayMode *string `json:"channel_display_mode"`
-	TutorialStep       *string `json:"tutorial_step"`
+	Theme              *string `json:"theme,omitempty"`
+	UseMilitaryTime    *string `json:"military_time,omitempty"`
+	CollapsePreviews   *string `json:"link_previews,omitempty"`
+	MessageDisplay     *string `json:"message_display,omitempty"`
+	ChannelDisplayMode *string `json:"channel_display_mode,omitempty"`
+	TutorialStep       *string `json:"tutorial_step,omitempty"`
+	EmailInterval      *string `json:"email_interval,omitempty"`
 
-	NotifyProps *UserNotifyPropsImportData `json:"notify_props"`
+	NotifyProps *UserNotifyPropsImportData `json:"notify_props,omitempty"`
 }
 
 type UserNotifyPropsImportData struct {
@@ -82,14 +87,15 @@ type UserNotifyPropsImportData struct {
 type UserTeamImportData struct {
 	Name     *string                  `json:"name"`
 	Roles    *string                  `json:"roles"`
-	Channels *[]UserChannelImportData `json:"channels"`
+	Theme    *string                  `json:"theme,omitempty"`
+	Channels *[]UserChannelImportData `json:"channels,omitempty"`
 }
 
 type UserChannelImportData struct {
 	Name        *string                           `json:"name"`
 	Roles       *string                           `json:"roles"`
-	NotifyProps *UserChannelNotifyPropsImportData `json:"notify_props"`
-	Favorite    *bool                             `json:"favorite"`
+	NotifyProps *UserChannelNotifyPropsImportData `json:"notify_props,omitempty"`
+	Favorite    *bool                             `json:"favorite,omitempty"`
 }
 
 type UserChannelNotifyPropsImportData struct {
@@ -115,9 +121,9 @@ type ReplyImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
-	Reactions   *[]ReactionImportData   `json:"reactions"`
-	Attachments *[]AttachmentImportData `json:"attachments"`
+	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
+	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
+	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
 }
 
 type PostImportData struct {
@@ -125,13 +131,14 @@ type PostImportData struct {
 	Channel *string `json:"channel"`
 	User    *string `json:"user"`
 
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
+	Message  *string                `json:"message"`
+	Props    *model.StringInterface `json:"props"`
+	CreateAt *int64                 `json:"create_at"`
 
-	FlaggedBy   *[]string               `json:"flagged_by"`
-	Reactions   *[]ReactionImportData   `json:"reactions"`
-	Replies     *[]ReplyImportData      `json:"replies"`
-	Attachments *[]AttachmentImportData `json:"attachments"`
+	FlaggedBy   *[]string               `json:"flagged_by,omitempty"`
+	Reactions   *[]ReactionImportData   `json:"reactions,omitempty"`
+	Replies     *[]ReplyImportData      `json:"replies,omitempty"`
+	Attachments *[]AttachmentImportData `json:"attachments,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -145,8 +152,9 @@ type DirectPostImportData struct {
 	ChannelMembers *[]string `json:"channel_members"`
 	User           *string   `json:"user"`
 
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
+	Message  *string                `json:"message"`
+	Props    *model.StringInterface `json:"props"`
+	CreateAt *int64                 `json:"create_at"`
 
 	FlaggedBy   *[]string               `json:"flagged_by"`
 	Reactions   *[]ReactionImportData   `json:"reactions"`
@@ -163,6 +171,8 @@ type SchemeImportData struct {
 	DefaultTeamUserRole     *RoleImportData `json:"default_team_user_role"`
 	DefaultChannelAdminRole *RoleImportData `json:"default_channel_admin_role"`
 	DefaultChannelUserRole  *RoleImportData `json:"default_channel_user_role"`
+	DefaultTeamGuestRole    *RoleImportData `json:"default_team_guest_role"`
+	DefaultChannelGuestRole *RoleImportData `json:"default_channel_guest_role"`
 }
 
 type RoleImportData struct {
@@ -184,4 +194,9 @@ type LineImportWorkerError struct {
 
 type AttachmentImportData struct {
 	Path *string `json:"path"`
+}
+
+type ComparablePreference struct {
+	Category string
+	Name     string
 }

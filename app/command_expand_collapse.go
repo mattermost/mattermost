@@ -1,13 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type ExpandProvider struct {
@@ -68,7 +68,7 @@ func (a *App) setCollapsePreference(args *model.CommandArgs, isCollapse bool) *m
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if result := <-a.Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
+	if err := a.Srv().Store.Preference().Save(&model.Preferences{pref}); err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

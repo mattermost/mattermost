@@ -1,38 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"encoding/json"
-
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestConfigFlag(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
+	th := Setup(t)
+	defer th.TearDown()
+	dir := th.TemporaryDirectory()
 
-	utils.TranslationsPreInit()
-	config, _, _, err := utils.LoadConfig("config.json")
-	require.Nil(t, err)
-	configPath := filepath.Join(dir, "foo.json")
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
-
-	timezones := utils.LoadTimezones("timezones.json")
-	tzConfigPath := filepath.Join(dir, "timezones.json")
-	timezoneData, _ := json.Marshal(timezones)
-	require.NoError(t, ioutil.WriteFile(tzConfigPath, timezoneData, 0600))
-
-	i18n, ok := utils.FindDir("i18n")
+	i18n, ok := fileutils.FindDir("i18n")
 	require.True(t, ok)
 	require.NoError(t, utils.CopyDir(i18n, filepath.Join(dir, "i18n")))
 
@@ -41,8 +28,15 @@ func TestConfigFlag(t *testing.T) {
 	defer os.Chdir(prevDir)
 	os.Chdir(dir)
 
-	require.Error(t, RunCommand(t, "version"))
-	CheckCommand(t, "--config", "foo.json", "version")
-	CheckCommand(t, "--config", "./foo.json", "version")
-	CheckCommand(t, "--config", configPath, "version")
+	t.Run("version without a config file should fail", func(t *testing.T) {
+		th.SetAutoConfig(false)
+		defer th.SetAutoConfig(true)
+		require.Error(t, th.RunCommand(t, "version"))
+	})
+
+	t.Run("version with varying paths to the config file", func(t *testing.T) {
+		th.CheckCommand(t, "--config", filepath.Base(th.ConfigPath()), "version")
+		th.CheckCommand(t, "--config", "./"+filepath.Base(th.ConfigPath()), "version")
+		th.CheckCommand(t, "version")
+	})
 }

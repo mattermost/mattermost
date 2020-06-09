@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package markdown
 
@@ -129,6 +129,18 @@ func TestParseURLAutolink(t *testing.T) {
 			Input:       "<b>We use http://example.com</b>",
 			Position:    14,
 			Expected:    "http://example.com",
+		},
+		{
+			Description: "bad link protocol",
+			Input:       "://///",
+			Position:    0,
+			Expected:    "",
+		},
+		{
+			Description: "position greater than input length",
+			Input:       "there is no colon",
+			Position:    1000,
+			Expected:    "",
 		},
 	}
 
@@ -447,8 +459,8 @@ func TestAutolinking(t *testing.T) {
 			ExpectedHTML: `<p><a href="ftp://example.com">ftp://example.com</a></p>`,
 		},
 		// "valid-link-4": {
-		// 	Markdown:     `ts3server://example.com?port=9001`,
-		// 	ExpectedHTML: `<p><a href="ts3server://example.com?port=9001">ts3server://example.com?port=9001</a></p>`,
+		// 	Markdown:     `ts3server://example.com?port=9000`,
+		// 	ExpectedHTML: `<p><a href="ts3server://example.com?port=9000">ts3server://example.com?port=9000</a></p>`,
 		// },
 		"valid-link-5": {
 			Markdown:     `www.example.com`,
