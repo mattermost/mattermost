@@ -23,6 +23,7 @@ import (
 const (
 	defaultMysqlDSN      = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
 	defaultPostgresqlDSN = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+	defaultCockroachDSN  = "postgres://mmuser:mostest@localhost:26257/mattermost_test?sslmode=disable"
 	defaultMysqlRootPWD  = "mostest"
 )
 
@@ -66,6 +67,21 @@ func MySQLSettings() *model.SqlSettings {
 // The database name is generated randomly and must be created before use.
 func PostgreSQLSettings() *model.SqlSettings {
 	dsn := getEnv("TEST_DATABASE_POSTGRESQL_DSN", defaultPostgresqlDSN)
+	dsnUrl, err := url.Parse(dsn)
+	if err != nil {
+		panic("failed to parse dsn " + dsn + ": " + err.Error())
+	}
+
+	// Generate a random database name
+	dsnUrl.Path = "db" + model.NewId()
+
+	return databaseSettings("postgres", dsnUrl.String())
+}
+
+// CockroachSQLSettings returns the database settings to connect to the PostgreSQL unittesting database.
+// The database name is generated randomly and must be created before use.
+func CockroachSQLSettings() *model.SqlSettings {
+	dsn := getEnv("TEST_DATABASE_COCKROACHDB_DSN", defaultCockroachDSN)
 	dsnUrl, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
@@ -127,6 +143,15 @@ func postgreSQLDSNDatabase(dsn string) string {
 	return path.Base(dsnUrl.Path)
 }
 
+func cockroachSQLDSNDatabase(dsn string) string {
+	dsnUrl, err := url.Parse(dsn)
+	if err != nil {
+		panic("failed to parse dsn " + dsn + ": " + err.Error())
+	}
+
+	return path.Base(dsnUrl.Path)
+}
+
 func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	settings := &model.SqlSettings{
 		DriverName:                  &driver,
@@ -157,6 +182,7 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	case model.DATABASE_DRIVER_MYSQL:
 		dsn = mySQLRootDSN(*settings.DataSource)
 	case model.DATABASE_DRIVER_POSTGRES:
+	case model.DATABASE_DRIVER_COCKROACH:
 		dsn = postgreSQLRootDSN(*settings.DataSource)
 	default:
 		return fmt.Errorf("unsupported driver %s", driver)
@@ -186,6 +212,9 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 	case model.DATABASE_DRIVER_POSTGRES:
 		settings = PostgreSQLSettings()
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
+	case model.DATABASE_DRIVER_COCKROACH:
+		settings = CockroachSQLSettings()
+		dbName = cockroachSQLDSNDatabase(*settings.DataSource)
 	default:
 		panic("unsupported driver " + driver)
 	}
@@ -221,6 +250,8 @@ func CleanupSqlSettings(settings *model.SqlSettings) {
 		dbName = mySQLDSNDatabase(*settings.DataSource)
 	case model.DATABASE_DRIVER_POSTGRES:
 		dbName = postgreSQLDSNDatabase(*settings.DataSource)
+	case model.DATABASE_DRIVER_COCKROACH:
+		dbName = cockroachSQLDSNDatabase(*settings.DataSource)
 	default:
 		panic("unsupported driver " + driver)
 	}
