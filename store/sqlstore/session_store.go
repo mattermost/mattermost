@@ -153,7 +153,7 @@ func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly b
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var sessions []*model.Session
