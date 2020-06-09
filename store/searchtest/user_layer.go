@@ -180,11 +180,11 @@ func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 		require.Nil(t, err)
 		defer th.deleteUser(userGuest)
 
-		users, err := th.Store.User().AutocompleteUsersInChannel("", "", "", options)
+		// In case teamId and channelId are empty our current logic goes through Search
+		users, err := th.Store.User().Search("", "", options)
 		require.Nil(t, err)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2, th.UserAnotherTeam,
-			userAlternate, userGuest}, users.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+			userAlternate, userGuest}, users)
 	})
 }
 
@@ -196,12 +196,18 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 	require.Nil(t, err)
 	_, err = th.addUserToChannels(userAlternate, []string{th.ChannelBasic.Id})
 	require.Nil(t, err)
+	guest, err := th.createGuest("guest", "guest", "guest", "one")
+	require.Nil(t, err)
+	err = th.addUserToTeams(guest, []string{th.Team.Id})
+	require.Nil(t, err)
+	_, err = th.addUserToChannels(guest, []string{th.ChannelBasic.Id})
+	defer th.deleteUser(guest)
 	t.Run("Autocomplete users with channel restrictions", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
 		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{th.ChannelBasic.Id}}
 		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, userAlternate, guest}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
 	t.Run("Autocomplete users with term and channel restrictions", func(t *testing.T) {
@@ -229,19 +235,12 @@ func testHonorChannelRestrictionsAutocompletingUsers(t *testing.T, th *SearchTes
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
 	t.Run("Autocomplete users with empty team and channels restricted", func(t *testing.T) {
-		guest, err := th.createGuest("guest", "guest", "guest", "one")
-		require.Nil(t, err)
-		err = th.addUserToTeams(guest, []string{th.Team.Id})
-		require.Nil(t, err)
-		_, err = th.addUserToChannels(guest, []string{th.ChannelBasic.Id})
-		defer th.deleteUser(guest)
-
 		options := createDefaultOptions(true, false, false)
 		options.ViewRestrictions = &model.ViewUsersRestrictions{Channels: []string{th.ChannelBasic.Id}}
-		users, err := th.Store.User().AutocompleteUsersInChannel("", "", "", options)
+		// In case teamId and channelId are empty our current logic goes through Search
+		users, err := th.Store.User().Search("", "", options)
 		require.Nil(t, err)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{guest, th.User}, users.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate, guest, th.User}, users)
 	})
 }
 
