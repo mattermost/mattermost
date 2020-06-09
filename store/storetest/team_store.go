@@ -359,31 +359,31 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 		ExpectedFirstId string
 	}{
 		{
-			"Search FooBar by display name",
+			"Search PINEAPPLEPIE by display name",
 			"neapplep",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
+			"Search PINEAPPLEPIE by display name",
 			"pine",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
+			"Search PINEAPPLEPIE by display name",
 			"epie",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
+			"Search PINEAPPLEPIE by  name",
 			"ihadsome",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
+			"Search PINEAPPLEPIE by  name",
 			"pineapplepiewithstrawberry",
 			1,
 			q.Id,
@@ -465,31 +465,31 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		ExpectedFirstId string
 	}{
 		{
-			"Search FooBar by display name",
-			"oob",
+			"Search FooBar by display name from text in the middle of display name",
+			"ooba",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
+			"Search FooBar by display name from text at the beginning of display name",
 			"foo",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by display name",
+			"Search FooBar by display name from text at the end of display name",
 			"bar",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
+			"Search FooBar by  name from text at the beginning name",
 			"what",
 			1,
 			q.Id,
 		},
 		{
-			"Search FooBar by  name",
+			"Search FooBar by  name from text at the end of name",
 			"ever",
 			1,
 			q.Id,
