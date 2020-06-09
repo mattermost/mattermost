@@ -3249,45 +3249,45 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	_, nErr = ss.Channel().Save(&c5, -1)
 	require.Nil(t, nErr)
 
-	list, err := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
-	require.Nil(t, err)
+	list, nErr := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
+	require.Nil(t, nErr)
 	assert.Len(t, *list, 2)
 	assert.Equal(t, c1.Id, (*list)[0].Id)
 	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
 	assert.Equal(t, c3.Id, (*list)[1].Id)
 	assert.Equal(t, "Name2", (*list)[1].TeamDisplayName)
 
-	count1, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
-	require.Nil(t, err)
+	count1, nErr := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
+	require.Nil(t, nErr)
 
-	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, nErr)
 	assert.Len(t, *list, 3)
 	assert.Equal(t, c1.Id, (*list)[0].Id)
 	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
 	assert.Equal(t, c2.Id, (*list)[1].Id)
 	assert.Equal(t, c3.Id, (*list)[2].Id)
 
-	count2, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
-	require.Nil(t, err)
+	count2, nErr := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, nErr)
 	require.True(t, func() bool {
 		return count2 > count1
 	}())
 
-	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, nErr)
 	assert.Len(t, *list, 1)
 	assert.Equal(t, c1.Id, (*list)[0].Id)
 	assert.Equal(t, "Name", (*list)[0].TeamDisplayName)
 
 	// Not associated to group
-	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
+	require.Nil(t, nErr)
 	assert.Len(t, *list, 1)
 
 	// Exclude channel names
-	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
+	require.Nil(t, nErr)
 	assert.Len(t, *list, 1)
 
 	// Manually truncate Channels table until testlib can handle cleanups
