@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 	"sync/atomic"
 
@@ -37,14 +36,6 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 		upgradePercentage = percentage
 	}
 	return n, nil
-}
-
-func getUpgradeDirectory() (string, error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Dir(exePath), nil
 }
 
 func getCurrentVersionTgzUrl() string {
@@ -147,7 +138,7 @@ func extractBinary(executablePath string, filename string) error {
 
 	tarReader := tar.NewReader(uncompressedStream)
 
-	for true {
+	for {
 		header, err := tarReader.Next()
 
 		if err == io.EOF {
