@@ -143,7 +143,7 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 
 func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
 	if fieldList == nil || len(fieldList.List) == 0 {
-		return ""
+		return "true"
 	}
 
 	result := ""
@@ -380,7 +380,7 @@ func (api *apiTimerLayer) recordTime(startTime timePkg.Time, name string, succes
 func (api *apiTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} api.apiImpl.{{.Name}}({{valuesOnly .Params}})
-	api.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ shouldRecordSuccess "_returns" .Return }} {{ else }} true {{ end }})
+	api.recordTime(startTime, "{{.Name}}", {{ shouldRecordSuccess "_returns" .Return }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{ end -}}
 }
 
@@ -422,7 +422,7 @@ func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, su
 func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	startTime := timePkg.Now()
 	{{ if .Return }} {{destruct "_returns" .Return}} := {{ end }} hooks.hooksImpl.{{.Name}}({{valuesOnly .Params}})
-	hooks.recordTime(startTime, "{{.Name}}", {{ if .Return }} {{ shouldRecordSuccess "_returns" .Return }} {{ else }} true {{ end }})
+	hooks.recordTime(startTime, "{{.Name}}", {{ shouldRecordSuccess "_returns" .Return }})
 	{{ if .Return }} return {{destruct "_returns" .Return}} {{end -}}
 }
 
