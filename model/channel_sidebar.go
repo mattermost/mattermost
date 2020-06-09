@@ -14,10 +14,10 @@ type SidebarCategorySorting string
 const (
 	// Each sidebar category has a 'type'. System categories are Channels, Favorites and DMs
 	// All user-created categories will have type Custom
-	SidebarCategoryChannels       SidebarCategoryType = "C"
-	SidebarCategoryDirectMessages SidebarCategoryType = "D"
-	SidebarCategoryFavorites      SidebarCategoryType = "F"
-	SidebarCategoryCustom         SidebarCategoryType = "U"
+	SidebarCategoryChannels       SidebarCategoryType = "custom"
+	SidebarCategoryDirectMessages SidebarCategoryType = "direct_messages"
+	SidebarCategoryFavorites      SidebarCategoryType = "favorites"
+	SidebarCategoryCustom         SidebarCategoryType = "custom"
 	// Increment to use when adding/reordering things in the sidebar
 	MinimalSidebarSortDistance = 10
 	// Default Sort Orders for categories
