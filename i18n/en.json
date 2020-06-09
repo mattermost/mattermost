@@ -2336,7 +2336,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.message",
-    "translation": "Remove the expired license in System Console > Edition and License to stop receiving these emails."
+    "translation": "You can remove the expired license in System Console > Edition and License to stop receiving these emails."
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
