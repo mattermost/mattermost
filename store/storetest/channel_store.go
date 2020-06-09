@@ -5589,6 +5589,47 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	pl, errGet = ss.Channel().GetPinnedPosts(o2.Id)
 	require.Nil(t, errGet, errGet)
 	require.Empty(t, pl.Posts, "wasn't supposed to return posts")
+
+	t.Run("with correct ReplyCount", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
+
+		post1, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+			IsPinned:  true,
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		post2, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+			IsPinned:  true,
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		post3, err := ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post1.Id,
+			RootId:    post1.Id,
+			Message:   "message",
+			IsPinned:  true,
+		})
+		require.Nil(t, err)
+		time.Sleep(time.Millisecond)
+
+		posts, err := ss.Channel().GetPinnedPosts(channelId)
+		require.Nil(t, err)
+		require.Len(t, posts.Posts, 3)
+		require.Equal(t, posts.Posts[post1.Id].ReplyCount, int64(1))
+		require.Equal(t, posts.Posts[post2.Id].ReplyCount, int64(0))
+		require.Equal(t, posts.Posts[post3.Id].ReplyCount, int64(1))
+	})
 }
 
 func testChannelStoreGetPinnedPostCount(t *testing.T, ss store.Store) {
