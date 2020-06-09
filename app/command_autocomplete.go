@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -191,14 +192,38 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	if in == "" { //The user has not started typing the argument.
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
+
+	var re *regexp.Regexp
+	var err error
+	checkPattern := false
+	if a.Pattern != "" {
+		re, err = regexp.Compile(a.Pattern)
+		if err == nil { // TODO: what if err != nil ? maybe we should not check the pattern and log a warning
+			checkPattern = true
+		}
+	}
+
 	if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
 			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 		}
-		// this argument is typed already
+
+		if len(in) == indexOfSecondQuote+2 { // this is the last argument
+			if checkPattern {
+				if re.MatchString(in[1 : indexOfSecondQuote+1]) {
+					return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+				}
+				return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{}
+			}
+
+			// this is the same case for single word and pattern is empty
+			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+		}
+
+		// this argument is not the
 		offset := 2
-		if len(in) > indexOfSecondQuote+2 && in[indexOfSecondQuote+2] == ' ' {
+		if in[indexOfSecondQuote+2] == ' ' {
 			offset++
 		}
 		return false, parsed + in[:indexOfSecondQuote+offset], in[indexOfSecondQuote+offset:], model.AutocompleteSuggestion{}
@@ -206,6 +231,13 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	// input with a single word
 	index := strings.Index(in, " ")
 	if index == -1 { // typing of the single word argument is not finished
+		if checkPattern {
+			if re.MatchString(toBeParsed) {
+				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+			}
+			return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{}
+		}
+
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
 	// single word argument already typed

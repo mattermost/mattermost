@@ -91,7 +91,7 @@ func TestParseInputTextArgument(t *testing.T) {
 		Name:     "", //positional
 		HelpText: "some_help",
 		Type:     model.AutocompleteArgTypeText,
-		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: "pat"},
+		Data:     &model.AutocompleteTextArg{Hint: "hint", Pattern: ""},
 	}
 
 	found, _, _, suggestion := parseInputTextArgument(argument, "", "")
