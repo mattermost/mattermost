@@ -549,19 +549,21 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
-	percentage, _ := c.App.Srv().UpgradeToE0Status()
 	if model.BuildEnterpriseReady == "true" {
 		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.already-enterprise.app_error", nil, "", http.StatusTooManyRequests)
 		return
 	}
+
+	percentage, _ := c.App.Srv().UpgradeToE0Status()
+
 	if percentage > 0 {
 		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.app_error", nil, "", http.StatusTooManyRequests)
 		return
@@ -599,14 +601,15 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
 	auditRec.Success()
-	c.LogAuditRec(auditRec)
 	ReturnStatusOK(w)
 	time.Sleep(1 * time.Second)
 

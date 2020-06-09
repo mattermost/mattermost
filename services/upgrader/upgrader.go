@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -71,6 +72,10 @@ func canIUpgradeToE0() error {
 }
 
 func UpgradeToE0() error {
+	if err := canIUpgradeToE0(); err != nil {
+		return err
+	}
+
 	if !atomic.CompareAndSwapInt32(&upgrading, 0, 1) {
 		return errors.New("One upgrade is already running.")
 	}
@@ -79,27 +84,23 @@ func UpgradeToE0() error {
 	upgradePercentage = 1
 	upgradeError = nil
 
-	if err := canIUpgradeToE0(); err != nil {
+	executablePath, err := os.Executable()
+	if err != nil {
 		upgradePercentage = 0
-		upgradeError = err
+		upgradeError = errors.New("error getting the executable path")
 		return err
 	}
+
 	filename, err := download(getCurrentVersionTgzUrl())
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
 		}
+		upgradeError = fmt.Errorf("error downloading the new version (percentage: %d)", upgradePercentage)
 		upgradePercentage = 0
-		upgradeError = err
 		return err
 	}
 	defer os.Remove(filename)
-	executablePath, err := os.Executable()
-	if err != nil {
-		upgradePercentage = 0
-		upgradeError = err
-		return err
-	}
 
 	err = extractBinary(executablePath, filename)
 	if err != nil {
