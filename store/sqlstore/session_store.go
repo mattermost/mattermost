@@ -172,7 +172,7 @@ func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) *
 		Where(sq.Eq{"Id": sessionId}).
 		ToSql()
 	if err != nil {
-		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql_session.update_expired_notify.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql.build_query.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
 	}
 
 	_, err = me.GetMaster().Exec(query, args...)
