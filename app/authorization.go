@@ -44,7 +44,9 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if channelId == "" {
 		return false
 	}
-
+	if session.IsUnrestricted() {
+		return true
+	}
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
@@ -132,6 +134,11 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 
 	teamMember, err := a.GetTeamMember(teamId, askingUserId)
 	if err != nil {
+		return false
+	}
+
+	// If the team member has been deleted, they don't have permission.
+	if teamMember.DeleteAt != 0 {
 		return false
 	}
 

@@ -350,7 +350,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	chanChan := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().Get(args.ChannelId, true)
-		chanChan <- store.StoreResult{Data: channel, Err: err}
+		chanChan <- store.StoreResult{Data: channel, NErr: err}
 		close(chanChan)
 	}()
 
@@ -386,8 +386,14 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	user := ur.Data.(*model.User)
 
 	cr := <-chanChan
-	if cr.Err != nil {
-		return nil, nil, cr.Err
+	if cr.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(cr.NErr, &nfErr):
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, cr.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	channel := cr.Data.(*model.Channel)
 
