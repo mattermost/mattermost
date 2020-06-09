@@ -97,7 +97,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		_, err = a.Srv().Store.Channel().SaveMember(cm)
 		if histErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(histErr))
-			return histErr
+			return model.NewAppError("JoinDefaultChannels", "app.channel_member_history.log_join_event.internal_error", nil, histErr.Error(), http.StatusInternalServerError)
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -253,7 +253,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		}
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			return nil, err
+			return nil, model.NewAppError("CreateChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -370,12 +370,12 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 
 	if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
 		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-		return nil, err
+		return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if userId != otherUserId {
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			return nil, err
+			return nil, model.NewAppError("CreateDirectChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -494,7 +494,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		}
 		if err := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-			return nil, err
+			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -643,7 +643,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 
 	if err := a.Srv().Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
-		return nil, err
+		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	channel.DeleteAt = 0
 	a.invalidateCacheForChannel(channel)
@@ -1197,7 +1197,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	deleteAt := model.GetMillis()
 
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
-		return err
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	a.invalidateCacheForChannel(channel)
 
@@ -1257,9 +1257,9 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
-	if err = a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
-		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(err))
-		return nil, err
+	if nErr := a.Srv().Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); nErr != nil {
+		mlog.Error("Failed to update ChannelMemberHistory table", mlog.Err(nErr))
+		return nil, model.NewAppError("AddUserToChannel", "app.channel_member_history.log_join_event.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1563,7 +1563,12 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	return a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+	if err != nil {
+		return nil, model.NewAppError("GetAllChannels", "app.channel.get_all_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
 }
 
 func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
@@ -1575,7 +1580,12 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	return a.Srv().Store.Channel().GetAllChannelsCount(storeOpts)
+	count, err := a.Srv().Store.Channel().GetAllChannelsCount(storeOpts)
+	if err != nil {
+		return 0, model.NewAppError("GetAllChannelsCount", "app.channel.get_all_channels_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
@@ -1966,7 +1976,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return err
 	}
 	if err := a.Srv().Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
-		return err
+		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if isGuest {
@@ -2296,8 +2306,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if err := a.Srv().Store.Channel().PermanentDelete(channel.Id); err != nil {
-		return err
+	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
