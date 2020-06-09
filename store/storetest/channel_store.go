@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"errors"
 	"sort"
 	"strconv"
@@ -5248,7 +5247,6 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 	_, nErr = ss.Channel().Save(&o14, -1)
 	require.Nil(t, nErr)
-	fmt.Printf("%s %s %s %s %s %s %s %s %s %s %s %s",o1.Id, o2.Id, o3.Id, o4.Id, o5.Id, o12.Id, o11.Id, o8.Id, o7.Id, o6.Id, o10.Id, o9.Id)
 	testCases := []struct {
 		Description     string
 		Term            string

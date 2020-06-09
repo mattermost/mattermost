@@ -1201,7 +1201,7 @@ func TestSearchAllChannels(t *testing.T) {
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
-	// Seach by partial word search and testing case sensitivty 
+	// Seach by partial word search and testing case sensitivty
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
