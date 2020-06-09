@@ -245,7 +245,7 @@
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
-    "translation": "la licencia actual no es compatible con grupos ldap"
+    "translation": "la licencia actual no es compatible con grupos"
   },
   {
     "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -1140,7 +1140,7 @@
   },
   {
     "id": "api.context.local_origin_required.app_error",
-    "translation": "This endpoint requires a local request origin."
+    "translation": "Este endpoint requiere un origen de solicitud local."
   },
   {
     "id": "api.context.mfa_required.app_error",
@@ -1406,7 +1406,7 @@
   },
   {
     "id": "api.image.get.app_error",
-    "translation": "Requested image url cannot be parsed."
+    "translation": "La URL de la imagen solicitada no se puede analizar."
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1426,15 +1426,15 @@
   },
   {
     "id": "api.ldap_groups.existing_group_name_error",
-    "translation": "Ya existe el miembro del grupo"
+    "translation": "Ya existe el grupo con ese nombre"
   },
   {
     "id": "api.ldap_groups.existing_reserved_name_error",
-    "translation": "group name already exists as a reserved name"
+    "translation": "El nombre del grupo ya existe como un nombre reservado"
   },
   {
     "id": "api.ldap_groups.existing_user_name_error",
-    "translation": "group name already exists as a user name"
+    "translation": "El nombre del grupo ya existe como el nombre de un usuario"
   },
   {
     "id": "api.ldap_groups.license_error",
@@ -1482,7 +1482,7 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de cuenta"
+    "translation": "Ocurrió un error al enviar el correo electrónico de desactivación de licencia."
   },
   {
     "id": "api.marshal_error",
@@ -1618,7 +1618,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
-    "translation": "@{{.GroupName}} has no members on this team"
+    "translation": "@{{.GroupName}} no tiene miembros en este equipo"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
@@ -2320,15 +2320,15 @@
   },
   {
     "id": "api.templates.remove_expired_license.body.renew_button",
-    "translation": "Renew License"
+    "translation": "Renovar Licencia"
   },
   {
     "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    "translation": "La licencia Enterprise ha expirado y algunas características podrían ser deshabilitadas. Por favor renovar."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "La licencia de Mattermost Enterprise ha sido desactivada."
   },
   {
     "id": "api.templates.reset_body.button",
@@ -2952,7 +2952,7 @@
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
-    "translation": "Unable to delete the bot permanently."
+    "translation": "No se pudo eliminar el bot permanentemente."
   },
   {
     "id": "app.bot.permenent_delete.bad_id",
@@ -2968,7 +2968,7 @@
   },
   {
     "id": "app.channel.create_direct_channel.internal_error",
-    "translation": "No se pudo guardar el canal."
+    "translation": "No se pudo guardar el canal directo."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3140,7 +3140,7 @@
   },
   {
     "id": "app.import.import_user_channels.channel_not_found.error",
-    "translation": "Error importing user channels. Channel not found."
+    "translation": "Error al importar los canales del usuario. Canal no encontrado."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
@@ -3285,6 +3285,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "Falta la propiedad obligatoria del mensaje: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -3464,7 +3468,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "User AuthService and AuthData are mutually inclusive."
+    "translation": "Usuario AuthService y AuthData son mutuamente incluyentes."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3824,7 +3828,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "No se puede cambiar el nombre del equipo, el nombre ya está en uso"
+    "translation": "No se puede cambiar el nombre del equipo, el nombre ya está en uso."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,75 +3840,75 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Token no válido o ausente"
+    "translation": "Token no válido o ausente."
   },
   {
     "id": "bleveengine.already_started.error",
-    "translation": "Bleve is already started."
+    "translation": "Bleve ya ha sido iniciado."
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Error creating the bleve channel index."
+    "translation": "Error al crear el índice de canal en bleve."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Error creating the bleve post index."
+    "translation": "Error al crear el índice de mensaje en bleve."
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Error creating the bleve user index."
+    "translation": "Error al crear el índice de usuario en bleve."
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "Error al eliminar el canal"
+    "translation": "Error al eliminar el canal."
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "Error al eliminar el mensaje"
+    "translation": "Error al eliminar el mensaje."
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "Error al eliminar el usuario"
+    "translation": "Error al eliminar el usuario."
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "Error al indexar el canal"
+    "translation": "Error al indexar el canal."
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "Error al indexar el mensaje"
+    "translation": "Error al indexar el mensaje."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "Error al indexar el usuario"
+    "translation": "Error al indexar el usuario."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Failed to index channel batch."
+    "translation": "Error al indexar el lote de canal."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Failed to index post batch."
+    "translation": "Error al indexar el lote de mensaje."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Failed to index user batch."
+    "translation": "Error al indexar el lote de usuario."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Failed to run Bleve index job: engine is inactive."
+    "translation": "Falló la ejecución del trabajo de indexación de Bleve: motor inactivo."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "El mensaje más antiguo no puede ser recuperado de la base de datos."
+    "translation": "El mensaje más antiguo no pudo ser recuperado de la base de datos."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de finalización"
+    "translation": "El trabajo de Bleve falló al analizar la hora de finalización"
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
+    "translation": "El trabajo de Bleve falló al analizar la hora de inicio"
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -3912,47 +3916,47 @@
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Failed to purge channel indexes."
+    "translation": "No pudo purgar los índices de canal."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Failed to purge post indexes."
+    "translation": "No pudo purgar los índices de mensaje."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Failed to purge user indexes."
+    "translation": "No pudo purgar los índices de usuario."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "La búsqueda no se pudo completar"
+    "translation": "La búsqueda de Canal no se pudo completar."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "La búsqueda no se pudo completar"
+    "translation": "La búsqueda de Mensaje no se pudo completar."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "La búsqueda no se pudo completar"
+    "translation": "La búsqueda de Usuario no se pudo completar."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "La búsqueda no se pudo completar"
+    "translation": "La búsqueda de Usuario no se pudo completar."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "La búsqueda no se pudo completar"
+    "translation": "La búsqueda de Usuario no se pudo completar."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Failed to close channel index."
+    "translation": "Ocurrió un error al cerrar el indice de canal."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Failed to close post index."
+    "translation": "Ocurrió un error al cerrar el indice de mensaje."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Failed to close user index."
+    "translation": "Ocurrió un error al cerrar el indice de usuario."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4032,7 +4036,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "No se puede crear el archivo eml."
+    "translation": "No se puede crear el archivo zip."
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
@@ -4040,7 +4044,7 @@
   },
   {
     "id": "ent.compliance.csv.warning.appError",
-    "translation": "No se puede crear el archivo eml."
+    "translation": "No se puede crear el archivo advertencia."
   },
   {
     "id": "ent.compliance.csv.zip.creation.appError",
@@ -4156,7 +4160,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Tratando de indexar un nuevo lote cuando todas las entidades se han completado."
+    "translation": "Tratando de indexar un nuevo lote cuando todas las entidades se hayan completado."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4168,7 +4172,7 @@
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
-    "translation": "No se pudo obtener los índices de Elasticsearch"
+    "translation": "No se refrescar los índices de Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
@@ -4479,6 +4483,10 @@
     "translation": "SAML 2.0 no está configurado o no es soportado en este servidor"
   },
   {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "El Grupo no puede ser asociado a un canal hasta que se haya asociado a un equipo que sincronice grupos."
+  },
+  {
     "id": "groups.unsupported_syncable_type",
     "translation": "Tipo sincronizable no soportado '{{.Value}}'."
   },
@@ -4764,7 +4772,7 @@
   },
   {
     "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "Invalid AutocompleteData"
+    "translation": "AutocompleteData inválido"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4880,19 +4888,19 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "El tiempo a transcurrir para ejecutar la indexación a granel de Elasticsearch debe ser de al menos 1 segundo."
+    "translation": "El tiempo a transcurrir para ejecutar la indexación de Bleve debe ser de al menos 1 segundo."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch AutocompleteEnabled es verdadero."
+    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve EnabledAutocomplete es verdadero."
   },
   {
     "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch SearchEnabled es verdadero."
+    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve EnabledSearch es verdadero."
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch SearchEnabled es verdadero."
+    "translation": "El valor de Bleve EnabledIndexing debe ser verdadero cuando el valor de Bleve IndexingDir es asignado."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4928,11 +4936,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch AutocompleteEnabled es verdadero."
+    "translation": "El valor de Elasticsearch EnabledIndexing debe ser verdadero cuando el valor de Elasticsearch EnabledAutocomplete es verdadero."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "El valor de Elasticsearch IndexingEnabled debe ser verdadero cuando el valor de Elasticsearch SearchEnabled es verdadero."
+    "translation": "El valor de Elasticsearch EnabledIndexing debe ser verdadero cuando el valor de Elasticsearch EnabledSearch es verdadero."
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
@@ -5300,7 +5308,7 @@
   },
   {
     "id": "model.group.name.invalid_chars.app_error",
-    "translation": "invalid characters in the name property for group"
+    "translation": "caracteres no válidos en la propiedad de nombre para el grupo"
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -5908,7 +5916,7 @@
   },
   {
     "id": "searchengine.bleve.disabled.error",
-    "translation": "Error purging Bleve indexes: engine is disabled"
+    "translation": "Error al purgar los indices de Bleve: motor desactivado"
   },
   {
     "id": "store.insert_error",
@@ -5916,7 +5924,7 @@
   },
   {
     "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
+    "translation": "Falla al obtener la lista de los canales permitidos para el equipo: teamId vacío"
   },
   {
     "id": "store.select_error",
@@ -6776,7 +6784,7 @@
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
+    "translation": "No se pudo obtener la cantidad de respuestas del mensaje"
   },
   {
     "id": "store.sql_post.save.app_error",
@@ -7036,7 +7044,7 @@
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
-    "translation": "Unable to update expires_at."
+    "translation": "No se pudo actualizar expires_at."
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",

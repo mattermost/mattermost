@@ -137,7 +137,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "De SMTP-server, -poort of -gebruikersnaam is veranderd. Voer het SMTP-wachtwoord opnieuw in om de verbinding te testen."
+    "translation": "De SMTP-server, -poort of -gebruikersnaam is gewijzigd. Voer het SMTP-wachtwoord opnieuw in om de verbinding te testen."
   },
   {
     "id": "api.admin.test_email.subject",
@@ -225,11 +225,11 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Kan de gebruiker niet aan het kanaal toevoegen."
+    "translation": "Kon de gebruiker niet aan het kanaal toevoegen."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Fout bij toevoegen van gebruiker aan kanaal omdat de gebruiker verwijderd is van het team."
+    "translation": "Fout bij toevoegen van gebruiker aan kanaal omdat de gebruiker verwijderd is uit het team."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
@@ -337,11 +337,11 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Bijwerken van kanaal is mislukt."
+    "translation": "Fout bij het bijwerken van het kanaal."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
-    "translation": "Kan het kanaal-privacy updatebericht niet plaatsen."
+    "translation": "Fout bij het plaatsen van het kanaal privacy updatebericht."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -349,7 +349,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Ophalen van gebruiker tijdens bijwerken van veld DisplayName van kanaal is mislukt"
+    "translation": "Fout bij het ophalen van gebruiker tijdens het bijwerken van veld DisplayName van kanaal"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -357,7 +357,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Kanaalkoptekst bijwerken mislukt"
+    "translation": "Fout bij het bijwerken van de kanaalkoptekst"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Fout bij ophalen gebruiker tijdens het bewaren van de nieuwe kanaal koptekst."
+    "translation": "Fout bij ophalen gebruiker tijdens het bewaren van de nieuwe kanaal koptekst"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -377,7 +377,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Fout bij publicatie toetreden/verlaten bericht."
+    "translation": "Fout bij verzenden van toetreden/verlaten bericht"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -481,7 +481,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Opdracht '{{.Trigger}}' gaf geen antwoord. Neem contact op met de systeembeheerder."
+    "translation": "Opdracht '{{.Trigger}}' gaf geen antwoord terug. Neem contact op met de systeembeheerder."
   },
   {
     "id": "api.command.execute_command.failed.app_error",
@@ -908,7 +908,7 @@
   },
   {
     "id": "api.command_logout.fail_message",
-    "translation": "Afmelden mislukt"
+    "translation": "Fout bij afmelden"
   },
   {
     "id": "api.command_logout.name",
@@ -996,7 +996,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Stel uw status in naar offline"
+    "translation": "Stel jouw status in naar offline"
   },
   {
     "id": "api.command_offline.name",
@@ -1008,7 +1008,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Stel uw status in naar online."
+    "translation": "Stel jouw status in naar online"
   },
   {
     "id": "api.command_online.name",
@@ -1116,7 +1116,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Kon opgegeven configuratie niet mergen."
+    "translation": "Fout bij het samenvoegen van de opgegeven configuratie."
   },
   {
     "id": "api.context.404.app_error",
@@ -1214,7 +1214,7 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Kan emoji niet aanmaken. Er bestaat al een emoji met dezelfde naam."
+    "translation": "Kan emoticon niet aanmaken. Er bestaat al een emoticon met dezelfde naam."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
@@ -1222,23 +1222,23 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Kan emoji niet aanmaken. Fout tijdens het uitlezen van verzoek."
+    "translation": "Kan emoticon niet aanmaken. Fout tijdens het uitlezen van verzoek."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Kon emoji niet aanmaken. Afbeelding moet minstens 1MB groot zijn."
+    "translation": "Kon emoticon niet aanmaken. Afbeelding moet minder dan 1MB groot zijn."
   },
   {
     "id": "api.emoji.disabled.app_error",
-    "translation": "Aangepaste emoji zijn uitgeschakeld door de beheerder."
+    "translation": "Aangepaste emoticons zijn uitgeschakeld door de systeembeheerder."
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Kon plaatje niet omzetten voor emoji."
+    "translation": "Fout bij het lezen van het afbeeldingsbestand van de emoticon."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Kon plaatje niet lezen voor emoji"
+    "translation": "Fout bij het lezen van het afbeeldingsbestand van de emoticon."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1250,27 +1250,27 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Emoji aanmaken mislukt. Er is een fout opgetreden tijden het decoderen van de afbeelding"
+    "translation": "Fout bij het aanmaken van de emoticon. Er is een fout opgetreden tijden het decoderen van de afbeelding."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Aanmaken emoji is mislukt. Er is een fout opgetreden tijdens het encoderen van de afbeelding."
+    "translation": "Fout bij het aanmaken van de emotico. Er is een fout opgetreden tijdens het encoderen van de afbeelding."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Aanmaken emoji is mislukt. Er is een fout opgetreden tijdens het decoderen van de GIF afbeelding"
+    "translation": "Fout bij het aanmaken van de emoticon. Er is een fout opgetreden tijdens het decoderen van de GIF afbeelding."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Aanmaken emoji mislukt. Er is een fout opgetreden tijdens het encoderen van de GIF afbeelding."
+    "translation": "Fout bij het aanmaken van de emoticon. Er is een fout opgetreden tijdens het encoderen van de GIF afbeelding."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Fout bij het aanmaken van de emoji. De afbeelding moet kleiner zijn dan {{.MaxWidth}} op {{.MaxHeight}}."
+    "translation": "Fout bij het aanmaken van de emoticon. De afbeelding moet kleiner zijn dan {{.MaxWidth}} op {{.MaxHeight}}."
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Fout bij het aanmaken van de emoji. Kon de bijgevoegde afbeelding niet openen."
+    "translation": "Fout bij het aanmaken van de emoticon. Kon de bijgevoegde afbeelding niet openen."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1482,7 +1482,7 @@
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
-    "translation": "Het verzenden van de e-mail voor het uitschakelen van de licentie is mislukt."
+    "translation": "Fout bij het het verzenden van de e-mail voor het uitschakelen van de licentie."
   },
   {
     "id": "api.marshal_error",
@@ -1662,7 +1662,7 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Kan origineel bericht niet ophalen na ontdubbeling van een client die hetzelfde verzoek herhaalt."
+    "translation": "Fout bij het ophalen van het origineel bericht na ontdubbeling van een cliënt die hetzelfde verzoek herhaalt."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
@@ -1864,7 +1864,7 @@
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
-    "translation": "Kon de geheugenopslag limitatie niet laden. Controleer uw MemoryStoreSize configuratie instellingen. "
+    "translation": "Kon de geheugenopslagsnelheidsbeperking niet laden. Controleer jouw MemoryStoreSize configuratie-instellingen."
   },
   {
     "id": "api.server.start_server.rate_limiting_rate_limiter",
@@ -2172,7 +2172,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Team beperken tot {{.Domain}} is niet toegestaan ​​door de systeemconfiguratie. Neem contact op met uw systeembeheerder."
+    "translation": "Team beperken tot {{.Domain}} is niet toegestaan ​​door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -2308,7 +2308,7 @@
   },
   {
     "id": "api.templates.password_change_body.title",
-    "translation": "Uw wachtwoord is bijgewerkt"
+    "translation": "Jouw wachtwoord is bijgewerkt"
   },
   {
     "id": "api.templates.password_change_subject",
@@ -2352,7 +2352,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "U heeft uw inlogmethode op {{ .SiteName }} gewijzigd naar {{.Method}}."
+    "translation": "Je heeft jouw inlogmethode op {{ .SiteName }} gewijzigd naar {{.Method}}."
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -2360,7 +2360,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Uw inlog methode is bijgewerkt"
+    "translation": "Jouw inlog methode is bijgewerkt"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -2384,7 +2384,7 @@
   },
   {
     "id": "api.templates.username_change_body.title",
-    "translation": "U heeft uw e-mailadres bijgewerkt"
+    "translation": "Je hebt jouw gebruikersnaam bijgewerkt"
   },
   {
     "id": "api.templates.username_change_subject",
@@ -2396,7 +2396,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Verifieer uw e-mail adres door de link hieronder te klikken."
+    "translation": "Verifieer jouw e-mail adres door op de link hieronder te klikken."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -2416,7 +2416,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Verifieer aub uw e-mail door de link hieronder aan te klikken."
+    "translation": "Verifieer jouw e-mail door op de link hieronder te klikken."
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -2476,7 +2476,7 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Uw account is afgesloten doordat er te vaak een verkeerd wachtwoord is gegeven. Voer aub een wachtwoord reset uit."
+    "translation": "Jouw account werd geblokkeerd omdat er te vaak een verkeerd wachtwoord is gegeven. Gelieve je wachtwoord opnieuw in te stellen."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -2552,7 +2552,7 @@
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Deze server staat zelf aanmelden niet toe.  Neem contact op met uw systeembeheerder voor een uitnodiging."
+    "translation": "Deze server staat zelf aanmelden niet toe.  Neem contact op met jouw systeembeheerder voor een uitnodiging."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2776,7 +2776,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "Het \"Huidige wachtwoord\" is niet goed. Controleer dat 'Hoofdletters' uitgeschakeld zijn en probeer opnieuw."
+    "translation": "Het \"Huidige wachtwoord\" is foutief. Controleer dat Capslock uitgeschakeld is en probeer opnieuw."
   },
   {
     "id": "api.user.update_password.menu",
@@ -3000,7 +3000,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Fout bij kopieëren van eigen emoji afbeeldingen"
+    "translation": "Fout bij kopiëren van eigen emoticon-afbeeldingen"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -3032,7 +3032,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fout bij het lezen van het emoji import bestand. Emoji met naam: \"{{.EmojiName}}\""
+    "translation": "Fout bij het lezen van het emoticon import bestand. Emoticon met naam: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.get_teams_by_names.some_teams_not_found.error",
@@ -3088,7 +3088,7 @@
   },
   {
     "id": "app.import.import_line.null_emoji.error",
-    "translation": "Geïmporteerde lijn met type \"emoji\" maar het emoji object is null."
+    "translation": "Geïmporteerde lijn met type \"emoticon\" maar het emoticon-object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3256,15 +3256,15 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.empty.error",
-    "translation": "Import emoji-gegevens is leeg."
+    "translation": "Import emoticon-gegevens zijn leeg."
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
-    "translation": "Import emoji image-veld ontbreekt of is leeg."
+    "translation": "Import emoticon image-veld ontbreekt of is leeg."
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Import emoji veldnaam ontbreekt of is leeg."
+    "translation": "Import emoticon veldnaam ontbreekt of is leeg."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3285,6 +3285,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "Ontbrekende verplichte eigenschap Post: Bericht."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -3576,7 +3580,7 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "U hebt een nieuwe melding van {{.SenderName}}"
+    "translation": "Je hebt een nieuwe melding van {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
@@ -3612,11 +3616,11 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nieuw Direct Bericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw direct bericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw Groepsbericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.SenderDisplayName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
@@ -3644,7 +3648,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins zijn uitgeschakeld. Controleer uw logs voor meer informatie."
+    "translation": "Plugins zijn uitgeschakeld. Controleer je logs voor meer informatie."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3824,7 +3828,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "De naam van het team kan niet worden gewijzigd, de naam is al in gebruik."
+    "translation": "De naam van het team kan niet worden gewijzigd, de naam is reeds in gebruik."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,7 +3840,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Ongeldig of ontbrekend token"
+    "translation": "Ongeldig of ontbrekend token."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3844,7 +3848,7 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Fout bij het maken van de bleve-kanaalindex"
+    "translation": "Fout bij het maken van de bleve-kanaalindex."
   },
   {
     "id": "bleveengine.create_post_index.error",
@@ -3852,47 +3856,47 @@
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Fout bij het maken van de bleve-gebruikersindex"
+    "translation": "Fout bij het maken van de bleve-gebruikersindex."
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "Verwijderen van het kanaal is mislukt"
+    "translation": "Verwijderen van het kanaal is mislukt."
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "Verwijderen van het bericht is mislukt"
+    "translation": "Verwijderen van het bericht is mislukt."
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "Wissen van de gebruiker is mislukt"
+    "translation": "Verwijderen van de gebruiker is mislukt."
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "Het indexeren van het kanaal is mislukt"
+    "translation": "Het indexeren van het kanaal is mislukt."
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "Het bericht kon niet worden geïndexeerd"
+    "translation": "Het bericht kon niet worden geïndexeerd."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "De gebruiker kon niet worden geïndexeerd"
+    "translation": "De gebruiker kon niet worden geïndexeerd."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Fout bij het indexeren van de kanaalbatch "
+    "translation": "Fout bij het indexeren van de kanaalbatch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Fout bij het indexeren van berichtenbatch"
+    "translation": "Fout bij het indexeren van berichtenbatch."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Fout bij het indexeren van gebruikerbatch"
+    "translation": "Fout bij het indexeren van gebruikerbatch."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Fout bij het uitvoeren van Bleve-indexeertaak: de engine is niet actief"
+    "translation": "Fout bij het uitvoeren van Bleve-indexeertaak: de engine is niet actief."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
@@ -3900,7 +3904,7 @@
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd"
+    "translation": "Bleve indexing worker geeft een fout bij het verwerken de eindtijd."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -3912,47 +3916,47 @@
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Fout bij het opschonen van kanaalindexen"
+    "translation": "Fout bij het opschonen van kanaalindexen."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Fout bij het opschonen van de berichtindexen"
+    "translation": "Fout bij het opschonen van de berichtindexen."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Fout bij het opschonen van de gebruikerindexen"
+    "translation": "Fout bij het opschonen van de gebruikerindexen."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "Fout bij het zoeken naar kanalen"
+    "translation": "Fout bij het zoeken naar kanalen."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "Zoeken van berichten kon niet worden niet voltooid"
+    "translation": "Fout bij het zoeken naar berichten."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Zoeken van gebruiker is niet voltooid"
+    "translation": "Fout bij het zoeken naar gebruikers."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Zoeken van gebruiker is niet voltooid"
+    "translation": "Fout bij het zoeken naar gebruikers."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "Zoeken van gebruiker is niet voltooid"
+    "translation": "Fout bij het zoeken naar gebruikers."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Fout bij het sluiten van kanalenindex"
+    "translation": "Fout bij het sluiten van kanalenindex."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Fout bij het sluiten van berichtenindex"
+    "translation": "Fout bij het sluiten van berichtenindex."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Fout bij het sluiten van gebruikersindex"
+    "translation": "Fout bij het sluiten van gebruikersindex."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -3972,7 +3976,7 @@
   },
   {
     "id": "brand.save_brand_image.save_image.app_error",
-    "translation": "Het afbeeldingsbestand kan niet naar uw bestandsopslag worden geschreven. Controleer uw verbinding en probeer het opnieuw."
+    "translation": "Het afbeeldingsbestand kan niet naar jouw bestandsopslag worden geschreven. Controleer jouw verbinding en probeer het opnieuw."
   },
   {
     "id": "brand.save_brand_image.too_large.app_error",
@@ -4312,7 +4316,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
-    "translation": "Zoeken naar gebruikers in AD/LDAP is mislukt. Test of de Mattermost server verbinding kan maken met uw AD/LDAP-server en probeer het opnieuw."
+    "translation": "Fout bij het zoeken naar gebruikers in AD/LDAP. Test of de Mattermost-server verbinding kan maken met jouw AD/LDAP-server en probeer het opnieuw."
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is niet geconfigureerd of ondersteund op deze server."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "De groep kan pas aan het kanaal worden gekoppeld als de groep eerst is gekoppeld aan het bovenliggende groeps-synced-team."
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -5648,7 +5656,7 @@
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Ongeldige emoji-naam."
+    "translation": "Ongeldige emoticonnaam."
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
@@ -6412,7 +6420,7 @@
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "We konden de emoji om te verwijderen niet vinden."
+    "translation": "We konden de emoticon om te verwijderen niet vinden."
   },
   {
     "id": "store.sql_emoji.get.app_error",
@@ -7388,7 +7396,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "We vonden meerdere gebruikers die overeenkomen met uw referenties en waren niet in staat om u te laten inloggen. Neem contact op met een systeembeheerder."
+    "translation": "We vonden meerdere gebruikers die overeenkomen met jouw referenties en waren niet in staat om je te laten inloggen. Neem contact op met een systeembeheerder."
   },
   {
     "id": "store.sql_user.get_known_users.get_users.app_error",

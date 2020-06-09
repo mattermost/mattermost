@@ -3287,6 +3287,10 @@
     "translation": "Отсутствует необходимое поле для Post: Message."
   },
   {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
+  },
+  {
     "id": "app.import.validate_post_import_data.team_missing.error",
     "translation": "Отсутствует необходимое поле для Post: Team."
   },
@@ -3824,7 +3828,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Невозможно переименовать команду, имя уже используется"
+    "translation": "Невозможно переименовать команду, имя уже используется."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3836,7 +3840,7 @@
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
-    "translation": "Неверный или отсутствующий токен"
+    "translation": "Неверный или отсутствующий токен."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -3844,115 +3848,115 @@
   },
   {
     "id": "bleveengine.create_channel_index.error",
-    "translation": "Ошибка при создании индекса канала bleve"
+    "translation": "Ошибка при создании индекса канала bleve."
   },
   {
     "id": "bleveengine.create_post_index.error",
-    "translation": "Ошибка при создании индекса сообщений bleve"
+    "translation": "Ошибка при создании индекса сообщений bleve."
   },
   {
     "id": "bleveengine.create_user_index.error",
-    "translation": "Ошибка при создании индекса пользователей bleve"
+    "translation": "Ошибка при создании индекса пользователей bleve."
   },
   {
     "id": "bleveengine.delete_channel.error",
-    "translation": "Не получилось удалить канал"
+    "translation": "Не получилось удалить канал."
   },
   {
     "id": "bleveengine.delete_post.error",
-    "translation": "Не получилось удалить сообщение"
+    "translation": "Не получилось удалить сообщение."
   },
   {
     "id": "bleveengine.delete_user.error",
-    "translation": "Не получилось удалить пользователя"
+    "translation": "Не получилось удалить пользователя."
   },
   {
     "id": "bleveengine.index_channel.error",
-    "translation": "Не удалось проиндексировать канал"
+    "translation": "Не удалось проиндексировать канал."
   },
   {
     "id": "bleveengine.index_post.error",
-    "translation": "Не удалось проиндексировать сообщение"
+    "translation": "Не удалось проиндексировать сообщение."
   },
   {
     "id": "bleveengine.index_user.error",
-    "translation": "Не удалось проиндексировать пользователя"
+    "translation": "Не удалось проиндексировать пользователя."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Не удалось проиндексировать пакет каналов"
+    "translation": "Не удалось проиндексировать пакет каналов."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Не удалось проиндексировать пакет сообщений"
+    "translation": "Не удалось проиндексировать пакет сообщений."
   },
   {
     "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Не удалось проиндексировать пакет пользователей"
+    "translation": "Не удалось проиндексировать пакет пользователей."
   },
   {
     "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Не удалось запустить задание индексирования Bleve: движок неактивен"
+    "translation": "Не удалось запустить задание индексирования Bleve: движок неактивен."
   },
   {
     "id": "bleveengine.indexer.do_job.get_oldest_post.error",
-    "translation": "Более старые сообщения не могут быть извлечены из базы данных"
+    "translation": "Более старые сообщения не могут быть извлечены из базы данных."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время окончания"
+    "translation": "Работнику индексирования Bleve не удалось проанализировать время окончания."
   },
   {
     "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работнику индексирования Bleve не удалось проанализировать время начала"
+    "translation": "Работнику индексирования Bleve не удалось проанализировать время начала."
   },
   {
     "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Попытка проиндексировать новый пакет, когда все элементы уже были завершены"
+    "translation": "Попытка проиндексировать новый пакет, когда все элементы уже были завершены."
   },
   {
     "id": "bleveengine.purge_channel_index.error",
-    "translation": "Не удалось очистить индексы канала"
+    "translation": "Не удалось очистить индексы канала."
   },
   {
     "id": "bleveengine.purge_post_index.error",
-    "translation": "Не удалось очистить индексы сообщений"
+    "translation": "Не удалось очистить индексы сообщений."
   },
   {
     "id": "bleveengine.purge_user_index.error",
-    "translation": "Не удалось очистить индексы пользователей"
+    "translation": "Не удалось очистить индексы пользователей."
   },
   {
     "id": "bleveengine.search_channels.error",
-    "translation": "Поиск каналов не удалось завершить"
+    "translation": "Поиск каналов не удалось завершить."
   },
   {
     "id": "bleveengine.search_posts.error",
-    "translation": "Поиск сообщений не удалось завершить"
+    "translation": "Поиск сообщений не удалось завершить."
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Поиск пользователей не удалось завершить"
+    "translation": "Поиск пользователей не удалось завершить."
   },
   {
     "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Поиск пользователей не удалось завершить"
+    "translation": "Поиск пользователей не удалось завершить."
   },
   {
     "id": "bleveengine.search_users_in_team.error",
-    "translation": "Поиск пользователей не удалось завершить"
+    "translation": "Поиск пользователей не удалось завершить."
   },
   {
     "id": "bleveengine.stop_channel_index.error",
-    "translation": "Не удалось закрыть индекс канала"
+    "translation": "Не удалось закрыть индекс канала."
   },
   {
     "id": "bleveengine.stop_post_index.error",
-    "translation": "Не удалось закрыть индекс сообщения"
+    "translation": "Не удалось закрыть индекс сообщения."
   },
   {
     "id": "bleveengine.stop_user_index.error",
-    "translation": "Не удалось закрыть индекс пользователя"
+    "translation": "Не удалось закрыть индекс пользователя."
   },
   {
     "id": "brand.save_brand_image.decode.app_error",
@@ -4477,6 +4481,10 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 не настроен или не поддерживается на этом сервере."
+  },
+  {
+    "id": "group_not_associated_to_synced_team",
+    "translation": "Группа не может быть связана с каналом, пока она не будет сначала связана с родительской синхронизированной по группе командой."
   },
   {
     "id": "groups.unsupported_syncable_type",
