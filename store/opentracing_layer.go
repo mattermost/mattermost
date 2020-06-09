@@ -702,7 +702,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -720,7 +720,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opt
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllChannelsCount")
 	s.Root.Store.SetContext(newCtx)
