@@ -48,7 +48,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.Comm
 	}
 
 	if err := s.GetMaster().Insert(webhook); err != nil {
-		return nil, errors.Wrapf(err, "Save id=%s", webhook.Id)
+		return nil, errors.Wrapf(err, "save: id=%s", webhook.Id)
 	}
 
 	return webhook, nil
@@ -62,7 +62,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("CommandWebhook", id)
 		}
-		return nil, errors.Wrapf(err, "SelectOne id=%s", id)
+		return nil, errors.Wrapf(err, "get: id=%s", id)
 	}
 
 	return &webhook, nil
@@ -70,7 +70,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 
 func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 	if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
-		return errors.Wrapf(err, "TryUse id=%s limit=%d", id, limit)
+		return errors.Wrapf(err, "tryuse: id=%s limit=%d", id, limit)
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
 		return store.NewErrInvalidInput("CommandWebhook", "id", id)
 	}

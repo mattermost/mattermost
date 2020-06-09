@@ -708,9 +708,12 @@ func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*
 	savedHook, err := a.Srv().Store.CommandWebhook().Save(hook)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
+		var appErr *model.AppError
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, invErr.Error(), http.StatusInternalServerError)
+		case errors.As(err, &appErr):
+			return nil, appErr
 		default:
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -729,9 +732,9 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(nErr, &nfErr):
-			return model.NewAppError("HandleCommandWebhook.Get", "app.command_webhook.get.missing", map[string]interface{}{"hook_id": hookId}, "", http.StatusNotFound)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", map[string]interface{}{"hook_id": hookId}, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("HandleCommandWebhook.Get", "app.command_webhook.get.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -752,9 +755,9 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(nErr, &invErr):
-			return model.NewAppError("HandleCommandWebhook.TryUse", "app.command_webhook.try_use.invalid", nil, "hook.Id="+hook.Id, http.StatusBadRequest)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", nil, invErr.Error(), http.StatusBadRequest)
 		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "err="+nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
