@@ -25,8 +25,6 @@ const (
 	notificationTypeUpdateBadge notificationType = "update_badge"
 )
 
-const pushNotificationHubBuffer = 1000
-
 type PushNotificationsHub struct {
 	notificationsChan chan PushNotification
 	app               *App // XXX: This will go away once push notifications move to their own package.
@@ -246,8 +244,9 @@ func (a *App) UpdateMobileAppBadge(userId string) {
 }
 
 func (a *App) createPushNotificationsHub() {
+	buffer := *a.Config().EmailSettings.PushNotificationBuffer
 	hub := PushNotificationsHub{
-		notificationsChan: make(chan PushNotification, pushNotificationHubBuffer),
+		notificationsChan: make(chan PushNotification, buffer),
 		app:               a,
 		wg:                new(sync.WaitGroup),
 	}
