@@ -2999,6 +2999,14 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Unable to count all the channels."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6124,10 +6132,6 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
-    "id": "store.sql_channel.get_all_channels.get.app_error",
     "translation": "Unable to get all the channels."
   },
   {
