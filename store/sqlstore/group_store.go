@@ -1225,7 +1225,16 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 
 	if opts.FilterParentTeamPermitted && len(opts.NotAssociatedToChannel) == 26 {
 		groupsQuery = groupsQuery.Where(`
-			g.Id IN (
+			CASE
+			WHEN (
+				SELECT
+					Teams.GroupConstrained
+				FROM
+					Teams
+					JOIN Channels ON Channels.TeamId = Teams.Id
+				WHERE
+					Channels.Id = ?
+			) THEN g.Id IN (
 				SELECT
 					GroupId
 				FROM
@@ -1241,7 +1250,9 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 							Id = ?
 					)
 			)
-		`, opts.NotAssociatedToChannel)
+			ELSE TRUE
+		END
+		`, opts.NotAssociatedToChannel, opts.NotAssociatedToChannel)
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
