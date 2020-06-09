@@ -53,6 +53,7 @@ const (
 	TRACK_CONFIG_DISPLAY            = "config_display"
 	TRACK_CONFIG_GUEST_ACCOUNTS     = "config_guest_accounts"
 	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
+	TRACK_CONFIG_BLEVE              = "config_bleve"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
@@ -357,6 +358,7 @@ func (a *App) trackConfig() {
 		"enable_latex":                                            *cfg.ServiceSettings.EnableLatex,
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
+		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -411,6 +413,7 @@ func (a *App) trackConfig() {
 		"data_source_replicas":           len(cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas":    len(cfg.SqlSettings.DataSourceSearchReplicas),
 		"query_timeout":                  *cfg.SqlSettings.QueryTimeout,
+		"disable_database_search":        *cfg.SqlSettings.DisableDatabaseSearch,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
@@ -752,6 +755,13 @@ func (a *App) trackConfig() {
 		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
 		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
+		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
+		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
+		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
+		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
 	})
 }
 
