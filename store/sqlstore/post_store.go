@@ -1381,7 +1381,11 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 					COUNT(Posts.Id) AS Value
 				FROM Posts`
 
-		if len(teamId) > 0 {
+		if options.BotsOnly {
+			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+		}
+
+		if len(options.TeamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
