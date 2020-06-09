@@ -20,6 +20,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -101,7 +102,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
 		if err != nil {
-			return "", err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		upstreamRequest.ChannelId = cookie.ChannelId
@@ -325,27 +332,34 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
-func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 	result := strings.Split(inURL.Path, "/")
 	if len(result) < 2 {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
 	if result[0] != "plugins" {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
 	pluginId := result[1]
 
 	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginId)
 
-	w := &LocalResponseWriter{}
-	r, err := http.NewRequest("POST", path, bytes.NewReader(body))
+	base, err := url.Parse(path)
 	if err != nil {
-		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	if values != nil {
+		base.RawQuery = values.Encode()
+	}
+	w := &LocalResponseWriter{}
+	r, err := http.NewRequest(method, base.String(), bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 	r.Header.Set("Mattermost-User-Id", a.Session().UserId)
 	r.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session().Token)
@@ -368,6 +382,10 @@ func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model
 	}
 
 	return resp, nil
+}
+
+func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	return a.doPluginRequest("POST", rawURL, nil, body)
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -219,7 +220,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base
+				newSplit := base.Clone()
 				splits = append(splits, newSplit)
 				continue
 			}
@@ -412,7 +413,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	if len(hook.ChannelId) != 0 {
 		channel, errCh := a.Srv().Store.Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
-			return nil, errCh
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(errCh, &nfErr):
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, errCh.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		if channel.Type != model.CHANNEL_OPEN {
@@ -633,10 +640,16 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			}()
 		}
 	} else {
-		var err *model.AppError
+		var err error
 		channel, err = a.Srv().Store.Channel().Get(hook.ChannelId, true)
 		if err != nil {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
