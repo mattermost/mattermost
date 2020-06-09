@@ -221,7 +221,7 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 		}
 
-		// this argument is not the
+		// this argument is not the last
 		offset := 2
 		if in[indexOfSecondQuote+2] == ' ' {
 			offset++
