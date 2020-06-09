@@ -291,7 +291,7 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 }
 
 // GetAllChannels provides a mock function with given fields: page, perPage, opts
-func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	ret := _m.Called(page, perPage, opts)
 
 	var r0 *model.ChannelListWithTeamData
@@ -303,20 +303,18 @@ func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.Channel
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int, int, store.ChannelSearchOpts) error); ok {
 		r1 = rf(page, perPage, opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetAllChannelsCount provides a mock function with given fields: opts
-func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, *model.AppError) {
+func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, error) {
 	ret := _m.Called(opts)
 
 	var r0 int64
@@ -326,13 +324,11 @@ func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) error); ok {
 		r1 = rf(opts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
