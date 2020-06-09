@@ -85,16 +85,16 @@ TESTS=.
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.4
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
 
