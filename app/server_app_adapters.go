@@ -101,6 +101,12 @@ func (s *Server) RunOldAppInitialization() error {
 		s.LoadLicense()
 	}
 
+	s.initJobs()
+
+	if s.joinCluster && s.Cluster != nil {
+		s.Cluster.StartInterNodeCommunication()
+	}
+
 	if err := s.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}

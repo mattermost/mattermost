@@ -11,7 +11,6 @@ import (
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -98,7 +97,6 @@ func (a *App) InitServer() {
 
 		if a.srv.joinCluster && a.srv.Cluster != nil {
 			a.registerAllClusterMessageHandlers()
-			a.srv.Cluster.StartInterNodeCommunication()
 		}
 
 		a.DoAppMigrations()
@@ -111,6 +109,11 @@ func (a *App) InitServer() {
 				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 			} else {
 				a.srv.ShutDownPlugins()
+			}
+		})
+		a.Srv().AddLicenseListener(func(oldLicense, newLicense *model.License) {
+			if oldLicense != newLicense {
+				a.InvalidateAllCaches()
 			}
 		})
 		if a.Srv().runjobs {
@@ -135,19 +138,6 @@ func (a *App) Shutdown() {
 }
 
 func (a *App) initJobs() {
-	a.srv.Jobs = jobs.NewJobServer(a.srv, a.srv.Store)
-	if jobsDataRetentionJobInterface != nil {
-		a.srv.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a.srv)
-	}
-	if jobsMessageExportJobInterface != nil {
-		a.srv.Jobs.MessageExportJob = jobsMessageExportJobInterface(a.srv)
-	}
-	if jobsElasticsearchAggregatorInterface != nil {
-		a.srv.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a.srv)
-	}
-	if jobsElasticsearchIndexerInterface != nil {
-		a.srv.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a.srv)
-	}
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
@@ -156,9 +146,6 @@ func (a *App) initJobs() {
 	}
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
-	}
-	if jobsBleveIndexerInterface != nil {
-		a.srv.Jobs.BleveIndexer = jobsBleveIndexerInterface(a.srv)
 	}
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
