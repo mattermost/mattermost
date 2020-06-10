@@ -94,7 +94,7 @@ func (o SidebarCategoryWithChannels) ToJson() []byte {
 	return b
 }
 
-func SidebarCategoryWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
+func SidebarCategoriesWithChannelsToJson(o []*SidebarCategoryWithChannels) []byte {
 	if b, err := json.Marshal(o); err != nil {
 		return []byte("[]")
 	} else {

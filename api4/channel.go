@@ -1927,7 +1927,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	auditRec.Success()
-	w.Write(model.SidebarCategoryWithChannelsToJson(categories))
+	w.Write(model.SidebarCategoriesWithChannelsToJson(categories))
 }
 
 func validateUserChannels(operationName string, c *Context, teamId, userId string, channelIDs []string) *model.AppError {
@@ -1986,7 +1986,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	auditRec.Success()
-	w.Write(model.SidebarCategoryWithChannelsToJson(categories))
+	w.Write(categories[0].ToJson())
 }
 
 func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -3669,6 +3669,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			category.DisplayName = categoryToUpdate.DisplayName
 		}
 
+		category.Sorting = categoryToUpdate.Sorting
+
 		if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
 			return col.ColumnName == "DisplayName" || col.ColumnName == "Sorting"
 		}, category); err != nil {
