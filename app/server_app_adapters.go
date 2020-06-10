@@ -51,10 +51,6 @@ func (s *Server) RunOldAppInitialization() error {
 
 	})
 
-	if err := s.setupInviteEmailRateLimiting(); err != nil {
-		return err
-	}
-
 	mlog.Info("Server is initializing...")
 
 	s.initEnterprise()
@@ -96,6 +92,12 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	s.Store = s.newStore()
+
+	emailService, err := NewEmailService(s)
+	if err != nil {
+		return err
+	}
+	s.EmailService = emailService
 
 	if model.BuildEnterpriseReady == "true" {
 		s.LoadLicense()

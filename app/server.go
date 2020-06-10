@@ -25,7 +25,6 @@ import (
 	rudder "github.com/rudderlabs/analytics-go"
 	analytics "github.com/segmentio/analytics-go"
 
-	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -85,8 +84,7 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailBatching    *EmailBatchingJob
-	EmailRateLimiter *throttled.GCRARateLimiter
+	EmailService *EmailService
 
 	hubsLock sync.RWMutex
 	hubs     []*Hub
@@ -283,9 +281,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
-	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {
-		s.InitEmailBatching()
+		s.EmailService.InitEmailBatching()
 	})
 
 	// Start plugin health check job
@@ -919,7 +916,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
