@@ -3443,7 +3443,6 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
-		// return nil, &model.AppError{DetailedError: fmt.Sprint("type is ", category.Type, " but wanted either ", model.SidebarCategoryChannels, " or ", model.SidebarCategoryDirectMessages)}
 		return category, nil
 	}
 
