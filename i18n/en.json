@@ -3003,8 +3003,20 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Unable to count all the channels."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "Unable to delete the channel."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3369,6 +3381,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -6123,10 +6139,6 @@
     "translation": "Unable to get all the channels."
   },
   {
-    "id": "store.sql_channel.get_all_channels.get.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
     "id": "store.sql_channel.get_all_direct.app_error",
     "translation": "Unable to get all the direct channels."
   },
@@ -6249,22 +6261,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Unable to delete the channel."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
