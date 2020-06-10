@@ -107,7 +107,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 
 		a.Srv().Go(func() {
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
-			if err != nil {
+			if err != nil && err != io.EOF {
 				mlog.Error("Event POST failed.", mlog.Err(err))
 				return
 			}
