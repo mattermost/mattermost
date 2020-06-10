@@ -270,7 +270,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
-		th.App.SetLicense(model.NewTestLicense("guests"))
+		th.App.Srv().SetLicense(model.NewTestLicense("guests"))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
@@ -2196,7 +2196,7 @@ func TestUpdateUserMfa(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	session, _ := th.App.GetSession(th.Client.AuthToken)
@@ -2231,7 +2231,7 @@ func TestCheckUserMfa(t *testing.T) {
 
 	require.False(t, required, "mfa not active")
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	th.LoginBasic()
@@ -2337,7 +2337,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 	_, resp = th.Client.GenerateMfaSecret("junk")
 	CheckBadRequestStatus(t, resp)
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	_, resp = th.Client.GenerateMfaSecret(model.NewId())
@@ -2985,7 +2985,7 @@ func TestCBALogin(t *testing.T) {
 	t.Run("primary", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("saml"))
+		th.App.Srv().SetLicense(model.NewTestLicense("saml"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3043,7 +3043,7 @@ func TestCBALogin(t *testing.T) {
 	t.Run("secondary", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("saml"))
+		th.App.Srv().SetLicense(model.NewTestLicense("saml"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -3111,7 +3111,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	require.NotEmpty(t, link, "bad link")
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = false })
 
 	sr = &model.SwitchRequest{
@@ -4454,10 +4454,10 @@ func TestDemoteUserToGuest(t *testing.T) {
 		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.RemoveLicense()
+			th.App.Srv().RemoveLicense()
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.DemoteUserToGuest(user.Id)
@@ -4507,10 +4507,10 @@ func TestPromoteGuestToUser(t *testing.T) {
 		enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-			th.App.RemoveLicense()
+			th.App.Srv().RemoveLicense()
 		}()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		_, respErr := th.SystemAdminClient.GetUser(user.Id, "")
 		CheckNoError(t, respErr)
 		_, respErr = th.SystemAdminClient.PromoteGuestToUser(user.Id)

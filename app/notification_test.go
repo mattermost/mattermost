@@ -1004,7 +1004,7 @@ func TestAllowGroupMentions(t *testing.T) {
 		assert.False(t, allowGroupMentions)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)

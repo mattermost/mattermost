@@ -113,9 +113,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	if th.tempWorkspace == "" {

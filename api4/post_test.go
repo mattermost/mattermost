@@ -667,7 +667,7 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -850,7 +850,7 @@ func TestPatchPost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -976,10 +976,10 @@ func TestPinPost(t *testing.T) {
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
 		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
-		defer th.App.RemoveLicense()
+		defer th.App.Srv().RemoveLicense()
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)

@@ -259,7 +259,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Check the migration doesn't change anything if run again.
 	th.App.DoAdvancedPermissionsMigration()
@@ -435,7 +435,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	}
 
 	// Remove the license.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 
 	// Do the migration again.
 	th.ResetRoleMigration()
