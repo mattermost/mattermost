@@ -160,3 +160,18 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	return "/login?extra=signin_change", nil
 }
+
+func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
+	if ldapI := a.Ldap(); ldapI != nil {
+		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+			switch err := err.(type) {
+			case *model.AppError:
+				return err
+			default:
+				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
+	}
+	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+}

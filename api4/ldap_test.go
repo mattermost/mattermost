@@ -87,3 +87,17 @@ func TestUnlinkLdapGroup(t *testing.T) {
 	_, resp = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
 	CheckNotImplementedStatus(t, resp)
 }
+
+func TestMigrateIdLdap(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, resp := th.Client.MigrateIdLdap("objectGUID")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.MigrateIdLdap("")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.MigrateIdLdap("objectGUID")
+	CheckNotImplementedStatus(t, resp)
+}
