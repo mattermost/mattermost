@@ -707,8 +707,6 @@ type AppIface interface {
 	InitPostMetadata()
 	InitServer()
 	InstallPluginFromData(data model.PluginEventData)
-	InvalidateAllCaches() *model.AppError
-	InvalidateAllCachesSkipSend()
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateCacheForUser(userId string)
 	InvalidateWebConnSessionCacheForUser(userId string)
