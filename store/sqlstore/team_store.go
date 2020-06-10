@@ -559,7 +559,8 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
-// PermanentDelete deletes from the database the team entry that matches the teamId passed as parameter.
+// PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
+// To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
 		return model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
