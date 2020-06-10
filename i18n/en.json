@@ -7627,19 +7627,19 @@
     "translation": "Unable to enable the access token."
   },
   {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "id": "app.user_terms_of_service.delete.app_error",
     "translation": "Unable to delete terms of service."
   },
   {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "id": "app.user_terms_of_service.get_by_user.app_error",
     "translation": "Unable to fetch terms of service."
   },
   {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
     "translation": "No terms of service found."
   },
   {
-    "id": "store.sql_user_terms_of_service.save.app_error",
+    "id": "app.user_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
   },
   {

@@ -7748,7 +7748,7 @@ func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
@@ -7764,7 +7764,7 @@ func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
@@ -7780,7 +7780,7 @@ func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)

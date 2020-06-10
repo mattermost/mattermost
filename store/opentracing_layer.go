@@ -8567,7 +8567,7 @@ func (s *OpenTracingLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string)
 	return resultVar0
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -8585,7 +8585,7 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfS
 	return resultVar0
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.GetByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -8603,7 +8603,7 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *OpenTracingLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.Save")
 	s.Root.Store.SetContext(newCtx)
