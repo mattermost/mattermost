@@ -480,7 +480,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 }
 
 func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
@@ -623,7 +623,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 		return false
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -637,16 +637,6 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
-		}
-
-		return true
-
-	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD COLUMN IF NOT EXISTS " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
-		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -667,7 +657,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 		return false
 	}
 
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
@@ -681,16 +671,6 @@ func (ss *SqlSupplier) CreateColumnIfNotExistsNoDefault(tableName string, column
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
 		if err != nil {
 			mlog.Critical("Failed to create column", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
-		}
-
-		return true
-
-	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType)
-		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create column %v", err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_COLUMN_MYSQL)
 		}
@@ -787,9 +767,9 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	}
 
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
@@ -957,7 +937,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(errExists), mlog.Err(err))
+			mlog.Critical("Failed to create index", mlog.Err(errExists), mlog.Err(err), mlog.String("query", query))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
@@ -986,25 +966,19 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-
-		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE table_catalog = current_database() and table_name = $1 AND index_name = $2", tableName, indexName)
-		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_CREATE_INDEX_MYSQL)
-		}
-
-		if count > 0 {
-			return false
-		}
-
 		// Ignore fullTextIndex, not supported on cockroachdb
 
-		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + " INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
+		query := "CREATE " + uniqueStr + "INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
+
+		if indexType == INDEX_TYPE_FULL_TEXT {
+			return true
+		}
+
+		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
+			mlog.Critical("Failed to create index", mlog.Err(err), mlog.String("query", query))
 			time.Sleep(time.Second)
-			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
+			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		_, err := ss.GetMaster().ExecNoTimeout("CREATE INDEX IF NOT EXISTS " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")

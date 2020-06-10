@@ -90,7 +90,7 @@ func CockroachSQLSettings() *model.SqlSettings {
 	// Generate a random database name
 	dsnUrl.Path = "db" + model.NewId()
 
-	return databaseSettings("postgres", dsnUrl.String())
+	return databaseSettings("cockroach", dsnUrl.String())
 }
 
 func mySQLRootDSN(dsn string) string {
@@ -108,6 +108,24 @@ func mySQLRootDSN(dsn string) string {
 }
 
 func postgreSQLRootDSN(dsn string) string {
+	dsnUrl, err := url.Parse(dsn)
+	if err != nil {
+		panic("failed to parse dsn " + dsn + ": " + err.Error())
+	}
+
+	// // Assume the unittesting database has the same password.
+	// password := ""
+	// if dsnUrl.User != nil {
+	// 	password, _ = dsnUrl.User.Password()
+	// }
+
+	// dsnUrl.User = url.UserPassword("", password)
+	dsnUrl.Path = "postgres"
+
+	return dsnUrl.String()
+}
+
+func cockroachSQLRootDSN(dsn string) string {
 	dsnUrl, err := url.Parse(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
@@ -182,8 +200,10 @@ func execAsRoot(settings *model.SqlSettings, sqlCommand string) error {
 	case model.DATABASE_DRIVER_MYSQL:
 		dsn = mySQLRootDSN(*settings.DataSource)
 	case model.DATABASE_DRIVER_POSTGRES:
-	case model.DATABASE_DRIVER_COCKROACH:
 		dsn = postgreSQLRootDSN(*settings.DataSource)
+	case model.DATABASE_DRIVER_COCKROACH:
+		dsn = cockroachSQLRootDSN(*settings.DataSource)
+		driver = "postgres"
 	default:
 		return fmt.Errorf("unsupported driver %s", driver)
 	}
@@ -230,6 +250,10 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 		}
 	case model.DATABASE_DRIVER_POSTGRES:
 		if err := execAsRoot(settings, "GRANT ALL PRIVILEGES ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
+			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
+		}
+	case model.DATABASE_DRIVER_COCKROACH:
+		if err := execAsRoot(settings, "GRANT ALL ON DATABASE \""+dbName+"\" TO mmuser"); err != nil {
 			panic("failed to grant mmuser permission to " + dbName + ":" + err.Error())
 		}
 	default:
