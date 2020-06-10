@@ -586,7 +586,7 @@ func (me *TestHelper) ShutdownApp() {
 func (me *TestHelper) TearDown() {
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 	me.ShutdownApp()
 	if me.tempWorkspace != "" {

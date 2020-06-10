@@ -248,7 +248,7 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 func (me *TestHelper) TearDown() {
 	// Clean all the caches
-	me.App.InvalidateAllCaches()
+	me.App.Srv().InvalidateAllCaches()
 	me.Server.Shutdown()
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)

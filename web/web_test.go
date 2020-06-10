@@ -155,7 +155,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches()
 	}
 	th.Server.Shutdown()
 }

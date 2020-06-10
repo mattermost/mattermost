@@ -111,11 +111,6 @@ func (a *App) InitServer() {
 				a.srv.ShutDownPlugins()
 			}
 		})
-		a.Srv().AddLicenseListener(func(oldLicense, newLicense *model.License) {
-			if oldLicense != newLicense {
-				a.InvalidateAllCaches()
-			}
-		})
 		if a.Srv().runjobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)

@@ -66,7 +66,7 @@ func (a *App) DeleteOAuthApp(appId string) *model.AppError {
 		return err
 	}
 
-	if err := a.InvalidateAllCaches(); err != nil {
+	if err := a.Srv().InvalidateAllCaches(); err != nil {
 		mlog.Error("error in invalidating cache", mlog.Err(err))
 	}
 

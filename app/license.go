@@ -89,6 +89,7 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	}
 
 	s.ReloadConfig()
+	s.InvalidateAllCaches()
 
 	// start job server if necessary - this handles the edge case where a license file is uploaded, but the job server
 	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
@@ -167,6 +168,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 
 	s.SetLicense(nil)
 	s.ReloadConfig()
+	s.InvalidateAllCaches()
 
 	return nil
 }
@@ -214,6 +216,7 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	}
 
 	s.ReloadConfig()
+	s.InvalidateAllCaches()
 
 	return nil
 }

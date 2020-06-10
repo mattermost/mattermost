@@ -1731,7 +1731,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -1745,7 +1745,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2094,7 +2094,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2108,7 +2108,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.

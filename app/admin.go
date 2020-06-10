@@ -138,11 +138,11 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (a *App) InvalidateAllCaches() *model.AppError {
+func (s *Server) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
-	a.InvalidateAllCachesSkipSend()
+	s.InvalidateAllCachesSkipSend()
 
-	if a.Cluster() != nil {
+	if s.Cluster != nil {
 
 		msg := &model.ClusterMessage{
 			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
@@ -150,23 +150,23 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 			WaitForAllToSend: true,
 		}
 
-		a.Cluster().SendClusterMessage(msg)
+		s.Cluster.SendClusterMessage(msg)
 	}
 
 	return nil
 }
 
-func (a *App) InvalidateAllCachesSkipSend() {
+func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.Srv().sessionCache.Purge()
-	a.Srv().statusCache.Purge()
-	a.Srv().Store.Team().ClearCaches()
-	a.Srv().Store.Channel().ClearCaches()
-	a.Srv().Store.User().ClearCaches()
-	a.Srv().Store.Post().ClearCaches()
-	a.Srv().Store.FileInfo().ClearCaches()
-	a.Srv().Store.Webhook().ClearCaches()
-	a.Srv().LoadLicense()
+	s.sessionCache.Purge()
+	s.statusCache.Purge()
+	s.Store.Team().ClearCaches()
+	s.Store.Channel().ClearCaches()
+	s.Store.User().ClearCaches()
+	s.Store.Post().ClearCaches()
+	s.Store.FileInfo().ClearCaches()
+	s.Store.Webhook().ClearCaches()
+	s.LoadLicense()
 }
 
 func (a *App) RecycleDatabaseConnection() {
