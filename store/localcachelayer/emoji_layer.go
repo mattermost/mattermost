@@ -29,7 +29,7 @@ func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiIdByName(msg *model.
 	}
 }
 
-func (es LocalCacheEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es LocalCacheEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	if allowFromCache {
 		if emoji, ok := es.getFromCacheById(id); ok {
 			return emoji, nil
@@ -45,7 +45,7 @@ func (es LocalCacheEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	return emoji, err
 }
 
-func (es LocalCacheEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es LocalCacheEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	if id, ok := model.GetSystemEmojiId(name); ok {
 		return es.Get(id, allowFromCache)
 	}
@@ -65,7 +65,7 @@ func (es LocalCacheEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 	return emoji, err
 }
 
-func (es LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (es LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	err := es.EmojiStore.Delete(emoji, time)
 
 	if err == nil {

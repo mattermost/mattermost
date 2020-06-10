@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -593,6 +594,45 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 
+	cli := th.CreateClient()
+	_, loginResp := cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
+	require.Nil(t, loginResp.Error)
+
+	var wg sync.WaitGroup
+	wsClient, err := th.CreateWebSocketClientWithClient(cli)
+	require.Nil(t, err)
+	defer func() {
+		wg.Wait()
+		wsClient.Close()
+	}()
+
+	wsClient.Listen()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		timeout := time.After(2 * time.Second)
+		cnt := true
+		i := 0
+		for cnt {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
+					if i == 0 {
+						assert.False(t, ev.GetData()["set_online"].(bool))
+					} else {
+						assert.True(t, ev.GetData()["set_online"].(bool))
+					}
+					i++
+				}
+				cnt = i != 2
+			case <-timeout:
+				cnt = false
+			}
+		}
+		assert.Equal(t, 2, i, "unexpected number of posted events")
+	}()
+
 	handler := api.ApiHandler(createPost)
 	resp := httptest.NewRecorder()
 	post := &model.Post{
@@ -606,7 +646,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
 
-	_, err := th.App.GetStatus(th.BasicUser.Id)
+	_, err = th.App.GetStatus(th.BasicUser.Id)
 	require.NotNil(t, err)
 	assert.Equal(t, "store.sql_status.get.missing.app_error", err.Id)
 
@@ -643,7 +683,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		FileIds:   fileIds,
-	}, channel, false)
+	}, channel, false, true)
 	require.Nil(t, err)
 
 	assert.Equal(t, rpost.Message, rpost.Message, "full name didn't match")
@@ -699,7 +739,7 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "zz" + model.NewId() + "a",
 			Type:      model.POST_JOIN_LEAVE,
 			UserId:    th.BasicUser.Id,
-		}, channel, false)
+		}, channel, false, true)
 		require.Nil(t, err)
 
 		up2 := &model.Post{
@@ -715,7 +755,7 @@ func TestUpdatePost(t *testing.T) {
 		ChannelId: channel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id,
-	}, channel, false)
+	}, channel, false, true)
 	require.Nil(t, err)
 
 	t.Run("new message, add files", func(t *testing.T) {

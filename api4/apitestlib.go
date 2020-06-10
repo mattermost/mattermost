@@ -689,7 +689,7 @@ func (me *TestHelper) GenerateTestEmail() string {
 func (me *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        "n-" + id,
+		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + id,
