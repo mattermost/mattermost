@@ -14,7 +14,7 @@ type SidebarCategorySorting string
 const (
 	// Each sidebar category has a 'type'. System categories are Channels, Favorites and DMs
 	// All user-created categories will have type Custom
-	SidebarCategoryChannels       SidebarCategoryType = "custom"
+	SidebarCategoryChannels       SidebarCategoryType = "channels"
 	SidebarCategoryDirectMessages SidebarCategoryType = "direct_messages"
 	SidebarCategoryFavorites      SidebarCategoryType = "favorites"
 	SidebarCategoryCustom         SidebarCategoryType = "custom"
