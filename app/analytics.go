@@ -68,8 +68,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		} else {
 			userChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err := a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamId})
-				userChan <- store.StoreResult{Data: count, Err: err}
+				count, nErr := a.Srv().Store.User().Count(model.UserCountOptions{TeamId: teamId})
+				userChan <- store.StoreResult{Data: count, Err: nErr}
 				close(userChan)
 			}()
 		}
@@ -78,30 +78,30 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if !skipIntensiveQueries {
 			postChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, false)
-				postChan <- store.StoreResult{Data: count, Err: err}
+				count, nErr := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, false)
+				postChan <- store.StoreResult{Data: count, Err: nErr}
 				close(postChan)
 			}()
 		}
 
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
-			teamCount, err := a.Srv().Store.Team().AnalyticsTeamCount(false)
-			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
+			teamCount, nErr := a.Srv().Store.Team().AnalyticsTeamCount(false)
+			teamCountChan <- store.StoreResult{Data: teamCount, Err: nErr}
 			close(teamCountChan)
 		}()
 
 		dailyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			dailyActive, err := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
+			dailyActive, nErr := a.Srv().Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: nErr}
 			close(dailyActiveChan)
 		}()
 
 		monthlyActiveChan := make(chan store.StoreResult, 1)
 		go func() {
-			monthlyActive, err := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
+			monthlyActive, nErr := a.Srv().Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: nErr}
 			close(monthlyActiveChan)
 		}()
 
