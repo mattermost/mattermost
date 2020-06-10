@@ -232,6 +232,9 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 	if err != nil {
 		return err
 	}
+	if session.IsUnrestricted() {
+		return nil
+	}
 
 	if existingBot.OwnerId == session.UserId {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_BOTS) {
