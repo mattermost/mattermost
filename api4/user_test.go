@@ -283,7 +283,6 @@ func TestCreateUserWithToken(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
 	})
-
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
