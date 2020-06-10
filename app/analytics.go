@@ -46,13 +46,13 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		openChan := make(chan store.StoreResult, 1)
 		privateChan := make(chan store.StoreResult, 1)
 		go func() {
-			count, err := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-			openChan <- store.StoreResult{Data: count, Err: err}
+			count, nErr := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+			openChan <- store.StoreResult{Data: count, Err: nErr}
 			close(openChan)
 		}()
 		go func() {
-			count, err := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-			privateChan <- store.StoreResult{Data: count, Err: err}
+			count, nErr := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+			privateChan <- store.StoreResult{Data: count, Err: nErr}
 			close(privateChan)
 		}()
 
@@ -61,8 +61,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if teamId == "" {
 			userInactiveChan = make(chan store.StoreResult, 1)
 			go func() {
-				count, err := a.Srv().Store.User().AnalyticsGetInactiveUsersCount()
-				userInactiveChan <- store.StoreResult{Data: count, Err: err}
+				count, nErr := a.Srv().Store.User().AnalyticsGetInactiveUsersCount()
+				userInactiveChan <- store.StoreResult{Data: count, Err: nErr}
 				close(userInactiveChan)
 			}()
 		} else {
