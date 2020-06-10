@@ -353,7 +353,7 @@ func (api *apiTimerLayer) CreateTeamMembers(teamId string, userIds []string, req
 func (api *apiTimerLayer) CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreateTeamMembersGracefully(teamId, userIds, requestorId)
-	api.recordTime(startTime, "CreateTeamMembersGracefully", _returnsA == nil)
+	api.recordTime(startTime, "CreateTeamMembersGracefully", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

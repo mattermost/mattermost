@@ -149,12 +149,7 @@ func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fil
 	result := ""
 	nextLetter := 'A'
 	for _, field := range fieldList.List {
-		typeNameBuffer := &bytes.Buffer{}
-		err := printer.Fprint(typeNameBuffer, fileset, field.Type)
-		if err != nil {
-			panic(err)
-		}
-		typeName := typeNameBuffer.String()
+		typeName := baseTypeName(field.Type)
 		if strings.Contains(typeName, "error") || strings.Contains(typeName, "Error") {
 			result = structPrefix + string(nextLetter)
 			break
@@ -196,6 +191,24 @@ func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) str
 	}
 
 	return strings.Join(result, "\n\t")
+}
+
+func baseTypeName(x ast.Expr) string {
+	switch t := x.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.SelectorExpr:
+		if _, ok := t.X.(*ast.Ident); ok {
+			// only possible for qualified type names;
+			// assume type is imported
+			return t.Sel.Name
+		}
+	case *ast.ParenExpr:
+		return baseTypeName(t.X)
+	case *ast.StarExpr:
+		return baseTypeName(t.X)
+	}
+	return ""
 }
 
 func goList(dir string) ([]string, error) {
