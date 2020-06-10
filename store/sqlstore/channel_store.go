@@ -594,7 +594,7 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 			sq.Gt{"Preferences.UserId": lastUserId},
 		}).
 		LeftJoin("Channels ON (Channels.Id=Preferences.Name)").
-		LeftJoin("SidebarCategories ON (SidebarCategories.UserId=Preferences.UserId AND SidebarCategories.Type='F' AND (SidebarCategories.TeamId=Channels.TeamId OR Channels.TeamId=''))").
+		LeftJoin("SidebarCategories ON (SidebarCategories.UserId=Preferences.UserId AND SidebarCategories.Type='"+string(model.SidebarCategoryFavorites)+"' AND (SidebarCategories.TeamId=Channels.TeamId OR Channels.TeamId=''))").
 		OrderBy("Preferences.UserId", "Channels.Name DESC").
 		Limit(100)
 
@@ -3443,6 +3443,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 
 func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
+		// return nil, &model.AppError{DetailedError: fmt.Sprint("type is ", category.Type, " but wanted either ", model.SidebarCategoryChannels, " or ", model.SidebarCategoryDirectMessages)}
 		return category, nil
 	}
 

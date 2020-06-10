@@ -6594,6 +6594,9 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 		res, err2 := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err2)
 		require.Len(t, res.Categories, 3)
+		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		require.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
 
 	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
@@ -6603,8 +6606,11 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	t.Run("GetSidebarCategories", func(t *testing.T) {
 		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err)
+		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
 		require.Len(t, res.Categories[0].Channels, 1)
+		require.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		require.Len(t, res.Categories[1].Channels, 1)
+		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 		require.Len(t, res.Categories[2].Channels, 1)
 	})
 
@@ -7143,9 +7149,9 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		require.Nil(t, err)
 		require.Len(t, res.Categories, 3)
-		require.True(t, res.Categories[0].Type == model.SidebarCategoryFavorites)
-		require.True(t, res.Categories[1].Type == model.SidebarCategoryChannels)
-		require.True(t, res.Categories[2].Type == model.SidebarCategoryDirectMessages)
+		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		require.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[0].Id)
 		assert.NotNil(t, err)
