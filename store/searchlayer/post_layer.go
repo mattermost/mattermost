@@ -55,6 +55,14 @@ func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, *mod
 	return post, err
 }
 
+func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	post, err := s.PostStore.Overwrite(post)
+	if err == nil {
+		s.indexPost(post)
+	}
+	return post, err
+}
+
 func (s SearchPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	npost, err := s.PostStore.Save(post)
 
@@ -74,6 +82,22 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
 			}
 		}
+	}
+	return err
+}
+
+func (s SearchPostStore) PermanentDeleteByUser(userID string) *model.AppError {
+	err := s.PostStore.PermanentDeleteByUser(userID)
+	if err == nil {
+		s.rootStore.indexUserFromID(userID)
+	}
+	return err
+}
+
+func (s SearchPostStore) PermanentDeleteByChannel(channelID string) *model.AppError {
+	err := s.PostStore.PermanentDeleteByChannel(channelID)
+	if err == nil {
+		s.rootStore.indexUserFromID(userID)
 	}
 	return err
 }
