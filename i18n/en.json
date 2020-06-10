@@ -2947,6 +2947,10 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.analytics.getanalytics.internal_error",
+    "translation": "Unable to get the analytics."
+  },
+  {
     "id": "app.bot.createbot.internal_error",
     "translation": "Unable to save the bot."
   },
