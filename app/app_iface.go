@@ -212,8 +212,6 @@ type AppIface interface {
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
 	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
 	IsUsernameTaken(name string) bool
-	// License returns the currently active license or nil if the application is unlicensed.
-	License() *model.License
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default CLILevel.
@@ -248,8 +246,6 @@ type AppIface interface {
 	RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
 	RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError)
-	// RequestTrialLicense request a trial license from the mattermost offical license server
-	RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
@@ -336,7 +332,6 @@ type AppIface interface {
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
-	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -389,7 +384,6 @@ type AppIface interface {
 	ClearTeamMembersCache(teamID string)
 	ClientConfig() map[string]string
 	ClientConfigHash() string
-	ClientLicense() map[string]string
 	Cluster() einterfaces.ClusterInterface
 	CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError)
@@ -627,7 +621,6 @@ type AppIface interface {
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
-	GetSanitizedClientLicense() map[string]string
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError)
@@ -741,7 +734,6 @@ type AppIface interface {
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamId string) ([]*model.Command, *model.AppError)
-	LoadLicense()
 	Log() *mlog.Logger
 	LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	MakePermissionError(permission *model.Permission) *model.AppError
@@ -796,8 +788,6 @@ type AppIface interface {
 	ReloadConfig() error
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
-	RemoveLicense() *model.AppError
-	RemoveLicenseListener(id string)
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
 	RemoveSamlIdpCertificate() *model.AppError
@@ -828,7 +818,6 @@ type AppIface interface {
 	SaveAndBroadcastStatus(status *model.Status)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
-	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
@@ -875,12 +864,10 @@ type AppIface interface {
 	SetAcceptLanguage(s string)
 	SetActiveChannel(userId string, channelId string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
-	SetClientLicense(m map[string]string)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetDiagnosticId(id string)
 	SetIpAddress(s string)
-	SetLicense(license *model.License) bool
 	SetLog(l *mlog.Logger)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
@@ -979,7 +966,6 @@ type AppIface interface {
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAgent() string
 	UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError)
-	ValidateAndSetLicenseBytes(b []byte)
 	VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userId, email string) *model.AppError
 	ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError)

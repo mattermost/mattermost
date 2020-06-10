@@ -80,7 +80,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 

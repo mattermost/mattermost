@@ -97,6 +97,10 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.Store = s.newStore()
 
+	if model.BuildEnterpriseReady == "true" {
+		s.LoadLicense()
+	}
+
 	if err := s.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}

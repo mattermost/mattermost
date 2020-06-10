@@ -528,7 +528,7 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 		ServerVersion: model.CurrentVersion,
 	}
 
-	license := a.License()
+	license := a.Srv().License()
 	if license != nil && *license.Features.EnterprisePlugins {
 		filter.EnterprisePlugins = true
 	}

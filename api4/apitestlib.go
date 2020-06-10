@@ -146,9 +146,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()

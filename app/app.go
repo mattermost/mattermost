@@ -87,22 +87,18 @@ func (a *App) InitServer() {
 			}
 		}
 
-		// Scheduler must be started before cluster.
-		a.initJobs()
-
-		if a.srv.joinCluster && a.srv.Cluster != nil {
-			a.registerAllClusterMessageHandlers()
-			a.srv.Cluster.StartInterNodeCommunication()
-		}
-
 		pluginsRoute := a.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 		pluginsRoute.HandleFunc("", a.ServePluginRequest)
 		pluginsRoute.HandleFunc("/public/{public_file:.*}", a.ServePluginPublicRequest)
 		pluginsRoute.HandleFunc("/{anything:.*}", a.ServePluginRequest)
 		a.srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
 
-		if model.BuildEnterpriseReady == "true" {
-			a.LoadLicense()
+		// Scheduler must be started before cluster.
+		a.initJobs()
+
+		if a.srv.joinCluster && a.srv.Cluster != nil {
+			a.registerAllClusterMessageHandlers()
+			a.srv.Cluster.StartInterNodeCommunication()
 		}
 
 		a.DoAppMigrations()

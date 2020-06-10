@@ -890,8 +890,8 @@ func doSessionCleanup(s *Server) {
 }
 
 func doLicenseExpirationCheck(a *App) {
-	a.LoadLicense()
-	license := a.License()
+	a.Srv().LoadLicense()
+	license := a.Srv().License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -926,7 +926,7 @@ func doLicenseExpirationCheck(a *App) {
 	}
 
 	//remove the license
-	a.RemoveLicense()
+	a.Srv().RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {

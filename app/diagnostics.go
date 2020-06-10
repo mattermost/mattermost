@@ -761,7 +761,7 @@ func (s *Server) trackConfig() {
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
+	s.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
 		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,

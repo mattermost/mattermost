@@ -37,9 +37,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = c.App.ClientLicense()
+		clientLicense = c.App.Srv().ClientLicense()
 	} else {
-		clientLicense = c.App.GetSanitizedClientLicense()
+		clientLicense = c.App.Srv().GetSanitizedClientLicense()
 	}
 
 	w.Write([]byte(model.MapToJson(clientLicense)))
@@ -92,7 +92,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	license, appErr := c.App.SaveLicense(buf.Bytes())
+	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
 		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
@@ -131,7 +131,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.RemoveLicense(); err != nil {
+	if err := c.App.Srv().RemoveLicense(); err != nil {
 		c.Err = err
 		return
 	}
@@ -187,7 +187,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		Users:    usersNumber.Users,
 	}
 
-	if err := c.App.RequestTrialLicense(trialLicenseRequest); err != nil {
+	if err := c.App.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
 		c.Err = err
 		return
 	}
