@@ -6427,6 +6427,14 @@
     "translation": "Failed to update last ping at."
   },
   {
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": "Command does not exist."
+  },
+  {
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": "Command does not exist."
+  },
+  {
     "id": "store.sql_command_webhooks.get.app_error",
     "translation": "Unable to get the webhook."
   },
