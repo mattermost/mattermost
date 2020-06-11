@@ -150,7 +150,7 @@ func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList, fil
 	nextLetter := 'A'
 	for _, field := range fieldList.List {
 		typeName := baseTypeName(field.Type)
-		if strings.Contains(typeName, "error") || strings.Contains(typeName, "Error") {
+		if typeName == "error" || typeName == "AppError" {
 			result = structPrefix + string(nextLetter)
 			break
 		}
