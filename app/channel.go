@@ -651,7 +651,7 @@ func (a *App) RestoreChannel(channel *model.Channel, userId string) (*model.Chan
 	}
 
 	if err := a.Srv().Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
-		return nil, err
+		return nil, model.NewAppError("RestoreChannel", "app.channel.restore.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	channel.DeleteAt = 0
 	a.invalidateCacheForChannel(channel)
@@ -1205,7 +1205,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	deleteAt := model.GetMillis()
 
 	if err := a.Srv().Store.Channel().Delete(channel.Id, deleteAt); err != nil {
-		return err
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	a.invalidateCacheForChannel(channel)
 
@@ -1555,7 +1555,18 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 }
 
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
@@ -1567,7 +1578,12 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	return a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+	channels, err := a.Srv().Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+	if err != nil {
+		return nil, model.NewAppError("GetAllChannels", "app.channel.get_all_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
 }
 
 func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
@@ -1579,11 +1595,27 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	return a.Srv().Store.Channel().GetAllChannelsCount(storeOpts)
+	count, err := a.Srv().Store.Channel().GetAllChannelsCount(storeOpts)
+	if err != nil {
+		return 0, model.NewAppError("GetAllChannelsCount", "app.channel.get_all_channels_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetDeleted(teamId, offset, limit, userId)
+	list, err := a.Srv().Store.Channel().GetDeleted(teamId, offset, limit, userId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.missing.app_error", nil, err.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -2300,8 +2332,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if err := a.Srv().Store.Channel().PermanentDelete(channel.Id); err != nil {
-		return err
+	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
+		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

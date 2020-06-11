@@ -2987,6 +2987,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.delete.app_error",
+    "translation": "Unable to delete the channel."
+  },
+  {
     "id": "app.channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -2995,8 +2999,36 @@
     "translation": "We encountered an error finding the channel."
   },
   {
+    "id": "app.channel.get_all_channels.app_error",
+    "translation": "Unable to get all the channels."
+  },
+  {
+    "id": "app.channel.get_all_channels_count.app_error",
+    "translation": "Unable to count all the channels."
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Unable to find the existing deleted channel."
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "No deleted channels exist."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
+  },
+  {
+    "id": "app.channel.permanent_delete.app_error",
+    "translation": "Unable to delete the channel."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3017,6 +3049,10 @@
   {
     "id": "app.channel.post_update_channel_purpose_message.updated_to",
     "translation": "%s updated the channel purpose to: %s"
+  },
+  {
+    "id": "app.channel.restore.app_error",
+    "translation": "Unable to restore the channel."
   },
   {
     "id": "app.channel.update.bad_id",
@@ -3357,6 +3393,10 @@
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
     "translation": "Missing required Post property: Message."
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props are longer than the maximum permitted length."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
@@ -5000,7 +5040,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve IndexingDir is set"
+    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -6099,10 +6139,6 @@
     "translation": "Unable to count messages since given date."
   },
   {
-    "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Unable to delete the channel."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -6112,10 +6148,6 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Unable to get all the channels."
-  },
-  {
-    "id": "store.sql_channel.get_all_channels.get.app_error",
     "translation": "Unable to get all the channels."
   },
   {
@@ -6139,14 +6171,6 @@
     "translation": "Unable to get the channel counts."
   },
   {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "No channels were found."
-  },
-  {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
     "translation": "Unable to get the channels batch for indexing."
   },
@@ -6161,14 +6185,6 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist."
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
@@ -6241,22 +6257,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "Unable to delete the channel."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -6345,18 +6345,6 @@
   {
     "id": "store.sql_channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel."
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
