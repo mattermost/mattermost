@@ -972,7 +972,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeId string, offs
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)

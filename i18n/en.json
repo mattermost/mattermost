@@ -3007,6 +3007,14 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Unable to find the existing deleted channel."
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "No deleted channels exist."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6177,14 +6185,6 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist."
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",

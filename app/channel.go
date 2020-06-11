@@ -1589,7 +1589,18 @@ func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.A
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetDeleted(teamId, offset, limit, userId)
+	list, err := a.Srv().Store.Channel().GetDeleted(teamId, offset, limit, userId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.missing.app_error", nil, err.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetDeletedChannels", "app.channel.get_deleted.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
