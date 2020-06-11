@@ -209,6 +209,14 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	return postIds, matches, nil
 }
 
+func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
+	return nil
+}
+
+func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
+	return nil
+}
+
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
 	b.Mutex.RLock()
 	defer b.Mutex.RUnlock()
