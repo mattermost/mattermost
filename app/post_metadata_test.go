@@ -509,6 +509,7 @@ func TestPreparePostForClient(t *testing.T) {
 		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		assert.NotEqual(t, nil, clientPost.Metadata, "should've populated Metadata“")
+		assert.Equal(t, "", clientPost.Message, "should've cleaned post content")
 		assert.Nil(t, clientPost.Metadata.Reactions, "should not have populated Reactions")
 		assert.Nil(t, clientPost.Metadata.Files, "should not have populated Files")
 	})
