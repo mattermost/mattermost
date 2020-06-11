@@ -193,13 +193,6 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
 
-	var re *regexp.Regexp
-	checkPattern := false
-	if a.Pattern != "" {
-		re = regexp.MustCompile(a.Pattern)
-		checkPattern = true
-	}
-
 	if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
@@ -215,7 +208,8 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	// input with a single word
 	index := strings.Index(in, " ")
 	if index == -1 { // typing of the single word argument is not finished
-		if checkPattern {
+		if a.Pattern != "" {
+			re := regexp.MustCompile(a.Pattern)
 			if re.MatchString(toBeParsed) {
 				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 			}
