@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
 )
+
+const SEARCH_BATCH_SIZE = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -210,10 +213,82 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 }
 
 func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	resultsCount := 0
+
+	for {
+		query := bleve.NewTermQuery(channelID)
+		query.SetField("ChannelId")
+		search := bleve.NewSearchRequest(query)
+		search.Size = SEARCH_BATCH_SIZE
+		// From is not a offset but from where to start picking results, so
+		// keeping it always to 0 makes the work
+		search.From = 0
+		results, err := b.PostIndex.Search(search)
+		if err != nil {
+			return model.NewAppError("Bleveengine.DeleteChannelPosts",
+				"bleveengine.delete_channel_posts.error", nil,
+				err.Error(), http.StatusInternalServerError)
+		}
+		batch := b.PostIndex.NewBatch()
+		for _, post := range results.Hits {
+			batch.Delete(post.ID)
+		}
+		if err := b.PostIndex.Batch(batch); err != nil {
+			return model.NewAppError("Bleveengine.DeleteChannelPosts",
+				"bleveengine.delete_channel_posts.error", nil,
+				err.Error(), http.StatusInternalServerError)
+		}
+		resultsCount += results.Hits.Len()
+		if results.Hits.Len() <= SEARCH_BATCH_SIZE {
+			break
+		}
+	}
+
+	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int("deleted", resultsCount))
+
 	return nil
 }
 
 func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	resultsCount := 0
+
+	for {
+		query := bleve.NewTermQuery(userID)
+		query.SetField("UserId")
+		search := bleve.NewSearchRequest(query)
+		search.Size = SEARCH_BATCH_SIZE
+		// From is not a offset but from where to start picking results, so
+		// keeping it always to 0 makes the work
+		search.From = 0
+		results, err := b.PostIndex.Search(search)
+		if err != nil {
+			return model.NewAppError("Bleveengine.DeleteUserPosts",
+				"bleveengine.delete_user_posts.error", nil,
+				err.Error(), http.StatusInternalServerError)
+		}
+		batch := b.PostIndex.NewBatch()
+		for _, post := range results.Hits {
+			batch.Delete(post.ID)
+		}
+		if err := b.PostIndex.Batch(batch); err != nil {
+			return model.NewAppError("Bleveengine.DeleteUserPosts",
+				"bleveengine.delete_user_posts.error", nil,
+				err.Error(), http.StatusInternalServerError)
+		}
+		resultsCount += results.Hits.Len()
+		if results.Hits.Len() <= SEARCH_BATCH_SIZE {
+			break
+		}
+	}
+
+	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int("deleted", resultsCount))
+
 	return nil
 }
 
