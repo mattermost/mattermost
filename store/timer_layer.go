@@ -664,7 +664,7 @@ func (s *TimerLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(chann
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannels(page, perPage, opts)
@@ -680,7 +680,7 @@ func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsCount(opts)
