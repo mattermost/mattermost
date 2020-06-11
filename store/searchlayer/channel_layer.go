@@ -45,7 +45,7 @@ func (c *SearchChannelStore) indexChannel(channel *model.Channel) {
 	}
 }
 
-func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(channel, maxChannels)
 	if err == nil {
 		c.indexChannel(newChannel)
@@ -53,7 +53,7 @@ func (c *SearchChannelStore) Save(channel *model.Channel, maxChannels int64) (*m
 	return newChannel, err
 }
 
-func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
 	updatedChannel, err := c.ChannelStore.Update(channel)
 	if err == nil {
 		c.indexChannel(updatedChannel)
@@ -97,7 +97,7 @@ func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *mod
 	return err
 }
 
-func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, *model.AppError) {
+func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
 	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
@@ -194,7 +194,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByChannel(channelId string) *
 	return err
 }
 
-func (c *SearchChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (c *SearchChannelStore) PermanentDelete(channelId string) error {
 	channel, channelErr := c.ChannelStore.Get(channelId, true)
 	if channelErr != nil {
 		mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channelId), mlog.Err(channelErr))

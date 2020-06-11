@@ -99,19 +99,19 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	channelNewPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
-	for _, post := range posts {
+	for idx, post := range posts {
 		if len(post.Id) > 0 {
-			return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+			return nil, idx, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
 		if err := post.IsValid(maxPostSize); err != nil {
-			return nil, err
+			return nil, idx, err
 		}
 
 		currentChannelCount, ok := channelNewPosts[post.ChannelId]
@@ -153,11 +153,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for channelId, count := range channelNewPosts {
@@ -190,11 +190,11 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.
 		}
 	}
 
-	return posts, nil
+	return posts, -1, nil
 }
 
 func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
-	posts, err := s.SaveMultiple([]*model.Post{post})
+	posts, _, err := s.SaveMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -204,13 +204,13 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
 	rootIds := []string{}
 	for _, post := range posts {
-		rootIds = append(rootIds, post.Id)
+		rootIds = append(rootIds, post.RootId)
 	}
 	countList := []struct {
 		RootId string
 		Count  int64
 	}{}
-	query := s.getQueryBuilder().Select("RootId, COUNT(Id)").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
+	query := s.getQueryBuilder().Select("RootId, COUNT(Id) AS Count").From("Posts").Where(sq.Eq{"RootId": rootIds}).Where(sq.Eq{"DeleteAt": 0}).GroupBy("RootId")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -270,40 +270,40 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	return newPost, nil
 }
 
-func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *SqlPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	updateAt := model.GetMillis()
 	maxPostSize := s.GetMaxPostSize()
-	for _, post := range posts {
+	for idx, post := range posts {
 		post.UpdateAt = updateAt
 		if appErr := post.IsValid(maxPostSize); appErr != nil {
-			return nil, appErr
+			return nil, idx, appErr
 		}
 	}
 
 	tx, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	for _, post := range posts {
+	for idx, post := range posts {
 		if _, err = tx.Update(post); err != nil {
 			txErr := tx.Rollback()
 			if txErr != nil {
-				return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
+				return nil, idx, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, txErr.Error(), http.StatusInternalServerError)
 			}
 
-			return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+			return nil, idx, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return posts, nil
+	return posts, -1, nil
 }
 
 func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
-	posts, err := s.OverwriteMultiple([]*model.Post{post})
+	posts, _, err := s.OverwriteMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
 	}
@@ -703,23 +703,23 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("p.RootId = '' AND RootId = p.Id AND DeleteAt = 0"))
+	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 	query := s.getQueryBuilder().Select("p.*")
-	if options.SkipFetchThreads {
-		query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 	query = query.From("Posts p").
 		Where(sq.And{
 			sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 			sq.Eq{"ChannelId": options.ChannelId},
 			sq.Eq{"DeleteAt": int(0)},
 		}).
-		OrderBy("CreateAt " + sort).
+		// Adding ChannelId and DeleteAt order columns
+		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
+		// See MM-24170.
+		OrderBy("ChannelId", "DeleteAt", "CreateAt "+sort).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
-
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
 	}
@@ -740,9 +740,8 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		idQuery := sq.Or{
 			sq.Eq{"Id": rootIds},
 		}
-		if options.SkipFetchThreads {
-			rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-		} else {
+		rootQuery = rootQuery.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
+		if !options.SkipFetchThreads {
 			idQuery = append(idQuery, sq.Eq{"RootId": rootIds}) // preserve original behaviour
 		}
 

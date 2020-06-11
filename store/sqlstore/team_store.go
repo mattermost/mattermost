@@ -292,6 +292,9 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+// Get returns from the database the team that matches the id provided as parameter.
+// If the team doesn't exist it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	obj, err := s.GetReplica().Get(model.Team{}, id)
 	if err != nil {
@@ -304,6 +307,9 @@ func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	return obj.(*model.Team), nil
 }
 
+// GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
+// If the parameter provided is empty or if there is no match in the database, it returns a model.AppError
+// with a http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team := model.Team{}
 
@@ -318,6 +324,9 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppErr
 	return &team, nil
 }
 
+// GetByName returns from the database the team that matches the name provided as parameter.
+// If there is no match in the database, it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
 	team := model.Team{}
@@ -359,6 +368,8 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+// SearchAll returns from the database a list of teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -391,6 +402,8 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	return teams, totalCount, nil
 }
 
+// SearchOpen returns from the database a list of public teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -403,6 +416,8 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -421,6 +436,7 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+// GetAll returns all teams
 func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -431,6 +447,7 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// GetAllPage returns teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -452,6 +469,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 	return teams, nil
 }
 
+// GetTeamsByUserId returns from the database all teams that userId belongs to.
 func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 	if _, err := s.GetReplica().Select(&teams, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId AND TeamMembers.DeleteAt = 0 AND Teams.DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
@@ -461,6 +479,7 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.App
 	return teams, nil
 }
 
+// GetAllPrivateTeamListing returns all private teams.
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName"
 
@@ -476,6 +495,7 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError
 	return data, nil
 }
 
+// GetAllPublicTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
@@ -491,6 +511,7 @@ func (s SqlTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*mod
 	return data, nil
 }
 
+// GetAllPrivateTeamPageListing returns private teams, up to a total limit passed as paramater and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
@@ -506,6 +527,7 @@ func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*mo
 	return data, nil
 }
 
+// GetAllTeamListing returns all public teams.
 func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName"
 
@@ -521,6 +543,7 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 	return data, nil
 }
 
+// GetAllTeamPageListing returns public teams, up to a total limit passed as parameter and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
@@ -1083,6 +1106,8 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *mo
 	return nil
 }
 
+// GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
+// a total limit passed as paramater and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE SchemeId = :SchemeId ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"SchemeId": schemeId, "Offset": offset, "Limit": limit})
@@ -1233,6 +1258,7 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *m
 	return count, nil
 }
 
+// GetAllForExportAfter returns teams for export, up to a total limit passed as paramater where Teams.Id is greater than the afterId passed as parameter.
 func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
 	var data []*model.TeamForExport
 	if _, err := s.GetReplica().Select(&data, `

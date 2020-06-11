@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/gziphandler"
+	"github.com/mkraft/gziphandler"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -212,8 +212,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
-	if c.Err == nil && h.IsLocal && *c.App.Config().ServiceSettings.EnableLocalMode && r.RemoteAddr == "@" {
-		c.App.SetSession(&model.Session{Local: true})
+	if c.Err == nil && h.IsLocal {
+		// if the connection is local, RemoteAddr shouldn't have the
+		// shape IP:PORT (it will be "@" in Linux, for example)
+		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
+		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
+			c.App.SetSession(&model.Session{Local: true})
+		} else if !isLocalOrigin {
+			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
+		}
 	}
 
 	if c.Err == nil {
@@ -266,7 +273,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
-			c.App.Metrics().ObserveHttpRequestDuration(elapsed)
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
