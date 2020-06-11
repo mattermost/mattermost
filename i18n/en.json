@@ -3011,6 +3011,14 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "No channels were found."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -5036,7 +5044,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve IndexingDir is set"
+    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -6165,14 +6173,6 @@
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "Unable to get the channel counts."
-  },
-  {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "No channels were found."
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
