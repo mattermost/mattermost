@@ -30,7 +30,6 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 	}
 
 	msg := &model.PushNotification{
-		Category: model.CATEGORY_CAN_REPLY,
 		Version:  model.PUSH_MESSAGE_V2,
 		Type:     model.PUSH_TYPE_SESSION,
 	}
