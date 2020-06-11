@@ -194,13 +194,10 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	}
 
 	var re *regexp.Regexp
-	var err error
 	checkPattern := false
 	if a.Pattern != "" {
-		re, err = regexp.Compile(a.Pattern)
-		if err == nil { // TODO: what if err != nil ? maybe we should not check the pattern and log a warning
-			checkPattern = true
-		}
+		re = regexp.MustCompile(a.Pattern)
+		checkPattern = true
 	}
 
 	if in[0] == '"' { //input with multiple words
