@@ -5040,7 +5040,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve IndexingDir is set"
+    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
