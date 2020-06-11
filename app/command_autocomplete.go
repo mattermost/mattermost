@@ -192,7 +192,6 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	if in == "" { //The user has not started typing the argument.
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
-
 	if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
