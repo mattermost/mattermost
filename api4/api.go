@@ -299,6 +299,9 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
 
+	api.BaseRoutes.Bots = api.BaseRoutes.ApiRoot.PathPrefix("/bots").Subrouter()
+	api.BaseRoutes.Bot = api.BaseRoutes.ApiRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
@@ -311,6 +314,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitPluginLocal()
 	api.InitCommandLocal()
 	api.InitLicenseLocal()
+	api.InitBotLocal()
 	api.InitGroupLocal()
 	api.InitPostLocal()
 
