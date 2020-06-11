@@ -1680,12 +1680,8 @@ func TestGetChannelMembers(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 
 		_, resp = client.GetChannelMembers("", 0, 60, "")
-		// NOTE: for some reason, while using the LocalClient, the route /channels//members is not handled
-		if client == th.LocalClient {
-			CheckNotFoundStatus(t, resp)
-		} else {
-			CheckBadRequestStatus(t, resp)
-		}
+		CheckBadRequestStatus(t, resp)
+
 		_, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 		CheckNoError(t, resp)
 	})
