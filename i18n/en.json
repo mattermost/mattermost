@@ -3007,6 +3007,14 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "No channels were found."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -6161,14 +6169,6 @@
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "Unable to get the channel counts."
-  },
-  {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "No channels were found."
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
