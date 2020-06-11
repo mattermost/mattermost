@@ -609,8 +609,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().Delete(o3.Id, model.GetMillis())
 	require.Nil(t, nErr, nErr)
 
-	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	require.Nil(t, err)
+	list, nErr := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	require.Nil(t, nErr)
 	require.Len(t, *list, 1, "invalid number of channels")
 
 	list, err = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
@@ -620,9 +620,10 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	cresult := ss.Channel().PermanentDelete(o2.Id)
 	require.Nil(t, cresult)
 
-	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	if assert.NotNil(t, err) {
-		require.Equal(t, "store.sql_channel.get_channels.not_found.app_error", err.Id)
+	list, nErr = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	if assert.NotNil(t, nErr) {
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(nErr, &nfErr))
 	} else {
 		require.Equal(t, &model.ChannelList{}, list)
 	}
@@ -756,8 +757,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err := ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	list, err := ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
-	require.Nil(t, err, err)
+	list, nErr := ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	require.Nil(t, nErr, nErr)
 	require.Len(t, *list, 1, "wrong list")
 	require.Equal(t, o1.Name, (*list)[0].Name, "missing channel")
 
@@ -769,8 +770,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(&o2, -1)
 	require.Nil(t, nErr)
 
-	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
-	require.Nil(t, err, err)
+	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	require.Nil(t, nErr, nErr)
 	require.Len(t, *list, 1, "wrong list")
 
 	o3 := model.Channel{}
@@ -785,16 +786,16 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o3.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
-	require.Nil(t, err, err)
+	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 100, userId)
+	require.Nil(t, nErr, nErr)
 	require.Len(t, *list, 2, "wrong list length")
 
-	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 1, userId)
-	require.Nil(t, err, err)
+	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 0, 1, userId)
+	require.Nil(t, nErr, nErr)
 	require.Len(t, *list, 1, "wrong list length")
 
-	list, err = ss.Channel().GetDeleted(o1.TeamId, 1, 1, userId)
-	require.Nil(t, err, err)
+	list, nErr = ss.Channel().GetDeleted(o1.TeamId, 1, 1, userId)
+	require.Nil(t, nErr, nErr)
 	require.Len(t, *list, 1, "wrong list length")
 
 }
@@ -3138,8 +3139,8 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&m3)
 	require.Nil(t, err)
 
-	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	require.Nil(t, err)
+	list, nErr := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	require.Nil(t, nErr)
 	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
 
 	ids, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
