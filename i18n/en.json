@@ -6259,22 +6259,6 @@
     "translation": "Failed to update the channel member."
   },
   {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Unable to delete the channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
     "translation": "Unable to remove the channel member."
   },

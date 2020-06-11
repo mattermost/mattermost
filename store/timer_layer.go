@@ -1425,7 +1425,7 @@ func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)

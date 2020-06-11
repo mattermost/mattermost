@@ -1278,16 +1278,14 @@ func (_m *ChannelStore) PermanentDelete(channelId string) error {
 }
 
 // PermanentDeleteByTeam provides a mock function with given fields: teamId
-func (_m *ChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (_m *ChannelStore) PermanentDeleteByTeam(teamId string) error {
 	ret := _m.Called(teamId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
