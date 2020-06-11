@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/blevesearch/bleve"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
@@ -195,4 +196,36 @@ func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
 		require.Nil(s.T(), err)
 		require.Equal(s.T(), 1, int(numberDocs))
 	})
+}
+
+func (s *BleveEngineTestSuite) TestDeletePosts() {
+	s.BleveEngine.PurgeIndexes()
+	teamID := model.NewId()
+	userID := model.NewId()
+	userToAvoidID := model.NewId()
+	channelID := model.NewId()
+	posts := make([]*model.Post, 0)
+	for i := 0; i < 10; i++ {
+		post := createPost(userID, channelID, "test one two three")
+		appErr := s.SearchEngine.BleveEngine.IndexPost(post, teamID)
+		require.Nil(s.T(), appErr)
+		posts = append(posts, post)
+	}
+	postToAvoid := createPost(userToAvoidID, channelID, "test one two three")
+	appErr := s.SearchEngine.BleveEngine.IndexPost(postToAvoid, teamID)
+	require.Nil(s.T(), appErr)
+
+	query := bleve.NewTermQuery(userID)
+	query.SetField("UserId")
+	search := bleve.NewSearchRequest(query)
+	count, err := s.BleveEngine.DeletePosts(search, 1)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), 10, int(count))
+
+	doc, err := s.BleveEngine.PostIndex.Document(postToAvoid.Id)
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), postToAvoid.Id, doc.ID)
+	numberDocs, err := s.BleveEngine.PostIndex.DocCount()
+	require.Nil(s.T(), err)
+	require.Equal(s.T(), 1, int(numberDocs))
 }
