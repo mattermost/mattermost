@@ -31,7 +31,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for email addresses with or without quotes",
 		Fn:   testSearchEmailAddresses,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -325,7 +325,7 @@ func testSearchExactPhraseInQuotes(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
-	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test email test@test.com", "", model.POST_DEFAULT, 0, false)
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test email test@test.com test1@test.com", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "test email test2@test.com", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
@@ -342,6 +342,15 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should search email addresses without quotes", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "test@test.com"}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
+		require.Nil(t, apperr)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should search more than one email address without quotes", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "test@test.com test1@test.com"}
 		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
 		require.Nil(t, apperr)
 

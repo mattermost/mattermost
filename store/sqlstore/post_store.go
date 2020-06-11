@@ -1206,6 +1206,16 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
+	terms, containsEmails := wrapEmails(terms)
+	if containsEmails {
+		// Find and remove "@"
+		for i, v := range specialSearchChar {
+			if v == "@" {
+				specialSearchChar = append(specialSearchChar[:i], specialSearchChar[i+1:]...)
+				break
+			}
+		}
+	}
 	// these chars have special meaning and can be treated as spaces
 	for _, c := range specialSearchChar {
 		terms = strings.Replace(terms, c, " ", -1)
@@ -1779,4 +1789,35 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	posts.SortByCreateAt()
 
 	return model.MakePostSearchResults(posts, nil), nil
+}
+
+func wrapEmails(terms string) (string, bool) {
+	emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	var termsWithWrappedEmails []string
+	containsEmails := false
+	// remove quotes if it has
+	termsWithoutQuotes := terms
+	if len(termsWithoutQuotes) > 0 && termsWithoutQuotes[0] == '"' {
+		termsWithoutQuotes = termsWithoutQuotes[1:]
+	}
+	if len(termsWithoutQuotes) > 0 && termsWithoutQuotes[len(termsWithoutQuotes)-1] == '"' {
+		termsWithoutQuotes = termsWithoutQuotes[:len(termsWithoutQuotes)-1]
+	}
+
+	// split terms
+	s := strings.Split(termsWithoutQuotes, " ")
+	for i := range s {
+		if emailRegex.MatchString(s[i]) {
+			// wrap email with quotes
+			termsWithWrappedEmails = append(termsWithWrappedEmails, "\"" + s[i] + "\"")
+			containsEmails = true
+		} else {
+			termsWithWrappedEmails = append(termsWithWrappedEmails, s[i])
+		}
+	}
+	if !containsEmails {
+		return terms, false
+	}
+	return strings.Join(termsWithWrappedEmails[:], " "), containsEmails
+
 }
