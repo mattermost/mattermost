@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -988,11 +989,13 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var channelList *model.ChannelList
 
-	if channelList, err = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
-		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+	var nErr error
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
 		} else {
-			return err
+			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -1342,7 +1345,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if channels, err := a.Srv().Store.Channel().GetTeamChannels(team.Id); err != nil {
-		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+		if err.Id != "app.channel.get_channels.not_found.app_error" {
 			return err
 		}
 	} else {
