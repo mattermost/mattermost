@@ -639,7 +639,7 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	cmd, err := a.Srv().Store.Command().Get(commandId)
+	command, err := a.Srv().Store.Command().Get(commandId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -649,7 +649,7 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	return cmd, nil
+	return command, nil
 }
 
 func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError) {
