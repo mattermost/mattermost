@@ -278,7 +278,7 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
-		{{if .Return}}{{encodeErrors "returns." .Return}}{{end}}
+		{{if .Return}}{{encodeErrors "returns." .Return}}{{end -}}
 	} else {
 		return encodableError(fmt.Errorf("Hook {{.Name}} called but not implemented."))
 	}
@@ -310,6 +310,7 @@ func (s *apiRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
 	}); ok {
 		{{if .Return}}{{destruct "returns." .Return}} = {{end}}hook.{{.Name}}({{destruct "args." .Params}})
+		{{if .Return}}{{encodeErrors "returns." .Return}}{{end -}}
 	} else {
 		return encodableError(fmt.Errorf("API {{.Name}} called but not implemented."))
 	}
