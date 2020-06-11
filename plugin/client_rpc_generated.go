@@ -112,7 +112,6 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 		ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.ExecuteCommand(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook ExecuteCommand called but not implemented."))
 	}
@@ -147,7 +146,6 @@ func (s *hooksRPCServer) UserHasBeenCreated(args *Z_UserHasBeenCreatedArgs, retu
 		UserHasBeenCreated(c *Context, user *model.User)
 	}); ok {
 		hook.UserHasBeenCreated(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasBeenCreated called but not implemented."))
 	}
@@ -183,7 +181,6 @@ func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_Use
 		UserWillLogIn(c *Context, user *model.User) string
 	}); ok {
 		returns.A = hook.UserWillLogIn(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserWillLogIn called but not implemented."))
 	}
@@ -218,7 +215,6 @@ func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z
 		UserHasLoggedIn(c *Context, user *model.User)
 	}); ok {
 		hook.UserHasLoggedIn(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasLoggedIn called but not implemented."))
 	}
@@ -253,7 +249,6 @@ func (s *hooksRPCServer) MessageHasBeenPosted(args *Z_MessageHasBeenPostedArgs, 
 		MessageHasBeenPosted(c *Context, post *model.Post)
 	}); ok {
 		hook.MessageHasBeenPosted(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook MessageHasBeenPosted called but not implemented."))
 	}
@@ -289,7 +284,6 @@ func (s *hooksRPCServer) MessageHasBeenUpdated(args *Z_MessageHasBeenUpdatedArgs
 		MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
 	}); ok {
 		hook.MessageHasBeenUpdated(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook MessageHasBeenUpdated called but not implemented."))
 	}
@@ -324,7 +318,6 @@ func (s *hooksRPCServer) ChannelHasBeenCreated(args *Z_ChannelHasBeenCreatedArgs
 		ChannelHasBeenCreated(c *Context, channel *model.Channel)
 	}); ok {
 		hook.ChannelHasBeenCreated(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook ChannelHasBeenCreated called but not implemented."))
 	}
@@ -360,7 +353,6 @@ func (s *hooksRPCServer) UserHasJoinedChannel(args *Z_UserHasJoinedChannelArgs, 
 		UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
 	}); ok {
 		hook.UserHasJoinedChannel(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasJoinedChannel called but not implemented."))
 	}
@@ -396,7 +388,6 @@ func (s *hooksRPCServer) UserHasLeftChannel(args *Z_UserHasLeftChannelArgs, retu
 		UserHasLeftChannel(c *Context, channelMember *model.ChannelMember, actor *model.User)
 	}); ok {
 		hook.UserHasLeftChannel(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasLeftChannel called but not implemented."))
 	}
@@ -432,7 +423,6 @@ func (s *hooksRPCServer) UserHasJoinedTeam(args *Z_UserHasJoinedTeamArgs, return
 		UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 	}); ok {
 		hook.UserHasJoinedTeam(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasJoinedTeam called but not implemented."))
 	}
@@ -468,7 +458,6 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 		UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
 	}); ok {
 		hook.UserHasLeftTeam(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("Hook UserHasLeftTeam called but not implemented."))
 	}
@@ -497,6 +486,7 @@ func (s *apiRPCServer) RegisterCommand(args *Z_RegisterCommandArgs, returns *Z_R
 		RegisterCommand(command *model.Command) error
 	}); ok {
 		returns.A = hook.RegisterCommand(args.A)
+		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API RegisterCommand called but not implemented."))
 	}
@@ -526,6 +516,7 @@ func (s *apiRPCServer) UnregisterCommand(args *Z_UnregisterCommandArgs, returns 
 		UnregisterCommand(teamId, trigger string) error
 	}); ok {
 		returns.A = hook.UnregisterCommand(args.A, args.B)
+		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API UnregisterCommand called but not implemented."))
 	}
@@ -720,6 +711,7 @@ func (s *apiRPCServer) GetBundlePath(args *Z_GetBundlePathArgs, returns *Z_GetBu
 		GetBundlePath() (string, error)
 	}); ok {
 		returns.A, returns.B = hook.GetBundlePath()
+		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetBundlePath called but not implemented."))
 	}
