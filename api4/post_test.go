@@ -444,7 +444,7 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -458,7 +458,7 @@ func TestCreatePostPublic(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_PUBLIC_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -491,7 +491,7 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -509,7 +509,7 @@ func TestCreatePostAll(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -602,9 +602,8 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.Nil(t, err)
 	defer func() {
-		wsClient.Close()
 		wg.Wait()
-
+		wsClient.Close()
 	}()
 
 	wsClient.Listen()
@@ -612,15 +611,23 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		timeout := time.After(2 * time.Second)
+		cnt := true
 		i := 0
-		for ev := range wsClient.EventChannel {
-			if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
-				if i == 0 {
-					assert.False(t, ev.GetData()["set_online"].(bool))
-				} else {
-					assert.True(t, ev.GetData()["set_online"].(bool))
+		for cnt {
+			select {
+			case ev := <-wsClient.EventChannel:
+				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
+					if i == 0 {
+						assert.False(t, ev.GetData()["set_online"].(bool))
+					} else {
+						assert.True(t, ev.GetData()["set_online"].(bool))
+					}
+					i++
 				}
-				i++
+				cnt = i != 2
+			case <-timeout:
+				cnt = false
 			}
 		}
 		assert.Equal(t, 2, i, "unexpected number of posted events")
@@ -660,7 +667,7 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -843,7 +850,7 @@ func TestPatchPost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -969,10 +976,10 @@ func TestPinPost(t *testing.T) {
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
 		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
-		defer th.App.RemoveLicense()
+		defer th.App.Srv().RemoveLicense()
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
@@ -1855,48 +1862,61 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 func TestGetPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	// TODO: migrate this entirely to the subtest's client
+	// once the other methods are migrated too.
 	Client := th.Client
 
-	post, resp := Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	var privatePost *model.Post
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		t.Helper()
 
-	require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
+		post, resp := c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	post, resp = Client.GetPost(th.BasicPost.Id, resp.Etag)
-	CheckEtag(t, post, resp)
+		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-	_, resp = Client.GetPost("", "")
-	CheckNotFoundStatus(t, resp)
+		post, resp = c.GetPost(th.BasicPost.Id, resp.Etag)
+		CheckEtag(t, post, resp)
 
-	_, resp = Client.GetPost("junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPost("", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetPost(model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = c.GetPost("junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		_, resp = c.GetPost(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
 
-	// Channel is public, should be able to read post
-	_, resp = Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+		Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+		// Channel is public, should be able to read post
+		_, resp = c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = Client.GetPost(privatePost.Id, "")
-	CheckNoError(t, resp)
+		privatePost = th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+
+		_, resp = c.GetPost(privatePost.Id, "")
+		CheckNoError(t, resp)
+	})
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp = Client.GetPost(privatePost.Id, "")
+	_, resp := Client.GetPost(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
+	// But local client should.
+	_, resp = th.LocalClient.GetPost(privatePost.Id, "")
+	CheckNoError(t, resp)
+
 	Client.Logout()
+
+	// Normal client should get unauthorized, but local client should get 404.
 	_, resp = Client.GetPost(model.NewId(), "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	_, resp = th.LocalClient.GetPost(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestDeletePost(t *testing.T) {

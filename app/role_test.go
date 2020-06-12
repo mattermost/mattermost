@@ -54,7 +54,7 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	permissionsDefault := []string{

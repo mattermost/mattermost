@@ -292,6 +292,9 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+// Get returns from the database the team that matches the id provided as parameter.
+// If the team doesn't exist it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	obj, err := s.GetReplica().Get(model.Team{}, id)
 	if err != nil {
@@ -304,6 +307,9 @@ func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	return obj.(*model.Team), nil
 }
 
+// GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
+// If the parameter provided is empty or if there is no match in the database, it returns a model.AppError
+// with a http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team := model.Team{}
 
@@ -318,6 +324,9 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppErr
 	return &team, nil
 }
 
+// GetByName returns from the database the team that matches the name provided as parameter.
+// If there is no match in the database, it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
 	team := model.Team{}
@@ -359,6 +368,8 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+// SearchAll returns from the database a list of teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -391,6 +402,8 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	return teams, totalCount, nil
 }
 
+// SearchOpen returns from the database a list of public teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -403,6 +416,8 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
@@ -454,6 +469,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 	return teams, nil
 }
 
+// GetTeamsByUserId returns from the database all teams that userId belongs to.
 func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 	if _, err := s.GetReplica().Select(&teams, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId AND TeamMembers.DeleteAt = 0 AND Teams.DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
@@ -543,6 +559,8 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
+// PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
+// To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
 		return model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
@@ -1063,10 +1081,12 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppE
 	return nil
 }
 
+// RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	return s.RemoveMembers(teamId, []string{userId})
 }
 
+// RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
@@ -1075,6 +1095,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	return nil
 }
 
+// RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {
@@ -1090,6 +1111,8 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *mo
 	return nil
 }
 
+// GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
+// a total limit passed as paramater and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE SchemeId = :SchemeId ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"SchemeId": schemeId, "Offset": offset, "Limit": limit})
