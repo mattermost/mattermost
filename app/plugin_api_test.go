@@ -1593,13 +1593,6 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 		expectedPostsLen int
 	}{
 		{
-			"nil params",
-			th.BasicTeam.Id,
-			th.BasicUser.Id,
-			nil,
-			0,
-		},
-		{
 			"empty params",
 			th.BasicTeam.Id,
 			th.BasicUser.Id,
