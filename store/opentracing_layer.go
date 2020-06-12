@@ -702,7 +702,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -720,7 +720,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannels(page int, perPage int, opt
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllChannelsCount")
 	s.Root.Store.SetContext(newCtx)
@@ -900,7 +900,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelUnread(channelId string, userId
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -972,7 +972,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeId string, offs
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -1503,7 +1503,7 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -1521,7 +1521,7 @@ func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) *model.
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PermanentDeleteByTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -4932,7 +4932,7 @@ func (s *OpenTracingLayerPostStore) Overwrite(post *model.Post) (*model.Post, *m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.OverwriteMultiple")
 	s.Root.Store.SetContext(newCtx)
@@ -4941,13 +4941,13 @@ func (s *OpenTracingLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.PostStore.OverwriteMultiple(posts)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	resultVar0, resultVar1, resultVar2 := s.PostStore.OverwriteMultiple(posts)
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
@@ -5022,7 +5022,7 @@ func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SaveMultiple")
 	s.Root.Store.SetContext(newCtx)
@@ -5031,13 +5031,13 @@ func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.PostStore.SaveMultiple(posts)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	resultVar0, resultVar1, resultVar2 := s.PostStore.SaveMultiple(posts)
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (s *OpenTracingLayerPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
