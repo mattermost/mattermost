@@ -6051,6 +6051,10 @@
     "translation": "Unable to get public link for file. File must be attached to a post that can be read."
   },
   {
+    "id": "plugin.api.search_posts_in_team_for_user.missing_params",
+    "translation": "Missing search parameters."
+  },
+  {
     "id": "plugin_api.send_mail.missing_htmlbody",
     "translation": "Missing HTML Body."
   },
