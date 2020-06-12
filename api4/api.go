@@ -316,6 +316,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitLicenseLocal()
 	api.InitBotLocal()
 	api.InitGroupLocal()
+	api.InitSystemLocal()
 	api.InitPostLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
