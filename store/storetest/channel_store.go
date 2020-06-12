@@ -6960,6 +6960,61 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Type)
 		assert.Equal(t, []string{gmChannel.Id}, res.Channels)
 	})
+
+	t.Run("should return orphaned DM channels in the DMs categorywhich are in a custom category on another team", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		// Create the initial categories and find the DMs category
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+
+		dmsCategory := categories.Categories[2]
+
+		// Create a DM
+		otherUserId := model.NewId()
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+			&model.Channel{
+				Name: model.GetDMNameFromIds(user.Id, otherUserId),
+				Type: model.CHANNEL_DIRECT,
+			},
+			&model.ChannelMember{
+				UserId:      user.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+			&model.ChannelMember{
+				UserId:      otherUserId,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+		)
+		require.Nil(t, nErr)
+
+		// Create another team and assign the DM to a custom category on that team
+		otherTeamId := model.NewId()
+
+		err = ss.Channel().CreateInitialSidebarCategories(user, otherTeamId)
+		require.Nil(t, err)
+
+		_, err = ss.Channel().CreateSidebarCategory(user.Id, otherTeamId, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId: user.Id,
+				TeamId: teamId,
+			},
+			Channels: []string{dmChannel.Id},
+		})
+		require.Nil(t, err)
+
+		// Ensure that the DM is returned with the DMs category on the original team
+		res, err := ss.Channel().GetSidebarCategory(dmsCategory.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, dmsCategory.Id, res.Id)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Type)
+		assert.Equal(t, []string{dmChannel.Id}, res.Channels)
+	})
 }
 
 func testGetSidebarCategories(t *testing.T, ss store.Store) {
