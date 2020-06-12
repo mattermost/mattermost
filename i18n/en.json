@@ -1115,6 +1115,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL cannot be cleared."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },

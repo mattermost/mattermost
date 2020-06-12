@@ -153,6 +153,29 @@ func TestUpdateConfig(t *testing.T) {
 			assert.Equal(t, oldPublicKeys, th.App.Config().PluginSettings.SignaturePublicKeyFiles)
 		})
 	})
+
+	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
+		siteURL := cfg.ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
+
+		nonEmptyURL := "http://localhost"
+		cfg.ServiceSettings.SiteURL = &nonEmptyURL
+
+		// Set the SiteURL
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+
+		// Check that the Site URL can't be cleared
+		cfg.ServiceSettings.SiteURL = sToP("")
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.config.update_config.clear_siteurl.app_error")
+		// Check that the Site URL wasn't cleared
+		cfg, resp = th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
+		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+	})
 }
 
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
@@ -493,5 +516,38 @@ func TestPatchConfig(t *testing.T) {
 
 			assert.Equal(t, false, *updatedConfig.PluginSettings.EnableUploads)
 		})
+	})
+
+	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
+		cfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
+		siteURL := cfg.ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
+
+		// Set the SiteURL
+		nonEmptyURL := "http://localhost"
+		config := model.Config{
+			ServiceSettings: model.ServiceSettings{
+				SiteURL: model.NewString(nonEmptyURL),
+			},
+		}
+		updatedConfig, resp := th.SystemAdminClient.PatchConfig(&config)
+		CheckNoError(t, resp)
+		require.Equal(t, nonEmptyURL, *updatedConfig.ServiceSettings.SiteURL)
+
+		// Check that the Site URL can't be cleared
+		config = model.Config{
+			ServiceSettings: model.ServiceSettings{
+				SiteURL: model.NewString(""),
+			},
+		}
+		updatedConfig, resp = th.SystemAdminClient.PatchConfig(&config)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.config.update_config.clear_siteurl.app_error")
+
+		// Check that the Site URL wasn't cleared
+		cfg, resp = th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
+		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 	})
 }
