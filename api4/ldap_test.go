@@ -95,9 +95,11 @@ func TestMigrateIdLdap(t *testing.T) {
 	_, resp := th.Client.MigrateIdLdap("objectGUID")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.MigrateIdLdap("")
-	CheckBadRequestStatus(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.MigrateIdLdap("")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.MigrateIdLdap("objectGUID")
-	CheckNotImplementedStatus(t, resp)
+		_, resp = client.MigrateIdLdap("objectGUID")
+		CheckNotImplementedStatus(t, resp)
+	})
 }

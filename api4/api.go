@@ -304,6 +304,8 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
+	api.BaseRoutes.LDAP = api.BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -313,6 +315,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 	api.InitLicenseLocal()
 	api.InitBotLocal()
 	api.InitGroupLocal()
+	api.InitLdapLocal()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
