@@ -5,8 +5,10 @@ package api4
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -66,13 +68,15 @@ func TestCreateUser(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
 
-	user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
-	_, resp = th.SystemAdminClient.CreateUser(user2)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user2 := &model.User{Email: th.GenerateTestEmail(), Password: "Password1", Username: GenerateTestUsername()}
+		_, resp = client.CreateUser(user2)
+		CheckNoError(t, resp)
 
-	r, err := th.Client.DoApiPost("/users", "garbage")
-	require.NotNil(t, err, "should have errored")
-	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
+		r, err := client.DoApiPost("/users", "garbage")
+		require.NotNil(t, err, "should have errored")
+		assert.Equal(t, http.StatusBadRequest, r.StatusCode)
+	})
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
@@ -91,28 +95,47 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
 		})
 
-		t.Run("ValidUser", func(t *testing.T) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
-			_, resp := th.SystemAdminClient.CreateUser(user)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testdomainrestriction@mattermost.com"
+			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername()}
+			_, resp := client.CreateUser(user)
 			CheckNoError(t, resp)
-		})
+		}, "ValidUser")
 
-		t.Run("InvalidEmail", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername()}
-			_, resp := th.SystemAdminClient.CreateUser(user)
+			_, resp := client.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
-		})
+		}, "InvalidEmail")
+
 		t.Run("ValidAuthServiceFilter", func(t *testing.T) {
-			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Username: GenerateTestUsername(), AuthService: "ldap", AuthData: model.NewString("999099")}
-			_, resp := th.SystemAdminClient.CreateUser(user)
-			CheckNoError(t, resp)
+			t.Run("SystemAdminClient", func(t *testing.T) {
+				user := &model.User{
+					Email:       "foobar+testdomainrestriction@mattermost.org",
+					Username:    GenerateTestUsername(),
+					AuthService: "ldap",
+					AuthData:    model.NewString("999099"),
+				}
+				_, resp := th.SystemAdminClient.CreateUser(user)
+				CheckNoError(t, resp)
+			})
+			t.Run("LocalClient", func(t *testing.T) {
+				user := &model.User{
+					Email:       "foobar+testdomainrestrictionlocalclient@mattermost.org",
+					Username:    GenerateTestUsername(),
+					AuthService: "ldap",
+					AuthData:    model.NewString("999100"),
+				}
+				_, resp := th.LocalClient.CreateUser(user)
+				CheckNoError(t, resp)
+			})
 		})
 
-		t.Run("InvalidAuthServiceFilter", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.org", Password: "Password1", Username: GenerateTestUsername(), AuthService: "ldap"}
 			_, resp := th.Client.CreateUser(user)
 			CheckBadRequestStatus(t, resp)
-		})
+		}, "InvalidAuthServiceFilter")
 	})
 
 	t.Run("Roles", func(t *testing.T) {
@@ -122,26 +145,26 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
 		})
 
-		t.Run("InvalidRole", func(t *testing.T) {
-			user := &model.User{Email: "foobar+testinvalidrole@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
-			_, resp := th.SystemAdminClient.CreateUser(user)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testinvalidrole@mattermost.com"
+			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
+			_, resp := client.CreateUser(user)
 			CheckNoError(t, resp)
-			ruser, err := th.App.GetUserByEmail("foobar+testinvalidrole@mattermost.com")
-			assert.Nil(t, err)
+			ruser, err := th.App.GetUserByEmail(emailAddr)
+			require.Nil(t, err)
 			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
-		})
+		}, "InvalidRole")
 	})
 
-	t.Run("InvalidId", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.EnableOpenServer = true
 			*cfg.TeamSettings.EnableUserCreation = true
 		})
-
 		user := &model.User{Id: "AAAAAAAAAAAAAAAAAAAAAAAAAA", Email: "foobar+testinvalidid@mattermost.com", Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
-		_, resp := th.SystemAdminClient.CreateUser(user)
+		_, resp := client.CreateUser(user)
 		CheckBadRequestStatus(t, resp)
-	})
+	}, "InvalidId")
 }
 
 func TestCreateUserWithToken(t *testing.T) {
@@ -172,6 +195,31 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.NotEmpty(t, teams, "The user must have teams")
 		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
 	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+
+		ruser, resp := client.CreateUserWithToken(&user, token.Token)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+		_, err := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after being used")
+
+		teams, err := th.App.GetTeamsForUser(ruser.Id)
+		require.Nil(t, err)
+		require.NotEmpty(t, teams, "The user must have teams")
+		require.Equal(t, th.BasicTeam.Id, teams[0].Id, "The user joined team must be the team provided.")
+	}, "CreateWithTokenHappyPath")
 
 	t.Run("NoToken", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -235,6 +283,25 @@ func TestCreateUserWithToken(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 
 	})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
+
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		token := model.NewToken(
+			app.TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+		defer th.App.DeleteToken(token)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
+
+		_, resp := client.CreateUserWithToken(&user, token.Token)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
+	}, "EnableUserCreationDisable")
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -359,6 +426,20 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
 		CheckUserSanitization(t, ruser)
 	})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		inviteId := th.BasicTeam.InviteId
+
+		ruser, resp := client.CreateUserWithInviteId(&user, inviteId)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		th.Client.Login(user.Email, user.Password)
+		require.Equal(t, user.Nickname, ruser.Nickname)
+		require.Equal(t, model.SYSTEM_USER_ROLE_ID, ruser.Roles, "should clear roles")
+		CheckUserSanitization(t, ruser)
+	}, "CreateWithInviteIdHappyPath")
 
 	t.Run("GroupConstrainedTeam", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -378,6 +459,25 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		_, resp := th.Client.CreateUserWithInviteId(&user, inviteID)
 		require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
 	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		team, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, err)
+
+		defer func() {
+			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			_, err = th.App.UpdateTeam(th.BasicTeam)
+			require.Nil(t, err)
+		}()
+
+		inviteID := team.InviteId
+
+		_, resp := client.CreateUserWithInviteId(&user, inviteID)
+		require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
+	}, "GroupConstrainedTeam")
 
 	t.Run("WrongInviteId", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -426,6 +526,19 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
 	})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
+
+		inviteId := th.BasicTeam.InviteId
+		_, resp := client.CreateUserWithInviteId(&user, inviteId)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
+	}, "EnableUserCreationDisable")
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -1435,6 +1548,12 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckBadRequestStatus(t, resp)
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ruser.Email = th.GenerateTestEmail()
+		_, resp = client.UpdateUser(user)
+		CheckNoError(t, resp)
+	})
+
 	ruser.Password = user.Password
 	ruser, resp = th.Client.UpdateUser(ruser)
 	CheckNoError(t, resp)
@@ -1469,8 +1588,10 @@ func TestUpdateUser(t *testing.T) {
 	_, resp = th.Client.UpdateUser(user)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUser(user)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.UpdateUser(user)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestPatchUser(t *testing.T) {
@@ -1736,20 +1857,22 @@ func TestUpdateUserRoles(t *testing.T) {
 	_, resp := th.Client.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
-	CheckNoError(t, resp)
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles(th.BasicUser.Id, "junk")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles("junk", model.SYSTEM_USER_ROLE_ID)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles("junk", model.SYSTEM_USER_ROLE_ID)
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.UpdateUserRoles(model.NewId(), model.SYSTEM_USER_ROLE_ID)
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.UpdateUserRoles(model.NewId(), model.SYSTEM_USER_ROLE_ID)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func assertExpectedWebsocketEvent(t *testing.T, client *model.WebSocketClient, event string, test func(*model.WebSocketEvent)) {
@@ -1816,18 +1939,20 @@ func TestUpdateUserActive(t *testing.T) {
 		_, resp = th.Client.UpdateUserActive(user.Id, true)
 		CheckUnauthorizedStatus(t, resp)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.UpdateUserActive(user.Id, true)
+			CheckNoError(t, resp)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, resp)
+			_, resp = client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, resp)
 
-		authData := model.NewId()
-		_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-		require.Nil(t, err)
+			authData := model.NewId()
+			_, err := th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+			require.Nil(t, err)
 
-		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, resp)
+			_, resp = client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, resp)
+		})
 	})
 
 	t.Run("websocket events", func(t *testing.T) {
@@ -1858,21 +1983,27 @@ func TestUpdateUserActive(t *testing.T) {
 		resp = <-adminWebSocketClient.ResponseChannel
 		require.Equal(t, model.STATUS_OK, resp.Status)
 
-		// Verify that both admins and regular users see the email when privacy settings allow same.
+		// Verify that both admins and regular users see the email when privacy settings allow same,
+		// and confirm event is fired for SystemAdmin and Local mode
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
-		_, respErr := th.SystemAdminClient.UpdateUserActive(user.Id, false)
-		CheckNoError(t, respErr)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, respErr := client.UpdateUserActive(user.Id, false)
+			CheckNoError(t, respErr)
 
-		assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, user.Email)
-		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+		})
 
-		// Verify that only admins see the email when privacy settings hide emails.
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
-		_, respErr = th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, respErr)
+		// Verify that only admins see the email when privacy settings hide emails,
+		// and confirm event is fired for SystemAdmin and Local mode
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+			_, respErr := client.UpdateUserActive(user.Id, true)
+			CheckNoError(t, respErr)
 
-		assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, "")
-		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+			assertWebsocketEventUserUpdatedWithEmail(t, webSocketClient, "")
+			assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
+		})
 	})
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
@@ -1893,8 +2024,11 @@ func TestUpdateUserActive(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckUnauthorizedStatus(t, resp)
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.UpdateUserActive(user.Id, true)
+			CheckUnauthorizedStatus(t, resp)
+		})
 	})
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
@@ -1914,8 +2048,10 @@ func TestUpdateUserActive(t *testing.T) {
 		th.App.UpdateActive(user, false)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, true)
-		CheckNoError(t, resp)
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.UpdateUserActive(user.Id, true)
+			CheckNoError(t, resp)
+		})
 	})
 }
 
@@ -2205,6 +2341,11 @@ func TestUpdateUserMfa(t *testing.T) {
 
 	_, resp := th.Client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
 	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
+		CheckNoError(t, resp)
+	})
 }
 
 // CheckUserMfa is deprecated and should not be used anymore, it will be disabled by default in version 6.0
@@ -2428,15 +2569,17 @@ func TestResetPassword(t *testing.T) {
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
 	mailservice.DeleteMailBox(user.Email)
-	success, resp := th.Client.SendPasswordResetEmail(user.Email)
-	CheckNoError(t, resp)
-	require.True(t, success, "should succeed")
-	_, resp = th.Client.SendPasswordResetEmail("")
-	CheckBadRequestStatus(t, resp)
-	// Should not leak whether the email is attached to an account or not
-	success, resp = th.Client.SendPasswordResetEmail("notreal@example.com")
-	CheckNoError(t, resp)
-	require.True(t, success, "should succeed")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		success, resp := client.SendPasswordResetEmail(user.Email)
+		CheckNoError(t, resp)
+		require.True(t, success, "should succeed")
+		_, resp = client.SendPasswordResetEmail("")
+		CheckBadRequestStatus(t, resp)
+		// Should not leak whether the email is attached to an account or not
+		success, resp = client.SendPasswordResetEmail("notreal@example.com")
+		CheckNoError(t, resp)
+		require.True(t, success, "should succeed")
+	})
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox mailservice.JSONMessageHeaderInbucket
 	err := mailservice.RetryInbucket(5, func() error {
@@ -2461,7 +2604,7 @@ func TestResetPassword(t *testing.T) {
 	recoveryToken, err := th.App.Srv().Store.Token().GetByToken(recoveryTokenString)
 	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
-	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
+	_, resp := th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newp")
 	CheckBadRequestStatus(t, resp)
@@ -2475,7 +2618,7 @@ func TestResetPassword(t *testing.T) {
 	}
 	_, resp = th.Client.ResetPassword(code, "newpwd")
 	CheckBadRequestStatus(t, resp)
-	success, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
+	success, resp := th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckNoError(t, resp)
 	require.True(t, success)
 	th.Client.Login(user.Email, "newpwd")
@@ -2485,8 +2628,10 @@ func TestResetPassword(t *testing.T) {
 	authData := model.NewId()
 	_, err = th.App.Srv().Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
 	require.Nil(t, err)
-	_, resp = th.Client.SendPasswordResetEmail(user.Email)
-	CheckBadRequestStatus(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.SendPasswordResetEmail(user.Email)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetSessions(t *testing.T) {

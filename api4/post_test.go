@@ -1862,48 +1862,61 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 func TestGetPost(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	// TODO: migrate this entirely to the subtest's client
+	// once the other methods are migrated too.
 	Client := th.Client
 
-	post, resp := Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	var privatePost *model.Post
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		t.Helper()
 
-	require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
+		post, resp := c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	post, resp = Client.GetPost(th.BasicPost.Id, resp.Etag)
-	CheckEtag(t, post, resp)
+		require.Equal(t, th.BasicPost.Id, post.Id, "post ids don't match")
 
-	_, resp = Client.GetPost("", "")
-	CheckNotFoundStatus(t, resp)
+		post, resp = c.GetPost(th.BasicPost.Id, resp.Etag)
+		CheckEtag(t, post, resp)
 
-	_, resp = Client.GetPost("junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPost("", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetPost(model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = c.GetPost("junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+		_, resp = c.GetPost(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
 
-	// Channel is public, should be able to read post
-	_, resp = Client.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+		Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 
-	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+		// Channel is public, should be able to read post
+		_, resp = c.GetPost(th.BasicPost.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = Client.GetPost(privatePost.Id, "")
-	CheckNoError(t, resp)
+		privatePost = th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+
+		_, resp = c.GetPost(privatePost.Id, "")
+		CheckNoError(t, resp)
+	})
 
 	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
 
 	// Channel is private, should not be able to read post
-	_, resp = Client.GetPost(privatePost.Id, "")
+	_, resp := Client.GetPost(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
+	// But local client should.
+	_, resp = th.LocalClient.GetPost(privatePost.Id, "")
+	CheckNoError(t, resp)
+
 	Client.Logout()
+
+	// Normal client should get unauthorized, but local client should get 404.
 	_, resp = Client.GetPost(model.NewId(), "")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetPost(th.BasicPost.Id, "")
-	CheckNoError(t, resp)
+	_, resp = th.LocalClient.GetPost(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestDeletePost(t *testing.T) {
