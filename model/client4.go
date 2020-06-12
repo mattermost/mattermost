@@ -5169,7 +5169,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(userID, teamID string
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response) {
-	route := c.GetUserCategoryRoute(userID, teamID) + categoryID
+	route := c.GetUserCategoryRoute(userID, teamID) + "/" + categoryID
 	r, appErr := c.DoApiGet(route, etag)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
@@ -5185,7 +5185,7 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 
 func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID string, category *SidebarCategoryWithChannels) (*SidebarCategoryWithChannels, *Response) {
 	payload, _ := json.Marshal(category)
-	route := c.GetUserCategoryRoute(userID, teamID) + categoryID
+	route := c.GetUserCategoryRoute(userID, teamID) + "/" + categoryID
 	r, appErr := c.doApiPutBytes(route, payload)
 	if appErr != nil {
 		return nil, BuildErrorResponse(r, appErr)
