@@ -14,6 +14,7 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("", api.ApiLocal(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiLocal(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiLocal(getUsersByIds)).Methods("POST")
+
 	api.BaseRoutes.User.Handle("", api.ApiLocal(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiLocal(updateUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/roles", api.ApiLocal(updateUserRoles)).Methods("PUT")
@@ -22,6 +23,10 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiLocal(localGetUserByUsername)).Methods("GET")
 	api.BaseRoutes.UserByEmail.Handle("", api.ApiLocal(localGetUserByEmail)).Methods("GET")
+
+	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiLocal(revokeUserAccessToken)).Methods("POST")
+	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(getUserAccessTokensForUser)).Methods("GET")
+	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(createUserAccessToken)).Methods("POST")
 }
 
 func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
