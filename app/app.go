@@ -136,9 +136,6 @@ func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
-	if jobsMigrationsInterface != nil {
-		a.srv.Jobs.Migrations = jobsMigrationsInterface(a)
-	}
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}

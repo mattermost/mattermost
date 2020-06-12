@@ -1166,4 +1166,7 @@ func (s *Server) initJobs() {
 	if jobsBleveIndexerInterface != nil {
 		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
 	}
+	if jobsMigrationsInterface != nil {
+		s.Jobs.Migrations = jobsMigrationsInterface(s)
+	}
 }
