@@ -20,7 +20,7 @@ func TestTestLdap(t *testing.T) {
 	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	_, resp = th.Client.TestLdap()
 	CheckForbiddenStatus(t, resp)
@@ -42,7 +42,7 @@ func TestSyncLdap(t *testing.T) {
 	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	_, resp = th.SystemAdminClient.SyncLdap()
 	CheckNoError(t, resp)

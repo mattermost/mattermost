@@ -54,7 +54,7 @@ func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	license, appErr := c.App.SaveLicense(buf.Bytes())
+	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
 		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
@@ -83,7 +83,7 @@ func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if err := c.App.RemoveLicense(); err != nil {
+	if err := c.App.Srv().RemoveLicense(); err != nil {
 		c.Err = err
 		return
 	}

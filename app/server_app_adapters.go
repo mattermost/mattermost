@@ -24,34 +24,34 @@ import (
 // Don't add anything new here, new initialization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitialization() error {
-	s.FakeApp().createPushNotificationsHub()
+	s.createPushNotificationsHub()
 
 	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
-		s.FakeApp().configOrLicenseListener()
+		s.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
-		message.Add("config", s.FakeApp().ClientConfigWithComputed())
+		message.Add("config", s.ClientConfigWithComputed())
 		s.Go(func() {
-			s.FakeApp().Publish(message)
+			s.Publish(message)
 		})
 	})
 	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		s.FakeApp().configOrLicenseListener()
+		s.configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", s.FakeApp().GetSanitizedClientLicense())
+		message.Add("license", s.GetSanitizedClientLicense())
 		s.Go(func() {
-			s.FakeApp().Publish(message)
+			s.Publish(message)
 		})
 
 	})
 
-	if err := s.FakeApp().SetupInviteEmailRateLimiting(); err != nil {
+	if err := s.setupInviteEmailRateLimiting(); err != nil {
 		return err
 	}
 
@@ -96,31 +96,40 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 
 	s.Store = s.newStore()
-	s.FakeApp().StartPushNotificationsHubWorkers()
 
-	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
+	if model.BuildEnterpriseReady == "true" {
+		s.LoadLicense()
+	}
+
+	s.initJobs()
+
+	if s.joinCluster && s.Cluster != nil {
+		s.Cluster.StartInterNodeCommunication()
+	}
+
+	if err := s.ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := s.FakeApp().ensurePostActionCookieSecret(); err != nil {
+	if err := s.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
-	if err := s.FakeApp().ensureInstallationDate(); err != nil {
+	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
 
-	if err := s.FakeApp().ensureFirstServerRunTimestamp(); err != nil {
+	if err := s.ensureFirstServerRunTimestamp(); err != nil {
 		return errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
 	s.ensureDiagnosticId()
-	s.FakeApp().regenerateClientConfig()
+	s.regenerateClientConfig()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
 		}
 	})
 
@@ -129,10 +138,6 @@ func (s *Server) RunOldAppInitialization() error {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
-	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	pluginsRoute.HandleFunc("", s.FakeApp().ServePluginRequest)
-	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.FakeApp().ServePluginPublicRequest)
-	pluginsRoute.HandleFunc("/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -141,10 +146,9 @@ func (s *Server) RunOldAppInitialization() error {
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-	s.Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
 
 	s.WebSocketRouter = &WebSocketRouter{
-		app:      s.FakeApp(),
+		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
 
@@ -164,39 +168,5 @@ func (s *Server) RunOldAppInitialization() error {
 		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		s.FakeApp().LoadLicense()
-	}
-
-	s.FakeApp().DoAppMigrations()
-
-	s.FakeApp().InitPostMetadata()
-
-	s.FakeApp().InitPlugins(*s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-	s.FakeApp().AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if *cfg.PluginSettings.Enable {
-			s.FakeApp().InitPlugins(*cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
-		} else {
-			s.FakeApp().ShutDownPlugins()
-		}
-	})
-
 	return nil
-}
-
-func (s *Server) RunOldAppShutdown() {
-	s.FakeApp().HubStop()
-	s.FakeApp().StopPushNotificationsHubWorkers()
-	s.FakeApp().ShutDownPlugins()
-	s.FakeApp().RemoveLicenseListener(s.licenseListenerId)
-	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
-}
-
-// A temporary bridge to deal with cases where the code is so tighly coupled that
-// this is easier as a temporary solution
-func (s *Server) FakeApp() *App {
-	a := New(
-		ServerConnector(s),
-	)
-	return a
 }

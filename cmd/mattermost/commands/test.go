@@ -59,7 +59,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
-	wsapi.Init(a, a.Srv().WebSocketRouter)
+	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
 
@@ -80,7 +80,7 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	}
 
 	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
-	wsapi.Init(a, a.Srv().WebSocketRouter)
+	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 
 	c := make(chan os.Signal, 1)

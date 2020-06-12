@@ -194,7 +194,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
@@ -406,7 +406,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	}
 
 	matched := model.AT_MENTION_PATTEN.MatchString(post.Message)
-	if a.License() != nil && *a.License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
 		post.AddProp(model.POST_PROPS_GROUP_HIGHLIGHT_DISABLED, true)
 	}
 
@@ -533,7 +533,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		return nil, err
 	}
 
-	if a.License() != nil {
+	if a.Srv().License() != nil {
 		if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
 			err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 			return nil, err
@@ -1120,13 +1120,17 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 	}
 }
 
-func (a *App) MaxPostSize() int {
-	maxPostSize := a.Srv().Store.Post().GetMaxPostSize()
+func (s *Server) MaxPostSize() int {
+	maxPostSize := s.Store.Post().GetMaxPostSize()
 	if maxPostSize == 0 {
 		return model.POST_MESSAGE_MAX_RUNES_V1
 	}
 
 	return maxPostSize
+}
+
+func (a *App) MaxPostSize() int {
+	return a.Srv().MaxPostSize()
 }
 
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the

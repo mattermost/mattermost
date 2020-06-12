@@ -80,7 +80,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
@@ -312,13 +312,13 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 	return postMessage
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
+	infos, err := s.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
@@ -342,4 +342,8 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
 	}
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
+}
+
+func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().GetMessageForNotification(post, translateFunc)
 }

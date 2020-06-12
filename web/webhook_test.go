@@ -130,7 +130,7 @@ func TestIncomingWebhook(t *testing.T) {
 	})
 
 	t.Run("WebhookExperimentalReadOnly", func(t *testing.T) {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
 		// Read only default channel should fail.

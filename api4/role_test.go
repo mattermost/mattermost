@@ -196,7 +196,7 @@ func TestPatchRole(t *testing.T) {
 	// Add a license.
 	license := model.NewTestLicense()
 	license.Features.GuestAccountsPermissions = model.NewBool(false)
-	th.App.SetLicense(license)
+	th.App.Srv().SetLicense(license)
 
 	// Try again, should succeed
 	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -212,7 +212,7 @@ func TestPatchRole(t *testing.T) {
 	t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(false)
-		th.App.SetLicense(license)
+		th.App.Srv().SetLicense(license)
 
 		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
 		require.Nil(t, err)
@@ -223,7 +223,7 @@ func TestPatchRole(t *testing.T) {
 	t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
 		license := model.NewTestLicense()
 		license.Features.GuestAccountsPermissions = model.NewBool(true)
-		th.App.SetLicense(license)
+		th.App.Srv().SetLicense(license)
 		guestRole, err := th.App.Srv().Store.Role().GetByName("system_guest")
 		require.Nil(t, err)
 		_, resp = th.SystemAdminClient.PatchRole(guestRole.Id, patch)

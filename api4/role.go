@@ -101,7 +101,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("role", oldRole)
 
-	if c.App.License() == nil && patch.Permissions != nil {
+	if c.App.Srv().License() == nil && patch.Permissions != nil {
 		if oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest" {
 			c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 			return
@@ -134,7 +134,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.App.License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.License().Features.GuestAccountsPermissions {
+	if c.App.Srv().License() != nil && (oldRole.Name == "system_guest" || oldRole.Name == "team_guest" || oldRole.Name == "channel_guest") && !*c.App.Srv().License().Features.GuestAccountsPermissions {
 		c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}

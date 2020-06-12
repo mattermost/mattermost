@@ -602,7 +602,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 		l := model.NewTestLicense()
 		// model.NewTestLicense generates a E20 license
 		*l.Features.EnterprisePlugins = false
-		th.App.SetLicense(l)
+		th.App.Srv().SetLicense(l)
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)
@@ -628,7 +628,7 @@ func TestGetMarketplacePlugins(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		th.App.SetLicense(model.NewTestLicense("enterprise_plugins"))
+		th.App.Srv().SetLicense(model.NewTestLicense("enterprise_plugins"))
 
 		plugins, resp := th.SystemAdminClient.GetMarketplacePlugins(&model.MarketplacePluginFilter{})
 		CheckNoError(t, resp)

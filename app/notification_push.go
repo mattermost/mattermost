@@ -252,14 +252,14 @@ func (a *App) UpdateMobileAppBadge(userId string) {
 	}
 }
 
-func (a *App) createPushNotificationsHub() {
+func (s *Server) createPushNotificationsHub() {
 	hub := PushNotificationsHub{
 		Channels: []chan PushNotification{},
 	}
 	for x := 0; x < PUSH_NOTIFICATION_HUB_WORKERS; x++ {
 		hub.Channels = append(hub.Channels, make(chan PushNotification, PUSH_NOTIFICATIONS_HUB_BUFFER_PER_WORKER))
 	}
-	a.Srv().PushNotificationsHub = hub
+	s.PushNotificationsHub = hub
 }
 
 func (a *App) pushNotificationWorker(notifications chan PushNotification) {
@@ -298,8 +298,8 @@ func (a *App) StartPushNotificationsHubWorkers() {
 	}
 }
 
-func (a *App) StopPushNotificationsHubWorkers() {
-	for _, channel := range a.Srv().PushNotificationsHub.Channels {
+func (s *Server) StopPushNotificationsHubWorkers() {
+	for _, channel := range s.PushNotificationsHub.Channels {
 		close(channel)
 	}
 }

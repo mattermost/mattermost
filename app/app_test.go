@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
@@ -31,6 +32,9 @@ func TestAppRace(t *testing.T) {
 func TestUnitUpdateConfig(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
+	bleveEngine := bleveengine.NewBleveEngine(th.App.Config(), th.App.Srv().Jobs)
+	_ = bleveEngine.Start()
+	th.App.Srv().SearchEngine.RegisterBleveEngine(bleveEngine)
 
 	mockStore := th.App.Srv().Store.(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -40,9 +44,13 @@ func TestUnitUpdateConfig(t *testing.T) {
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(make(model.StringMap), nil)
+	mockLicenseStore := mocks.LicenseStore{}
+	mockLicenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
+	mockStore.On("License").Return(&mockLicenseStore)
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
 
@@ -251,7 +259,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	// Check the migration doesn't change anything if run again.
 	th.App.DoAdvancedPermissionsMigration()
@@ -427,7 +435,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	}
 
 	// Remove the license.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 
 	// Do the migration again.
 	th.ResetRoleMigration()
