@@ -130,6 +130,131 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
 }
+
+func TestPluginAPIGetUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+
+	assert.Equal(t, user1.Id, preferences[0].UserId)
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+	assert.Equal(t, user1.Id, preferences[0].Name)
+	assert.Equal(t, "0", preferences[0].Value)
+}
+
+func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+
+	err = api.DeletePreferencesForUser(user1.Id, preferences)
+	require.Nil(t, err)
+	preferences, err = api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 0, len(preferences))
+
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user2)
+
+	preference := model.Preference{
+		Name:     user2.Id,
+		UserId:   user2.Id,
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
+	}
+	err = api.UpdatePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(preferences))
+
+	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+}
+
+func TestPluginAPIUpdateUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, user1.Id, preferences[0].UserId)
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+	assert.Equal(t, user1.Id, preferences[0].Name)
+	assert.Equal(t, "0", preferences[0].Value)
+
+	preference := model.Preference{
+		Name:     user1.Id,
+		UserId:   user1.Id,
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
+	}
+
+	err = api.UpdatePreferencesForUser(user1.Id, []model.Preference{preference})
+	require.Nil(t, err)
+
+	preferences, err = api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+
+	assert.Equal(t, 2, len(preferences))
+	expectedCategories := []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, model.PREFERENCE_CATEGORY_THEME}
+	for _, pref := range preferences {
+		assert.Contains(t, expectedCategories, pref.Category)
+		assert.Equal(t, user1.Id, pref.UserId)
+		assert.Equal(t, user1.Id, pref.Name)
+		if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
+			assert.Equal(t, "0", pref.Value)
+		} else {
+			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
+			assert.Equal(t, string(newTheme), preferences[0].Value)
+		}
+	}
+}
+
 func TestPluginAPIGetUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
