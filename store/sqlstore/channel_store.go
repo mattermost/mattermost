@@ -3605,7 +3605,6 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 }
 
 func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transaction, userId, teamId string, categoryOrder []string) *model.AppError {
-
 	existingOrder, err := s.GetSidebarCategoryOrder(userId, teamId)
 	if err != nil {
 		return err
@@ -3635,7 +3634,7 @@ func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transacti
 		runningOrder += model.MinimalSidebarSortDistance
 	}
 
-	if _, err := s.GetMaster().UpdateColumns(func(col *gorp.ColumnMap) bool {
+	if _, err := transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
 		return col.ColumnName == "SortOrder"
 	}, newOrder...); err != nil {
 		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
