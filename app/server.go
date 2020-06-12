@@ -53,9 +53,10 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
-	sqlStore        *sqlstore.SqlSupplier
-	Store           store.Store
-	WebSocketRouter *WebSocketRouter
+	sqlStore           *sqlstore.SqlSupplier
+	Store              store.Store
+	WebSocketRouter    *WebSocketRouter
+	AppInitializedOnce sync.Once
 
 	// RootRouter is the starting point for all HTTP requests to the server.
 	RootRouter *mux.Router
@@ -345,33 +346,19 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
-	// Scheduler must be started before cluster.
-	s.initJobs()
-
-	if s.joinCluster && s.Cluster != nil {
-		s.FakeApp().registerAllClusterMessageHandlers()
-		s.Cluster.StartInterNodeCommunication()
-	}
-
 	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()
 	}
 
-	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
-			if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
-				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-			}
-		}
-	})
+	s.SearchEngine.UpdateConfig(s.Config())
+	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
+	s.searchConfigListenerId = searchConfigListenerId
+	s.searchLicenseListenerId = searchLicenseListenerId
 
-	// Disable active guest accounts on first run if guest accounts are disabled
-	if !*s.Config().GuestAccountsSettings.Enable {
-		if appErr := s.FakeApp().DeactivateGuests(); appErr != nil {
-			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
-		}
-	}
+	return s, nil
+}
 
+func (s *Server) RunJobs() {
 	if s.runjobs {
 		s.Go(func() {
 			runSecurityJob(s)
@@ -388,9 +375,6 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
 		})
-		s.Go(func() {
-			runLicenseExpirationCheckJob(s)
-		})
 
 		if complianceI := s.Compliance; complianceI != nil {
 			complianceI.StartComplianceDailyJob()
@@ -403,13 +387,6 @@ func NewServer(options ...Option) (*Server, error) {
 			s.Jobs.StartSchedulers()
 		}
 	}
-
-	s.SearchEngine.UpdateConfig(s.Config())
-	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
-	s.searchConfigListenerId = searchConfigListenerId
-	s.searchLicenseListenerId = searchLicenseListenerId
-
-	return s, nil
 }
 
 // Global app options that should be applied to apps created by this server
@@ -448,7 +425,11 @@ func (s *Server) Shutdown() error {
 
 	defer sentry.Flush(2 * time.Second)
 
-	s.RunOldAppShutdown()
+	s.HubStop()
+	s.StopPushNotificationsHubWorkers()
+	s.ShutDownPlugins()
+	s.RemoveLicenseListener(s.licenseListenerId)
+	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
@@ -842,10 +823,10 @@ func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
 func runDiagnosticsJob(s *Server) {
 	// Send on boot
 	doDiagnostics(s)
-	firstRun, err := s.FakeApp().getFirstServerRunTimestamp()
+	firstRun, err := s.getFirstServerRunTimestamp()
 	if err != nil {
 		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-		s.FakeApp().ensureFirstServerRunTimestamp()
+		s.ensureFirstServerRunTimestamp()
 		firstRun = utils.MillisFromTime(time.Now())
 	}
 	model.CreateRecurringTask("Diagnostics", func() {
@@ -874,10 +855,10 @@ func runSessionCleanupJob(s *Server) {
 	}, time.Hour*24)
 }
 
-func runLicenseExpirationCheckJob(s *Server) {
-	doLicenseExpirationCheck(s)
+func runLicenseExpirationCheckJob(a *App) {
+	doLicenseExpirationCheck(a)
 	model.CreateRecurringTask("License Expiration Check", func() {
-		doLicenseExpirationCheck(s)
+		doLicenseExpirationCheck(a)
 	}, time.Hour*24)
 }
 
@@ -888,7 +869,7 @@ func doSecurity(s *Server) {
 func doDiagnostics(s *Server) {
 	if *s.Config().LogSettings.EnableDiagnostics {
 		s.timestampLastDiagnosticSent = time.Now()
-		s.FakeApp().SendDailyDiagnostics()
+		s.SendDailyDiagnostics()
 	}
 }
 
@@ -908,9 +889,9 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doLicenseExpirationCheck(s *Server) {
-	s.FakeApp().LoadLicense()
-	license := s.License()
+func doLicenseExpirationCheck(a *App) {
+	a.Srv().LoadLicense()
+	license := a.Srv().License()
 
 	if license == nil {
 		mlog.Debug("License cannot be found.")
@@ -922,7 +903,7 @@ func doLicenseExpirationCheck(s *Server) {
 		return
 	}
 
-	users, err := s.Store.User().GetSystemAdminProfiles()
+	users, err := a.Srv().Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
 		return
@@ -937,15 +918,15 @@ func doLicenseExpirationCheck(s *Server) {
 		}
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		s.Go(func() {
-			if err := s.FakeApp().SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *s.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+		a.Srv().Go(func() {
+			if err := a.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
 	}
 
 	//remove the license
-	s.FakeApp().RemoveLicense()
+	a.Srv().RemoveLicense()
 }
 
 func (s *Server) StartSearchEngine() (string, string) {
@@ -1158,4 +1139,31 @@ func (s *Server) ensureDiagnosticId() {
 	}
 
 	s.diagnosticId = id
+}
+
+func (s *Server) configOrLicenseListener() {
+	s.regenerateClientConfig()
+}
+
+func (s *Server) ClientConfigHash() string {
+	return s.clientConfigHash.Load().(string)
+}
+
+func (s *Server) initJobs() {
+	s.Jobs = jobs.NewJobServer(s, s.Store)
+	if jobsDataRetentionJobInterface != nil {
+		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
+	}
+	if jobsMessageExportJobInterface != nil {
+		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
+	}
+	if jobsElasticsearchAggregatorInterface != nil {
+		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
+	}
+	if jobsElasticsearchIndexerInterface != nil {
+		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
+	}
+	if jobsBleveIndexerInterface != nil {
+		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
+	}
 }
