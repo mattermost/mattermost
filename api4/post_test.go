@@ -444,7 +444,7 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_PUBLIC_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -458,7 +458,7 @@ func TestCreatePostPublic(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_PUBLIC_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -491,7 +491,7 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_POST_ALL_ROLE_ID, false)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -509,7 +509,7 @@ func TestCreatePostAll(t *testing.T) {
 	th.App.UpdateUserRoles(ruser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.TEAM_USER_ROLE_ID+" "+model.TEAM_POST_ALL_ROLE_ID)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -667,7 +667,7 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -850,7 +850,7 @@ func TestPatchPost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	fileIds := make([]string, 3)
 	data, err := testutils.ReadTestFile("test.png")
@@ -976,10 +976,10 @@ func TestPinPost(t *testing.T) {
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
 		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
-		defer th.App.RemoveLicense()
+		defer th.App.Srv().RemoveLicense()
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
