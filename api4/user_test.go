@@ -3392,14 +3392,35 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("system admin and local mode can create access token", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			rtoken, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckNoError(t, resp)
+
+			assert.Equal(t, th.BasicUser.Id, rtoken.UserId, "wrong user id")
+			assert.NotEmpty(t, rtoken.Token, "token should not be empty")
+			assert.NotEmpty(t, rtoken.Id, "id should not be empty")
+			assert.Equal(t, "test token", rtoken.Description, "description did not match")
+			assert.True(t, rtoken.IsActive, "token should be active")
+			assertToken(t, th, rtoken, th.BasicUser.Id)
+		})
+	})
+
 	t.Run("create token for invalid user id", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		_, resp := th.Client.CreateUserAccessToken("notarealuserid", "test token")
-		CheckBadRequestStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.CreateUserAccessToken("notarealuserid", "test token")
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 
 	t.Run("create token with invalid value", func(t *testing.T) {
@@ -3408,8 +3429,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "")
-		CheckBadRequestStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.CreateUserAccessToken(th.BasicUser.Id, "")
+			CheckBadRequestStatus(t, resp)
+		})
 	})
 
 	t.Run("create token with user access tokens disabled", func(t *testing.T) {
@@ -3419,8 +3442,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
-		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-		CheckNotImplementedStatus(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			_, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckNotImplementedStatus(t, resp)
+		})
 	})
 
 	t.Run("create user access token", func(t *testing.T) {
@@ -3727,36 +3752,15 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 		_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		CheckNoError(t, resp)
 
-		rtokens, resp := th.Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
-		CheckNoError(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			rtokens, resp := client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
+			CheckNoError(t, resp)
 
-		assert.Len(t, rtokens, 2, "should have 2 tokens")
-		for _, uat := range rtokens {
-			assert.Equal(t, th.BasicUser.Id, uat.UserId, "wrong user id")
-		}
-	})
-
-	t.Run("multiple tokens as system admin, offset 0, limit 100", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
-		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
-
-		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-		CheckNoError(t, resp)
-
-		_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
-		CheckNoError(t, resp)
-
-		rtokens, resp := th.Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
-		CheckNoError(t, resp)
-
-		assert.Len(t, rtokens, 2, "should have 2 tokens")
-		for _, uat := range rtokens {
-			assert.Equal(t, th.BasicUser.Id, uat.UserId, "wrong user id")
-		}
+			assert.Len(t, rtokens, 2, "should have 2 tokens")
+			for _, uat := range rtokens {
+				assert.Equal(t, th.BasicUser.Id, uat.UserId, "wrong user id")
+			}
+		})
 	})
 
 	t.Run("multiple tokens, offset 1, limit 1", func(t *testing.T) {
@@ -3773,13 +3777,15 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 		_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token 2")
 		CheckNoError(t, resp)
 
-		rtokens, resp := th.Client.GetUserAccessTokensForUser(th.BasicUser.Id, 1, 1)
-		CheckNoError(t, resp)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			rtokens, resp := client.GetUserAccessTokensForUser(th.BasicUser.Id, 1, 1)
+			CheckNoError(t, resp)
 
-		assert.Len(t, rtokens, 1, "should have 1 tokens")
-		for _, uat := range rtokens {
-			assert.Equal(t, th.BasicUser.Id, uat.UserId, "wrong user id")
-		}
+			assert.Len(t, rtokens, 1, "should have 1 tokens")
+			for _, uat := range rtokens {
+				assert.Equal(t, th.BasicUser.Id, uat.UserId, "wrong user id")
+			}
+		})
 	})
 }
 
@@ -3881,15 +3887,17 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
-		token, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
-		CheckNoError(t, resp)
-		assertToken(t, th, token, th.BasicUser.Id)
+		th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+			token, resp := client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+			CheckNoError(t, resp)
+			assertToken(t, th, token, th.BasicUser.Id)
 
-		ok, resp := th.Client.RevokeUserAccessToken(token.Id)
-		CheckNoError(t, resp)
-		assert.True(t, ok, "should have passed")
+			ok, resp := client.RevokeUserAccessToken(token.Id)
+			CheckNoError(t, resp)
+			assert.True(t, ok, "should have passed")
 
-		assertInvalidToken(t, th, token)
+			assertInvalidToken(t, th, token)
+		})
 	})
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {

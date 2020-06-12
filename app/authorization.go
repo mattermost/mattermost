@@ -108,6 +108,9 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+	if session.IsUnrestricted() {
+		return true
+	}
 	if a.SessionHasPermissionToUser(session, userId) {
 		return true
 	}
