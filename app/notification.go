@@ -250,7 +250,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			sendPushNotifications = false
 		} else {
@@ -737,7 +737,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	if license := a.License(); license == nil || !*license.Features.LDAPGroups {
+	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
 		return false
 	}
 
