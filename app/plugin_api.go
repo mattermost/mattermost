@@ -450,12 +450,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, sea
 		includeDeletedChannels = *searchParams.IncludeDeletedChannels
 	}
 
-	postSearchResult, err := api.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
-
-	if err != nil {
-		return nil, err
-	}
-	return postSearchResult, nil
+	return api.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
