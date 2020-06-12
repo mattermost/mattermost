@@ -93,11 +93,11 @@ func (s *Server) RunOldAppInitialization() error {
 
 	s.Store = s.newStore()
 
-	emailService, err := NewEmailService(s)
-	if err != nil {
-		return err
+	if emailService, err := NewEmailService(s); err == nil {
+		s.EmailService = emailService
+	} else {
+		return errors.Wrapf(err, "unable to initialize email service")
 	}
-	s.EmailService = emailService
 
 	if model.BuildEnterpriseReady == "true" {
 		s.LoadLicense()
