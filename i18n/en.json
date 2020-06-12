@@ -1361,6 +1361,10 @@
     "translation": "Bad connection to S3 or minio."
   },
   {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
+  },
+  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
