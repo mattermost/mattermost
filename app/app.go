@@ -86,12 +86,6 @@ func (a *App) InitServer() {
 			}
 		}
 
-		pluginsRoute := a.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-		pluginsRoute.HandleFunc("", a.ServePluginRequest)
-		pluginsRoute.HandleFunc("/public/{public_file:.*}", a.ServePluginPublicRequest)
-		pluginsRoute.HandleFunc("/{anything:.*}", a.ServePluginRequest)
-		a.srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
-
 		// Scheduler must be started before cluster.
 		a.initJobs()
 

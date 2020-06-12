@@ -139,6 +139,13 @@ func (s *Server) RunOldAppInitialization() error {
 	}
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
+	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
+	fakeApp := New(ServerConnector(s))
+	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
 		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
