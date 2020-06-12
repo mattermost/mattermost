@@ -92,6 +92,9 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	if userId == "" {
 		return false
 	}
+	if session.IsUnrestricted() {
+		return true
+	}
 
 	if session.UserId == userId {
 		return true
