@@ -1703,8 +1703,8 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -1787,7 +1787,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -1801,7 +1801,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -1856,8 +1856,8 @@ func TestAddTeamMember(t *testing.T) {
 	th.App.DeleteToken(token)
 
 	// by invite_id
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 	_, resp = Client.Login(guest.Email, guest.Password)
 	CheckNoError(t, resp)
 
@@ -2150,7 +2150,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2164,7 +2164,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2811,7 +2811,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
 	}()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 	_, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
@@ -2824,13 +2824,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 
 	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
 	require.NotNil(t, resp.Error, "Should be disabled")
 
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 
 	okMsg, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
 	CheckNoError(t, resp)
@@ -3029,7 +3029,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -3081,10 +3081,10 @@ func TestUpdateTeamScheme(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Test that a license is required.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckNotImplementedStatus(t, resp)
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
