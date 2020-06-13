@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"path"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -260,7 +261,7 @@ func (ad *AutocompleteData) IsValid() error {
 				}
 				_, err := url.Parse(dynamicList.FetchURL)
 				if err != nil {
-					return errors.Wrapf(err, "FetchURL is not a proper url")
+					return errors.Wrap(err, "FetchURL is not a proper url")
 				}
 			} else if arg.Type == AutocompleteArgTypeStaticList {
 				staticList, ok := arg.Data.(*AutocompleteStaticListArg)
@@ -278,6 +279,12 @@ func (ad *AutocompleteData) IsValid() error {
 				}
 				if arg.Name == "" && !arg.Required {
 					return errors.New("Positional argument can not be optional")
+				}
+				if pat := arg.Data.(*AutocompleteTextArg).Pattern; pat != "" {
+					_, err := regexp.Compile(pat)
+					if err != nil {
+						return errors.Wrap(err, "Pattern is not a valid regex")
+					}
 				}
 			}
 		}
