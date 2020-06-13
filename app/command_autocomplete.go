@@ -192,9 +192,20 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	if in == "" { //The user has not started typing the argument.
 		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
+	var re *regexp.Regexp
+	if a.Pattern != "" {
+		re = regexp.MustCompile(a.Pattern)
+	}
+
 	if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
+			if a.Pattern != "" {
+				if re.MatchString(in[1:]) {
+					return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+				}
+				return false, parsed + toBeParsed, "", model.AutocompleteSuggestion{}
+			}
 			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 		}
 		// this argument is typed already
@@ -208,7 +219,6 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	index := strings.Index(in, " ")
 	if index == -1 { // typing of the single word argument is not finished
 		if a.Pattern != "" {
-			re := regexp.MustCompile(a.Pattern)
 			if re.MatchString(toBeParsed) {
 				return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 			}
