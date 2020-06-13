@@ -100,7 +100,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 			maxQSize = audit.DefMaxQueueSize
 		}
 
-		params := &audit.SyslogParams{
+		params := &mlog.SyslogParams{
 			Raddr:    raddr,
 			Cert:     *s.Config().ExperimentalAuditSettings.SysLogCert,
 			Tag:      *s.Config().ExperimentalAuditSettings.SysLogTag,
@@ -109,7 +109,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
 		formatter := adt.MakeJSONFormatter()
-		target, err := audit.NewSyslogTLSTarget(filter, formatter, params, maxQSize)
+		target, err := mlog.NewSyslogTarget(filter, formatter, params, maxQSize)
 		if err != nil {
 			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
 		} else {

@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/wiggin77/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -46,12 +47,14 @@ type LoggerConfiguration struct {
 	FileJson      bool
 	FileLevel     string
 	FileLocation  string
+	Targets       map[string]*LogTarget
 }
 
 type Logger struct {
 	zap          *zap.Logger
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
+	logrLogger   *logr.Logger
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -108,6 +111,13 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		zap.AddCaller(),
 	)
 
+	if config.Targets != nil && len(config.Targets) > 0 {
+		var err error
+		logger.logrLogger, err = newLogr(config.Targets)
+		if err != nil {
+			logger.Error("cannot create target(s). ", Err(err))
+		}
+	}
 	return logger
 }
 
@@ -161,20 +171,35 @@ func (l *Logger) Sugar() *SugarLogger {
 
 func (l *Logger) Debug(message string, fields ...Field) {
 	l.zap.Debug(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Debug) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Debug(message)
+	}
 }
 
 func (l *Logger) Info(message string, fields ...Field) {
 	l.zap.Info(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Info) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Info(message)
+	}
 }
 
 func (l *Logger) Warn(message string, fields ...Field) {
 	l.zap.Warn(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Warn) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Warn(message)
+	}
 }
 
 func (l *Logger) Error(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Error) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	}
 }
 
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Error) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	}
 }

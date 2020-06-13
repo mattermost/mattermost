@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -1051,24 +1052,18 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	}
 }
 
-type LogTarget struct {
-	Type   string // one of "console", "file", "tcp", "syslog".
-	Levels []string
-	Props  map[string]interface{}
-}
-
 type LogSettings struct {
-	EnableConsole          *bool                 `restricted:"true"`
-	ConsoleLevel           *string               `restricted:"true"`
-	ConsoleJson            *bool                 `restricted:"true"`
-	EnableFile             *bool                 `restricted:"true"`
-	FileLevel              *string               `restricted:"true"`
-	FileJson               *bool                 `restricted:"true"`
-	FileLocation           *string               `restricted:"true"`
-	EnableWebhookDebugging *bool                 `restricted:"true"`
-	EnableDiagnostics      *bool                 `restricted:"true"`
-	EnableSentry           *bool                 `restricted:"true"`
-	Targets                map[string]*LogTarget `restricted:"true"`
+	EnableConsole          *bool                      `restricted:"true"`
+	ConsoleLevel           *string                    `restricted:"true"`
+	ConsoleJson            *bool                      `restricted:"true"`
+	EnableFile             *bool                      `restricted:"true"`
+	FileLevel              *string                    `restricted:"true"`
+	FileJson               *bool                      `restricted:"true"`
+	FileLocation           *string                    `restricted:"true"`
+	EnableWebhookDebugging *bool                      `restricted:"true"`
+	EnableDiagnostics      *bool                      `restricted:"true"`
+	EnableSentry           *bool                      `restricted:"true"`
+	Targets                map[string]*mlog.LogTarget `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1113,7 +1108,7 @@ func (s *LogSettings) SetDefaults() {
 	}
 
 	if s.Targets == nil {
-		s.Targets = make(map[string]*LogTarget)
+		s.Targets = make(map[string]*mlog.LogTarget)
 	}
 }
 
