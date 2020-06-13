@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/stretchr/testify/require"
 )
 
