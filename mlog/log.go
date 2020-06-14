@@ -203,3 +203,10 @@ func (l *Logger) Critical(message string, fields ...Field) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
 	}
 }
+
+func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
+	l.zap.Error(message, fields...)
+	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Level(level)) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
+	}
+}

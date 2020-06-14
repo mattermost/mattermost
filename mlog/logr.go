@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/wiggin77/logr"
@@ -65,6 +66,11 @@ func newLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 		t.MaxQueueSize = DefaultMaxTargetQueue
 	}
 
+	// Lowercase all the option keys so they can be compared case-insensitive later.
+	for k, v := range t.Options {
+		t.Options[strings.ToLower(k)] = v
+	}
+
 	switch t.Type {
 	case "console":
 		return newConsoleTarget(name, t, filter, formatter)
@@ -80,17 +86,8 @@ func newLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 
 func newFilter(name string, levels []LogLevel) (logr.Filter, error) {
 	filter := &logr.CustomFilter{}
-	stdlevels := []logr.Level{logr.Panic, logr.Fatal, logr.Error, logr.Warn, logr.Info, logr.Debug, logr.Trace}
-
 	for _, lvl := range levels {
-		if lvl.ID <= logr.Trace.ID {
-			// We're using discrete levels for all targets, however the expectaton is that
-			// for the standard levels all levels below the specified level are included.
-			// It's safe to add the same level multiple times.
-			filter.Add(stdlevels[0:lvl.ID]...)
-		} else {
-			filter.Add(logr.Level(lvl))
-		}
+		filter.Add(logr.Level(lvl))
 	}
 	return filter, nil
 }
@@ -108,7 +105,7 @@ func newFormatter(name string, format string) (logr.Formatter, error) {
 
 func newConsoleTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
 	var w io.Writer
-	out := t.Options["out"]
+	out, _ := optionString("Out", t.Options)
 	switch out {
 	case "stdout", "":
 		w = os.Stdout
@@ -183,7 +180,7 @@ func newTCPTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.
 }
 
 func optionString(key string, m map[string]interface{}) (string, bool) {
-	v, ok := m[key]
+	v, ok := m[strings.ToLower(key)]
 	if !ok {
 		return "", false
 	}
@@ -195,7 +192,7 @@ func optionString(key string, m map[string]interface{}) (string, bool) {
 }
 
 func optionInt(key string, m map[string]interface{}) (int, bool) {
-	v, ok := m[key]
+	v, ok := m[strings.ToLower(key)]
 	if !ok {
 		return 0, false
 	}
@@ -207,7 +204,7 @@ func optionInt(key string, m map[string]interface{}) (int, bool) {
 }
 
 func optionBool(key string, m map[string]interface{}) (bool, bool) {
-	v, ok := m[key]
+	v, ok := m[strings.ToLower(key)]
 	if !ok {
 		return false, false
 	}
