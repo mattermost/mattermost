@@ -13,6 +13,8 @@ import (
 func (api *API) InitChannelLocal() {
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
+	api.BaseRoutes.Channel.Handle("", api.ApiLocal(getChannel)).Methods("GET")
+	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiLocal(deleteChannel)).Methods("DELETE")
 
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(localRemoveChannelMember)).Methods("DELETE")

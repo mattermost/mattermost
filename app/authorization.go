@@ -47,6 +47,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if session.IsUnrestricted() {
 		return true
 	}
+
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
 	var channelRoles []string
