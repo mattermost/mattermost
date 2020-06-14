@@ -889,8 +889,10 @@ func getIcon(iconPath string) (string, error) {
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}
+
 	if !svg.Is(icon) {
-		return "", errors.Wrapf(err, "icon is not svg %s", iconPath)
+		return "", errors.Errorf("icon is not svg %s", iconPath)
 	}
+
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }
