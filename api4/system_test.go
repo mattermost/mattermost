@@ -240,33 +240,34 @@ func TestInvalidateCaches(t *testing.T) {
 func TestGetLogs(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
 	for i := 0; i < 20; i++ {
 		mlog.Info(strconv.Itoa(i))
 	}
 
-	logs, resp := th.SystemAdminClient.GetLogs(0, 10)
-	CheckNoError(t, resp)
-	require.Len(t, logs, 10)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		logs, resp := c.GetLogs(0, 10)
+		CheckNoError(t, resp)
+		require.Len(t, logs, 10)
 
-	for i := 10; i < 20; i++ {
-		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
-	}
+		for i := 10; i < 20; i++ {
+			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		}
 
-	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
-	CheckNoError(t, resp)
-	require.Len(t, logs, 10)
+		logs, resp = c.GetLogs(1, 10)
+		CheckNoError(t, resp)
+		require.Len(t, logs, 10)
 
-	logs, resp = th.SystemAdminClient.GetLogs(-1, -1)
-	CheckNoError(t, resp)
-	require.NotEmpty(t, logs, "should not be empty")
+		logs, resp = c.GetLogs(-1, -1)
+		CheckNoError(t, resp)
+		require.NotEmpty(t, logs, "should not be empty")
+	})
 
-	_, resp = Client.GetLogs(0, 10)
+	_, resp := th.Client.GetLogs(0, 10)
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetLogs(0, 10)
+	th.Client.Logout()
+	_, resp = th.Client.GetLogs(0, 10)
 	CheckUnauthorizedStatus(t, resp)
 }
 
