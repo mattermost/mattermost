@@ -117,7 +117,7 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
-	return api.app.License()
+	return api.app.Srv().License()
 }
 
 func (api *PluginAPI) GetServerVersion() string {
@@ -125,7 +125,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.getSystemInstallDate()
+	return api.app.Srv().getSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
