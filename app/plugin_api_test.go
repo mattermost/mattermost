@@ -1584,6 +1584,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	api := th.SetupPluginAPI()
 
 	basicPostText := &th.BasicPost.Message
+	unknwonTerm := "Unknown Message"
 
 	testCases := []struct {
 		description      string
@@ -1603,7 +1604,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 			"doesn't match any posts",
 			th.BasicTeam.Id,
 			th.BasicUser.Id,
-			&model.SearchParameter{Terms: basicPostText},
+			&model.SearchParameter{Terms: &unknwonTerm},
 			0,
 		},
 		{
