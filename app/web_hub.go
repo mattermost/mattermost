@@ -355,12 +355,13 @@ func (h *Hub) IsRegistered(userId, sessionToken string) bool {
 
 // Broadcast broadcasts the message to all connections in the hub.
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	// XXX: The hub nil check is because of the way we setup our tests. We call `app.NewServer()`
-	// which returns a server, but only after that, we call `wsapi.Init()` through our FakeApp adapter
-	// to initialize the hub. But in the `NewServer` call itself, we call `RunOldAppInitialization`
-	// which directly proceeds to broadcast some messages happily.
-	// This needs to be fixed once the FakeApp adapter goes away. And possibly, we can look into
-	// doing hub initialization inside NewServer itself.
+	// XXX: The hub nil check is because of the way we setup our tests. We call
+	// `app.NewServer()` which returns a server, but only after that, we call
+	// `wsapi.Init()` to initialize the hub.  But in the `NewServer` call
+	// itself proceeds to broadcast some messages happily.  This needs to be
+	// fixed once the the wsapi cyclic dependency with server/app goes away.
+	// And possibly, we can look into doing the hub initialization inside
+	// NewServer itself.
 	if h != nil && message != nil {
 		if metrics := h.app.Metrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
