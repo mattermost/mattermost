@@ -6231,7 +6231,7 @@
     "translation": "Unable to get the channel members."
   },
   {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
+    "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
   {

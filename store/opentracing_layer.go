@@ -1219,7 +1219,7 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(teamId st
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMoreChannels")
 	s.Root.Store.SetContext(newCtx)
