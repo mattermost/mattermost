@@ -1115,6 +1115,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL cannot be cleared."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1355,6 +1359,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
