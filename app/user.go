@@ -191,9 +191,13 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (a *App) IsFirstUserAccount() bool {
-	if a.SessionCacheLength() == 0 {
-		count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+func (s *Server) IsFirstUserAccount() bool {
+	cachedSessions, err := s.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
 			return false
@@ -204,6 +208,10 @@ func (a *App) IsFirstUserAccount() bool {
 	}
 
 	return false
+}
+
+func (a *App) IsFirstUserAccount() bool {
+	return a.Srv().IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -1395,8 +1403,8 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 	schan := make(chan store.StoreResult, 1)
 	go func() {
-		userId, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: userId, Err: err}
+		id, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
+		schan <- store.StoreResult{Data: id, Err: err}
 		close(schan)
 	}()
 
@@ -1411,7 +1419,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(userId)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {

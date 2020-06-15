@@ -145,7 +145,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
-		license := a.License()
+		license := a.Srv().License()
 		if err != nil {
 			return err
 		}
