@@ -638,7 +638,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else if len(inGroupId) > 0 {
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 			return
 		}
@@ -766,7 +766,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if props.InGroupId != "" {
-		if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 			return
 		}

@@ -540,7 +540,7 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupStats", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
