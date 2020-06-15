@@ -864,7 +864,6 @@ type AppIface interface {
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
-	SetDiagnosticId(id string)
 	SetIpAddress(s string)
 	SetLog(l *mlog.Logger)
 	SetPath(s string)

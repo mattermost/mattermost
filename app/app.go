@@ -141,11 +141,7 @@ func (a *App) initJobs() {
 }
 
 func (a *App) DiagnosticId() string {
-	return a.Srv().diagnosticId
-}
-
-func (a *App) SetDiagnosticId(id string) {
-	a.Srv().diagnosticId = id
+	return a.Srv().DiagnosticId()
 }
 
 func (s *Server) HTMLTemplates() *template.Template {

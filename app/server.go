@@ -23,8 +23,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-	rudder "github.com/rudderlabs/analytics-go"
-	analytics "github.com/segmentio/analytics-go"
 
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
@@ -39,6 +37,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/diagnostics"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
@@ -55,6 +54,9 @@ import (
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
+
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlSupplier
@@ -131,9 +133,7 @@ type Server struct {
 	clientConfigHash    atomic.Value
 	limitedClientConfig atomic.Value
 
-	diagnosticId     string
-	diagnosticClient analytics.Client
-	rudderClient     rudder.Client
+	diagnosticsService *diagnostics.DiagnosticsService
 
 	phase2PermissionsMigrationComplete bool
 
@@ -378,7 +378,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	s.ensureDiagnosticId()
 	s.regenerateClientConfig()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -506,6 +505,8 @@ func NewServer(options ...Option) (*Server, error) {
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
+	s.diagnosticsService = diagnostics.New(s, s.Store, s.SearchEngine, s.Log)
+
 	return s, nil
 }
 
@@ -515,7 +516,13 @@ func (s *Server) RunJobs() {
 			runSecurityJob(s)
 		})
 		s.Go(func() {
-			runDiagnosticsJob(s)
+			firstRun, err := s.getFirstServerRunTimestamp()
+			if err != nil {
+				mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+				s.ensureFirstServerRunTimestamp()
+				firstRun = utils.MillisFromTime(time.Now())
+			}
+			s.diagnosticsService.RunDiagnosticsJob(firstRun)
 		})
 		s.Go(func() {
 			runSessionCleanupJob(s)
@@ -588,7 +595,7 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	err := s.shutdownDiagnostics()
+	err := s.diagnosticsService.Shutdown()
 	if err != nil {
 		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
 	}
@@ -957,34 +964,6 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
-func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
-	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
-	// Send once every 10 minutes for the first hour
-	// Send once every hour thereafter for the first 12 hours
-	// Send at the 24 hour mark and every 24 hours after
-	if hoursSinceFirstServerRun < 1 {
-		doDiagnostics(s)
-	} else if hoursSinceFirstServerRun <= 12 && time.Since(s.timestampLastDiagnosticSent) >= time.Hour {
-		doDiagnostics(s)
-	} else if hoursSinceFirstServerRun > 12 && time.Since(s.timestampLastDiagnosticSent) >= 24*time.Hour {
-		doDiagnostics(s)
-	}
-}
-
-func runDiagnosticsJob(s *Server) {
-	// Send on boot
-	doDiagnostics(s)
-	firstRun, err := s.getFirstServerRunTimestamp()
-	if err != nil {
-		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-		s.ensureFirstServerRunTimestamp()
-		firstRun = utils.MillisFromTime(time.Now())
-	}
-	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
-	}, time.Minute*10)
-}
-
 func runTokenCleanupJob(s *Server) {
 	doTokenCleanup(s)
 	model.CreateRecurringTask("Token Cleanup", func() {
@@ -1015,13 +994,6 @@ func runLicenseExpirationCheckJob(a *App) {
 
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
-}
-
-func doDiagnostics(s *Server) {
-	if *s.Config().LogSettings.EnableDiagnostics {
-		s.timestampLastDiagnosticSent = time.Now()
-		s.SendDailyDiagnostics()
-	}
 }
 
 func doTokenCleanup(s *Server) {
@@ -1158,68 +1130,6 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-func (s *Server) initDiagnostics(endpoint string) {
-	if s.diagnosticClient == nil {
-		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
-		// For testing
-		if endpoint != "" {
-			config.Endpoint = endpoint
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
-		client.Enqueue(analytics.Identify{
-			UserId: s.diagnosticId,
-		})
-
-		s.diagnosticClient = client
-	}
-}
-
-func (s *Server) initRudder(endpoint string) {
-	if s.rudderClient == nil {
-		config := rudder.Config{}
-		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
-		config.Endpoint = endpoint
-		// For testing
-		if endpoint != RUDDER_DATAPLANE_URL {
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
-		if err != nil {
-			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
-			return
-		}
-		client.Enqueue(rudder.Identify{
-			UserId: s.diagnosticId,
-		})
-
-		s.rudderClient = client
-	}
-}
-
-// shutdownDiagnostics closes the diagnostic client.
-func (s *Server) shutdownDiagnostics() error {
-	var segmentErr, rudderErr error
-	if s.diagnosticClient != nil {
-		segmentErr = s.diagnosticClient.Close()
-	}
-
-	if s.rudderClient != nil {
-		rudderErr = s.rudderClient.Close()
-	}
-
-	if segmentErr != nil && rudderErr != nil {
-		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
-	} else if segmentErr != nil {
-		return segmentErr
-	}
-
-	return rudderErr
-}
-
 // GetHubs returns the list of hubs. This method is safe
 // for concurrent use by multiple goroutines.
 func (s *Server) GetHubs() []*Hub {
@@ -1273,25 +1183,6 @@ func (s *Server) TotalWebsocketConnections() int {
 	return int(count)
 }
 
-func (s *Server) ensureDiagnosticId() {
-	if s.diagnosticId != "" {
-		return
-	}
-	props, err := s.Store.System().Get()
-	if err != nil {
-		return
-	}
-
-	id := props[model.SYSTEM_DIAGNOSTIC_ID]
-	if len(id) == 0 {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		s.Store.System().Save(systemID)
-	}
-
-	s.diagnosticId = id
-}
-
 func (s *Server) configOrLicenseListener() {
 	s.regenerateClientConfig()
 }
@@ -1317,4 +1208,8 @@ func (s *Server) initJobs() {
 	if jobsBleveIndexerInterface != nil {
 		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
 	}
+}
+
+func (s *Server) DiagnosticId() string {
+	return s.diagnosticsService.DiagnosticID
 }

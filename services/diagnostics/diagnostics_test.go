@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package diagnostics
 
 import (
 	"encoding/json"
@@ -12,10 +12,110 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/diagnostics/mocks"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
+
+func initializeMocks(config *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T)) {
+	serverIfaceMock := &mocks.ServerIface{}
+	serverIfaceMock.On("Config").Return(config)
+	serverIfaceMock.On("IsLeader").Return(true)
+	serverIfaceMock.On("GetPluginsEnvironment").Return(nil, nil)
+	serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
+	serverIfaceMock.On("GetRoleByName", "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)
+	// serverIfaceMock.On("GetRoleByName", "system_guest").Return(&model.Role{Permissions: []string{"sg-test1", "sg-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "team_admin").Return(&model.Role{Permissions: []string{"ta-test1", "ta-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "team_user").Return(&model.Role{Permissions: []string{"tu-test1", "tu-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "team_guest").Return(&model.Role{Permissions: []string{"tg-test1", "tg-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "channel_admin").Return(&model.Role{Permissions: []string{"ca-test1", "ca-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "channel_user").Return(&model.Role{Permissions: []string{"cu-test1", "cu-test2"}}, nil)
+	serverIfaceMock.On("GetRoleByName", "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
+	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
+
+	storeMock := &storeMocks.Store{}
+	storeMock.On("GetDbVersion").Return("5.24.0", nil)
+
+	systemStore := storeMocks.SystemStore{}
+	props := model.StringMap{}
+	props[model.SYSTEM_DIAGNOSTIC_ID] = "test"
+	systemStore.On("Get").Return(props, nil)
+	systemStore.On("GetByName", model.ADVANCED_PERMISSIONS_MIGRATION_KEY).Return(nil, nil)
+	systemStore.On("GetByName", model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2).Return(nil, nil)
+
+	userStore := storeMocks.UserStore{}
+	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(10), nil)
+	userStore.On("Count", model.UserCountOptions{IncludeBotAccounts: true, IncludeDeleted: false, ExcludeRegularUsers: true, TeamId: "", ViewRestrictions: nil}).Return(int64(100), nil)
+	userStore.On("AnalyticsGetGuestCount").Return(int64(11), nil)
+	userStore.On("AnalyticsActiveCount", mock.Anything, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false, ExcludeRegularUsers: false, TeamId: "", ViewRestrictions: nil}).Return(int64(5), nil)
+	userStore.On("AnalyticsGetInactiveUsersCount").Return(int64(8), nil)
+	userStore.On("AnalyticsGetSystemAdminCount").Return(int64(9), nil)
+
+	teamStore := storeMocks.TeamStore{}
+	teamStore.On("AnalyticsTeamCount", false).Return(int64(3), nil)
+	teamStore.On("GroupSyncedTeamCount").Return(int64(16), nil)
+
+	channelStore := storeMocks.ChannelStore{}
+	channelStore.On("AnalyticsTypeCount", "", "O").Return(int64(25), nil)
+	channelStore.On("AnalyticsTypeCount", "", "P").Return(int64(26), nil)
+	channelStore.On("AnalyticsTypeCount", "", "D").Return(int64(27), nil)
+	channelStore.On("AnalyticsDeletedTypeCount", "", "O").Return(int64(22), nil)
+	channelStore.On("AnalyticsDeletedTypeCount", "", "P").Return(int64(23), nil)
+	channelStore.On("GroupSyncedChannelCount").Return(int64(17), nil)
+
+	postStore := storeMocks.PostStore{}
+	postStore.On("AnalyticsPostCount", "", false, false).Return(int64(1000), nil)
+	postStore.On("AnalyticsPostCountsByDay", &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}).Return(model.AnalyticsRows{}, nil)
+	postStore.On("AnalyticsPostCountsByDay", &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}).Return(model.AnalyticsRows{}, nil)
+
+	commandStore := storeMocks.CommandStore{}
+	commandStore.On("AnalyticsCommandCount", "").Return(int64(15), nil)
+
+	webhookStore := storeMocks.WebhookStore{}
+	webhookStore.On("AnalyticsIncomingCount", "").Return(int64(16), nil)
+	webhookStore.On("AnalyticsOutgoingCount", "").Return(int64(17), nil)
+
+	groupStore := storeMocks.GroupStore{}
+	groupStore.On("GroupCount").Return(int64(25), nil)
+	groupStore.On("GroupTeamCount").Return(int64(26), nil)
+	groupStore.On("GroupChannelCount").Return(int64(27), nil)
+	groupStore.On("GroupMemberCount").Return(int64(32), nil)
+	groupStore.On("DistinctGroupMemberCount").Return(int64(22), nil)
+	groupStore.On("GroupCountWithAllowReference").Return(int64(13), nil)
+
+	schemeStore := storeMocks.SchemeStore{}
+	schemeStore.On("CountByScope", "channel").Return(int64(8), nil)
+	schemeStore.On("CountByScope", "team").Return(int64(7), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "create_post", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(6), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "create_post", model.RoleScopeChannel, model.RoleTypeGuest).Return(int64(7), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "add_reaction", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(8), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "add_reaction", model.RoleScopeChannel, model.RoleTypeGuest).Return(int64(9), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "manage_public_channel_members", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(10), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeUser).Return(int64(11), nil)
+	schemeStore.On("CountWithoutPermission", "channel", "use_channel_mentions", model.RoleScopeChannel, model.RoleTypeGuest).Return(int64(12), nil)
+
+	storeMock.On("System").Return(&systemStore)
+	storeMock.On("User").Return(&userStore)
+	storeMock.On("Team").Return(&teamStore)
+	storeMock.On("Channel").Return(&channelStore)
+	storeMock.On("Post").Return(&postStore)
+	storeMock.On("Command").Return(&commandStore)
+	storeMock.On("Webhook").Return(&webhookStore)
+	storeMock.On("Group").Return(&groupStore)
+	storeMock.On("Scheme").Return(&schemeStore)
+
+	return serverIfaceMock, storeMock, func(t *testing.T) {
+		serverIfaceMock.AssertExpectations(t)
+		storeMock.AssertExpectations(t)
+		systemStore.AssertExpectations(t)
+	}
+}
 
 func TestPluginSetting(t *testing.T) {
 	settings := &model.PluginSettings{
@@ -68,11 +168,6 @@ func TestSegmentDiagnostics(t *testing.T) {
 		t.SkipNow()
 	}
 
-	th := SetupWithCustomConfig(t, func(config *model.Config) {
-		*config.PluginSettings.Enable = false
-	})
-	defer th.TearDown()
-
 	type payload struct {
 		MessageId string
 		SentAt    time.Time
@@ -105,10 +200,18 @@ func TestSegmentDiagnostics(t *testing.T) {
 	defer server.Close()
 
 	diagnosticID := "test-diagnostic-id-12345"
-	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initDiagnostics(server.URL)
+	config := &model.Config{}
+	config.SetDefaults()
+	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(config)
+	defer deferredAssertions(t)
+
+	diagnosticsService := New(serverIfaceMock, storeMock, searchengine.NewBroker(config, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
+	diagnosticsService.DiagnosticID = diagnosticID
+	diagnosticsService.diagnosticClient = nil
+	diagnosticsService.initDiagnostics(server.URL)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
+		t.Helper()
 		assert.NotEmpty(t, actual.MessageId)
 		assert.False(t, actual.SentAt.IsZero())
 		if assert.Len(t, actual.Batch, 1) {
@@ -136,7 +239,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		th.App.Srv().SendDiagnostic("Testing Diagnostic", map[string]interface{}{
+		diagnosticsService.sendDiagnostic("Testing Diagnostic", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {
@@ -151,7 +254,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 
 	// Plugins remain disabled at this point
 	t.Run("SendDailyDiagnosticsPluginsDisabled", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -200,10 +303,10 @@ func TestSegmentDiagnostics(t *testing.T) {
 	})
 
 	// Enable plugins for the remainder of the tests.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+	// th.Server.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -245,14 +348,14 @@ func TestSegmentDiagnostics(t *testing.T) {
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
-			TRACK_PLUGINS,
+			// TRACK_PLUGINS,
 		} {
 			require.Contains(t, info, item)
 		}
 	})
 
 	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
-		th.App.Srv().SendDailyDiagnostics()
+		diagnosticsService.sendDailyDiagnostics(false)
 
 		select {
 		case <-data:
@@ -263,9 +366,12 @@ func TestSegmentDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
+		*config.LogSettings.EnableDiagnostics = false
+		defer func() {
+			*config.LogSettings.EnableDiagnostics = true
+		}()
 
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		select {
 		case <-data:
@@ -280,11 +386,6 @@ func TestRudderDiagnostics(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
-
-	th := SetupWithCustomConfig(t, func(config *model.Config) {
-		*config.PluginSettings.Enable = false
-	})
-	defer th.TearDown()
 
 	type payload struct {
 		MessageId string
@@ -318,8 +419,16 @@ func TestRudderDiagnostics(t *testing.T) {
 	defer server.Close()
 
 	diagnosticID := "test-diagnostic-id-12345"
-	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initRudder(server.URL)
+
+	config := &model.Config{}
+	config.SetDefaults()
+	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(config)
+	defer deferredAssertions(t)
+
+	diagnosticsService := New(serverIfaceMock, storeMock, searchengine.NewBroker(config, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
+	diagnosticsService.DiagnosticID = diagnosticID
+	diagnosticsService.rudderClient = nil
+	diagnosticsService.initRudder(server.URL)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
@@ -363,7 +472,7 @@ func TestRudderDiagnostics(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		th.App.Srv().SendDiagnostic("Testing Diagnostic", map[string]interface{}{
+		diagnosticsService.sendDiagnostic("Testing Diagnostic", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {
@@ -378,7 +487,7 @@ func TestRudderDiagnostics(t *testing.T) {
 
 	// Plugins remain disabled at this point
 	t.Run("SendDailyDiagnosticsPluginsDisabled", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -417,10 +526,10 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 
 	// Enable plugins for the remainder of the tests.
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+	// th.Server.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
@@ -452,14 +561,14 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
-			TRACK_PLUGINS,
+			// TRACK_PLUGINS,
 		} {
 			require.Contains(t, info, item)
 		}
 	})
 
 	t.Run("SendDailyDiagnosticsNoRudderKey", func(t *testing.T) {
-		th.App.Srv().SendDailyDiagnostics()
+		diagnosticsService.sendDailyDiagnostics(false)
 
 		select {
 		case <-data:
@@ -470,9 +579,12 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
+		*config.LogSettings.EnableDiagnostics = false
+		defer func() {
+			*config.LogSettings.EnableDiagnostics = true
+		}()
 
-		th.App.Srv().sendDailyDiagnostics(true)
+		diagnosticsService.sendDailyDiagnostics(true)
 
 		select {
 		case <-data:

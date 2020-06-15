@@ -12,14 +12,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
 const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 const GUEST_ROLES_CREATION_MIGRATION_KEY = "GuestRolesCreationMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if _, err := a.Srv().Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := a.Srv().Store.System().GetByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		return
 	}
 
@@ -70,7 +69,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 	}
 
 	system := model.System{
-		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
+		Name:  model.ADVANCED_PERMISSIONS_MIGRATION_KEY,
 		Value: "true",
 	}
 

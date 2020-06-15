@@ -1,22 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package diagnostics
 
 import (
+	"errors"
+	"fmt"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	rudder "github.com/rudderlabs/analytics-go"
 	"github.com/segmentio/analytics-go"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
+	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
+	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
+
 	SEGMENT_KEY          = "placeholder_segment_key"
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
@@ -67,54 +76,99 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-// declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
-
-func (s *Server) SendDailyDiagnostics() {
-	s.sendDailyDiagnostics(false)
+type ServerIface interface {
+	Config() *model.Config
+	IsLeader() bool
+	GetPluginsEnvironment() *plugin.Environment
+	License() *model.License
+	GetRoleByName(string) (*model.Role, *model.AppError)
+	GetSchemes(string, int, int) ([]*model.Scheme, *model.AppError)
 }
 
-func (s *Server) sendDailyDiagnostics(override bool) {
-	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		s.initDiagnostics("")
-		s.trackActivity()
-		s.trackConfig()
-		s.trackLicense()
-		s.trackPlugins()
-		s.trackServer()
-		s.trackPermissions()
-		s.trackElasticsearch()
-		s.trackGroups()
-		s.trackChannelModeration()
+type DiagnosticsService struct {
+	srv                         ServerIface
+	dbStore                     store.Store
+	searchEngine                *searchengine.Broker
+	log                         *mlog.Logger
+	diagnosticClient            analytics.Client
+	rudderClient                rudder.Client
+	DiagnosticID                string
+	timestampLastDiagnosticSent time.Time
+}
+
+func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker, log *mlog.Logger) *DiagnosticsService {
+	service := &DiagnosticsService{
+		srv:          srv,
+		dbStore:      dbStore,
+		searchEngine: searchEngine,
+		log:          log,
+	}
+	service.ensureDiagnosticID()
+	service.initDiagnostics("")
+	service.initRudder(RUDDER_DATAPLANE_URL)
+	return service
+}
+
+func (ds *DiagnosticsService) ensureDiagnosticID() {
+	if ds.DiagnosticID != "" {
+		return
+	}
+	props, err := ds.dbStore.System().Get()
+	if err != nil {
+		return
 	}
 
-	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		s.initRudder(RUDDER_DATAPLANE_URL)
-		s.trackActivity()
-		s.trackConfig()
-		s.trackLicense()
-		s.trackPlugins()
-		s.trackServer()
-		s.trackPermissions()
-		s.trackElasticsearch()
-		s.trackGroups()
-		s.trackChannelModeration()
+	id := props[model.SYSTEM_DIAGNOSTIC_ID]
+	if len(id) == 0 {
+		id = model.NewId()
+		systemID := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+		ds.dbStore.System().Save(systemID)
+	}
+
+	ds.DiagnosticID = id
+}
+
+func (ds *DiagnosticsService) sendDailyDiagnostics(override bool) {
+	if *ds.srv.Config().LogSettings.EnableDiagnostics && ds.srv.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
+		ds.initDiagnostics("")
+		ds.trackActivity()
+		ds.trackConfig()
+		ds.trackLicense()
+		ds.trackPlugins()
+		ds.trackServer()
+		ds.trackPermissions()
+		ds.trackElasticsearch()
+		ds.trackGroups()
+		ds.trackChannelModeration()
+	}
+
+	if *ds.srv.Config().LogSettings.EnableDiagnostics && ds.srv.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+		ds.initRudder(RUDDER_DATAPLANE_URL)
+		ds.trackActivity()
+		ds.trackConfig()
+		ds.trackLicense()
+		ds.trackPlugins()
+		ds.trackServer()
+		ds.trackPermissions()
+		ds.trackElasticsearch()
+		ds.trackGroups()
+		ds.trackChannelModeration()
 	}
 }
 
-func (s *Server) SendDiagnostic(event string, properties map[string]interface{}) {
-	if s.diagnosticClient != nil {
-		s.diagnosticClient.Enqueue(analytics.Track{
+func (ds *DiagnosticsService) sendDiagnostic(event string, properties map[string]interface{}) {
+	if ds.diagnosticClient != nil {
+		ds.diagnosticClient.Enqueue(analytics.Track{
 			Event:      event,
-			UserId:     s.diagnosticId,
+			UserId:     ds.DiagnosticID,
 			Properties: properties,
 		})
 	}
 
-	if s.rudderClient != nil {
-		s.rudderClient.Enqueue(rudder.Track{
+	if ds.rudderClient != nil {
+		ds.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
-			UserId:     s.diagnosticId,
+			UserId:     ds.DiagnosticID,
 			Properties: properties,
 		})
 	}
@@ -152,7 +206,7 @@ func pluginVersion(pluginsAvailable []*model.BundleInfo, pluginId string) string
 	return ""
 }
 
-func (s *Server) trackActivity() {
+func (ds *DiagnosticsService) trackActivity() {
 	var userCount int64
 	var guestAccountsCount int64
 	var botAccountsCount int64
@@ -171,82 +225,82 @@ func (s *Server) trackActivity() {
 
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := s.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := ds.dbStore.User().AnalyticsActiveCount(DAY_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
 
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
-		count, err := s.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+		count, err := ds.dbStore.User().AnalyticsActiveCount(MONTH_MILLISECONDS, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
-	if count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+	if count, err := ds.dbStore.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
 	}
 
-	if count, err := s.Store.User().AnalyticsGetGuestCount(); err == nil {
+	if count, err := ds.dbStore.User().AnalyticsGetGuestCount(); err == nil {
 		guestAccountsCount = count
 	}
 
-	if count, err := s.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+	if count, err := ds.dbStore.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
 		botAccountsCount = count
 	}
 
-	if iucr, err := s.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+	if iucr, err := ds.dbStore.User().AnalyticsGetInactiveUsersCount(); err == nil {
 		inactiveUserCount = iucr
 	}
 
-	teamCount, err := s.Store.Team().AnalyticsTeamCount(false)
+	teamCount, err := ds.dbStore.Team().AnalyticsTeamCount(false)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	if ucc, err := s.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+	if ucc, err := ds.dbStore.Channel().AnalyticsTypeCount("", "O"); err == nil {
 		publicChannelCount = ucc
 	}
 
-	if pcc, err := s.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+	if pcc, err := ds.dbStore.Channel().AnalyticsTypeCount("", "P"); err == nil {
 		privateChannelCount = pcc
 	}
 
-	if dcc, err := s.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+	if dcc, err := ds.dbStore.Channel().AnalyticsTypeCount("", "D"); err == nil {
 		directChannelCount = dcc
 	}
 
-	if duccr, err := s.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+	if duccr, err := ds.dbStore.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
 		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr, err := s.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+	if dpccr, err := ds.dbStore.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
 		deletedPrivateChannelCount = dpccr
 	}
 
-	postsCount, _ = s.Store.Post().AnalyticsPostCount("", false, false)
+	postsCount, _ = ds.dbStore.Post().AnalyticsPostCount("", false, false)
 
 	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
-	postCountsYesterday, _ := s.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postCountsYesterday, _ := ds.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	postsCountPreviousDay = 0
 	if len(postCountsYesterday) > 0 {
 		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
 	}
 
 	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
-	botPostCountsYesterday, _ := s.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostCountsYesterday, _ := ds.dbStore.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	botPostsCountPreviousDay = 0
 	if len(botPostCountsYesterday) > 0 {
 		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
 	}
 
-	slashCommandsCount, _ = s.Store.Command().AnalyticsCommandCount("")
+	slashCommandsCount, _ = ds.dbStore.Command().AnalyticsCommandCount("")
 
-	if c, err := s.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
+	if c, err := ds.dbStore.Webhook().AnalyticsIncomingCount(""); err == nil {
 		incomingWebhooksCount = c
 	}
 
-	outgoingWebhooksCount, _ = s.Store.Webhook().AnalyticsOutgoingCount("")
+	outgoingWebhooksCount, _ = ds.dbStore.Webhook().AnalyticsOutgoingCount("")
 
 	var activeUsersDailyCount int64
 	if r := <-activeUsersDailyCountChan; r.Err == nil {
@@ -258,7 +312,7 @@ func (s *Server) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	s.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"bot_accounts":                 botAccountsCount,
 		"guest_accounts":               guestAccountsCount,
@@ -280,9 +334,9 @@ func (s *Server) trackActivity() {
 	})
 }
 
-func (s *Server) trackConfig() {
-	cfg := s.Config()
-	s.SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
+func (ds *DiagnosticsService) trackConfig() {
+	cfg := ds.srv.Config()
+	ds.sendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
 		"web_server_mode":                                         *cfg.ServiceSettings.WebserverMode,
 		"enable_security_fix_alert":                               *cfg.ServiceSettings.EnableSecurityFixAlert,
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
@@ -361,7 +415,7 @@ func (s *Server) trackConfig() {
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
 		"enable_user_creation":                      cfg.TeamSettings.EnableUserCreation,
 		"enable_team_creation":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_EnableTeamCreation,
 		"restrict_team_invite":                      *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictTeamInvite,
@@ -395,7 +449,7 @@ func (s *Server) trackConfig() {
 		"experimental_default_channels":             len(cfg.TeamSettings.ExperimentalDefaultChannels),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
 		"desktop_latest_version": cfg.ClientRequirements.DesktopLatestVersion,
@@ -404,7 +458,7 @@ func (s *Server) trackConfig() {
 		"ios_min_version":        cfg.ClientRequirements.IosMinVersion,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
 		"driver_name":                    *cfg.SqlSettings.DriverName,
 		"trace":                          cfg.SqlSettings.Trace,
 		"max_idle_conns":                 *cfg.SqlSettings.MaxIdleConns,
@@ -416,7 +470,7 @@ func (s *Server) trackConfig() {
 		"disable_database_search":        *cfg.SqlSettings.DisableDatabaseSearch,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
 		"console_json":             *cfg.LogSettings.ConsoleJson,
@@ -427,7 +481,7 @@ func (s *Server) trackConfig() {
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
 		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
 		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
 		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
@@ -439,7 +493,7 @@ func (s *Server) trackConfig() {
 		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
 		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
 		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
 		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
@@ -449,7 +503,7 @@ func (s *Server) trackConfig() {
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
 		"number":         *cfg.PasswordSettings.Number,
@@ -457,7 +511,7 @@ func (s *Server) trackConfig() {
 		"symbol":         *cfg.PasswordSettings.Symbol,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
 		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
@@ -472,7 +526,7 @@ func (s *Server) trackConfig() {
 		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
 		"enable_sign_up_with_email":            cfg.EmailSettings.EnableSignUpWithEmail,
 		"enable_sign_in_with_email":            *cfg.EmailSettings.EnableSignInWithEmail,
 		"enable_sign_in_with_username":         *cfg.EmailSettings.EnableSignInWithUsername,
@@ -499,7 +553,7 @@ func (s *Server) trackConfig() {
 		"smtp_server_timeout":                  *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
 		"vary_by_user":             *cfg.RateLimitSettings.VaryByUser,
@@ -509,25 +563,25 @@ func (s *Server) trackConfig() {
 		"isdefault_vary_by_header": isDefault(cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
 		"show_email_address": cfg.PrivacySettings.ShowEmailAddress,
 		"show_full_name":     cfg.PrivacySettings.ShowFullName,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_THEME, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_THEME, map[string]interface{}{
 		"enable_theme_selection":  *cfg.ThemeSettings.EnableThemeSelection,
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
 		"enable_google":    cfg.GoogleSettings.Enable,
 		"enable_office365": cfg.Office365Settings.Enable,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
 		"isdefault_terms_of_service_link":              isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
 		"isdefault_privacy_policy_link":                isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
 		"isdefault_about_link":                         isDefault(*cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
@@ -538,7 +592,7 @@ func (s *Server) trackConfig() {
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
 		"enable":                                 *cfg.LdapSettings.Enable,
 		"enable_sync":                            *cfg.LdapSettings.EnableSync,
 		"enable_admin_filter":                    *cfg.LdapSettings.EnableAdminFilter,
@@ -567,18 +621,18 @@ func (s *Server) trackConfig() {
 		"isnotempty_picture_attribute":           !isDefault(*cfg.LdapSettings.PictureAttribute, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
 		"enable":       *cfg.ComplianceSettings.Enable,
 		"enable_daily": *cfg.ComplianceSettings.EnableDaily,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_LOCALIZATION, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_LOCALIZATION, map[string]interface{}{
 		"default_server_locale": *cfg.LocalizationSettings.DefaultServerLocale,
 		"default_client_locale": *cfg.LocalizationSettings.DefaultClientLocale,
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
@@ -606,7 +660,7 @@ func (s *Server) trackConfig() {
 		"isdefault_login_button_text_color":   isDefault(*cfg.SamlSettings.LoginButtonTextColor, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
 		"enable":                  *cfg.ClusterSettings.Enable,
 		"network_interface":       isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
 		"bind_address":            isDefault(*cfg.ClusterSettings.BindAddress, ""),
@@ -616,18 +670,18 @@ func (s *Server) trackConfig() {
 		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
 		"enable":             *cfg.MetricsSettings.Enable,
 		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_NATIVEAPP, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_NATIVEAPP, map[string]interface{}{
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
@@ -636,18 +690,18 @@ func (s *Server) trackConfig() {
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
 		"isdefault_max_users_for_statistics": isDefault(*cfg.AnalyticsSettings.MaxUsersForStatistics, model.ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
 		"enable_banner":               *cfg.AnnouncementSettings.EnableBanner,
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
 		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
 		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
@@ -700,7 +754,7 @@ func (s *Server) trackConfig() {
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	}
 
-	pluginsEnvironment := s.GetPluginsEnvironment()
+	pluginsEnvironment := ds.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
@@ -720,9 +774,9 @@ func (s *Server) trackConfig() {
 		}
 	}
 
-	s.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
+	ds.sendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
 
-	s.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":    *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
@@ -730,7 +784,7 @@ func (s *Server) trackConfig() {
 		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
 		"enable_message_export":                 *cfg.MessageExportSettings.EnableExport,
 		"export_format":                         *cfg.MessageExportSettings.ExportFormat,
 		"daily_run_time":                        *cfg.MessageExportSettings.DailyRunTime,
@@ -742,26 +796,26 @@ func (s *Server) trackConfig() {
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_GUEST_ACCOUNTS, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_GUEST_ACCOUNTS, map[string]interface{}{
 		"enable":                                 *cfg.GuestAccountsSettings.Enable,
 		"allow_email_accounts":                   *cfg.GuestAccountsSettings.AllowEmailAccounts,
 		"enforce_multifactor_authentication":     *cfg.GuestAccountsSettings.EnforceMultifactorAuthentication,
 		"isdefault_restrict_creation_to_domains": isDefault(*cfg.GuestAccountsSettings.RestrictCreationToDomains, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{
 		"enable":                               *cfg.ImageProxySettings.Enable,
 		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
 		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
 		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 
-	s.SendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CONFIG_BLEVE, map[string]interface{}{
 		"enable_indexing":                   *cfg.BleveSettings.EnableIndexing,
 		"enable_searching":                  *cfg.BleveSettings.EnableSearching,
 		"enable_autocomplete":               *cfg.BleveSettings.EnableAutocomplete,
@@ -769,8 +823,8 @@ func (s *Server) trackConfig() {
 	})
 }
 
-func (s *Server) trackLicense() {
-	if license := s.License(); license != nil {
+func (ds *DiagnosticsService) trackLicense() {
+	if license := ds.srv.License(); license != nil {
 		data := map[string]interface{}{
 			"customer_id": license.Customer.Id,
 			"license_id":  license.Id,
@@ -786,12 +840,12 @@ func (s *Server) trackLicense() {
 			data["feature_"+featureName] = featureValue
 		}
 
-		s.SendDiagnostic(TRACK_LICENSE, data)
+		ds.sendDiagnostic(TRACK_LICENSE, data)
 	}
 }
 
-func (s *Server) trackPlugins() {
-	pluginsEnvironment := s.GetPluginsEnvironment()
+func (ds *DiagnosticsService) trackPlugins() {
+	pluginsEnvironment := ds.srv.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -805,7 +859,7 @@ func (s *Server) trackPlugins() {
 	brokenManifestCount := 0
 	settingsCount := 0
 
-	pluginStates := s.Config().PluginSettings.PluginStates
+	pluginStates := ds.srv.Config().PluginSettings.PluginStates
 	plugins, _ := pluginsEnvironment.Available()
 
 	if pluginStates != nil && plugins != nil {
@@ -841,7 +895,7 @@ func (s *Server) trackPlugins() {
 		totalDisabledCount = -1 // -1 to indicate disabled or error
 	}
 
-	s.SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
 		"enabled_plugins":               totalEnabledCount,
 		"enabled_webapp_plugins":        webappEnabledCount,
 		"enabled_backend_plugins":       backendEnabledCount,
@@ -853,82 +907,82 @@ func (s *Server) trackPlugins() {
 	})
 }
 
-func (s *Server) trackServer() {
+func (ds *DiagnosticsService) trackServer() {
 	data := map[string]interface{}{
 		"edition":          model.BuildEnterpriseReady,
 		"version":          model.CurrentVersion,
-		"database_type":    *s.Config().SqlSettings.DriverName,
+		"database_type":    *ds.srv.Config().SqlSettings.DriverName,
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr, err := s.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+	if scr, err := ds.dbStore.User().AnalyticsGetSystemAdminCount(); err == nil {
 		data["system_admins"] = scr
 	}
 
-	if scr, err := s.Store.GetDbVersion(); err == nil {
+	if scr, err := ds.dbStore.GetDbVersion(); err == nil {
 		data["database_version"] = scr
 	}
 
-	s.SendDiagnostic(TRACK_SERVER, data)
+	ds.sendDiagnostic(TRACK_SERVER, data)
 }
 
-func (s *Server) trackPermissions() {
+func (ds *DiagnosticsService) trackPermissions() {
 	phase1Complete := false
-	if _, err := s.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
+	if _, err := ds.dbStore.System().GetByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if _, err := s.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
+	if _, err := ds.dbStore.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
 		phase2Complete = true
 	}
 
-	s.SendDiagnostic(TRACK_PERMISSIONS_GENERAL, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_PERMISSIONS_GENERAL, map[string]interface{}{
 		"phase_1_migration_complete": phase1Complete,
 		"phase_2_migration_complete": phase2Complete,
 	})
 
 	systemAdminPermissions := ""
-	if role, err := s.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID); err == nil {
 		systemAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	systemUserPermissions := ""
-	if role, err := s.GetRoleByName(model.SYSTEM_USER_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.SYSTEM_USER_ROLE_ID); err == nil {
 		systemUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamAdminPermissions := ""
-	if role, err := s.GetRoleByName(model.TEAM_ADMIN_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.TEAM_ADMIN_ROLE_ID); err == nil {
 		teamAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamUserPermissions := ""
-	if role, err := s.GetRoleByName(model.TEAM_USER_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.TEAM_USER_ROLE_ID); err == nil {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	teamGuestPermissions := ""
-	if role, err := s.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
 		teamGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelAdminPermissions := ""
-	if role, err := s.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelUserPermissions := ""
-	if role, err := s.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
 		channelUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	channelGuestPermissions := ""
-	if role, err := s.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
+	if role, err := ds.srv.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
 		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
-	s.SendDiagnostic(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
 		"system_admin_permissions":  systemAdminPermissions,
 		"system_user_permissions":   systemUserPermissions,
 		"team_admin_permissions":    teamAdminPermissions,
@@ -939,41 +993,41 @@ func (s *Server) trackPermissions() {
 		"channel_guest_permissions": channelGuestPermissions,
 	})
 
-	if schemes, err := s.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
+	if schemes, err := ds.srv.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
 		for _, scheme := range schemes {
 			teamAdminPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultTeamAdminRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultTeamAdminRole); err == nil {
 				teamAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamUserPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultTeamUserRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultTeamUserRole); err == nil {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			teamGuestPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
 				teamGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelAdminPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelUserPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
 				channelUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			channelGuestPermissions := ""
-			if role, err := s.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
+			if role, err := ds.srv.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
 				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
-			count, _ := s.Store.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
+			count, _ := ds.dbStore.Team().AnalyticsGetTeamCountForScheme(scheme.Id)
 
-			s.SendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
+			ds.sendDiagnostic(TRACK_PERMISSIONS_TEAM_SCHEMES, map[string]interface{}{
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
@@ -987,60 +1041,60 @@ func (s *Server) trackPermissions() {
 	}
 }
 
-func (s *Server) trackElasticsearch() {
+func (ds *DiagnosticsService) trackElasticsearch() {
 	data := map[string]interface{}{}
 
-	for _, engine := range s.SearchEngine.GetActiveEngines() {
+	for _, engine := range ds.searchEngine.GetActiveEngines() {
 		if engine.GetVersion() != 0 && engine.GetName() == "elasticsearch" {
 			data["elasticsearch_server_version"] = engine.GetVersion()
 		}
 	}
 
-	s.SendDiagnostic(TRACK_ELASTICSEARCH, data)
+	ds.sendDiagnostic(TRACK_ELASTICSEARCH, data)
 }
 
-func (s *Server) trackGroups() {
-	groupCount, err := s.Store.Group().GroupCount()
+func (ds *DiagnosticsService) trackGroups() {
+	groupCount, err := ds.dbStore.Group().GroupCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupTeamCount, err := s.Store.Group().GroupTeamCount()
+	groupTeamCount, err := ds.dbStore.Group().GroupTeamCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupChannelCount, err := s.Store.Group().GroupChannelCount()
+	groupChannelCount, err := ds.dbStore.Group().GroupChannelCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedTeamCount, err := s.Store.Team().GroupSyncedTeamCount()
+	groupSyncedTeamCount, err := ds.dbStore.Team().GroupSyncedTeamCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedChannelCount, err := s.Store.Channel().GroupSyncedChannelCount()
+	groupSyncedChannelCount, err := ds.dbStore.Channel().GroupSyncedChannelCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupMemberCount, err := s.Store.Group().GroupMemberCount()
+	groupMemberCount, err := ds.dbStore.Group().GroupMemberCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	distinctGroupMemberCount, err := s.Store.Group().DistinctGroupMemberCount()
+	distinctGroupMemberCount, err := ds.dbStore.Group().DistinctGroupMemberCount()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	groupCountWithAllowReference, err := s.Store.Group().GroupCountWithAllowReference()
+	groupCountWithAllowReference, err := ds.dbStore.Group().GroupCountWithAllowReference()
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	s.SendDiagnostic(TRACK_GROUPS, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_GROUPS, map[string]interface{}{
 		"group_count":                      groupCount,
 		"group_team_count":                 groupTeamCount,
 		"group_channel_count":              groupChannelCount,
@@ -1052,50 +1106,50 @@ func (s *Server) trackGroups() {
 	})
 }
 
-func (s *Server) trackChannelModeration() {
-	channelSchemeCount, err := s.Store.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
+func (ds *DiagnosticsService) trackChannelModeration() {
+	channelSchemeCount, err := ds.dbStore.Scheme().CountByScope(model.SCHEME_SCOPE_CHANNEL)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	createPostUser, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	createPostUser, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	createPostGuest, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	createPostGuest, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_CREATE_POST.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
 	// only need to track one of 'add_reaction' or 'remove_reaction` because they're both toggled together by the channel moderation feature
-	postReactionsUser, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	postReactionsUser, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	postReactionsGuest, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	postReactionsGuest, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_ADD_REACTION.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
 	// only need to track one of 'manage_public_channel_members' or 'manage_private_channel_members` because they're both toggled together by the channel moderation feature
-	manageMembersUser, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	manageMembersUser, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	useChannelMentionsUser, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeUser)
+	useChannelMentionsUser, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeUser)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	useChannelMentionsGuest, err := s.Store.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeGuest)
+	useChannelMentionsGuest, err := ds.dbStore.Scheme().CountWithoutPermission(model.SCHEME_SCOPE_CHANNEL, model.PERMISSION_USE_CHANNEL_MENTIONS.Id, model.RoleScopeChannel, model.RoleTypeGuest)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
 
-	s.SendDiagnostic(TRACK_CHANNEL_MODERATION, map[string]interface{}{
+	ds.sendDiagnostic(TRACK_CHANNEL_MODERATION, map[string]interface{}{
 		"channel_scheme_count": channelSchemeCount,
 
 		"create_post_user_disabled_count":  createPostUser,
@@ -1109,4 +1163,95 @@ func (s *Server) trackChannelModeration() {
 		"use_channel_mentions_user_disabled_count":  useChannelMentionsUser,
 		"use_channel_mentions_guest_disabled_count": useChannelMentionsGuest,
 	})
+}
+
+func (ds *DiagnosticsService) initDiagnostics(endpoint string) {
+	if ds.diagnosticClient == nil {
+		config := analytics.Config{}
+		config.Logger = analytics.StdLogger(ds.log.StdLog(mlog.String("source", "segment")))
+		// For testing
+		if endpoint != "" {
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
+		client.Enqueue(analytics.Identify{
+			UserId: ds.DiagnosticID,
+		})
+
+		ds.diagnosticClient = client
+	}
+}
+
+func (ds *DiagnosticsService) initRudder(endpoint string) {
+	if ds.rudderClient == nil {
+		config := rudder.Config{}
+		config.Logger = rudder.StdLogger(ds.log.StdLog(mlog.String("source", "rudder")))
+		config.Endpoint = endpoint
+		// For testing
+		if endpoint != RUDDER_DATAPLANE_URL {
+			config.Verbose = true
+			config.BatchSize = 1
+		}
+		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		if err != nil {
+			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
+			return
+		}
+		client.Enqueue(rudder.Identify{
+			UserId: ds.DiagnosticID,
+		})
+
+		ds.rudderClient = client
+	}
+}
+
+func (ds *DiagnosticsService) doDiagnosticsIfNeeded(firstRun time.Time) {
+	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
+	// Send once every 10 minutes for the first hour
+	// Send once every hour thereafter for the first 12 hours
+	// Send at the 24 hour mark and every 24 hours after
+	if hoursSinceFirstServerRun < 1 {
+		ds.doDiagnostics()
+	} else if hoursSinceFirstServerRun <= 12 && time.Since(ds.timestampLastDiagnosticSent) >= time.Hour {
+		ds.doDiagnostics()
+	} else if hoursSinceFirstServerRun > 12 && time.Since(ds.timestampLastDiagnosticSent) >= 24*time.Hour {
+		ds.doDiagnostics()
+	}
+}
+
+func (ds *DiagnosticsService) RunDiagnosticsJob(firstRun int64) {
+	// Send on boot
+	ds.doDiagnostics()
+	model.CreateRecurringTask("Diagnostics", func() {
+		ds.doDiagnosticsIfNeeded(utils.TimeFromMillis(firstRun))
+	}, time.Minute*10)
+}
+
+func (ds *DiagnosticsService) doDiagnostics() {
+	if *ds.srv.Config().LogSettings.EnableDiagnostics {
+		ds.timestampLastDiagnosticSent = time.Now()
+		ds.sendDailyDiagnostics(false)
+	}
+}
+
+// Shutdown closes the diagnostic client.
+func (ds *DiagnosticsService) Shutdown() error {
+	var segmentErr, rudderErr error
+	if ds.diagnosticClient != nil {
+		segmentErr = ds.diagnosticClient.Close()
+	}
+
+	if ds.rudderClient != nil {
+		rudderErr = ds.rudderClient.Close()
+	}
+
+	if segmentErr != nil && rudderErr != nil {
+		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
+	} else if segmentErr != nil {
+		return segmentErr
+	}
+
+	return rudderErr
 }

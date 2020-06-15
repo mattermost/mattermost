@@ -53,7 +53,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.
-	if _, err := a.Srv().Store.System().PermanentDeleteByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
 		return err
 	}
 
