@@ -559,6 +559,8 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
+// PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
+// To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
 		return model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
@@ -1079,10 +1081,12 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppE
 	return nil
 }
 
+// RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	return s.RemoveMembers(teamId, []string{userId})
 }
 
+// RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
@@ -1091,6 +1095,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	return nil
 }
 
+// RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {
