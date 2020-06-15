@@ -911,7 +911,7 @@ CREATE TABLE `Teams` (
   `InviteId` varchar(32) DEFAULT NULL,
   `AllowOpenInvite` tinyint(1) DEFAULT NULL,
   `LastTeamIconUpdate` bigint(20) DEFAULT NULL,
-  `SchemeId` varchar(255) DEFAULT NULL,
+  `SchemeId` varchar(26) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Name` (`Name`),
   KEY `idx_teams_name` (`Name`),
