@@ -231,12 +231,52 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "CHOCOLATE"
+	q.Name = "ilovecake"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLenth   int
 		ExpectedFirstId string
 	}{
+		{
+			"Search chocolate by display name",
+			"ocola",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"choc",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"late",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ilov",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ecake",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -302,12 +342,52 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "PINEAPPLEPIE"
+	q.Name = "ihadsomepineapplepiewithstrawberry"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = true
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search PINEAPPLEPIE by display name",
+			"neapplep",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"pine",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"epie",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"ihadsome",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"pineapplepiewithstrawberry",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -368,12 +448,52 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBAR"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name from text in the middle of display name",
+			"ooba",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the beginning of display name",
+			"foo",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the end of display name",
+			"bar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the beginning name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the end of name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for private team name",
 			p.Name,

@@ -1220,6 +1220,14 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		teams[i] = newTeam
 	}
 
+	foobarTeam, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.TEAM_OPEN,
+		Email:       th.GenerateTestEmail(),
+	})
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name               string
 		Search             *model.TeamSearch
@@ -1227,8 +1235,56 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		ExpectedTotalCount int64
 	}{
 		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "oob", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "foo", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "bar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "what", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
 			Name:               "Get all teams on one page",
 			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with partial word",
+			Search:             &model.TeamSearch{Term: commonRandom[11:18]},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with term upper cased",
+			Search:             &model.TeamSearch{Term: strings.ToUpper(commonRandom)},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with some of term upper and some lower",
+			Search:             &model.TeamSearch{Term: commonRandom[0:11] + strings.ToUpper(commonRandom[11:18]+commonRandom[18:])},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
