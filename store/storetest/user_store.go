@@ -3748,7 +3748,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	// First and last user should be outside the range
 	res1List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	assert.Len(t, res1List, 1)
 	assert.Equal(t, res1List[0].Username, u2.Username)
@@ -3758,7 +3758,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Update startTime to include first user
 	startTime = u1.CreateAt
 	res2List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	assert.Len(t, res2List, 2)
 	assert.Equal(t, res2List[0].Username, u1.Username)
@@ -3769,7 +3769,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Update endTime to include last user
 	endTime = model.GetMillis()
 	res3List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	assert.Len(t, res3List, 3)
 	assert.Equal(t, res3List[0].Username, u1.Username)
@@ -3780,7 +3780,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	// Testing the limit
 	res4List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	assert.Len(t, res4List, 2)
 	assert.Equal(t, res4List[0].Username, u1.Username)
@@ -4060,9 +4060,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
@@ -4106,9 +4106,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4137,9 +4137,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 	})
 
@@ -4162,9 +4162,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4202,9 +4202,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4247,9 +4247,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4313,9 +4313,9 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().PromoteGuestToUser(user1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
@@ -4329,7 +4329,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.True(t, updatedChannelMember.SchemeUser)
 
 		notUpdatedUser, err := ss.User().Get(user2.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
 		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
@@ -4375,9 +4375,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
@@ -4421,9 +4421,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4452,9 +4452,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 	})
 
@@ -4477,9 +4477,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4517,9 +4517,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4528,7 +4528,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeUser)
 
 		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
 	})
@@ -4562,9 +4562,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
@@ -4573,7 +4573,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeUser)
 
 		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
 	})
@@ -4628,9 +4628,9 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		err = ss.User().DemoteUserToGuest(user1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		updatedUser, err := ss.User().Get(user1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
 		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
@@ -4639,12 +4639,12 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeUser)
 
 		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user1.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.True(t, updatedChannelMember.SchemeGuest)
 		require.False(t, updatedChannelMember.SchemeUser)
 
 		notUpdatedUser, err := ss.User().Get(user2.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
 		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
@@ -4653,7 +4653,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, notUpdatedTeamMember.SchemeUser)
 
 		notUpdatedChannelMember, err := ss.Channel().GetMember(channel.Id, user2.Id)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		require.False(t, notUpdatedChannelMember.SchemeGuest)
 		require.True(t, notUpdatedChannelMember.SchemeUser)
 	})
