@@ -48,8 +48,7 @@ type EmailService struct {
 
 func NewEmailService(srv *Server) (*EmailService, error) {
 	service := &EmailService{srv: srv}
-	err := service.setupInviteEmailRateLimiting()
-	if err != nil {
+	if err := service.setupInviteEmailRateLimiting(); err != nil {
 		return nil, err
 	}
 	service.InitEmailBatching()
