@@ -1046,7 +1046,7 @@ func TestGetGroupStats(t *testing.T) {
 		CheckNotImplementedStatus(t, response)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Requires manage system permission to access group stats", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)

@@ -1101,7 +1101,7 @@ func TestSearchUsers(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Requires manage system permission when searching for users in a group", func(t *testing.T) {
 		_, resp = th.Client.SearchUsers(search)
@@ -2388,7 +2388,7 @@ func TestGetUsersInGroup(t *testing.T) {
 		CheckNotImplementedStatus(t, response)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
 		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
