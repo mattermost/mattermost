@@ -22,3 +22,8 @@ var (
 	// used by the TCP log target
 	LvlTcpLogTarget = LogLevel{ID: 105, Name: "TcpLogTarget"}
 )
+
+// Combinations for LogM (log multi)
+var (
+	MLvlExample = []LogLevel{LvlAuditDebug, LvlDebug}
+)

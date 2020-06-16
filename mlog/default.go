@@ -54,6 +54,10 @@ func defaultCustomLog(lvl LogLevel, msg string, fields ...Field) {
 	// custom log levels only output once log targets are configured.
 }
 
+func defaultCustomMultiLog(lvl []LogLevel, msg string, fields ...Field) {
+	// custom log levels only output once log targets are configured.
+}
+
 func defaultFlush() error {
 	return nil
 }

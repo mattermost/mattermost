@@ -215,6 +215,22 @@ func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
 	}
 }
 
+func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
+	if l.logrLogger != nil {
+		var logger *logr.Logger
+		for _, lvl := range levels {
+			if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
+				// don't create logger with fields unless at least one level is active.
+				if logger == nil {
+					l := l.logrLogger.WithFields(zapToLogr(fields))
+					logger = &l
+				}
+				logger.Log(logr.Level(lvl), message)
+			}
+		}
+	}
+}
+
 func (l *Logger) Flush() error {
 	if l.logrLogger != nil {
 		return l.logrLogger.Logr().Flush()
