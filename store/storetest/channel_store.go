@@ -714,8 +714,8 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o2.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	channels, err := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
-	require.Nil(t, err)
+	channels, nErr := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
+	require.Nil(t, nErr)
 	assert.Empty(t, channels)
 }
 

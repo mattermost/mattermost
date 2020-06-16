@@ -385,7 +385,7 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId st
 }
 
 // GetByName provides a mock function with given fields: team_id, name, allowFromCache
-func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(team_id, name, allowFromCache)
 
 	var r0 *model.Channel
@@ -397,20 +397,18 @@ func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(team_id, name, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByNameIncludeDeleted provides a mock function with given fields: team_id, name, allowFromCache
-func (_m *ChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(team_id, name, allowFromCache)
 
 	var r0 *model.Channel
@@ -422,20 +420,18 @@ func (_m *ChannelStore) GetByNameIncludeDeleted(team_id string, name string, all
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(team_id, name, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByNames provides a mock function with given fields: team_id, names, allowFromCache
-func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	ret := _m.Called(team_id, names, allowFromCache)
 
 	var r0 []*model.Channel
@@ -447,13 +443,11 @@ func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCach
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, []string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, []string, bool) error); ok {
 		r1 = rf(team_id, names, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

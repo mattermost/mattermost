@@ -3015,6 +3015,14 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -6161,14 +6169,6 @@
   {
     "id": "store.sql_channel.get_all_direct.app_error",
     "translation": "Unable to get all the direct channels."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
   },
   {
     "id": "store.sql_channel.get_by_scheme.app_error",
