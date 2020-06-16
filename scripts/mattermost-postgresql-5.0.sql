@@ -244,8 +244,8 @@ CREATE TABLE public.incomingwebhooks (
     teamid character varying(26),
     displayname character varying(64),
     description character varying(128),
-    username character varying(255),
-    iconurl character varying(1024),
+    username text,
+    iconurl text,
     channellocked boolean
 );
 
@@ -550,13 +550,13 @@ CREATE TABLE public.teams (
     name character varying(64),
     description character varying(255),
     email character varying(128),
-    type character varying(255),
+    type text,
     companyname character varying(64),
     alloweddomains character varying(500),
     inviteid character varying(32),
     allowopeninvite boolean,
     lastteamiconupdate bigint,
-    schemeid varying(26)
+    schemeid text
 );
 
 
