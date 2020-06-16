@@ -550,7 +550,7 @@ CREATE TABLE public.teams (
     name character varying(64),
     description character varying(255),
     email character varying(128),
-    type text,
+    type character varying(255),
     companyname character varying(64),
     alloweddomains character varying(500),
     inviteid character varying(32),
