@@ -191,9 +191,13 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (a *App) IsFirstUserAccount() bool {
-	if a.SessionCacheLength() == 0 {
-		count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+func (s *Server) IsFirstUserAccount() bool {
+	cachedSessions, err := s.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
 			return false
@@ -204,6 +208,10 @@ func (a *App) IsFirstUserAccount() bool {
 	}
 
 	return false
+}
+
+func (a *App) IsFirstUserAccount() bool {
+	return a.Srv().IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -2076,6 +2084,18 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[userId] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
+	event.Add("parent_id", parentId)
+	event.Add("user_id", userId)
+	a.Publish(event)
 
 	return nil
 }
