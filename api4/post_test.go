@@ -609,11 +609,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 			select {
 			case ev := <-wsClient.EventChannel:
 				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
-					if isSetOnline {
-						assert.True(t, ev.GetData()["set_online"].(bool))
-					} else {
-						assert.False(t, ev.GetData()["set_online"].(bool))
-					}
+					assert.True(t, ev.GetData()["set_online"].(bool) == isSetOnline)
 					return
 				}
 			case <-timeout:
