@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mkraft/gziphandler"
+	"github.com/NYTimes/gziphandler"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
