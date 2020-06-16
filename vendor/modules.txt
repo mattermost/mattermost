@@ -1,6 +1,9 @@
 # github.com/Masterminds/squirrel v1.2.0
 ## explicit
 github.com/Masterminds/squirrel
+# github.com/NYTimes/gziphandler v1.1.1
+## explicit
+github.com/NYTimes/gziphandler
 # github.com/RoaringBitmap/roaring v0.4.23
 ## explicit
 github.com/RoaringBitmap/roaring
@@ -317,9 +320,6 @@ github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.2.3
 ## explicit
 github.com/mitchellh/mapstructure
-# github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
-## explicit
-github.com/mkraft/gziphandler
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
