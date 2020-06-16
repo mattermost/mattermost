@@ -7,6 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 )
 
@@ -154,5 +156,22 @@ func (a *App) initEnterprise() {
 	}
 	if notificationInterface != nil {
 		a.srv.Notification = notificationInterface(a)
+	}
+	if samlInterface != nil {
+		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+			mlog.Debug("Loading new SAML2 library")
+			a.srv.Saml = samlInterfaceNew(a)
+		} else {
+			mlog.Debug("Loading original SAML library")
+			a.srv.Saml = samlInterface(a)
+		}
+		if err := a.srv.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+		a.AddConfigListener(func(_, cfg *model.Config) {
+			if err := a.srv.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 }
