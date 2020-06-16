@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_24_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	VERSION_5_26_0           = "5.26.0"
 	VERSION_5_24_0           = "5.24.0"
 	VERSION_5_23_0           = "5.23.0"
 	VERSION_5_22_0           = "5.22.0"
@@ -802,5 +803,13 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
 		saveSchemaVersion(sqlStore, VERSION_5_24_0)
+	}
+}
+
+func upgradeDatabaseToVersion526(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_26_0) {
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_5_26_0)
 	}
 }
