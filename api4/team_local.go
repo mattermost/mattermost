@@ -15,16 +15,16 @@ func (api *API) InitTeamLocal() {
 	api.BaseRoutes.Teams.Handle("", api.ApiLocal(localCreateTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
 	api.BaseRoutes.Teams.Handle("/search", api.ApiLocal(searchTeams)).Methods("POST")
+
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
+
 	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
 	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
-
-	api.BaseRoutes.Teams.Handle("", api.ApiLocal(getAllTeams)).Methods("GET")
-	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
 }
 
 func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {

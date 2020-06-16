@@ -77,6 +77,10 @@ func teamMemberToSlice(member *model.TeamMember) []interface{} {
 	return resultSlice
 }
 
+func wildcardSearchTerm(term string) string {
+	return strings.ToLower("%" + term + "%")
+}
+
 type rolesInfo struct {
 	roles         []string
 	explicitRoles []string
@@ -374,8 +378,14 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
+	term = wildcardSearchTerm(term)
 
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"}); err != nil {
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -389,12 +399,18 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	offset := page * perPage
 
 	term = sanitizeSearchTerm(term, "\\")
-
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term ORDER BY DisplayName, Name LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Term": term + "%", "Limit": perPage, "Offset": offset}); err != nil {
+	term = wildcardSearchTerm(term)
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term ORDER BY DisplayName, Name LIMIT :Limit  OFFSET :Offset", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term, "Limit": perPage, "Offset": offset}); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	totalCount, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE Name LIKE :Term OR DisplayName LIKE :Term", map[string]interface{}{"Term": term + "%"})
+	queryString = fmt.Sprintf("SELECT COUNT(*) FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
+	totalCount, err := s.GetReplica().SelectInt(queryString, map[string]interface{}{"Term": term})
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
@@ -408,8 +424,13 @@ func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
-
-	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+	term = wildcardSearchTerm(term)
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name %[1]s :Term OR DisplayName %[1]s :Term)", operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -422,15 +443,19 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
-
-	query :=
-		`SELECT *
+	term = wildcardSearchTerm(term)
+	operatorKeyword := "ILIKE"
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		operatorKeyword = "LIKE"
+	}
+	query := fmt.Sprintf(`
+	SELECT *
 		FROM
 			Teams
 		WHERE
 			(Type != 'O' OR AllowOpenInvite = false) AND
-			(Name LIKE :Term OR DisplayName LIKE :Term)`
-	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term + "%"}); err != nil {
+			(Name %[1]s :Term OR DisplayName %[1]s :Term)`, operatorKeyword)
+	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
@@ -559,6 +584,8 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
+// PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
+// To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
 		return model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
@@ -1079,10 +1106,12 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppE
 	return nil
 }
 
+// RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	return s.RemoveMembers(teamId, []string{userId})
 }
 
+// RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
 	if err != nil {
@@ -1091,6 +1120,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	return nil
 }
 
+// RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	_, err := s.GetMaster().Exec("DELETE FROM TeamMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 	if err != nil {

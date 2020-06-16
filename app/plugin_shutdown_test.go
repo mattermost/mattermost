@@ -63,7 +63,7 @@ func TestPluginShutdownTest(t *testing.T) {
 	done := make(chan bool)
 	go func() {
 		defer close(done)
-		th.App.ShutDownPlugins()
+		th.App.Srv().ShutDownPlugins()
 	}()
 
 	select {

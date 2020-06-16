@@ -243,15 +243,19 @@ func (a *App) UpdateMobileAppBadge(userId string) {
 	}
 }
 
-func (a *App) createPushNotificationsHub() {
-	buffer := *a.Config().EmailSettings.PushNotificationBuffer
+func (s *Server) createPushNotificationsHub() {
+	buffer := *s.Config().EmailSettings.PushNotificationBuffer
+	// XXX: This can be _almost_ removed except that there is a dependency with
+	// a.ClearSessionCacheForUser(session.UserId) which invalidates caches,
+	// which then takes to web_hub code. It's a bit complicated, so leaving as is for now.
+	fakeApp := New(ServerConnector(s))
 	hub := PushNotificationsHub{
 		notificationsChan: make(chan PushNotification, buffer),
-		app:               a,
+		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
 	}
 	go hub.start()
-	a.Srv().PushNotificationsHub = hub
+	s.PushNotificationsHub = hub
 }
 
 func (hub *PushNotificationsHub) start() {
@@ -303,8 +307,8 @@ func (hub *PushNotificationsHub) stop() {
 	hub.wg.Wait()
 }
 
-func (a *App) StopPushNotificationsHubWorkers() {
-	a.Srv().PushNotificationsHub.stop()
+func (s *Server) StopPushNotificationsHubWorkers() {
+	s.PushNotificationsHub.stop()
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
