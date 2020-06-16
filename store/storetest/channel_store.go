@@ -4335,13 +4335,13 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
-	t.Run("returns memberCountsByGroup with timezones", func(t *testing.T) {
+	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
 		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 		}
 		require.Nil(t, err)
@@ -4467,12 +4467,12 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 			{
 				GroupId:                     g2.Id,
 				ChannelMemberCount:          5,
-				ChannelMemberTimezonesCount: 2,
+				ChannelMemberTimezonesCount: 1,
 			},
 			{
 				GroupId:                     g3.Id,
