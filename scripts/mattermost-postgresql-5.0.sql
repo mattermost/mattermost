@@ -556,7 +556,7 @@ CREATE TABLE public.teams (
     inviteid character varying(32),
     allowopeninvite boolean,
     lastteamiconupdate bigint,
-    schemeid text
+    schemeid varying(26)
 );
 
 
