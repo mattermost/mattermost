@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -115,7 +116,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		var err error
 		logger.logrLogger, err = newLogr(config.Targets)
 		if err != nil {
-			logger.Error("cannot create target(s). ", Err(err))
+			Error(fmt.Sprintf("cannot create log target(s): %v", err))
 		}
 	}
 	return logger
@@ -133,6 +134,10 @@ func (l *Logger) SetConsoleLevel(level string) {
 func (l *Logger) With(fields ...Field) *Logger {
 	newlogger := *l
 	newlogger.zap = newlogger.zap.With(fields...)
+	if newlogger.logrLogger != nil {
+		ll := newlogger.logrLogger.WithFields(zapToLogr(fields))
+		newlogger.logrLogger = &ll
+	}
 	return &newlogger
 }
 
@@ -205,8 +210,14 @@ func (l *Logger) Critical(message string, fields ...Field) {
 }
 
 func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
-	l.zap.Error(message, fields...)
 	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Level(level)) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
 	}
+}
+
+func (l *Logger) Flush() error {
+	if l.logrLogger != nil {
+		return l.logrLogger.Logr().Flush()
+	}
+	return nil
 }

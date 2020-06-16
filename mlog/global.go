@@ -19,6 +19,8 @@ func InitGlobalLogger(logger *Logger) {
 	Warn = globalLogger.Warn
 	Error = globalLogger.Error
 	Critical = globalLogger.Critical
+	Log = globalLogger.Log
+	Flush = globalLogger.Flush
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -26,6 +28,8 @@ func RedirectStdLog(logger *Logger) {
 }
 
 type LogFunc func(string, ...Field)
+type LogFuncCustom func(LogLevel, string, ...Field)
+type FlushFunc func() error
 
 // DON'T USE THIS Modify the level on the app logger
 func GloballyDisableDebugLogForTest() {
@@ -42,3 +46,5 @@ var Info LogFunc = defaultInfoLog
 var Warn LogFunc = defaultWarnLog
 var Error LogFunc = defaultErrorLog
 var Critical LogFunc = defaultCriticalLog
+var Log LogFuncCustom = defaultCustomLog
+var Flush FlushFunc = defaultFlush

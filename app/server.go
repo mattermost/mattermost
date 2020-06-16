@@ -506,7 +506,12 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
+	if err := mlog.Flush(); err != nil {
+		mlog.Error("Error flushing logs", mlog.Err(err))
+	}
+
 	mlog.Info("Server stopped")
+	_ = mlog.Flush() // should just write one last record, the rest are already flushed.
 	return nil
 }
 

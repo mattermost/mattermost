@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -33,12 +34,20 @@ type LogTarget struct {
 	Levels       []LogLevel
 	Options      map[string]interface{}
 	MaxQueueSize int
+	errorAction  string
 }
 
 func newLogr(targets map[string]*LogTarget) (*logr.Logger, error) {
 	var errs error
 
 	lgr := logr.Logr{}
+
+	lgr.OnExit = func(int) {}
+	lgr.OnPanic = func(interface{}) {}
+
+	lgr.OnLoggerError = onLoggerError
+	lgr.OnQueueFull = onQueueFull
+	lgr.OnTargetQueueFull = onTargetQueueFull
 
 	for name, t := range targets {
 		target, err := newLogrTarget(name, t)
@@ -196,8 +205,9 @@ func optionInt(key string, m map[string]interface{}) (int, bool) {
 	if !ok {
 		return 0, false
 	}
-	val, ok := v.(int)
-	if !ok {
+	s := fmt.Sprintf("%v", v)
+	val, err := strconv.Atoi(s)
+	if err != nil {
 		return 0, false
 	}
 	return val, true
@@ -230,6 +240,8 @@ func isLevelEnabled(logger *logr.Logger, level logr.Level) bool {
 	return status.Enabled
 }
 
+// zapToLogr converts Zap fields to Logr fields.
+// This will not be needed once Logr is used for all logging.
 func zapToLogr(zapFields []Field) logr.Fields {
 	encoder := zapcore.NewMapObjectEncoder()
 	for _, zapField := range zapFields {

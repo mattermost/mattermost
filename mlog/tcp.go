@@ -28,9 +28,11 @@ type Tcp struct {
 	logr.Basic
 
 	params *TcpParams
+	addy   string
 
 	mutex    sync.Mutex
 	conn     net.Conn
+	monitor  chan struct{}
 	shutdown chan struct{}
 }
 
@@ -47,6 +49,8 @@ type TcpParams struct {
 func NewTcpTarget(filter logr.Filter, formatter logr.Formatter, params *TcpParams, maxQueue int) (*Tcp, error) {
 	tcp := &Tcp{
 		params:   params,
+		addy:     fmt.Sprintf("%s:%d", params.IP, params.Port),
+		monitor:  make(chan struct{}),
 		shutdown: make(chan struct{}),
 	}
 	tcp.Basic.Start(tcp, tcp, filter, formatter, maxQueue)
@@ -61,6 +65,7 @@ func (tcp *Tcp) getConn() (net.Conn, error) {
 	defer tcp.mutex.Unlock()
 
 	if tcp.conn != nil {
+		Log(LvlTcpLogTarget, "reusing existing conn", String("addy", tcp.addy)) // use "With" once Zap is removed
 		return tcp.conn, nil
 	}
 
@@ -74,7 +79,13 @@ func (tcp *Tcp) getConn() (net.Conn, error) {
 	defer cancel()
 
 	go func(ctx context.Context, ch chan result) {
+		Log(LvlTcpLogTarget, "dailing", String("addy", tcp.addy))
 		conn, err := tcp.dial(ctx)
+		if err == nil {
+			tcp.conn = conn
+			tcp.monitor = make(chan struct{})
+			go monitor(tcp.conn, tcp.monitor)
+		}
 		connChan <- result{conn: conn, err: err}
 	}(ctx, connChan)
 
@@ -99,6 +110,8 @@ func (tcp *Tcp) dial(ctx context.Context) (net.Conn, error) {
 	if !tcp.params.TLS {
 		return conn, nil
 	}
+
+	Log(LvlTcpLogTarget, "TLS handshake", String("addy", tcp.addy))
 
 	tlsconfig := &tls.Config{
 		ServerName:         tcp.params.IP,
@@ -125,6 +138,8 @@ func (tcp *Tcp) close() error {
 
 	var err error
 	if tcp.conn != nil {
+		Log(LvlTcpLogTarget, "closing connection", String("addy", tcp.addy))
+		close(tcp.monitor)
 		err = tcp.conn.Close()
 		tcp.conn = nil
 	}
@@ -134,6 +149,8 @@ func (tcp *Tcp) close() error {
 // Shutdown stops processing log records after making best effort to flush queue.
 func (tcp *Tcp) Shutdown(ctx context.Context) error {
 	errs := &multierror.Error{}
+
+	Log(LvlTcpLogTarget, "shutting down", String("addy", tcp.addy))
 
 	if err := tcp.Basic.Shutdown(ctx); err != nil {
 		errs = multierror.Append(errs, err)
@@ -160,10 +177,12 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 		return err
 	}
 
+	try := 1
 	backoff := RetryBackoffMillis
 	for {
 		conn, err := tcp.getConn()
 		if err != nil {
+			Log(LvlTcpLogTarget, "failed getting connection", String("addy", tcp.addy), Err(err))
 			reporter := rec.Logger().Logr().ReportError
 			reporter(fmt.Errorf("log target %s connection error: %w", tcp.String(), err))
 			backoff = tcp.sleep(backoff)
@@ -176,6 +195,7 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 			return nil
 		}
 
+		Log(LvlTcpLogTarget, "write error", String("addy", tcp.addy), Err(err))
 		reporter := rec.Logger().Logr().ReportError
 		reporter(fmt.Errorf("log target %s write error: %w", tcp.String(), err))
 
@@ -187,6 +207,45 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 		default:
 		}
 		backoff = tcp.sleep(backoff)
+		try++
+		Log(LvlTcpLogTarget, "retrying write", String("addy", tcp.addy), Int("try", try))
+	}
+}
+
+// monitor continuously tries to read from the connection to detect socket close.
+// This is needed because TCP target uses a write only socket and Linux systems
+// take a long time to detect a loss of connectivity on a socket when only writing;
+// the writes simply fail without an error returned.
+func monitor(conn net.Conn, done <-chan struct{}) {
+	addy := conn.RemoteAddr().String()
+	defer Log(LvlTcpLogTarget, "monitor exiting", String("addy", addy))
+
+	buf := make([]byte, 1)
+	for {
+		Log(LvlTcpLogTarget, "monitor loop", String("addy", addy))
+
+		select {
+		case <-done:
+			return
+		case <-time.After(1 * time.Second):
+		}
+
+		err := conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+		if err != nil {
+			continue
+		}
+
+		_, err = conn.Read(buf)
+
+		if errt, ok := err.(net.Error); ok && errt.Timeout() {
+			// read timeout is expected, keep looping.
+			continue
+		}
+
+		// Any other error closes the connection, forcing a reconnect.
+		Log(LvlTcpLogTarget, "monitor closing connection", Err(err))
+		conn.Close()
+		return
 	}
 }
 

@@ -49,3 +49,11 @@ func defaultCriticalLog(msg string, fields ...Field) {
 	// We map critical to error in zap, so be consistent.
 	defaultLog("error", msg, fields...)
 }
+
+func defaultCustomLog(lvl LogLevel, msg string, fields ...Field) {
+	// custom log levels only output once log targets are configured.
+}
+
+func defaultFlush() error {
+	return nil
+}
