@@ -369,7 +369,7 @@ CREATE TABLE `IncomingWebhooks` (
   `DisplayName` varchar(64) DEFAULT NULL,
   `Description` varchar(128) DEFAULT NULL,
   `Username` varchar(255) DEFAULT NULL,
-  `IconURL` varchar(255) DEFAULT NULL,
+  `IconURL` text,
   `ChannelLocked` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`Id`),
   KEY `idx_incoming_webhook_user_id` (`UserId`),
