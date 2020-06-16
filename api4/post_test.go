@@ -12,7 +12,6 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -598,40 +597,26 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 	_, loginResp := cli.Login(th.BasicUser2.Username, th.BasicUser2.Password)
 	require.Nil(t, loginResp.Error)
 
-	var wg sync.WaitGroup
 	wsClient, err := th.CreateWebSocketClientWithClient(cli)
 	require.Nil(t, err)
-	defer func() {
-		wg.Wait()
-		wsClient.Close()
-	}()
+	defer wsClient.Close()
 
 	wsClient.Listen()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		timeout := time.After(2 * time.Second)
-		cnt := true
-		i := 0
-		for cnt {
+	waitForEvent := func(isSetOnline bool) {
+		timeout := time.After(5 * time.Second)
+		for {
 			select {
 			case ev := <-wsClient.EventChannel:
 				if ev.EventType() == model.WEBSOCKET_EVENT_POSTED {
-					if i == 0 {
-						assert.False(t, ev.GetData()["set_online"].(bool))
-					} else {
-						assert.True(t, ev.GetData()["set_online"].(bool))
-					}
-					i++
+					assert.True(t, ev.GetData()["set_online"].(bool) == isSetOnline)
+					return
 				}
-				cnt = i != 2
 			case <-timeout:
-				cnt = false
+				require.Fail(t, "timed out waiting for event")
 			}
 		}
-		assert.Equal(t, 2, i, "unexpected number of posted events")
-	}()
+	}
 
 	handler := api.ApiHandler(createPost)
 	resp := httptest.NewRecorder()
@@ -645,6 +630,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
+	waitForEvent(false)
 
 	_, err = th.App.GetStatus(th.BasicUser.Id)
 	require.NotNil(t, err)
@@ -655,6 +641,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusCreated, resp.Code)
+	waitForEvent(true)
 
 	st, err := th.App.GetStatus(th.BasicUser.Id)
 	require.Nil(t, err)
