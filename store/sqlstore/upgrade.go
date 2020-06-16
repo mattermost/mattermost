@@ -800,7 +800,6 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 		sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
 		sqlStore.GetMaster().Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
 		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
 		saveSchemaVersion(sqlStore, VERSION_5_24_0)
 	}
