@@ -12,7 +12,6 @@
 package gorp
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"database/sql/driver"
@@ -100,7 +99,7 @@ func (m *DbMap) CreateIndex() error {
 func (m *DbMap) createIndexImpl(dialect reflect.Type,
 	table *TableMap,
 	index *IndexMap) error {
-	s := bytes.Buffer{}
+	s := strings.Builder{}
 	s.WriteString("create")
 	if index.Unique {
 		s.WriteString(" unique")
@@ -133,7 +132,7 @@ func (t *TableMap) DropIndex(name string) error {
 	dialect := reflect.TypeOf(t.dbmap.Dialect)
 	for _, idx := range t.indexes {
 		if idx.IndexName == name {
-			s := bytes.Buffer{}
+			s := strings.Builder{}
 			s.WriteString(fmt.Sprintf("DROP INDEX %s", idx.IndexName))
 
 			if dname := dialect.Name(); dname == "MySQLDialect" {

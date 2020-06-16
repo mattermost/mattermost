@@ -60,7 +60,7 @@ require (
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/mattermost/go-i18n v1.11.0
-	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
+	github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0

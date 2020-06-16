@@ -12,7 +12,6 @@
 package gorp
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -189,7 +188,7 @@ func (t *TableMap) SetVersionCol(field string) *ColumnMap {
 // SqlForCreateTable gets a sequence of SQL commands that will create
 // the specified table and any associated schema
 func (t *TableMap) SqlForCreate(ifNotExists bool) string {
-	s := bytes.Buffer{}
+	s := strings.Builder{}
 	dialect := t.dbmap.Dialect
 
 	if strings.TrimSpace(t.SchemaName) != "" {
