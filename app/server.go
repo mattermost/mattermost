@@ -377,6 +377,8 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
+	s.diagnosticsService = diagnostics.New(s, s.Store, s.SearchEngine, s.Log)
+
 	s.regenerateClientConfig()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -503,8 +505,6 @@ func NewServer(options ...Option) (*Server, error) {
 	searchConfigListenerId, searchLicenseListenerId := s.StartSearchEngine()
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
-
-	s.diagnosticsService = diagnostics.New(s, s.Store, s.SearchEngine, s.Log)
 
 	return s, nil
 }
