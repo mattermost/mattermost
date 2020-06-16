@@ -283,7 +283,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	post := &model.Post{}
 	post = th.BasicPost.Clone()
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
@@ -1017,7 +1017,7 @@ func TestSearchPostsInTeamForUser(t *testing.T) {
 		}
 
 		if enableElasticsearch {
-			th.App.SetLicense(model.NewTestLicense("elastic_search"))
+			th.App.Srv().SetLicense(model.NewTestLicense("elastic_search"))
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ElasticsearchSettings.EnableIndexing = true
@@ -1761,7 +1761,7 @@ func TestFillInPostProps(t *testing.T) {
 	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("ldap"))
+		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		user1 := th.BasicUser
 
@@ -1815,7 +1815,7 @@ func TestFillInPostProps(t *testing.T) {
 	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
-		th.App.SetLicense(model.NewTestLicense("ldap"))
+		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		id := model.NewId()
 		guest := &model.User{

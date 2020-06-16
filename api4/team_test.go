@@ -1220,6 +1220,14 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		teams[i] = newTeam
 	}
 
+	foobarTeam, err := th.App.CreateTeam(&model.Team{
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.TEAM_OPEN,
+		Email:       th.GenerateTestEmail(),
+	})
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name               string
 		Search             *model.TeamSearch
@@ -1227,8 +1235,56 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		ExpectedTotalCount int64
 	}{
 		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "oob", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "foo", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "bar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "what", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
+			Name:               "Get foobar channel",
+			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{foobarTeam.Id},
+			ExpectedTotalCount: 1,
+		},
+		{
 			Name:               "Get all teams on one page",
 			Search:             &model.TeamSearch{Term: commonRandom, Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with partial word",
+			Search:             &model.TeamSearch{Term: commonRandom[11:18]},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with term upper cased",
+			Search:             &model.TeamSearch{Term: strings.ToUpper(commonRandom)},
+			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
+			ExpectedTotalCount: 3,
+		},
+		{
+			Name:               "Get all teams on one page with some of term upper and some lower",
+			Search:             &model.TeamSearch{Term: commonRandom[0:11] + strings.ToUpper(commonRandom[11:18]+commonRandom[18:])},
 			ExpectedTeams:      []string{teams[0].Id, teams[1].Id, teams[2].Id},
 			ExpectedTotalCount: 3,
 		},
@@ -1647,8 +1703,8 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -1731,7 +1787,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -1745,7 +1801,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -1800,8 +1856,8 @@ func TestAddTeamMember(t *testing.T) {
 	th.App.DeleteToken(token)
 
 	// by invite_id
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 	_, resp = Client.Login(guest.Email, guest.Password)
 	CheckNoError(t, resp)
 
@@ -2094,7 +2150,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -2108,7 +2164,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_ADD_USER_TO_TEAM.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -2636,60 +2692,71 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
-	_, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
-	require.NotNil(t, resp.Error, "Should be disabled")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+		require.NotNil(t, resp.Error, "Should be disabled")
+	})
+
+	checkEmail := func(t *testing.T, expectedSubject string) {
+		//Check if the email was sent to the right email address
+		for _, email := range emailList {
+			var resultsMailbox mailservice.JSONMessageHeaderInbucket
+			err := mailservice.RetryInbucket(5, func() error {
+				var err error
+				resultsMailbox, err = mailservice.GetMailBox(email)
+				return err
+			})
+			if err != nil {
+				t.Log(err)
+				t.Log("No email was received, maybe due load on the server. Disabling this verification")
+			}
+			if err == nil && len(resultsMailbox) > 0 {
+				require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
+				resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
+				if err == nil {
+					require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
+				}
+			}
+		}
+	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
 	require.True(t, okMsg, "should return true")
-
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := utils.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
 			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
 
-	//Check if the email was send to the right email address
-	for _, email := range emailList {
-		var resultsMailbox mailservice.JSONMessageHeaderInbucket
-		err := mailservice.RetryInbucket(5, func() error {
-			var err error
-			resultsMailbox, err = mailservice.GetMailBox(email)
-			return err
-		})
-		if err != nil {
-			t.Log(err)
-			t.Log("No email was received, maybe due load on the server. Disabling this verification")
-		}
-		if err == nil && len(resultsMailbox) > 0 {
-			require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], email), "Wrong To recipient")
-			resultsEmail, err := mailservice.GetMessageFromMailbox(email, resultsMailbox[len(resultsMailbox)-1].ID)
-			if err == nil {
-				require.Equalf(t, resultsEmail.Subject, expectedSubject, "Wrong Subject, actual: %s, expected: %s", resultsEmail.Subject, expectedSubject)
-			}
-		}
-	}
+	mailservice.DeleteMailBox(user1)
+	mailservice.DeleteMailBox(user2)
+	okMsg, resp = th.LocalClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+	CheckNoError(t, resp)
+	require.True(t, okMsg, "should return true")
+	expectedSubject = utils.T("api.templates.invite_subject",
+		map[string]interface{}{"SenderName": "Administrator",
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
+	checkEmail(t, expectedSubject)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
 
-	t.Run("restricted domains", func(t *testing.T) {
-		err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		okMsg, resp := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+		require.False(t, okMsg, "should return false")
+		require.NotNil(t, resp.Error, "Adding users with non-restricted domains was allowed")
 
-		require.NotNil(t, err, "Adding users with non-restricted domains was allowed")
+		invitesWithErrors, resp := client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.NotNil(t, invitesWithErrors[1].Error)
+	}, "restricted domains")
 
-		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Got wrong error message!", err)
-		require.Equalf(t, err.Id, "api.team.invite_members.invalid_email.app_error", "%v, Got wrong error message!", err)
-
-		res, err := th.App.InviteNewUsersToTeamGracefully(emailList, th.BasicTeam.Id, th.BasicUser.Id)
-
-		require.Nil(t, err)
-		require.Len(t, res, 2)
-		require.NotNil(t, res[0].Error)
-		require.NotNil(t, res[1].Error)
-	})
-
-	t.Run("override restricted domains", func(t *testing.T) {
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		th.BasicTeam.AllowedDomains = "invalid.com,common.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.NotNil(t, err, "Should not update the team")
@@ -2698,22 +2765,24 @@ func TestInviteUsersToTeam(t *testing.T) {
 		_, err = th.App.UpdateTeam(th.BasicTeam)
 		require.Nilf(t, err, "%v, Should update the team", err)
 
-		err = th.App.InviteNewUsersToTeam([]string{"test@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.NotNilf(t, err, "%v, Per team restriction should take precedence over the global restriction", err)
-		require.Equalf(t, err.Where, "InviteNewUsersToTeam", "%v, Per team restriction should take precedence over the global restriction", err)
+		okMsg, resp := client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@global.com"})
+		require.False(t, okMsg, "should return false")
+		require.NotNilf(t, resp.Error, "%v, Per team restriction should take precedence over the globally allowed domains", err)
 
-		err = th.App.InviteNewUsersToTeam([]string{"test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.Nilf(t, err, "%v, Failed to invite user which was common between team and global domain restriction", err)
+		okMsg, resp = client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@common.com"})
+		require.True(t, okMsg, "should return true")
+		require.Nilf(t, resp.Error, "%v, Failed to invite user which was common between team and global domain restriction", err)
 
-		err = th.App.InviteNewUsersToTeam([]string{"test@invalid.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.NotNilf(t, err, "%v, Should not invite user", err)
+		okMsg, resp = client.InviteUsersToTeam(th.BasicTeam.Id, []string{"test@invalid.com"})
+		require.False(t, okMsg, "should return false")
+		require.NotNilf(t, resp.Error, "%v, Should not invite user", err)
 
-		res, err := th.App.InviteNewUsersToTeamGracefully([]string{"test@invalid.com", "test@common.com"}, th.BasicTeam.Id, th.BasicUser.Id)
-		require.Nil(t, err)
-		require.Len(t, res, 2)
-		require.NotNil(t, res[0].Error)
-		require.Nil(t, res[1].Error)
-	})
+		invitesWithErrors, resp := client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{"test@invalid.com", "test@common.com"})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Nil(t, invitesWithErrors[1].Error)
+	}, "override restricted domains")
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
@@ -2742,7 +2811,7 @@ func TestInviteGuestsToTeam(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.Enable = &enableGuestAccounts })
 	}()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 	_, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
@@ -2755,13 +2824,13 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 
 	_, resp = th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
 	require.NotNil(t, resp.Error, "Should be disabled")
 
-	th.App.SetLicense(model.NewTestLicense(""))
-	defer th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
+	defer th.App.Srv().SetLicense(nil)
 
 	okMsg, resp := th.SystemAdminClient.InviteGuestsToTeam(th.BasicTeam.Id, emailList, []string{th.BasicChannel.Id}, "test-message")
 	CheckNoError(t, resp)
@@ -2960,7 +3029,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -3012,10 +3081,10 @@ func TestUpdateTeamScheme(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Test that a license is required.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckNotImplementedStatus(t, resp)
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
