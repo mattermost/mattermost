@@ -2443,6 +2443,22 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
+// PublishUserTyping provides a mock function with given fields: userId, channelId, parentId
+func (_m *API) PublishUserTyping(userId string, channelId string, parentId string) *model.AppError {
+	ret := _m.Called(userId, channelId, parentId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+		r0 = rf(userId, channelId, parentId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
 func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)

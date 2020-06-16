@@ -953,6 +953,13 @@ type API interface {
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
+
+	// PublishUserTyping publishes a user is typing WebSocket event.
+	// The parentId parameter may be an empty string, the other parameters are required.
+	//
+	// @tag User
+	// Minimum server version: 5.26
+	PublishUserTyping(userId, channelId, parentId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -850,6 +850,10 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	return api.app.DeleteBotIconImage(userId)
 }
 
+func (api *PluginAPI) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userId, channelId, parentId)
+}
+
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
