@@ -506,6 +506,23 @@ func NewServer(options ...Option) (*Server, error) {
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
+	if samlInterface != nil {
+		// FakeApp: remove this when we have the Saml service depending only in the server
+		samlFakeApp := New(ServerConnector(s))
+		if *s.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+			mlog.Debug("Loading new SAML2 library")
+			s.Saml = samlInterfaceNew(samlFakeApp)
+		} else {
+			mlog.Debug("Loading original SAML library")
+			s.Saml = samlInterface(samlFakeApp)
+		}
+		s.AddConfigListener(func(_, cfg *model.Config) {
+			if err := s.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
+	}
+
 	return s, nil
 }
 
