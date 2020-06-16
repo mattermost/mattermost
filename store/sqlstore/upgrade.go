@@ -809,15 +809,15 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion525(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
-		saveSchemaVersion(sqlStore, VERSION_5_25_0)
-	}
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
+	saveSchemaVersion(sqlStore, VERSION_5_25_0)
+	//}
 }
 
 func upgradeDatabaseToVersion526(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
-		saveSchemaVersion(sqlStore, VERSION_5_26_0)
-	}
+	saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	//}
 }
