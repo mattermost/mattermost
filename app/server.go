@@ -516,6 +516,7 @@ func NewServer(options ...Option) (*Server, error) {
 			mlog.Debug("Loading original SAML library")
 			s.Saml = samlInterface(samlFakeApp)
 		}
+		s.Saml.ConfigureSP()
 		s.AddConfigListener(func(_, cfg *model.Config) {
 			if err := s.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
