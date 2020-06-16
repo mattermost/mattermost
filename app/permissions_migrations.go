@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -167,7 +168,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	}
 
 	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
-		return err
+		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }

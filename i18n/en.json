@@ -7091,15 +7091,19 @@
     "translation": "We encountered an error finding the system properties."
   },
   {
-    "id": "store.sql_system.get_by_name.app_error",
+    "id": "app.system.get_by_name.app_error",
     "translation": "Unable to find the system variable."
   },
   {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
+    "id": "app.system.permanent_delete_by_name.app_error",
     "translation": "We could not permanently delete the system table entry."
   },
   {
-    "id": "store.sql_system.save.app_error",
+    "id": "app.system.save.app_error",
+    "translation": "We encountered an error saving the system property."
+  },
+  {
+    "id": "migrations.system.save.app_error",
     "translation": "We encountered an error saving the system property."
   },
   {

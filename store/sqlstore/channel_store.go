@@ -520,7 +520,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrapf(err, "begin_transaction: ")
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -531,11 +531,11 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 	// Additionally propagate the write to the PublicChannels table.
 	if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-		return nil, errors.Wrapf(err, "upsert_public_channel: ")
+		return nil, errors.Wrap(err, "upsert_public_channel")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrapf(err, "commit_transaction: ")
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return newChannel, nil

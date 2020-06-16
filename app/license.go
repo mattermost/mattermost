@@ -163,7 +163,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 	sysVar.Value = ""
 
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
-		return err
+		return model.NewAppError("RemoveLicense", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	s.SetLicense(nil)

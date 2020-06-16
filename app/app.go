@@ -169,9 +169,9 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-	if appErr != nil {
-		return 0, appErr
+	systemData, err := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	if err != nil {
+		return 0, model.NewAppError("getSystemInstallDate", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
@@ -181,9 +181,9 @@ func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
-	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
-	if appErr != nil {
-		return 0, appErr
+	systemData, err := s.Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	if err != nil {
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
