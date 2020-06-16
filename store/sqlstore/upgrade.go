@@ -181,6 +181,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion522(sqlStore)
 	upgradeDatabaseToVersion523(sqlStore)
 	upgradeDatabaseToVersion524(sqlStore)
+	upgradeDatabaseToVersion525(sqlStore)
+	upgradeDatabaseToVersion526(sqlStore)
 	return nil
 }
 
@@ -806,13 +808,19 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 	}
 }
 
-func upgradeDatabaseToVersion526(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
-		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
-		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+func upgradeDatabaseToVersion525(sqlStore SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
+	saveSchemaVersion(sqlStore, VERSION_5_25_0)
+	//}
+}
 
-		saveSchemaVersion(sqlStore, VERSION_5_26_0)
-	}
+func upgradeDatabaseToVersion526(sqlStore SqlStore) {
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+	sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
+	sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
+	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
+	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+
+	saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	//}
 }
