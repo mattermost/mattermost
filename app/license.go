@@ -27,16 +27,16 @@ func (s *Server) LoadLicense() {
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
-			if _, err = s.SaveLicense(licenseBytes); err != nil {
-				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
+			if _, appErr := s.SaveLicense(licenseBytes); appErr != nil {
+				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(appErr))
 			} else {
 				licenseId = license.Id
 			}
 		}
 	}
 
-	record, err := s.Store.License().Get(licenseId)
-	if err != nil {
+	record, appErr := s.Store.License().Get(licenseId)
+	if appErr != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
 		s.SetLicense(nil)
 		return
