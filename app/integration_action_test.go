@@ -489,9 +489,13 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-		    response := &model.SubmitDialogResponse{
-				Errors: map[string]string{"name1": "some error"},
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			errReply := "some error"
+ 			if r.URL.Query().Get("abc") == "xyz" {
+				errReply = "some other error"
+			}
+			response := &model.SubmitDialogResponse{
+				Errors: map[string]string{"name1": errReply},
 			}
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write(response.ToJson())
@@ -534,6 +538,12 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, "some error", resp.Errors["name1"])
+
+	submit.URL = "/plugins/myplugin/myaction?abc=xyz"
+	resp, err = th.App.SubmitInteractiveDialog(submit)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "some other error", resp.Errors["name1"])
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
