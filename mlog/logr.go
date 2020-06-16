@@ -34,7 +34,6 @@ type LogTarget struct {
 	Levels       []LogLevel
 	Options      map[string]interface{}
 	MaxQueueSize int
-	errorAction  string
 }
 
 func newLogr(targets map[string]*LogTarget) (*logr.Logger, error) {
