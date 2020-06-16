@@ -4,8 +4,12 @@
 package app
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"os/user"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -27,11 +31,31 @@ var (
 )
 
 func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
-	return a.Srv().Store.Audit().Get(userId, 0, limit)
+	audits, err := a.Srv().Store.Audit().Get(userId, 0, limit)
+	if err != nil {
+		var iErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &iErr):
+			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return audits, nil
 }
 
 func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
-	return a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+	audits, err := a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+	if err != nil {
+		var iErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &iErr):
+			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return audits, nil
 }
 
 // LogAuditRec logs an audit record using default CLILevel.

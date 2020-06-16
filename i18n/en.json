@@ -6099,19 +6099,19 @@
     "translation": "Failed to build query."
   },
   {
-    "id": "store.sql_audit.get.finding.app_error",
+    "id": "app.audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
   {
-    "id": "store.sql_audit.get.limit.app_error",
+    "id": "app.audit.get.limit.app_error",
     "translation": "Limit exceeded for paging."
   },
   {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
+    "id": "app.audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits."
   },
   {
-    "id": "store.sql_audit.save.saving.app_error",
+    "id": "app.audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit."
   },
   {
