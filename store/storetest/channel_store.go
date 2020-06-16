@@ -7067,6 +7067,39 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 }
 
 func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
+	t.Run("ensure the query to update SidebarCategories hasn't been polluted by UpdateSidebarCategoryOrder", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		// Create the initial categories
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory := initialCategories.Categories[0]
+		channelsCategory := initialCategories.Categories[1]
+		dmsCategory := initialCategories.Categories[2]
+
+		// And then update one of them
+		updated, err := ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
+			channelsCategory,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, channelsCategory, updated[0])
+		assert.Equal(t, "Channels", updated[0].DisplayName)
+
+		// And then reorder the categories
+		err = ss.Channel().UpdateSidebarCategoryOrder(user.Id, teamId, []string{dmsCategory.Id, favoritesCategory.Id, channelsCategory.Id})
+		require.Nil(t, err)
+
+		// Which somehow blanks out stuff because ???
+		got, err := ss.Channel().GetSidebarCategory(favoritesCategory.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "Favorites", got.DisplayName)
+	})
+
 	t.Run("should silently fail to update read only fields", func(t *testing.T) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
@@ -7085,6 +7118,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		require.Nil(t, err)
 
 		categoriesToUpdate := []*model.SidebarCategoryWithChannels{
+			// Try to change the type of Favorites
 			{
 				SidebarCategory: model.SidebarCategory{
 					Id:          favoritesCategory.Id,
@@ -7092,6 +7126,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				},
 				Channels: favoritesCategory.Channels,
 			},
+			// Try to change the type of Channels
 			{
 				SidebarCategory: model.SidebarCategory{
 					Id:   channelsCategory.Id,
@@ -7099,15 +7134,19 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				},
 				Channels: channelsCategory.Channels,
 			},
+			// Try to change the Channels of DMs
 			{
 				SidebarCategory: dmsCategory.SidebarCategory,
 				Channels:        []string{"fakechannel"},
 			},
+			// Try to change the UserId/TeamId of a custom category
 			{
 				SidebarCategory: model.SidebarCategory{
-					Id:     customCategory.Id,
-					UserId: model.NewId(),
-					TeamId: model.NewId(),
+					Id:          customCategory.Id,
+					UserId:      model.NewId(),
+					TeamId:      model.NewId(),
+					Sorting:     customCategory.Sorting,
+					DisplayName: customCategory.DisplayName,
 				},
 				Channels: customCategory.Channels,
 			},
@@ -7339,8 +7378,6 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 			},
 		)
 		require.Nil(t, nErr)
-
-		t.Log("dmchannel", dmChannel.Id)
 
 		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
 		require.Nil(t, err)
