@@ -166,8 +166,7 @@ type Server struct {
 
 	CacheProvider2 cache2.Provider
 
-	tracer                      *tracing.Tracer
-	timestampLastDiagnosticSent time.Time
+	tracer *tracing.Tracer
 }
 
 func NewServer(options ...Option) (*Server, error) {

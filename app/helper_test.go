@@ -167,17 +167,6 @@ func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
-func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	return setupTestHelper(dbStore, false, true, tb, configSet)
-}
-
 var initBasicOnce sync.Once
 var userCache struct {
 	SystemAdminUser *model.User

@@ -4,7 +4,6 @@
 package diagnostics
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -1248,7 +1247,7 @@ func (ds *DiagnosticsService) Shutdown() error {
 	}
 
 	if segmentErr != nil && rudderErr != nil {
-		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
+		return fmt.Errorf("%s, %s", segmentErr.Error(), rudderErr.Error())
 	} else if segmentErr != nil {
 		return segmentErr
 	}
