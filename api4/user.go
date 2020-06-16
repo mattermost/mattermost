@@ -859,7 +859,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("autocompleteUser",
 				"api.user.autocomplete_users.missing_team_id.app_error",
 				nil,
-				"channelId="+channelId",
+				"channelId="+channelId,
 				http.StatusInternalServerError,
 			)
 			return
