@@ -1210,5 +1210,8 @@ func (s *Server) initJobs() {
 }
 
 func (s *Server) TelemetryId() string {
+	if s.telemetryService == nil {
+		return ""
+	}
 	return s.telemetryService.TelemetryID
 }
