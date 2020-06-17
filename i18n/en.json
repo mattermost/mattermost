@@ -6967,11 +6967,11 @@
     "translation": "Unable to delete the scheme."
   },
   {
-    "id": "store.sql_scheme.get.app_error",
+    "id": "app.scheme.get.app_error",
     "translation": "Unable to get the scheme."
   },
   {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
+    "id": "app.scheme.permanent_delete_all.app_error",
     "translation": "We could not permanently delete the schemes."
   },
   {
@@ -6979,15 +6979,15 @@
     "translation": "Unable to reset all channels using this scheme to the default scheme."
   },
   {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme."
+    "id": "app.scheme.delete.app_error",
+    "translation": "Unable to delete this scheme."
   },
   {
-    "id": "store.sql_scheme.save.insert.app_error",
+    "id": "app.scheme.save.app_error",
     "translation": "Unable to create the scheme."
   },
   {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
+    "id": "app.scheme.save.invalid_scheme.app_error",
     "translation": "The provided scheme is invalid."
   },
   {
