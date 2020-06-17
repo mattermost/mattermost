@@ -6,8 +6,8 @@ package api4
 import (
 	"net/http"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/mattermost/mattermost-server/v5/web"
-	"github.com/mkraft/gziphandler"
 )
 
 type Context = web.Context

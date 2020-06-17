@@ -1115,6 +1115,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL cannot be cleared."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1355,6 +1359,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -3005,6 +3013,14 @@
   {
     "id": "app.channel.get_all_channels_count.app_error",
     "translation": "Unable to count all the channels."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
@@ -6153,14 +6169,6 @@
   {
     "id": "store.sql_channel.get_all_direct.app_error",
     "translation": "Unable to get all the direct channels."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
   },
   {
     "id": "store.sql_channel.get_by_scheme.app_error",
