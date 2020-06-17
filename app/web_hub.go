@@ -96,19 +96,6 @@ func (a *App) HubStart() {
 	}
 }
 
-func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
-	if message.GetBroadcast().UserId != "" {
-		hub := a.GetHubForUserId(message.GetBroadcast().UserId)
-		if hub != nil {
-			hub.Broadcast(message)
-		}
-		return
-	}
-	for _, hub := range a.Srv().GetHubs() {
-		hub.Broadcast(message)
-	}
-}
-
 func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv().Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	a.InvalidateWebConnSessionCacheForUser(userId)
@@ -126,31 +113,39 @@ func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
 }
 
 // HubStop stops all the hubs.
-func (a *App) HubStop() {
+func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
-	for _, hub := range a.Srv().GetHubs() {
+	for _, hub := range s.GetHubs() {
 		hub.Stop()
 	}
 
-	a.Srv().SetHubs([]*Hub{})
+	s.SetHubs([]*Hub{})
+}
+
+func (a *App) HubStop() {
+	a.Srv().HubStop()
 }
 
 // GetHubForUserId returns the hub for a given user id.
-func (a *App) GetHubForUserId(userId string) *Hub {
-	if len(a.Srv().GetHubs()) == 0 {
+func (s *Server) GetHubForUserId(userId string) *Hub {
+	if len(s.GetHubs()) == 0 {
 		return nil
 	}
 
 	hash := fnv.New32a()
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(a.Srv().GetHubs()))
-	hub, err := a.Srv().GetHub(int(index))
+	index := hash.Sum32() % uint32(len(s.GetHubs()))
+	hub, err := s.GetHub(int(index))
 	if err != nil {
 		mlog.Warn("Requested hub doesn't exist", mlog.Int("hub_index", int(index)))
 		return nil
 	}
 	return hub
+}
+
+func (a *App) GetHubForUserId(userId string) *Hub {
+	return a.Srv().GetHubForUserId(userId)
 }
 
 // HubRegister registers a connection to a hub.
@@ -175,14 +170,14 @@ func (a *App) HubUnregister(webConn *WebConn) {
 	}
 }
 
-func (a *App) Publish(message *model.WebSocketEvent) {
-	if metrics := a.Metrics(); metrics != nil {
-		metrics.IncrementWebsocketEvent(message.EventType())
+func (s *Server) Publish(message *model.WebSocketEvent) {
+	if s.Metrics != nil {
+		s.Metrics.IncrementWebsocketEvent(message.EventType())
 	}
 
-	a.PublishSkipClusterSend(message)
+	s.PublishSkipClusterSend(message)
 
-	if a.Cluster() != nil {
+	if s.Cluster != nil {
 		cm := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_PUBLISH,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -197,8 +192,29 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
-		a.Cluster().SendClusterMessage(cm)
+		s.Cluster.SendClusterMessage(cm)
 	}
+}
+
+func (a *App) Publish(message *model.WebSocketEvent) {
+	a.Srv().Publish(message)
+}
+
+func (s *Server) PublishSkipClusterSend(message *model.WebSocketEvent) {
+	if message.GetBroadcast().UserId != "" {
+		hub := s.GetHubForUserId(message.GetBroadcast().UserId)
+		if hub != nil {
+			hub.Broadcast(message)
+		}
+	} else {
+		for _, hub := range s.GetHubs() {
+			hub.Broadcast(message)
+		}
+	}
+}
+
+func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
+	a.Srv().PublishSkipClusterSend(message)
 }
 
 func (a *App) invalidateCacheForChannel(channel *model.Channel) {
@@ -339,12 +355,13 @@ func (h *Hub) IsRegistered(userId, sessionToken string) bool {
 
 // Broadcast broadcasts the message to all connections in the hub.
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	// XXX: The hub nil check is because of the way we setup our tests. We call `app.NewServer()`
-	// which returns a server, but only after that, we call `wsapi.Init()` through our FakeApp adapter
-	// to initialize the hub. But in the `NewServer` call itself, we call `RunOldAppInitialization`
-	// which directly proceeds to broadcast some messages happily.
-	// This needs to be fixed once the FakeApp adapter goes away. And possibly, we can look into
-	// doing hub initialization inside NewServer itself.
+	// XXX: The hub nil check is because of the way we setup our tests. We call
+	// `app.NewServer()` which returns a server, but only after that, we call
+	// `wsapi.Init()` to initialize the hub.  But in the `NewServer` call
+	// itself proceeds to broadcast some messages happily.  This needs to be
+	// fixed once the the wsapi cyclic dependency with server/app goes away.
+	// And possibly, we can look into doing the hub initialization inside
+	// NewServer itself.
 	if h != nil && message != nil {
 		if metrics := h.app.Metrics(); metrics != nil {
 			metrics.IncrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
