@@ -1570,6 +1570,7 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
@@ -2178,6 +2179,7 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
+	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
