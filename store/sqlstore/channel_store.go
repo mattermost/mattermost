@@ -3703,8 +3703,20 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 		// if we are updating DM category, it's order can't channel order cannot be changed.
 		if category.Type != model.SidebarCategoryDirectMessages {
-			// clean previous SidebarChannels
-			sql, args, _ := s.getQueryBuilder().Delete("SidebarChannels").Where(sq.Eq{"ChannelId": originalCategory.Channels}).ToSql()
+			// Remove any SidebarChannels entries that were either:
+			// - previously in this category (and any ones that are still in the category will be recreated below)
+			// - in another category and are being added to this category
+			sql, args, _ := s.getQueryBuilder().
+				Delete("SidebarChannels").
+				Where(
+					sq.And{
+						sq.Or{
+							sq.Eq{"ChannelId": originalCategory.Channels},
+							sq.Eq{"ChannelId": updatedCategory.Channels},
+						},
+						sq.Eq{"CategoryId": category.Id},
+					},
+				).ToSql()
 
 			if _, err = transaction.Exec(sql, args...); err != nil {
 				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
