@@ -278,7 +278,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	mlog.Debug(fmt.Sprintf("HTTP response [%s]", statusCode),
+	mlog.Debug(fmt.Sprintf("HTTP response ["+statusCode+"]"),
+		mlog.String("status_code", statusCode),
 		mlog.String("method", r.Method),
 		mlog.String("url", r.URL.Path),
 		mlog.String("request_id", requestID),
