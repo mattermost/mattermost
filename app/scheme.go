@@ -33,12 +33,16 @@ func (a *App) GetSchemesPage(scope string, page int, perPage int) ([]*model.Sche
 	return a.GetSchemes(scope, page*perPage, perPage)
 }
 
-func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
-	if err := a.IsPhase2MigrationCompleted(); err != nil {
+func (s *Server) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	if err := s.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
 
-	return a.Srv().Store.Scheme().GetAllPage(scope, offset, limit)
+	return s.Store.Scheme().GetAllPage(scope, offset, limit)
+}
+
+func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+	return a.Srv().GetSchemes(scope, offset, limit)
 }
 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
@@ -125,18 +129,22 @@ func (a *App) GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) 
 	return a.Srv().Store.Channel().GetChannelsByScheme(scheme.Id, offset, limit)
 }
 
-func (a *App) IsPhase2MigrationCompleted() *model.AppError {
-	if a.Srv().phase2PermissionsMigrationComplete {
+func (s *Server) IsPhase2MigrationCompleted() *model.AppError {
+	if s.phase2PermissionsMigrationComplete {
 		return nil
 	}
 
-	if _, err := a.Srv().Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+	if _, err := s.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
 		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
 	}
 
-	a.Srv().phase2PermissionsMigrationComplete = true
+	s.phase2PermissionsMigrationComplete = true
 
 	return nil
+}
+
+func (a *App) IsPhase2MigrationCompleted() *model.AppError {
+	return a.Srv().IsPhase2MigrationCompleted()
 }
 
 func (a *App) SchemesIterator(scope string, batchSize int) func() []*model.Scheme {

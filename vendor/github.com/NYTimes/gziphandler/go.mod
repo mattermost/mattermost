@@ -1,4 +1,4 @@
-module github.com/mkraft/gziphandler
+module github.com/NYTimes/gziphandler
 
 go 1.11
 
