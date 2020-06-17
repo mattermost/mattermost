@@ -268,15 +268,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
+
+	mlog.Debug(fmt.Sprintf("HTTP response [%s]", statusCode),
+		mlog.String("method", r.Method),
+		mlog.String("url", r.URL.Path),
+		mlog.String("request_id", requestID),
+	)
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
