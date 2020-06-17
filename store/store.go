@@ -143,9 +143,9 @@ type ChannelStore interface {
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error
 	PermanentDelete(channelId string) error
 	PermanentDeleteByTeam(teamId string) error
-	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
-	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
-	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
+	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error)
+	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error)
+	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error)
 	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
 	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error)
@@ -353,6 +353,8 @@ type SessionStore interface {
 	Save(session *model.Session) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
+	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError)
+	UpdateExpiredNotify(sessionid string, notified bool) *model.AppError
 	Remove(sessionIdOrToken string) *model.AppError
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError

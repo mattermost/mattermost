@@ -1823,6 +1823,10 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service."
   },
@@ -3013,6 +3017,14 @@
   {
     "id": "app.channel.get_all_channels_count.app_error",
     "translation": "Unable to count all the channels."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
@@ -6163,14 +6175,6 @@
     "translation": "Unable to get all the direct channels."
   },
   {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
-  },
-  {
     "id": "store.sql_channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },
@@ -7041,6 +7045,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expired_notify.app_error",
+    "translation": "Unable to update expired_notify."
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
