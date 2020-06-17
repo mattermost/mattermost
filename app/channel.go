@@ -77,7 +77,13 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 	for _, channelName := range a.DefaultChannelNames() {
 		channel, channelErr := a.Srv().Store.Channel().GetByName(teamId, channelName, true)
 		if channelErr != nil {
-			err = channelErr
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			continue
 		}
 
@@ -273,9 +279,11 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
-	channel, err := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
-	if err != nil {
-		if err.Id == store.MISSING_CHANNEL_ERROR {
+	channel, nErr := a.Srv().Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
+			var err *model.AppError
 			channel, err = a.createDirectChannel(userId, otherUserId)
 			if err != nil {
 				if err.Id == store.CHANNEL_EXISTS_ERROR {
@@ -305,7 +313,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			return channel, nil
 		}
-		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
+		return nil, model.NewAppError("GetOrCreateDirectChannel", "web.incoming_webhook.channel.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	return channel, nil
 }
@@ -1486,7 +1494,7 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 
 func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var channel *model.Channel
-	var err *model.AppError
+	var err error
 
 	if includeDeleted {
 		channel, err = a.Srv().Store.Channel().GetByNameIncludeDeleted(teamId, channelName, false)
@@ -1494,14 +1502,14 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 		channel, err = a.Srv().Store.Channel().GetByName(teamId, channelName, false)
 	}
 
-	if err != nil && err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-		err.StatusCode = http.StatusNotFound
-		return nil, err
-	}
-
 	if err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelByName", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return channel, nil
@@ -1510,12 +1518,7 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store.Channel().GetByNames(teamId, channelNames, true)
 	if err != nil {
-		if err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			err.StatusCode = http.StatusNotFound
-			return nil, err
-		}
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		return nil, model.NewAppError("GetChannelsByNames", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return channels, nil
 }
@@ -1531,20 +1534,21 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 
 	var result *model.Channel
 
+	var nErr error
 	if includeDeleted {
-		result, err = a.Srv().Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
+		result, nErr = a.Srv().Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
 	} else {
-		result, err = a.Srv().Store.Channel().GetByName(team.Id, channelName, false)
+		result, nErr = a.Srv().Store.Channel().GetByName(team.Id, channelName, false)
 	}
 
-	if err != nil && err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-		err.StatusCode = http.StatusNotFound
-		return nil, err
-	}
-
-	if err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelByNameForTeamName", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return result, nil
