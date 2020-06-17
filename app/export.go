@@ -403,13 +403,14 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
-	reactions, err := a.Srv().Store.Reaction().GetForPost(postId, true)
-	if err != nil {
-		return nil, err
+	reactions, nErr := a.Srv().Store.Reaction().GetForPost(postId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("BuildPostReactions", "app.reaction.get_for_post.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reaction := range reactions {
 		var user *model.User
+		var err *model.AppError
 		user, err = a.Srv().Store.User().Get(reaction.UserId)
 		if err != nil {
 			if err.Id == store.MISSING_ACCOUNT_ERROR { // this is a valid case, the user that reacted might've been deleted by now

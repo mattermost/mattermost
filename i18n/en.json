@@ -6855,7 +6855,7 @@
     "translation": "Unable to update the preference."
   },
   {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
   {
@@ -6875,11 +6875,11 @@
     "translation": "Unable to delete all reactions with this emoji name."
   },
   {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name."
   },
   {
-    "id": "store.sql_reaction.get_for_post.app_error",
+    "id": "app.reaction.get_for_post.app_error",
     "translation": "Unable to get reactions for post."
   },
   {
@@ -6895,7 +6895,7 @@
     "translation": "Unable to commit transaction while saving reaction."
   },
   {
-    "id": "store.sql_reaction.save.save.app_error",
+    "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
   {
