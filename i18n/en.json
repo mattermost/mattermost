@@ -1823,6 +1823,10 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service."
   },
@@ -7041,6 +7045,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expired_notify.app_error",
+    "translation": "Unable to update expired_notify."
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
