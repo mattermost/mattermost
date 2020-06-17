@@ -448,7 +448,6 @@ type AppIface interface {
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteToken(token *model.Token) *model.AppError
-	DiagnosticId() string
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
@@ -909,6 +908,7 @@ type AppIface interface {
 	T(translationID string, args ...interface{}) string
 	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
+	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userId string, cfg *model.Config) *model.AppError
 	TestLdap() *model.AppError

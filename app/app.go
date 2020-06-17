@@ -140,8 +140,8 @@ func (a *App) initJobs() {
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
 
-func (a *App) DiagnosticId() string {
-	return a.Srv().DiagnosticId()
+func (a *App) TelemetryId() string {
+	return a.Srv().TelemetryId()
 }
 
 func (s *Server) HTMLTemplates() *template.Template {

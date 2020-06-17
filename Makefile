@@ -212,9 +212,9 @@ store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
-diagnostics-mocks: ## Creates mock files.
+telemetry-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
-	$(GOBIN)/mockery -dir services/diagnostics -all -output services/diagnostics/mocks -note 'Regenerate this file using `make diagnostics-mocks`.'
+	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store

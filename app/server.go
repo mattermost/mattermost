@@ -37,13 +37,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
-	"github.com/mattermost/mattermost-server/v5/services/diagnostics"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -133,7 +133,7 @@ type Server struct {
 	clientConfigHash    atomic.Value
 	limitedClientConfig atomic.Value
 
-	diagnosticsService *diagnostics.DiagnosticsService
+	telemetryService *telemetry.TelemetryService
 
 	phase2PermissionsMigrationComplete bool
 
@@ -377,7 +377,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	s.diagnosticsService = diagnostics.New(s, s.Store, s.SearchEngine, s.Log)
+	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	s.regenerateClientConfig()
 
@@ -521,7 +521,7 @@ func (s *Server) RunJobs() {
 				s.ensureFirstServerRunTimestamp()
 				firstRun = utils.MillisFromTime(time.Now())
 			}
-			s.diagnosticsService.RunDiagnosticsJob(firstRun)
+			s.telemetryService.RunTelemetryJob(firstRun)
 		})
 		s.Go(func() {
 			runSessionCleanupJob(s)
@@ -594,9 +594,9 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	err := s.diagnosticsService.Shutdown()
+	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
+		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -1209,6 +1209,6 @@ func (s *Server) initJobs() {
 	}
 }
 
-func (s *Server) DiagnosticId() string {
-	return s.diagnosticsService.DiagnosticID
+func (s *Server) TelemetryId() string {
+	return s.telemetryService.TelemetryID
 }
