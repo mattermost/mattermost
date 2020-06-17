@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/Masterminds/squirrel v1.2.0
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/RoaringBitmap/roaring v0.4.23 // indirect
 	github.com/armon/go-metrics v0.3.0 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
@@ -72,7 +73,6 @@ require (
 	github.com/minio/minio-go/v6 v6.0.55
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.2.3 // indirect
-	github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
