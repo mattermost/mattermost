@@ -351,6 +351,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.Store = s.newStore()
 
+	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
+
 	if model.BuildEnterpriseReady == "true" {
 		s.LoadLicense()
 	}
@@ -376,8 +378,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := s.ensureFirstServerRunTimestamp(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
-
-	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
 
 	s.regenerateClientConfig()
 
