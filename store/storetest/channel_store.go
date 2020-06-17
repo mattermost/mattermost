@@ -7100,6 +7100,33 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Equal(t, "Favorites", got.DisplayName)
 	})
 
+	t.Run("categories should be returned in their original order", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		// Create the initial categories
+		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, err)
+
+		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory := initialCategories.Categories[0]
+		channelsCategory := initialCategories.Categories[1]
+		dmsCategory := initialCategories.Categories[2]
+
+		// And then update them
+		updatedCategories, err := ss.Channel().UpdateSidebarCategories(user.Id, teamId, []*model.SidebarCategoryWithChannels{
+			favoritesCategory,
+			channelsCategory,
+			dmsCategory,
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, favoritesCategory.Id, updatedCategories[0].Id)
+		assert.Equal(t, channelsCategory.Id, updatedCategories[1].Id)
+		assert.Equal(t, dmsCategory.Id, updatedCategories[2].Id)
+	})
+
 	t.Run("should silently fail to update read only fields", func(t *testing.T) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
