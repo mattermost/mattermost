@@ -35,8 +35,8 @@ func (s *Server) LoadLicense() {
 		}
 	}
 
-	record, err := s.Store.License().Get(licenseId)
-	if err != nil {
+	record, nErr := s.Store.License().Get(licenseId)
+	if nErr != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
 		s.SetLicense(nil)
 		return
@@ -74,10 +74,10 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, err = s.Store.License().Save(record)
-	if err != nil {
+	_, nErr := s.Store.License().Save(record)
+	if nErr != nil {
 		s.RemoveLicense()
-		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	sysVar := &model.System{}
