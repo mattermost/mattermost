@@ -317,6 +317,12 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 				Id:   "contactSupport",
 				Name: T("api.server.warn_metric.contact_support"),
 				Type: model.POST_ACTION_TYPE_BUTTON,
+				Options: []*model.PostActionOptions{
+					{
+						Text:  "ActionExecutingMessage",
+						Value: T("api.server.warn_metric.contacting_support"),
+					},
+				},
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
 						"bot_user_id": bot.UserId,

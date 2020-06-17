@@ -452,8 +452,9 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 			Actions:    actions,
 		}}
 		model.ParseSlackAttachment(botPost, attachments)
+	} else {
+		botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success")
 	}
-	botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success")
 
 	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 		return err
