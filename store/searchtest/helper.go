@@ -317,9 +317,9 @@ func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
 		return errors.New(appError.Error())
 	}
 
-	appError = th.Store.Channel().PermanentDelete(channel.Id)
-	if appError != nil {
-		return errors.New(appError.Error())
+	err := th.Store.Channel().PermanentDelete(channel.Id)
+	if err != nil {
+		return err
 	}
 
 	return nil
