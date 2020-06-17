@@ -774,7 +774,7 @@ func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -792,7 +792,7 @@ func (s *OpenTracingLayerChannelStore) GetByName(team_id string, name string, al
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetByNameIncludeDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -810,7 +810,7 @@ func (s *OpenTracingLayerChannelStore) GetByNameIncludeDeleted(team_id string, n
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetByNames")
 	s.Root.Store.SetContext(newCtx)
@@ -900,7 +900,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelUnread(channelId string, userId
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -972,7 +972,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsByScheme(schemeId string, offs
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeleted")
 	s.Root.Store.SetContext(newCtx)
@@ -1521,7 +1521,7 @@ func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) error {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PermanentDeleteByTeam")
 	s.Root.Store.SetContext(newCtx)

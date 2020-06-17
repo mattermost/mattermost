@@ -80,6 +80,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -113,7 +115,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("token_type", token.Type)
 
 		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
-			if c.App.License() == nil {
+			if c.App.Srv().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
@@ -1469,7 +1471,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.License(); license == nil || !*license.Features.SAML {
+		if license := c.App.Srv().License(); license == nil || !*license.Features.SAML {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1503,7 +1505,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
-		if c.App.License() == nil {
+		if c.App.Srv().License() == nil {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
 			return
 		}
@@ -2232,7 +2234,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil {
+	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2268,5 +2270,35 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	typingRequest := model.TypingRequestFromJson(r.Body)
+	if typingRequest == nil {
+		c.SetInvalidParam("typing_request")
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if !c.App.HasPermissionToChannel(c.Params.UserId, typingRequest.ChannelId, model.PERMISSION_CREATE_POST) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST)
+		return
+	}
+
+	if err := c.App.PublishUserTyping(c.Params.UserId, typingRequest.ChannelId, typingRequest.ParentId); err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }

@@ -728,7 +728,7 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByName(team_id, name, allowFromCache)
@@ -744,7 +744,7 @@ func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFro
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
@@ -760,7 +760,7 @@ func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
@@ -840,7 +840,7 @@ func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
@@ -904,7 +904,7 @@ func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeId string, offset int
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
@@ -1425,7 +1425,7 @@ func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)
