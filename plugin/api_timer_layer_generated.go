@@ -1015,3 +1015,10 @@ func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 	api.recordTime(startTime, "PluginHTTP", true)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PublishUserTyping(userId, channelId, parentId)
+	api.recordTime(startTime, "PublishUserTyping", true)
+	return _returnsA
+}

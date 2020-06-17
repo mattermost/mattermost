@@ -165,6 +165,9 @@ func (a *App) initEnterprise() {
 			mlog.Debug("Loading original SAML library")
 			a.srv.Saml = samlInterface(a)
 		}
+		if err := a.srv.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
 		a.AddConfigListener(func(_, cfg *model.Config) {
 			if err := a.srv.Saml.ConfigureSP(); err != nil {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
