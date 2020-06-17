@@ -4,7 +4,6 @@
 package store
 
 const (
-	MISSING_CHANNEL_ERROR        = "store.sql_channel.get_by_name.missing.app_error"
 	MISSING_CHANNEL_MEMBER_ERROR = "store.sql_channel.get_member.missing.app_error"
 	CHANNEL_EXISTS_ERROR         = "store.sql_channel.save_channel.exists.app_error"
 

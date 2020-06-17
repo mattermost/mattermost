@@ -584,7 +584,7 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) Delete(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Delete(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Delete(channelId, time)
@@ -664,7 +664,7 @@ func (s *TimerLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(chann
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannels(page, perPage, opts)
@@ -680,7 +680,7 @@ func (s *TimerLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsCount(opts)
@@ -728,7 +728,7 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByName(team_id, name, allowFromCache)
@@ -744,7 +744,7 @@ func (s *TimerLayerChannelStore) GetByName(team_id string, name string, allowFro
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
@@ -760,7 +760,7 @@ func (s *TimerLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
@@ -840,7 +840,7 @@ func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
@@ -904,7 +904,7 @@ func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeId string, offset int
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
@@ -1409,7 +1409,7 @@ func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDelete(channelId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDelete(channelId)
@@ -1425,7 +1425,7 @@ func (s *TimerLayerChannelStore) PermanentDelete(channelId string) *model.AppErr
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)
@@ -1537,7 +1537,7 @@ func (s *TimerLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) Restore(channelId string, time int64) *model.AppError {
+func (s *TimerLayerChannelStore) Restore(channelId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.Restore(channelId, time)
@@ -1713,7 +1713,7 @@ func (s *TimerLayerChannelStore) SearchMore(userId string, teamId string, term s
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
+func (s *TimerLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
@@ -1841,7 +1841,7 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError) {
+func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
@@ -1857,7 +1857,7 @@ func (s *TimerLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError {
+func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
@@ -1873,7 +1873,7 @@ func (s *TimerLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 	return resultVar0
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError {
+func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
@@ -1889,7 +1889,7 @@ func (s *TimerLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 	return resultVar0
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
@@ -2304,7 +2304,7 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.EmojiStore.Delete(emoji, time)
@@ -2320,7 +2320,7 @@ func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.Get(id, allowFromCache)
@@ -2336,7 +2336,7 @@ func (s *TimerLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.GetByName(name, allowFromCache)
@@ -2352,7 +2352,7 @@ func (s *TimerLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.GetList(offset, limit, sort)
@@ -2368,7 +2368,7 @@ func (s *TimerLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.GetMultipleByName(names)
@@ -2384,7 +2384,7 @@ func (s *TimerLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.Save(emoji)
@@ -2400,7 +2400,7 @@ func (s *TimerLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.EmojiStore.Search(name, prefixOnly, limit)
@@ -3550,7 +3550,7 @@ func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LinkMetadataStore.Get(url, timestamp)
@@ -3566,7 +3566,7 @@ func (s *TimerLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LinkMetadataStore.Save(linkMetadata)
@@ -4492,20 +4492,20 @@ func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.A
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.OverwriteMultiple(posts)
+	resultVar0, resultVar1, resultVar2 := s.PostStore.OverwriteMultiple(posts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if resultVar2 == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.OverwriteMultiple", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
@@ -4572,20 +4572,20 @@ func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.PostStore.SaveMultiple(posts)
+	resultVar0, resultVar1, resultVar2 := s.PostStore.SaveMultiple(posts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if resultVar2 == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.SaveMultiple", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (s *TimerLayerPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
@@ -5515,6 +5515,22 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.SystemStore.InsertIfExists(system)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.InsertIfExists", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
 	start := timemodule.Now()
 
@@ -6425,7 +6441,7 @@ func (s *TimerLayerTeamStore) UserBelongsToTeams(userId string, teamIds []string
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Get(id, allowFromCache)
@@ -6441,7 +6457,7 @@ func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.GetLatest(allowFromCache)
@@ -6457,7 +6473,7 @@ func (s *TimerLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Save(termsOfService)

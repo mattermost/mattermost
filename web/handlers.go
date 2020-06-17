@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mkraft/gziphandler"
+	"github.com/NYTimes/gziphandler"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	spanlog "github.com/opentracing/opentracing-go/log"
@@ -92,6 +92,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
+	c.App.InitServer()
 
 	t, _ := utils.GetTranslationsAndLocale(w, r)
 	c.App.SetT(t)
@@ -143,7 +144,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))

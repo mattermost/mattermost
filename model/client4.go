@@ -487,6 +487,10 @@ func (c *Client4) GetGroupsRoute() string {
 	return "/groups"
 }
 
+func (c *Client4) GetPublishUserTypingRoute(userId string) string {
+	return c.GetUserRoute(userId) + "/typing"
+}
+
 func (c *Client4) GetGroupRoute(groupID string) string {
 	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
 }
@@ -5094,6 +5098,16 @@ func (c *Client4) GetKnownUsers() ([]string, *Response) {
 	return userIds, BuildResponse(r)
 }
 
+// PublishUserTyping publishes a user is typing websocket event based on the provided TypingRequest.
+func (c *Client4) PublishUserTyping(userID string, typingRequest TypingRequest) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetPublishUserTypingRoute(userID), typingRequest.ToJson())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezones bool, etag string) ([]*ChannelMemberCountByGroup, *Response) {
 	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/member_counts_by_group?include_timezones="+strconv.FormatBool(includeTimezones), etag)
 	if err != nil {
@@ -5101,4 +5115,15 @@ func (c *Client4) GetChannelMemberCountsByGroup(channelID string, includeTimezon
 	}
 	defer closeBody(r)
 	return ChannelMemberCountsByGroupFromJson(r.Body), BuildResponse(r)
+}
+
+// RequestTrialLicense will request a trial license and install it in the server
+func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
+	b, _ := json.Marshal(map[string]int{"users": users})
+	r, err := c.DoApiPost("/trial-license", string(b))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
