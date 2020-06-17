@@ -5211,6 +5211,22 @@ func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsExpired", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	start := timemodule.Now()
 
@@ -5305,6 +5321,22 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateDeviceId", success, elapsed)
 	}
 	return resultVar0, resultVar1
+}
+
+func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) *model.AppError {
+	start := timemodule.Now()
+
+	resultVar0 := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.UpdateExpiredNotify", success, elapsed)
+	}
+	return resultVar0
 }
 
 func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {

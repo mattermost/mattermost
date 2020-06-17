@@ -90,6 +90,12 @@ func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface
 	jobsBleveIndexerInterface = f
 }
 
+var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
+
+func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
+	jobsExpiryNotifyInterface = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
