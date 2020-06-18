@@ -1693,6 +1693,9 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.NotInTeamId != "" {
 		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, options)
 	}
+	if props.InGroupId != "" {
+		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
+	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
@@ -1757,6 +1760,20 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchWithoutTeam(term, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return users, nil
+}
+
+func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
+	users, err := a.Srv().Store.User().SearchInGroup(groupID, term, options)
 	if err != nil {
 		return nil, err
 	}

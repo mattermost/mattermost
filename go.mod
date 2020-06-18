@@ -110,6 +110,7 @@ require (
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber/jaeger-client-go v2.23.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
+	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.1
 	github.com/wiggin77/logr v1.0.4
 	github.com/wiggin77/merror v1.0.2
 	github.com/wiggin77/srslog v1.0.1
@@ -119,10 +120,11 @@ require (
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20200501053045-e0ff5e5a1de5
 	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20200428021058-7ae4988eb4d9
+	golang.org/x/tools v0.0.0-20200612220849-54c614fe050c
 	google.golang.org/genproto v0.0.0-20200424135956-bca184e23272 // indirect
 	google.golang.org/grpc v1.29.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
