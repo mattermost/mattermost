@@ -322,6 +322,7 @@ type ServiceSettings struct {
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
 	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalDataPrefetch                          *bool
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -678,6 +679,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
+	if s.ExperimentalDataPrefetch == nil {
+		s.ExperimentalDataPrefetch = NewBool(true)
+	}
+
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -740,20 +745,21 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                      *bool   `restricted:"true"`
-	ClusterName                 *string `restricted:"true"`
-	OverrideHostname            *string `restricted:"true"`
-	NetworkInterface            *string `restricted:"true"`
-	BindAddress                 *string `restricted:"true"`
-	AdvertiseAddress            *string `restricted:"true"`
-	UseIpAddress                *bool   `restricted:"true"`
-	UseExperimentalGossip       *bool   `restricted:"true"`
-	ReadOnlyConfig              *bool   `restricted:"true"`
-	GossipPort                  *int    `restricted:"true"`
-	StreamingPort               *int    `restricted:"true"`
-	MaxIdleConns                *int    `restricted:"true"`
-	MaxIdleConnsPerHost         *int    `restricted:"true"`
-	IdleConnTimeoutMilliseconds *int    `restricted:"true"`
+	Enable                             *bool   `restricted:"true"`
+	ClusterName                        *string `restricted:"true"`
+	OverrideHostname                   *string `restricted:"true"`
+	NetworkInterface                   *string `restricted:"true"`
+	BindAddress                        *string `restricted:"true"`
+	AdvertiseAddress                   *string `restricted:"true"`
+	UseIpAddress                       *bool   `restricted:"true"`
+	UseExperimentalGossip              *bool   `restricted:"true"`
+	EnableExperimentalGossipEncryption *bool   `restricted:"true"`
+	ReadOnlyConfig                     *bool   `restricted:"true"`
+	GossipPort                         *int    `restricted:"true"`
+	StreamingPort                      *int    `restricted:"true"`
+	MaxIdleConns                       *int    `restricted:"true"`
+	MaxIdleConnsPerHost                *int    `restricted:"true"`
+	IdleConnTimeoutMilliseconds        *int    `restricted:"true"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -787,6 +793,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.UseExperimentalGossip == nil {
 		s.UseExperimentalGossip = NewBool(false)
+	}
+
+	if s.EnableExperimentalGossipEncryption == nil {
+		s.EnableExperimentalGossipEncryption = NewBool(false)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -1367,6 +1377,7 @@ type EmailSettings struct {
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
+	PushNotificationBuffer            *int
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
@@ -1465,6 +1476,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.PushNotificationContents == nil {
 		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
+	}
+
+	if s.PushNotificationBuffer == nil {
+		s.PushNotificationBuffer = NewInt(1000)
 	}
 
 	if s.EnableEmailBatching == nil {
