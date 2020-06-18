@@ -7,7 +7,6 @@
 package app
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -13232,72 +13231,6 @@ func (a *OpenTracingAppLayer) Shutdown() {
 	a.app.Shutdown()
 }
 
-func (a *OpenTracingAppLayer) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddBotUser")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddBotUser(teamId, log)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddChannels")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddChannels(teamId, slackchannels, posts, users, uploads, botUser, importerLog)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddPosts")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SlackAddPosts(teamId, channel, posts, users, uploads, botUser)
-}
-
-func (a *OpenTracingAppLayer) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddUsers")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddUsers(teamId, slackusers, importerLog)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackImport")
@@ -13316,23 +13249,6 @@ func (a *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int6
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackUploadFile")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SlackUploadFile(slackPostFile, uploads, teamId, channelId, userId, slackTimestamp)
 
 	return resultVar0, resultVar1
 }
