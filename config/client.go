@@ -114,11 +114,6 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["SamlPositionAttributeSet"] = "false"
 	props["EnableCluster"] = "false"
 	props["EnableMetrics"] = "false"
-	props["PasswordMinimumLength"] = "0"
-	props["PasswordRequireLowercase"] = "false"
-	props["PasswordRequireUppercase"] = "false"
-	props["PasswordRequireNumber"] = "false"
-	props["PasswordRequireSymbol"] = "false"
 	props["EnableBanner"] = "false"
 	props["BannerText"] = ""
 	props["BannerColor"] = ""
@@ -132,11 +127,6 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["DataRetentionMessageRetentionDays"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
 	props["DataRetentionFileRetentionDays"] = "0"
-	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
-	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
-	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
-	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
-	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 	props["IsDefaultMarketplace"] = strconv.FormatBool(*c.PluginSettings.MarketplaceUrl == model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
@@ -263,6 +253,12 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+
+	props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
+	props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
+	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
+	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
+	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"
