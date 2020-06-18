@@ -10,6 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -122,13 +124,13 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	err = l.Get("test", &value2)
 	require.Nil(t, err)
 
-	v1, ok := value2["key1"].(int)
+	v1, ok := value2["key1"].(int64)
 	require.True(t, ok, "unable to cast value")
-	require.Equal(t, 1, v1)
+	assert.Equal(t, int64(1), v1)
 
 	v2, ok := value2["key2"].(string)
 	require.True(t, ok, "unable to cast value")
-	require.Equal(t, "value2", v2)
+	assert.Equal(t, "value2", v2)
 
 	post := model.Post{
 		Id:            "id",

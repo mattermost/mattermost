@@ -50,7 +50,8 @@ var importToGroup = []func(env *ProcessEnv, importPath string) (num int, ok bool
 		return
 	},
 	func(_ *ProcessEnv, importPath string) (num int, ok bool) {
-		if strings.Contains(importPath, ".") {
+		firstComponent := strings.Split(importPath, "/")[0]
+		if strings.Contains(firstComponent, ".") {
 			return 1, true
 		}
 		return
@@ -1324,7 +1325,10 @@ func loadExportsFromFiles(ctx context.Context, env *ProcessEnv, dir string, incl
 		fullFile := filepath.Join(dir, fi.Name())
 		f, err := parser.ParseFile(fset, fullFile, nil, 0)
 		if err != nil {
-			return "", nil, fmt.Errorf("parsing %s: %v", fullFile, err)
+			if env.Logf != nil {
+				env.Logf("error parsing %v: %v", fullFile, err)
+			}
+			continue
 		}
 		if f.Name.Name == "documentation" {
 			// Special case from go/build.ImportDir, not
