@@ -286,6 +286,29 @@ func (_m *PostStore) GetOldest() (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// GetOldestEntityCreationTime provides a mock function with given fields:
+func (_m *PostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterId
 func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)

@@ -4237,6 +4237,22 @@ func (s *TimerLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.PostStore.GetOldestEntityCreationTime()
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetOldestEntityCreationTime", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 	start := timemodule.Now()
 

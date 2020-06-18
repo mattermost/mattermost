@@ -1779,3 +1779,26 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 
 	return model.MakePostSearchResults(posts, nil), nil
 }
+
+func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("MIN(min_createat) min_createat").
+		Suffix(`FROM (
+					(SELECT MIN(createat) min_createat FROM Posts)
+					UNION
+					(SELECT MIN(createat) min_createat FROM Users)
+					UNION
+					(SELECT MIN(createat) min_createat FROM Channels)
+				) entities`)
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return -1, model.NewAppError("SqlPostStore.GetOldestEntityCreationTime",
+			"store.sql_post.get_oldest_entity_creation_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	row := s.GetReplica().Db.QueryRow(queryString)
+	var oldest int64
+	if err := row.Scan(&oldest); err != nil {
+		return -1, model.NewAppError("SqlPostStore.GetOldestEntityCreationTime",
+			"store.sql_post.get_oldest_entity_creation_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return oldest, nil
+}
