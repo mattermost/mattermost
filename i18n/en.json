@@ -4228,7 +4228,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
+    "translation": ""
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4408,7 +4408,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
+    "translation": ""
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -6705,6 +6705,10 @@
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
+  },
+  {
+    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+    "translation": "Unable to get the oldest entitiy creation time."
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
