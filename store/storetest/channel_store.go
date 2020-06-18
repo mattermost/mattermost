@@ -734,12 +734,12 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.DeleteAt = now
 	o1.UpdateAt = now
 
-	r1, err := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name)
-	require.Nil(t, err)
+	r1, nErr := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name)
+	require.Nil(t, nErr)
 	require.Equal(t, o1, r1)
 
-	_, err = ss.Channel().GetDeletedByName(o1.TeamId, "")
-	require.NotNil(t, err, "missing id should have failed")
+	_, nErr = ss.Channel().GetDeletedByName(o1.TeamId, "")
+	require.NotNil(t, nErr, "missing id should have failed")
 }
 
 func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
