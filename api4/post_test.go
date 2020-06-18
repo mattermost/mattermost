@@ -1084,10 +1084,10 @@ func TestGetPostsForChannel(t *testing.T) {
 			require.True(t, f, "missing post")
 		}
 
-		_, resp = Client.GetPostsForChannel("", 0, 60, "")
+		_, resp = c.GetPostsForChannel("", 0, 60, "")
 		CheckBadRequestStatus(t, resp)
 
-		_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
+		_, resp = c.GetPostsForChannel("junk", 0, 60, "")
 		CheckBadRequestStatus(t, resp)
 	})
 
