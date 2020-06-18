@@ -7,18 +7,17 @@ orbs:
 executors:
   ubuntu:
     working_directory: ~/mattermost/
+    resource_class: xlarge
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "large"
 
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    resource_class: xlarge
     steps:
       - checkout
       - run: |
@@ -28,12 +27,13 @@ jobs:
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          export CURL_FAILED=0
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
 
-          if [ $CURL_FAILED -eq 1 ]
+          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
+          if [[ $? == 0 ]]
           then
-            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
+            mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          else
+            npm ci && make build
           fi
       - persist_to_workspace:
           root: ~/mattermost
@@ -55,6 +55,9 @@ jobs:
       - attach_workspace:
           at: ~/mattermost/
       - run:
+          name: Checkout config
+          command: cd .. && git clone https://github.com/mattermost/security-automation-config
+      - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
       - owasp/with_commandline:
@@ -71,14 +74,17 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
-                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
-                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                  ~/.owasp/dependency-check/bin/dependency-check.sh \
+                    --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
+                    --suppression ../security-automation-config/dependency-check/suppression.xml \
+                    --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
       - run:
           name: Post results to Mattermost
-          command: ./scripts/depcheck-alert.sh
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
@@ -152,7 +158,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1 # Keep this in sync with Jenkinsfile.pr
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -162,6 +168,10 @@ jobs:
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            curl -sL https://sentry.io/get-cli/ | bash
+            export VERSION=$(sentry-cli releases propose-version)
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
+            sentry-cli --log-level=debug releases set-commits --auto $VERSION
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -428,6 +438,7 @@ workflows:
           requires:
             - setup
       - build:
+          context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers

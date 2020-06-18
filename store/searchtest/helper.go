@@ -218,10 +218,10 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 	}
 
 	botModel.UserId = user.Id
-	bot, apperr := th.Store.Bot().Save(botModel)
-	if apperr != nil {
+	bot, err := th.Store.Bot().Save(botModel)
+	if err != nil {
 		th.Store.User().PermanentDelete(bot.UserId)
-		return nil, errors.New(apperr.Error())
+		return nil, errors.New(err.Error())
 	}
 
 	return bot, nil
@@ -317,9 +317,9 @@ func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
 		return errors.New(appError.Error())
 	}
 
-	appError = th.Store.Channel().PermanentDelete(channel.Id)
-	if appError != nil {
-		return errors.New(appError.Error())
+	err := th.Store.Channel().PermanentDelete(channel.Id)
+	if err != nil {
+		return err
 	}
 
 	return nil

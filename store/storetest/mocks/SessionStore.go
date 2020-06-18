@@ -92,6 +92,31 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.App
 	return r0, r1
 }
 
+// GetSessionsExpired provides a mock function with given fields: thresholdMillis, mobileOnly, unnotifiedOnly
+func (_m *SessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
+	ret := _m.Called(thresholdMillis, mobileOnly, unnotifiedOnly)
+
+	var r0 []*model.Session
+	if rf, ok := ret.Get(0).(func(int64, bool, bool) []*model.Session); ok {
+		r0 = rf(thresholdMillis, mobileOnly, unnotifiedOnly)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Session)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int64, bool, bool) *model.AppError); ok {
+		r1 = rf(thresholdMillis, mobileOnly, unnotifiedOnly)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetSessionsWithActiveDeviceIds provides a mock function with given fields: userId
 func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	ret := _m.Called(userId)
@@ -211,6 +236,38 @@ func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int
 	}
 
 	return r0, r1
+}
+
+// UpdateExpiredNotify provides a mock function with given fields: sessionid, notified
+func (_m *SessionStore) UpdateExpiredNotify(sessionid string, notified bool) *model.AppError {
+	ret := _m.Called(sessionid, notified)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
+		r0 = rf(sessionid, notified)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// UpdateExpiresAt provides a mock function with given fields: sessionId, time
+func (_m *SessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	ret := _m.Called(sessionId, time)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
+		r0 = rf(sessionId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // UpdateLastActivityAt provides a mock function with given fields: sessionId, time

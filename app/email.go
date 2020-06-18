@@ -39,7 +39,7 @@ func condenseSiteURL(siteURL string) string {
 	return path.Join(parsedSiteURL.Host, parsedSiteURL.Path)
 }
 
-func (a *App) SetupInviteEmailRateLimiting() error {
+func (s *Server) setupInviteEmailRateLimiting() error {
 	store, err := memstore.New(emailRateLimitingMemstoreSize)
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
@@ -55,7 +55,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	a.Srv().EmailRateLimiter = rateLimiter
+	s.EmailRateLimiter = rateLimiter
 	return nil
 }
 
@@ -463,8 +463,8 @@ func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 	}
 }
 
-func (a *App) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
-	t := utils.NewHTMLTemplate(a.HTMLTemplates(), name)
+func (s *Server) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
+	t := utils.NewHTMLTemplate(s.HTMLTemplates(), name)
 
 	var localT i18n.TranslateFunc
 	if locale != "" {
@@ -475,8 +475,8 @@ func (a *App) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
 
 	t.Props["Footer"] = localT("api.templates.email_footer")
 
-	if *a.Config().EmailSettings.FeedbackOrganization != "" {
-		t.Props["Organization"] = localT("api.templates.email_organization") + *a.Config().EmailSettings.FeedbackOrganization
+	if *s.Config().EmailSettings.FeedbackOrganization != "" {
+		t.Props["Organization"] = localT("api.templates.email_organization") + *s.Config().EmailSettings.FeedbackOrganization
 	} else {
 		t.Props["Organization"] = ""
 	}
@@ -484,10 +484,14 @@ func (a *App) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
 	t.Props["EmailInfo1"] = localT("api.templates.email_info1")
 	t.Props["EmailInfo2"] = localT("api.templates.email_info2")
 	t.Props["EmailInfo3"] = localT("api.templates.email_info3",
-		map[string]interface{}{"SiteName": a.Config().TeamSettings.SiteName})
-	t.Props["SupportEmail"] = *a.Config().SupportSettings.SupportEmail
+		map[string]interface{}{"SiteName": s.Config().TeamSettings.SiteName})
+	t.Props["SupportEmail"] = *s.Config().SupportSettings.SupportEmail
 
 	return t
+}
+
+func (a *App) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
+	return a.Srv().newEmailTemplate(name, locale)
 }
 
 func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
@@ -513,21 +517,51 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 	return nil
 }
 
-func (a *App) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
-	if !*a.Config().EmailSettings.SendEmailNotifications {
+func (a *App) SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+	subject := T("api.templates.remove_expired_license.subject",
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
+
+	bodyPage := a.newEmailTemplate("remove_expired_license", locale)
+	bodyPage.Props["SiteURL"] = siteURL
+	bodyPage.Props["Title"] = T("api.templates.remove_expired_license.body.title")
+	bodyPage.Props["Link"] = fmt.Sprintf("%s?id=%s", model.LICENSE_RENEWAL_LINK, licenseId)
+	bodyPage.Props["LinkButton"] = T("api.templates.remove_expired_license.body.renew_button")
+
+	if err := a.sendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s *Server) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
+	if !*s.Config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
-	return a.sendMail(to, subject, htmlBody)
+	return s.sendMail(to, subject, htmlBody)
+}
+
+func (a *App) sendNotificationMail(to, subject, htmlBody string) *model.AppError {
+	return a.Srv().sendNotificationMail(to, subject, htmlBody)
+}
+
+func (s *Server) sendMail(to, subject, htmlBody string) *model.AppError {
+	license := s.License()
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, s.Config(), license != nil && *license.Features.Compliance)
 }
 
 func (a *App) sendMail(to, subject, htmlBody string) *model.AppError {
-	license := a.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return a.Srv().sendMail(to, subject, htmlBody)
+}
+
+func (s *Server) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
+	license := s.License()
+	config := s.Config()
+
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
 }
 
 func (a *App) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
-	license := a.License()
-	config := a.Config()
-
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
+	return a.Srv().sendMailWithEmbeddedFiles(to, subject, htmlBody, embeddedFiles)
 }

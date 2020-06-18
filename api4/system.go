@@ -6,6 +6,8 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -14,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
@@ -24,7 +26,9 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = cache2.NewLRU(&cache2.LRUOptions{
+	Size: REDIRECT_LOCATION_CACHE_SIZE,
+})
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -77,36 +81,34 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 
-		// Database Write/Read Check
+		// Database Write Check
 		currentTime := fmt.Sprintf("%d", time.Now().Unix())
-		healthCheckKey := "health_check"
+		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
 
 		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
 			Name:  healthCheckKey,
 			Value: currentTime,
 		})
 		if writeErr != nil {
-			mlog.Debug("Unable to write to database.", mlog.Err(writeErr))
+			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
-		} else {
-			healthCheck, readErr := c.App.Srv().Store.System().GetByName(healthCheckKey)
-			if readErr != nil {
-				mlog.Debug("Unable to read from database.", mlog.Err(readErr))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else if healthCheck.Value != currentTime {
-				mlog.Debug("Incorrect healthcheck value", mlog.String("expected", currentTime), mlog.String("got", healthCheck.Value))
-				s[dbStatusKey] = model.STATUS_UNHEALTHY
-				s[model.STATUS] = model.STATUS_UNHEALTHY
-			} else {
-				mlog.Debug("Able to write/read files to database")
-			}
+		}
+
+		_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+		if writeErr != nil {
+			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
+			s[dbStatusKey] = model.STATUS_UNHEALTHY
+			s[model.STATUS] = model.STATUS_UNHEALTHY
+		}
+
+		if s[dbStatusKey] == model.STATUS_OK {
+			mlog.Debug("Able to write to database.")
 		}
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		license := c.App.License()
+		license := c.App.Srv().License()
 		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
 		if appErr == nil {
 			appErr = backend.TestConnection()
@@ -238,7 +240,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.InvalidateAllCaches()
+	err := c.App.Srv().InvalidateAllCaches()
 	if err != nil {
 		c.Err = err
 		return
@@ -377,7 +379,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	license := c.App.License()
+	license := c.App.Srv().License()
 	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()
@@ -405,8 +407,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if location, ok := redirectLocationDataCache.Get(url); ok {
-		m["location"] = location.(string)
+	var location string
+	if err := redirectLocationDataCache.Get(url, &location); err == nil {
+		m["location"] = location
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
@@ -419,14 +422,18 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.AddWithExpiresInSecs(url, "", 3600) // Expires after 1 hour
+		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+	defer func() {
+		io.Copy(ioutil.Discard, res.Body)
+		res.Body.Close()
+	}()
 
-	location := res.Header.Get("Location")
-	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
+	location = res.Header.Get("Location")
+	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))

@@ -18,23 +18,26 @@ const (
 )
 
 type Command struct {
-	Id               string `json:"id"`
-	Token            string `json:"token"`
-	CreateAt         int64  `json:"create_at"`
-	UpdateAt         int64  `json:"update_at"`
-	DeleteAt         int64  `json:"delete_at"`
-	CreatorId        string `json:"creator_id"`
-	TeamId           string `json:"team_id"`
-	Trigger          string `json:"trigger"`
-	Method           string `json:"method"`
-	Username         string `json:"username"`
-	IconURL          string `json:"icon_url"`
-	AutoComplete     bool   `json:"auto_complete"`
-	AutoCompleteDesc string `json:"auto_complete_desc"`
-	AutoCompleteHint string `json:"auto_complete_hint"`
-	DisplayName      string `json:"display_name"`
-	Description      string `json:"description"`
-	URL              string `json:"url"`
+	Id               string            `json:"id"`
+	Token            string            `json:"token"`
+	CreateAt         int64             `json:"create_at"`
+	UpdateAt         int64             `json:"update_at"`
+	DeleteAt         int64             `json:"delete_at"`
+	CreatorId        string            `json:"creator_id"`
+	TeamId           string            `json:"team_id"`
+	Trigger          string            `json:"trigger"`
+	Method           string            `json:"method"`
+	Username         string            `json:"username"`
+	IconURL          string            `json:"icon_url"`
+	AutoComplete     bool              `json:"auto_complete"`
+	AutoCompleteDesc string            `json:"auto_complete_desc"`
+	AutoCompleteHint string            `json:"auto_complete_hint"`
+	DisplayName      string            `json:"display_name"`
+	Description      string            `json:"description"`
+	URL              string            `json:"url"`
+	AutocompleteData *AutocompleteData `db:"-" json:"autocomplete_data,omitempty"`
+	// AutocompleteIconData is a base64 encoded svg
+	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
 func (o *Command) ToJson() string {
@@ -61,7 +64,7 @@ func CommandListFromJson(data io.Reader) []*Command {
 
 func (o *Command) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -77,11 +80,11 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.CreatorId) != 26 {
+	if !IsValidId(o.CreatorId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -107,6 +110,12 @@ func (o *Command) IsValid() *AppError {
 
 	if len(o.Description) > 128 {
 		return NewAppError("Command.IsValid", "model.command.is_valid.description.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.AutocompleteData != nil {
+		if err := o.AutocompleteData.IsValid(); err != nil {
+			return NewAppError("Command.IsValid", "model.command.is_valid.autocomplete_data.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return nil

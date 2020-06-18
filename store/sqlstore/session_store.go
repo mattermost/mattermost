@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -135,6 +136,52 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
+	now := model.GetMillis()
+	builder := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.NotEq{"ExpiresAt": 0}).
+		Where(sq.Lt{"ExpiresAt": now}).
+		Where(sq.Gt{"ExpiresAt": now - thresholdMillis})
+	if mobileOnly {
+		builder = builder.Where(sq.NotEq{"DeviceId": ""})
+	}
+	if unnotifiedOnly {
+		builder = builder.Where(sq.NotEq{"ExpiredNotify": true})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var sessions []*model.Session
+
+	_, err = me.GetReplica().Select(&sessions, query, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessionsExpired", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return sessions, nil
+}
+
+func (me SqlSessionStore) UpdateExpiredNotify(sessionId string, notified bool) *model.AppError {
+	query, args, err := me.getQueryBuilder().
+		Update("Sessions").
+		Set("ExpiredNotify", notified).
+		Where(sq.Eq{"Id": sessionId}).
+		ToSql()
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql.build_query.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+
+	_, err = me.GetMaster().Exec(query, args...)
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateExpiredNotifyAt", "store.sql_session.update_expired_notify.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
 	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 	if err != nil {
@@ -160,6 +207,14 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.Ap
 	return nil
 }
 
+func (me SqlSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+	_, err := me.GetMaster().Exec("UPDATE Sessions SET ExpiresAt = :ExpiresAt, ExpiredNotify = false WHERE Id = :Id", map[string]interface{}{"ExpiresAt": time, "Id": sessionId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateExpiresAt", "store.sql_session.update_expires_at.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
 	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
 	if err != nil {
@@ -179,7 +234,7 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, *model.AppE
 }
 
 func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
-	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id"
+	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt, ExpiredNotify = false WHERE Id = :Id"
 
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
 	if err != nil {
