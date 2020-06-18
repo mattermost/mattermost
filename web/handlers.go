@@ -278,12 +278,14 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	mlog.Debug("HTTP response ["+statusCode+"]",
-		mlog.String("status_code", statusCode),
-		mlog.String("method", r.Method),
-		mlog.String("url", r.URL.Path),
-		mlog.String("request_id", requestID),
-	)
+	// Websockets are returning status code 0 to requests after closing the socket
+	if statusCode != "0" {
+		mlog.Debug("HTTP response ["+statusCode+"]",
+			mlog.String("method", r.Method),
+			mlog.String("url", r.URL.Path),
+			mlog.String("request_id", requestID),
+		)
+	}
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
