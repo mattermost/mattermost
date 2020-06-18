@@ -1084,6 +1084,44 @@ func TestSearchUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	require.True(t, findUserInList(th.BasicUser.Id, users), "should have found user")
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, InGroupId: group.Id}
+	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
+		_, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission when searching for users in a group", func(t *testing.T) {
+		_, resp = th.Client.SearchUsers(search)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Returns empty list when no users found searching for users in a group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Empty(t, users)
+	})
+
+	_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns user in group user found in group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
 }
 
 func findUserInList(id string, users []*model.User) bool {
@@ -2326,6 +2364,54 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetUsersInGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	var response *model.Response
+	var users []*model.User
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		_, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNotImplementedStatus(t, response)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		_, response = th.Client.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckForbiddenStatus(t, response)
+	})
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group when called by system admin", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNoError(t, response)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users when pagination out of range", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 5, 60, "")
+		CheckNoError(t, response)
+		assert.Empty(t, users)
+	})
 }
 
 func TestUpdateUserMfa(t *testing.T) {

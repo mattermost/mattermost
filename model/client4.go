@@ -994,6 +994,17 @@ func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*Us
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
+func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
+	r, err := c.DoApiGet(c.GetUsersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	r, err := c.DoApiPost(c.GetUsersRoute()+"/ids", ArrayToJson(userIds))
@@ -5126,4 +5137,14 @@ func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetGroupStats retrieves stats for a Mattermost Group
+func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID)+"/stats", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupStatsFromJson(r.Body), BuildResponse(r)
 }
