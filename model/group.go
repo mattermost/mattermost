@@ -94,6 +94,11 @@ type PageOpts struct {
 	PerPage int
 }
 
+type GroupStats struct {
+	GroupID          string `json:"group_id"`
+	TotalMemberCount int64  `json:"total_member_count"`
+}
+
 func (group *Group) Patch(patch *GroupPatch) {
 	if patch.Name != nil {
 		group.Name = patch.Name
@@ -207,4 +212,10 @@ func GroupPatchFromJson(data io.Reader) *GroupPatch {
 	var groupPatch *GroupPatch
 	json.NewDecoder(data).Decode(&groupPatch)
 	return groupPatch
+}
+
+func GroupStatsFromJson(data io.Reader) *GroupStats {
+	var groupStats *GroupStats
+	json.NewDecoder(data).Decode(&groupStats)
+	return groupStats
 }

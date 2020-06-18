@@ -1024,6 +1024,54 @@ func TestGetGroupsByUserId(t *testing.T) {
 
 }
 
+func TestGetGroupStats(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	var response *model.Response
+	var stats *model.GroupStats
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		_, response = th.SystemAdminClient.GetGroupStats(group.Id)
+		CheckNotImplementedStatus(t, response)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission to access group stats", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		_, response = th.Client.GetGroupStats(group.Id)
+		CheckForbiddenStatus(t, response)
+	})
+
+	t.Run("Returns stats for a group with no members", func(t *testing.T) {
+		stats, _ = th.SystemAdminClient.GetGroupStats(group.Id)
+		assert.Equal(t, stats.GroupID, group.Id)
+		assert.Equal(t, stats.TotalMemberCount, int64(0))
+	})
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns stats for a group with members", func(t *testing.T) {
+		stats, _ = th.SystemAdminClient.GetGroupStats(group.Id)
+		assert.Equal(t, stats.GroupID, group.Id)
+		assert.Equal(t, stats.TotalMemberCount, int64(1))
+	})
+}
+
 func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

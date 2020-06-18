@@ -18,6 +18,7 @@ type UserSearch struct {
 	NotInTeamId      string `json:"not_in_team_id"`
 	InChannelId      string `json:"in_channel_id"`
 	NotInChannelId   string `json:"not_in_channel_id"`
+	InGroupId        string `json:"in_group_id"`
 	GroupConstrained bool   `json:"group_constrained"`
 	AllowInactive    bool   `json:"allow_inactive"`
 	WithoutTeam      bool   `json:"without_team"`
