@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlSupplier interface {
@@ -714,8 +715,8 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o2.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	channels, err := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
-	require.Nil(t, err)
+	channels, nErr := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
+	require.Nil(t, nErr)
 	assert.Empty(t, channels)
 }
 
@@ -734,12 +735,12 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.DeleteAt = now
 	o1.UpdateAt = now
 
-	r1, err := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name)
-	require.Nil(t, err)
+	r1, nErr := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name)
+	require.Nil(t, nErr)
 	require.Equal(t, o1, r1)
 
-	_, err = ss.Channel().GetDeletedByName(o1.TeamId, "")
-	require.NotNil(t, err, "missing id should have failed")
+	_, nErr = ss.Channel().GetDeletedByName(o1.TeamId, "")
+	require.NotNil(t, nErr, "missing id should have failed")
 }
 
 func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
@@ -4335,13 +4336,13 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
-	t.Run("returns memberCountsByGroup with timezones", func(t *testing.T) {
+	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
 		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 		}
 		require.Nil(t, err)
@@ -4362,6 +4363,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		timeZone := timezones.DefaultUserTimezone()
 		if i == 1 {
 			timeZone["manualTimezone"] = "EDT"
+			timeZone["useAutomaticTimezone"] = "false"
 		}
 
 		u := &model.User{
@@ -4399,10 +4401,20 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	// create 10 different users with 3 different timezones for group 3
 	for i := 1; i <= 10; i++ {
 		timeZone := timezones.DefaultUserTimezone()
-		if i == 1 {
+
+		if i == 1 || i == 2 {
 			timeZone["manualTimezone"] = "EDT"
-		} else if i == 2 {
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 3 || i == 4 {
 			timeZone["manualTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 5 || i == 6 {
+			timeZone["autoTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "true"
+		} else {
+			// Give every user with auto timezone set to true a random manual timezone to ensure that manual timezone is not looked at if auto is set
+			timeZone["useAutomaticTimezone"] = "true"
+			timeZone["manualTimezone"] = "PST" + utils.RandomName(utils.Range{Begin: 5, End: 5}, utils.ALPHANUMERIC)
 		}
 
 		u := &model.User{
@@ -4456,12 +4468,12 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 			{
 				GroupId:                     g2.Id,
 				ChannelMemberCount:          5,
-				ChannelMemberTimezonesCount: 2,
+				ChannelMemberTimezonesCount: 1,
 			},
 			{
 				GroupId:                     g3.Id,
@@ -5240,6 +5252,14 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().Delete(o13.Id, o13.DeleteAt)
 	require.Nil(t, nErr, "channel should have been deleted")
 
+	o14 := model.Channel{
+		TeamId:      t2.Id,
+		DisplayName: "FOOBAR",
+		Name:        "whatever",
+		Type:        model.CHANNEL_OPEN,
+	}
+	_, nErr = ss.Channel().Save(&o14, -1)
+	require.Nil(t, nErr)
 	testCases := []struct {
 		Description     string
 		Term            string
@@ -5247,9 +5267,14 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		ExpectedResults *model.ChannelList
 		TotalCount      int
 	}{
+		{"Search FooBar by display name", "oob", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name2", "foo", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name3", "bar", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by name", "what", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}, 0},
 		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, &model.ChannelList{&o1, &o2, &o3, &o13}, 0},
-		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o11, &o8, &o7, &o6, &o10, &o9}, 0},
+		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o14, &o11, &o8, &o7, &o6, &o10, &o9}, 0},
 		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{}, 0},
 		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o8, &o7, &o6}, 0},
 		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}, 0},
