@@ -1062,7 +1062,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	post5 := th.CreatePost()
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
-		posts, resp := Client.GetPostsSince(th.BasicChannel.Id, since)
+		posts, resp := c.GetPostsSince(th.BasicChannel.Id, since)
 		CheckNoError(t, resp)
 		require.Len(t, posts.Posts, 2, "should return 2 posts")
 
