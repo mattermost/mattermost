@@ -25,7 +25,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 
 	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
-	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.License() != nil)
+	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.Srv().License() != nil)
 
 	allSucceeded := true
 

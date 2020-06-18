@@ -1115,6 +1115,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL cannot be cleared."
+  },
+  {
     "id": "api.config.update_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1355,6 +1359,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1813,6 +1821,10 @@
   {
     "id": "api.push_notifications.message.parse.app_error",
     "translation": "An error occurred building the push notification message."
+  },
+  {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
@@ -3009,6 +3021,14 @@
   {
     "id": "app.channel.get_all_channels_count.app_error",
     "translation": "Unable to count all the channels."
+  },
+  {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
   },
   {
     "id": "app.channel.get_channels.get.app_error",
@@ -6159,14 +6179,6 @@
     "translation": "Unable to get all the direct channels."
   },
   {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
-  },
-  {
     "id": "store.sql_channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },
@@ -6189,14 +6201,6 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "No deleted channel exists with that name."
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
@@ -6261,22 +6265,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Unable to delete the channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -7053,6 +7041,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expired_notify.app_error",
+    "translation": "Unable to update expired_notify."
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
