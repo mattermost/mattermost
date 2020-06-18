@@ -4422,3 +4422,33 @@ func (s *apiRPCServer) DeleteBotIconImage(args *Z_DeleteBotIconImageArgs, return
 	}
 	return nil
 }
+
+type Z_PublishUserTypingArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_PublishUserTypingReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	_args := &Z_PublishUserTypingArgs{userId, channelId, parentId}
+	_returns := &Z_PublishUserTypingReturns{}
+	if err := g.client.Call("Plugin.PublishUserTyping", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishUserTyping API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishUserTyping(args *Z_PublishUserTypingArgs, returns *Z_PublishUserTypingReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishUserTyping(userId, channelId, parentId string) *model.AppError
+	}); ok {
+		returns.A = hook.PublishUserTyping(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API PublishUserTyping called but not implemented."))
+	}
+	return nil
+}
