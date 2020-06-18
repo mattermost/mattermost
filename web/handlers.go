@@ -86,7 +86,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	requestID := model.NewId()
-	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
+	var statusCode string
+	defer func() {
+		responseLogFields := []mlog.Field{
+			mlog.String("method", r.Method),
+			mlog.String("url", r.URL.Path),
+			mlog.String("request_id", requestID),
+		}
+		// Websockets are returning status code 0 to requests after closing the socket
+		if statusCode != "0" {
+			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
+		}
+		mlog.Debug("Received HTTP request", responseLogFields...)
+	}()
 
 	c := &Context{}
 	c.App = app.New(
@@ -268,7 +280,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
+	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
@@ -277,17 +289,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
-
-	responseLogFields := []mlog.Field{
-		mlog.String("method", r.Method),
-		mlog.String("url", r.URL.Path),
-		mlog.String("request_id", requestID),
-	}
-	// Websockets are returning status code 0 to requests after closing the socket
-	if statusCode != "0" {
-		responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
-	}
-	mlog.Debug("HTTP response", responseLogFields...)
 }
 
 // checkCSRFToken performs a CSRF check on the provided request with the given CSRF token. Returns whether or not
