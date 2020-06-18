@@ -20,6 +20,7 @@ const (
 	SYSTEM_INSTALLATION_DATE_KEY          = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY         = "ClusterEncryptionKey"
+	SYSTEM_UPGRADED_FROM_TE_ID            = "UpgradedFromTE"
 )
 
 type System struct {

@@ -661,8 +661,21 @@ func (s *Server) Restart() error {
 	return syscall.Exec(argv0, os.Args, os.Environ())
 }
 
+func (s *Server) isUpgradedFromTE() bool {
+	val, err := s.Store.System().GetByName(model.SYSTEM_UPGRADED_FROM_TE_ID)
+	if err != nil {
+		return false
+	}
+	return val.Value == "true"
+}
+
 func (s *Server) UpgradeToE0() error {
-	return upgrader.UpgradeToE0()
+	if err := upgrader.UpgradeToE0(); err != nil {
+		return err
+	}
+	upgradedFromTE := &model.System{Name: model.SYSTEM_UPGRADED_FROM_TE_ID, Value: "true"}
+	s.Store.System().Save(upgradedFromTE)
+	return nil
 }
 
 func (s *Server) UpgradeToE0Status() (int64, error) {
