@@ -675,7 +675,7 @@ func (_m *ChannelStore) GetDeleted(team_id string, offset int, limit int, userId
 }
 
 // GetDeletedByName provides a mock function with given fields: team_id, name
-func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 	ret := _m.Called(team_id, name)
 
 	var r0 *model.Channel
@@ -687,13 +687,11 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(team_id, name)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

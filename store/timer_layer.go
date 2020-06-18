@@ -920,7 +920,7 @@ func (s *TimerLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByName(team_id, name)

@@ -6199,14 +6199,6 @@
     "translation": "No channel found."
   },
   {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "No deleted channel exists with that name."
-  },
-  {
     "id": "store.sql_channel.get_for_post.app_error",
     "translation": "Unable to get the channel for the given post."
   },
