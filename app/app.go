@@ -70,7 +70,6 @@ func (a *App) InitServer() {
 		a.notification = a.srv.Notification
 		a.saml = a.srv.Saml
 
-		a.StartPushNotificationsHubWorkers()
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
 				if appErr := a.DeactivateGuests(); appErr != nil {
