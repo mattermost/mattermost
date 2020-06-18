@@ -990,7 +990,7 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, li
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeletedByName")
 	s.Root.Store.SetContext(newCtx)
