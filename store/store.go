@@ -148,7 +148,7 @@ type ChannelStore interface {
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, error)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, error)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error)
-	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
+	GetDeletedByName(team_id string, name string) (*model.Channel, error)
 	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
@@ -283,6 +283,7 @@ type PostStore interface {
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
+	GetOldestEntityCreationTime() (int64, *model.AppError)
 }
 
 type UserStore interface {
@@ -366,6 +367,8 @@ type SessionStore interface {
 	Save(session *model.Session) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
+	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError)
+	UpdateExpiredNotify(sessionid string, notified bool) *model.AppError
 	Remove(sessionIdOrToken string) *model.AppError
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
