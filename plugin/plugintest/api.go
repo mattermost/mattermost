@@ -1089,13 +1089,13 @@ func (_m *API) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return r0, r1
 }
 
-// GetGroupByName provides a mock function with given fields: name, opts
-func (_m *API) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	ret := _m.Called(name, opts)
+// GetGroupByName provides a mock function with given fields: name
+func (_m *API) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	ret := _m.Called(name)
 
 	var r0 *model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) *model.Group); ok {
-		r0 = rf(name, opts)
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Group)
@@ -1103,8 +1103,8 @@ func (_m *API) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.G
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
-		r1 = rf(name, opts)
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
