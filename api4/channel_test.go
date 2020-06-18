@@ -919,6 +919,15 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	var originalConfigVal bool
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		originalConfigVal = *cfg.TeamSettings.ExperimentalViewArchivedChannels
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = originalConfigVal
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, resp := client.GetAllChannels(0, 20, "")
 		CheckNoError(t, resp)
