@@ -95,7 +95,8 @@ type Server struct {
 	hubsLock sync.RWMutex
 	hubs     []*Hub
 
-	PushNotificationsHub PushNotificationsHub
+	PushNotificationsHub   PushNotificationsHub
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	runjobs bool
 	Jobs    *jobs.JobServer
@@ -137,8 +138,7 @@ type Server struct {
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService            httpservice.HTTPService
-	pushNotificationClient *http.Client // TODO: move this to it's own package
+	HTTPService httpservice.HTTPService
 
 	ImageProxy *imageproxy.ImageProxy
 
