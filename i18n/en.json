@@ -6035,10 +6035,6 @@
     "translation": "Unable to get the users, invalid sorting criteria."
   },
   {
-    "id": "plugin.api.search_posts_in_team_for_user",
-    "translation": "Missing search parameters."
-  },
-  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
   },

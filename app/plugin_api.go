@@ -415,10 +415,7 @@ func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.Searc
 	return postList.ToSlice(), nil
 }
 
-func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, searchParams *model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
-	if searchParams == nil {
-		return nil, model.NewAppError("SearchPostsInTeamForUser", "plugin.api.search_posts_in_team_for_user", nil, "missing search parameters", http.StatusBadRequest)
-	}
+func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
 	var terms string
 	if searchParams.Terms != nil {
 		terms = *searchParams.Terms

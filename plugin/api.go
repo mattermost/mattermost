@@ -448,7 +448,7 @@ type API interface {
 	// search parameters.
 	// @tag Post
 	// Minimum server version: 5.26
-	SearchPostsInTeamForUser(teamId string, userId string, searchParams *model.SearchParameter) (*model.PostSearchResults, *model.AppError)
+	SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
 
 	// AddChannelMember joins a user to a channel (as if they joined themselves)
 	// This means the user will not receive notifications for joining the channel.

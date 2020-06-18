@@ -490,7 +490,7 @@ func (api *apiTimerLayer) SearchPostsInTeam(teamId string, paramsList []*model.S
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) SearchPostsInTeamForUser(teamId string, userId string, searchParams *model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+func (api *apiTimerLayer) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeamForUser(teamId, userId, searchParams)
 	api.recordTime(startTime, "SearchPostsInTeamForUser", _returnsB == nil)
