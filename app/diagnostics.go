@@ -1176,10 +1176,5 @@ func (s *Server) getAllMarketplaceplugins(cfg *model.Config) ([]*model.BaseMarke
 		filter.BuildEnterpriseReady = true
 	}
 
-	plugins, err := marketplaceClient.GetPlugins(filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return plugins, nil
+	return marketplaceClient.GetPlugins(filter)
 }
