@@ -80,6 +80,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -113,7 +115,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("token_type", token.Type)
 
 		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
-			if c.App.License() == nil {
+			if c.App.Srv().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
 			}
@@ -525,6 +527,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	inTeamId := r.URL.Query().Get("in_team")
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
+	inGroupId := r.URL.Query().Get("in_group")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
@@ -544,7 +547,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
-	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
@@ -568,6 +571,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		InChannelId:      inChannelId,
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
+		InGroupId:        inGroupId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
@@ -634,6 +638,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		}
+	} else if len(inGroupId) > 0 {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
+
+		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if err != nil {
+			c.Err = err
+			return
 		}
 	} else {
 		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session().UserId, userGetOptions)
@@ -745,6 +765,18 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props.TeamId == "" && props.NotInChannelId != "" {
 		c.SetInvalidParam("team_id")
 		return
+	}
+
+	if props.InGroupId != "" {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
 	}
 
 	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.App.Session(), props.InChannelId, model.PERMISSION_READ_CHANNEL) {
@@ -1469,7 +1501,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.License(); license == nil || !*license.Features.SAML {
+		if license := c.App.Srv().License(); license == nil || !*license.Features.SAML {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
@@ -1503,7 +1535,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
-		if c.App.License() == nil {
+		if c.App.Srv().License() == nil {
 			c.Err = model.NewAppError("login", "api.user.login.guest_accounts.license.error", nil, "", http.StatusUnauthorized)
 			return
 		}
@@ -2232,7 +2264,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil {
+	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -2268,5 +2300,35 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	typingRequest := model.TypingRequestFromJson(r.Body)
+	if typingRequest == nil {
+		c.SetInvalidParam("typing_request")
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if !c.App.HasPermissionToChannel(c.Params.UserId, typingRequest.ChannelId, model.PERMISSION_CREATE_POST) {
+		c.SetPermissionError(model.PERMISSION_CREATE_POST)
+		return
+	}
+
+	if err := c.App.PublishUserTyping(c.Params.UserId, typingRequest.ChannelId, typingRequest.ParentId); err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }
