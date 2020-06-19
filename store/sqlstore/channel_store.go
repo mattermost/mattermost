@@ -504,40 +504,71 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId
 func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, user *model.User, teamId string) error {
 	T := utils.GetUserTranslations(user.Locale)
 
-	if err := transaction.Insert(&model.SidebarCategory{
-		DisplayName: T("sidebar.category.favorites"),
-		Id:          model.NewId(),
-		UserId:      user.Id,
-		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortDefault,
-		SortOrder:   model.DefaultSidebarSortOrderFavorites,
-		Type:        model.SidebarCategoryFavorites,
-	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+	selectQuery, selectParams, _ := s.getQueryBuilder().
+		Select("Type").
+		From("SidebarCategories").
+		Where(sq.Eq{
+			"UserId": user.Id,
+			"TeamId": teamId,
+			"Type":   []model.SidebarCategoryType{model.SidebarCategoryFavorites, model.SidebarCategoryChannels, model.SidebarCategoryDirectMessages},
+		}).ToSql()
+
+	var existingTypes []model.SidebarCategoryType
+	_, err := transaction.Select(&existingTypes, selectQuery, selectParams...)
+	if err != nil {
 		return err
 	}
 
-	if err := transaction.Insert(&model.SidebarCategory{
-		DisplayName: T("sidebar.category.channels"),
-		Id:          model.NewId(),
-		UserId:      user.Id,
-		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortDefault,
-		SortOrder:   model.DefaultSidebarSortOrderChannels,
-		Type:        model.SidebarCategoryChannels,
-	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
-		return err
+	hasCategoryOfType := func(categoryType model.SidebarCategoryType) bool {
+		for _, existingType := range existingTypes {
+			if categoryType == existingType {
+				return true
+			}
+		}
+
+		return false
 	}
 
-	if err := transaction.Insert(&model.SidebarCategory{
-		DisplayName: T("sidebar.category.dm"),
-		Id:          model.NewId(),
-		UserId:      user.Id,
-		TeamId:      teamId,
-		Sorting:     model.SidebarCategorySortRecent,
-		SortOrder:   model.DefaultSidebarSortOrderDMs,
-		Type:        model.SidebarCategoryDirectMessages,
-	}); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
-		return err
+	if !hasCategoryOfType(model.SidebarCategoryFavorites) {
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.favorites"),
+			Id:          model.NewId(),
+			UserId:      user.Id,
+			TeamId:      teamId,
+			Sorting:     model.SidebarCategorySortDefault,
+			SortOrder:   model.DefaultSidebarSortOrderFavorites,
+			Type:        model.SidebarCategoryFavorites,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if !hasCategoryOfType(model.SidebarCategoryChannels) {
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.channels"),
+			Id:          model.NewId(),
+			UserId:      user.Id,
+			TeamId:      teamId,
+			Sorting:     model.SidebarCategorySortDefault,
+			SortOrder:   model.DefaultSidebarSortOrderChannels,
+			Type:        model.SidebarCategoryChannels,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if !hasCategoryOfType(model.SidebarCategoryDirectMessages) {
+		if err := transaction.Insert(&model.SidebarCategory{
+			DisplayName: T("sidebar.category.dm"),
+			Id:          model.NewId(),
+			UserId:      user.Id,
+			TeamId:      teamId,
+			Sorting:     model.SidebarCategorySortRecent,
+			SortOrder:   model.DefaultSidebarSortOrderDMs,
+			Type:        model.SidebarCategoryDirectMessages,
+		}); err != nil {
+			return err
+		}
 	}
 
 	return nil
