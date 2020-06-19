@@ -541,11 +541,9 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 		}
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return newChannel, nil
+	// There are cases when in case of conflict, the original channel value is returned.
+	// So we return both and let the caller do the checks.
+	return newChannel, err
 }
 
 func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
