@@ -4,7 +4,6 @@
 package app
 
 import (
-	"log"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -1100,14 +1099,12 @@ func (s *Server) trackPluginConfig(cfg *model.Config) {
 
 	marketplacePlugins, err := s.getAllMarketplaceplugins(cfg)
 	if err != nil {
-		log.Println("keks 1")
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
 		for k, v := range knownPlugins {
 			pluginConfigData["enable_"+v] = pluginActivated(cfg.PluginSettings.PluginStates, k)
 		}
 	} else {
-		log.Println("keks 2")
 		for _, p := range marketplacePlugins {
 			id := p.Manifest.Id
 			var key string
