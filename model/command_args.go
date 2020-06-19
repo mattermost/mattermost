@@ -20,7 +20,6 @@ type CommandArgs struct {
 	Command         string               `json:"command"`
 	SiteURL         string               `json:"-"`
 	T               goi18n.TranslateFunc `json:"-"`
-	Session         Session              `json:"-"`
 	UserMentions    UserMentionMap       `json:"-"`
 	ChannelMentions ChannelMentionMap    `json:"-"`
 }
