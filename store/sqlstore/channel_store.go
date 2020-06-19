@@ -3450,14 +3450,15 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	// now we re-order the categories according to the new order
+	if appErr := s.updateSidebarCategoryOrderT(transaction, userId, teamId, newOrder); appErr != nil {
+		return nil, appErr
+	}
+
 	if err = transaction.Commit(); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// now we re-order the categories according to the new order
-	if appErr := s.UpdateSidebarCategoryOrder(userId, teamId, newOrder); appErr != nil {
-		return nil, appErr
-	}
 	// patch category to return proper sort order
 	category.SortOrder = int64(newCategorySortOrder)
 	result := &model.SidebarCategoryWithChannels{
@@ -3628,9 +3629,40 @@ func (s SqlChannelStore) GetSidebarCategoryOrder(userId, teamId string) ([]strin
 }
 
 func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transaction, userId, teamId string, categoryOrder []string) *model.AppError {
-	existingOrder, err := s.GetSidebarCategoryOrder(userId, teamId)
+	var newOrder []interface{}
+	runningOrder := 0
+	for _, categoryId := range categoryOrder {
+		newOrder = append(newOrder, &model.SidebarCategory{
+			Id:        categoryId,
+			SortOrder: int64(runningOrder),
+		})
+		runningOrder += model.MinimalSidebarSortDistance
+	}
+
+	// There's a bug in gorp where UpdateColumns messes up the stored query for any other attempt to use .Update or
+	// .UpdateColumns on this table, so it's okay to use here as long as we don't use those methods for SidebarCategories
+	// anywhere else.
+	if _, err := transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
+		return col.ColumnName == "SortOrder"
+	}, newOrder...); err != nil {
+		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return err
+		return model.NewAppError("SqlChannelStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	defer finalizeTransaction(transaction)
+
+	// Ensure no invalid categories are included and that no categories are left out
+	existingOrder, appErr := s.GetSidebarCategoryOrder(userId, teamId)
+	if appErr != nil {
+		return appErr
 	}
 	if len(existingOrder) != len(categoryOrder) {
 		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories different size than in DB", http.StatusInternalServerError)
@@ -3647,31 +3679,6 @@ func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *gorp.Transacti
 			return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, "Cannot update category order, passed list of categories contains unrecognized category IDs", http.StatusBadRequest)
 		}
 	}
-	var newOrder []interface{}
-	runningOrder := 0
-	for _, categoryId := range categoryOrder {
-		newOrder = append(newOrder, &model.SidebarCategory{
-			Id:        categoryId,
-			SortOrder: int64(runningOrder),
-		})
-		runningOrder += model.MinimalSidebarSortDistance
-	}
-
-	if _, err := transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
-		return col.ColumnName == "SortOrder"
-	}, newOrder...); err != nil {
-		return model.NewAppError("SqlPostStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	return nil
-}
-
-func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarCategoryOrder", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	defer finalizeTransaction(transaction)
 
 	if appErr := s.updateSidebarCategoryOrderT(transaction, userId, teamId, categoryOrder); appErr != nil {
 		return appErr
@@ -3718,9 +3725,13 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			copy(updatedCategory.Channels, category.Channels)
 		}
 
-		if _, err = transaction.UpdateColumns(func(col *gorp.ColumnMap) bool {
-			return col.ColumnName == "DisplayName" || col.ColumnName == "Sorting"
-		}, &updatedCategory.SidebarCategory); err != nil {
+		updateQuery, updateParams, _ := s.getQueryBuilder().
+			Update("SidebarCategories").
+			Set("DisplayName", updatedCategory.DisplayName).
+			Set("Sorting", updatedCategory.Sorting).
+			Where(sq.Eq{"Id": updatedCategory.Id}).ToSql()
+
+		if _, err = transaction.Exec(updateQuery, updateParams...); err != nil {
 			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
