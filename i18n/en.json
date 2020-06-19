@@ -3047,6 +3047,10 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6245,10 +6249,6 @@
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Unable to get the channels."
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",

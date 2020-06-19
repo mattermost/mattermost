@@ -614,8 +614,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 	require.Len(t, *list, 1, "invalid number of channels")
 
-	list, err = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
+	require.Nil(t, nErr)
 	require.Len(t, *list, 1, "invalid number of channels")
 
 	cresult := ss.Channel().PermanentDelete(o2.Id)
