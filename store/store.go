@@ -7,9 +7,13 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 type StoreResult struct {
@@ -768,4 +772,34 @@ type RelationalIntegrityCheckData struct {
 type IntegrityCheckResult struct {
 	Data interface{}
 	Err  error
+}
+
+const mySQLDeadlockCode = uint16(1213)
+
+// WithDeadlockRetry retries a given f if it throws a deadlock error.
+// After exceeding a given threshold, it breaks and propagates the error upwards.
+// TODO: This can be a separate retry layer in itself where transaction retries
+// are automatically applied.
+func WithDeadlockRetry(f func() error) error {
+	var err error
+	for i := 0; i < 3; i++ {
+		err = f()
+		if err != nil {
+			// XXX: Possibly add check for postgres deadlocks later.
+			// But deadlocks are very rarely seen in postgres.
+			var mysqlErr *mysql.MySQLError
+			if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
+				mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
+				// This is a deadlock, retry.
+				continue
+			}
+			// Some other error, return as-is.
+			return err
+		} else {
+			// No error, return nil.
+			return nil
+		}
+	}
+	mlog.Error("Deadlock happened 3 times. Giving up")
+	return err
 }

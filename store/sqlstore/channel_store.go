@@ -518,24 +518,31 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 		return nil, store.NewErrInvalidInput("Channel", "Type", channel.Type)
 	}
 
-	transaction, err := s.GetMaster().Begin()
+	var newChannel *model.Channel
+	err := store.WithDeadlockRetry(func() error {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return errors.Wrapf(err, "begin_transaction: ")
+		}
+		defer finalizeTransaction(transaction)
+
+		newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+		if err != nil {
+			return err
+		}
+
+		// Additionally propagate the write to the PublicChannels table.
+		if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
+			return errors.Wrapf(err, "upsert_public_channel: ")
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return errors.Wrapf(err, "commit_transaction: ")
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "begin_transaction: ")
-	}
-	defer finalizeTransaction(transaction)
-
-	newChannel, err := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-	if err != nil {
-		return newChannel, err
-	}
-
-	// Additionally propagate the write to the PublicChannels table.
-	if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-		return nil, errors.Wrapf(err, "upsert_public_channel: ")
-	}
-
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrapf(err, "commit_transaction: ")
+		return nil, err
 	}
 
 	return newChannel, nil
