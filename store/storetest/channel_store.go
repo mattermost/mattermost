@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type SqlSupplier interface {
@@ -4342,13 +4343,13 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
-	t.Run("returns memberCountsByGroup with timezones", func(t *testing.T) {
+	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
 		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 		}
 		require.Nil(t, err)
@@ -4369,6 +4370,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		timeZone := timezones.DefaultUserTimezone()
 		if i == 1 {
 			timeZone["manualTimezone"] = "EDT"
+			timeZone["useAutomaticTimezone"] = "false"
 		}
 
 		u := &model.User{
@@ -4406,10 +4408,20 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	// create 10 different users with 3 different timezones for group 3
 	for i := 1; i <= 10; i++ {
 		timeZone := timezones.DefaultUserTimezone()
-		if i == 1 {
+
+		if i == 1 || i == 2 {
 			timeZone["manualTimezone"] = "EDT"
-		} else if i == 2 {
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 3 || i == 4 {
 			timeZone["manualTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "false"
+		} else if i == 5 || i == 6 {
+			timeZone["autoTimezone"] = "PST"
+			timeZone["useAutomaticTimezone"] = "true"
+		} else {
+			// Give every user with auto timezone set to true a random manual timezone to ensure that manual timezone is not looked at if auto is set
+			timeZone["useAutomaticTimezone"] = "true"
+			timeZone["manualTimezone"] = "PST" + utils.RandomName(utils.Range{Begin: 5, End: 5}, utils.ALPHANUMERIC)
 		}
 
 		u := &model.User{
@@ -4463,12 +4475,12 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			{
 				GroupId:                     g1.Id,
 				ChannelMemberCount:          1,
-				ChannelMemberTimezonesCount: 1,
+				ChannelMemberTimezonesCount: 0,
 			},
 			{
 				GroupId:                     g2.Id,
 				ChannelMemberCount:          5,
-				ChannelMemberTimezonesCount: 2,
+				ChannelMemberTimezonesCount: 1,
 			},
 			{
 				GroupId:                     g3.Id,
@@ -5249,7 +5261,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o14 := model.Channel{
 		TeamId:      t2.Id,
-		DisplayName: "FOOBAR",
+		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5262,9 +5274,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		ExpectedResults *model.ChannelList
 		TotalCount      int
 	}{
-		{"Search FooBar by display name", "oob", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by display name2", "foo", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
-		{"Search FooBar by display name3", "bar", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name", "bardisplay", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name2", "foobar", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
+		{"Search FooBar by display name3", "displayname", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"Search FooBar by name", "what", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}, 0},
@@ -5280,9 +5292,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
 		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o8, &o7}, 0},
 		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, &model.ChannelList{}, 0},
-		{"exclude by group association", "off", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o8, &o6}, 0},
-		{"paginate includes count", "off", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o8, &o7, &o6}, 3},
-		{"paginate, page 2 correct entries and count", "off", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o6}, 3},
+		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o8, &o6}, 0},
+		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o8, &o7, &o6}, 3},
+		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o6}, 3},
 	}
 
 	for _, testCase := range testCases {

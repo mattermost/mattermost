@@ -72,6 +72,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
+	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
@@ -2909,6 +2910,146 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().SearchWithoutTeam(
+				testCase.Term,
+				testCase.Options,
+			)
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
+		})
+	}
+}
+
+func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+	}
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	u2 := &model.User{
+		Username: "jim-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+	}
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		DeleteAt: 1,
+	}
+	_, err = ss.User().Save(u3)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := model.NewString("")
+
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	g1 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err = ss.Group().Create(g1)
+	require.Nil(t, err)
+
+	g2 := &model.Group{
+		Name:        model.NewString(model.NewId()),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	_, err = ss.Group().Create(g2)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u1.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g2.Id, u2.Id)
+	require.Nil(t, err)
+
+	_, err = ss.Group().UpsertMember(g1.Id, u3.Id)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		Description string
+		GroupId     string
+		Term        string
+		Options     *model.UserSearchOptions
+		Expected    []*model.User
+	}{
+		{
+			"search jimb, group 1",
+			g1.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, group 1, allow inactive",
+			g1.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, group 1, limit 1",
+			g1.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          1,
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jimb, group 2",
+			g2.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{},
+		},
+		{
+			"search jimb, allow inactive, group 2",
+			g2.Id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := ss.User().SearchInGroup(
+				testCase.GroupId,
 				testCase.Term,
 				testCase.Options,
 			)

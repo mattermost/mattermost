@@ -527,6 +527,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	inTeamId := r.URL.Query().Get("in_team")
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
+	inGroupId := r.URL.Query().Get("in_group")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
@@ -546,7 +547,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Currently only supports sorting on a team
 	// or sort="status" on inChannelId
-	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "" || inGroupId != "") {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
@@ -570,6 +571,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		InChannelId:      inChannelId,
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
+		InGroupId:        inGroupId,
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
@@ -636,6 +638,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		}
+	} else if len(inGroupId) > 0 {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.getUsersInGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
+
+		profiles, _, err = c.App.GetGroupMemberUsersPage(inGroupId, c.Params.Page, c.Params.PerPage)
+		if err != nil {
+			c.Err = err
+			return
 		}
 	} else {
 		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session().UserId, userGetOptions)
@@ -747,6 +765,18 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if props.TeamId == "" && props.NotInChannelId != "" {
 		c.SetInvalidParam("team_id")
 		return
+	}
+
+	if props.InGroupId != "" {
+		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+			c.Err = model.NewAppError("Api4.searchUsers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+			return
+		}
+
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+			return
+		}
 	}
 
 	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(*c.App.Session(), props.InChannelId, model.PERMISSION_READ_CHANNEL) {
