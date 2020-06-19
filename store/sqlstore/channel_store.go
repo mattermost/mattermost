@@ -1256,14 +1256,14 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 	return &channel, nil
 }
 
-func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Channel, error) {
 	channel := model.Channel{}
 
 	if err := s.GetReplica().SelectOne(&channel, "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name AND DeleteAt != 0", map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlChannelStore.GetDeletedByName", "store.sql_channel.get_deleted_by_name.missing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("name=%s", name))
 		}
-		return nil, model.NewAppError("SqlChannelStore.GetDeletedByName", "store.sql_channel.get_deleted_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get channel by teamId=%s and name=%s", teamId, name)
 	}
 
 	return &channel, nil
@@ -1811,7 +1811,27 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		selectStr = "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT( DISTINCT Users.Timezone ) AS ChannelMemberTimezonesCount"
+		distinctTimezones := `
+			DISTINCT(
+				CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(Timezone) > 74
+				THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
+				WHEN LENGTH(Timezone) > 74
+				THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
+				END
+			)
+		`
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			distinctTimezones = `
+				DISTINCT(
+					CASE WHEN Timezone::json->>'useAutomaticTimezone' = 'true' AND LENGTH(Timezone) > 74
+					THEN Timezone::json->>'automaticTimezone'
+					WHEN LENGTH(Timezone) > 74
+					THEN Timezone::json->>'manualTimezone'
+					END
+				)
+			`
+		}
+		selectStr = `GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT(` + distinctTimezones + `) AS ChannelMemberTimezonesCount`
 	}
 
 	query := s.getQueryBuilder().
