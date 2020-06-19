@@ -86,7 +86,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	requestID := model.NewId()
-	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
+	var statusCode string
+	defer func() {
+		responseLogFields := []mlog.Field{
+			mlog.String("method", r.Method),
+			mlog.String("url", r.URL.Path),
+			mlog.String("request_id", requestID),
+		}
+		// Websockets are returning status code 0 to requests after closing the socket
+		if statusCode != "0" {
+			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
+		}
+		mlog.Debug("Received HTTP request", responseLogFields...)
+	}()
 
 	c := &Context{}
 	c.App = app.New(
@@ -268,12 +280,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
