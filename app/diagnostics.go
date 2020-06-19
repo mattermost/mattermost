@@ -1154,7 +1154,7 @@ func (s *Server) trackPluginConfig(cfg *model.Config) {
 
 func (s *Server) getAllMarketplaceplugins(cfg *model.Config) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
-		*cfg.PluginSettings.MarketplaceUrl,
+		model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL,
 		s.HTTPService,
 	)
 	if err != nil {
