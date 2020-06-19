@@ -15,23 +15,21 @@ type UserTermsOfServiceStore struct {
 }
 
 // Delete provides a mock function with given fields: userId, termsOfServiceId
-func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (_m *UserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	ret := _m.Called(userId, termsOfServiceId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(userId, termsOfServiceId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // GetByUser provides a mock function with given fields: userId
-func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	ret := _m.Called(userId)
 
 	var r0 *model.UserTermsOfService
@@ -43,20 +41,18 @@ func (_m *UserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfS
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(userId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Save provides a mock function with given fields: userTermsOfService
-func (_m *UserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (_m *UserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	ret := _m.Called(userTermsOfService)
 
 	var r0 *model.UserTermsOfService
@@ -68,13 +64,11 @@ func (_m *UserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfSer
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.UserTermsOfService) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.UserTermsOfService) error); ok {
 		r1 = rf(userTermsOfService)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
