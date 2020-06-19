@@ -114,6 +114,7 @@ func (ds *TelemetryService) ensureTelemetryID() {
 	}
 	props, err := ds.dbStore.System().Get()
 	if err != nil {
+		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
