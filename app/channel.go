@@ -1619,7 +1619,11 @@ func (a *App) GetDeletedChannels(teamId string, offset int, limit int, userId st
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
+	channels, err := a.Srv().Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return channels, nil
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
