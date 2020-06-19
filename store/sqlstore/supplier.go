@@ -480,7 +480,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 }
 
 func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
@@ -499,6 +499,29 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_DOES_COLUMN_EXISTS_POSTGRES)
+		}
+
+		return count > 0
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		query := ss.getQueryBuilder().Select("COUNT(0) AS column_exists").
+			From("information_schema.COLUMNS").
+			Where(sq.Expr("TABLE_CATALOG = CURRENT_DATABASE()")).
+			Where(sq.Eq{"TABLE_NAME": strings.ToLower(tableName)}).
+			Where(sq.Eq{"COLUMN_NAME": strings.ToLower(columnName)})
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			mlog.Critical("Failed to check if column exists", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
+		}
+
+		count, err := ss.GetMaster().SelectInt(queryString, args...)
+		if err != nil {
+			mlog.Critical("Failed to check if column exists", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
 		}
 
 		return count > 0
@@ -1256,7 +1279,7 @@ func (ss *SqlSupplier) DropAllTables() {
 
 func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	return builder
