@@ -4614,6 +4614,9 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	assert.NotZero(t, user.LastPictureUpdate)
 	assert.NotZero(t, user.UpdateAt)
 
+	// Ensure update at timestamp changes
+	time.Sleep(time.Millisecond * 10)
+
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
 
