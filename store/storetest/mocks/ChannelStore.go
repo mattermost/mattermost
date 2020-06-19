@@ -1388,7 +1388,7 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 }
 
 // MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId, runningOrder
-func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
 	ret := _m.Called(lastUserId, runningOrder)
 
 	var r0 map[string]interface{}
@@ -1400,13 +1400,11 @@ func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, run
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(lastUserId, runningOrder)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1427,7 +1425,7 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 }
 
 // MigrateSidebarCategories provides a mock function with given fields: fromTeamId, fromUserId
-func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, *model.AppError) {
+func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, error) {
 	ret := _m.Called(fromTeamId, fromUserId)
 
 	var r0 map[string]interface{}
@@ -1439,13 +1437,11 @@ func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId s
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(fromTeamId, fromUserId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

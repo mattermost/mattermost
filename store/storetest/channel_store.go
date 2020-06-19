@@ -6656,8 +6656,8 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("MigrateSidebarCategories", func(t *testing.T) {
-		_, err2 := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
-		require.Nil(t, err2)
+		_, nErr := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
+		require.Nil(t, nErr)
 		res, err2 := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err2)
 		require.Len(t, res.Categories, 3)
@@ -6667,9 +6667,10 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
-		_, err = ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
-		require.Nil(t, err)
+		_, nErr := ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
+		require.Nil(t, nErr)
 	})
+
 	t.Run("GetSidebarCategories", func(t *testing.T) {
 		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err)
