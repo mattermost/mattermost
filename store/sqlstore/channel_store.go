@@ -439,7 +439,7 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 
 // MigrateSidebarCategories creates 3 initial categories for all existing user/team pairs
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, *model.AppError) {
+func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error) {
 	var userTeamMap []struct {
 		UserId string
 		TeamId string
@@ -448,13 +448,13 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
 	defer finalizeTransaction(transaction)
 
 	if _, err := transaction.Select(&userTeamMap, "SELECT TeamId, UserId, Users.Locale FROM TeamMembers LEFT JOIN Users ON Users.Id=UserId WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.migrate_categories.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
 	if len(userTeamMap) == 0 {
@@ -469,11 +469,11 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 		}
 
 		if err := s.createInitialSidebarCategoriesT(transaction, &model.User{Id: u.UserId, Locale: locale}, u.TeamId); err != nil {
-			return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
 	}
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.MigrateSidebarCategories", "store.sql_channel.MigrateSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
 	data := make(map[string]interface{})
@@ -483,19 +483,19 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	return data, nil
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError {
+func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 	defer finalizeTransaction(transaction)
 
 	if err := s.createInitialSidebarCategoriesT(transaction, user, teamId); err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 
 	return nil
@@ -549,10 +549,10 @@ type userMembership struct {
 	CategoryId string
 }
 
-func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transaction, runningOrder *int64, sql string, args ...interface{}) ([]userMembership, *model.AppError) {
+func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transaction, runningOrder *int64, sql string, args ...interface{}) ([]userMembership, error) {
 	var memberships []userMembership
 	if _, err := transaction.Select(&memberships, sql, args...); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
 	for _, favorite := range memberships {
@@ -562,23 +562,23 @@ func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transactio
 			Values(favorite.ChannelId, favorite.UserId, favorite.CategoryId, *runningOrder).ToSql()
 
 		if _, err := transaction.Exec(sql, args...); err != nil && !IsUniqueConstraintError(err, []string{"UserId", "PRIMARY"}) {
-			return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, err
 		}
 		*runningOrder = *runningOrder + model.MinimalSidebarSortDistance
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.migrateMembershipToSidebar", "store.sql_channel.migrate_memberships.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 	return memberships, nil
 }
 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, *model.AppError) {
+func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.MigrateFavoritesToSidebarChannels", "store.sql_channel.migrate_favorites.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
 	defer finalizeTransaction(transaction)
@@ -600,12 +600,12 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 
 	sql, args, err := sb.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.MigrateFavoritesToSidebarChannels", "store.sql_channel.migrate_favorites.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
 
-	userFavorites, appErr := s.migrateMembershipToSidebar(transaction, &runningOrder, sql, args...)
-	if appErr != nil {
-		return nil, appErr
+	userFavorites, err := s.migrateMembershipToSidebar(transaction, &runningOrder, sql, args...)
+	if err != nil {
+		return nil, err
 	}
 	if len(userFavorites) == 0 {
 		return nil, nil
@@ -615,7 +615,6 @@ func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, ru
 	data["UserId"] = userFavorites[len(userFavorites)-1].UserId
 	data["SortOrder"] = runningOrder
 	return data, nil
-
 }
 
 // MigratePublicChannels initializes the PublicChannels table with data created before this version

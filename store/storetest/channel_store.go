@@ -6656,8 +6656,8 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("MigrateSidebarCategories", func(t *testing.T) {
-		_, err2 := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
-		require.Nil(t, err2)
+		_, nErr := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
+		require.Nil(t, nErr)
 		res, err2 := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err2)
 		require.Len(t, res.Categories, 3)
@@ -6667,9 +6667,10 @@ func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
-		_, err = ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
-		require.Nil(t, err)
+		_, nErr := ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
+		require.Nil(t, nErr)
 	})
+
 	t.Run("GetSidebarCategories", func(t *testing.T) {
 		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
 		require.Nil(t, err)
@@ -6725,8 +6726,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		channelId2 := model.NewId()
 		channelId3 := model.NewId()
 
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		// Create a category and assign some channels to it
 		created, err := ss.Channel().CreateSidebarCategory(user.Id, teamId, &model.SidebarCategoryWithChannels{
@@ -6754,8 +6755,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the channels category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -6816,8 +6817,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the channels category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -6853,8 +6854,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the channels category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -6915,8 +6916,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the DMs category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -6955,8 +6956,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the DMs category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -6991,8 +6992,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the DMs category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -7021,8 +7022,8 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		// Create another team and assign the DM to a custom category on that team
 		otherTeamId := model.NewId()
 
-		err = ss.Channel().CreateInitialSidebarCategories(user, otherTeamId)
-		require.Nil(t, err)
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, otherTeamId)
+		require.Nil(t, nErr)
 
 		_, err = ss.Channel().CreateSidebarCategory(user.Id, otherTeamId, &model.SidebarCategoryWithChannels{
 			SidebarCategory: model.SidebarCategory{
@@ -7047,8 +7048,8 @@ func testGetSidebarCategories(t *testing.T, ss store.Store) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
 
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		channelIds := []string{
 			model.NewId(),
@@ -7143,8 +7144,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
 
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -7209,8 +7210,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the favorites category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -7269,8 +7270,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		teamId := model.NewId()
 
 		// Create the initial categories and find the favorites category
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		categories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -7364,8 +7365,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		)
 		require.Nil(t, nErr)
 
-		err = ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		// And some categories
 		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
@@ -7418,8 +7419,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		)
 		require.Nil(t, nErr)
 
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		// The DM should start in the DMs category
 		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
@@ -7505,8 +7506,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		require.Nil(t, err)
 
 		// And then create the initial categories so that it includes the channel
-		err = ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)
@@ -7555,8 +7556,8 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		user := &model.User{Id: model.NewId()}
 		teamId := model.NewId()
 
-		err := ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		assert.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		assert.Nil(t, nErr)
 
 		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		assert.Nil(t, err)
@@ -7576,8 +7577,8 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		teamId := model.NewId()
 
-		err = ss.Channel().CreateInitialSidebarCategories(user, teamId)
-		require.Nil(t, err)
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
 
 		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
 		require.Nil(t, err)

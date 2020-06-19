@@ -3007,6 +3007,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Unable to create initial sidebar categories for user."
+  },
+  {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
   },
@@ -4779,6 +4783,10 @@
     "translation": "Unable to run migration job due to unknown migration key."
   },
   {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+    "translation": "Migration failed due to database error."
+  },
+  {
     "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
     "translation": "Migration failed due to invalid progress data."
   },
@@ -6171,18 +6179,6 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql_channel.MigrateSidebarCategories.app_error",
-    "translation": "Unable to insert values to database"
-  },
-  {
-    "id": "store.sql_channel.MigrateSidebarCategories.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.MigrateSidebarCategories.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "Unable to get deleted channel type counts."
   },
@@ -6299,10 +6295,6 @@
     "translation": "Unable to increment the mention count."
   },
   {
-    "id": "store.sql_channel.migrate_categories.select.app_error",
-    "translation": "Failed to perform database query."
-  },
-  {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction."
   },
@@ -6317,14 +6309,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.migrate_favorites.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_favorites.select.app_error",
-    "translation": "Failed to build query."
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -6409,10 +6393,6 @@
   {
     "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
     "translation": "Unable to delete non-custom category."
-  },
-  {
-    "id": "store.sql_channel.sidebar_categories.invalid_update_fields",
-    "translation": "Invalid field values during category update."
   },
   {
     "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
