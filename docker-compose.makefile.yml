@@ -51,7 +51,7 @@ services:
     ports:
       - "1358:1358"
     extends:
-        file: build/docker-compose.optional.yml
+        file: build/docker-compose.common.yml
         service: dejavu
 
 networks:
