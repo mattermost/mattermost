@@ -31,6 +31,7 @@ func main() {
 		"inbucket":      10080,
 		"openldap":      389,
 		"elasticsearch": 9200,
+		"dejavu":        1358,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

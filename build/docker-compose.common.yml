@@ -60,3 +60,7 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  dejavu:
+    image: "appbaseio/dejavu:3.4.2"
+    networks:
+      - mm-test
