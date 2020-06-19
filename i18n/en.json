@@ -3007,6 +3007,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Unable to create initial sidebar categories for user."
+  },
+  {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
   },

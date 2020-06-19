@@ -483,19 +483,19 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	return data, nil
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError {
+func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 	defer finalizeTransaction(transaction)
 
 	if err := s.createInitialSidebarCategoriesT(transaction, user, teamId); err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return model.NewAppError("SqlChannelStore.CreateInitialSidebarCategories", "store.sql_channel.CreateInitialSidebarCategories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return err
 	}
 
 	return nil

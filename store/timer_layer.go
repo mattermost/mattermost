@@ -600,7 +600,7 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) *model.AppError {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(user, teamId)
