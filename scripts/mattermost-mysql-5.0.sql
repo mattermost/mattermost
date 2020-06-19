@@ -789,6 +789,7 @@ CREATE TABLE `Sessions` (
   `DeviceId` text,
   `Roles` varchar(64) DEFAULT NULL,
   `IsOAuth` tinyint(1) DEFAULT NULL,
+  `ExpiredNotify` tinyint(1) DEFAULT NULL,
   `Props` text,
   PRIMARY KEY (`Id`),
   KEY `idx_sessions_user_id` (`UserId`),
