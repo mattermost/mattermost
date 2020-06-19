@@ -3991,6 +3991,22 @@
     "translation": "Invalid or missing token."
   },
   {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -7625,22 +7641,6 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Unable to enable the access token."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

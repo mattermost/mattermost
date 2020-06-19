@@ -4543,7 +4543,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
-	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+	CheckErrorMessage(t, resp, "app.user_terms_of_service.get_by_user.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	require.Nil(t, err)

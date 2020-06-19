@@ -624,9 +624,9 @@ type TermsOfServiceStore interface {
 }
 
 type UserTermsOfServiceStore interface {
-	GetByUser(userId string) (*model.UserTermsOfService, *model.AppError)
-	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError)
-	Delete(userId, termsOfServiceId string) *model.AppError
+	GetByUser(userId string) (*model.UserTermsOfService, error)
+	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error)
+	Delete(userId, termsOfServiceId string) error
 }
 
 type GroupStore interface {
