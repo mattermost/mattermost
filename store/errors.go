@@ -5,6 +5,8 @@ package store
 
 import (
 	"fmt"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // ErrInvalidInput indicates an error that has occured due to an invalid input.
@@ -87,4 +89,22 @@ func NewErrNotFound(resource, id string) *ErrNotFound {
 
 func (e *ErrNotFound) Error() string {
 	return "resource: " + e.resource + " id: " + e.Id
+}
+
+// ErrOutOfBounds indicates that an invalid parameter, usually not related with the entity, was provided
+type ErrOutOfBounds struct {
+	Entity string
+	Args   model.StringInterface
+}
+
+func (e *ErrOutOfBounds) Error() string {
+	msg := "invalid parameter"
+	if len(e.Args) > 1 {
+		msg = "invalid parameters"
+	}
+	return fmt.Sprintf("%s resource %s: %v", msg, e.Entity, e.Args)
+}
+
+func NewErrOutOfBound(entity string, args model.StringInterface) *ErrOutOfBounds {
+	return &ErrOutOfBounds{Entity: entity, Args: args}
 }

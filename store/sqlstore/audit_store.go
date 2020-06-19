@@ -47,8 +47,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) error {
 
 func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, error) {
 	if limit > 1000 {
-		// TODO: is it appropiate to set field to limit ?
-		return nil, store.NewErrInvalidInput("Audit", "limit", limit)
+		return nil, store.NewErrOutOfBound("Audit", model.StringInterface{"limit": limit})
 	}
 
 	query := s.getQueryBuilder().
@@ -64,7 +63,7 @@ func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create query to get Audit with userId=%s", userId)
+		return nil, errors.Wrap(err, "audits_tosql")
 	}
 
 	var audits model.Audits

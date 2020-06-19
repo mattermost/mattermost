@@ -32,9 +32,9 @@ var (
 func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store.Audit().Get(userId, 0, limit)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
+		var outErr *store.ErrOutOfBounds
 		switch {
-		case errors.As(err, &invErr):
+		case errors.As(err, &outErr):
 			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -46,9 +46,9 @@ func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError
 func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
+		var outErr *store.ErrOutOfBounds
 		switch {
-		case errors.As(err, &invErr):
+		case errors.As(err, &outErr):
 			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
