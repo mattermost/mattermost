@@ -106,7 +106,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 	}))
 	defer server.Close()
 
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+	marketplaceServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		json, err := json.Marshal([]*model.MarketplacePlugin{{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -119,11 +119,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 		res.Write(json)
 	}))
 
-	defer func() { testServer.Close() }()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
-	})
+	defer func() { marketplaceServer.Close() }()
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
@@ -273,7 +269,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 	})
 
 	t.Run("Diagnostics for Marketplace plugins is returned", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), marketplaceServer.URL)
 
 		var batches []batch
 		// Collect the info sent.
@@ -300,11 +296,7 @@ func TestSegmentDiagnostics(t *testing.T) {
 	})
 
 	t.Run("Diagnostics for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.MarketplaceUrl = "http://some.random.invalid.url"
-		})
-
-		th.App.Srv().sendDailyDiagnostics(true)
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), "http://some.random.invalid.url")
 
 		var batches []batch
 		// Collect the info sent.
@@ -399,7 +391,7 @@ func TestRudderDiagnostics(t *testing.T) {
 	}))
 	defer server.Close()
 
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+	marketplaceServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		json, err := json.Marshal([]*model.MarketplacePlugin{{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -412,11 +404,7 @@ func TestRudderDiagnostics(t *testing.T) {
 		res.Write(json)
 	}))
 
-	defer func() { testServer.Close() }()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.MarketplaceUrl = testServer.URL
-	})
+	defer func() { marketplaceServer.Close() }()
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
@@ -573,7 +561,7 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 
 	t.Run("Diagnostics for Marketplace plugins is returned", func(t *testing.T) {
-		th.App.Srv().sendDailyDiagnostics(true)
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), marketplaceServer.URL)
 
 		var batches []batch
 		collectBatches(&batches)
@@ -591,11 +579,7 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 
 	t.Run("Diagnostics for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.MarketplaceUrl = "http://some.random.invalid.url"
-		})
-
-		th.App.Srv().sendDailyDiagnostics(true)
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), "http://some.random.invalid.url")
 
 		var batches []batch
 		collectBatches(&batches)

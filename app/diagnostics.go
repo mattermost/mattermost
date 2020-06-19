@@ -670,7 +670,7 @@ func (s *Server) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	s.trackPluginConfig(cfg)
+	s.trackPluginConfig(cfg, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
 	s.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -1061,7 +1061,7 @@ func (s *Server) trackChannelModeration() {
 	})
 }
 
-func (s *Server) trackPluginConfig(cfg *model.Config) {
+func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 	pluginConfigData := map[string]interface{}{
 		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable":                        *cfg.PluginSettings.Enable,
@@ -1097,7 +1097,7 @@ func (s *Server) trackPluginConfig(cfg *model.Config) {
 		"zoom":                                        "zoom",
 	}
 
-	marketplacePlugins, err := s.getAllMarketplaceplugins(cfg)
+	marketplacePlugins, err := s.getAllMarketplaceplugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
@@ -1152,9 +1152,9 @@ func (s *Server) trackPluginConfig(cfg *model.Config) {
 	s.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
 }
 
-func (s *Server) getAllMarketplaceplugins(cfg *model.Config) ([]*model.BaseMarketplacePlugin, error) {
+func (s *Server) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
 	marketplaceClient, err := marketplace.NewClient(
-		model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL,
+		marketplaceURL,
 		s.HTTPService,
 	)
 	if err != nil {
