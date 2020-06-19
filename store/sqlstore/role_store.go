@@ -133,7 +133,6 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
 func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transaction) (*model.Role, error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
-		// TODO: Here another type of error would be better, waiting for suggestions in review.
 		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 

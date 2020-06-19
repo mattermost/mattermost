@@ -65,7 +65,6 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	}
 
 	if !scheme.IsValid() {
-		// TODO: Here another type of error would be better, waiting for suggestions in review.
 		return nil, store.NewErrInvalidInput("Scheme", "<any>", fmt.Sprintf("%v", scheme))
 	}
 
@@ -109,7 +108,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	}
 
 	if len(defaultRoles) != 6 {
-		return nil, errors.New("creatScheme: unable to retrieve default scheme roles")
+		return nil, errors.New("createScheme: unable to retrieve default scheme roles")
 	}
 
 	// Create the appropriate default roles for the scheme.
