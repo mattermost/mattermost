@@ -7652,6 +7652,22 @@ func (s *TimerLayerUserStore) SearchInChannel(channelId string, term string, opt
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.UserStore.SearchInGroup(groupID, term, options)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchInGroup", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	start := timemodule.Now()
 
@@ -8004,7 +8020,7 @@ func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
@@ -8020,7 +8036,7 @@ func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
@@ -8036,7 +8052,7 @@ func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)

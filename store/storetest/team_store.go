@@ -449,7 +449,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	q := model.Team{}
-	q.DisplayName = "FOOBAR"
+	q.DisplayName = "FOOBARDISPLAYNAME"
 	q.Name = "whatever"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
@@ -466,19 +466,19 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	}{
 		{
 			"Search FooBar by display name from text in the middle of display name",
-			"ooba",
+			"oobardisplay",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by display name from text at the beginning of display name",
-			"foo",
+			"foobar",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by display name from text at the end of display name",
-			"bar",
+			"bardisplayname",
 			1,
 			q.Id,
 		},

@@ -335,6 +335,7 @@ type UserStore interface {
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
 	AnalyticsGetGuestCount() (int64, *model.AppError)
@@ -636,9 +637,9 @@ type TermsOfServiceStore interface {
 }
 
 type UserTermsOfServiceStore interface {
-	GetByUser(userId string) (*model.UserTermsOfService, *model.AppError)
-	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError)
-	Delete(userId, termsOfServiceId string) *model.AppError
+	GetByUser(userId string) (*model.UserTermsOfService, error)
+	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error)
+	Delete(userId, termsOfServiceId string) error
 }
 
 type GroupStore interface {
