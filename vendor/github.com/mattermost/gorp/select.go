@@ -186,11 +186,14 @@ func selectVal(e SqlExecutor, holder interface{}, query string, args ...interfac
 func hookedselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	args ...interface{}) ([]interface{}, error) {
 
+	var nonFatalErr error
+
 	list, err := rawselect(m, exec, i, query, args...)
 	if err != nil {
 		if !NonFatalError(err) {
 			return nil, err
 		}
+		nonFatalErr = err
 	}
 
 	// Determine where the results are: written to i, or returned in list
@@ -215,7 +218,7 @@ func hookedselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 		}
 	}
 
-	return list, nil
+	return list, nonFatalErr
 }
 
 func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,

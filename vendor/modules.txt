@@ -108,6 +108,7 @@ github.com/dyatlov/go-opengraph/opengraph
 # github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4
 ## explicit
 # github.com/fatih/color v1.9.0
+## explicit
 github.com/fatih/color
 # github.com/fortytw2/leaktest v1.3.0
 ## explicit
@@ -127,8 +128,6 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.4.1
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-gorp/gorp v2.2.0+incompatible
-## explicit
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -138,7 +137,6 @@ github.com/golang/freetype
 github.com/golang/freetype/raster
 github.com/golang/freetype/truetype
 # github.com/golang/protobuf v1.4.2
-## explicit
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/ptypes
@@ -264,7 +262,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20200526162043-8cc0a796020f
+# github.com/mattermost/gorp v1.6.2-0.20200619182637-452f3a162891
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.2
@@ -343,10 +341,6 @@ github.com/olekukonko/tablewriter
 ## explicit
 github.com/olivere/elastic/config
 github.com/olivere/elastic/uritemplates
-# github.com/onsi/ginkgo v1.12.0
-## explicit
-# github.com/onsi/gomega v1.9.0
-## explicit
 # github.com/opentracing/opentracing-go v1.1.0
 ## explicit
 github.com/opentracing/opentracing-go
@@ -365,8 +359,6 @@ github.com/philhofer/fwd
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/poy/onpar v1.0.0
-## explicit
 # github.com/prometheus/client_golang v1.5.1
 ## explicit
 github.com/prometheus/client_golang/prometheus
@@ -500,8 +492,6 @@ github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
-# github.com/ziutek/mymysql v1.5.4
-## explicit
 # go.etcd.io/bbolt v1.3.4
 go.etcd.io/bbolt
 # go.uber.org/atomic v1.6.0
@@ -552,7 +542,7 @@ golang.org/x/image/webp
 # golang.org/x/mod v0.2.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200501053045-e0ff5e5a1de5
+# golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
 ## explicit
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -570,8 +560,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9
-## explicit
+# golang.org/x/sys v0.0.0-20200615200032-f1bc736245b1
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
@@ -714,7 +703,7 @@ gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/olivere/elastic.v6 v6.2.30
 ## explicit
 gopkg.in/olivere/elastic.v6
-# gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
 # honnef.co/go/tools v0.0.1-2020.1.3
