@@ -266,7 +266,6 @@ func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	return &scheme, nil
 }
 
-// Question: this method touches a lot of tables and it is not transactional
 func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
 	var scheme model.Scheme
