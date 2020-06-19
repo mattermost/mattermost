@@ -40,13 +40,12 @@ func main() {
 
 	var dockerCompose DockerCompose
 	dockerCompose.Version = "2.4"
-	dockerCompose.Services = map[string]*Container{
-		"start_dependencies": &Container{
-			Image:     "mattermost/mattermost-wait-for-dep:latest",
-			Network:   []string{"mm-test"},
-			DependsOn: os.Args[1:],
-			Command:   strings.Join(command, " "),
-		},
+	dockerCompose.Services = map[string]*Container{}
+	dockerCompose.Services["start_dependencies"] = &Container{
+		Image:     "mattermost/mattermost-wait-for-dep:latest",
+		Network:   []string{"mm-test"},
+		DependsOn: os.Args[1:],
+		Command:   strings.Join(command, " "),
 	}
 	resultData, err := yaml.Marshal(dockerCompose)
 	if err != nil {
