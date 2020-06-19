@@ -687,6 +687,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
 		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
+		IncludeDeleted:         c.Params.IncludeDeleted,
 	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)

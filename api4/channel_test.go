@@ -919,6 +919,15 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	var originalConfigVal bool
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		originalConfigVal = *cfg.TeamSettings.ExperimentalViewArchivedChannels
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = originalConfigVal
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, resp := client.GetAllChannels(0, 20, "")
 		CheckNoError(t, resp)
@@ -940,6 +949,34 @@ func TestGetAllChannels(t *testing.T) {
 		channels, resp = client.GetAllChannels(10000, 10000, "")
 		CheckNoError(t, resp)
 		require.Empty(t, *channels)
+
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		require.Nil(t, resp.Error)
+		beforeCount := len(*channels)
+
+		firstChannel := (*channels)[0].Channel
+
+		ok, resp := client.DeleteChannel(firstChannel.Id)
+		require.Nil(t, resp.Error)
+		require.True(t, ok)
+
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		var ids []string
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.Len(t, *channels, beforeCount-1)
+		require.NotContains(t, ids, firstChannel.Id)
+
+		channels, resp = client.GetAllChannelsIncludeDeleted(0, 10000, "")
+		ids = []string{}
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.True(t, len(*channels) > beforeCount)
+		require.Contains(t, ids, firstChannel.Id)
 	})
 
 	_, resp := Client.GetAllChannels(0, 20, "")
