@@ -2067,6 +2067,10 @@
     "translation": "Malformed request: filesize field is not present."
   },
   {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unknown import source."
+  },
+  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },

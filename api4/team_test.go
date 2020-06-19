@@ -2614,6 +2614,17 @@ func TestImportTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	th.TestForAllClients(t, func(T *testing.T, c *model.Client4) {
+		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
+
+		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
+		_, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.ImportTeam(data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
+		CheckBadRequestStatus(t, resp)
+	}, "Import from unknown and source")
+
 	t.Run("ImportTeam", func(t *testing.T) {
 		var data []byte
 		var err error
