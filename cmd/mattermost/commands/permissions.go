@@ -100,7 +100,7 @@ func exportPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if license := a.License(); license == nil {
+	if license := a.Srv().License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -121,7 +121,7 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	if license := a.License(); license == nil {
+	if license := a.Srv().License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 

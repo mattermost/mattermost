@@ -108,7 +108,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		license := c.App.License()
+		license := c.App.Srv().License()
 		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
 		if appErr == nil {
 			appErr = backend.TestConnection()
@@ -240,7 +240,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.InvalidateAllCaches()
+	err := c.App.Srv().InvalidateAllCaches()
 	if err != nil {
 		c.Err = err
 		return
@@ -379,7 +379,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	license := c.App.License()
+	license := c.App.Srv().License()
 	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()

@@ -4,11 +4,11 @@
 package cache2
 
 import (
-	"bytes"
 	"container/list"
-	"encoding/gob"
 	"sync"
 	"time"
+
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 // LRU is a thread-safe fixed size LRU cache.
@@ -133,8 +133,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 		expires = time.Now().Add(ttl)
 	}
 
-	var buffer bytes.Buffer
-	err := gob.NewEncoder(&buffer).Encode(value)
+	buf, err := msgpack.Marshal(value)
 	if err != nil {
 		return err
 	}
@@ -143,7 +142,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	if ent, ok := l.items[key]; ok {
 		l.evictList.MoveToFront(ent)
 		e := ent.Value.(*entry)
-		e.value = buffer.Bytes()
+		e.value = buf
 		e.expires = expires
 		if e.generation != l.currentGeneration {
 			e.generation = l.currentGeneration
@@ -153,7 +152,7 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 	}
 
 	// Add new item
-	ent := &entry{key, buffer.Bytes(), expires, l.currentGeneration}
+	ent := &entry{key, buf, expires, l.currentGeneration}
 	entry := l.evictList.PushFront(ent)
 	l.items[key] = entry
 	l.len++
@@ -174,7 +173,8 @@ func (l *LRU) get(key string, value interface{}) error {
 		}
 
 		l.evictList.MoveToFront(ent)
-		return gob.NewDecoder(bytes.NewBuffer(e.value)).Decode(value)
+
+		return msgpack.Unmarshal(e.value, value)
 	}
 	return ErrKeyNotFound
 }

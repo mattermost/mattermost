@@ -95,7 +95,8 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	post.Metadata = &model.PostMetadata{}
 
 	if post.DeleteAt > 0 {
-		// Don't fill out metadata for deleted posts
+		// For deleted posts we don't fill out metadata nor do we return the post content
+		post.Message = ""
 		return post
 	}
 
