@@ -29,7 +29,6 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocatio
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
 		FileLocation:  getFileFunc(*s.FileLocation),
-		Targets:       s.Targets,
 	}
 }
 

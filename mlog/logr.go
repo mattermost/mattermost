@@ -36,7 +36,10 @@ type LogTarget struct {
 	MaxQueueSize int
 }
 
-func newLogr(targets map[string]*LogTarget) (*logr.Logger, error) {
+type LogTargetCfg map[string]*LogTarget
+type LogrCleanup func() error
+
+func newLogr(targets LogTargetCfg) (*logr.Logger, error) {
 	var errs error
 
 	lgr := logr.Logr{}

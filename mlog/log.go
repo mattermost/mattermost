@@ -4,7 +4,7 @@
 package mlog
 
 import (
-	"fmt"
+	"context"
 	"io"
 	"log"
 	"os"
@@ -48,7 +48,6 @@ type LoggerConfiguration struct {
 	FileJson      bool
 	FileLevel     string
 	FileLocation  string
-	Targets       map[string]*LogTarget
 }
 
 type Logger struct {
@@ -111,14 +110,6 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger.zap = zap.New(combinedCore,
 		zap.AddCaller(),
 	)
-
-	if config.Targets != nil && len(config.Targets) > 0 {
-		var err error
-		logger.logrLogger, err = newLogr(config.Targets)
-		if err != nil {
-			Error(fmt.Sprintf("cannot create log target(s): %v", err))
-		}
-	}
 	return logger
 }
 
@@ -231,9 +222,36 @@ func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
 	}
 }
 
-func (l *Logger) Flush() error {
+func (l *Logger) Flush(cxt context.Context) error {
 	if l.logrLogger != nil {
-		return l.logrLogger.Logr().Flush()
+		return l.logrLogger.Logr().Flush() // TODO: use context when lib updated
 	}
+	return nil
+}
+
+func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
+	var err error
+	if l.logrLogger != nil {
+		err = l.logrLogger.Logr().Shutdown() // TODO: use context when Logr lib updated
+		l.logrLogger = nil
+	}
+	return err
+}
+
+// ConfigAdvancedLoggingConfig (re)configures advanced logging based on the
+// specified log targets.
+func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
+	if l.logrLogger != nil {
+		if err := l.ShutdownAdvancedLogging(context.Background()); err != nil {
+			Error("error shutting down previous logger", Err(err))
+		}
+	}
+
+	logr, err := newLogr(targets)
+	if err != nil {
+		return err
+	}
+
+	l.logrLogger = logr
 	return nil
 }

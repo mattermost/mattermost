@@ -4,7 +4,9 @@
 package mlog
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -58,6 +60,16 @@ func defaultCustomMultiLog(lvl []LogLevel, msg string, fields ...Field) {
 	// custom log levels only output once log targets are configured.
 }
 
-func defaultFlush() error {
+func defaultFlush(ctx context.Context) error {
+	return nil
+}
+
+func defaultAdvancedConfig(cfg LogTargetCfg) error {
+	// mlog.ConfigAdvancedConfig should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot config advanced logging on default logger")
+}
+
+func defaultAdvancedShutdown(ctx context.Context) error {
 	return nil
 }

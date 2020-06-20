@@ -119,6 +119,8 @@ type Server struct {
 	asymmetricSigningKey    *ecdsa.PrivateKey
 	postActionCookieSecret  []byte
 
+	advancedLogListenerCleanup func()
+
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
@@ -191,21 +193,9 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configStore = configStore
 	}
 
-	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	if err := s.initLogging(); err != nil {
+		mlog.Error(err.Error())
 	}
-
-	if s.NotificationsLog == nil {
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
-		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
-			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
-	}
-
-	// Redirect default golang logger to this logger
-	mlog.RedirectStdLog(s.Log)
-
-	// Use this app logger as the global logger (eventually remove all instances of global logging)
-	mlog.InitGlobalLogger(s.Log)
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SENTRY_DSN, "placeholder") {
@@ -228,13 +218,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		s.tracer = tracer
 	}
-
-	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
-
-		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
-		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
-	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s)
 	s.pushNotificationClient = s.HTTPService.MakeClient(true)
@@ -336,6 +319,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configureAudit(s.Audit)
 	}
 
+	if license == nil || !*license.Features.AdvancedLogging {
+		mlog.ShutdownAdvancedLogging(context.Background())
+	}
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
@@ -419,6 +406,56 @@ func (s *Server) AppOptions() []AppOption {
 	}
 }
 
+func (s *Server) initLogging() error {
+	if s.Log == nil {
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	}
+
+	if s.NotificationsLog == nil {
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
+			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
+	}
+
+	// Redirect default golang logger to this logger
+	mlog.RedirectStdLog(s.Log)
+
+	// Use this app logger as the global logger (eventually remove all instances of global logging)
+	mlog.InitGlobalLogger(s.Log)
+
+	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
+
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
+		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
+	})
+
+	// Configure advanced logging.
+	// Advanced logging is E20 only, however logging is initialized before the license
+	// file is loaded.  If no valid E20 license exists then advanced logging will be
+	// shutdown once license is loaded/checked.
+	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
+		cfg, err := config.NewLogConfigSrc(*s.Config().LogSettings.AdvancedLoggingConfig)
+		if err != nil {
+			return fmt.Errorf("invalid advanced logging config, %w", err)
+		}
+		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
+			return fmt.Errorf("error configuring advanced logging, %w", err)
+		}
+
+		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
+			if err := mlog.ConfigAdvancedLogging(newCfg); err != nil {
+				mlog.Error("error re-configuring advanced logging", mlog.Err(err))
+			}
+		})
+
+		s.advancedLogListenerCleanup = func() {
+			cfg.RemoveListener(listenerId)
+		}
+	}
+	return nil
+}
+
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
 func (s *Server) StopHTTPServer() {
@@ -470,6 +507,10 @@ func (s *Server) Shutdown() error {
 		s.htmlTemplateWatcher.Close()
 	}
 
+	if s.advancedLogListenerCleanup != nil {
+		s.advancedLogListenerCleanup()
+	}
+
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
 	s.stopSearchEngine()
@@ -506,12 +547,15 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	if err := mlog.Flush(); err != nil {
+	if err := mlog.Flush(context.Background()); err != nil {
 		mlog.Error("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
-	_ = mlog.Flush() // should just write one last record, the rest are already flushed.
+
+	// this should just write the "server stopped" record, the rest are already flushed.
+	_ = mlog.ShutdownAdvancedLogging(context.Background())
+
 	return nil
 }
 

@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -1053,17 +1052,17 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool                      `restricted:"true"`
-	ConsoleLevel           *string                    `restricted:"true"`
-	ConsoleJson            *bool                      `restricted:"true"`
-	EnableFile             *bool                      `restricted:"true"`
-	FileLevel              *string                    `restricted:"true"`
-	FileJson               *bool                      `restricted:"true"`
-	FileLocation           *string                    `restricted:"true"`
-	EnableWebhookDebugging *bool                      `restricted:"true"`
-	EnableDiagnostics      *bool                      `restricted:"true"`
-	EnableSentry           *bool                      `restricted:"true"`
-	Targets                map[string]*mlog.LogTarget `restricted:"true"`
+	EnableConsole          *bool   `restricted:"true"`
+	ConsoleLevel           *string `restricted:"true"`
+	ConsoleJson            *bool   `restricted:"true"`
+	EnableFile             *bool   `restricted:"true"`
+	FileLevel              *string `restricted:"true"`
+	FileJson               *bool   `restricted:"true"`
+	FileLocation           *string `restricted:"true"`
+	EnableWebhookDebugging *bool   `restricted:"true"`
+	EnableDiagnostics      *bool   `restricted:"true"`
+	EnableSentry           *bool   `restricted:"true"`
+	AdvancedLoggingConfig  *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1107,8 +1106,8 @@ func (s *LogSettings) SetDefaults() {
 		s.FileJson = NewBool(true)
 	}
 
-	if s.Targets == nil {
-		s.Targets = make(map[string]*mlog.LogTarget)
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
