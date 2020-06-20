@@ -4,8 +4,8 @@
 
 # Enable services to be run in docker.
 #
-# Possible options: mysql, postgres, minio, inbucket, openldap, dejavu and
-# elasticsearch
+# Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
+# keycloak and elasticsearch
 #
 # Must be space spearated names.
 #

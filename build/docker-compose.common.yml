@@ -64,3 +64,15 @@ services:
     image: "appbaseio/dejavu:3.4.2"
     networks:
       - mm-test
+  keycloak:
+    image: "jboss/keycloak:10.0.2"
+    restart: always
+    environment:
+      KEYCLOAK_USER: mmuser
+      KEYCLOAK_PASSWORD: mostest
+      DB_VENDOR: h2
+      KEYCLOAK_IMPORT: /setup/realm.json
+    networks:
+      - mm-test
+    volumes:
+     - "./docker/keycloak:/setup"

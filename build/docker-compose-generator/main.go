@@ -32,6 +32,7 @@ func main() {
 		"openldap":      389,
 		"elasticsearch": 9200,
 		"dejavu":        1358,
+		"keycloak":      8080,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {
