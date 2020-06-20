@@ -6,18 +6,18 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
-	"sync"
-
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"unicode"
 )
 
 type SqlPostStore struct {
@@ -1749,6 +1749,30 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 		if params.Terms == "*" {
 			continue
 		}
+
+		// WIP remove  * as words
+		for i := range paramsList {
+			paramTerms := make([]string, 0, len(paramsList[i].Terms))
+			tokens := strings.Split(paramsList[i].Terms, " ")
+
+			for _, token := range tokens {
+				// check if this word has any letter/digit, then only include
+				// because `qwert*` should be included but `**` must not
+				containsAlphaNumeric := false
+				for _, r := range token {
+					if unicode.IsLetter(r) || unicode.IsDigit(r) {
+						containsAlphaNumeric = true
+						break
+					}
+				}
+				if containsAlphaNumeric {
+					paramTerms = append(paramTerms, token)
+				}
+			}
+
+			paramsList[i].Terms = strings.Join(paramTerms, " ")
+		}
+		//// WIP  ******** sanitizeSearchTerm
 
 		params.IncludeDeletedChannels = includeDeletedChannels
 		params.OrTerms = isOrSearch
