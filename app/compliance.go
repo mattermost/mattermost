@@ -16,19 +16,25 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Compliance().GetAll(page*perPage, perPage)
+	compliance, err := a.Srv().Store.Compliance().GetAll(page*perPage, perPage)
+
+	if err != nil {
+		return nil, model.NewAppError("GetComplianceReports", "app.compliance.save_compliance.app_error", nil, err.Error(), http.StatusNotImplemented)
+	}
+	return compliance, nil
 }
 
 func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
 	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
-		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("saveComplianceReport", "app.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	job.Type = model.COMPLIANCE_TYPE_ADHOC
 
 	job, err := a.Srv().Store.Compliance().Save(job)
+
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("saveComplianceReport", "app.compliance.save_compliance.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	a.Srv().Go(func() {
@@ -43,7 +49,12 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Compliance().Get(reportId)
+	compliance, err := a.Srv().Store.Compliance().Get(reportId)
+
+	if err != nil {
+		return nil, model.NewAppError("GetComplianceReport", "app.get_compliance.app_error", nil, err.Error(), http.StatusNotImplemented)
+	}
+	return compliance, nil
 }
 
 func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
