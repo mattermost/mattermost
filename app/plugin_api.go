@@ -471,8 +471,8 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return api.app.GetGroup(groupId)
 }
 
-func (api *PluginAPI) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name, opts)
+func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
@@ -848,6 +848,10 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	}
 
 	return api.app.DeleteBotIconImage(userId)
+}
+
+func (api *PluginAPI) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userId, channelId, parentId)
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {

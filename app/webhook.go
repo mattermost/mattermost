@@ -628,14 +628,14 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
-				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		} else {
 			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store.Channel().GetByName(hook.TeamId, channelName, true)
-				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		}
@@ -655,8 +655,14 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	if channel == nil {
 		result := <-cchan
-		if result.Err != nil {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+		if result.NErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(result.NErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			}
 		} else {
 			channel = result.Data.(*model.Channel)
 		}
