@@ -32,6 +32,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
+	deviceId := r.URL.Query().Get("deviceId")
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
@@ -47,7 +48,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(redirectTo) != 0 {
 		relayProps["redirect_to"] = redirectTo
 	}
-
+	
+	relayProps["deviceId"] = deviceId
+	
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
 	}
@@ -142,7 +145,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(w, r, user, "")
+	err = c.App.DoLogin(w, r, user, relayProps["deviceId"])
 	if err != nil {
 		c.Err = err
 		return
