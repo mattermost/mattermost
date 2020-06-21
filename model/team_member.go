@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+const (
+	USERNAME = "Username"
+)
+
 type TeamMember struct {
 	TeamId        string `json:"team_id"`
 	UserId        string `json:"user_id"`
@@ -42,6 +46,17 @@ type TeamMemberWithError struct {
 type EmailInviteWithError struct {
 	Email string    `json:"email"`
 	Error *AppError `json:"error"`
+}
+
+type TeamMembersGetOptions struct {
+	// Sort the team members. Accepts "Username", but defaults to "Id".
+	Sort string
+
+	// If true, exclude team members whose corresponding user is deleted.
+	ExcludeDeletedUsers bool
+
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *ViewUsersRestrictions
 }
 
 func (o *TeamMember) ToJson() string {
@@ -152,11 +167,11 @@ func TeamsUnreadFromJson(data io.Reader) []*TeamUnread {
 
 func (o *TeamMember) IsValid() *AppError {
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("TeamMember.IsValid", "model.team_member.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

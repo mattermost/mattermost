@@ -10,5 +10,5 @@ import (
 )
 
 func TestRoleStore(t *testing.T) {
-	StoreTest(t, storetest.TestRoleStore)
+	StoreTestWithSqlSupplier(t, storetest.TestRoleStore)
 }

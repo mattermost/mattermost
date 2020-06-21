@@ -106,7 +106,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 					}
 
 					body, err := ioutil.ReadAll(resBody.Body)
-					res.Body.Close()
+					resBody.Body.Close()
 					if err != nil || resBody.StatusCode != 200 {
 						mlog.Error("Failed to read security bulletin details")
 						return

@@ -13,6 +13,8 @@ func (api *API) InitUser() {
 }
 
 func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	api.App.ExtendSessionExpiryIfNeeded(&req.Session)
+
 	if api.App.Srv().Busy.IsBusy() {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return nil, NewServerBusyWebSocketError(req.Action)
@@ -20,7 +22,7 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 
 	var ok bool
 	var channelId string
-	if channelId, ok = req.Data["channel_id"].(string); !ok || len(channelId) != 26 {
+	if channelId, ok = req.Data["channel_id"].(string); !ok || !model.IsValidId(channelId) {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
@@ -33,15 +35,9 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 		parentId = ""
 	}
 
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[req.Session.UserId] = true
+	appErr := api.App.PublishUserTyping(req.Session.UserId, channelId, parentId)
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
-	event.Add("parent_id", parentId)
-	event.Add("user_id", req.Session.UserId)
-	api.App.Publish(event)
-
-	return nil, nil
+	return nil, appErr
 }
 
 func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

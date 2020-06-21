@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,6 +45,7 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 }
 
@@ -73,21 +75,36 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+	IsLocal             bool
 	DisableWhenBusy     bool
 
 	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w = newWrappedWriter(w)
 	now := time.Now()
 
 	requestID := model.NewId()
-	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
+	var statusCode string
+	defer func() {
+		responseLogFields := []mlog.Field{
+			mlog.String("method", r.Method),
+			mlog.String("url", r.URL.Path),
+			mlog.String("request_id", requestID),
+		}
+		// Websockets are returning status code 0 to requests after closing the socket
+		if statusCode != "0" {
+			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
+		}
+		mlog.Debug("Received HTTP request", responseLogFields...)
+	}()
 
 	c := &Context{}
 	c.App = app.New(
 		h.GetGlobalAppOptions()...,
 	)
+	c.App.InitServer()
 
 	t, _ := utils.GetTranslationsAndLocale(w, r)
 	c.App.SetT(t)
@@ -139,7 +156,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
 
 	if *c.App.Config().ServiceSettings.TLSStrictTransport {
 		w.Header().Set("Strict-Transport-Security", fmt.Sprintf("max-age=%d", *c.App.Config().ServiceSettings.TLSStrictTransportMaxAge))
@@ -150,7 +167,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/%s",
 			h.cspShaDirective,
 		))
 	} else {
@@ -208,6 +225,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.SetServerBusyError()
 	}
 
+	if c.Err == nil && h.IsLocal {
+		// if the connection is local, RemoteAddr shouldn't have the
+		// shape IP:PORT (it will be "@" in Linux, for example)
+		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
+		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
+			c.App.SetSession(&model.Session{Local: true})
+		} else if !isLocalOrigin {
+			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
+		}
+	}
+
 	if c.Err == nil {
 		h.HandleFunc(c, w, r)
 	}
@@ -252,13 +280,13 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			c.App.Metrics().ObserveHttpRequestDuration(elapsed)
-			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, elapsed)
+			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}
 }
@@ -321,6 +349,7 @@ func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -340,6 +369,7 @@ func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *ht
 		TrustRequester:      true,
 		RequireMfa:          false,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)
@@ -358,6 +388,7 @@ func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		TrustRequester:      false,
 		RequireMfa:          true,
 		IsStatic:            false,
+		IsLocal:             false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 		return gziphandler.GzipHandler(handler)

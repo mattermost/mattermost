@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -115,6 +116,8 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	runner         *MigrationRunner
 	context        context.Context
+	license        *model.License
+	licenseMutex   sync.Mutex
 }
 
 type TraceOnAdapter struct{}
@@ -311,11 +314,36 @@ func (ss *SqlSupplier) GetCurrentSchemaVersion() string {
 	return version
 }
 
+func (ss *SqlSupplier) GetDbVersion() (string, error) {
+	var sqlVersion string
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		sqlVersion = `SHOW server_version`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		sqlVersion = `SELECT version()`
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		sqlVersion = `SELECT sqlite_version()`
+	} else {
+		return "", errors.New("Not supported driver")
+	}
+
+	version, err := ss.GetReplica().SelectStr(sqlVersion)
+	if err != nil {
+		return "", err
+	}
+
+	return version, nil
+
+}
+
 func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if ss.license == nil {
+		return ss.GetMaster()
+	}
+
 	if len(ss.settings.DataSourceSearchReplicas) == 0 {
 		return ss.GetReplica()
 	}
@@ -325,7 +353,7 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
 		return ss.GetMaster()
 	}
 
@@ -415,7 +443,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		count, err := ss.GetMaster().SelectInt(
-			`SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+			`SELECT count(name) FROM sqlite_master WHERE type='table' AND name=?`,
 			tableName,
 		)
 
@@ -993,6 +1021,23 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 	return all
 }
 
+// RecycleDBConnections closes active connections by setting the max conn lifetime
+// to d, and then resets them back to their original duration.
+func (ss *SqlSupplier) RecycleDBConnections(d time.Duration) {
+	// Get old time.
+	originalDuration := time.Duration(*ss.settings.ConnMaxLifetimeMilliseconds) * time.Millisecond
+	// Set the max lifetimes for all connections.
+	for _, conn := range ss.GetAllConns() {
+		conn.Db.SetConnMaxLifetime(d)
+	}
+	// Wait for that period with an additional 2 seconds of scheduling delay.
+	time.Sleep(d + 2*time.Second)
+	// Reset max lifetime back to original value.
+	for _, conn := range ss.GetAllConns() {
+		conn.Db.SetConnMaxLifetime(originalDuration)
+	}
+}
+
 func (ss *SqlSupplier) Close() {
 	if ss.runner != nil {
 		ss.runner.WaitWithTimeout(1 * time.Second)
@@ -1155,6 +1200,12 @@ func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
 	results := make(chan store.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
+}
+
+func (ss *SqlSupplier) UpdateLicense(license *model.License) {
+	ss.licenseMutex.Lock()
+	defer ss.licenseMutex.Unlock()
+	ss.license = license
 }
 
 type mattermConverter struct{}

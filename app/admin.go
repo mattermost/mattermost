@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -19,25 +20,25 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
+	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, a.Cluster().GetMyClusterInfo().Hostname)
+		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
 
-	melines, err := a.GetLogsSkipSend(page, perPage)
+	melines, err := s.GetLogsSkipSend(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
 	lines = append(lines, melines...)
 
-	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
-		clines, err := a.Cluster().GetLogs(page, perPage)
+	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+		clines, err := s.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -48,11 +49,15 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogs(page, perPage)
+}
+
+func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if *a.Config().LogSettings.EnableFile {
-		logFile := utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
+	if *s.Config().LogSettings.EnableFile {
+		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
@@ -119,6 +124,10 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
+func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+	return a.Srv().GetLogsSkipSend(page, perPage)
+}
+
 func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
@@ -129,11 +138,11 @@ func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func (a *App) InvalidateAllCaches() *model.AppError {
+func (s *Server) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
-	a.InvalidateAllCachesSkipSend()
+	s.InvalidateAllCachesSkipSend()
 
-	if a.Cluster() != nil {
+	if s.Cluster != nil {
 
 		msg := &model.ClusterMessage{
 			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
@@ -141,38 +150,34 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 			WaitForAllToSend: true,
 		}
 
-		a.Cluster().SendClusterMessage(msg)
+		s.Cluster.SendClusterMessage(msg)
 	}
 
 	return nil
 }
 
-func (a *App) InvalidateAllCachesSkipSend() {
+func (s *Server) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.Srv().sessionCache.Purge()
-	a.Srv().statusCache.Purge()
-	a.Srv().Store.Team().ClearCaches()
-	a.Srv().Store.Channel().ClearCaches()
-	a.Srv().Store.User().ClearCaches()
-	a.Srv().Store.Post().ClearCaches()
-	a.Srv().Store.FileInfo().ClearCaches()
-	a.Srv().Store.Webhook().ClearCaches()
-	a.LoadLicense()
+	s.sessionCache.Purge()
+	s.statusCache.Purge()
+	s.Store.Team().ClearCaches()
+	s.Store.Channel().ClearCaches()
+	s.Store.User().ClearCaches()
+	s.Store.Post().ClearCaches()
+	s.Store.FileInfo().ClearCaches()
+	s.Store.Webhook().ClearCaches()
+	s.LoadLicense()
 }
 
 func (a *App) RecycleDatabaseConnection() {
-	oldStore := a.Srv().Store
+	mlog.Info("Attempting to recycle database connections.")
 
-	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv().Store = a.Srv().newStore()
-	a.Srv().Jobs.Store = a.Srv().Store
+	// This works by setting 10 seconds as the max conn lifetime for all DB connections.
+	// This allows in gradually closing connections as they expire. In future, we can think
+	// of exposing this as a param from the REST api.
+	a.Srv().Store.RecycleDBConnections(10 * time.Second)
 
-	if a.Srv().Store != oldStore {
-		time.Sleep(20 * time.Second)
-		oldStore.Close()
-	}
-
-	mlog.Warn("Finished recycling the database connection.")
+	mlog.Info("Finished recycling database connections.")
 }
 
 func (a *App) TestSiteURL(siteURL string) *model.AppError {
@@ -181,6 +186,10 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 	if err != nil || res.StatusCode != 200 {
 		return model.NewAppError("testSiteURL", "app.admin.test_site_url.failure", nil, "", http.StatusBadRequest)
 	}
+	defer func() {
+		_, _ = io.Copy(ioutil.Discard, res.Body)
+		_ = res.Body.Close()
+	}()
 
 	return nil
 }
@@ -211,7 +220,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 	}
 
 	T := utils.GetUserTranslations(user.Locale)
-	license := a.License()
+	license := a.Srv().License()
 	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}

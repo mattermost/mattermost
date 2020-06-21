@@ -13,7 +13,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -21,8 +20,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
@@ -662,11 +663,10 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
 
-		logs := th.LogBuffer.String()
-		assert.True(t, strings.Contains(logs, "some text from panic"))
+		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")
 	})
 }
 

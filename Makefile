@@ -52,7 +52,7 @@ else
 endif
 
 # Go Flags
-GOFLAGS ?= $(GOFLAGS:) -mod=vendor
+GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
@@ -85,16 +85,16 @@ TESTS=.
 TE_PACKAGES=$(shell $(GO) list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.0
+PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.1.2
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.3
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.2
-PLUGIN_PACKAGES += mattermost-plugin-github-v0.11.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.4
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.2.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v0.14.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.2
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.0.1
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 
 
@@ -200,43 +200,42 @@ endif
 endif
 
 app-layers: ## Extract interface from App struct
-    # The following commented commands can be used to re-generate the AppIface from the App struct
-	#env GO111MODULE=off $(GO) get gopkg.in/reflog/struct2interface.v0
-	#$(GOBIN)/struct2interface.v0 -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
+	$(GO) get -modfile=go.tools.mod github.com/reflog/struct2interface
+	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
 	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
-	env GO111MODULE=off $(GO) get -u github.com/mattermost/mattermost-utilities/mmgotool
+	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
 
 filesstore-mocks: ## Creates mock files.
-	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOBIN)/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 einterfaces-mocks: ## Creates mock files for einterfaces.
-	env GO111MODULE=off $(GO) get -u github.com/vektra/mockery/...
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir einterfaces -all -output einterfaces/mocks -note 'Regenerate this file using `make einterfaces-mocks`.'
 
 searchengine-mocks: ## Creates mock files for searchengines.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
-	$(GOPATH)/bin/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/searchengine -all -output services/searchengine/mocks -note 'Regenerate this file using `make searchengine-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	$(GO) generate $(GOFLAGS) ./plugin
@@ -283,7 +282,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	env GO111MODULE=off $(GO) get -u github.com/jstemmer/go-junit-report
+	$(GO) get -modfile=go.tools.mod github.com/jstemmer/go-junit-report
 
 test-compile: ## Compile tests.
 	@echo COMPILE TESTS
@@ -517,9 +516,14 @@ vet: ## Run mattermost go vet specific checks
 	@if ! [ -x "$$(command -v $(GOBIN)/mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
+	fi;
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
+		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
+	else \
+		echo "MM_VET_OPENSPEC_PATH not set or spec yaml path in it is incorrect. Skipping API check"; \
 	fi; \
-
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet $$VET_CMD ./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...

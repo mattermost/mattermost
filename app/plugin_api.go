@@ -117,7 +117,7 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
-	return api.app.License()
+	return api.app.Srv().License()
 }
 
 func (api *PluginAPI) GetServerVersion() string {
@@ -125,7 +125,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.getSystemInstallDate()
+	return api.app.Srv().getSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -245,6 +245,18 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
 	options := &model.UserGetOptions{InTeamId: teamId, Page: page, PerPage: perPage}
 	return api.app.GetUsersInTeam(options)
+}
+
+func (api *PluginAPI) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	return api.app.GetPreferencesForUser(userId)
+}
+
+func (api *PluginAPI) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.UpdatePreferences(userId, preferences)
+}
+
+func (api *PluginAPI) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.DeletePreferences(userId, preferences)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
@@ -460,7 +472,7 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name)
+	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
@@ -836,6 +848,10 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	}
 
 	return api.app.DeleteBotIconImage(userId)
+}
+
+func (api *PluginAPI) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userId, channelId, parentId)
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {

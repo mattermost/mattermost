@@ -11,7 +11,6 @@ import (
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/jobs"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -63,6 +62,61 @@ func New(options ...AppOption) *App {
 	return app
 }
 
+func (a *App) InitServer() {
+	a.srv.AppInitializedOnce.Do(func() {
+		a.initEnterprise()
+		a.accountMigration = a.srv.AccountMigration
+		a.ldap = a.srv.Ldap
+		a.notification = a.srv.Notification
+		a.saml = a.srv.Saml
+
+		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
+				if appErr := a.DeactivateGuests(); appErr != nil {
+					mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+				}
+			}
+		})
+
+		// Disable active guest accounts on first run if guest accounts are disabled
+		if !*a.Config().GuestAccountsSettings.Enable {
+			if appErr := a.DeactivateGuests(); appErr != nil {
+				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+			}
+		}
+
+		// Scheduler must be started before cluster.
+		a.initJobs()
+
+		if a.srv.joinCluster && a.srv.Cluster != nil {
+			a.registerAllClusterMessageHandlers()
+		}
+
+		a.DoAppMigrations()
+
+		a.InitPostMetadata()
+
+		a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+		a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+			if *cfg.PluginSettings.Enable {
+				a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+			} else {
+				a.srv.ShutDownPlugins()
+			}
+		})
+		if a.Srv().runjobs {
+			a.Srv().Go(func() {
+				runLicenseExpirationCheckJob(a)
+			})
+		}
+		a.srv.RunJobs()
+	})
+	a.accountMigration = a.srv.AccountMigration
+	a.ldap = a.srv.Ldap
+	a.notification = a.srv.Notification
+	a.saml = a.srv.Saml
+}
+
 // DO NOT CALL THIS.
 // This is to avoid having to change all the code in cmd/mattermost/commands/* for now
 // shutdown should be called directly on the server
@@ -71,35 +125,22 @@ func (a *App) Shutdown() {
 	a.srv = nil
 }
 
-func (a *App) configOrLicenseListener() {
-	a.regenerateClientConfig()
-}
-
-func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
-	if jobsDataRetentionJobInterface != nil {
-		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
-	}
-	if jobsMessageExportJobInterface != nil {
-		s.Jobs.MessageExportJob = jobsMessageExportJobInterface(s)
-	}
-	if jobsElasticsearchAggregatorInterface != nil {
-		s.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(s)
-	}
-	if jobsElasticsearchIndexerInterface != nil {
-		s.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(s)
-	}
+func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
-		s.Jobs.LdapSync = jobsLdapSyncInterface(s.FakeApp())
+		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
 	if jobsMigrationsInterface != nil {
-		s.Jobs.Migrations = jobsMigrationsInterface(s.FakeApp())
+		a.srv.Jobs.Migrations = jobsMigrationsInterface(a)
 	}
 	if jobsPluginsInterface != nil {
-		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
+		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
-	s.Jobs.Workers = s.Jobs.InitWorkers()
-	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
+	if jobsExpiryNotifyInterface != nil {
+		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
+	}
+
+	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
+	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
 
 func (a *App) DiagnosticId() string {
@@ -110,9 +151,9 @@ func (a *App) SetDiagnosticId(id string) {
 	a.Srv().diagnosticId = id
 }
 
-func (a *App) HTMLTemplates() *template.Template {
-	if a.Srv().htmlTemplateWatcher != nil {
-		return a.Srv().htmlTemplateWatcher.Templates()
+func (s *Server) HTMLTemplates() *template.Template {
+	if s.htmlTemplateWatcher != nil {
+		return s.htmlTemplateWatcher.Templates()
 	}
 
 	return nil
@@ -130,14 +171,26 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
-func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	systemData, appErr := a.Srv().Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+func (s *Server) getSystemInstallDate() (int64, *model.AppError) {
+	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 	if appErr != nil {
 		return 0, appErr
 	}
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
+}
+
+func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
+	systemData, appErr := s.Store.System().GetByName(model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY)
+	if appErr != nil {
+		return 0, appErr
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getFirstServerRunTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return value, nil
 }

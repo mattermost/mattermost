@@ -17,38 +17,44 @@ type SearchStore struct {
 	team         *SearchTeamStore
 	channel      *SearchChannelStore
 	post         *SearchPostStore
+	config       *model.Config
 }
 
-func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker) SearchStore {
-	searchStore := SearchStore{
+func NewSearchLayer(baseStore store.Store, searchEngine *searchengine.Broker, cfg *model.Config) *SearchStore {
+	searchStore := &SearchStore{
 		Store:        baseStore,
 		searchEngine: searchEngine,
+		config:       cfg,
 	}
-	searchStore.channel = &SearchChannelStore{ChannelStore: baseStore.Channel(), rootStore: &searchStore}
-	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: &searchStore}
-	searchStore.team = &SearchTeamStore{TeamStore: baseStore.Team(), rootStore: &searchStore}
-	searchStore.user = &SearchUserStore{UserStore: baseStore.User(), rootStore: &searchStore}
+	searchStore.channel = &SearchChannelStore{ChannelStore: baseStore.Channel(), rootStore: searchStore}
+	searchStore.post = &SearchPostStore{PostStore: baseStore.Post(), rootStore: searchStore}
+	searchStore.team = &SearchTeamStore{TeamStore: baseStore.Team(), rootStore: searchStore}
+	searchStore.user = &SearchUserStore{UserStore: baseStore.User(), rootStore: searchStore}
 
 	return searchStore
 }
 
-func (s SearchStore) Channel() store.ChannelStore {
+func (s *SearchStore) UpdateConfig(cfg *model.Config) {
+	s.config = cfg
+}
+
+func (s *SearchStore) Channel() store.ChannelStore {
 	return s.channel
 }
 
-func (s SearchStore) Post() store.PostStore {
+func (s *SearchStore) Post() store.PostStore {
 	return s.post
 }
 
-func (s SearchStore) Team() store.TeamStore {
+func (s *SearchStore) Team() store.TeamStore {
 	return s.team
 }
 
-func (s SearchStore) User() store.UserStore {
+func (s *SearchStore) User() store.UserStore {
 	return s.user
 }
 
-func (s SearchStore) indexUserFromID(userId string) {
+func (s *SearchStore) indexUserFromID(userId string) {
 	user, err := s.User().Get(userId)
 	if err != nil {
 		return
@@ -56,10 +62,10 @@ func (s SearchStore) indexUserFromID(userId string) {
 	s.indexUser(user)
 }
 
-func (s SearchStore) indexUser(user *model.User) {
+func (s *SearchStore) indexUser(user *model.User) {
 	for _, engine := range s.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			go (func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
 				userTeams, err := s.Team().GetTeamsByUserId(user.Id)
 				if err != nil {
 					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
@@ -87,7 +93,21 @@ func (s SearchStore) indexUser(user *model.User) {
 					return
 				}
 				mlog.Debug("Indexed user in search engine", mlog.String("search_engine", engineCopy.GetName()), mlog.String("user_id", user.Id))
-			})(engine)
+			})
 		}
+	}
+}
+
+// Runs an indexing function synchronously or asynchronously depending on the engine
+func runIndexFn(engine searchengine.SearchEngineInterface, indexFn func(searchengine.SearchEngineInterface)) {
+	if engine.IsIndexingSync() {
+		indexFn(engine)
+		if err := engine.RefreshIndexes(); err != nil {
+			mlog.Error("Encountered error refresh the indexes", mlog.Err(err))
+		}
+	} else {
+		go (func(engineCopy searchengine.SearchEngineInterface) {
+			indexFn(engineCopy)
+		})(engine)
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -22,6 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -36,6 +36,8 @@ import (
 
 // AppIface is extracted from App struct and contains all it's exported methods. It's provided to allow partial interface passing and app layers creation.
 type AppIface interface {
+	// @openTracingParams args
+	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	// @openTracingParams teamId
 	// previous ListCommands now ListAutocompleteCommands
 	ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError)
@@ -63,7 +65,10 @@ type AppIface interface {
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
 	// CreateBot creates the given bot and corresponding user.
 	CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
+	// CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
+	CreateChannelScheme(channel *model.Channel) (*model.Scheme, *model.AppError)
 	// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
+	//
 	CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError)
 	// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups
 	// are configured to sync with teams and channels for group members on or after the given timestamp.
@@ -87,9 +92,12 @@ type AppIface interface {
 	// However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
 	// 'off-topic' and be included in the return results in addition to 'town-square'. For example:
 	//	['town-square', 'game-of-thrones', 'wow']
+	//
 	DefaultChannelNames() []string
 	// DeleteBotIconImage deletes LHS icon for a bot.
 	DeleteBotIconImage(botUserId string) *model.AppError
+	// DeleteChannelScheme deletes a channels scheme and sets its SchemeId to nil.
+	DeleteChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
 	// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 	// groups of all group-constrained teams and channels.
 	DeleteGroupConstrainedMemberships() error
@@ -112,6 +120,10 @@ type AppIface interface {
 	// attributes of the attachment structure. The Slack attachment structure is
 	// documented here: https://api.slack.com/docs/attachments
 	ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment
+	// ExtendSessionExpiryIfNeeded extends Session.ExpiresAt based on session lengths in config.
+	// A new ExpiresAt is only written if enough time has elapsed since last update.
+	// Returns true only if the session was extended.
+	ExtendSessionExpiryIfNeeded(session *model.Session) bool
 	// FillInPostProps should be invoked before saving posts to fill in properties such as
 	// channel_mentions.
 	//
@@ -134,6 +146,8 @@ type AppIface interface {
 	GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError)
 	// GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
+	// GetChannelModerationsForChannel Gets a channels ChannelModerations from either the higherScoped roles or from the channel scheme roles.
+	GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError)
 	// GetClusterPluginStatuses returns the status for plugins installed anywhere in the cluster.
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
@@ -143,6 +157,12 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
+	// GetKnownUsers returns the list of user ids of users with any direct
+	// relationship with a user. That means any user sharing any channel, including
+	// direct and group channels.
+	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
 	GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError)
 	// GetMarketplacePlugins returns a list of plugins from the marketplace-server,
@@ -164,10 +184,25 @@ type AppIface interface {
 	GetPublicKey(name string) ([]byte, *model.AppError)
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
 	GetSanitizedConfig() *model.Config
+	// GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
+	GetSchemeRolesForChannel(channelId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
+	// GetSessionLengthInMillis returns the session length, in milliseconds,
+	// based on the type of session (Mobile, SSO, Web/LDAP).
+	GetSessionLengthInMillis(session *model.Session) int64
+	// GetSuggestions returns suggestions for user input.
+	GetSuggestions(commands []*model.Command, userInput, roleID string) []model.AutocompleteSuggestion
 	// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
+	// GetTeamSchemeChannelRoles Checks if a team has an override scheme and returns the scheme channel role names or default channel role names.
+	GetTeamSchemeChannelRoles(teamId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// HubRegister registers a connection to a hub.
+	HubRegister(webConn *WebConn)
+	// HubStart starts all the hubs.
+	HubStart()
+	// HubUnregister unregisters a connection from a hub.
+	HubUnregister(webConn *WebConn)
 	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 	// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 	InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError)
@@ -177,17 +212,29 @@ type AppIface interface {
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
 	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
 	IsUsernameTaken(name string) bool
-	// License returns the currently active license or nil if the application is unlicensed.
-	License() *model.License
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
+	// LogAuditRec logs an audit record using default CLILevel.
+	LogAuditRec(rec *audit.Record, err error)
+	// LogAuditRecWithLevel logs an audit record using specified Level.
+	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	// MakeAuditRecord creates a audit record pre-populated with defaults.
+	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// NewWebConn returns a new WebConn instance.
+	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
+	// NewWebHub creates a new Hub.
+	NewWebHub() *Hub
+	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
+	NotifySessionsExpired() *model.AppError
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
 	// PatchBot applies the given patch to the bot and corresponding user.
 	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	// PatchChannelModerationsForChannel Updates a channels scheme roles based on a given ChannelModerationPatch, if the permissions match the higher scoped role the scheme is deleted.
+	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	// Perform an HTTP POST request to an integration's action endpoint.
 	// Caller must consume and close returned http.Response as necessary.
 	// For internal requests, requests are routed directly to a plugin ServerHTTP hook
@@ -219,6 +266,8 @@ type AppIface interface {
 	// This function deviates from other authorization checks in returning an error instead of just
 	// a boolean, allowing the permission failure to be exposed with more granularity.
 	SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError
+	// SessionIsRegistered determines if a specific session has been registered
+	SessionIsRegistered(session model.Session) bool
 	// SetBotIconImage sets LHS icon for a bot.
 	SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError
 	// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
@@ -256,6 +305,10 @@ type AppIface interface {
 	UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError)
 	// UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateChannelScheme saves the new SchemeId of the channel passed.
+	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
+	// UpdateWebConnUserActivity sets the LastUserActivityAt of the hub for the given session.
+	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	// UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 	UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError)
 	// UploadFileX uploads a single file as specified in t. It applies the upload
@@ -281,7 +334,6 @@ type AppIface interface {
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
-	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -298,11 +350,12 @@ type AppIface interface {
 	AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError)
 	AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError
 	AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError)
+	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError
 	AttachSessionCookies(w http.ResponseWriter, r *http.Request)
-	AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (*model.User, *model.AppError)
+	AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError)
 	AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 	AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError)
@@ -324,6 +377,7 @@ type AppIface interface {
 	CheckUserMfa(user *model.User, token string) *model.AppError
 	CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError
 	CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError
+	CheckValidDomains(team *model.Team) *model.AppError
 	ClearChannelMembersCache(channelID string)
 	ClearSessionCacheForAllUsers()
 	ClearSessionCacheForAllUsersSkipClusterSend()
@@ -332,7 +386,6 @@ type AppIface interface {
 	ClearTeamMembersCache(teamID string)
 	ClientConfig() map[string]string
 	ClientConfigHash() string
-	ClientLicense() map[string]string
 	Cluster() einterfaces.ClusterInterface
 	CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError)
@@ -356,8 +409,8 @@ type AppIface interface {
 	CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	CreatePasswordRecoveryToken(userId, email string) (*model.Token, *model.AppError)
-	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError)
-	CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError)
+	CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks, setOnline bool) (savedPost *model.Post, err *model.AppError)
+	CreatePostAsUser(post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError)
 	CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
@@ -412,14 +465,13 @@ type AppIface interface {
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
-	// @openTracingParams args
-	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 	ExportPermissions(w io.Writer) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
 	FillInChannelProps(channel *model.Channel) *model.AppError
 	FillInChannelsProps(channelList *model.ChannelList) *model.AppError
+	FilterUsersByVisible(viewer *model.User, otherUsers []*model.User) ([]*model.User, *model.AppError)
 	FindTeamByName(name string) bool
 	GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError)
 	GeneratePublicLink(siteURL string, info *model.FileInfo) string
@@ -456,7 +508,6 @@ type AppIface interface {
 	GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 	GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	GetChannelMembersTimezones(channelId string) ([]string, *model.AppError)
-	GetChannelModerationsForChannel(channel *model.Channel) ([]*model.ChannelModeration, *model.AppError)
 	GetChannelPinnedPostCount(channelId string) (int64, *model.AppError)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
 	GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError)
@@ -487,18 +538,19 @@ type AppIface interface {
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetGroup(id string) (*model.Group, *model.AppError)
-	GetGroupByName(name string) (*model.Group, *model.AppError)
+	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
+	GetGroupMemberCount(groupID string) (int64, *model.AppError)
 	GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	GetGroupsAssociatedToChannelsByTeam(teamId string, opts model.GroupSearchOpts) (map[string][]*model.GroupWithSchemeAdmin, *model.AppError)
 	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
 	GetHubForUserId(userId string) *Hub
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
@@ -572,10 +624,8 @@ type AppIface interface {
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
-	GetSanitizedClientLicense() map[string]string
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
-	GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError)
 	GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError)
 	GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
 	GetSchemesPage(scope string, page int, perPage int) ([]*model.Scheme, *model.AppError)
@@ -594,7 +644,7 @@ type AppIface interface {
 	GetTeamIcon(team *model.Team) ([]byte, *model.AppError)
 	GetTeamIdFromQuery(query url.Values) (string, *model.AppError)
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
-	GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
+	GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
@@ -638,7 +688,6 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
-	HTMLTemplates() *template.Template
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
@@ -652,20 +701,17 @@ type AppIface interface {
 	HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool
 	HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userId string) bool
-	HubRegister(webConn *WebConn)
-	HubStart()
 	HubStop()
-	HubUnregister(webConn *WebConn)
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
-	ImageProxyRemover() func(string) string
+	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(pluginDir, webappPluginDir string)
 	InitPostMetadata()
+	InitServer()
 	InstallPluginFromData(data model.PluginEventData)
-	InvalidateAllCaches() *model.AppError
-	InvalidateAllCachesSkipSend()
 	InvalidateAllEmailInvites() *model.AppError
+	InvalidateCacheForUser(userId string)
 	InvalidateWebConnSessionCacheForUser(userId string)
 	InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError
 	InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
@@ -689,7 +735,6 @@ type AppIface interface {
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamId string) ([]*model.Command, *model.AppError)
-	LoadLicense()
 	Log() *mlog.Logger
 	LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	MakePermissionError(permission *model.Permission) *model.AppError
@@ -701,14 +746,11 @@ type AppIface interface {
 	MoveFile(oldPath, newPath string) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
 	NewPluginAPI(manifest *model.Manifest) plugin.API
-	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
-	NewWebHub() *Hub
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
-	PatchChannelModerationsForChannel(channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)
 	PatchScheme(scheme *model.Scheme, patch *model.SchemePatch) (*model.Scheme, *model.AppError)
@@ -735,6 +777,8 @@ type AppIface interface {
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishSkipClusterSend(message *model.WebSocketEvent)
+	PublishUserTyping(userId, channelId, parentId string) *model.AppError
+	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection()
@@ -746,8 +790,6 @@ type AppIface interface {
 	ReloadConfig() error
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
-	RemoveLicense() *model.AppError
-	RemoveLicenseListener(id string)
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
 	RemoveSamlIdpCertificate() *model.AppError
@@ -778,7 +820,6 @@ type AppIface interface {
 	SaveAndBroadcastStatus(status *model.Status)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
-	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
@@ -796,6 +837,7 @@ type AppIface interface {
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
 	SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInTeam(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
@@ -803,15 +845,14 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
-	SendDailyDiagnostics()
 	SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError
-	SendDiagnostic(event string, properties map[string]interface{})
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
-	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error)
+	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError)
+	SendRemoveExpiredLicenseEmail(email string, locale, siteURL string, licenseId string) *model.AppError
 	SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
 	ServePluginRequest(w http.ResponseWriter, r *http.Request)
@@ -826,12 +867,10 @@ type AppIface interface {
 	SetAcceptLanguage(s string)
 	SetActiveChannel(userId string, channelId string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
-	SetClientLicense(m map[string]string)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetDiagnosticId(id string)
 	SetIpAddress(s string)
-	SetLicense(license *model.License) bool
 	SetLog(l *mlog.Logger)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
@@ -844,6 +883,7 @@ type AppIface interface {
 	SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError
 	SetRequestId(s string)
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
+	SetSearchEngine(se *searchengine.Broker)
 	SetServer(srv *Server)
 	SetSession(s *model.Session)
 	SetStatusAwayIfNeeded(userId string, manual bool)
@@ -856,8 +896,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SetupInviteEmailRateLimiting() error
-	ShutDownPlugins()
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
 	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
 	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
@@ -866,8 +904,6 @@ type AppIface interface {
 	SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool)
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
-	StartPushNotificationsHubWorkers()
-	StopPushNotificationsHubWorkers()
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
@@ -894,7 +930,6 @@ type AppIface interface {
 	UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError)
 	UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError)
-	UpdateChannelScheme(channel *model.Channel) (*model.Channel, *model.AppError)
 	UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	UpdateConfig(f func(*model.Config))
 	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
@@ -927,14 +962,12 @@ type AppIface interface {
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
-	UpdateWebConnUserActivity(session model.Session, activityAt int64)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAgent() string
 	UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError)
-	ValidateAndSetLicenseBytes(b []byte)
 	VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userId, email string) *model.AppError
 	ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError)

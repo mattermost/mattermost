@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image"
 	"image/png"
@@ -103,12 +104,7 @@ func (a *App) getAllowedDomains(user *model.User, team *model.Team) []string {
 	return []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
 }
 
-func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.GetTeam(team.Id)
-	if err != nil {
-		return nil, err
-	}
-
+func (a *App) CheckValidDomains(team *model.Team) *model.AppError {
 	validDomains := a.normalizeDomains(*a.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
@@ -120,10 +116,23 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 				}
 			}
 			if !matched {
-				err = model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
-				return nil, err
+				err := model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]interface{}{"Domain": domain}, "", http.StatusBadRequest)
+				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	oldTeam, err := a.GetTeam(team.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = a.CheckValidDomains(team); err != nil {
+		return nil, err
 	}
 
 	oldTeam.DisplayName = team.DisplayName
@@ -188,7 +197,7 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 		return nil, err
 	}
 
-	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM_SCHEME)
 
 	return oldTeam, nil
 }
@@ -197,6 +206,11 @@ func (a *App) UpdateTeamPrivacy(teamId string, teamType string, allowOpenInvite 
 	oldTeam, err := a.GetTeam(teamId)
 	if err != nil {
 		return err
+	}
+
+	// Force a regeneration of the invite token if changing a team to restricted.
+	if (allowOpenInvite != oldTeam.AllowOpenInvite || teamType != oldTeam.Type) && (!allowOpenInvite || teamType == model.TEAM_INVITE) {
+		oldTeam.InviteId = model.NewId()
 	}
 
 	oldTeam.Type = teamType
@@ -218,15 +232,22 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 	}
 
 	team.Patch(patch)
+	if patch.AllowOpenInvite != nil && !*patch.AllowOpenInvite {
+		team.InviteId = model.NewId()
+	}
 
-	updatedTeam, err := a.UpdateTeam(team)
-	if err != nil {
+	if err = a.CheckValidDomains(team); err != nil {
 		return nil, err
 	}
 
-	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	team, err = a.updateTeamUnsanitized(team)
+	if err != nil {
+		return team, err
+	}
 
-	return updatedTeam, nil
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return team, nil
 }
 
 func (a *App) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
@@ -763,8 +784,8 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 	return a.Srv().Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 }
 
-func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, restrictions)
+func (a *App) GetTeamMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+	return a.Srv().Store.Team().GetMembers(teamId, offset, limit, teamMembersGetOptions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -968,11 +989,13 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var channelList *model.ChannelList
 
-	if channelList, err = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
-		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+	var nErr error
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
 		} else {
-			return err
+			return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -985,9 +1008,15 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	channel, err := a.Srv().Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
-	if err != nil {
-		return err
+	channel, nErr := a.Srv().Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return model.NewAppError("LeaveTeam", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("LeaveTeam", "app.channel.get_by_name.existing.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -1021,7 +1050,7 @@ func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *mo
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1039,7 +1068,7 @@ func (a *App) postRemoveFromTeamMessage(user *model.User, channel *model.Channel
 		},
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postRemoveFromTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -1322,7 +1351,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if channels, err := a.Srv().Store.Channel().GetTeamChannels(team.Id); err != nil {
-		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+		if err.Id != "app.channel.get_channels.not_found.app_error" {
 			return err
 		}
 	} else {
@@ -1510,7 +1539,11 @@ func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	if config.Width*config.Height > model.MaxImageSize {
+
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	if int64(config.Width)*int64(config.Height) > model.MaxImageSize {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1591,7 +1624,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, &model.ViewUsersRestrictions{})
+		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, nil)
 		if err != nil {
 			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
