@@ -4951,12 +4951,20 @@ func TestConvertUserToBot(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, bot)
 
-	bot, resp = th.SystemAdminClient.ConvertUserToBot(th.BasicUser.Id)
-	CheckNoError(t, resp)
-	require.NotNil(t, bot)
-	require.Equal(t, bot.UserId, th.BasicUser.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Username: GenerateTestUsername(), Password: "password"}
 
-	bot, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
-	CheckNoError(t, resp)
-	require.NotNil(t, bot)
+		ruser, resp := client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		bot, resp = client.ConvertUserToBot(ruser.Id)
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
+		require.Equal(t, bot.UserId, ruser.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
+	})
 }

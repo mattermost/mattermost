@@ -19,9 +19,9 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(patchBot)).Methods("PUT")
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
-	api.BaseRoutes.Bot.Handle("/convert", api.ApiSessionRequired(convertBotToUser)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/convert", api.ApiSessionRequired(convertBotToUser)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
 
 	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequiredTrustRequester(getBotIconImage)).Methods("GET")

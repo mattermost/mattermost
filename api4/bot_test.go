@@ -1428,32 +1428,41 @@ func TestConvertBotToUser(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, user)
 
-	user, resp = th.SystemAdminClient.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
-	CheckBadRequestStatus(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
 
-	user, resp = th.SystemAdminClient.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
-	CheckNoError(t, resp)
-	require.NotNil(t, user)
-	require.Equal(t, bot.UserId, user.Id)
+		user, resp := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		CheckBadRequestStatus(t, resp)
 
-	bot, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
-	CheckNotFoundStatus(t, resp)
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
 
-	bot = &model.Bot{
-		Username:    GenerateTestUsername(),
-		Description: "systemAdminBot",
-	}
-	bot, resp = th.SystemAdminClient.CreateBot(bot)
-	CheckCreatedStatus(t, resp)
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
 
-	user, resp = th.SystemAdminClient.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
-	CheckNoError(t, resp)
-	require.NotNil(t, user)
-	require.Equal(t, bot.UserId, user.Id)
-	require.Contains(t, user.GetRoles(), model.SYSTEM_ADMIN_ROLE_ID)
+		bot = &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "systemAdminBot",
+		}
+		bot, resp = th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
 
-	bot, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
-	CheckNotFoundStatus(t, resp)
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
+		require.Contains(t, user.GetRoles(), model.SYSTEM_ADMIN_ROLE_ID)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func sToP(s string) *string {
