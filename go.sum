@@ -403,8 +403,8 @@ github.com/mailru/easyjson v0.7.1/go.mod h1:KAzv3t3aY1NaHWoQz1+4F1ccyAH66Jk7yos7
 github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c/go.mod h1:74gB1z2wpxxInTG6yaqA7KrtM0NZ+RbrcqDvYHefzho=
 github.com/mattermost/go-i18n v1.11.0 h1:1hLKqn/ZvhZ80OekjVPGYcCrBfMz+YxNNgqS+beL7zE=
 github.com/mattermost/go-i18n v1.11.0/go.mod h1:RyS7FDNQlzF1PsjbJWHRI35exqaKGSO9qD4iv8QjE34=
-github.com/mattermost/gorp v1.6.2-0.20200619191029-f6c70245f4c1 h1:89c0ft4sjyMvyjCE7RK9DOUhIUsSHCVg848nO/7rp/o=
-github.com/mattermost/gorp v1.6.2-0.20200619191029-f6c70245f4c1/go.mod h1:QCQ3U0M9T/BlAdjKFJo0I1oe/YAgbyjNdhU8bpOLafk=
+github.com/mattermost/gorp v1.6.2-0.20200621174440-bb8bcec098be h1:gGG+86zE+tvuMiUwoIwp/JVlCvR8jNHp3xn2Q4grW+I=
+github.com/mattermost/gorp v1.6.2-0.20200621174440-bb8bcec098be/go.mod h1:QCQ3U0M9T/BlAdjKFJo0I1oe/YAgbyjNdhU8bpOLafk=
 github.com/mattermost/gosaml2 v0.3.2 h1:kq2dY5qUe6fPPHra171GVlgo+ycBsEog0gZMetxL8ow=
 github.com/mattermost/gosaml2 v0.3.2/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d h1:2DV7VIlEv6J5R5o6tUcb3ZMKJYeeZuWZL7Rv1m23TgQ=
