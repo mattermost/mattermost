@@ -19,11 +19,7 @@ import (
 )
 
 const (
-<<<<<<< HEAD
-	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
-=======
 	CURRENT_SCHEMA_VERSION   = VERSION_5_24_0
->>>>>>> master
 	VERSION_5_26_0           = "5.26.0"
 	VERSION_5_25_0           = "5.25.0"
 	VERSION_5_24_0           = "5.24.0"
@@ -821,7 +817,6 @@ func upgradeDatabaseToVersion525(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion526(sqlStore SqlStore) {
-<<<<<<< HEAD
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
 	err := precheckMigrationToVersion526(sqlStore)
@@ -895,12 +890,3 @@ func precheckMigrationToVersion526(sqlStore SqlStore) error {
 
 	return nil
 }
-=======
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
-
-	//saveSchemaVersion(sqlStore, VERSION_5_26_0)
-	//}
-}
->>>>>>> master
