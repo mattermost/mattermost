@@ -4942,3 +4942,21 @@ func TestPublishUserTyping(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 }
+
+func TestConvertUserToBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, resp := th.Client.ConvertUserToBot(th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, bot)
+
+	bot, resp = th.SystemAdminClient.ConvertUserToBot(th.BasicUser.Id)
+	CheckNoError(t, resp)
+	require.NotNil(t, bot)
+	require.Equal(t, bot.UserId, th.BasicUser.Id)
+
+	bot, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
+	CheckNoError(t, resp)
+	require.NotNil(t, bot)
+}
