@@ -819,8 +819,7 @@ func upgradeDatabaseToVersion525(sqlStore SqlStore) {
 func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-	err := precheckMigrationToVersion526(sqlStore)
-	if err != nil {
+	if err := precheckMigrationToVersion526(sqlStore); err != nil {
 		mlog.Error("Error upgrading DB schema to 5.26.0", mlog.Err(err))
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
