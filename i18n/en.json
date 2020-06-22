@@ -1823,6 +1823,10 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service."
   },
@@ -2061,6 +2065,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Malformed request: filesize field is not present."
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unknown import source."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -3015,6 +3023,14 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -3029,6 +3045,10 @@
   {
     "id": "app.channel.get_deleted.missing.app_error",
     "translation": "No deleted channels exist."
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Unable to get the channels."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3975,6 +3995,22 @@
     "translation": "Invalid or missing token."
   },
   {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -4216,7 +4252,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
+    "translation": ""
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4396,7 +4432,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
+    "translation": ""
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -6163,14 +6199,6 @@
     "translation": "Unable to get all the direct channels."
   },
   {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
-  },
-  {
     "id": "store.sql_channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },
@@ -6193,14 +6221,6 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "No deleted channel exists with that name."
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
@@ -6229,10 +6249,6 @@
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Unable to get the channels."
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
@@ -6711,6 +6727,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+    "translation": "Unable to get the oldest entitiy creation time."
+  },
+  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Unable to get the parent post for the channel."
   },
@@ -7041,6 +7061,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expired_notify.app_error",
+    "translation": "Unable to update expired_notify."
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
@@ -7617,22 +7641,6 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Unable to enable the access token."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

@@ -1,6 +1,9 @@
 # github.com/Masterminds/squirrel v1.2.0
 ## explicit
 github.com/Masterminds/squirrel
+# github.com/NYTimes/gziphandler v1.1.1
+## explicit
+github.com/NYTimes/gziphandler
 # github.com/RoaringBitmap/roaring v0.4.23
 ## explicit
 github.com/RoaringBitmap/roaring
@@ -317,9 +320,6 @@ github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.2.3
 ## explicit
 github.com/mitchellh/mapstructure
-# github.com/mkraft/gziphandler v1.1.2-0.20200509175700-73dc64f3ad90
-## explicit
-github.com/mkraft/gziphandler
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.1
@@ -403,9 +403,6 @@ github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/tiff
 # github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
 github.com/sean-/seed
-# github.com/segmentio/analytics-go v3.1.0+incompatible
-## explicit
-github.com/segmentio/analytics-go
 # github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3
 ## explicit
 github.com/segmentio/backo-go
@@ -480,6 +477,14 @@ github.com/uber/jaeger-client-go/zipkin
 # github.com/uber/jaeger-lib v2.2.0+incompatible
 ## explicit
 github.com/uber/jaeger-lib/metrics
+# github.com/vmihailenco/msgpack/v5 v5.0.0-beta.1
+## explicit
+github.com/vmihailenco/msgpack/v5
+github.com/vmihailenco/msgpack/v5/codes
+# github.com/vmihailenco/tagparser v0.1.1
+github.com/vmihailenco/tagparser
+github.com/vmihailenco/tagparser/internal
+github.com/vmihailenco/tagparser/internal/parser
 # github.com/wiggin77/cfg v1.0.2
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
@@ -549,7 +554,8 @@ golang.org/x/image/vp8l
 golang.org/x/image/webp
 # golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 ## explicit
-# golang.org/x/mod v0.2.0
+# golang.org/x/mod v0.3.0
+## explicit
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20200501053045-e0ff5e5a1de5
@@ -598,7 +604,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20200428021058-7ae4988eb4d9
+# golang.org/x/tools v0.0.0-20200612220849-54c614fe050c
 ## explicit
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
@@ -615,9 +621,22 @@ golang.org/x/tools/internal/gocommand
 golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
+golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
+# google.golang.org/appengine v1.6.5
+google.golang.org/appengine
+google.golang.org/appengine/datastore
+google.golang.org/appengine/datastore/internal/cloudkey
+google.golang.org/appengine/datastore/internal/cloudpb
+google.golang.org/appengine/internal
+google.golang.org/appengine/internal/app_identity
+google.golang.org/appengine/internal/base
+google.golang.org/appengine/internal/datastore
+google.golang.org/appengine/internal/log
+google.golang.org/appengine/internal/modules
+google.golang.org/appengine/internal/remote_api
 # google.golang.org/genproto v0.0.0-20200424135956-bca184e23272
 ## explicit
 google.golang.org/genproto/googleapis/rpc/status

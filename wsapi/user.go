@@ -35,15 +35,9 @@ func (api *API) userTyping(req *model.WebSocketRequest) (map[string]interface{},
 		parentId = ""
 	}
 
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[req.Session.UserId] = true
+	appErr := api.App.PublishUserTyping(req.Session.UserId, channelId, parentId)
 
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
-	event.Add("parent_id", parentId)
-	event.Add("user_id", req.Session.UserId)
-	api.App.Publish(event)
-
-	return nil, nil
+	return nil, appErr
 }
 
 func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
