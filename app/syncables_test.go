@@ -55,7 +55,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	gleeGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: "Glee Club",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -65,7 +65,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	scienceGroup, err := th.App.CreateGroup(&model.Group{
-		Name:        model.NewId(),
+		Name:        model.NewString(model.NewId()),
 		DisplayName: "Science Club",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -297,9 +297,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	timeAfterLeaving := model.GetMillis()
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, err = th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
-	if err != nil {
-		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
+	_, nErr := th.App.Srv().Store.ChannelMemberHistory().PermanentDeleteBatch(timeBeforeLeaving, 1000)
+	if nErr != nil {
+		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
 
 	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
@@ -313,9 +313,9 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Purging channelmemberhistory doesn't re-add user to channel
-	_, err = th.App.Srv().Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
-	if err != nil {
-		t.Errorf("error permanently deleting channelmemberhistory: %s", err.Error())
+	_, nErr = th.App.Srv().Jobs.Store.ChannelMemberHistory().PermanentDeleteBatch(timeAfterLeaving, 1000)
+	if nErr != nil {
+		t.Errorf("error permanently deleting channelmemberhistory: %s", nErr.Error())
 	}
 
 	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -65,12 +64,12 @@ func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if err = a.JoinChannel(channel, args.UserId); err != nil {
+	if appErr := a.JoinChannel(channel, args.UserId); appErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	team, err := a.GetTeam(channel.TeamId)
-	if err != nil {
+	team, appErr := a.GetTeam(channel.TeamId)
+	if appErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

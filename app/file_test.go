@@ -87,14 +87,21 @@ func TestDoUploadFile(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	channelId := model.NewId()
+	channelId := th.BasicChannel.Id
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := th.App.UploadFile(data, channelId, filename)
+	info1, err := th.App.UploadFile(data, "wrong", filename)
+	require.Error(t, err, "Wrong Channel ID.")
+	require.Nil(t, info1, "Channel ID does not exist.")
+
+	info1, err = th.App.UploadFile(data, "", filename)
+	require.Nil(t, err, "empty channel IDs should be valid")
+
+	info1, err = th.App.UploadFile(data, channelId, filename)
 	require.Nil(t, err, "UploadFile should succeed with valid data")
 	defer func() {
 		th.App.Srv().Store.FileInfo().PermanentDelete(info1.Id)
@@ -249,13 +256,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileId)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false)
+	rpost, err := th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false)
+	rpost, err = th.App.CreatePost(&model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileId)}}, th.BasicChannel, false, true)
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)

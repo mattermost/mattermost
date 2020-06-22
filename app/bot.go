@@ -57,7 +57,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(botAddPost, a.Session().Id); err != nil {
+		if _, err := a.CreatePostAsUser(botAddPost, a.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -89,6 +89,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	if err != nil {
 		return nil, err
 	}
+	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
 	a.sendUpdatedUserEvent(*ruser)
@@ -342,7 +343,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(userId string) *model.AppError 
 			Type:      model.POST_SYSTEM_GENERIC,
 		}
 
-		_, appErr = a.CreatePost(post, channel, false)
+		_, appErr = a.CreatePost(post, channel, false, true)
 		if appErr != nil {
 			return appErr
 		}
