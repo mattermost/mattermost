@@ -37,8 +37,16 @@ type Session struct {
 	DeviceId       string        `json:"device_id"`
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
+	ExpiredNotify  bool          `json:"expired_notify"`
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
+	Local          bool          `json:"local" db:"-"`
+}
+
+// Returns true if the session is unrestricted, which should grant it
+// with all permissions. This is used for local mode sessions
+func (me *Session) IsUnrestricted() bool {
+	return me.Local
 }
 
 func (me *Session) DeepCopy() *Session {

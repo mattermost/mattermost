@@ -17,7 +17,7 @@ func TestCreateScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -135,7 +135,7 @@ func TestCreateScheme(t *testing.T) {
 	CheckForbiddenStatus(t, r5)
 
 	// Try and create a scheme without a license.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	scheme6 := &model.Scheme{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
@@ -148,7 +148,7 @@ func TestCreateScheme(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(false)
 
 	th.LoginSystemAdmin()
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme7 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -164,7 +164,7 @@ func TestGetScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	// Basic test of creating a team scheme.
 	scheme1 := &model.Scheme{
@@ -209,7 +209,7 @@ func TestGetScheme(t *testing.T) {
 	CheckUnauthorizedStatus(t, r5)
 
 	th.SystemAdminClient.Login(th.SystemAdminUser.Username, th.SystemAdminUser.Password)
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	_, r6 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckNoError(t, r6)
 
@@ -226,7 +226,7 @@ func TestGetSchemes(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme1 := &model.Scheme{
 		DisplayName: model.NewId(),
@@ -289,7 +289,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -381,7 +381,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -424,8 +424,8 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	channel2, err = th.App.Srv().Store.Channel().Save(channel2, 1000000)
-	assert.Nil(t, err)
+	channel2, nErr := th.App.Srv().Store.Channel().Save(channel2, 1000000)
+	assert.Nil(t, nErr)
 
 	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -475,7 +475,7 @@ func TestPatchScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -565,14 +565,14 @@ func TestPatchScheme(t *testing.T) {
 	CheckForbiddenStatus(t, r10)
 
 	// Test without license.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	_, r11 := th.SystemAdminClient.PatchScheme(s6.Id, schemePatch)
 	CheckNotImplementedStatus(t, r11)
 
 	th.App.SetPhase2PermissionsMigrationStatus(false)
 
 	th.LoginSystemAdmin()
-	th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	_, r12 := th.SystemAdminClient.PatchScheme(s6.Id, schemePatch)
 	CheckNotImplementedStatus(t, r12)
@@ -583,7 +583,7 @@ func TestDeleteScheme(t *testing.T) {
 	defer th.TearDown()
 
 	t.Run("ValidTeamScheme", func(t *testing.T) {
-		th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -661,7 +661,7 @@ func TestDeleteScheme(t *testing.T) {
 	})
 
 	t.Run("ValidChannelScheme", func(t *testing.T) {
-		th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -721,7 +721,7 @@ func TestDeleteScheme(t *testing.T) {
 	})
 
 	t.Run("FailureCases", func(t *testing.T) {
-		th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 		th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -748,13 +748,13 @@ func TestDeleteScheme(t *testing.T) {
 		CheckForbiddenStatus(t, r4)
 
 		// Test without license.
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 		_, r5 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNotImplementedStatus(t, r5)
 
 		th.App.SetPhase2PermissionsMigrationStatus(false)
 
-		th.App.SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 		_, r6 := th.SystemAdminClient.DeleteScheme(s1.Id)
 		CheckNotImplementedStatus(t, r6)

@@ -5,7 +5,9 @@ package sqlstore_test
 
 import (
 	"regexp"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/mattermost/gorp"
 	_ "github.com/mattn/go-sqlite3"
@@ -73,13 +75,14 @@ func TestGetReplica(t *testing.T) {
 
 	for _, testCase := range testCases {
 		testCase := testCase
-		t.Run(testCase.Description, func(t *testing.T) {
+		t.Run(testCase.Description+" with license", func(t *testing.T) {
 			t.Parallel()
 
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
 			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -128,6 +131,59 @@ func TestGetReplica(t *testing.T) {
 				}
 			}
 		})
+
+		t.Run(testCase.Description+" without license", func(t *testing.T) {
+			t.Parallel()
+
+			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+			settings.DataSourceReplicas = testCase.DataSourceReplicas
+			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+			replicas := make(map[*gorp.DbMap]bool)
+			for i := 0; i < 5; i++ {
+				replicas[supplier.GetReplica()] = true
+			}
+
+			searchReplicas := make(map[*gorp.DbMap]bool)
+			for i := 0; i < 5; i++ {
+				searchReplicas[supplier.GetSearchReplica()] = true
+			}
+
+			if len(testCase.DataSourceReplicas) > 0 {
+				// If replicas were defined, ensure none are the master.
+				assert.Len(t, replicas, 1)
+
+				for replica := range replicas {
+					assert.Same(t, supplier.GetMaster(), replica)
+				}
+
+			} else if assert.Len(t, replicas, 1) {
+				// Otherwise ensure the replicas contains only the master.
+				for replica := range replicas {
+					assert.Equal(t, supplier.GetMaster(), replica)
+				}
+			}
+
+			if len(testCase.DataSourceSearchReplicas) > 0 {
+				// If search replicas were defined, ensure none are the master nor the replicas.
+				assert.Len(t, searchReplicas, 1)
+
+				for searchReplica := range searchReplicas {
+					assert.Same(t, supplier.GetMaster(), searchReplica)
+				}
+
+			} else if len(testCase.DataSourceReplicas) > 0 {
+				// If no search replicas were defined, but replicas were, ensure they are equal.
+				assert.Equal(t, replicas, searchReplicas)
+
+			} else if assert.Len(t, searchReplicas, 1) {
+				// Otherwise ensure the search replicas contains the master.
+				for searchReplica := range searchReplicas {
+					assert.Equal(t, supplier.GetMaster(), searchReplica)
+				}
+			}
+		})
 	}
 }
 
@@ -147,6 +203,46 @@ func TestGetDbVersion(t *testing.T) {
 			version, err := supplier.GetDbVersion()
 			require.Nil(t, err)
 			require.Regexp(t, regexp.MustCompile(`\d+\.\d+(\.\d+)?`), version)
+		})
+	}
+}
+
+func TestRecycleDBConns(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping recycle DBConns test")
+	}
+	testDrivers := []string{
+		model.DATABASE_DRIVER_POSTGRES,
+		model.DATABASE_DRIVER_MYSQL,
+		model.DATABASE_DRIVER_SQLITE,
+	}
+
+	for _, driver := range testDrivers {
+		t.Run(driver, func(t *testing.T) {
+			settings := makeSqlSettings(driver)
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+			var wg sync.WaitGroup
+			tables := []string{"Posts", "Channels", "Users"}
+			for _, table := range tables {
+				wg.Add(1)
+				go func(table string) {
+					defer wg.Done()
+					query := `SELECT count(*) FROM ` + table
+					_, err := supplier.GetMaster().SelectInt(query)
+					assert.NoError(t, err)
+				}(table)
+			}
+			wg.Wait()
+
+			stats := supplier.GetMaster().Db.Stats()
+			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
+
+			supplier.RecycleDBConnections(2 * time.Second)
+			// We cannot reliably control exactly how many open connections are there. So we
+			// just do a basic check and confirm that atleast one has been closed.
+			stats = supplier.GetMaster().Db.Stats()
+			assert.Greater(t, int(stats.MaxLifetimeClosed), 0, "unexpected number of connections closed due to maxlifetime")
 		})
 	}
 }

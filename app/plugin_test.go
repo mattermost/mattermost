@@ -663,7 +663,7 @@ func TestPluginPanicLogs(t *testing.T) {
 			Message:   "message_",
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		_, err := th.App.CreatePost(post, th.BasicChannel, false)
+		_, err := th.App.CreatePost(post, th.BasicChannel, false, true)
 		assert.Nil(t, err)
 
 		testlib.AssertLog(t, th.LogBuffer, mlog.LevelDebug, "panic: some text from panic")

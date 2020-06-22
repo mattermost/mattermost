@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -219,7 +220,7 @@ func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base
+				newSplit := base.Clone()
 				splits = append(splits, newSplit)
 				continue
 			}
@@ -412,7 +413,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	if len(hook.ChannelId) != 0 {
 		channel, errCh := a.Srv().Store.Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
-			return nil, errCh
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(errCh, &nfErr):
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", nil, errCh.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		if channel.Type != model.CHANNEL_OPEN {
@@ -621,29 +628,41 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
-				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		} else {
 			cchan = make(chan store.StoreResult, 1)
 			go func() {
 				chnn, chnnErr := a.Srv().Store.Channel().GetByName(hook.TeamId, channelName, true)
-				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				cchan <- store.StoreResult{Data: chnn, NErr: chnnErr}
 				close(cchan)
 			}()
 		}
 	} else {
-		var err *model.AppError
+		var err error
 		channel, err = a.Srv().Store.Channel().Get(hook.ChannelId, true)
 		if err != nil {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
 	if channel == nil {
 		result := <-cchan
-		if result.Err != nil {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+		if result.NErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(result.NErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			}
 		} else {
 			channel = result.Data.(*model.Channel)
 		}
@@ -660,7 +679,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		user = result.Data.(*model.User)
 	}
 
-	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL && !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
 		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}

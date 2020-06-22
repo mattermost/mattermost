@@ -231,12 +231,52 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "CHOCOLATE"
+	q.Name = "ilovecake"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLenth   int
 		ExpectedFirstId string
 	}{
+		{
+			"Search chocolate by display name",
+			"ocola",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"choc",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"late",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ilov",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ecake",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -302,12 +342,52 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "PINEAPPLEPIE"
+	q.Name = "ihadsomepineapplepiewithstrawberry"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = true
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search PINEAPPLEPIE by display name",
+			"neapplep",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"pine",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"epie",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"ihadsome",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"pineapplepiewithstrawberry",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -368,12 +448,52 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBARDISPLAYNAME"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name from text in the middle of display name",
+			"oobardisplay",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the beginning of display name",
+			"foobar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the end of display name",
+			"bardisplayname",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the beginning name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the end of name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for private team name",
 			p.Name,
@@ -2808,12 +2928,12 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, err = ss.Channel().Save(c2, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().Save(c2, -1)
+	require.Nil(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	_, err = ss.Channel().SaveMember(cm1)
@@ -2862,12 +2982,12 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, err = ss.Channel().Save(c1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Channel().Save(c1, -1)
+	require.Nil(t, nErr)
 
 	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, err = ss.Channel().Save(c2, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().Save(c2, -1)
+	require.Nil(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	_, err = ss.Channel().SaveMember(cm1)

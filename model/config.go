@@ -130,6 +130,7 @@ const (
 	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
 	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE            = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_GUEST_ATTRIBUTE      = ""
@@ -180,6 +181,9 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
+	BLEVE_SETTINGS_DEFAULT_INDEX_DIR                         = ""
+	BLEVE_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
+
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
@@ -212,6 +216,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+
+	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -316,6 +322,7 @@ type ServiceSettings struct {
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
 	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalDataPrefetch                          *bool
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
@@ -328,6 +335,8 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool
 	EnableSVGs                                        *bool
 	EnableLatex                                       *bool
+	EnableLocalMode                                   *bool
+	LocalModeSocketLocation                           *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -361,7 +370,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableLinkPreviews == nil {
-		s.EnableLinkPreviews = NewBool(false)
+		s.EnableLinkPreviews = NewBool(true)
 	}
 
 	if s.EnableTesting == nil {
@@ -670,6 +679,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
+	if s.ExperimentalDataPrefetch == nil {
+		s.ExperimentalDataPrefetch = NewBool(true)
+	}
+
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -721,23 +734,32 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 			s.EnableLatex = NewBool(false)
 		}
 	}
+
+	if s.EnableLocalMode == nil {
+		s.EnableLocalMode = NewBool(false)
+	}
+
+	if s.LocalModeSocketLocation == nil {
+		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
+	}
 }
 
 type ClusterSettings struct {
-	Enable                      *bool   `restricted:"true"`
-	ClusterName                 *string `restricted:"true"`
-	OverrideHostname            *string `restricted:"true"`
-	NetworkInterface            *string `restricted:"true"`
-	BindAddress                 *string `restricted:"true"`
-	AdvertiseAddress            *string `restricted:"true"`
-	UseIpAddress                *bool   `restricted:"true"`
-	UseExperimentalGossip       *bool   `restricted:"true"`
-	ReadOnlyConfig              *bool   `restricted:"true"`
-	GossipPort                  *int    `restricted:"true"`
-	StreamingPort               *int    `restricted:"true"`
-	MaxIdleConns                *int    `restricted:"true"`
-	MaxIdleConnsPerHost         *int    `restricted:"true"`
-	IdleConnTimeoutMilliseconds *int    `restricted:"true"`
+	Enable                             *bool   `restricted:"true"`
+	ClusterName                        *string `restricted:"true"`
+	OverrideHostname                   *string `restricted:"true"`
+	NetworkInterface                   *string `restricted:"true"`
+	BindAddress                        *string `restricted:"true"`
+	AdvertiseAddress                   *string `restricted:"true"`
+	UseIpAddress                       *bool   `restricted:"true"`
+	UseExperimentalGossip              *bool   `restricted:"true"`
+	EnableExperimentalGossipEncryption *bool   `restricted:"true"`
+	ReadOnlyConfig                     *bool   `restricted:"true"`
+	GossipPort                         *int    `restricted:"true"`
+	StreamingPort                      *int    `restricted:"true"`
+	MaxIdleConns                       *int    `restricted:"true"`
+	MaxIdleConnsPerHost                *int    `restricted:"true"`
+	IdleConnTimeoutMilliseconds        *int    `restricted:"true"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -771,6 +793,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.UseExperimentalGossip == nil {
 		s.UseExperimentalGossip = NewBool(false)
+	}
+
+	if s.EnableExperimentalGossipEncryption == nil {
+		s.EnableExperimentalGossipEncryption = NewBool(false)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -970,6 +996,7 @@ type SqlSettings struct {
 	Trace                       *bool    `restricted:"true"`
 	AtRestEncryptKey            *string  `restricted:"true"`
 	QueryTimeout                *int     `restricted:"true"`
+	DisableDatabaseSearch       *bool    `restricted:"true"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1018,6 +1045,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
 	}
+
+	if s.DisableDatabaseSearch == nil {
+		s.DisableDatabaseSearch = NewBool(false)
+	}
 }
 
 type LogSettings struct {
@@ -1030,6 +1061,7 @@ type LogSettings struct {
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
+	EnableSentry           *bool   `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1059,6 +1091,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.EnableSentry == nil {
+		s.EnableSentry = NewBool(*s.EnableDiagnostics)
 	}
 
 	if s.ConsoleJson == nil {
@@ -1341,6 +1377,7 @@ type EmailSettings struct {
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
+	PushNotificationBuffer            *int
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
@@ -1438,7 +1475,11 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.PushNotificationContents == nil {
-		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
+		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
+	}
+
+	if s.PushNotificationBuffer == nil {
+		s.PushNotificationBuffer = NewInt(1000)
 	}
 
 	if s.EnableEmailBatching == nil {
@@ -1884,6 +1925,7 @@ type LdapSettings struct {
 	IdAttribute        *string
 	PositionAttribute  *string
 	LoginIdAttribute   *string
+	PictureAttribute   *string
 
 	// Synchronization
 	SyncIntervalMinutes *int
@@ -1993,6 +2035,10 @@ func (s *LdapSettings) SetDefaults() {
 		s.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
 	}
 
+	if s.PictureAttribute == nil {
+		s.PictureAttribute = NewString(LDAP_SETTINGS_DEFAULT_PICTURE_ATTRIBUTE)
+	}
+
 	// For those upgrading to the version when LoginIdAttribute was added
 	// they need IdAttribute == LoginIdAttribute not to break
 	if s.LoginIdAttribute == nil {
@@ -2089,6 +2135,7 @@ type SamlSettings struct {
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
 	IdpMetadataUrl              *string
+	ServiceProviderIdentifier   *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -2164,6 +2211,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.ServiceProviderIdentifier == nil {
+		if s.IdpDescriptorUrl != nil {
+			s.ServiceProviderIdentifier = NewString(*s.IdpDescriptorUrl)
+		} else {
+			s.ServiceProviderIdentifier = NewString("")
+		}
 	}
 
 	if s.IdpMetadataUrl == nil {
@@ -2376,6 +2431,36 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.Trace == nil {
 		s.Trace = NewString("")
+	}
+}
+
+type BleveSettings struct {
+	IndexDir                      *string
+	EnableIndexing                *bool
+	EnableSearching               *bool
+	EnableAutocomplete            *bool
+	BulkIndexingTimeWindowSeconds *int
+}
+
+func (bs *BleveSettings) SetDefaults() {
+	if bs.IndexDir == nil {
+		bs.IndexDir = NewString(BLEVE_SETTINGS_DEFAULT_INDEX_DIR)
+	}
+
+	if bs.EnableIndexing == nil {
+		bs.EnableIndexing = NewBool(false)
+	}
+
+	if bs.EnableSearching == nil {
+		bs.EnableSearching = NewBool(false)
+	}
+
+	if bs.EnableAutocomplete == nil {
+		bs.EnableAutocomplete = NewBool(false)
+	}
+
+	if bs.BulkIndexingTimeWindowSeconds == nil {
+		bs.BulkIndexingTimeWindowSeconds = NewInt(BLEVE_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS)
 	}
 }
 
@@ -2681,6 +2766,7 @@ type Config struct {
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
 	ElasticsearchSettings     ElasticsearchSettings
+	BleveSettings             BleveSettings
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
@@ -2762,6 +2848,7 @@ func (o *Config) SetDefaults() {
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
 	o.ElasticsearchSettings.SetDefaults()
+	o.BleveSettings.SetDefaults()
 	o.NativeAppSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
@@ -2825,6 +2912,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.ElasticsearchSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.BleveSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -3044,6 +3135,10 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
+		if len(*s.ServiceProviderIdentifier) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if *s.Verify {
 			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
@@ -3211,6 +3306,26 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 	return nil
 }
 
+func (bs *BleveSettings) isValid() *AppError {
+	if *bs.EnableIndexing {
+		if len(*bs.IndexDir) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.filename.app_error", nil, "", http.StatusBadRequest)
+		}
+	} else {
+		if *bs.EnableSearching {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+		}
+		if *bs.EnableAutocomplete {
+			return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	if *bs.BulkIndexingTimeWindowSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func (s *DataRetentionSettings) isValid() *AppError {
 	if *s.MessageRetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
@@ -3342,8 +3457,6 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
-	o.SqlSettings.DataSourceReplicas = []string{FAKE_SETTING}
-	o.SqlSettings.DataSourceSearchReplicas = []string{FAKE_SETTING}
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	*o.ElasticsearchSettings.Password = FAKE_SETTING

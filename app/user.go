@@ -7,6 +7,7 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -190,9 +191,13 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 	return nil
 }
 
-func (a *App) IsFirstUserAccount() bool {
-	if a.SessionCacheLength() == 0 {
-		count, err := a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+func (s *Server) IsFirstUserAccount() bool {
+	cachedSessions, err := s.sessionCache.Len()
+	if err != nil {
+		return false
+	}
+	if cachedSessions == 0 {
+		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
 			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
 			return false
@@ -203,6 +208,10 @@ func (a *App) IsFirstUserAccount() bool {
 	}
 
 	return false
+}
+
+func (a *App) IsFirstUserAccount() bool {
+	return a.Srv().IsFirstUserAccount()
 }
 
 // CreateUser creates a user and sets several fields of the returned User struct to
@@ -709,7 +718,7 @@ func CreateProfileImage(username string, userId string, initialFont string) ([]b
 	color := colors[int64(seed)%int64(len(colors))]
 	dstImg := image.NewRGBA(image.Rect(0, 0, IMAGE_PROFILE_PIXEL_DIMENSION, IMAGE_PROFILE_PIXEL_DIMENSION))
 	srcImg := image.White
-	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
+	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.Point{}, draw.Src)
 	size := float64(IMAGE_PROFILE_PIXEL_DIMENSION / 2)
 
 	c := freetype.NewContext()
@@ -854,12 +863,11 @@ func (a *App) SetProfileImageFromMultiPartFile(userId string, file multipart.Fil
 	return a.SetProfileImageFromFile(userId, file)
 }
 
-func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
-
+func (a *App) AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError) {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	orientation, _ := getImageOrientation(file)
@@ -872,9 +880,17 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
 	if err != nil {
-		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	return buf, nil
+}
 
+func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppError {
+
+	buf, err := a.AdjustImage(file)
+	if err != nil {
+		return err
+	}
 	path := "users/" + userId + "/profile.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
@@ -1387,8 +1403,8 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 	schan := make(chan store.StoreResult, 1)
 	go func() {
-		userId, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: userId, Err: err}
+		id, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
+		schan <- store.StoreResult{Data: id, Err: err}
 		close(schan)
 	}()
 
@@ -1403,7 +1419,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
 	}
 
-	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUser(userId)
 	a.ClearSessionCacheForUser(user.Id)
 
 	if sendWebSocketEvent {
@@ -1467,7 +1483,13 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Bot().PermanentDelete(user.Id); err != nil {
-		return err
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permenent_delete.bad_id", map[string]interface{}{"user_id": invErr.Value}, invErr.Error(), http.StatusBadRequest)
+		default: // last fallback in case it doesn't map to an existing app error.
+			return model.NewAppError("PermanentDeleteUser", "app.bot.permanent_delete.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	infos, err := a.Srv().Store.FileInfo().GetForUser(user.Id)
@@ -1671,6 +1693,9 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.NotInTeamId != "" {
 		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, options)
 	}
+	if props.InGroupId != "" {
+		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
+	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
@@ -1735,6 +1760,20 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchWithoutTeam(term, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return users, nil
+}
+
+func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
+	users, err := a.Srv().Store.User().SearchInGroup(groupID, term, options)
 	if err != nil {
 		return nil, err
 	}
@@ -2062,6 +2101,18 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[userId] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
+	event.Add("parent_id", parentId)
+	event.Add("user_id", userId)
+	a.Publish(event)
 
 	return nil
 }
