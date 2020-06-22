@@ -155,7 +155,7 @@ func (a *App) parseArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 		parsed = changedParsed
 		toBeParsed = changedToBeParsed
 	} else if arg.Type == model.AutocompleteArgTypeDynamicList {
-		found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.getDynamicListArgument(arg, parsed, toBeParsed)
+		found, changedParsed, changedToBeParsed, dynamicListsuggestions := a.parseDynamicListArgument(arg, parsed, toBeParsed)
 		if found {
 			suggestions = append(suggestions, dynamicListsuggestions...)
 			return true, changedParsed, changedToBeParsed, suggestions
@@ -217,17 +217,25 @@ func parseStaticListArgument(arg *model.AutocompleteArg, parsed, toBeParsed stri
 	return parseListItems(a.PossibleArguments, parsed, toBeParsed)
 }
 
-func (a *App) getDynamicListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
-	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
+// GetDynamicListArgument returns autocomplete list items for the command's dynamic argument.
+func (a *App) GetDynamicListArgument(fetchURL, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	params := url.Values{}
 	params.Add("user_input", parsed+toBeParsed)
 	params.Add("parsed", parsed)
-	resp, err := a.doPluginRequest("GET", dynamicArg.FetchURL, params, nil)
+	resp, err := a.doPluginRequest("GET", fetchURL, params, nil)
 	if err != nil {
-		a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", dynamicArg.FetchURL), mlog.Err(err))
+		a.Log().Error("Can't fetch dynamic list arguments for", mlog.String("url", fetchURL), mlog.Err(err))
+		return nil, err
+	}
+	return model.AutocompleteStaticListItemsFromJSON(resp.Body), nil
+}
+
+func (a *App) parseDynamicListArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestions []model.AutocompleteSuggestion) {
+	dynamicArg := arg.Data.(*model.AutocompleteDynamicListArg)
+	listItems, err := a.GetDynamicListArgument(dynamicArg.FetchURL, parsed, toBeParsed)
+	if err != nil {
 		return false, parsed, toBeParsed, []model.AutocompleteSuggestion{}
 	}
-	listItems := model.AutocompleteStaticListItemsFromJSON(resp.Body)
 	return parseListItems(listItems, parsed, toBeParsed)
 }
 

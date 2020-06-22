@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -24,6 +25,7 @@ func (api *API) InitCommand() {
 
 	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/commands/autocomplete_suggestions", api.ApiSessionRequired(listCommandAutocompleteSuggestions)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/commands/dynamic_autocomplete_suggestions", api.ApiSessionRequired(getDynamicAutocompleteSuggestions)).Methods("GET")
 	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
 }
 
@@ -365,6 +367,32 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	w.Write([]byte(model.CommandListToJson(commands)))
+}
+
+func getDynamicAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	fetchURL := r.URL.Query().Get("url")
+	parsed := r.URL.Query().Get("parsed")
+	toBeParsed := r.URL.Query().Get("toBeParsed")
+	fetchURL, err := url.PathUnescape(fetchURL)
+	if err != nil {
+		c.Err = model.NewAppError("getDynamicAutocompleteSuggestions", "api.command.get_dynamic_autocomplete_suggestions.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	args, err := c.App.GetDynamicListArgument(fetchURL, parsed, toBeParsed)
+	if err != nil {
+		c.Err = model.NewAppError("getDynamicAutocompleteSuggestions", "api.command.get_dynamic_autocomplete_suggestions.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Write(model.AutocompleteStaticListItemsToJSON(args))
 }
 
 func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *http.Request) {

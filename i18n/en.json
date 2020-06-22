@@ -508,6 +508,10 @@
     "translation": "No command trigger found."
   },
   {
+    "id": "api.command.get_dynamic_autocomplete_suggestions.app_error",
+    "translation": "Can't get dynamic autocomplete suggestions."
+  },
+  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },

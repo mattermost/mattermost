@@ -4203,6 +4203,17 @@ func (c *Client4) ListCommandAutocompleteSuggestions(userInput, teamId string) (
 	return AutocompleteSuggestionsFromJSON(r.Body), BuildResponse(r)
 }
 
+// GetDynamicAutocompleteSuggestions will retrieve a list of dynamic autocomplete list items for a user input.
+func (c *Client4) GetDynamicAutocompleteSuggestions(url, parsed, toBeParsed, teamId string) ([]AutocompleteListItem, *Response) {
+	query := fmt.Sprintf("/commands/dynamic_autocomplete_suggestions?url=%v&parsed=%v&toBeParsed=%v", url, parsed, toBeParsed)
+	r, err := c.DoApiGet(c.GetTeamRoute(teamId)+query, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return AutocompleteStaticListItemsFromJSON(r.Body), BuildResponse(r)
+}
+
 // GetCommandById will retrieve a command by id.
 func (c *Client4) GetCommandById(cmdId string) (*Command, *Response) {
 	url := fmt.Sprintf("%s/%s", c.GetCommandsRoute(), cmdId)

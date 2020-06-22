@@ -153,6 +153,8 @@ type AppIface interface {
 	GetClusterPluginStatuses() (model.PluginStatuses, *model.AppError)
 	// GetConfigFile proxies access to the given configuration file to the underlying config store.
 	GetConfigFile(name string) ([]byte, error)
+	// GetDynamicListArgument returns autocomplete list items for the command's dynamic argument.
+	GetDynamicListArgument(fetchURL, parsed, toBeParsed string) ([]model.AutocompleteListItem, error)
 	// GetEmojiStaticUrl returns a relative static URL for system default emojis,
 	// and the API route for custom ones. Errors if not found or if custom and deleted.
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
