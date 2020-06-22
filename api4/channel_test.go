@@ -3790,3 +3790,67 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
 	})
 }
+
+func TestMoveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+	team1 := th.BasicTeam
+	team2 := th.CreateTeam()
+
+	t.Run("Should move channel", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		ch, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, ch.TeamId)
+	})
+
+	t.Run("Should fail when trying to move a private channel", func(t *testing.T) {
+		channel := th.CreatePrivateChannel()
+		_, resp := Client.MoveChannel(channel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
+		user := th.CreateUser()
+		dmChannel := th.CreateDmChannel(user)
+		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
+		user := th.CreateUser()
+
+		gmChannel, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		require.Nil(t, err)
+		_, resp := Client.MoveChannel(gmChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail due to permissions", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		_, resp := Client.MoveChannel(publicChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
+	t.Run("Should fail to move channel due to a member not member of target team", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		user := th.BasicUser
+
+		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
+	})
+
+}

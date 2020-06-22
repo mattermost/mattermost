@@ -332,6 +332,10 @@
     "translation": "%v left the channel."
   },
   {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Unable to move direct or group message channels"
+  },
+  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },

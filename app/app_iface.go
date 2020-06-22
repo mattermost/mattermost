@@ -222,6 +222,9 @@ type AppIface interface {
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
+	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
 	// NewWebHub creates a new Hub.
@@ -292,9 +295,6 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a team if the team
 	// were group-constrained with the given groups.
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
-	// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
-	// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-	MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
 	// This to be used for places we check the users password when they are already logged in
@@ -788,6 +788,7 @@ type AppIface interface {
 	RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginId string, command *model.Command) error
 	ReloadConfig() error
+	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
 	RemovePlugin(id string) *model.AppError
