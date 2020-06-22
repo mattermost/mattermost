@@ -2393,6 +2393,32 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 	}
 
+	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+		mlog.Warn("Failed to get incoming webhooks", mlog.Err(err))
+	} else {
+		for _, webhook := range incomingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
+					mlog.Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+				}
+			}
+		}
+	}
+
+	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+		mlog.Warn("Failed to get outgoing webhooks", mlog.Err(err))
+	} else {
+		for _, webhook := range outgoingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
+					mlog.Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+				}
+			}
+		}
+	}
+
 	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
