@@ -1,5 +1,5 @@
 # Do not modify this file, if you want to configure your own environment copy
-# this file in config.mk and modify that file, or defining environment
+# this file in config.override.mk and modify that file, or defining environment
 # variables using the same names found here.
 
 # Enable services to be run in docker.
@@ -10,7 +10,7 @@
 # Must be space spearated names.
 #
 # Example: mysql postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= mysql
+ENABLED_DOCKER_SERVICES ?= mysql postgres minio inbucket
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false
