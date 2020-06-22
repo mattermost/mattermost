@@ -426,7 +426,7 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 }
 
 // testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
-// It atleast deadlocks 2 times out of 5.
+// It at least deadlocks 2 times out of 5.
 func testReactionDeadlock(t *testing.T, ss store.Store) {
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
