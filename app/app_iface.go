@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/ecdsa"
-	"html/template"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -160,8 +159,6 @@ type AppIface interface {
 	GetEnvironmentConfig() map[string]interface{}
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
-	// GetHubForUserId returns the hub for a given user id.
-	GetHubForUserId(userId string) *Hub
 	// GetKnownUsers returns the list of user ids of users with any direct
 	// relationship with a user. That means any user sharing any channel, including
 	// direct and group channels.
@@ -204,8 +201,6 @@ type AppIface interface {
 	HubRegister(webConn *WebConn)
 	// HubStart starts all the hubs.
 	HubStart()
-	// HubStop stops all the hubs.
-	HubStop()
 	// HubUnregister unregisters a connection from a hub.
 	HubUnregister(webConn *WebConn)
 	// InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
@@ -217,8 +212,6 @@ type AppIface interface {
 	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
 	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
 	IsUsernameTaken(name string) bool
-	// License returns the currently active license or nil if the application is unlicensed.
-	License() *model.License
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
 	// LogAuditRec logs an audit record using default CLILevel.
@@ -229,10 +222,15 @@ type AppIface interface {
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
+	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
 	// NewWebHub creates a new Hub.
 	NewWebHub() *Hub
+	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
+	NotifySessionsExpired() *model.AppError
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -253,8 +251,6 @@ type AppIface interface {
 	RenameChannel(channel *model.Channel, newChannelName string, newDisplayName string) (*model.Channel, *model.AppError)
 	// RenameTeam is used to rename the team Name and the DisplayName fields
 	RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError)
-	// RequestTrialLicense request a trial license from the mattermost offical license server
-	RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *model.AppError
 	// RevokeSessionsFromAllUsers will go through all the sessions active
 	// in the server and revoke them
 	RevokeSessionsFromAllUsers() *model.AppError
@@ -299,9 +295,6 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a team if the team
 	// were group-constrained with the given groups.
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
-	// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
-	// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-	MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
 	// This to be used for places we check the users password when they are already logged in
@@ -341,7 +334,6 @@ type AppIface interface {
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
-	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -394,7 +386,6 @@ type AppIface interface {
 	ClearTeamMembersCache(teamID string)
 	ClientConfig() map[string]string
 	ClientConfigHash() string
-	ClientLicense() map[string]string
 	Cluster() einterfaces.ClusterInterface
 	CompareAndDeletePluginKey(pluginId string, key string, oldValue []byte) (bool, *model.AppError)
 	CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError)
@@ -550,6 +541,7 @@ type AppIface interface {
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
+	GetGroupMemberCount(groupID string) (int64, *model.AppError)
 	GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
@@ -560,6 +552,7 @@ type AppIface interface {
 	GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
 	GetGroupsByUserId(userId string) ([]*model.Group, *model.AppError)
+	GetHubForUserId(userId string) *Hub
 	GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingWebhooksForTeamPageByUser(teamId string, userId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError)
@@ -631,7 +624,6 @@ type AppIface interface {
 	GetSamlMetadata() (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataUrl string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
-	GetSanitizedClientLicense() map[string]string
 	GetScheme(id string) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 	GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError)
@@ -696,7 +688,6 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
-	HTMLTemplates() *template.Template
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
@@ -710,15 +701,15 @@ type AppIface interface {
 	HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool
 	HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool
 	HasPermissionToUser(askingUserId string, userId string) bool
+	HubStop()
 	ImageProxy() *imageproxy.ImageProxy
 	ImageProxyAdder() func(string) string
 	ImageProxyRemover() (f func(string) string)
 	ImportPermissions(jsonl io.Reader) error
 	InitPlugins(pluginDir, webappPluginDir string)
 	InitPostMetadata()
+	InitServer()
 	InstallPluginFromData(data model.PluginEventData)
-	InvalidateAllCaches() *model.AppError
-	InvalidateAllCachesSkipSend()
 	InvalidateAllEmailInvites() *model.AppError
 	InvalidateCacheForUser(userId string)
 	InvalidateWebConnSessionCacheForUser(userId string)
@@ -744,7 +735,6 @@ type AppIface interface {
 	ListDirectory(path string) ([]string, *model.AppError)
 	ListPluginKeys(pluginId string, page, perPage int) ([]string, *model.AppError)
 	ListTeamCommands(teamId string) ([]*model.Command, *model.AppError)
-	LoadLicense()
 	Log() *mlog.Logger
 	LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError)
 	MakePermissionError(permission *model.Permission) *model.AppError
@@ -787,6 +777,7 @@ type AppIface interface {
 	ProcessSlackText(text string) string
 	Publish(message *model.WebSocketEvent)
 	PublishSkipClusterSend(message *model.WebSocketEvent)
+	PublishUserTyping(userId, channelId, parentId string) *model.AppError
 	PurgeBleveIndexes() *model.AppError
 	PurgeElasticsearchIndexes() *model.AppError
 	ReadFile(path string) ([]byte, *model.AppError)
@@ -797,10 +788,9 @@ type AppIface interface {
 	RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginId string, command *model.Command) error
 	ReloadConfig() error
+	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
-	RemoveLicense() *model.AppError
-	RemoveLicenseListener(id string)
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
 	RemoveSamlIdpCertificate() *model.AppError
@@ -831,7 +821,6 @@ type AppIface interface {
 	SaveAndBroadcastStatus(status *model.Status)
 	SaveBrandImage(imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError)
-	SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError)
 	SaveUserTermsOfService(userId, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
@@ -849,6 +838,7 @@ type AppIface interface {
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
 	SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInTeam(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
@@ -856,9 +846,7 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
-	SendDailyDiagnostics()
 	SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError
-	SendDiagnostic(event string, properties map[string]interface{})
 	SendEmailVerification(user *model.User, newEmail string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string)
@@ -880,12 +868,10 @@ type AppIface interface {
 	SetAcceptLanguage(s string)
 	SetActiveChannel(userId string, channelId string) *model.AppError
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
-	SetClientLicense(m map[string]string)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetDiagnosticId(id string)
 	SetIpAddress(s string)
-	SetLicense(license *model.License) bool
 	SetLog(l *mlog.Logger)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
@@ -911,8 +897,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SetupInviteEmailRateLimiting() error
-	ShutDownPlugins()
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
 	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
 	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
@@ -921,8 +905,6 @@ type AppIface interface {
 	SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool)
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
-	StartPushNotificationsHubWorkers()
-	StopPushNotificationsHubWorkers()
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)
@@ -987,7 +969,6 @@ type AppIface interface {
 	UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	UserAgent() string
 	UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError)
-	ValidateAndSetLicenseBytes(b []byte)
 	VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError
 	VerifyUserEmail(userId, email string) *model.AppError
 	ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError)
