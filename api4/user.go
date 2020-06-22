@@ -19,8 +19,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-
-	"github.com/pkg/errors"
 )
 
 func (api *API) InitUser() {
@@ -112,13 +110,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		var nErr error
 		token, nErr = c.App.Srv().Store.Token().GetByToken(tokenId)
 		if nErr != nil {
-			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(nErr, &invErr):
-				c.Err = model.NewAppError("createUser", "app.recover.get_by_code.app_error", nil, invErr.Error(), http.StatusBadRequest)
-			default:
-				c.Err = model.NewAppError("createUser", "app.recover.get_by_code.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			}
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
