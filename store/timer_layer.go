@@ -6536,7 +6536,7 @@ func (s *TimerLayerTokenStore) Cleanup() {
 	}
 }
 
-func (s *TimerLayerTokenStore) Delete(token string) *model.AppError {
+func (s *TimerLayerTokenStore) Delete(token string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.Delete(token)
@@ -6552,7 +6552,7 @@ func (s *TimerLayerTokenStore) Delete(token string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
+func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TokenStore.GetByToken(token)
@@ -6568,7 +6568,7 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.RemoveAllTokensByType(tokenType)
@@ -6584,7 +6584,7 @@ func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.Ap
 	return resultVar0
 }
 
-func (s *TimerLayerTokenStore) Save(recovery *model.Token) *model.AppError {
+func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.Save(recovery)

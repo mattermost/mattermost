@@ -6919,11 +6919,11 @@
     "translation": "Unable to save reaction."
   },
   {
-    "id": "store.sql_recover.delete.app_error",
+    "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
   {
-    "id": "store.sql_recover.get_by_code.app_error",
+    "id": "app.recover.get_by_code.app_error",
     "translation": "Unable to get a token with this code."
   },
   {
@@ -6931,7 +6931,7 @@
     "translation": "Unable to remove all the tokens of a type."
   },
   {
-    "id": "store.sql_recover.save.app_error",
+    "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
   },
   {

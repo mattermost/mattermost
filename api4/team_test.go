@@ -1826,8 +1826,8 @@ func TestAddTeamMember(t *testing.T) {
 
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-	require.NotNil(t, err, "The token must be deleted after be used")
+	_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+	require.NotNil(t, nErr, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
