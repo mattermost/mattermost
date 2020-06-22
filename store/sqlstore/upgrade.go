@@ -836,26 +836,26 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 }
 
 func precheckMigrationToVersion526(sqlStore SqlStore) error {
-	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`SUM(CASE
+	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(SchemeId) > 26 THEN 1
 				ELSE 0
-			END) as schemeidwrong,
-			SUM(CASE
+			END),0) as schemeidwrong,
+			COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(Type) > 255 THEN 1
 				ELSE 0
-			END) as typewrong`).
+			END),0) as typewrong`).
 		From("Teams").ToSql()
 	if err != nil {
 		return err
 	}
-	webhooksQuery, _, err := sqlStore.getQueryBuilder().Select(`SUM(CASE
+	webhooksQuery, _, err := sqlStore.getQueryBuilder().Select(`COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(Username) > 255 THEN 1
 				ELSE 0
-			END) as usernamewrong,
-			SUM(CASE
+			END),0) as usernamewrong,
+			COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(IconURL) > 1024 THEN 1
 				ELSE 0
-			END) as iconurlwrong`).
+			END),0) as iconurlwrong`).
 		From("IncomingWebhooks").ToSql()
 	if err != nil {
 		return err
