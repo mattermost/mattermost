@@ -2344,15 +2344,13 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
-// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
-// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
-	if removeDeactivatedMembers {
-		if err := a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
-			return err
-		}
-	}
+func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError {
+	return a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id)
+}
 
+// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
+// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {
@@ -2394,7 +2392,40 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 			return model.NewAppError("MoveChannel", "app.channel.update_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	a.postChannelMoveMessage(user, channel, previousTeam)
+
+	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+		mlog.Warn("Failed to get incoming webhooks", mlog.Err(err))
+	} else {
+		for _, webhook := range incomingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if _, err := a.Srv().Store.Webhook().UpdateIncoming(webhook); err != nil {
+					mlog.Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+				}
+			}
+		}
+	}
+
+	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(previousTeam.Id, 0, 10000000); err != nil {
+		mlog.Warn("Failed to get outgoing webhooks", mlog.Err(err))
+	} else {
+		for _, webhook := range outgoingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if _, err := a.Srv().Store.Webhook().UpdateOutgoing(webhook); err != nil {
+					mlog.Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+				}
+			}
+		}
+	}
+
+	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
+		mlog.Warn("error while removing non-team member users", mlog.Err(err))
+	}
+
+	if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
+		mlog.Warn("error while posting move channel message", mlog.Err(err))
+	}
 
 	return nil
 }
@@ -2413,6 +2444,40 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 
 	if _, err := a.CreatePost(post, channel, false, true); err != nil {
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) removeUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
+	if err != nil {
+		return err
+	}
+
+	channelMemberIds := []string{}
+	channelMemberMap := make(map[string]struct{})
+	for _, channelMember := range *channelMembers {
+		channelMemberMap[channelMember.UserId] = struct{}{}
+		channelMemberIds = append(channelMemberIds, channelMember.UserId)
+	}
+
+	if len(channelMemberIds) > 0 {
+		teamMembers, err := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
+		if err != nil {
+			return err
+		}
+
+		if len(teamMembers) != len(*channelMembers) {
+			for _, teamMember := range teamMembers {
+				delete(channelMemberMap, teamMember.UserId)
+			}
+			for userId := range channelMemberMap {
+				if err := a.removeUserFromChannel(userId, remover.Id, channel); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil
