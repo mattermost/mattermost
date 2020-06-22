@@ -101,7 +101,6 @@ func (s *BleveEngineTestSuite) TestBleveSearchStoreTests() {
 }
 
 func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
-
 	s.Run("Should remove all the posts that belongs to a channel", func() {
 		s.BleveEngine.PurgeIndexes()
 		teamID := model.NewId()
@@ -150,7 +149,6 @@ func (s *BleveEngineTestSuite) TestDeleteChannelPosts() {
 }
 
 func (s *BleveEngineTestSuite) TestDeleteUserPosts() {
-
 	s.Run("Should remove all the posts that belongs to a user", func() {
 		s.BleveEngine.PurgeIndexes()
 		teamID := model.NewId()
