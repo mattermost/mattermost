@@ -7,13 +7,13 @@ package store
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
 )
 
 type StoreResult struct {
@@ -785,22 +785,20 @@ func WithDeadlockRetry(f func() error) error {
 	var err error
 	for i := 0; i < 3; i++ {
 		err = f()
-		if err != nil {
-			// XXX: Possibly add check for postgres deadlocks later.
-			// But deadlocks are very rarely seen in postgres.
-			var mysqlErr *mysql.MySQLError
-			if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
-				mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
-				// This is a deadlock, retry.
-				continue
-			}
-			// Some other error, return as-is.
-			return err
-		} else {
+		if err == nil {
 			// No error, return nil.
 			return nil
 		}
+		// XXX: Possibly add check for postgres deadlocks later.
+		// But deadlocks are very rarely seen in postgres.
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
+			mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
+			// This is a deadlock, retry.
+			continue
+		}
+		// Some other error, return as-is.
+		return err
 	}
-	mlog.Error("Deadlock happened 3 times. Giving up")
-	return err
+	return errors.Wrap(err, "giving up after 3 consecutive deadlocks")
 }
