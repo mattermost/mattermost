@@ -1421,10 +1421,10 @@ func TestConvertBotToUser(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	defer th.App.PermanentDeleteBot(bot.UserId)
 
-	user, resp := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+	_, resp = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
 	CheckBadRequestStatus(t, resp)
 
-	user, resp = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	user, resp := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
 	CheckForbiddenStatus(t, resp)
 	require.Nil(t, user)
 

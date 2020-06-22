@@ -2364,5 +2364,5 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddMeta("convertedTo", bot)
 
-	w.Write([]byte(bot.ToJson()))
+	w.Write(bot.ToJson())
 }
