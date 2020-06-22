@@ -994,6 +994,17 @@ func (c *Client4) GetUsersWithoutTeam(page int, perPage int, etag string) ([]*Us
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersInGroup returns a page of users in a group. Page counting starts at 0.
+func (c *Client4) GetUsersInGroup(groupID string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?in_group=%v&page=%v&per_page=%v", groupID, page, perPage)
+	r, err := c.DoApiGet(c.GetUsersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	r, err := c.DoApiPost(c.GetUsersRoute()+"/ids", ArrayToJson(userIds))
@@ -2190,7 +2201,16 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 
 // GetAllChannels get all the channels. Must be a system administrator.
 func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	return c.getAllChannels(page, perPage, etag, false)
+}
+
+// GetAllChannelsIncludeDeleted get all the channels. Must be a system administrator.
+func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	return c.getAllChannels(page, perPage, etag, true)
+}
+
+func (c *Client4) getAllChannels(page int, perPage int, etag string, includeDeleted bool) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v", page, perPage, includeDeleted)
 	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2434,6 +2454,19 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// MoveChannel moves the channel to the destination team.
+func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
+	requestBody := map[string]string{
+		"team_id": teamId,
+	}
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelFromJson(r.Body), BuildResponse(r)
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
@@ -5126,4 +5159,14 @@ func (c *Client4) RequestTrialLicense(users int) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetGroupStats retrieves stats for a Mattermost Group
+func (c *Client4) GetGroupStats(groupID string) (*GroupStats, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID)+"/stats", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupStatsFromJson(r.Body), BuildResponse(r)
 }

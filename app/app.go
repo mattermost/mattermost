@@ -72,7 +72,6 @@ func (a *App) InitServer() {
 		a.notification = a.srv.Notification
 		a.saml = a.srv.Saml
 
-		a.StartPushNotificationsHubWorkers()
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
 				if appErr := a.DeactivateGuests(); appErr != nil {
@@ -139,6 +138,10 @@ func (a *App) initJobs() {
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
+	if jobsExpiryNotifyInterface != nil {
+		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
