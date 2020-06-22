@@ -45,7 +45,7 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	if _, err := a.SaveLicense(fileBytes); err != nil {
+	if _, err := a.Srv().SaveLicense(fileBytes); err != nil {
 		return err
 	}
 
