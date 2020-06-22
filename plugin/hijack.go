@@ -27,7 +27,7 @@ func (w *httpResponseWriterRPCServer) HjConnRWRead(b []byte, reply *[]byte) erro
 		return ErrNotHijacked
 	}
 	data := make([]byte, len(b))
-	n, err := w.hjr.brw.Read(data)
+	n, err := w.hjr.bufrw.Read(data)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (w *httpResponseWriterRPCServer) HjConnRWWrite(b []byte, reply *int) error 
 	if w.hjr == nil {
 		return ErrNotHijacked
 	}
-	n, err := w.hjr.brw.Write(b)
+	n, err := w.hjr.bufrw.Write(b)
 	if err != nil {
 		return err
 	}
@@ -110,14 +110,14 @@ func (w *httpResponseWriterRPCServer) HijackResponse(args struct{}, reply *struc
 	if !ok {
 		return ErrCannotHijack
 	}
-	conn, brw, err := hj.Hijack()
+	conn, bufrw, err := hj.Hijack()
 	if err != nil {
 		return err
 	}
 
 	w.hjr = &hijackedResponse{
 		conn:    conn,
-		brw:     brw,
+		bufrw:   bufrw,
 		readBuf: make([]byte, hijackedConnReadBufSize),
 	}
 	return nil

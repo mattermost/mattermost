@@ -17,7 +17,7 @@ import (
 
 type hijackedResponse struct {
 	conn    net.Conn
-	brw     *bufio.ReadWriter
+	bufrw   *bufio.ReadWriter
 	readBuf []byte
 }
 
