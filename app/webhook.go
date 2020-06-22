@@ -711,7 +711,7 @@ func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, invErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, invErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
