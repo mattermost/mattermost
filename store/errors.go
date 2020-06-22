@@ -89,7 +89,8 @@ func (e *ErrNotFound) Error() string {
 	return "resource: " + e.resource + " id: " + e.Id
 }
 
-// ErrOutOfBounds indicates that the requested total numbers of rows was greater than the allowed limit
+// ErrOutOfBounds indicates that the requested total numbers of rows
+// was greater than the allowed limit.
 type ErrOutOfBounds struct {
 	value int
 }
