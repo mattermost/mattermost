@@ -99,7 +99,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search filtering by role",
 		Fn:   testShouldBeAbleToSearchFilteringByRole,
-		Tags: []string{ENGINE_ALL},
+		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should ignore leading @ when searching users",
