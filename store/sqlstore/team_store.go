@@ -572,7 +572,7 @@ func (s SqlTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
 	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 	}
 
@@ -613,7 +613,7 @@ func (s SqlTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
 func (s SqlTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
 	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = 0", map[string]interface{}{})
 
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		c, err = s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0 AND AllowOpenInvite = false", map[string]interface{}{})
 	}
 
@@ -767,7 +767,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	}
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY", "\"primary\""}) {
 			return nil, model.NewAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, err.Error(), http.StatusBadRequest)
 		}
 		return nil, model.NewAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)

@@ -98,7 +98,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			// If the error is from unique constraints violation, it's the result of a
 			// race condition, return false and no error. Otherwise we have a real error and
 			// need to return it.
-			if IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey", "pkey"}) {
+			if IsUniqueConstraintError(err, []string{"PRIMARY", "\"primary\"", "PluginId", "Key", "PKey", "pkey"}) {
 				return false, nil
 			} else {
 				return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)

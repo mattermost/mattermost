@@ -66,6 +66,7 @@ type Store interface {
 	CheckIntegrity() <-chan IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
+	DriverName() string
 }
 
 type TeamStore interface {

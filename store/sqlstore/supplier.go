@@ -818,7 +818,7 @@ func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName s
 		}
 
 		defaultValue = *mySqlColDefault
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		// Postgres doesn't have the same limitation, but preserve the interface.
 		if postgresColDefault == nil {
 			return true

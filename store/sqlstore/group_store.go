@@ -415,7 +415,7 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 
 	if retrievedMember == nil {
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err, []string{"GroupId", "UserId", "groupmembers_pkey", "PRIMARY"}) {
+			if IsUniqueConstraintError(err, []string{"GroupId", "UserId", "groupmembers_pkey", "PRIMARY", "\"primary\""}) {
 				return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.uniqueness_error", nil, "group_id="+member.GroupId+", user_id="+member.UserId+", "+err.Error(), http.StatusBadRequest)
 			}
 			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.insert_error", nil, "group_id="+member.GroupId+", user_id="+member.UserId+", "+err.Error(), http.StatusInternalServerError)

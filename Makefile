@@ -415,7 +415,7 @@ run-client-fullmap: ## Legacy alias to run-client
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run: check-prereqs run-server run-client ## Runs the server and webapp.
+run: check-prereqs run-client run-server ## Runs the server and webapp.
 
 run-fullmap: run-server run-client ## Legacy alias to run
 

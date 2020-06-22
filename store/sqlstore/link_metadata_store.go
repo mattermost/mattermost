@@ -46,7 +46,7 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMet
 	metadata.PreSave()
 
 	err := s.GetMaster().Insert(metadata)
-	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
+	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "\"primary\"", "linkmetadata_pkey"}) {
 		return nil, errors.Wrap(err, "could not save link metadata")
 	}
 

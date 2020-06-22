@@ -636,7 +636,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 					  LIMIT 1000) temp_tab))
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt DESC`
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		query = `
 			(SELECT
                        *` + replyCountQuery1 + `
@@ -881,7 +881,7 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 }
 
 func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, skipFetchThreads bool) ([]*model.Post, *model.AppError) {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		return s.getParentsPostsPostgreSQL(channelId, offset, limit, skipFetchThreads)
 	}
 
@@ -1214,7 +1214,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		// Parse text for wildcards
 		if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 			terms = wildcard.ReplaceAllLiteralString(terms, ":* ")

@@ -4597,6 +4597,9 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
+	if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
 
@@ -4766,6 +4769,9 @@ func (s ByChannelDisplayName) Less(i, j int) bool {
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
+	if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
 
@@ -4957,6 +4963,9 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
+	if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
 	userId := model.NewId()
 	teamId := model.NewId()
 	otherTeamId := model.NewId()
@@ -5063,6 +5072,9 @@ func testChannelStoreSearchForUserInTeam(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
+	if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
 	cleanupChannels(t, ss)
 
 	t1 := model.Team{}

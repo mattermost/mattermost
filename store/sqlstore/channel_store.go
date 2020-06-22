@@ -1412,7 +1412,6 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_roles_tosql")
 	}
-	mlog.Error(channelRolesSql, mlog.Any("args", channelRolesArgs))
 
 	var defaultChannelsRoles []struct {
 		Id    string
@@ -1466,7 +1465,6 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	if err != nil {
 		return nil, errors.Wrap(err, "team_roles_tosql")
 	}
-	mlog.Error(teamRolesSql, mlog.Any("args", teamRolesArgs))
 
 	var defaultTeamsRoles []struct {
 		Id    string
@@ -1503,7 +1501,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	}
 
 	if _, err := transaction.Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
+		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY", "\"primary\""}) {
 			return nil, store.NewErrConflict("ChannelMembers", err, "")
 		}
 		return nil, errors.Wrap(err, "channel_members_save")
@@ -2638,7 +2636,7 @@ func (s SqlChannelStore) buildLIKEClause(term string, searchColumns string) (lik
 	// Prepare the LIKE portion of the query.
 	var searchFields []string
 	for _, field := range strings.Split(searchColumns, ", ") {
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
 		} else {
 			searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
@@ -2685,15 +2683,16 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextClause = fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
 	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		fulltextClause = "("
-		for _, term := range strings.Fields(fulltextTerm) {
-			fulltextClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchColumns, term)
-			fulltextClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchColumns, term)
-			fulltextClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchColumns, term)
-			fulltextClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchColumns, term)
-		}
-		fulltextClause = fulltextClause[:len(fulltextClause)-4]
-		fulltextClause += ")"
+		panic("Cockroachdb: not supported full text search")
+		// fulltextClause = "("
+		// for _, term := range strings.Fields(fulltextTerm) {
+		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%% %s %%' OR ", searchColumns, term)
+		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%% %s' OR ", searchColumns, term)
+		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%s %%' OR ", searchColumns, term)
+		// 	fulltextClause += fmt.Sprintf("%s ILIKE '%s' OR ", searchColumns, term)
+		// }
+		// fulltextClause = fulltextClause[:len(fulltextClause)-4]
+		// fulltextClause += ")"
 	}
 
 	return
@@ -2809,7 +2808,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
 }
 
 func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
-	isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH
 	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
 
 	var groupChannels model.ChannelList
