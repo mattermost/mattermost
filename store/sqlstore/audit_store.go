@@ -47,7 +47,7 @@ func (s SqlAuditStore) Save(audit *model.Audit) error {
 
 func (s SqlAuditStore) Get(userId string, offset int, limit int) (model.Audits, error) {
 	if limit > 1000 {
-		return nil, store.NewErrOutOfBound(limit)
+		return nil, store.NewErrOutOfBounds(limit)
 	}
 
 	query := s.getQueryBuilder().
