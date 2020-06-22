@@ -836,53 +836,53 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 }
 
 func precheckMigrationToVersion526(sqlStore SqlStore) error {
-	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`CASE
-				WHEN CHAR_LENGTH(SchemeId) > 26 THEN FALSE
-				ELSE TRUE
-			END as schemeidok,
-			CASE
-				WHEN CHAR_LENGTH(Type) > 255 THEN FALSE
-				ELSE TRUE
-			END as typeok`).
+	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`SUM(CASE
+				WHEN CHAR_LENGTH(SchemeId) > 26 THEN 1
+				ELSE 0
+			END) as schemeidwrong,
+			SUM(CASE
+				WHEN CHAR_LENGTH(Type) > 255 THEN 1
+				ELSE 0
+			END) as typewrong`).
 		From("Teams").ToSql()
 	if err != nil {
 		return err
 	}
-	webhooksQuery, _, err := sqlStore.getQueryBuilder().Select(`CASE
-				WHEN CHAR_LENGTH(Username) > 255 THEN FALSE
-				ELSE TRUE
-			END as usernameok,
-			CASE
-				WHEN CHAR_LENGTH(IconURL) > 1024 THEN FALSE
-				ELSE TRUE
-			END as iconurlok`).
+	webhooksQuery, _, err := sqlStore.getQueryBuilder().Select(`SUM(CASE
+				WHEN CHAR_LENGTH(Username) > 255 THEN 1
+				ELSE 0
+			END) as usernamewrong,
+			SUM(CASE
+				WHEN CHAR_LENGTH(IconURL) > 1024 THEN 1
+				ELSE 0
+			END) as iconurlwrong`).
 		From("IncomingWebhooks").ToSql()
 	if err != nil {
 		return err
 	}
 
-	var schemeIdOk bool
-	var typeOk bool
+	var schemeIdWrong int
+	var typeWrong int
 	row := sqlStore.GetMaster().Db.QueryRow(teamsQuery)
-	if err = row.Scan(&schemeIdOk, &typeOk); err != nil && err != sql.ErrNoRows {
+	if err = row.Scan(&schemeIdWrong, &typeWrong); err != nil && err != sql.ErrNoRows {
 		return err
-	} else if err == nil && !schemeIdOk {
+	} else if err == nil && schemeIdWrong > 0 {
 		return errors.New("Migration failure: " +
 			"Teams column SchemeId has data larger that 26 characters")
-	} else if err == nil && !typeOk {
+	} else if err == nil && typeWrong > 0 {
 		return errors.New("Migration failure: " +
 			"Teams column Type has data larger that 255 characters")
 	}
 
-	var usernameOk bool
-	var iconURLOk bool
+	var usernameWrong int
+	var iconURLWrong int
 	row = sqlStore.GetMaster().Db.QueryRow(webhooksQuery)
-	if err = row.Scan(&usernameOk, &iconURLOk); err != nil && err != sql.ErrNoRows {
+	if err = row.Scan(&usernameWrong, &iconURLWrong); err != nil && err != sql.ErrNoRows {
 		mlog.Error("Error fetching IncomingWebhooks columns data", mlog.Err(err))
-	} else if err == nil && !usernameOk {
+	} else if err == nil && usernameWrong > 0 {
 		return errors.New("Migration failure: " +
 			"IncomingWebhooks column Username has data larger that 255 characters")
-	} else if err == nil && !iconURLOk {
+	} else if err == nil && iconURLWrong > 0 {
 		return errors.New("Migration failure: " +
 			"IncomingWebhooks column IconURL has data larger that 1024 characters")
 	}
