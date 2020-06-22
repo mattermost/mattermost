@@ -151,7 +151,7 @@ func (w *hijackedConnRW) Write(b []byte) (int, error) {
 func (w *hijackedConn) Read(b []byte) (int, error) {
 	var data []byte
 	if err := w.client.Call("Plugin.HjConnRead", len(b), &data); err != nil {
-		return 0, nil
+		return 0, err
 	}
 	copy(b, data)
 	return len(data), nil
