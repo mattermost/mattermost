@@ -216,8 +216,8 @@ func (b *BleveEngine) DeletePosts(searchRequest *bleve.SearchRequest, batchSize 
 	resultsCount := int64(0)
 
 	for {
-		// From is not a offset but from where to start picking results, so
-		// keeping it always to 0 makes the work
+		// As we are deleting the posts after fetching them, we need to keep
+		// From fixed always to 0
 		searchRequest.From = 0
 		searchRequest.Size = batchSize
 		results, err := b.PostIndex.Search(searchRequest)
