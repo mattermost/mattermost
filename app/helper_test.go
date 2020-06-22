@@ -80,7 +80,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               New(ServerConnector(s)),
 		Server:            s,
 		LogBuffer:         buffer,
 		IncludeCacheLayer: includeCacheLayer,
@@ -113,14 +113,16 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	th.App.InitServer()
 
 	return th
 }
@@ -584,7 +586,7 @@ func (me *TestHelper) ShutdownApp() {
 func (me *TestHelper) TearDown() {
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 	me.ShutdownApp()
 	if me.tempWorkspace != "" {

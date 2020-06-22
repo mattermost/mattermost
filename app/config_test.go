@@ -142,7 +142,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 				})
 			}
 
-			err := th.App.ensureInstallationDate()
+			err := th.App.Srv().ensureInstallationDate()
 
 			if tc.ExpectedInstallationDate == nil {
 				assert.Error(t, err)

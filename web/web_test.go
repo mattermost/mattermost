@@ -85,17 +85,16 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
-	a := s.FakeApp()
-	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
@@ -103,15 +102,16 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 		*cfg.PasswordSettings.Number = false
 	})
 
+	a := app.New(app.ServerConnector(s))
+	a.InitServer()
+
 	web := New(s, s.AppOptions, s.Router)
-	URL = fmt.Sprintf("http://localhost:%v", a.Srv().ListenAddr.Port)
+	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAppMigrations()
+	s.Store.MarkSystemRanUnitTests()
 
-	a.Srv().Store.MarkSystemRanUnitTests()
-
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
@@ -155,7 +155,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) TearDown() {
 	if th.IncludeCacheLayer {
 		// Clean all the caches
-		th.App.InvalidateAllCaches()
+		th.App.Srv().InvalidateAllCaches()
 	}
 	th.Server.Shutdown()
 }

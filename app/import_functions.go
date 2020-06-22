@@ -1082,7 +1082,7 @@ func (a *App) importAttachment(data *AttachmentImportData, post *model.Post, tea
 	}
 	fileInfo, appErr := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 	if appErr != nil {
-		mlog.Error("Failed to upload file:", mlog.Err(err))
+		mlog.Error("Failed to upload file:", mlog.Err(appErr))
 		return nil, appErr
 	}
 
@@ -1150,7 +1150,7 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*PostImpo
 	for _, postData := range data {
 		team := teams[*postData.Team]
 		if channel, ok := channels[*postData.Channel]; !ok || channel == nil {
-			var err *model.AppError
+			var err error
 			channel, err = a.Srv().Store.Channel().GetByName(team.Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *postData.Channel}, err.Error(), http.StatusBadRequest)
