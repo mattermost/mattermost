@@ -3939,10 +3939,6 @@
     "translation": "Unable to delete token."
   },
   {
-    "id": "app.recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code."
-  },
-  {
     "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
   },
