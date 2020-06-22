@@ -112,6 +112,9 @@ func (o *OutgoingWebhookResponse) ToJson() string {
 func OutgoingWebhookResponseFromJson(data io.Reader) (*OutgoingWebhookResponse, error) {
 	var o *OutgoingWebhookResponse
 	err := json.NewDecoder(data).Decode(&o)
+	if err == io.EOF {
+		return nil, nil
+	}
 	return o, err
 }
 
