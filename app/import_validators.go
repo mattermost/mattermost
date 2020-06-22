@@ -457,6 +457,10 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 		}
 	}
 
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJson(*data.Props)) > model.POST_PROPS_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 

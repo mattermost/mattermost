@@ -161,7 +161,7 @@ func TestSaveReaction(t *testing.T) {
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
 		reaction := &model.Reaction{
@@ -177,7 +177,7 @@ func TestSaveReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
@@ -486,7 +486,7 @@ func TestDeleteReaction(t *testing.T) {
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 
 		reaction := &model.Reaction{
 			UserId:    userId,
@@ -510,7 +510,7 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
 
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
