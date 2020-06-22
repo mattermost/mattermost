@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
@@ -52,7 +50,7 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 		Where(sq.Eq{"Id": license.Id})
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to build query to get Licenses")
+		return nil, errors.Wrap(err, "license_tosql")
 	}
 	var storedLicense model.LicenseRecord
 	if err := ls.GetReplica().SelectOne(&storedLicense, queryString, args...); err != nil {
@@ -74,7 +72,7 @@ func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 		return nil, errors.Wrapf(err, "failed to get License with licenseId=%s", id)
 	}
 	if obj == nil {
-		return nil, store.NewErrNotFound("License", fmt.Sprintf("licenceId=%s", id))
+		return nil, store.NewErrNotFound("License", id)
 	}
 	return obj.(*model.LicenseRecord), nil
 }

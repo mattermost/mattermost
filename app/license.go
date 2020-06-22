@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -77,7 +78,13 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	_, nErr := s.Store.License().Save(record)
 	if nErr != nil {
 		s.RemoveLicense()
-		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	sysVar := &model.System{}
