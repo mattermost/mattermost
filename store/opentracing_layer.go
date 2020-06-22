@@ -17,6 +17,7 @@ import (
 
 type OpenTracingLayer struct {
 	Store
+	AtomicStore               AtomicStore
 	AuditStore                AuditStore
 	BotStore                  BotStore
 	ChannelStore              ChannelStore
@@ -48,6 +49,10 @@ type OpenTracingLayer struct {
 	UserAccessTokenStore      UserAccessTokenStore
 	UserTermsOfServiceStore   UserTermsOfServiceStore
 	WebhookStore              WebhookStore
+}
+
+func (s *OpenTracingLayer) Atomic() AtomicStore {
+	return s.AtomicStore
 }
 
 func (s *OpenTracingLayer) Audit() AuditStore {
@@ -172,6 +177,11 @@ func (s *OpenTracingLayer) UserTermsOfService() UserTermsOfServiceStore {
 
 func (s *OpenTracingLayer) Webhook() WebhookStore {
 	return s.WebhookStore
+}
+
+type OpenTracingLayerAtomicStore struct {
+	AtomicStore
+	Root *OpenTracingLayer
 }
 
 type OpenTracingLayerAuditStore struct {
@@ -327,6 +337,114 @@ type OpenTracingLayerUserTermsOfServiceStore struct {
 type OpenTracingLayerWebhookStore struct {
 	WebhookStore
 	Root *OpenTracingLayer
+}
+
+func (s *OpenTracingLayerAtomicStore) CompareAndDelete(key string, oldValue []byte) (bool, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.CompareAndDelete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.AtomicStore.CompareAndDelete(key, oldValue)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerAtomicStore) CompareAndSet(keyVal *model.AtomicKeyValue, oldValue []byte) (bool, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.CompareAndSet")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.AtomicStore.CompareAndSet(keyVal, oldValue)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerAtomicStore) Delete(key string) *model.AppError {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.Delete")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.AtomicStore.Delete(key)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (s *OpenTracingLayerAtomicStore) DeleteAllExpired() *model.AppError {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.DeleteAllExpired")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.AtomicStore.DeleteAllExpired()
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (s *OpenTracingLayerAtomicStore) Get(key string) (*model.AtomicKeyValue, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.Get")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.AtomicStore.Get(key)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (s *OpenTracingLayerAtomicStore) SaveOrUpdate(keyVal *model.AtomicKeyValue) (*model.AtomicKeyValue, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AtomicStore.SaveOrUpdate")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.AtomicStore.SaveOrUpdate(keyVal)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
 }
 
 func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
@@ -9214,6 +9332,7 @@ func NewOpenTracingLayer(childStore Store, ctx context.Context) *OpenTracingLaye
 		Store: childStore,
 	}
 
+	newStore.AtomicStore = &OpenTracingLayerAtomicStore{AtomicStore: childStore.Atomic(), Root: &newStore}
 	newStore.AuditStore = &OpenTracingLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
 	newStore.BotStore = &OpenTracingLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &OpenTracingLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
