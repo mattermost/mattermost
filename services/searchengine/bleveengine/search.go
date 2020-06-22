@@ -212,7 +212,7 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	return postIds, matches, nil
 }
 
-func (b *BleveEngine) DeletePosts(searchRequest *bleve.SearchRequest, batchSize int) (int64, error) {
+func (b *BleveEngine) deletePosts(searchRequest *bleve.SearchRequest, batchSize int) (int64, error) {
 	resultsCount := int64(0)
 
 	for {
@@ -247,7 +247,7 @@ func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
 	query := bleve.NewTermQuery(channelID)
 	query.SetField("ChannelId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.DeletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteChannelPosts",
 			"bleveengine.delete_channel_posts.error", nil,
@@ -266,7 +266,7 @@ func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
 	query := bleve.NewTermQuery(userID)
 	query.SetField("UserId")
 	search := bleve.NewSearchRequest(query)
-	deleted, err := b.DeletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
 	if err != nil {
 		return model.NewAppError("Bleveengine.DeleteUserPosts",
 			"bleveengine.delete_user_posts.error", nil,
