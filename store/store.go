@@ -778,7 +778,7 @@ type IntegrityCheckResult struct {
 const mySQLDeadlockCode = uint16(1213)
 
 // WithDeadlockRetry retries a given f if it throws a deadlock error.
-// After exceeding a given threshold, it breaks and propagates the error upwards.
+// It breaks after a threshold and propagates the error upwards.
 // TODO: This can be a separate retry layer in itself where transaction retries
 // are automatically applied.
 func WithDeadlockRetry(f func() error) error {
