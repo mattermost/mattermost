@@ -471,8 +471,8 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return api.app.GetGroup(groupId)
 }
 
-func (api *PluginAPI) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name, opts)
+func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {

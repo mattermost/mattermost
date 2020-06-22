@@ -4,14 +4,10 @@
 package telemetry
 
 import (
-	"fmt"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
-
-	rudder "github.com/rudderlabs/analytics-go"
-	"github.com/segmentio/analytics-go"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -19,13 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+
+	rudder "github.com/rudderlabs/analytics-go"
 )
 
 const (
 	DAY_MILLISECONDS   = 24 * 60 * 60 * 1000
 	MONTH_MILLISECONDS = 31 * DAY_MILLISECONDS
 
-	SEGMENT_KEY          = "placeholder_segment_key"
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
@@ -89,7 +86,6 @@ type TelemetryService struct {
 	dbStore                    store.Store
 	searchEngine               *searchengine.Broker
 	log                        *mlog.Logger
-	segmentClient              analytics.Client
 	rudderClient               rudder.Client
 	TelemetryID                string
 	timestampLastTelemetrySent time.Time
@@ -103,7 +99,6 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		log:          log,
 	}
 	service.ensureTelemetryID()
-	service.initSegmentIO("")
 	service.initRudder(RUDDER_DATAPLANE_URL)
 	return service
 }
@@ -129,19 +124,6 @@ func (ds *TelemetryService) ensureTelemetryID() {
 }
 
 func (ds *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ds.srv.Config().LogSettings.EnableDiagnostics && ds.srv.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		ds.initSegmentIO("")
-		ds.trackActivity()
-		ds.trackConfig()
-		ds.trackLicense()
-		ds.trackPlugins()
-		ds.trackServer()
-		ds.trackPermissions()
-		ds.trackElasticsearch()
-		ds.trackGroups()
-		ds.trackChannelModeration()
-	}
-
 	if *ds.srv.Config().LogSettings.EnableDiagnostics && ds.srv.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
 		ds.initRudder(RUDDER_DATAPLANE_URL)
 		ds.trackActivity()
@@ -157,14 +139,6 @@ func (ds *TelemetryService) sendDailyTelemetry(override bool) {
 }
 
 func (ds *TelemetryService) sendTelemetry(event string, properties map[string]interface{}) {
-	if ds.segmentClient != nil {
-		ds.segmentClient.Enqueue(analytics.Track{
-			Event:      event,
-			UserId:     ds.TelemetryID,
-			Properties: properties,
-		})
-	}
-
 	if ds.rudderClient != nil {
 		ds.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
@@ -1165,25 +1139,6 @@ func (ds *TelemetryService) trackChannelModeration() {
 	})
 }
 
-func (ds *TelemetryService) initSegmentIO(endpoint string) {
-	if ds.segmentClient == nil {
-		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(ds.log.StdLog(mlog.String("source", "segment")))
-		// For testing
-		if endpoint != "" {
-			config.Endpoint = endpoint
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
-		client.Enqueue(analytics.Identify{
-			UserId: ds.TelemetryID,
-		})
-
-		ds.segmentClient = client
-	}
-}
-
 func (ds *TelemetryService) initRudder(endpoint string) {
 	if ds.rudderClient == nil {
 		config := rudder.Config{}
@@ -1238,20 +1193,8 @@ func (ds *TelemetryService) doTelemetry() {
 
 // Shutdown closes the telemetry client.
 func (ds *TelemetryService) Shutdown() error {
-	var segmentErr, rudderErr error
-	if ds.segmentClient != nil {
-		segmentErr = ds.segmentClient.Close()
-	}
-
 	if ds.rudderClient != nil {
-		rudderErr = ds.rudderClient.Close()
+		return ds.rudderClient.Close()
 	}
-
-	if segmentErr != nil && rudderErr != nil {
-		return fmt.Errorf("%s, %s", segmentErr.Error(), rudderErr.Error())
-	} else if segmentErr != nil {
-		return segmentErr
-	}
-
-	return rudderErr
+	return nil
 }

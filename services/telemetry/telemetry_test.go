@@ -163,225 +163,6 @@ func TestPluginVersion(t *testing.T) {
 	assert.Empty(t, pluginVersion(plugins, "unknown.plugin"))
 }
 
-func TestSegmentTelemetry(t *testing.T) {
-	if testing.Short() {
-		t.SkipNow()
-	}
-
-	type payload struct {
-		MessageId string
-		SentAt    time.Time
-		Batch     []struct {
-			MessageId  string
-			UserId     string
-			Event      string
-			Timestamp  time.Time
-			Properties map[string]interface{}
-		}
-		Context struct {
-			Library struct {
-				Name    string
-				Version string
-			}
-		}
-	}
-
-	data := make(chan payload, 100)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
-		require.NoError(t, err)
-
-		var p payload
-		err = json.Unmarshal(body, &p)
-		require.NoError(t, err)
-
-		data <- p
-	}))
-	defer server.Close()
-
-	telemetryID := "test-telemetry-id-12345"
-	config := &model.Config{}
-	config.SetDefaults()
-	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(config)
-	defer deferredAssertions(t)
-
-	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(config, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
-	telemetryService.TelemetryID = telemetryID
-	telemetryService.segmentClient = nil
-	telemetryService.initSegmentIO(server.URL)
-
-	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
-		t.Helper()
-		assert.NotEmpty(t, actual.MessageId)
-		assert.False(t, actual.SentAt.IsZero())
-		if assert.Len(t, actual.Batch, 1) {
-			assert.NotEmpty(t, actual.Batch[0].MessageId, "message id should not be empty")
-			assert.Equal(t, telemetryID, actual.Batch[0].UserId)
-			if event != "" {
-				assert.Equal(t, event, actual.Batch[0].Event)
-			}
-			assert.False(t, actual.Batch[0].Timestamp.IsZero(), "batch timestamp should not be the zero value")
-			if properties != nil {
-				assert.Equal(t, properties, actual.Batch[0].Properties)
-			}
-		}
-		assert.Equal(t, "analytics-go", actual.Context.Library.Name)
-		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
-	}
-
-	// Should send a client identify message
-	select {
-	case identifyMessage := <-data:
-		assertPayload(t, identifyMessage, "", nil)
-	case <-time.After(time.Second * 1):
-		require.Fail(t, "Did not receive ID message")
-	}
-
-	t.Run("Send", func(t *testing.T) {
-		testValue := "test-send-value-6789"
-		telemetryService.sendTelemetry("Testing Telemetry", map[string]interface{}{
-			"hey": testValue,
-		})
-		select {
-		case result := <-data:
-			assertPayload(t, result, "Testing Telemetry", map[string]interface{}{
-				"hey": testValue,
-			})
-		case <-time.After(time.Second * 1):
-			require.Fail(t, "Did not receive segment")
-		}
-	})
-
-	// Plugins remain disabled at this point
-	t.Run("SendDailyTelemetryPluginsDisabled", func(t *testing.T) {
-		telemetryService.sendDailyTelemetry(true)
-
-		var info []string
-		// Collect the info sent.
-	Loop:
-		for {
-			select {
-			case result := <-data:
-				assertPayload(t, result, "", nil)
-				info = append(info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
-				break Loop
-			}
-		}
-
-		for _, item := range []string{
-			TRACK_CONFIG_SERVICE,
-			TRACK_CONFIG_TEAM,
-			TRACK_CONFIG_SQL,
-			TRACK_CONFIG_LOG,
-			TRACK_CONFIG_AUDIT,
-			TRACK_CONFIG_NOTIFICATION_LOG,
-			TRACK_CONFIG_FILE,
-			TRACK_CONFIG_RATE,
-			TRACK_CONFIG_EMAIL,
-			TRACK_CONFIG_PRIVACY,
-			TRACK_CONFIG_OAUTH,
-			TRACK_CONFIG_LDAP,
-			TRACK_CONFIG_COMPLIANCE,
-			TRACK_CONFIG_LOCALIZATION,
-			TRACK_CONFIG_SAML,
-			TRACK_CONFIG_PASSWORD,
-			TRACK_CONFIG_CLUSTER,
-			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_SUPPORT,
-			TRACK_CONFIG_NATIVEAPP,
-			TRACK_CONFIG_EXPERIMENTAL,
-			TRACK_CONFIG_ANALYTICS,
-			TRACK_CONFIG_PLUGIN,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
-			TRACK_CONFIG_MESSAGE_EXPORT,
-			// TRACK_PLUGINS,
-		} {
-			require.Contains(t, info, item)
-		}
-	})
-
-	// Enable plugins for the remainder of the tests.
-	// th.Server.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
-
-	t.Run("SendDailyTelemetry", func(t *testing.T) {
-		telemetryService.sendDailyTelemetry(true)
-
-		var info []string
-		// Collect the info sent.
-	Loop:
-		for {
-			select {
-			case result := <-data:
-				assertPayload(t, result, "", nil)
-				info = append(info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
-				break Loop
-			}
-		}
-
-		for _, item := range []string{
-			TRACK_CONFIG_SERVICE,
-			TRACK_CONFIG_TEAM,
-			TRACK_CONFIG_SQL,
-			TRACK_CONFIG_LOG,
-			TRACK_CONFIG_AUDIT,
-			TRACK_CONFIG_NOTIFICATION_LOG,
-			TRACK_CONFIG_FILE,
-			TRACK_CONFIG_RATE,
-			TRACK_CONFIG_EMAIL,
-			TRACK_CONFIG_PRIVACY,
-			TRACK_CONFIG_OAUTH,
-			TRACK_CONFIG_LDAP,
-			TRACK_CONFIG_COMPLIANCE,
-			TRACK_CONFIG_LOCALIZATION,
-			TRACK_CONFIG_SAML,
-			TRACK_CONFIG_PASSWORD,
-			TRACK_CONFIG_CLUSTER,
-			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_SUPPORT,
-			TRACK_CONFIG_NATIVEAPP,
-			TRACK_CONFIG_EXPERIMENTAL,
-			TRACK_CONFIG_ANALYTICS,
-			TRACK_CONFIG_PLUGIN,
-			TRACK_ACTIVITY,
-			TRACK_SERVER,
-			TRACK_CONFIG_MESSAGE_EXPORT,
-			// TRACK_PLUGINS,
-		} {
-			require.Contains(t, info, item)
-		}
-	})
-
-	t.Run("SendDailyTelemetryNoSegmentKey", func(t *testing.T) {
-		telemetryService.sendDailyTelemetry(false)
-
-		select {
-		case <-data:
-			require.Fail(t, "Should not send telemetry when the segment key is not set")
-		case <-time.After(time.Second * 1):
-			// Did not receive telemetry
-		}
-	})
-
-	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {
-		*config.LogSettings.EnableDiagnostics = false
-		defer func() {
-			*config.LogSettings.EnableDiagnostics = true
-		}()
-
-		telemetryService.sendDailyTelemetry(true)
-
-		select {
-		case <-data:
-			require.Fail(t, "Should not send telemetry when they are disabled")
-		case <-time.After(time.Second * 1):
-			// Did not receive telemetry
-		}
-	})
-}
-
 func TestRudderTelemetry(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -418,7 +199,7 @@ func TestRudderTelemetry(t *testing.T) {
 	}))
 	defer server.Close()
 
-	segmentID := "test-segment-id-12345"
+	telemetryID := "test-telemetry-id-12345"
 
 	config := &model.Config{}
 	config.SetDefaults()
@@ -426,7 +207,7 @@ func TestRudderTelemetry(t *testing.T) {
 	defer deferredAssertions(t)
 
 	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(config, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
-	telemetryService.TelemetryID = segmentID
+	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
 	telemetryService.initRudder(server.URL)
 
@@ -436,7 +217,7 @@ func TestRudderTelemetry(t *testing.T) {
 		assert.False(t, actual.SentAt.IsZero())
 		if assert.Len(t, actual.Batch, 1) {
 			assert.NotEmpty(t, actual.Batch[0].MessageId, "message id should not be empty")
-			assert.Equal(t, segmentID, actual.Batch[0].UserId)
+			assert.Equal(t, telemetryID, actual.Batch[0].UserId)
 			if event != "" {
 				assert.Equal(t, event, actual.Batch[0].Event)
 			}
@@ -481,7 +262,7 @@ func TestRudderTelemetry(t *testing.T) {
 				"hey": testValue,
 			})
 		case <-time.After(time.Second * 1):
-			require.Fail(t, "Did not receive segment")
+			require.Fail(t, "Did not receive telemetry")
 		}
 	})
 

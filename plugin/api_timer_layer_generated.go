@@ -553,9 +553,9 @@ func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppErro
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
+func (api *apiTimerLayer) GetGroupByName(name string) (*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetGroupByName(name, opts)
+	_returnsA, _returnsB := api.apiImpl.GetGroupByName(name)
 	api.recordTime(startTime, "GetGroupByName", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -1019,6 +1019,6 @@ func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.PublishUserTyping(userId, channelId, parentId)
-	api.recordTime(startTime, "PublishUserTyping", true)
+	api.recordTime(startTime, "PublishUserTyping", _returnsA == nil)
 	return _returnsA
 }
