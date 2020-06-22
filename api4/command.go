@@ -333,6 +333,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.UserId = c.App.Session().UserId
 	commandArgs.T = c.App.T
 	commandArgs.SiteURL = c.GetSiteURLHeader()
+	commandArgs.Session = *c.App.Session()
 
 	auditRec.AddMeta("commandargs", commandArgs) // overwrite in case teamid changed
 
