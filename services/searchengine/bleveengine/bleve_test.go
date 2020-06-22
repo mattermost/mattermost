@@ -216,7 +216,7 @@ func (s *BleveEngineTestSuite) TestDeletePosts() {
 	query := bleve.NewTermQuery(userID)
 	query.SetField("UserId")
 	search := bleve.NewSearchRequest(query)
-	count, err := s.BleveEngine.DeletePosts(search, 1)
+	count, err := s.BleveEngine.deletePosts(search, 1)
 	require.Nil(s.T(), err)
 	require.Equal(s.T(), 10, int(count))
 
