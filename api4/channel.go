@@ -687,6 +687,7 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	opts := model.ChannelSearchOpts{
 		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
 		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
+		IncludeDeleted:         c.Params.IncludeDeleted,
 	}
 
 	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)
@@ -1052,7 +1053,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-			c.Err = model.NewAppError("getChannelByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
+			c.Err = model.NewAppError("getChannelByName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
 	}
@@ -1080,7 +1081,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), channel.Id, model.PERMISSION_READ_CHANNEL) {
-		c.Err = model.NewAppError("getChannelByNameForTeamName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
+		c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 		return
 	}
 
