@@ -89,7 +89,7 @@ func (mockAPI *MockMutexStoreAPI) LogError(msg string, keyValuePairs ...interfac
 	mockAPI.t.Log(params...)
 }
 
-func lock(t *testing.T, m Mutex) {
+func lock(t *testing.T, m sync.Locker) {
 	t.Helper()
 
 	done := make(chan bool)
@@ -105,7 +105,7 @@ func lock(t *testing.T, m Mutex) {
 	}
 }
 
-func unlock(t *testing.T, m Mutex, panics bool) {
+func unlock(t *testing.T, m sync.Locker, panics bool) {
 	t.Helper()
 
 	done := make(chan bool)
