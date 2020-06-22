@@ -305,6 +305,7 @@ func InitLocal(configservice configservice.ConfigService, globalOptionsFunc app.
 
 	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
 
 	api.InitUserLocal()
 	api.InitTeamLocal()

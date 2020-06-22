@@ -1030,72 +1030,73 @@ func TestGetPostsForChannel(t *testing.T) {
 
 	post4 := th.CreatePost()
 
-	posts, resp := Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Equal(t, post4.Id, posts.Order[0], "wrong order")
-	require.Equal(t, post3.Id, posts.Order[1], "wrong order")
-	require.Equal(t, post2.Id, posts.Order[2], "wrong order")
-	require.Equal(t, post1.Id, posts.Order[3], "wrong order")
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		posts, resp := c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Equal(t, post4.Id, posts.Order[0], "wrong order")
+		require.Equal(t, post3.Id, posts.Order[1], "wrong order")
+		require.Equal(t, post2.Id, posts.Order[2], "wrong order")
+		require.Equal(t, post1.Id, posts.Order[3], "wrong order")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag)
-	CheckEtag(t, posts, resp)
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, resp.Etag)
+		CheckEtag(t, posts, resp)
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "wrong number returned")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "wrong number returned")
 
-	_, ok := posts.Posts[post3.Id]
-	require.True(t, ok, "missing comment")
-	_, ok = posts.Posts[post1.Id]
-	require.True(t, ok, "missing root post")
+		_, ok := posts.Posts[post3.Id]
+		require.True(t, ok, "missing comment")
+		_, ok = posts.Posts[post1.Id]
+		require.True(t, ok, "missing root post")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 1, "")
-	CheckNoError(t, resp)
-	require.Equal(t, post3.Id, posts.Order[0], "wrong order")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Equal(t, post3.Id, posts.Order[0], "wrong order")
 
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, posts.Order, "should be no posts")
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 10000, 10000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, posts.Order, "should be no posts")
+	})
 
 	post5 := th.CreatePost()
 
-	posts, resp = Client.GetPostsSince(th.BasicChannel.Id, since)
-	CheckNoError(t, resp)
-	require.Len(t, posts.Posts, 2, "should return 2 posts")
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		posts, resp := c.GetPostsSince(th.BasicChannel.Id, since)
+		CheckNoError(t, resp)
+		require.Len(t, posts.Posts, 2, "should return 2 posts")
 
-	// "since" query to return empty NextPostId and PrevPostId
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// "since" query to return empty NextPostId and PrevPostId
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	found := make([]bool, 2)
-	for _, p := range posts.Posts {
-		require.LessOrEqual(t, since, p.CreateAt, "bad create at for post returned")
+		found := make([]bool, 2)
+		for _, p := range posts.Posts {
+			require.LessOrEqual(t, since, p.CreateAt, "bad create at for post returned")
 
-		if p.Id == post4.Id {
-			found[0] = true
-		} else if p.Id == post5.Id {
-			found[1] = true
+			if p.Id == post4.Id {
+				found[0] = true
+			} else if p.Id == post5.Id {
+				found[1] = true
+			}
 		}
-	}
-	for _, f := range found {
-		require.True(t, f, "missing post")
-	}
+		for _, f := range found {
+			require.True(t, f, "missing post")
+		}
 
-	_, resp = Client.GetPostsForChannel("", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPostsForChannel("", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetPostsForChannel("junk", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = c.GetPostsForChannel("junk", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
+	})
 
-	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
+	_, resp := Client.GetPostsForChannel(model.NewId(), 0, 60, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.GetPostsForChannel(model.NewId(), 0, 60, "")
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
 
 	// more tests for next_post_id, prev_post_id, and order
 	// There are 12 posts composed of first 2 system messages and 10 created posts
@@ -1106,61 +1107,64 @@ func TestGetPostsForChannel(t *testing.T) {
 	th.CreatePost() // post9
 	post10 := th.CreatePost()
 
-	// get the system post IDs posted before the created posts above
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
-	systemPostId1 := posts.Order[1]
+	var posts *model.PostList
+	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
+		// get the system post IDs posted before the created posts above
+		posts, resp = c.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+		systemPostId1 := posts.Order[1]
 
-	// similar to '/posts'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 12, "expected 12 posts")
-	require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, systemPostId1, posts.Order[11], "posts not in order")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 12, "expected 12 posts")
+		require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, systemPostId1, posts.Order[11], "posts not in order")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	// similar to '/posts?per_page=3'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post8.Id, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
+		// similar to '/posts?per_page=3'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 0, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post10.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post8.Id, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, post7.Id, posts.PrevPostId, "should return post7.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=1'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post7.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post5.Id, posts.Order[2], "posts not in order")
-	require.Equal(t, post8.Id, posts.NextPostId, "should return post8.Id as NextPostId")
-	require.Equal(t, post4.Id, posts.PrevPostId, "should return post4.Id as PrevPostId")
+		// similar to '/posts?per_page=3&page=1'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 1, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post7.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post5.Id, posts.Order[2], "posts not in order")
+		require.Equal(t, post8.Id, posts.NextPostId, "should return post8.Id as NextPostId")
+		require.Equal(t, post4.Id, posts.PrevPostId, "should return post4.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=2'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 2, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post4.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, post2.Id, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, post5.Id, posts.NextPostId, "should return post5.Id as NextPostId")
-	require.Equal(t, post1.Id, posts.PrevPostId, "should return post1.Id as PrevPostId")
+		// similar to '/posts?per_page=3&page=2'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 2, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post4.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, post2.Id, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, post5.Id, posts.NextPostId, "should return post5.Id as NextPostId")
+		require.Equal(t, post1.Id, posts.PrevPostId, "should return post1.Id as PrevPostId")
 
-	// similar to '/posts?per_page=3&page=3'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "")
-	CheckNoError(t, resp)
-	require.Len(t, posts.Order, 3, "expected 3 posts")
-	require.Equal(t, post1.Id, posts.Order[0], "posts not in order")
-	require.Equal(t, systemPostId1, posts.Order[2], "should return 3 posts and match order")
-	require.Equal(t, post2.Id, posts.NextPostId, "should return post2.Id as NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts?per_page=3&page=3'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 3, 3, "")
+		CheckNoError(t, resp)
+		require.Len(t, posts.Order, 3, "expected 3 posts")
+		require.Equal(t, post1.Id, posts.Order[0], "posts not in order")
+		require.Equal(t, systemPostId1, posts.Order[2], "should return 3 posts and match order")
+		require.Equal(t, post2.Id, posts.NextPostId, "should return post2.Id as NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
 
-	// similar to '/posts?per_page=3&page=4'
-	posts, resp = Client.GetPostsForChannel(th.BasicChannel.Id, 4, 3, "")
-	CheckNoError(t, resp)
-	require.Empty(t, posts.Order, "should return 0 post")
-	require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
-	require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+		// similar to '/posts?per_page=3&page=4'
+		posts, resp = c.GetPostsForChannel(th.BasicChannel.Id, 4, 3, "")
+		CheckNoError(t, resp)
+		require.Empty(t, posts.Order, "should return 0 post")
+		require.Equal(t, "", posts.NextPostId, "should return an empty NextPostId")
+		require.Equal(t, "", posts.PrevPostId, "should return an empty PrevPostId")
+	})
 }
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
