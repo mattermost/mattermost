@@ -43,7 +43,7 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *mod
 	appErr := saveReactionAndUpdatePost(transaction, reaction)
 	if appErr != nil {
 		// We don't consider duplicated save calls as an error
-		if !IsUniqueConstraintError(appErr, []string{"reactions_pkey", "PRIMARY"}) {
+		if !IsUniqueConstraintError(appErr, []string{"reactions_pkey", "PRIMARY", "\"primary\""}) {
 			return nil, model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, appErr.Error(), http.StatusBadRequest)
 		}
 	} else {

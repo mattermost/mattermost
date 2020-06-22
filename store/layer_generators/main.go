@@ -35,6 +35,22 @@ func main() {
 	if err := buildOpenTracingLayer(); err != nil {
 		log.Fatal(err)
 	}
+	if err := buildRetryLayer(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func buildRetryLayer() error {
+	code, err := generateLayer("RetryLayer", "retry_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(path.Join("retry_layer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {

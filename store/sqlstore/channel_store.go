@@ -1384,83 +1384,113 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 	}
 
 	// TODO: Fix the performance of this queries to make them runnable in cockroachdb
-	//
-	// defaultChannelRolesByChannel := map[string]struct {
-	// 	Id    string
-	// 	Guest sql.NullString
-	// 	User  sql.NullString
-	// 	Admin sql.NullString
-	// }{}
 
-	// channelRolesQuery := s.getQueryBuilder().
-	// 	Select(
-	// 		"Channels.Id as Id",
-	// 		"ChannelScheme.DefaultChannelGuestRole as Guest",
-	// 		"ChannelScheme.DefaultChannelUserRole as User",
-	// 		"ChannelScheme.DefaultChannelAdminRole as Admin",
-	// 	).
-	// 	From("Channels").
-	// 	LeftJoin("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id").
-	// 	Where(sq.Eq{"Channels.Id": channels})
+	defaultChannelRolesByChannel := map[string]struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}{}
 
-	// channelRolesSql, channelRolesArgs, err := channelRolesQuery.ToSql()
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "channel_roles_tosql")
-	// }
+	channelRolesQuery := s.getQueryBuilder().
+		Select(
+			"Channels.Id as Id",
+			"ChannelScheme.DefaultChannelGuestRole as Guest",
+			"ChannelScheme.DefaultChannelUserRole as User",
+			"ChannelScheme.DefaultChannelAdminRole as Admin",
+		).
+		From("Channels").
+		Join("Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id")
 
-	// var defaultChannelsRoles []struct {
-	// 	Id    string
-	// 	Guest sql.NullString
-	// 	User  sql.NullString
-	// 	Admin sql.NullString
-	// }
-	// _, err = s.GetMaster().Select(&defaultChannelsRoles, channelRolesSql, channelRolesArgs...)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "default_channel_roles_select")
-	// }
+	if len(channels) == 1 {
+		channelRolesQuery = channelRolesQuery.Where(sq.Eq{"Channels.Id": channels[0]})
+	} else {
+		channelRolesQuery = channelRolesQuery.Where(sq.Eq{"Channels.Id": channels})
+	}
 
-	// for _, defaultRoles := range defaultChannelsRoles {
-	// 	defaultChannelRolesByChannel[defaultRoles.Id] = defaultRoles
-	// }
+	channelRolesSql, channelRolesArgs, err := channelRolesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_roles_tosql")
+	}
+	mlog.Error(channelRolesSql, mlog.Any("args", channelRolesArgs))
 
-	// defaultTeamRolesByChannel := map[string]struct {
-	// 	Id    string
-	// 	Guest sql.NullString
-	// 	User  sql.NullString
-	// 	Admin sql.NullString
-	// }{}
+	var defaultChannelsRoles []struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}
+	_, err = transaction.Select(&defaultChannelsRoles, channelRolesSql, channelRolesArgs...)
+	if err != nil {
+		return nil, errors.Wrap(err, "default_channel_roles_select")
+	}
 
-	// teamRolesQuery := s.getQueryBuilder().
-	// 	Select(
-	// 		"Channels.Id as Id",
-	// 		"TeamScheme.DefaultChannelGuestRole as Guest",
-	// 		"TeamScheme.DefaultChannelUserRole as User",
-	// 		"TeamScheme.DefaultChannelAdminRole as Admin",
-	// 	).
-	// 	From("Channels").
-	// 	LeftJoin("Teams ON Teams.Id = Channels.TeamId").
-	// 	LeftJoin("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id").
-	// 	Where(sq.Eq{"Channels.Id": channels})
+	for _, channelId := range channels {
+		defaultChannelRolesByChannel[channelId] = struct {
+			Id    string
+			Guest sql.NullString
+			User  sql.NullString
+			Admin sql.NullString
+		}{Id: channelId}
+	}
 
-	// teamRolesSql, teamRolesArgs, err := teamRolesQuery.ToSql()
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "team_roles_tosql")
-	// }
+	for _, defaultRoles := range defaultChannelsRoles {
+		defaultChannelRolesByChannel[defaultRoles.Id] = defaultRoles
+	}
 
-	// var defaultTeamsRoles []struct {
-	// 	Id    string
-	// 	Guest sql.NullString
-	// 	User  sql.NullString
-	// 	Admin sql.NullString
-	// }
-	// _, err = s.GetMaster().Select(&defaultTeamsRoles, teamRolesSql, teamRolesArgs...)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "default_team_roles_select")
-	// }
+	defaultTeamRolesByChannel := map[string]struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}{}
 
-	// for _, defaultRoles := range defaultTeamsRoles {
-	// 	defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
-	// }
+	teamRolesQuery := s.getQueryBuilder().
+		Select(
+			"Channels.Id as Id",
+			"TeamScheme.DefaultChannelGuestRole as Guest",
+			"TeamScheme.DefaultChannelUserRole as User",
+			"TeamScheme.DefaultChannelAdminRole as Admin",
+		).
+		From("Channels").
+		Join("Teams ON Teams.Id = Channels.TeamId").
+		Join("Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id")
+
+	if len(channels) == 1 {
+		teamRolesQuery = teamRolesQuery.Where(sq.Eq{"Channels.Id": channels[0]})
+	} else {
+		teamRolesQuery = teamRolesQuery.Where(sq.Eq{"Channels.Id": channels})
+	}
+
+	teamRolesSql, teamRolesArgs, err := teamRolesQuery.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "team_roles_tosql")
+	}
+	mlog.Error(teamRolesSql, mlog.Any("args", teamRolesArgs))
+
+	var defaultTeamsRoles []struct {
+		Id    string
+		Guest sql.NullString
+		User  sql.NullString
+		Admin sql.NullString
+	}
+	_, err = transaction.Select(&defaultTeamsRoles, teamRolesSql, teamRolesArgs...)
+	if err != nil {
+		return nil, errors.Wrap(err, "default_team_roles_select")
+	}
+
+	for _, channelId := range channels {
+		defaultTeamRolesByChannel[channelId] = struct {
+			Id    string
+			Guest sql.NullString
+			User  sql.NullString
+			Admin sql.NullString
+		}{Id: channelId}
+	}
+
+	for _, defaultRoles := range defaultTeamsRoles {
+		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
+	}
 
 	query := s.getQueryBuilder().Insert("ChannelMembers").Columns(channelMemberSliceColumns()...)
 	for _, member := range members {
@@ -1472,7 +1502,7 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 		return nil, errors.Wrap(err, "channel_members_tosql")
 	}
 
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err := transaction.Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"ChannelId", "channelmembers_pkey", "PRIMARY"}) {
 			return nil, store.NewErrConflict("ChannelMembers", err, "")
 		}
@@ -1481,24 +1511,24 @@ func (s SqlChannelStore) saveMultipleMembersT(transaction *gorp.Transaction, mem
 
 	newMembers := []*model.ChannelMember{}
 	for _, member := range members {
-		// defaultTeamGuestRole := defaultTeamRolesByChannel[member.ChannelId].Guest.String
-		// defaultTeamUserRole := defaultTeamRolesByChannel[member.ChannelId].User.String
-		// defaultTeamAdminRole := defaultTeamRolesByChannel[member.ChannelId].Admin.String
-		// defaultChannelGuestRole := defaultChannelRolesByChannel[member.ChannelId].Guest.String
-		// defaultChannelUserRole := defaultChannelRolesByChannel[member.ChannelId].User.String
-		// defaultChannelAdminRole := defaultChannelRolesByChannel[member.ChannelId].Admin.String
-		// rolesResult := getChannelRoles(
-		// 	member.SchemeGuest, member.SchemeUser, member.SchemeAdmin,
-		// 	defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole,
-		// 	defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
-		// 	strings.Fields(member.ExplicitRoles),
-		// )
+		defaultTeamGuestRole := defaultTeamRolesByChannel[member.ChannelId].Guest.String
+		defaultTeamUserRole := defaultTeamRolesByChannel[member.ChannelId].User.String
+		defaultTeamAdminRole := defaultTeamRolesByChannel[member.ChannelId].Admin.String
+		defaultChannelGuestRole := defaultChannelRolesByChannel[member.ChannelId].Guest.String
+		defaultChannelUserRole := defaultChannelRolesByChannel[member.ChannelId].User.String
+		defaultChannelAdminRole := defaultChannelRolesByChannel[member.ChannelId].Admin.String
+		rolesResult := getChannelRoles(
+			member.SchemeGuest, member.SchemeUser, member.SchemeAdmin,
+			defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole,
+			defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
+			strings.Fields(member.ExplicitRoles),
+		)
 		newMember := *member
-		// newMember.SchemeGuest = rolesResult.schemeGuest
-		// newMember.SchemeUser = rolesResult.schemeUser
-		// newMember.SchemeAdmin = rolesResult.schemeAdmin
-		// newMember.Roles = strings.Join(rolesResult.roles, " ")
-		// newMember.ExplicitRoles = strings.Join(rolesResult.explicitRoles, " ")
+		newMember.SchemeGuest = rolesResult.schemeGuest
+		newMember.SchemeUser = rolesResult.schemeUser
+		newMember.SchemeAdmin = rolesResult.schemeAdmin
+		newMember.Roles = strings.Join(rolesResult.roles, " ")
+		newMember.ExplicitRoles = strings.Join(rolesResult.explicitRoles, " ")
 		newMembers = append(newMembers, &newMember)
 	}
 	return newMembers, nil
