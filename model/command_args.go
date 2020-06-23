@@ -11,21 +11,20 @@ import (
 )
 
 type CommandArgs struct {
-	UserId    string               `json:"user_id"`
-	ChannelId string               `json:"channel_id"`
-	TeamId    string               `json:"team_id"`
-	RootId    string               `json:"root_id"`
-	ParentId  string               `json:"parent_id"`
-	TriggerId string               `json:"trigger_id,omitempty"`
-	Command   string               `json:"command"`
-	SiteURL   string               `json:"-"`
-	T         goi18n.TranslateFunc `json:"-"`
+	UserId          string               `json:"user_id"`
+	ChannelId       string               `json:"channel_id"`
+	TeamId          string               `json:"team_id"`
+	RootId          string               `json:"root_id"`
+	ParentId        string               `json:"parent_id"`
+	TriggerId       string               `json:"trigger_id,omitempty"`
+	Command         string               `json:"command"`
+	SiteURL         string               `json:"-"`
+	T               goi18n.TranslateFunc `json:"-"`
+	UserMentions    UserMentionMap       `json:"-"`
+	ChannelMentions ChannelMentionMap    `json:"-"`
 
-	// DO NOT USE Session field is depricated. MM-26398
+	// DO NOT USE Session field is deprecated. MM-26398
 	Session Session `json:"-"`
-
-	UserMentions    UserMentionMap    `json:"-"`
-	ChannelMentions ChannelMentionMap `json:"-"`
 }
 
 func (o *CommandArgs) ToJson() string {

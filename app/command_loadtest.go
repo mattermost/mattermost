@@ -347,7 +347,11 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	//client.MockSession(args.Session.Token)
+	sessions, err := a.GetSessions(args.UserId)
+	if err != nil || len(sessions) == 0 {
+		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
+	client.MockSession(sessions[0].Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
