@@ -2638,7 +2638,6 @@ func (s *apiRPCServer) GetGroup(args *Z_GetGroupArgs, returns *Z_GetGroupReturns
 
 type Z_GetGroupByNameArgs struct {
 	A string
-	B model.GroupSearchOpts
 }
 
 type Z_GetGroupByNameReturns struct {
@@ -2646,8 +2645,8 @@ type Z_GetGroupByNameReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	_args := &Z_GetGroupByNameArgs{name, opts}
+func (g *apiRPCClient) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	_args := &Z_GetGroupByNameArgs{name}
 	_returns := &Z_GetGroupByNameReturns{}
 	if err := g.client.Call("Plugin.GetGroupByName", _args, _returns); err != nil {
 		log.Printf("RPC call to GetGroupByName API failed: %s", err.Error())
@@ -2657,9 +2656,9 @@ func (g *apiRPCClient) GetGroupByName(name string, opts model.GroupSearchOpts) (
 
 func (s *apiRPCServer) GetGroupByName(args *Z_GetGroupByNameArgs, returns *Z_GetGroupByNameReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
+		GetGroupByName(name string) (*model.Group, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetGroupByName(args.A, args.B)
+		returns.A, returns.B = hook.GetGroupByName(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetGroupByName called but not implemented."))
 	}
@@ -4419,6 +4418,36 @@ func (s *apiRPCServer) DeleteBotIconImage(args *Z_DeleteBotIconImageArgs, return
 		returns.A = hook.DeleteBotIconImage(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteBotIconImage called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PublishUserTypingArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_PublishUserTypingReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	_args := &Z_PublishUserTypingArgs{userId, channelId, parentId}
+	_returns := &Z_PublishUserTypingReturns{}
+	if err := g.client.Call("Plugin.PublishUserTyping", _args, _returns); err != nil {
+		log.Printf("RPC call to PublishUserTyping API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PublishUserTyping(args *Z_PublishUserTypingArgs, returns *Z_PublishUserTypingReturns) error {
+	if hook, ok := s.impl.(interface {
+		PublishUserTyping(userId, channelId, parentId string) *model.AppError
+	}); ok {
+		returns.A = hook.PublishUserTyping(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API PublishUserTyping called but not implemented."))
 	}
 	return nil
 }

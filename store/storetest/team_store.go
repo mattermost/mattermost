@@ -231,12 +231,52 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "CHOCOLATE"
+	q.Name = "ilovecake"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLenth   int
 		ExpectedFirstId string
 	}{
+		{
+			"Search chocolate by display name",
+			"ocola",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"choc",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by display name",
+			"late",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ilov",
+			1,
+			q.Id,
+		},
+		{
+			"Search chocolate by  name",
+			"ecake",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -302,12 +342,52 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "PINEAPPLEPIE"
+	q.Name = "ihadsomepineapplepiewithstrawberry"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = true
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search PINEAPPLEPIE by display name",
+			"neapplep",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"pine",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by display name",
+			"epie",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"ihadsome",
+			1,
+			q.Id,
+		},
+		{
+			"Search PINEAPPLEPIE by  name",
+			"pineapplepiewithstrawberry",
+			1,
+			q.Id,
+		},
 		{
 			"Search for open team name",
 			o.Name,
@@ -368,12 +448,52 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&p)
 	require.Nil(t, err)
 
+	q := model.Team{}
+	q.DisplayName = "FOOBARDISPLAYNAME"
+	q.Name = "whatever"
+	q.Email = MakeEmail()
+	q.Type = model.TEAM_OPEN
+	q.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&q)
+	require.Nil(t, err)
+
 	testCases := []struct {
 		Name            string
 		Term            string
 		ExpectedLength  int
 		ExpectedFirstId string
 	}{
+		{
+			"Search FooBar by display name from text in the middle of display name",
+			"oobardisplay",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the beginning of display name",
+			"foobar",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by display name from text at the end of display name",
+			"bardisplayname",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the beginning name",
+			"what",
+			1,
+			q.Id,
+		},
+		{
+			"Search FooBar by  name from text at the end of name",
+			"ever",
+			1,
+			q.Id,
+		},
 		{
 			"Search for private team name",
 			p.Name,
@@ -1257,8 +1377,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1625,8 +1745,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1940,8 +2060,8 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2255,8 +2375,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2266,8 +2386,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
@@ -2687,8 +2807,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s2, err = ss.Scheme().Save(s2)
-	require.Nil(t, err)
+	s2, nErr := ss.Scheme().Save(s2)
+	require.Nil(t, nErr)
 	t.Log(s2)
 
 	t2, err := ss.Team().Save(&model.Team{

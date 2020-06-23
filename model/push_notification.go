@@ -19,6 +19,7 @@ const (
 	PUSH_TYPE_MESSAGE      = "message"
 	PUSH_TYPE_CLEAR        = "clear"
 	PUSH_TYPE_UPDATE_BADGE = "update_badge"
+	PUSH_TYPE_SESSION      = "session"
 	PUSH_MESSAGE_V2        = "v2"
 
 	PUSH_SOUND_NONE = "none"
