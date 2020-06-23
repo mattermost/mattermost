@@ -522,7 +522,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	err := store.WithDeadlockRetry(func() error {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			return errors.Wrapf(err, "begin_transaction: ")
+			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
 
@@ -533,11 +533,11 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 		// Additionally propagate the write to the PublicChannels table.
 		if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-			return errors.Wrapf(err, "upsert_public_channel: ")
+			return errors.Wrap(err, "upsert_public_channel")
 		}
 
 		if err := transaction.Commit(); err != nil {
-			return errors.Wrapf(err, "commit_transaction: ")
+			return errors.Wrap(err, "commit_transaction")
 		}
 		return nil
 	})
@@ -1004,7 +1004,7 @@ func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCo
 	return query
 }
 
-func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error) {
 	channels := &model.ChannelList{}
 	_, err := s.GetReplica().Select(channels, `
 		SELECT
@@ -1040,7 +1040,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed getting channels with teamId=%s and userId=%s", teamId, userId)
 	}
 
 	return channels, nil
