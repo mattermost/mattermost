@@ -59,6 +59,10 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, err
 }
 
+func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+	return a.Srv().Store.Group().GetMemberCount(groupID)
+}
+
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
 	return a.Srv().Store.Group().GetMemberUsers(groupID)
 }
@@ -69,7 +73,7 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 		return nil, 0, err
 	}
 
-	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+	count, err := a.GetGroupMemberCount(groupID)
 	if err != nil {
 		return nil, 0, err
 	}

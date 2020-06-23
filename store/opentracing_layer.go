@@ -990,7 +990,7 @@ func (s *OpenTracingLayerChannelStore) GetDeleted(team_id string, offset int, li
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeletedByName")
 	s.Root.Store.SetContext(newCtx)
@@ -1219,7 +1219,7 @@ func (s *OpenTracingLayerChannelStore) GetMembersForUserWithPagination(teamId st
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMoreChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -4667,6 +4667,24 @@ func (s *OpenTracingLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetOldestEntityCreationTime")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.PostStore.GetOldestEntityCreationTime()
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetParentsForExportAfter")
@@ -5544,7 +5562,7 @@ func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.CountByScope")
 	s.Root.Store.SetContext(newCtx)
@@ -5562,7 +5580,7 @@ func (s *OpenTracingLayerSchemeStore) CountByScope(scope string) (int64, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.CountWithoutPermission")
 	s.Root.Store.SetContext(newCtx)
@@ -5580,7 +5598,7 @@ func (s *OpenTracingLayerSchemeStore) CountWithoutPermission(scope string, permi
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -5598,7 +5616,7 @@ func (s *OpenTracingLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -5616,7 +5634,7 @@ func (s *OpenTracingLayerSchemeStore) Get(schemeId string) (*model.Scheme, *mode
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.GetAllPage")
 	s.Root.Store.SetContext(newCtx)
@@ -5634,7 +5652,7 @@ func (s *OpenTracingLayerSchemeStore) GetAllPage(scope string, offset int, limit
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -5652,7 +5670,7 @@ func (s *OpenTracingLayerSchemeStore) GetByName(schemeName string) (*model.Schem
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *OpenTracingLayerSchemeStore) PermanentDeleteAll() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.PermanentDeleteAll")
 	s.Root.Store.SetContext(newCtx)
@@ -5670,7 +5688,7 @@ func (s *OpenTracingLayerSchemeStore) PermanentDeleteAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *OpenTracingLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SchemeStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -8207,6 +8225,24 @@ func (s *OpenTracingLayerUserStore) SearchInChannel(channelId string, term strin
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.SearchInGroup")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.UserStore.SearchInGroup(groupID, term, options)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.SearchNotInChannel")
@@ -8603,7 +8639,7 @@ func (s *OpenTracingLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string)
 	return resultVar0
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -8621,7 +8657,7 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) Delete(userId string, termsOfS
 	return resultVar0
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.GetByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -8639,7 +8675,7 @@ func (s *OpenTracingLayerUserTermsOfServiceStore) GetByUser(userId string) (*mod
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *OpenTracingLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserTermsOfServiceStore.Save")
 	s.Root.Store.SetContext(newCtx)
