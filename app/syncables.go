@@ -43,7 +43,7 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 						mlog.String("team_id", channel.TeamId),
 					)
 
-					return nil
+					continue
 				}
 				return err
 			}
@@ -86,6 +86,13 @@ func (a *App) createDefaultTeamMemberships(since int64, teamID *string) error {
 	for _, userTeam := range teamMembers {
 		_, err := a.AddTeamMember(userTeam.TeamID, userTeam.UserID)
 		if err != nil {
+			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+				a.Log().Info("Not adding user to team because the domain associated with the account is not permitted in the given team",
+					mlog.String("user_id", userTeam.UserID),
+					mlog.String("team_id", userTeam.TeamID),
+				)
+				continue
+			}
 			return err
 		}
 
