@@ -911,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
