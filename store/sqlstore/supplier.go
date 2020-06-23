@@ -1179,6 +1179,21 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
+func (ss *SqlSupplier) getMasterQueryBuilder() sq.StatementBuilderType {
+	builder := ss.getQueryBuilder()
+	return builder.RunWith(ss.GetMaster().Db)
+}
+
+func (ss *SqlSupplier) getReplicaQueryBuilder() sq.StatementBuilderType {
+	builder := ss.getQueryBuilder()
+	return builder.RunWith(ss.GetReplica().Db)
+}
+
+func (ss *SqlSupplier) getSearchReplicaQueryBuilder() sq.StatementBuilderType {
+	builder := ss.getQueryBuilder()
+	return builder.RunWith(ss.GetSearchReplica().Db)
+}
+
 func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
 	results := make(chan store.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)

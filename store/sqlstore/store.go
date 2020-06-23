@@ -101,4 +101,7 @@ type SqlStore interface {
 	UserTermsOfService() store.UserTermsOfServiceStore
 	LinkMetadata() store.LinkMetadataStore
 	getQueryBuilder() sq.StatementBuilderType
+	getMasterQueryBuilder() sq.StatementBuilderType
+	getReplicaQueryBuilder() sq.StatementBuilderType
+	getSearchQueryBuilder() sq.StatementBuilderType
 }
