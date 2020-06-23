@@ -7,6 +7,7 @@ import (
 	b64 "encoding/base64"
 	"net/http"
 	"strings"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -32,7 +33,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	deviceId := r.URL.Query().Get("deviceId")
+	isMobile := action == "moible"
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
@@ -49,7 +50,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectTo
 	}
 	
-	relayProps["deviceId"] = deviceId
+	relayProps["isMobile"] = strconv.FormatBool(isMobile)
 	
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
@@ -145,7 +146,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(w, r, user, relayProps["deviceId"])
+	isMobile, _ := strconv.ParseBool(relayProps["isMobile"])
+
+	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
 	if err != nil {
 		c.Err = err
 		return
