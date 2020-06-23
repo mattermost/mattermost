@@ -81,6 +81,10 @@ const (
 	EXIT_TEAM_INVITEID_MIGRATION_FAILED = 1006
 )
 
+const (
+	MYSQL_STRICT_SQL_MODE = "STRICT_TRANS_TABLES"
+)
+
 // upgradeDatabase attempts to migrate the schema to the latest supported version.
 // The value of model.CurrentVersion is accepted as a parameter for unit testing, but it is not
 // used to stop migrations at that version.
@@ -824,12 +828,14 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
 
-	sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
-	sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+	tryUpgradeInStrictMode(sqlStore, func() {
+		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
 
-	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+	})
 
 	//saveSchemaVersion(sqlStore, VERSION_5_26_0)
 	//}
@@ -888,4 +894,32 @@ func precheckMigrationToVersion526(sqlStore SqlStore) error {
 	}
 
 	return nil
+}
+
+func tryUpgradeInStrictMode(sqlStore SqlStore, upgradeFunc func()) {
+	if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		var currentSqlMode string
+		err := sqlStore.GetMaster().SelectOne(&currentSqlMode, "SELECT @@SESSION.sql_mode")
+		// If we can retrieve the sql_mode variable we continue
+		if err == nil && !strings.Contains(currentSqlMode, MYSQL_STRICT_SQL_MODE) {
+			newSqlMode := currentSqlMode + "," + MYSQL_STRICT_SQL_MODE
+			_, err = sqlStore.GetMaster().Exec("SET @@SESSION.sql_mode = :Mode",
+				map[string]interface{}{"Mode": newSqlMode})
+			if err != nil {
+				mlog.Error("Error setting sql_mode", mlog.Err(err))
+			}
+		} else if err != nil {
+			mlog.Error("Error getting sql_mode", mlog.Err(err))
+		}
+		defer func() {
+			// If fails it will be restored when session ends because
+			// we're only setting the @@SESSION variable
+			_, err = sqlStore.GetMaster().Exec("SET @@SESSION.sql_mode = :Mode",
+				map[string]interface{}{"Mode": currentSqlMode})
+			if err != nil {
+				mlog.Error("Error reverting sql_mode", mlog.Err(err))
+			}
+		}()
+	}
+	upgradeFunc()
 }
