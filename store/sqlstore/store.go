@@ -103,5 +103,5 @@ type SqlStore interface {
 	getQueryBuilder() sq.StatementBuilderType
 	getMasterQueryBuilder() sq.StatementBuilderType
 	getReplicaQueryBuilder() sq.StatementBuilderType
-	getSearchQueryBuilder() sq.StatementBuilderType
+	getSearchReplicaQueryBuilder() sq.StatementBuilderType
 }
