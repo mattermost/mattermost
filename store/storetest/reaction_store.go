@@ -4,10 +4,12 @@
 package storetest
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,6 +21,7 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
+	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
@@ -95,7 +98,6 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 	_, err = ss.Reaction().Save(reaction5)
 	require.NotNil(t, err, "should've failed for invalid reaction")
-
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
@@ -421,4 +423,66 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 
 	require.False(t, post4IdFound, "Wrong reaction returned")
 
+}
+
+// testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
+// It at least deadlocks 2 times out of 5.
+func testReactionDeadlock(t *testing.T, ss store.Store) {
+	post, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.Nil(t, err)
+
+	reaction1 := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    post.Id,
+		EmojiName: model.NewId(),
+	}
+	_, err = ss.Reaction().Save(reaction1)
+	require.Nil(t, err)
+
+	// different user
+	reaction2 := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    reaction1.PostId,
+		EmojiName: reaction1.EmojiName,
+	}
+	_, err = ss.Reaction().Save(reaction2)
+	require.Nil(t, err)
+
+	// different post
+	reaction3 := &model.Reaction{
+		UserId:    reaction1.UserId,
+		PostId:    model.NewId(),
+		EmojiName: reaction1.EmojiName,
+	}
+	_, err = ss.Reaction().Save(reaction3)
+	require.Nil(t, err)
+
+	// different emoji
+	reaction4 := &model.Reaction{
+		UserId:    reaction1.UserId,
+		PostId:    reaction1.PostId,
+		EmojiName: model.NewId(),
+	}
+	_, err = ss.Reaction().Save(reaction4)
+	require.Nil(t, err)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	// 1st tx
+	go func() {
+		defer wg.Done()
+		err := ss.Reaction().DeleteAllWithEmojiName(reaction1.EmojiName)
+		require.Nil(t, err)
+	}()
+
+	// 2nd tx
+	go func() {
+		defer wg.Done()
+		_, err := ss.Reaction().Delete(reaction2)
+		require.Nil(t, err)
+	}()
+	wg.Wait()
 }
