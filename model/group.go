@@ -186,7 +186,7 @@ func (group *Group) IsValidName() *AppError {
 		}
 	} else {
 		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
-			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
 		}
 
 		if !validGroupnameChars.MatchString(*group.Name) {
