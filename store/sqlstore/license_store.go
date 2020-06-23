@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -44,11 +45,11 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 	if err := license.IsValid(); err != nil {
 		return nil, err
 	}
-	query := ls.getReplicaQueryBuilder().Select("*").From("Licenses").Where(sq.Eq{"Id": license.Id}).Limit(1)
+	query := ls.getReplicaQueryBuilder().Select("Id, CreateAt, Bytes").From("Licenses").Where(sq.Eq{"Id": license.Id}).Limit(1)
 	var storedLicense model.LicenseRecord
-	if err := query.Scan(&storedLicense); err != nil {
+	if err := query.Scan(&storedLicense.Id, &storedLicense.CreateAt, &storedLicense.Bytes); err != nil {
 		insertQuery := ls.getMasterQueryBuilder().Insert("Licenses").
-			Columns("id", "create_at", "bytes").
+			Columns("Id", "CreateAt", "Bytes").
 			Values(license.Id, license.CreateAt, license.Bytes)
 		if _, err = insertQuery.Exec(); err != nil {
 			return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql_license.save.app_error", nil, "license_id="+license.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -62,15 +63,15 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
 func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
-	query := ls.getReplicaQueryBuilder().Select("*").From("Licenses").Where(sq.Eq{"Id": id})
+	query := ls.getReplicaQueryBuilder().Select("Id, CreateAt, Bytes").From("Licenses").Where(sq.Eq{"Id": id})
 
-	var obj *model.LicenseRecord
-	if err := query.Scan(obj); err != nil {
+	var obj model.LicenseRecord
+	if err := query.Scan(&obj.Id, &obj.CreateAt, &obj.Bytes); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.missing.app_error", nil, "license_id="+id, http.StatusNotFound)
+		}
 		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.app_error", nil, "license_id="+id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if obj == nil {
-		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.missing.app_error", nil, "license_id="+id, http.StatusNotFound)
-	}
-	return obj, nil
+	return &obj, nil
 }
