@@ -36,6 +36,15 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		if tmem == nil {
 			_, err = a.AddTeamMember(channel.TeamId, userChannel.UserID)
 			if err != nil {
+				if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+					a.Log().Info("Not adding user to channel because the domain associated with the account is not permitted in the given team",
+						mlog.String("user_id", userChannel.UserID),
+						mlog.String("channel_id", userChannel.ChannelID),
+						mlog.String("team_id", channel.TeamId),
+					)
+
+					return nil
+				}
 				return err
 			}
 			a.Log().Info("added teammember",
