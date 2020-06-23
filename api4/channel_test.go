@@ -3853,7 +3853,7 @@ func TestMoveChannel(t *testing.T) {
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	})
 
-	t.Run("Should be able to (force) move channel a member not member of target team", func(t *testing.T) {
+	t.Run("Should be able to (force) move channel by a member that is not member of target team", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
 		user := th.BasicUser
 
