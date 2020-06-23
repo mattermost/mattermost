@@ -106,9 +106,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		var token *model.Token
-		var nErr error
-		token, nErr = c.App.Srv().Store.Token().GetByToken(tokenId)
+		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
 		if nErr != nil {
 			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			return

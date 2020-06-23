@@ -75,7 +75,7 @@ func (s SqlTokenStore) Cleanup() {
 
 func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Type = :TokenType", map[string]interface{}{"TokenType": tokenType}); err != nil {
-		return errors.Wrapf(err, "failed to remove all Tokens with TokenType=%s", tokenType)
+		return errors.Wrapf(err, "failed to remove all Tokens with Type=%s", tokenType)
 	}
 	return nil
 }
