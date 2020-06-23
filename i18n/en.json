@@ -6911,14 +6911,6 @@
     "translation": "Unable to delete reaction."
   },
   {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
-  },
-  {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
     "translation": "Unable to delete all reactions with this emoji name."
   },
