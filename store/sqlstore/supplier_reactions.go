@@ -146,6 +146,7 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppEr
 	}
 
 	for _, reaction := range reactions {
+		reaction := reaction
 		err := store.WithDeadlockRetry(func() error {
 			_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
 				map[string]interface{}{
