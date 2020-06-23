@@ -911,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -5521,6 +5517,10 @@
   {
     "id": "model.group.name.invalid_chars.app_error",
     "translation": "invalid characters in the name property for group"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
     "id": "model.group.remote_id.app_error",
