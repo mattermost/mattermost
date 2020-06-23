@@ -6,10 +6,12 @@ package sqlstore
 import (
 	"net/http"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 )
 
 type SqlReactionStore struct {
@@ -56,19 +58,24 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *mod
 }
 
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	transaction, err := s.GetMaster().Begin()
+	err := store.WithDeadlockRetry(func() error {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransaction(transaction)
+
+		if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
+			return errors.Wrap(err, "deleteReactionAndUpdatePost")
+		}
+
+		if err := transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	defer finalizeTransaction(transaction)
-
-	appErr := deleteReactionAndUpdatePost(transaction, reaction)
-	if appErr != nil {
-		return nil, model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-	}
-
-	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return reaction, nil
@@ -124,20 +131,34 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppEr
 			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := s.GetMaster().Exec(
-		`DELETE FROM
+	err := store.WithDeadlockRetry(func() error {
+		_, err := s.GetMaster().Exec(
+			`DELETE FROM
 				Reactions
 			WHERE
-				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
+				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName})
+		return err
+	})
+	if err != nil {
 		return model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
 			"store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error", nil,
 			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reaction := range reactions {
-		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
-			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
-			mlog.Warn("Unable to update Post.HasReactions while removing reactions", mlog.String("post_id", reaction.PostId), mlog.Err(err))
+		reaction := reaction
+		err := store.WithDeadlockRetry(func() error {
+			_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
+				map[string]interface{}{
+					"PostId":   reaction.PostId,
+					"UpdateAt": model.GetMillis(),
+				})
+			return err
+		})
+		if err != nil {
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", reaction.PostId),
+				mlog.Err(err))
 		}
 	}
 
