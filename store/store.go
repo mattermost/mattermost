@@ -9,7 +9,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
 )
 
 type StoreResult struct {
@@ -151,7 +155,7 @@ type ChannelStore interface {
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
-	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
@@ -607,14 +611,14 @@ type RoleStore interface {
 }
 
 type SchemeStore interface {
-	Save(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	Get(schemeId string) (*model.Scheme, *model.AppError)
-	GetByName(schemeName string) (*model.Scheme, *model.AppError)
-	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
-	Delete(schemeId string) (*model.Scheme, *model.AppError)
-	PermanentDeleteAll() *model.AppError
-	CountByScope(scope string) (int64, *model.AppError)
-	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
+	Save(scheme *model.Scheme) (*model.Scheme, error)
+	Get(schemeId string) (*model.Scheme, error)
+	GetByName(schemeName string) (*model.Scheme, error)
+	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
+	Delete(schemeId string) (*model.Scheme, error)
+	PermanentDeleteAll() error
+	CountByScope(scope string) (int64, error)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error)
 }
 
 type TermsOfServiceStore interface {
@@ -769,4 +773,32 @@ type RelationalIntegrityCheckData struct {
 type IntegrityCheckResult struct {
 	Data interface{}
 	Err  error
+}
+
+const mySQLDeadlockCode = uint16(1213)
+
+// WithDeadlockRetry retries a given f if it throws a deadlock error.
+// It breaks after a threshold and propagates the error upwards.
+// TODO: This can be a separate retry layer in itself where transaction retries
+// are automatically applied.
+func WithDeadlockRetry(f func() error) error {
+	var err error
+	for i := 0; i < 3; i++ {
+		err = f()
+		if err == nil {
+			// No error, return nil.
+			return nil
+		}
+		// XXX: Possibly add check for postgres deadlocks later.
+		// But deadlocks are very rarely seen in postgres.
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
+			mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
+			// This is a deadlock, retry.
+			continue
+		}
+		// Some other error, return as-is.
+		return err
+	}
+	return errors.Wrap(err, "giving up after 3 consecutive deadlocks")
 }
