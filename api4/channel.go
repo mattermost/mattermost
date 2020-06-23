@@ -1816,7 +1816,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if force {
-		err := c.App.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team)
+		err = c.App.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team)
 		if err != nil {
 			c.Err = err
 			return

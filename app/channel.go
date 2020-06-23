@@ -2369,6 +2369,15 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 
 		if len(teamMembers) != len(*channelMembers) {
+			teamMembersMap := make(map[string]*model.TeamMember, len(teamMembers))
+			for _, teamMember := range teamMembers {
+				teamMembersMap[teamMember.UserId] = teamMember
+			}
+			for _, channelMember := range *channelMembers {
+				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
+					mlog.Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+				}
+			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
 		}
 	}
