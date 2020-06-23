@@ -8,16 +8,13 @@ import (
 	"runtime"
 	"strings"
 
-	rudder "github.com/rudderlabs/analytics-go"
-	"github.com/segmentio/analytics-go"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	rudder "github.com/rudderlabs/analytics-go"
 )
 
 const (
-	SEGMENT_KEY          = "placeholder_segment_key"
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
@@ -75,21 +72,8 @@ func (s *Server) SendDailyDiagnostics() {
 }
 
 func (s *Server) sendDailyDiagnostics(override bool) {
-	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		s.initDiagnostics("")
-		s.trackActivity()
-		s.trackConfig()
-		s.trackLicense()
-		s.trackPlugins()
-		s.trackServer()
-		s.trackPermissions()
-		s.trackElasticsearch()
-		s.trackGroups()
-		s.trackChannelModeration()
-	}
-
 	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		s.initRudder(RUDDER_DATAPLANE_URL)
+		s.initDiagnostics(RUDDER_DATAPLANE_URL)
 		s.trackActivity()
 		s.trackConfig()
 		s.trackLicense()
@@ -103,14 +87,6 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 }
 
 func (s *Server) SendDiagnostic(event string, properties map[string]interface{}) {
-	if s.diagnosticClient != nil {
-		s.diagnosticClient.Enqueue(analytics.Track{
-			Event:      event,
-			UserId:     s.diagnosticId,
-			Properties: properties,
-		})
-	}
-
 	if s.rudderClient != nil {
 		s.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
