@@ -5519,6 +5519,10 @@
     "translation": "invalid characters in the name property for group"
   },
   {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
