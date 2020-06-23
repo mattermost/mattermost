@@ -324,7 +324,10 @@ func TestEnsureBot(t *testing.T) {
 
 		_, err := client.Bot.EnsureBot(nil)
 		require.Error(t, err)
-		assert.Equal(t, "failed to ensure bot: incompatible server version for plugin, minimum required version: 5.10.0, current version: 5.9.0", err.Error())
+		assert.Equal(t,
+			"failed to ensure bot: incompatible server version for plugin, minimum required version: 5.10.0, current version: 5.9.0",
+			err.Error(),
+		)
 	})
 
 	t.Run("bad parameters", func(t *testing.T) {
@@ -396,7 +399,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0644)
+			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
@@ -425,7 +428,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0644)
+			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
@@ -454,14 +457,14 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0644)
+			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			iconImageFile, err := ioutil.TempFile("", "profile_image")
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0644)
+			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
@@ -498,14 +501,14 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0644)
+			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			iconImageFile, err := ioutil.TempFile("", "profile_image")
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0644)
+			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("GetServerVersion").Return("5.10.0")
@@ -621,7 +624,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0644)
+			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
@@ -650,7 +653,7 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0644)
+			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
@@ -679,14 +682,14 @@ func TestEnsureBot(t *testing.T) {
 			require.NoError(t, err)
 
 			profileImageBytes := []byte("profile image")
-			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0644)
+			err = ioutil.WriteFile(profileImageFile.Name(), profileImageBytes, 0600)
 			require.NoError(t, err)
 
 			iconImageFile, err := ioutil.TempFile("", "profile_image")
 			require.NoError(t, err)
 
 			iconImageBytes := []byte("icon image")
-			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0644)
+			err = ioutil.WriteFile(iconImageFile.Name(), iconImageBytes, 0600)
 			require.NoError(t, err)
 
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
