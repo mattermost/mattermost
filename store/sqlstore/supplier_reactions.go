@@ -65,8 +65,7 @@ func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *m
 		}
 		defer finalizeTransaction(transaction)
 
-		err = deleteReactionAndUpdatePost(transaction, reaction)
-		if err != nil {
+		if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
 			return errors.Wrap(err, "deleteReactionAndUpdatePost")
 		}
 

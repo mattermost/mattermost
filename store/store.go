@@ -7,7 +7,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
