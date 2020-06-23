@@ -4543,7 +4543,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
-	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+	CheckErrorMessage(t, resp, "app.user_terms_of_service.get_by_user.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	require.Nil(t, err)
@@ -4599,6 +4599,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
+		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName

@@ -332,6 +332,10 @@
     "translation": "%v left the channel."
   },
   {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Unable to move direct or group message channels"
+  },
+  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -2067,6 +2071,10 @@
     "translation": "Malformed request: filesize field is not present."
   },
   {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unknown import source."
+  },
+  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -3043,6 +3051,10 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -3931,6 +3943,26 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Unable to delete this scheme."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Unable to get the scheme."
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Unable to create the scheme."
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid."
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
@@ -3985,6 +4017,22 @@
   {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -5323,6 +5371,10 @@
     "translation": "Invalid Signature Algorithm."
   },
   {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Service Provider Identifier is required"
+  },
+  {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Invalid Username attribute. Must be set."
   },
@@ -6231,10 +6283,6 @@
     "translation": "Unable to get the channel members."
   },
   {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
   },
@@ -6867,14 +6915,6 @@
     "translation": "Unable to delete reaction."
   },
   {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
-  },
-  {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
     "translation": "Unable to delete all reactions with this emoji name."
   },
@@ -6961,54 +7001,6 @@
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme."
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme."
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme."
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid."
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles."
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -7625,22 +7617,6 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Unable to enable the access token."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

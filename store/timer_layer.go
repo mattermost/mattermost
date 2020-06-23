@@ -1128,7 +1128,7 @@ func (s *TimerLayerChannelStore) GetMembersForUserWithPagination(teamId string, 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
@@ -5036,7 +5036,7 @@ func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.CountByScope(scope)
@@ -5052,7 +5052,7 @@ func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
@@ -5068,7 +5068,7 @@ func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
@@ -5084,7 +5084,7 @@ func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.A
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
@@ -5100,7 +5100,7 @@ func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
@@ -5116,7 +5116,7 @@ func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
@@ -5132,7 +5132,7 @@ func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *TimerLayerSchemeStore) PermanentDeleteAll() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SchemeStore.PermanentDeleteAll()
@@ -5148,7 +5148,7 @@ func (s *TimerLayerSchemeStore) PermanentDeleteAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Save(scheme)
@@ -7812,7 +7812,7 @@ func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
@@ -7828,7 +7828,7 @@ func (s *TimerLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 	return resultVar0
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
@@ -7844,7 +7844,7 @@ func (s *TimerLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)
