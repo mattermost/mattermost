@@ -911,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -5531,6 +5527,10 @@
     "translation": "invalid characters in the name property for group"
   },
   {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
@@ -6917,14 +6917,6 @@
   {
     "id": "store.sql_reaction.delete.app_error",
     "translation": "Unable to delete reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
