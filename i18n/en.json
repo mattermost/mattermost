@@ -332,6 +332,10 @@
     "translation": "%v left the channel."
   },
   {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Unable to move direct or group message channels"
+  },
+  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -907,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -1113,6 +1113,10 @@
   {
     "id": "api.config.client.old_format.app_error",
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "Site URL cannot be cleared."
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
@@ -1355,6 +1359,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_channelId.app_error",
+    "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
@@ -1815,6 +1823,10 @@
     "translation": "An error occurred building the push notification message."
   },
   {
+    "id": "api.push_notifications.session.expired",
+    "translation": "Session Expired: Please log in to continue receiving notifications. Sessions for {{.siteName}} are configured by your System Administrator to expire every {{.daysCount}} day(s)."
+  },
+  {
     "id": "api.push_notifications_ack.forward.app_error",
     "translation": "An error occurred sending the receipt delivery to the push notification service."
   },
@@ -2053,6 +2065,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Malformed request: filesize field is not present."
+  },
+  {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unknown import source."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -3007,6 +3023,34 @@
     "translation": "Unable to count all the channels."
   },
   {
+    "id": "app.channel.get_by_name.existing.app_error",
+    "translation": "Unable to find the existing channel."
+  },
+  {
+    "id": "app.channel.get_by_name.missing.app_error",
+    "translation": "Channel does not exist."
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels.not_found.app_error",
+    "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_deleted.existing.app_error",
+    "translation": "Unable to find the existing deleted channel."
+  },
+  {
+    "id": "app.channel.get_deleted.missing.app_error",
+    "translation": "No deleted channels exist."
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -3895,6 +3939,26 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Unable to delete this scheme."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Unable to get the scheme."
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Unable to create the scheme."
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid."
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
@@ -3949,6 +4013,22 @@
   {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -4192,7 +4272,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": "Failed to purge records."
+    "translation": ""
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4372,7 +4452,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": "Failed to get users in channel during specified time period."
+    "translation": ""
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -5024,7 +5104,7 @@
   },
   {
     "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Bleve EnableIndexing setting must be set to true when Bleve IndexingDir is set"
+    "translation": "Bleve IndexingDir setting must be set when Bleve EnableIndexing is set to true"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -5285,6 +5365,10 @@
   {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
     "translation": "Invalid Signature Algorithm."
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Service Provider Identifier is required"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -6139,28 +6223,12 @@
     "translation": "Unable to get all the direct channels."
   },
   {
-    "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Unable to find the existing channel."
-  },
-  {
-    "id": "store.sql_channel.get_by_name.missing.app_error",
-    "translation": "Channel does not exist."
-  },
-  {
     "id": "store.sql_channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
     "translation": "Unable to get the channel counts."
-  },
-  {
-    "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels.not_found.app_error",
-    "translation": "No channels were found."
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -6177,22 +6245,6 @@
   {
     "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted.missing.app_error",
-    "translation": "No deleted channels exist."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Unable to find the existing deleted channel."
-  },
-  {
-    "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
-    "translation": "No deleted channel exists with that name."
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
@@ -6221,10 +6273,6 @@
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Unable to get the channel members."
-  },
-  {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Unable to get the channels."
   },
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
@@ -6257,22 +6305,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.update.app_error",
     "translation": "Failed to update the channel member."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Unable to delete the channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-    "translation": "Unable to open transaction."
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -6719,6 +6751,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+    "translation": "Unable to get the oldest entitiy creation time."
+  },
+  {
     "id": "store.sql_post.get_parents_posts.app_error",
     "translation": "Unable to get the parent post for the channel."
   },
@@ -6871,14 +6907,6 @@
     "translation": "Unable to delete reaction."
   },
   {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
-  },
-  {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
     "translation": "Unable to delete all reactions with this emoji name."
   },
@@ -6967,54 +6995,6 @@
     "translation": "Failed to commit the transaction to save the role."
   },
   {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme."
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme."
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme."
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid."
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles."
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme."
-  },
-  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "Unable to count the sessions."
   },
@@ -7049,6 +7029,10 @@
   {
     "id": "store.sql_session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "store.sql_session.update_expired_notify.app_error",
+    "translation": "Unable to update expired_notify."
   },
   {
     "id": "store.sql_session.update_expires_at.app_error",
@@ -7625,22 +7609,6 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Unable to enable the access token."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

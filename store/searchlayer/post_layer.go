@@ -4,6 +4,9 @@
 package searchlayer
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -80,10 +83,17 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 
 func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	// We only allow the user to search in channels they are a member of.
-	userChannels, err := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels)
-	if err != nil {
-		mlog.Error("error getting channel for user", mlog.Err(err))
-		return nil, err
+	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels)
+	if nErr != nil {
+		mlog.Error("error getting channel for user", mlog.Err(nErr))
+		var nfErr *store.ErrNotFound
+		switch {
+		// TODO: This error key would go away once this store method is migrated to return plain errors
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("searchPostsInTeamForUserByEngine", "app.channel.get_channels.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	postIds, matches, err := engine.SearchPosts(userChannels, paramsList, page, perPage)

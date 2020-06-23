@@ -16,38 +16,42 @@ const (
 
 type ClusterDiscoveryService struct {
 	model.ClusterDiscovery
-	app  *App
+	srv  *Server
 	stop chan bool
 }
 
-func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
+func (s *Server) NewClusterDiscoveryService() *ClusterDiscoveryService {
 	ds := &ClusterDiscoveryService{
 		ClusterDiscovery: model.ClusterDiscovery{},
-		app:              a,
+		srv:              s,
 		stop:             make(chan bool),
 	}
 
 	return ds
 }
 
+func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
+	return a.Srv().NewClusterDiscoveryService()
+}
+
 func (me *ClusterDiscoveryService) Start() {
-	err := me.app.Srv().Store.ClusterDiscovery().Cleanup()
+	err := me.srv.Store.ClusterDiscovery().Cleanup()
 	if err != nil {
 		mlog.Error("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information", mlog.Err(err))
 	}
 
-	exists, err := me.app.Srv().Store.ClusterDiscovery().Exists(&me.ClusterDiscovery)
+	exists, err := me.srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery)
 	if err != nil {
 		mlog.Error("ClusterDiscoveryService failed to check if row exists", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
 	} else {
 		if exists {
-			if _, err := me.app.Srv().Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
+			if _, err := me.srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
 				mlog.Error("ClusterDiscoveryService failed to start clean", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
 			}
 		}
 	}
 
-	if err := me.app.Srv().Store.ClusterDiscovery().Save(&me.ClusterDiscovery); err != nil {
+	if err := me.srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); err != nil {
 		mlog.Error("ClusterDiscoveryService failed to save", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
 		return
 	}
@@ -57,7 +61,7 @@ func (me *ClusterDiscoveryService) Start() {
 		ticker := time.NewTicker(DISCOVERY_SERVICE_WRITE_PING)
 		defer func() {
 			ticker.Stop()
-			if _, err := me.app.Srv().Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
+			if _, err := me.srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); err != nil {
 				mlog.Error("ClusterDiscoveryService failed to cleanup", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
 			}
 			mlog.Debug("ClusterDiscoveryService ping writer stopped", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()))
@@ -66,7 +70,7 @@ func (me *ClusterDiscoveryService) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if err := me.app.Srv().Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); err != nil {
+				if err := me.srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); err != nil {
 					mlog.Error("ClusterDiscoveryService failed to write ping", mlog.String("ClusterDiscovery", me.ClusterDiscovery.ToJson()), mlog.Err(err))
 				}
 			case <-me.stop:
@@ -80,11 +84,15 @@ func (me *ClusterDiscoveryService) Stop() {
 	me.stop <- true
 }
 
-func (a *App) IsLeader() bool {
-	if a.License() != nil && *a.Config().ClusterSettings.Enable && a.Cluster() != nil {
-		return a.Cluster().IsLeader()
+func (s *Server) IsLeader() bool {
+	if s.License() != nil && *s.Config().ClusterSettings.Enable && s.Cluster != nil {
+		return s.Cluster.IsLeader()
 	}
 	return true
+}
+
+func (a *App) IsLeader() bool {
+	return a.Srv().IsLeader()
 }
 
 func (a *App) GetClusterId() string {
