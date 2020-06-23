@@ -42,7 +42,6 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 						mlog.String("channel_id", userChannel.ChannelID),
 						mlog.String("team_id", channel.TeamId),
 					)
-
 					continue
 				}
 				return err
