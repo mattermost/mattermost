@@ -2456,6 +2456,19 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// MoveChannel moves the channel to the destination team.
+func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
+	requestBody := map[string]string{
+		"team_id": teamId,
+	}
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelFromJson(r.Body), BuildResponse(r)
+}
+
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
 func (c *Client4) GetChannelByName(channelName, teamId string, etag string) (*Channel, *Response) {
 	r, err := c.DoApiGet(c.GetChannelByNameRoute(channelName, teamId), etag)
