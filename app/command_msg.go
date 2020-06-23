@@ -76,7 +76,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	if channel, channelErr := a.Srv().Store.Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(channelErr, &nfErr) {
-			if !a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
+			if !a.HasPermissionTo(args.UserId, model.PERMISSION_CREATE_DIRECT_CHANNEL) {
 				return &model.CommandResponse{Text: args.T("api.command_msg.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
@@ -105,15 +105,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		}
 	}
 
-	teamId := args.TeamId
-	if teamId == "" {
-		if len(args.Session.TeamMembers) == 0 {
-			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		}
-		teamId = args.Session.TeamMembers[0].TeamId
-	}
-
-	team, err := a.GetTeam(teamId)
+	team, err := a.GetTeam(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
