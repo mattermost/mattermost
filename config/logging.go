@@ -4,7 +4,6 @@
 package config
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -15,7 +14,6 @@ import (
 )
 
 type LogSrcListener func(old, new mlog.LogTargetCfg)
-type shutdownHook func(context.Context) error
 
 // LogConfigSrc abstracts the Advanced Logging configuration so that implementations can
 // fetch from file, database, etc.
