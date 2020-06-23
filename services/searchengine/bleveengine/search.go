@@ -43,6 +43,11 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	filters = append(filters, typeQ)
 
 	for i, params := range searchParams {
+		var termOperator query.MatchQueryOperator = query.MatchQueryOperatorAnd
+		if searchParams[0].OrTerms {
+			termOperator = query.MatchQueryOperatorOr
+		}
+
 		// Date, channels and FromUsers filters come in all
 		// searchParams iteration, and as they are global to the
 		// query, we only need to process them once
@@ -141,29 +146,26 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 			if params.Terms != "" {
 				hashtagQ := bleve.NewMatchQuery(params.Terms)
 				hashtagQ.SetField("Hashtags")
+				hashtagQ.SetOperator(termOperator)
 				termQueries = append(termQueries, hashtagQ)
 			} else if params.ExcludedTerms != "" {
 				hashtagQ := bleve.NewMatchQuery(params.ExcludedTerms)
 				hashtagQ.SetField("Hashtags")
+				hashtagQ.SetOperator(termOperator)
 				notTermQueries = append(notTermQueries, hashtagQ)
 			}
 		} else {
 			if len(params.Terms) > 0 {
-				query := bleve.NewBooleanQuery()
 				messageQ := bleve.NewMatchQuery(params.Terms)
 				messageQ.SetField("Message")
-
-				if searchParams[0].OrTerms {
-					query.AddShould(messageQ)
-				} else {
-					query.AddMust(messageQ)
-				}
+				messageQ.SetOperator(termOperator)
 				termQueries = append(termQueries, messageQ)
 			}
 
 			if len(params.ExcludedTerms) > 0 {
 				messageQ := bleve.NewMatchQuery(params.ExcludedTerms)
 				messageQ.SetField("Message")
+				messageQ.SetOperator(termOperator)
 				notTermQueries = append(notTermQueries, messageQ)
 			}
 		}

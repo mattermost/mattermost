@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -101,7 +102,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
@@ -130,7 +131,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	wsapi.Init(th.App.Srv())
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -145,19 +146,31 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
+
+	// Verify handling of the supported true/false values by randomizing on each run.
+	rand.Seed(time.Now().UTC().UnixNano())
+	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
+	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
+	trueString := trueValues[rand.Intn(len(trueValues))]
+	falseString := falseValues[rand.Intn(len(falseValues))]
+	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
+	th.Client.SetBoolString(true, trueString)
+	th.Client.SetBoolString(false, falseString)
 
 	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	th.App.InitServer()
 
 	return th
 }
@@ -254,7 +267,7 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 
 	me.ShutdownApp()
@@ -678,7 +691,7 @@ func (me *TestHelper) GenerateTestEmail() string {
 func (me *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        "n-" + id,
+		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + id,
