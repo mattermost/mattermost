@@ -355,8 +355,8 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
-	rpost, err := testPoster.CreateRandomPost()
-	if err != nil {
+	rpost, err2 := testPoster.CreateRandomPost()
+	if err2 != nil {
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
 	for i := 0; i < 1000; i++ {
