@@ -6,8 +6,8 @@ package web
 import (
 	b64 "encoding/base64"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -49,9 +49,9 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(redirectTo) != 0 {
 		relayProps["redirect_to"] = redirectTo
 	}
-	
+
 	relayProps["isMobile"] = strconv.FormatBool(isMobile)
-	
+
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
 	}

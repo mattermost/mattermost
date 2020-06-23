@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"

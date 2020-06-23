@@ -38,7 +38,7 @@ type Session struct {
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
 	IsSaml         bool          `json:"is_saml"`
-	IsMobile         bool          `json:"is_mobile"`
+	IsMobile       bool          `json:"is_mobile"`
 	ExpiredNotify  bool          `json:"expired_notify"`
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
