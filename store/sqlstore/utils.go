@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -51,4 +52,27 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
 		mlog.Error("Failed to rollback transaction", mlog.Err(err))
 	}
+}
+
+// filterNonAlphaNumericTerms removes all words that only contains non-alphanumeric chars from given line
+func filterNonAlphaNumericTerms(line string) string {
+	words := strings.Split(line, " ")
+	filteredResult := make([]string, 0, len(words))
+
+	for _, w := range words {
+		if containsAlphaNumericChar(w) {
+			filteredResult = append(filteredResult, strings.TrimSpace(w))
+		}
+	}
+	return strings.Join(filteredResult, " ")
+}
+
+// isAlphaNumericWord returns true in case any letter or digit is present, false otherwise
+func containsAlphaNumericChar(s string) bool {
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			return true
+		}
+	}
+	return false
 }

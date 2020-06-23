@@ -76,3 +76,26 @@ func TestSanitizeSearchTerm(t *testing.T) {
 	result = sanitizeSearchTerm(term, "*")
 	require.Equal(t, result, expected)
 }
+
+func TestFilterNonAlphaNumericWords(t *testing.T) {
+	term := ""
+	expected := ""
+	result := filterNonAlphaNumericTerms(term)
+	require.Equal(t, result, expected)
+
+	term = "hello"
+	expected = "hello"
+	result = filterNonAlphaNumericTerms(term)
+	require.Equal(t, result, expected)
+
+	term = "hello*"
+	expected = "hello*"
+	result = filterNonAlphaNumericTerms(term)
+	require.Equal(t, result, expected)
+
+	term = "hel*lo &** **"
+	expected = "hel*lo"
+	result = filterNonAlphaNumericTerms(term)
+	require.Equal(t, result, expected)
+
+}

@@ -17,7 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"unicode"
 )
 
 type SqlPostStore struct {
@@ -1745,35 +1744,9 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
-		// Don't allow users to search for everything.
-		if params.Terms == "*" {
-			continue
-		}
-
-		// WIP remove  * as words
-		for i := range paramsList {
-			paramTerms := make([]string, 0, len(paramsList[i].Terms))
-			tokens := strings.Split(paramsList[i].Terms, " ")
-
-			for _, token := range tokens {
-				// check if this word has any letter/digit, then only include
-				// because `qwert*` should be included but `**` must not
-				containsAlphaNumeric := false
-				for _, r := range token {
-					if unicode.IsLetter(r) || unicode.IsDigit(r) {
-						containsAlphaNumeric = true
-						break
-					}
-				}
-				if containsAlphaNumeric {
-					paramTerms = append(paramTerms, token)
-				}
-			}
-
-			paramsList[i].Terms = strings.Join(paramTerms, " ")
-		}
-		//// WIP  ******** sanitizeSearchTerm
-
+		// remove any term that contains only non-alphanumeric chars
+		// ex: "abcd ** ef*g &^!" >> "abcd ef*g"
+		params.Terms = filterNonAlphaNumericTerms(params.Terms)
 		params.IncludeDeletedChannels = includeDeletedChannels
 		params.OrTerms = isOrSearch
 
