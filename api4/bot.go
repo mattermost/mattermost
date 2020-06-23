@@ -386,7 +386,7 @@ func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.GetBot(c.Params.BotUserId, true)
+	bot, err := c.App.GetBot(c.Params.BotUserId, false)
 	if err != nil {
 		c.Err = err
 		return

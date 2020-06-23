@@ -2150,10 +2150,11 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 	}
 
 	if sysadmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		if _, err = a.UpdateUserRoles(
+		_, err := a.UpdateUserRoles(
 			user.Id,
 			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
-			false); err != nil {
+			false)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -2170,8 +2171,8 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 		return nil, err
 	}
 
-	err2 := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
-	if err2 != nil {
+	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
+	if appErr != nil {
 		return nil, model.NewAppError("ConvertBotToUser", "", nil, err.Error(), http.StatusInternalServerError)
 	}
 
