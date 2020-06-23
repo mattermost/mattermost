@@ -803,8 +803,7 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 		sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
 		sqlStore.GetMaster().Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
 		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
-		sqlStore.CreateColumnIfNotExists("Sessions", "IsSaml", "boolean", "boolean", "0")
-		sqlStore.CreateColumnIfNotExists("Sessions", "IsMobile", "boolean", "boolean", "0")
+
 		saveSchemaVersion(sqlStore, VERSION_5_24_0)
 	}
 }
@@ -812,7 +811,8 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 func upgradeDatabaseToVersion525(sqlStore SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.25
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
-
+	sqlStore.CreateColumnIfNotExists("Sessions", "IsSaml", "boolean", "boolean", "0")
+	sqlStore.CreateColumnIfNotExists("Sessions", "IsMobile", "boolean", "boolean", "0")
 	//saveSchemaVersion(sqlStore, VERSION_5_25_0)
 	//}
 }
@@ -822,6 +822,6 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
 	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
-	// saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	//saveSchemaVersion(sqlStore, VERSION_5_26_0)
 	//}
 }
