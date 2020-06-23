@@ -911,7 +911,7 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 
 }
 
-func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError) {
+func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (*model.Channel, error) {
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByName(team_id, name)
 
@@ -1111,7 +1111,7 @@ func (s *RetryLayerChannelStore) GetMembersForUserWithPagination(teamId string, 
 
 }
 
-func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error) {
 
 	resultVar0, resultVar1 := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
 
@@ -4108,6 +4108,22 @@ func (s *RetryLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 
 }
 
+func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+
+	resultVar0, resultVar1 := s.PostStore.GetOldestEntityCreationTime()
+
+	for {
+		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+			break
+		}
+		resultVar0, resultVar1 = s.PostStore.GetOldestEntityCreationTime()
+		fmt.Println("RETRYING GetOldestEntityCreationTime")
+	}
+
+	return resultVar0, resultVar1
+
+}
+
 func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 
 	resultVar0, resultVar1 := s.PostStore.GetParentsForExportAfter(limit, afterId)
@@ -4883,7 +4899,7 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppErr
 
 }
 
-func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.CountByScope(scope)
 
@@ -4899,7 +4915,7 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, *model.AppErr
 
 }
 
-func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
 
@@ -4915,7 +4931,7 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 
 }
 
-func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
 
@@ -4931,7 +4947,7 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.A
 
 }
 
-func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
 
@@ -4947,7 +4963,7 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppE
 
 }
 
-func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
 
@@ -4963,7 +4979,7 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 
 }
 
-func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
 
@@ -4979,7 +4995,7 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *mo
 
 }
 
-func (s *RetryLayerSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 
 	resultVar0 := s.SchemeStore.PermanentDeleteAll()
 
@@ -4995,7 +5011,7 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() *model.AppError {
 
 }
 
-func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 
 	resultVar0, resultVar1 := s.SchemeStore.Save(scheme)
 
@@ -7203,6 +7219,22 @@ func (s *RetryLayerUserStore) SearchInChannel(channelId string, term string, opt
 
 }
 
+func (s *RetryLayerUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+
+	resultVar0, resultVar1 := s.UserStore.SearchInGroup(groupID, term, options)
+
+	for {
+		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+			break
+		}
+		resultVar0, resultVar1 = s.UserStore.SearchInGroup(groupID, term, options)
+		fmt.Println("RETRYING SearchInGroup")
+	}
+
+	return resultVar0, resultVar1
+
+}
+
 func (s *RetryLayerUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 
 	resultVar0, resultVar1 := s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
@@ -7555,7 +7587,7 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 
 }
 
-func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) *model.AppError {
+func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfServiceId string) error {
 
 	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
 
@@ -7571,7 +7603,7 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 
 }
 
-func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, *model.AppError) {
+func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.UserTermsOfService, error) {
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
 
@@ -7587,7 +7619,7 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 
 }
 
-func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError) {
+func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, error) {
 
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)
 

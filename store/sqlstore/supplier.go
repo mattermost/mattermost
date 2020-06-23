@@ -67,7 +67,11 @@ const (
 	EXIT_DOES_COLUMN_EXISTS_SQLITE    = 138
 	EXIT_ALTER_PRIMARY_KEY            = 139
 	EXIT_DOES_COLUMN_EXISTS_COCKROACH = 140
+	EXIT_INVALID_LICENSE              = 141
 )
+
+// CockroachQueryBuilder is the responsible of build sql queries for special cases of CockroachDB
+var CockroachQueryBuilder einterfaces.CockroachQueryBuilder
 
 type SqlSupplierStores struct {
 	team                 store.TeamStore
@@ -438,17 +442,8 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 		return count > 0
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		count, err := ss.GetMaster().SelectInt(
-			`SELECT
-		    COUNT(0) AS table_exists
-			FROM
-			    information_schema.TABLES
-			WHERE
-			    table_catalog = current_database()
-			        AND table_name = $1
-		    `,
-			tableName,
-		)
+		queryString, args := CockroachQueryBuilder.BuildDoesTableExistsQuery(tableName)
+		count, err := ss.GetMaster().SelectInt(queryString, args...)
 
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to check if table exists %v", err))
@@ -504,20 +499,9 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		return count > 0
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query := ss.getQueryBuilder().Select("COUNT(0) AS column_exists").
-			From("information_schema.COLUMNS").
-			Where(sq.Expr("TABLE_CATALOG = CURRENT_DATABASE()")).
-			Where(sq.Eq{"TABLE_NAME": strings.ToLower(tableName)}).
-			Where(sq.Eq{"COLUMN_NAME": strings.ToLower(columnName)})
-
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			mlog.Critical("Failed to check if column exists", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_DOES_COLUMN_EXISTS_MYSQL)
-		}
-
+		queryString, args := CockroachQueryBuilder.BuildDoesColumnExistsQuery(tableName, columnName)
 		count, err := ss.GetMaster().SelectInt(queryString, args...)
+
 		if err != nil {
 			mlog.Critical("Failed to check if column exists", mlog.Err(err))
 			time.Sleep(time.Second)
@@ -563,79 +547,10 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		}
 
 		return count > 0
-	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-
-		count, err := ss.GetMaster().SelectInt(
-			`SELECT
-		    COUNT(0) AS column_exists
-		FROM
-		    information_schema.columns
-		WHERE
-		    table_catalog = current_database()
-		        AND table_name = $1
-		        AND column_name = $2`,
-			tableName,
-			columnName,
-		)
-
-		if err != nil {
-			mlog.Critical(fmt.Sprintf("Failed to check if column exists %v", err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_DOES_COLUMN_EXISTS_COCKROACH)
-		}
-
-		return count > 0
-
 	} else {
 		mlog.Critical("Failed to check if column exists because of missing driver")
 		time.Sleep(time.Second)
 		os.Exit(EXIT_DOES_COLUMN_EXISTS_MISSING)
-		return false
-	}
-}
-
-func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
-	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		count, err := ss.GetMaster().SelectInt(`
-			SELECT
-				COUNT(0)
-			FROM
-				pg_trigger
-			WHERE
-				tgname = $1
-		`, triggerName)
-
-		if err != nil {
-			mlog.Critical("Failed to check if trigger exists", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-
-		return count > 0
-
-	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		count, err := ss.GetMaster().SelectInt(`
-			SELECT
-				COUNT(0)
-			FROM
-				information_schema.triggers
-			WHERE
-				trigger_schema = DATABASE()
-			AND	trigger_name = ?
-		`, triggerName)
-
-		if err != nil {
-			mlog.Critical("Failed to check if trigger exists", mlog.Err(err))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_GENERIC_FAILURE)
-		}
-
-		return count > 0
-
-	} else {
-		mlog.Critical("Failed to check if column exists because of missing driver")
-		time.Sleep(time.Second)
-		os.Exit(EXIT_GENERIC_FAILURE)
 		return false
 	}
 }
@@ -767,11 +682,9 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 
 	var result string
 	var err error
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
-	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES || ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 

@@ -1301,22 +1301,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		LIMIT 30`
 
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query =
-			`SELECT DISTINCT
-					(Posts.CreateAt / 1000)::INT::DATE AS Name,
-					COUNT(DISTINCT Posts.UserId) AS Value
-			FROM Posts`
-
-		if len(teamId) > 0 {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-			GROUP BY (Posts.CreateAt / 1000)::INT::DATE
-			ORDER BY Name DESC
-			LIMIT 30`
+		query = CockroachQueryBuilder.BuildAnalyticsUserCountsWithPostsByDayQuery(teamId)
 	}
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query =
@@ -1375,27 +1360,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		LIMIT 30`
 
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query =
-			`SELECT
-					(Posts.CreateAt/1000)::INT::DATE AS Name,
-					COUNT(Posts.Id) AS Value
-				FROM Posts`
-
-		if options.BotsOnly {
-			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
-		}
-
-		if len(options.TeamId) > 0 {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
-		} else {
-			query += " WHERE"
-		}
-
-		query += ` Posts.CreateAt <= :EndTime
-						AND Posts.CreateAt >= :StartTime
-			GROUP BY (Posts.CreateAt/1000)::INT::DATE
-			ORDER BY Name DESC
-			LIMIT 30`
+		query = CockroachQueryBuilder.BuildAnalyticsPostCountsByDayQuery(options)
 	}
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1596,19 +1561,8 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		// The Post.Message column in MySQL has historically been TEXT, with a maximum
-		// limit of 65535.
-		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-			SELECT 
-				coalesce(character_maximum_length, 0)
-			FROM 
-				information_schema.columns
-			WHERE 
-				table_catalog = current_database()
-			AND	table_name = 'posts'
-			AND	column_name = 'message'
-			LIMIT 1
-		`); err != nil {
+		queryString := CockroachQueryBuilder.BuildDetermineMaxPostSizeQuery()
+		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, queryString); err != nil {
 			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {
