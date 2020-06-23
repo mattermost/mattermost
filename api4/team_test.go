@@ -1221,7 +1221,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}
 
 	foobarTeam, err := th.App.CreateTeam(&model.Team{
-		DisplayName: "FOOBAR",
+		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.TEAM_OPEN,
 		Email:       th.GenerateTestEmail(),
@@ -1236,19 +1236,19 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}{
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "oob", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "foo", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "bar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
