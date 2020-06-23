@@ -10,7 +10,7 @@ type PropertyStore interface {
 	SetProperty(userID, propertyName string, value interface{}) error
 }
 
-type FlowStore interface {
+type Store interface {
 	SetPostID(userID, propertyName, postID string) error
 	GetPostID(userID, propertyName string) (string, error)
 	RemovePostID(userID, propertyName string) error
@@ -24,7 +24,7 @@ type flowStore struct {
 	keyPrefix string
 }
 
-func NewFlowStore(apiClient pluginapi.Client, keyPrefix string) FlowStore {
+func NewFlowStore(apiClient pluginapi.Client, keyPrefix string) Store {
 	return &flowStore{
 		client:    apiClient,
 		keyPrefix: keyPrefix,

@@ -1,7 +1,8 @@
 package steps
 
 import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -42,6 +43,6 @@ func (s *emptyStep) IsEmpty() bool {
 	return true
 }
 
-func (_ *emptyStep) GetFreetextFetcher() freetext_fetcher.FreetextFetcher {
+func (*emptyStep) GetFreetextFetcher() freetextfetcher.FreetextFetcher {
 	return nil
 }

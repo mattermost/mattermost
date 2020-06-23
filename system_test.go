@@ -32,6 +32,7 @@ func TestGetManifest(t *testing.T) {
 		defer os.RemoveAll(dir)
 
 		tmpfn := filepath.Join(dir, "plugin.json")
+		//nolint:gosec //only used in tests
 		err = ioutil.WriteFile(tmpfn, content, 0666)
 		require.NoError(t, err)
 

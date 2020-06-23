@@ -3,9 +3,10 @@ package panel
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 	"github.com/mattermost/mattermost-plugin-api/experimental/panel/settings"
+
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -63,5 +64,5 @@ func (sh *handler) handleAction(w http.ResponseWriter, r *http.Request) {
 		response.Update = post
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
+	_, _ = w.Write(response.ToJson())
 }

@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
+
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -16,7 +17,7 @@ type freetextSetting struct {
 	modifyMessage string
 	pluginURL     string
 	store         SettingStore
-	ftf           freetext_fetcher.FreetextFetcher
+	ftf           freetextfetcher.FreetextFetcher
 }
 
 type FreetextInfo struct {
@@ -24,7 +25,20 @@ type FreetextInfo struct {
 	UserID    string
 }
 
-func NewFreetextSetting(id, title, description, modifyMessage, dependsOn string, store SettingStore, baseURL string, pluginURL string, ftfStore freetext_fetcher.FreetextStore, validate func(string) string, r *mux.Router, posterBot poster.Poster) Setting {
+func NewFreetextSetting(
+	id,
+	title,
+	description,
+	modifyMessage,
+	dependsOn string,
+	store SettingStore,
+	baseURL,
+	pluginURL string,
+	ftfStore freetextfetcher.FreetextStore,
+	validate func(string) string,
+	r *mux.Router,
+	p poster.Poster,
+) Setting {
 	setting := &freetextSetting{
 		baseSetting: baseSetting{
 			title:       title,
@@ -36,7 +50,7 @@ func NewFreetextSetting(id, title, description, modifyMessage, dependsOn string,
 		store:         store,
 		pluginURL:     pluginURL,
 	}
-	setting.ftf = freetext_fetcher.NewFreetextFetcher(baseURL, ftfStore, validate, nil, nil, r, posterBot)
+	setting.ftf = freetextfetcher.NewFreetextFetcher(baseURL, ftfStore, validate, nil, nil, r, p)
 	return setting
 }
 
@@ -64,7 +78,7 @@ func (s *freetextSetting) Get(userID string) (interface{}, error) {
 
 func (s *freetextSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	currentValueMessage := DisabledString
 
 	actions := []*model.PostAction{}
 	if !disabled {
@@ -88,8 +102,8 @@ func (s *freetextSetting) GetSlackAttachments(userID, settingHandler string, dis
 			Integration: &model.PostActionIntegration{
 				URL: s.pluginURL + s.ftf.URL() + "/new",
 				Context: map[string]interface{}{
-					freetext_fetcher.ContextNewMessage: s.modifyMessage,
-					freetext_fetcher.ContextNewPayload: string(payload),
+					freetextfetcher.ContextNewMessage: s.modifyMessage,
+					freetextfetcher.ContextNewPayload: string(payload),
 				},
 			},
 		}
@@ -107,9 +121,9 @@ func (s *freetextSetting) GetSlackAttachments(userID, settingHandler string, dis
 }
 
 func (s *freetextSetting) IsDisabled(foreignValue interface{}) bool {
-	return foreignValue == "false"
+	return foreignValue == FalseString
 }
 
-func (s *freetextSetting) GetFreetextFetcher() freetext_fetcher.FreetextFetcher {
+func (s *freetextSetting) GetFreetextFetcher() freetextfetcher.FreetextFetcher {
 	return s.ftf
 }

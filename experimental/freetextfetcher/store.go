@@ -1,4 +1,4 @@
-package freetext_fetcher
+package freetextfetcher
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 )
 
 type FreetextStore interface {
-	StartFetching(userID, fetcherID string, payload string) error
+	StartFetching(userID, fetcherID, payload string) error
 	StopFetching(userID string) error
 	ShouldProcessFreetext(userID, fetcherID string) (bool, string, error)
 }
@@ -29,7 +29,7 @@ func NewFreetextStore(apiClient pluginapi.Client, keyPrefix string) FreetextStor
 	}
 }
 
-func (fts *freetextStore) StartFetching(userID, fetcherID string, payload string) error {
+func (fts *freetextStore) StartFetching(userID, fetcherID, payload string) error {
 	toStore := storeElement{
 		fetcherID: fetcherID,
 		payload:   payload,
@@ -48,9 +48,9 @@ func (fts *freetextStore) StopFetching(userID string) error {
 	return fts.client.KV.Delete(fts.getKey(userID))
 }
 
-func (fts *freetextStore) ShouldProcessFreetext(userID, fetcherID string) (bool, string, error) {
+func (fts *freetextStore) ShouldProcessFreetext(userID, fetcherID string) (shouldProcess bool, payload string, err error) {
 	var se storeElement
-	err := fts.client.KV.Get(fts.getKey(userID), &se)
+	err = fts.client.KV.Get(fts.getKey(userID), &se)
 	if err != nil {
 		return false, "", err
 	}

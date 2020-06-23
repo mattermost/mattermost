@@ -3,7 +3,8 @@ package steps
 import (
 	"encoding/json"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -19,7 +20,17 @@ type simpleStep struct {
 	FalseSkip            int
 }
 
-func NewSimpleStep(title, message, propertyName, trueButtonMessage, falseButtonMessage, trueResponseMessage, falseResponseMessage string, trueSkip, falseSkip int) Step {
+func NewSimpleStep(
+	title,
+	message,
+	propertyName,
+	trueButtonMessage,
+	falseButtonMessage,
+	trueResponseMessage,
+	falseResponseMessage string,
+	trueSkip,
+	falseSkip int,
+) Step {
 	return &simpleStep{
 		Title:                title,
 		Message:              message,
@@ -106,7 +117,7 @@ func (s *simpleStep) IsEmpty() bool {
 	return false
 }
 
-func (_ *simpleStep) parseValue(rawValue interface{}) (value bool) {
+func (*simpleStep) parseValue(rawValue interface{}) (value bool) {
 	err := json.Unmarshal([]byte(rawValue.(string)), &value)
 	if err != nil {
 		return false
@@ -115,6 +126,6 @@ func (_ *simpleStep) parseValue(rawValue interface{}) (value bool) {
 	return value
 }
 
-func (_ *simpleStep) GetFreetextFetcher() freetext_fetcher.FreetextFetcher {
+func (*simpleStep) GetFreetextFetcher() freetextfetcher.FreetextFetcher {
 	return nil
 }

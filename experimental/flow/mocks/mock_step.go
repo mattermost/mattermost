@@ -6,7 +6,7 @@ package mock_flow
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	freetext_fetcher "github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	freetextfetcher "github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
 	model "github.com/mattermost/mattermost-server/v5/model"
 	reflect "reflect"
 )
@@ -35,10 +35,10 @@ func (m *MockStep) EXPECT() *MockStepMockRecorder {
 }
 
 // GetFreetextFetcher mocks base method
-func (m *MockStep) GetFreetextFetcher() freetext_fetcher.FreetextFetcher {
+func (m *MockStep) GetFreetextFetcher() freetextfetcher.FreetextFetcher {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFreetextFetcher")
-	ret0, _ := ret[0].(freetext_fetcher.FreetextFetcher)
+	ret0, _ := ret[0].(freetextfetcher.FreetextFetcher)
 	return ret0
 }
 

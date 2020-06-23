@@ -6,7 +6,7 @@ import (
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
-type PanelStore interface {
+type Store interface {
 	SetPanelPostID(userID string, postID string) error
 	GetPanelPostID(userID string) (string, error)
 	DeletePanelPostID(userID string) error
@@ -17,14 +17,14 @@ type panelStore struct {
 	keyPrefix string
 }
 
-func NewPanelStore(apiClient pluginapi.Client, keyPrefix string) PanelStore {
+func NewPanelStore(apiClient pluginapi.Client, keyPrefix string) Store {
 	return &panelStore{
 		client:    apiClient,
 		keyPrefix: keyPrefix,
 	}
 }
 
-func (ps *panelStore) SetPanelPostID(userID string, postID string) error {
+func (ps *panelStore) SetPanelPostID(userID, postID string) error {
 	ok, err := ps.client.KV.Set(ps.getKey(userID), postID)
 	if err != nil {
 		return err

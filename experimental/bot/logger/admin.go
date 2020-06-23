@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 )
 
-type admin interface {
+type Admin interface {
 	IsUserAdmin(mattermostUserID string) bool
 	DMAdmins(format string, args ...interface{}) error
 }
@@ -20,7 +20,7 @@ type defaultAdmin struct {
 	AdminUserIDs []string
 }
 
-func NewAdmin(adminUserIDs string, p poster.DMer) admin {
+func NewAdmin(adminUserIDs string, p poster.DMer) Admin {
 	return &defaultAdmin{
 		DMer:         p,
 		AdminUserIDs: strings.Split(adminUserIDs, ","),

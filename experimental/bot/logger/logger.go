@@ -41,8 +41,7 @@ func level(l string) int {
 
 func toKeyValuePairs(in map[string]interface{}) (out []interface{}) {
 	for k, v := range in {
-		out = append(out, k)
-		out = append(out, v)
+		out = append(out, k, v)
 	}
 	return out
 }

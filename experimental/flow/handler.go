@@ -8,17 +8,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 	"github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
+
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type fh struct {
-	fc FlowController
+	fc Controller
 }
 
-func Init(r *mux.Router, fc FlowController) {
+func Init(r *mux.Router, fc Controller) {
 	fh := &fh{
 		fc: fc,
 	}
@@ -82,7 +83,7 @@ func (fh *fh) handleFlow(w http.ResponseWriter, r *http.Request) {
 	response.Update = &post
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
+	_, _ = w.Write(response.ToJson())
 
-	fh.fc.NextStep(userID, stepNumber, value)
+	_ = fh.fc.NextStep(userID, stepNumber, value)
 }

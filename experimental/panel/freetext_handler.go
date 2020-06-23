@@ -6,7 +6,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/panel/settings"
 )
 
-func (p *panel) ftOnFetch(message string, payload string) {
+func (p *panel) ftOnFetch(message, payload string) {
 	var ftInfo settings.FreetextInfo
 	err := json.Unmarshal([]byte(payload), &ftInfo)
 	if err != nil {

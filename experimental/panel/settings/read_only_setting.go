@@ -12,7 +12,7 @@ type readOnlySetting struct {
 	store SettingStore
 }
 
-func NewReadOnlySetting(id string, title string, description string, dependsOn string, store SettingStore) Setting {
+func NewReadOnlySetting(id, title, description, dependsOn string, store SettingStore) Setting {
 	return &readOnlySetting{
 		baseSetting: baseSetting{
 			title:       title,
@@ -43,7 +43,7 @@ func (s *readOnlySetting) Set(userID string, value interface{}) error {
 
 func (s *readOnlySetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	currentValueMessage := DisabledString
 
 	if !disabled {
 		currentValue, err := s.Get(userID)
@@ -63,5 +63,5 @@ func (s *readOnlySetting) GetSlackAttachments(userID, settingHandler string, dis
 }
 
 func (s *readOnlySetting) IsDisabled(foreignValue interface{}) bool {
-	return foreignValue == "false"
+	return foreignValue == FalseString
 }

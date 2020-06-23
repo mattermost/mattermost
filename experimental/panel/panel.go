@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
 	"github.com/mattermost/mattermost-plugin-api/experimental/panel/settings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -24,12 +25,19 @@ type panel struct {
 	settingKeys    []string
 	poster         poster.Poster
 	logger         logger.Logger
-	store          PanelStore
+	store          Store
 	settingHandler string
 	pluginURL      string
 }
 
-func NewSettingsPanel(settingList []settings.Setting, poster poster.Poster, logger logger.Logger, store PanelStore, settingHandler, pluginURL string) Panel {
+func NewSettingsPanel(
+	settingList []settings.Setting,
+	p poster.Poster,
+	l logger.Logger,
+	store Store,
+	settingHandler,
+	pluginURL string,
+) Panel {
 	settingsMap := make(map[string]settings.Setting)
 	settingKeys := []string{}
 	for _, s := range settingList {
@@ -40,8 +48,8 @@ func NewSettingsPanel(settingList []settings.Setting, poster poster.Poster, logg
 	panel := &panel{
 		settings:       settingsMap,
 		settingKeys:    settingKeys,
-		poster:         poster,
-		logger:         logger,
+		poster:         p,
+		logger:         l,
 		store:          store,
 		settingHandler: settingHandler,
 		pluginURL:      pluginURL,

@@ -9,18 +9,19 @@ import (
 
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
+
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type defaultLogger struct {
 	Config
-	admin
+	admin      Admin
 	logContext LogContext
 	pluginAPI  plugin.API
 }
 
-func NewLogger(c Config, api plugin.API, p poster.Poster, adminUserIDs string) Logger {
-	var loggerAdmin admin = nil
+func NewLogger(c Config, api plugin.API, p poster.DMer, adminUserIDs string) Logger {
+	var loggerAdmin Admin = nil
 	if p != nil {
 		loggerAdmin = NewAdmin(adminUserIDs, p)
 	}
@@ -92,5 +93,5 @@ func (l *defaultLogger) logToAdmins(level, message string) {
 	if l.AdminLogVerbose && len(l.logContext) > 0 {
 		message += "\n" + common.JSONBlock(l.logContext)
 	}
-	l.DMAdmins("(log " + level + ") " + message)
+	_ = l.admin.DMAdmins("(log " + level + ") " + message)
 }

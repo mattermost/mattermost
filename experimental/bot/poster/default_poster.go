@@ -54,13 +54,13 @@ func (p *defaultPoster) dm(mattermostUserID string, post *model.Post) (string, e
 }
 
 // Ephemeral sends an ephemeral message to a user
-func (p *defaultPoster) Ephemeral(userId, channelId, format string, args ...interface{}) {
+func (p *defaultPoster) Ephemeral(userID, channelID, format string, args ...interface{}) {
 	post := &model.Post{
 		UserId:    p.id,
-		ChannelId: channelId,
+		ChannelId: channelID,
 		Message:   fmt.Sprintf(format, args...),
 	}
-	_ = p.pluginAPI.SendEphemeralPost(userId, post)
+	_ = p.pluginAPI.SendEphemeralPost(userID, post)
 }
 
 func (p *defaultPoster) UpdatePostByID(postID, format string, args ...interface{}) error {

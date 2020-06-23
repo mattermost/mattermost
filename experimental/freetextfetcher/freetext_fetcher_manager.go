@@ -1,13 +1,14 @@
-package freetext_fetcher
+package freetextfetcher
 
 import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type Manager interface {
-	MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, loggerBot logger.Logger, botUserID string, pluginURL string)
+	MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, l logger.Logger, botUserID string, pluginURL string)
 	Clear()
 }
 
@@ -28,8 +29,8 @@ func (m *manager) Clear() {
 	m.ftfList = []FreetextFetcher{}
 }
 
-func (m *manager) MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, loggerBot logger.Logger, botUserID string, pluginURL string) {
+func (m *manager) MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, l logger.Logger, botUserID, pluginURL string) {
 	for _, v := range m.ftfList {
-		v.MessageHasBeenPosted(c, post, api, loggerBot, botUserID, pluginURL)
+		v.MessageHasBeenPosted(c, post, api, l, botUserID, pluginURL)
 	}
 }

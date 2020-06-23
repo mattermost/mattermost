@@ -10,7 +10,7 @@ type freetextInfo struct {
 	UserID   string
 }
 
-func (fc *flowController) ftOnFetch(message string, payload string) {
+func (fc *flowController) ftOnFetch(message, payload string) {
 	var ftInfo freetextInfo
 	err := json.Unmarshal([]byte(payload), &ftInfo)
 	if err != nil {
@@ -24,8 +24,8 @@ func (fc *flowController) ftOnFetch(message string, payload string) {
 		return
 	}
 
-	fc.store.RemovePostID(ftInfo.UserID, ftInfo.Property)
-	fc.NextStep(ftInfo.UserID, ftInfo.Step, message)
+	_ = fc.store.RemovePostID(ftInfo.UserID, ftInfo.Property)
+	_ = fc.NextStep(ftInfo.UserID, ftInfo.Step, message)
 }
 
 func (fc *flowController) ftOnCancel(payload string) {
@@ -36,6 +36,6 @@ func (fc *flowController) ftOnCancel(payload string) {
 		return
 	}
 
-	fc.store.RemovePostID(ftInfo.UserID, ftInfo.Property)
-	fc.NextStep(ftInfo.UserID, ftInfo.Step, "")
+	_ = fc.store.RemovePostID(ftInfo.UserID, ftInfo.Property)
+	_ = fc.NextStep(ftInfo.UserID, ftInfo.Step, "")
 }

@@ -1,7 +1,8 @@
 package steps
 
 import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -18,5 +19,5 @@ type Step interface {
 	GetPropertyName() string
 	ShouldSkip(value interface{}) int
 	IsEmpty() bool
-	GetFreetextFetcher() freetext_fetcher.FreetextFetcher
+	GetFreetextFetcher() freetextfetcher.FreetextFetcher
 }

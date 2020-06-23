@@ -1,7 +1,8 @@
 package settings
 
 import (
-	"github.com/mattermost/mattermost-plugin-api/experimental/freetext_fetcher"
+	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -9,6 +10,10 @@ const (
 	ContextIDKey          = "setting_id"
 	ContextButtonValueKey = "button_value"
 	ContextOptionValueKey = "selected_option"
+
+	DisabledString = "Disabled"
+	TrueString     = "true"
+	FalseString    = "false"
 )
 
 type Setting interface {
@@ -20,5 +25,5 @@ type Setting interface {
 	GetTitle() string
 	GetDescription() string
 	GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error)
-	GetFreetextFetcher() freetext_fetcher.FreetextFetcher
+	GetFreetextFetcher() freetextfetcher.FreetextFetcher
 }

@@ -13,7 +13,7 @@ type optionSetting struct {
 	store   SettingStore
 }
 
-func NewOptionSetting(id string, title string, description string, dependsOn string, options []string, store SettingStore) Setting {
+func NewOptionSetting(id, title, description, dependsOn string, options []string, store SettingStore) Setting {
 	return &optionSetting{
 		baseSetting: baseSetting{
 			title:       title,
@@ -50,7 +50,7 @@ func (s *optionSetting) Get(userID string) (interface{}, error) {
 
 func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
-	currentValueMessage := "Disabled"
+	currentValueMessage := DisabledString
 
 	actions := []*model.PostAction{}
 	if !disabled {
@@ -85,5 +85,5 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 }
 
 func (s *optionSetting) IsDisabled(foreignValue interface{}) bool {
-	return foreignValue == "false"
+	return foreignValue == FalseString
 }

@@ -1,11 +1,12 @@
-package freetext_fetcher
+package freetextfetcher
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
+
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -54,14 +55,14 @@ func (ftf *freetextFetcher) handle(w http.ResponseWriter, r *http.Request) {
 
 	action, ok := request.Context[ContextActionKey].(string)
 	if !ok {
-		ftf.store.StartFetching(mattermostUserID, ftf.id, payload)
+		_ = ftf.store.StartFetching(mattermostUserID, ftf.id, payload)
 		writeConfirmResponse(w, "Write your input.")
 		return
 	}
 
 	if action == CancelAction {
 		ftf.onCancel(payload)
-		writeConfirmResponse(w, "Input cancelled.")
+		writeConfirmResponse(w, "Input canceled.")
 		return
 	}
 
@@ -76,7 +77,7 @@ func writeConfirmResponse(w http.ResponseWriter, message string) {
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
+	_, _ = w.Write(response.ToJson())
 }
 
 func (ftf *freetextFetcher) handleNew(w http.ResponseWriter, r *http.Request) {
@@ -95,10 +96,10 @@ func (ftf *freetextFetcher) handleNew(w http.ResponseWriter, r *http.Request) {
 	message := request.Context[ContextNewMessage].(string)
 	payload := request.Context[ContextNewPayload].(string)
 
-	ftf.posterBot.DM(mattermostUserID, message)
+	_, _ = ftf.poster.DM(mattermostUserID, message)
 	ftf.StartFetching(mattermostUserID, payload)
 
 	response := model.PostActionIntegrationResponse{}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(response.ToJson())
+	_, _ = w.Write(response.ToJson())
 }

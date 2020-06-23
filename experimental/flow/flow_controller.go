@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-plugin-api/experimental/flow/steps"
 )
 
-type FlowController interface {
+type Controller interface {
 	Start(userID string) error
 	NextStep(userID string, from int, value interface{}) error
 	GetCurrentStep(userID string) (steps.Step, int, error)
@@ -23,12 +23,19 @@ type flowController struct {
 	poster.Poster
 	logger.Logger
 	flow          Flow
-	store         FlowStore
+	store         Store
 	propertyStore PropertyStore
 	pluginURL     string
 }
 
-func NewFlowController(p poster.Poster, l logger.Logger, pluginURL string, flow Flow, flowStore FlowStore, propertyStore PropertyStore) FlowController {
+func NewFlowController(
+	p poster.Poster,
+	l logger.Logger,
+	pluginURL string,
+	flow Flow,
+	flowStore Store,
+	propertyStore PropertyStore,
+) Controller {
 	fc := &flowController{
 		Poster:        p,
 		Logger:        l,
@@ -89,7 +96,7 @@ func (fc *flowController) NextStep(userID string, from int, value interface{}) e
 	skip := step.ShouldSkip(value)
 	stepIndex += 1 + skip
 	if stepIndex > fc.flow.Length() {
-		fc.removeFlowStep(userID)
+		_ = fc.removeFlowStep(userID)
 		fc.flow.FlowDone(userID)
 		return nil
 	}
