@@ -215,7 +215,7 @@ func TestIsJsonMap(t *testing.T) {
 				{"ID": 5,"Name": "debug","Stacktrace": false}
 			],
 			"Options": {"ip": "localhost","port": 18065},
-			"MaxQueueSize": 1000}
+			"MaxQueueSize": 1000}}
 			`, want: true,
 		},
 		{name: "empty json", data: "{}", want: true},
