@@ -1509,6 +1509,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Unable to request a trial license, please configure your SiteURL first in the web server section of the mattermost configuration."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
