@@ -33,7 +33,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isMobile := action == "moible"
+	isMobile := action == "mobile"
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
