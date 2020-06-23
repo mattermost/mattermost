@@ -822,7 +822,6 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
 	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
-
 	// saveSchemaVersion(sqlStore, VERSION_5_26_0)
 	//}
 }
