@@ -611,14 +611,14 @@ type RoleStore interface {
 }
 
 type SchemeStore interface {
-	Save(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	Get(schemeId string) (*model.Scheme, *model.AppError)
-	GetByName(schemeName string) (*model.Scheme, *model.AppError)
-	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
-	Delete(schemeId string) (*model.Scheme, *model.AppError)
-	PermanentDeleteAll() *model.AppError
-	CountByScope(scope string) (int64, *model.AppError)
-	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
+	Save(scheme *model.Scheme) (*model.Scheme, error)
+	Get(schemeId string) (*model.Scheme, error)
+	GetByName(schemeName string) (*model.Scheme, error)
+	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
+	Delete(schemeId string) (*model.Scheme, error)
+	PermanentDeleteAll() error
+	CountByScope(scope string) (int64, error)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error)
 }
 
 type TermsOfServiceStore interface {
