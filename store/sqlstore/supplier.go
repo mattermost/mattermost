@@ -323,6 +323,7 @@ func (ss *SqlSupplier) initConnection() {
 
 	if len(ss.settings.DataSourceReplicas) > 0 {
 		ss.replicas = make([]*gorp.DbMap, len(ss.settings.DataSourceReplicas))
+		ss.replicasX = make([]*SqlxWrapper, len(ss.settings.DataSourceReplicas))
 		for i, replica := range ss.settings.DataSourceReplicas {
 			ss.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, ss.settings)
 			ss.replicasX[i] = &SqlxWrapper{sqlx.NewDb(ss.replicas[i].Db, *ss.settings.DriverName)}
@@ -334,6 +335,7 @@ func (ss *SqlSupplier) initConnection() {
 
 	if len(ss.settings.DataSourceSearchReplicas) > 0 {
 		ss.searchReplicas = make([]*gorp.DbMap, len(ss.settings.DataSourceSearchReplicas))
+		ss.searchReplicasX = make([]*SqlxWrapper, len(ss.settings.DataSourceSearchReplicas))
 		for i, replica := range ss.settings.DataSourceSearchReplicas {
 			ss.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, ss.settings)
 			ss.searchReplicasX[i] = &SqlxWrapper{sqlx.NewDb(ss.searchReplicas[i].Db, *ss.settings.DriverName)}
