@@ -5,7 +5,8 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
+
+	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -40,19 +41,33 @@ func (ls SqlLicenseStore) createIndexesIfNotExists() {
 // database it returns the license stored in the database. If not, it saves the
 // new database and returns the created license with the CreateAt field
 // updated.
-func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	license.PreSave()
 	if err := license.IsValid(); err != nil {
 		return nil, err
 	}
-	query := ls.getReplicaQueryBuilder().Select("Id, CreateAt, Bytes").From("Licenses").Where(sq.Eq{"Id": license.Id}).Limit(1)
+
+	query := ls.getQueryBuilder().
+		Select("*").
+		From("Licenses").
+		Where(sq.Eq{"Id": license.Id})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "license_tosql")
+	}
 	var storedLicense model.LicenseRecord
-	if err := query.Scan(&storedLicense.Id, &storedLicense.CreateAt, &storedLicense.Bytes); err != nil {
-		insertQuery := ls.getMasterQueryBuilder().Insert("Licenses").
+	if err := ls.GetReplicaX().Get(&storedLicense, queryString, args...); err != nil {
+		// Only insert if not exists
+		insertQuery := ls.getQueryBuilder().
+			Insert("Licenses").
 			Columns("Id", "CreateAt", "Bytes").
 			Values(license.Id, license.CreateAt, license.Bytes)
-		if _, err = insertQuery.Exec(); err != nil {
-			return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql_license.save.app_error", nil, "license_id="+license.Id+", "+err.Error(), http.StatusInternalServerError)
+		queryString, args, err = insertQuery.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "license_tosql")
+		}
+		if _, err := ls.GetMasterX().Exec(queryString, args...); err != nil {
+			return nil, errors.Wrapf(err, "failed to save License with licenseId=%s", license.Id)
 		}
 		return license, nil
 	}
@@ -62,16 +77,19 @@ func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseReco
 // Get obtains the license with the provided id parameter from the database.
 // If the license doesn't exist it returns a model.AppError with
 // http.StatusNotFound in the StatusCode field.
-func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
-	query := ls.getReplicaQueryBuilder().Select("Id, CreateAt, Bytes").From("Licenses").Where(sq.Eq{"Id": id})
-
-	var obj model.LicenseRecord
-	if err := query.Scan(&obj.Id, &obj.CreateAt, &obj.Bytes); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.missing.app_error", nil, "license_id="+id, http.StatusNotFound)
-		}
-		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.app_error", nil, "license_id="+id+", "+err.Error(), http.StatusInternalServerError)
+func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, error) {
+	query := ls.getQueryBuilder().Select("*").From("Licenses").Where(sq.Eq{"Id": id})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "license_tosql")
 	}
 
+	var obj model.LicenseRecord
+	if err := ls.GetReplicaX().Get(&obj, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("License", id)
+		}
+		return nil, errors.Wrapf(err, "failed to get License with licenseId=%s", id)
+	}
 	return &obj, nil
 }

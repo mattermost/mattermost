@@ -18,6 +18,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -349,6 +350,37 @@ func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.replicas))
 	return ss.replicas[rrNum]
+}
+
+func sqlxMapperIdentity(fieldName string) string {
+	return fieldName
+}
+
+func (ss *SqlSupplier) GetMasterX() *sqlx.DB {
+	driver := ss.DriverName()
+	db := sqlx.NewDb(ss.GetMaster().Db, driver)
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		db.MapperFunc(sqlxMapperIdentity)
+	}
+	return db
+}
+
+func (ss *SqlSupplier) GetSearchReplicaX() *sqlx.DB {
+	driver := ss.DriverName()
+	db := sqlx.NewDb(ss.GetSearchReplica().Db, driver)
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		db.MapperFunc(sqlxMapperIdentity)
+	}
+	return db
+}
+
+func (ss *SqlSupplier) GetReplicaX() *sqlx.DB {
+	driver := ss.DriverName()
+	db := sqlx.NewDb(ss.GetReplica().Db, driver)
+	if driver == model.DATABASE_DRIVER_MYSQL {
+		db.MapperFunc(sqlxMapperIdentity)
+	}
+	return db
 }
 
 func (ss *SqlSupplier) TotalMasterDbConnections() int {
@@ -1177,21 +1209,6 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 		builder = builder.PlaceholderFormat(sq.Dollar)
 	}
 	return builder
-}
-
-func (ss *SqlSupplier) getMasterQueryBuilder() sq.StatementBuilderType {
-	builder := ss.getQueryBuilder()
-	return builder.RunWith(ss.GetMaster().Db)
-}
-
-func (ss *SqlSupplier) getReplicaQueryBuilder() sq.StatementBuilderType {
-	builder := ss.getQueryBuilder()
-	return builder.RunWith(ss.GetReplica().Db)
-}
-
-func (ss *SqlSupplier) getSearchReplicaQueryBuilder() sq.StatementBuilderType {
-	builder := ss.getQueryBuilder()
-	return builder.RunWith(ss.GetSearchReplica().Db)
 }
 
 func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {

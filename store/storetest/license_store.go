@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -49,5 +48,5 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 
 	_, err = ss.License().Get("missing")
 	require.NotNil(t, err, "should fail on get license")
-	require.Equal(t, http.StatusNotFound, err.StatusCode)
+	require.IsType(t, &store.ErrNotFound{}, err)
 }

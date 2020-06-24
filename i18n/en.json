@@ -5519,6 +5519,10 @@
     "translation": "invalid characters in the name property for group"
   },
   {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
@@ -6585,18 +6589,6 @@
   {
     "id": "store.sql_job.update.app_error",
     "translation": "Unable to update the job."
-  },
-  {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license."
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found."
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license."
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
