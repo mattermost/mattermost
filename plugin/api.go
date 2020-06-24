@@ -444,6 +444,12 @@ type API interface {
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
+	// SearchPostsInTeamForUser returns a list of posts by team and user that match the given
+	// search parameters.
+	// @tag Post
+	// Minimum server version: 5.26
+	SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
+
 	// AddChannelMember joins a user to a channel (as if they joined themselves)
 	// This means the user will not receive notifications for joining the channel.
 	//
