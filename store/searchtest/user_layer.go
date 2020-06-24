@@ -94,7 +94,7 @@ var searchUserStoreTests = []searchTest{
 	{
 		Name: "Should be able to search inactive users",
 		Fn:   testShouldBeAbleToSearchInactiveUsers,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL},
+		Tags: []string{ENGINE_MYSQL, ENGINE_POSTGRES, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should be able to search filtering by role",
@@ -571,7 +571,7 @@ func testShouldEscapeUnderscoreCharacter(t *testing.T, th *SearchTestHelper) {
 }
 
 func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
-	userAlternate, err := th.createUser("alternate-username", "alternatenickname", "firstname", "altlastname")
+	userAlternate, err := th.createUser("basicusernamealternate", "alternatenickname", "firstname", "altlastname")
 	require.Nil(t, err)
 	userAlternate.DeleteAt = model.GetMillis()
 	_, apperr := th.Store.User().Update(userAlternate, true)
@@ -583,29 +583,29 @@ func testShouldBeAbleToSearchInactiveUsers(t *testing.T, th *SearchTestHelper) {
 	require.Nil(t, err)
 	t.Run("Should autocomplete inactive users if we allow it", func(t *testing.T) {
 		options := createDefaultOptions(false, false, true)
-		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "alternate-username", options)
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, userAlternate}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 	})
 	t.Run("Should search inactive users if we allow it", func(t *testing.T) {
 		options := createDefaultOptions(false, false, true)
-		users, apperr := th.Store.User().Search(th.Team.Id, "alternate-username", options)
+		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2, userAlternate}, users)
 	})
 	t.Run("Shouldn't autocomplete inactive users if we don't allow it", func(t *testing.T) {
 		options := createDefaultOptions(false, false, false)
-		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "alternate-username", options)
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.InChannel)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 	})
 	t.Run("Shouldn't search inactive users if we don't allow it", func(t *testing.T) {
 		options := createDefaultOptions(false, false, false)
-		users, apperr := th.Store.User().Search(th.Team.Id, "alternate-username", options)
+		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername", options)
 		require.Nil(t, apperr)
-		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users)
+		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User, th.User2}, users)
 	})
 }
 

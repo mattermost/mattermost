@@ -595,11 +595,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_POST) {
-		c.SetPermissionError(model.PERMISSION_EDIT_POST)
-		return
-	}
-
 	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
 	if err != nil {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
@@ -607,11 +602,16 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("post", originalPost)
 
-	if c.App.Session().UserId != originalPost.UserId {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
-			return
-		}
+	var permission *model.Permission
+	if c.App.Session().UserId == originalPost.UserId {
+		permission = model.PERMISSION_EDIT_POST
+	} else {
+		permission = model.PERMISSION_EDIT_OTHERS_POSTS
+	}
+
+	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, permission) {
+		c.SetPermissionError(permission)
+		return
 	}
 
 	patchedPost, err := c.App.PatchPost(c.Params.PostId, c.App.PostPatchWithProxyRemovedFromImageURLs(post))
@@ -682,7 +682,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		return
 	}
 
-	if c.App.License() != nil &&
+	if c.App.Srv().License() != nil &&
 		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!c.App.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {

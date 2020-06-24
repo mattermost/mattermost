@@ -79,6 +79,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
+		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 		// Start with the current configuration, and only merge values not marked as being
 		// restricted.
@@ -175,6 +179,10 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	var filterFn utils.StructFieldFilter
 	if *appCfg.ExperimentalSettings.RestrictSystemAdmin {
 		filterFn = func(structField reflect.StructField, base, patch reflect.Value) bool {
