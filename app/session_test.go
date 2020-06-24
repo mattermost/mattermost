@@ -206,11 +206,38 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
+	t.Run("get session length mobile when isMobile in props is set", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				"isMobile": "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
 	t.Run("get session length SSO", func(t *testing.T) {
 		session := &model.Session{
 			UserId:  model.NewId(),
 			IsOAuth: true,
 		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*2, sessionLength)
+	})
+
+	t.Run("get session length SSO using props", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				"isSaml": "true",
+			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
