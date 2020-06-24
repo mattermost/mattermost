@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"encoding/json"
 	"errors"
@@ -352,31 +353,63 @@ func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 	return ss.replicas[rrNum]
 }
 
+type dbWrapper struct {
+	*sqlx.DB
+}
+
+type sqlBuilder interface {
+	ToSql() (string, []interface{}, error)
+}
+
+func (dbw *dbWrapper) ExecFromQuery(query sqlBuilder) (sql.Result, error) {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	return dbw.Exec(queryString, args...)
+}
+
+func (dbw *dbWrapper) GetFromQuery(dest interface{}, query sqlBuilder) error {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+	return dbw.Get(dest, queryString, args...)
+}
+
+func (dbw *dbWrapper) SelectFromQuery(dest *interface{}, query sqlBuilder) error {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+	return dbw.Select(dest, queryString, args...)
+}
+
 func sqlxMapperIdentity(fieldName string) string {
 	return fieldName
 }
 
-func (ss *SqlSupplier) GetMasterX() *sqlx.DB {
+func (ss *SqlSupplier) GetMasterX() *dbWrapper {
 	driver := ss.DriverName()
-	db := sqlx.NewDb(ss.GetMaster().Db, driver)
+	db := &dbWrapper{sqlx.NewDb(ss.GetMaster().Db, driver)}
 	if driver == model.DATABASE_DRIVER_MYSQL {
 		db.MapperFunc(sqlxMapperIdentity)
 	}
 	return db
 }
 
-func (ss *SqlSupplier) GetSearchReplicaX() *sqlx.DB {
+func (ss *SqlSupplier) GetSearchReplicaX() *dbWrapper {
 	driver := ss.DriverName()
-	db := sqlx.NewDb(ss.GetSearchReplica().Db, driver)
+	db := &dbWrapper{sqlx.NewDb(ss.GetSearchReplica().Db, driver)}
 	if driver == model.DATABASE_DRIVER_MYSQL {
 		db.MapperFunc(sqlxMapperIdentity)
 	}
 	return db
 }
 
-func (ss *SqlSupplier) GetReplicaX() *sqlx.DB {
+func (ss *SqlSupplier) GetReplicaX() *dbWrapper {
 	driver := ss.DriverName()
-	db := sqlx.NewDb(ss.GetReplica().Db, driver)
+	db := &dbWrapper{sqlx.NewDb(ss.GetReplica().Db, driver)}
 	if driver == model.DATABASE_DRIVER_MYSQL {
 		db.MapperFunc(sqlxMapperIdentity)
 	}

@@ -6,7 +6,6 @@ package sqlstore
 import (
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -46,9 +45,9 @@ type SqlStore interface {
 	GetMaster() *gorp.DbMap
 	GetSearchReplica() *gorp.DbMap
 	GetReplica() *gorp.DbMap
-	GetMasterX() *sqlx.DB
-	GetSearchReplicaX() *sqlx.DB
-	GetReplicaX() *sqlx.DB
+	GetMasterX() *dbWrapper
+	GetSearchReplicaX() *dbWrapper
+	GetReplicaX() *dbWrapper
 	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
