@@ -49,6 +49,9 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}()
 
 	for _, st := range storeTypes {
+		if *st.SqlSettings.DriverName == model.DATABASE_DRIVER_COCKROACH {
+			t.Skip("Cockroach db doesn't support full text search")
+		}
 		st := st
 		searchTestEngine := &searchtest.SearchTestEngine{
 			Driver: *st.SqlSettings.DriverName,

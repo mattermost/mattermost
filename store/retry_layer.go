@@ -9,8 +9,8 @@ package store
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -336,9 +336,9 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.AuditStore.Get(user_id, offset, limit)
 		fmt.Println("RETRYING Get")
 	}
@@ -355,9 +355,9 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.AuditStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
 	}
@@ -374,9 +374,9 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.AuditStore.Save(audit)
 		fmt.Println("RETRYING Save")
 	}
@@ -393,9 +393,11 @@ func (s *RetryLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.BotStore.Get(userId, includeDeleted)
 		fmt.Println("RETRYING Get")
 	}
@@ -412,9 +414,11 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.BotStore.GetAll(options)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -431,9 +435,11 @@ func (s *RetryLayerBotStore) PermanentDelete(userId string) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.BotStore.PermanentDelete(userId)
 		fmt.Println("RETRYING PermanentDelete")
 	}
@@ -450,9 +456,11 @@ func (s *RetryLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.BotStore.Save(bot)
 		fmt.Println("RETRYING Save")
 	}
@@ -469,9 +477,11 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.BotStore.Update(bot)
 		fmt.Println("RETRYING Update")
 	}
@@ -488,9 +498,9 @@ func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamId string, channe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
 		fmt.Println("RETRYING AnalyticsDeletedTypeCount")
 	}
@@ -507,9 +517,9 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamId string, channelType s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.AnalyticsTypeCount(teamId, channelType)
 		fmt.Println("RETRYING AnalyticsTypeCount")
 	}
@@ -526,9 +536,9 @@ func (s *RetryLayerChannelStore) AutocompleteInTeam(teamId string, term string, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 		fmt.Println("RETRYING AutocompleteInTeam")
 	}
@@ -545,9 +555,9 @@ func (s *RetryLayerChannelStore) AutocompleteInTeamForSearch(teamId string, user
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 		fmt.Println("RETRYING AutocompleteInTeamForSearch")
 	}
@@ -564,9 +574,9 @@ func (s *RetryLayerChannelStore) ClearAllCustomRoleAssignments() *model.AppError
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.ClearAllCustomRoleAssignments()
 		fmt.Println("RETRYING ClearAllCustomRoleAssignments")
 	}
@@ -590,9 +600,9 @@ func (s *RetryLayerChannelStore) CountPostsAfter(channelId string, timestamp int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
 		fmt.Println("RETRYING CountPostsAfter")
 	}
@@ -609,9 +619,11 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.CreateDirectChannel(userId, otherUserId)
 		fmt.Println("RETRYING CreateDirectChannel")
 	}
@@ -628,9 +640,11 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.Delete(channelId, time)
 		fmt.Println("RETRYING Delete")
 	}
@@ -647,9 +661,11 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.Get(id, allowFromCache)
 		fmt.Println("RETRYING Get")
 	}
@@ -666,9 +682,9 @@ func (s *RetryLayerChannelStore) GetAll(teamId string) ([]*model.Channel, *model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAll(teamId)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -685,9 +701,9 @@ func (s *RetryLayerChannelStore) GetAllChannelMembersForUser(userId string, allo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
 		fmt.Println("RETRYING GetAllChannelMembersForUser")
 	}
@@ -704,9 +720,9 @@ func (s *RetryLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(chann
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
 		fmt.Println("RETRYING GetAllChannelMembersNotifyPropsForChannel")
 	}
@@ -723,9 +739,11 @@ func (s *RetryLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannels(page, perPage, opts)
 		fmt.Println("RETRYING GetAllChannels")
 	}
@@ -742,9 +760,11 @@ func (s *RetryLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (in
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelsCount(opts)
 		fmt.Println("RETRYING GetAllChannelsCount")
 	}
@@ -761,9 +781,9 @@ func (s *RetryLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterId
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
 		fmt.Println("RETRYING GetAllChannelsForExportAfter")
 	}
@@ -780,9 +800,9 @@ func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
 		fmt.Println("RETRYING GetAllDirectChannelsForExportAfter")
 	}
@@ -799,9 +819,11 @@ func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFro
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetByName(team_id, name, allowFromCache)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -818,9 +840,11 @@ func (s *RetryLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
 		fmt.Println("RETRYING GetByNameIncludeDeleted")
 	}
@@ -837,9 +861,11 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetByNames(team_id, names, allowFromCache)
 		fmt.Println("RETRYING GetByNames")
 	}
@@ -856,9 +882,9 @@ func (s *RetryLayerChannelStore) GetChannelCounts(teamId string, userId string) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelCounts(teamId, userId)
 		fmt.Println("RETRYING GetChannelCounts")
 	}
@@ -875,9 +901,9 @@ func (s *RetryLayerChannelStore) GetChannelMembersForExport(userId string, teamI
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelMembersForExport(userId, teamId)
 		fmt.Println("RETRYING GetChannelMembersForExport")
 	}
@@ -894,9 +920,9 @@ func (s *RetryLayerChannelStore) GetChannelMembersTimezones(channelId string) ([
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelMembersTimezones(channelId)
 		fmt.Println("RETRYING GetChannelMembersTimezones")
 	}
@@ -913,9 +939,9 @@ func (s *RetryLayerChannelStore) GetChannelUnread(channelId string, userId strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelUnread(channelId, userId)
 		fmt.Println("RETRYING GetChannelUnread")
 	}
@@ -932,9 +958,11 @@ func (s *RetryLayerChannelStore) GetChannels(teamId string, userId string, inclu
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
 		fmt.Println("RETRYING GetChannels")
 	}
@@ -951,9 +979,9 @@ func (s *RetryLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, en
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
 		fmt.Println("RETRYING GetChannelsBatchForIndexing")
 	}
@@ -970,9 +998,9 @@ func (s *RetryLayerChannelStore) GetChannelsByIds(channelIds []string, includeDe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		fmt.Println("RETRYING GetChannelsByIds")
 	}
@@ -989,9 +1017,9 @@ func (s *RetryLayerChannelStore) GetChannelsByScheme(schemeId string, offset int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
 		fmt.Println("RETRYING GetChannelsByScheme")
 	}
@@ -1008,9 +1036,11 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
 		fmt.Println("RETRYING GetDeleted")
 	}
@@ -1027,9 +1057,11 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetDeletedByName(team_id, name)
 		fmt.Println("RETRYING GetDeletedByName")
 	}
@@ -1046,9 +1078,9 @@ func (s *RetryLayerChannelStore) GetForPost(postId string) (*model.Channel, *mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetForPost(postId)
 		fmt.Println("RETRYING GetForPost")
 	}
@@ -1065,9 +1097,11 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetFromMaster(id)
 		fmt.Println("RETRYING GetFromMaster")
 	}
@@ -1084,9 +1118,9 @@ func (s *RetryLayerChannelStore) GetGuestCount(channelId string, allowFromCache 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetGuestCount(channelId, allowFromCache)
 		fmt.Println("RETRYING GetGuestCount")
 	}
@@ -1103,9 +1137,9 @@ func (s *RetryLayerChannelStore) GetMember(channelId string, userId string) (*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMember(channelId, userId)
 		fmt.Println("RETRYING GetMember")
 	}
@@ -1122,9 +1156,9 @@ func (s *RetryLayerChannelStore) GetMemberCount(channelId string, allowFromCache
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberCount(channelId, allowFromCache)
 		fmt.Println("RETRYING GetMemberCount")
 	}
@@ -1149,9 +1183,9 @@ func (s *RetryLayerChannelStore) GetMemberCountsByGroup(channelID string, includ
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
 		fmt.Println("RETRYING GetMemberCountsByGroup")
 	}
@@ -1168,9 +1202,9 @@ func (s *RetryLayerChannelStore) GetMemberForPost(postId string, userId string) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberForPost(postId, userId)
 		fmt.Println("RETRYING GetMemberForPost")
 	}
@@ -1187,9 +1221,9 @@ func (s *RetryLayerChannelStore) GetMembers(channelId string, offset int, limit 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMembers(channelId, offset, limit)
 		fmt.Println("RETRYING GetMembers")
 	}
@@ -1206,9 +1240,9 @@ func (s *RetryLayerChannelStore) GetMembersByIds(channelId string, userIds []str
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersByIds(channelId, userIds)
 		fmt.Println("RETRYING GetMembersByIds")
 	}
@@ -1225,9 +1259,9 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamId string, userId string)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersForUser(teamId, userId)
 		fmt.Println("RETRYING GetMembersForUser")
 	}
@@ -1244,9 +1278,9 @@ func (s *RetryLayerChannelStore) GetMembersForUserWithPagination(teamId string, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersForUserWithPagination(teamId, userId, page, perPage)
 		fmt.Println("RETRYING GetMembersForUserWithPagination")
 	}
@@ -1263,9 +1297,11 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, o
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
 		fmt.Println("RETRYING GetMoreChannels")
 	}
@@ -1282,9 +1318,9 @@ func (s *RetryLayerChannelStore) GetPinnedPostCount(channelId string, allowFromC
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
 		fmt.Println("RETRYING GetPinnedPostCount")
 	}
@@ -1301,9 +1337,9 @@ func (s *RetryLayerChannelStore) GetPinnedPosts(channelId string) (*model.PostLi
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetPinnedPosts(channelId)
 		fmt.Println("RETRYING GetPinnedPosts")
 	}
@@ -1320,9 +1356,9 @@ func (s *RetryLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, ch
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
 		fmt.Println("RETRYING GetPublicChannelsByIdsForTeam")
 	}
@@ -1339,9 +1375,9 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
 		fmt.Println("RETRYING GetPublicChannelsForTeam")
 	}
@@ -1358,9 +1394,9 @@ func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GetTeamChannels(teamId)
 		fmt.Println("RETRYING GetTeamChannels")
 	}
@@ -1377,9 +1413,9 @@ func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.GroupSyncedChannelCount()
 		fmt.Println("RETRYING GroupSyncedChannelCount")
 	}
@@ -1396,9 +1432,9 @@ func (s *RetryLayerChannelStore) IncrementMentionCount(channelId string, userId 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.IncrementMentionCount(channelId, userId)
 		fmt.Println("RETRYING IncrementMentionCount")
 	}
@@ -1472,9 +1508,9 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelId string, fro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
 		fmt.Println("RETRYING MigrateChannelMembers")
 	}
@@ -1491,9 +1527,11 @@ func (s *RetryLayerChannelStore) MigratePublicChannels() error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.MigratePublicChannels()
 		fmt.Println("RETRYING MigratePublicChannels")
 	}
@@ -1510,9 +1548,11 @@ func (s *RetryLayerChannelStore) PermanentDelete(channelId string) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.PermanentDelete(channelId)
 		fmt.Println("RETRYING PermanentDelete")
 	}
@@ -1529,9 +1569,11 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.PermanentDeleteByTeam(teamId)
 		fmt.Println("RETRYING PermanentDeleteByTeam")
 	}
@@ -1548,9 +1590,9 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(channelId strin
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
 		fmt.Println("RETRYING PermanentDeleteMembersByChannel")
 	}
@@ -1567,9 +1609,9 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userId string) *mo
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.PermanentDeleteMembersByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteMembersByUser")
 	}
@@ -1586,9 +1628,9 @@ func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(channelId string) *
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
 		fmt.Println("RETRYING RemoveAllDeactivatedMembers")
 	}
@@ -1605,9 +1647,9 @@ func (s *RetryLayerChannelStore) RemoveMember(channelId string, userId string) *
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.RemoveMember(channelId, userId)
 		fmt.Println("RETRYING RemoveMember")
 	}
@@ -1624,9 +1666,9 @@ func (s *RetryLayerChannelStore) RemoveMembers(channelId string, userIds []strin
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.RemoveMembers(channelId, userIds)
 		fmt.Println("RETRYING RemoveMembers")
 	}
@@ -1643,9 +1685,9 @@ func (s *RetryLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.ResetAllChannelSchemes()
 		fmt.Println("RETRYING ResetAllChannelSchemes")
 	}
@@ -1662,9 +1704,11 @@ func (s *RetryLayerChannelStore) Restore(channelId string, time int64) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.Restore(channelId, time)
 		fmt.Println("RETRYING Restore")
 	}
@@ -1681,9 +1725,11 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.Save(channel, maxChannelsPerTeam)
 		fmt.Println("RETRYING Save")
 	}
@@ -1700,9 +1746,11 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.SaveDirectChannel(channel, member1, member2)
 		fmt.Println("RETRYING SaveDirectChannel")
 	}
@@ -1719,9 +1767,9 @@ func (s *RetryLayerChannelStore) SaveMember(member *model.ChannelMember) (*model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SaveMember(member)
 		fmt.Println("RETRYING SaveMember")
 	}
@@ -1738,9 +1786,9 @@ func (s *RetryLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SaveMultipleMembers(members)
 		fmt.Println("RETRYING SaveMultipleMembers")
 	}
@@ -1757,9 +1805,9 @@ func (s *RetryLayerChannelStore) SearchAllChannels(term string, opts ChannelSear
 		if resultVar2 == nil {
 			break
 		}
-		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1, resultVar2 = s.ChannelStore.SearchAllChannels(term, opts)
 		fmt.Println("RETRYING SearchAllChannels")
 	}
@@ -1776,9 +1824,9 @@ func (s *RetryLayerChannelStore) SearchArchivedInTeam(teamId string, term string
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
 		fmt.Println("RETRYING SearchArchivedInTeam")
 	}
@@ -1795,9 +1843,9 @@ func (s *RetryLayerChannelStore) SearchForUserInTeam(userId string, teamId strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
 		fmt.Println("RETRYING SearchForUserInTeam")
 	}
@@ -1814,9 +1862,9 @@ func (s *RetryLayerChannelStore) SearchGroupChannels(userId string, term string)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SearchGroupChannels(userId, term)
 		fmt.Println("RETRYING SearchGroupChannels")
 	}
@@ -1833,9 +1881,9 @@ func (s *RetryLayerChannelStore) SearchInTeam(teamId string, term string, includ
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
 		fmt.Println("RETRYING SearchInTeam")
 	}
@@ -1852,9 +1900,9 @@ func (s *RetryLayerChannelStore) SearchMore(userId string, teamId string, term s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.SearchMore(userId, teamId, term)
 		fmt.Println("RETRYING SearchMore")
 	}
@@ -1871,9 +1919,11 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
 		fmt.Println("RETRYING SetDeleteAt")
 	}
@@ -1890,9 +1940,11 @@ func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelStore.Update(channel)
 		fmt.Println("RETRYING Update")
 	}
@@ -1909,9 +1961,9 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
 		fmt.Println("RETRYING UpdateLastViewedAt")
 	}
@@ -1928,9 +1980,9 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
 		fmt.Println("RETRYING UpdateLastViewedAtPost")
 	}
@@ -1947,9 +1999,9 @@ func (s *RetryLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.UpdateMember(member)
 		fmt.Println("RETRYING UpdateMember")
 	}
@@ -1966,9 +2018,9 @@ func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []s
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 		fmt.Println("RETRYING UpdateMembersRole")
 	}
@@ -1985,9 +2037,9 @@ func (s *RetryLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.UpdateMultipleMembers(members)
 		fmt.Println("RETRYING UpdateMultipleMembers")
 	}
@@ -2004,9 +2056,9 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ChannelStore.UserBelongsToChannels(userId, channelIds)
 		fmt.Println("RETRYING UserBelongsToChannels")
 	}
@@ -2023,9 +2075,11 @@ func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
 		fmt.Println("RETRYING GetUsersInChannelDuring")
 	}
@@ -2042,9 +2096,11 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
 		fmt.Println("RETRYING LogJoinEvent")
 	}
@@ -2061,9 +2117,11 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
 		fmt.Println("RETRYING LogLeaveEvent")
 	}
@@ -2080,9 +2138,11 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
 		fmt.Println("RETRYING PermanentDeleteBatch")
 	}
@@ -2099,9 +2159,9 @@ func (s *RetryLayerClusterDiscoveryStore) Cleanup() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ClusterDiscoveryStore.Cleanup()
 		fmt.Println("RETRYING Cleanup")
 	}
@@ -2118,9 +2178,9 @@ func (s *RetryLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscove
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.Delete(discovery)
 		fmt.Println("RETRYING Delete")
 	}
@@ -2137,9 +2197,9 @@ func (s *RetryLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscove
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.Exists(discovery)
 		fmt.Println("RETRYING Exists")
 	}
@@ -2156,9 +2216,9 @@ func (s *RetryLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterNa
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -2175,9 +2235,9 @@ func (s *RetryLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ClusterDiscoveryStore.Save(discovery)
 		fmt.Println("RETRYING Save")
 	}
@@ -2194,9 +2254,9 @@ func (s *RetryLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ClusterDiscoveryStore.SetLastPingAt(discovery)
 		fmt.Println("RETRYING SetLastPingAt")
 	}
@@ -2213,9 +2273,9 @@ func (s *RetryLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.AnalyticsCommandCount(teamId)
 		fmt.Println("RETRYING AnalyticsCommandCount")
 	}
@@ -2232,9 +2292,9 @@ func (s *RetryLayerCommandStore) Delete(commandId string, time int64) *model.App
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.CommandStore.Delete(commandId, time)
 		fmt.Println("RETRYING Delete")
 	}
@@ -2251,9 +2311,9 @@ func (s *RetryLayerCommandStore) Get(id string) (*model.Command, *model.AppError
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -2270,9 +2330,9 @@ func (s *RetryLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.GetByTeam(teamId)
 		fmt.Println("RETRYING GetByTeam")
 	}
@@ -2289,9 +2349,9 @@ func (s *RetryLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.GetByTrigger(teamId, trigger)
 		fmt.Println("RETRYING GetByTrigger")
 	}
@@ -2308,9 +2368,9 @@ func (s *RetryLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.App
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.CommandStore.PermanentDeleteByTeam(teamId)
 		fmt.Println("RETRYING PermanentDeleteByTeam")
 	}
@@ -2327,9 +2387,9 @@ func (s *RetryLayerCommandStore) PermanentDeleteByUser(userId string) *model.App
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.CommandStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
 	}
@@ -2346,9 +2406,9 @@ func (s *RetryLayerCommandStore) Save(webhook *model.Command) (*model.Command, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.Save(webhook)
 		fmt.Println("RETRYING Save")
 	}
@@ -2365,9 +2425,9 @@ func (s *RetryLayerCommandStore) Update(hook *model.Command) (*model.Command, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandStore.Update(hook)
 		fmt.Println("RETRYING Update")
 	}
@@ -2391,9 +2451,9 @@ func (s *RetryLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandWebhookStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -2410,9 +2470,9 @@ func (s *RetryLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.CommandWebhookStore.Save(webhook)
 		fmt.Println("RETRYING Save")
 	}
@@ -2429,9 +2489,9 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppE
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.CommandWebhookStore.TryUse(id, limit)
 		fmt.Println("RETRYING TryUse")
 	}
@@ -2448,9 +2508,9 @@ func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Complianc
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.ComplianceExport(compliance)
 		fmt.Println("RETRYING ComplianceExport")
 	}
@@ -2467,9 +2527,9 @@ func (s *RetryLayerComplianceStore) Get(id string) (*model.Compliance, *model.Ap
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -2486,9 +2546,9 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.GetAll(offset, limit)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -2505,9 +2565,9 @@ func (s *RetryLayerComplianceStore) MessageExport(after int64, limit int) ([]*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.MessageExport(after, limit)
 		fmt.Println("RETRYING MessageExport")
 	}
@@ -2524,9 +2584,9 @@ func (s *RetryLayerComplianceStore) Save(compliance *model.Compliance) (*model.C
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.Save(compliance)
 		fmt.Println("RETRYING Save")
 	}
@@ -2543,9 +2603,9 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ComplianceStore.Update(compliance)
 		fmt.Println("RETRYING Update")
 	}
@@ -2562,9 +2622,11 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.EmojiStore.Delete(emoji, time)
 		fmt.Println("RETRYING Delete")
 	}
@@ -2581,9 +2643,11 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.Get(id, allowFromCache)
 		fmt.Println("RETRYING Get")
 	}
@@ -2600,9 +2664,11 @@ func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.GetByName(name, allowFromCache)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -2619,9 +2685,11 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.GetList(offset, limit, sort)
 		fmt.Println("RETRYING GetList")
 	}
@@ -2638,9 +2706,11 @@ func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.GetMultipleByName(names)
 		fmt.Println("RETRYING GetMultipleByName")
 	}
@@ -2657,9 +2727,11 @@ func (s *RetryLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.Save(emoji)
 		fmt.Println("RETRYING Save")
 	}
@@ -2676,9 +2748,11 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.EmojiStore.Search(name, prefixOnly, limit)
 		fmt.Println("RETRYING Search")
 	}
@@ -2695,9 +2769,9 @@ func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, cre
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
 		fmt.Println("RETRYING AttachToPost")
 	}
@@ -2721,9 +2795,9 @@ func (s *RetryLayerFileInfoStore) DeleteForPost(postId string) (string, *model.A
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.DeleteForPost(postId)
 		fmt.Println("RETRYING DeleteForPost")
 	}
@@ -2740,9 +2814,9 @@ func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -2759,9 +2833,9 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.GetByPath(path)
 		fmt.Println("RETRYING GetByPath")
 	}
@@ -2778,9 +2852,9 @@ func (s *RetryLayerFileInfoStore) GetForPost(postId string, readFromMaster bool,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
 		fmt.Println("RETRYING GetForPost")
 	}
@@ -2797,9 +2871,9 @@ func (s *RetryLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.GetForUser(userId)
 		fmt.Println("RETRYING GetForUser")
 	}
@@ -2816,9 +2890,9 @@ func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.GetWithOptions(page, perPage, opt)
 		fmt.Println("RETRYING GetWithOptions")
 	}
@@ -2842,9 +2916,9 @@ func (s *RetryLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.FileInfoStore.PermanentDelete(fileId)
 		fmt.Println("RETRYING PermanentDelete")
 	}
@@ -2861,9 +2935,9 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
 		fmt.Println("RETRYING PermanentDeleteBatch")
 	}
@@ -2880,9 +2954,9 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
 	}
@@ -2899,9 +2973,9 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.FileInfoStore.Save(info)
 		fmt.Println("RETRYING Save")
 	}
@@ -2918,9 +2992,9 @@ func (s *RetryLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string, s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
 		fmt.Println("RETRYING AdminRoleGroupsForSyncableMember")
 	}
@@ -2937,9 +3011,9 @@ func (s *RetryLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 		fmt.Println("RETRYING ChannelMembersMinusGroupMembers")
 	}
@@ -2956,9 +3030,9 @@ func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersToAdd(since, channelID)
 		fmt.Println("RETRYING ChannelMembersToAdd")
 	}
@@ -2975,9 +3049,9 @@ func (s *RetryLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersToRemove(channelID)
 		fmt.Println("RETRYING ChannelMembersToRemove")
 	}
@@ -2994,9 +3068,9 @@ func (s *RetryLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID st
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
 		fmt.Println("RETRYING CountChannelMembersMinusGroupMembers")
 	}
@@ -3013,9 +3087,9 @@ func (s *RetryLayerGroupStore) CountGroupsByChannel(channelId string, opts model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.CountGroupsByChannel(channelId, opts)
 		fmt.Println("RETRYING CountGroupsByChannel")
 	}
@@ -3032,9 +3106,9 @@ func (s *RetryLayerGroupStore) CountGroupsByTeam(teamId string, opts model.Group
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.CountGroupsByTeam(teamId, opts)
 		fmt.Println("RETRYING CountGroupsByTeam")
 	}
@@ -3051,9 +3125,9 @@ func (s *RetryLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID string, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 		fmt.Println("RETRYING CountTeamMembersMinusGroupMembers")
 	}
@@ -3070,9 +3144,9 @@ func (s *RetryLayerGroupStore) Create(group *model.Group) (*model.Group, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.Create(group)
 		fmt.Println("RETRYING Create")
 	}
@@ -3089,9 +3163,9 @@ func (s *RetryLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyn
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.CreateGroupSyncable(groupSyncable)
 		fmt.Println("RETRYING CreateGroupSyncable")
 	}
@@ -3108,9 +3182,9 @@ func (s *RetryLayerGroupStore) Delete(groupID string) (*model.Group, *model.AppE
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.Delete(groupID)
 		fmt.Println("RETRYING Delete")
 	}
@@ -3127,9 +3201,9 @@ func (s *RetryLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID st
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
 		fmt.Println("RETRYING DeleteGroupSyncable")
 	}
@@ -3146,9 +3220,9 @@ func (s *RetryLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.DeleteMember(groupID, userID)
 		fmt.Println("RETRYING DeleteMember")
 	}
@@ -3165,9 +3239,9 @@ func (s *RetryLayerGroupStore) DistinctGroupMemberCount() (int64, *model.AppErro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.DistinctGroupMemberCount()
 		fmt.Println("RETRYING DistinctGroupMemberCount")
 	}
@@ -3184,9 +3258,9 @@ func (s *RetryLayerGroupStore) Get(groupID string) (*model.Group, *model.AppErro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.Get(groupID)
 		fmt.Println("RETRYING Get")
 	}
@@ -3203,9 +3277,9 @@ func (s *RetryLayerGroupStore) GetAllBySource(groupSource model.GroupSource) ([]
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetAllBySource(groupSource)
 		fmt.Println("RETRYING GetAllBySource")
 	}
@@ -3222,9 +3296,9 @@ func (s *RetryLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syn
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
 		fmt.Println("RETRYING GetAllGroupSyncablesByGroupId")
 	}
@@ -3241,9 +3315,9 @@ func (s *RetryLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetByIDs(groupIDs)
 		fmt.Println("RETRYING GetByIDs")
 	}
@@ -3260,9 +3334,9 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetByName(name, opts)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -3279,9 +3353,9 @@ func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetByRemoteID(remoteID, groupSource)
 		fmt.Println("RETRYING GetByRemoteID")
 	}
@@ -3298,9 +3372,9 @@ func (s *RetryLayerGroupStore) GetByUser(userId string) ([]*model.Group, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetByUser(userId)
 		fmt.Println("RETRYING GetByUser")
 	}
@@ -3317,9 +3391,9 @@ func (s *RetryLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
 		fmt.Println("RETRYING GetGroupSyncable")
 	}
@@ -3336,9 +3410,9 @@ func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.Group
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetGroups(page, perPage, opts)
 		fmt.Println("RETRYING GetGroups")
 	}
@@ -3355,9 +3429,9 @@ func (s *RetryLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsAssociatedToChannelsByTeam(teamId, opts)
 		fmt.Println("RETRYING GetGroupsAssociatedToChannelsByTeam")
 	}
@@ -3374,9 +3448,9 @@ func (s *RetryLayerGroupStore) GetGroupsByChannel(channelId string, opts model.G
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsByChannel(channelId, opts)
 		fmt.Println("RETRYING GetGroupsByChannel")
 	}
@@ -3393,9 +3467,9 @@ func (s *RetryLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsByTeam(teamId, opts)
 		fmt.Println("RETRYING GetGroupsByTeam")
 	}
@@ -3412,9 +3486,9 @@ func (s *RetryLayerGroupStore) GetMemberCount(groupID string) (int64, *model.App
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetMemberCount(groupID)
 		fmt.Println("RETRYING GetMemberCount")
 	}
@@ -3431,9 +3505,9 @@ func (s *RetryLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsers(groupID)
 		fmt.Println("RETRYING GetMemberUsers")
 	}
@@ -3450,9 +3524,9 @@ func (s *RetryLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
 		fmt.Println("RETRYING GetMemberUsersInTeam")
 	}
@@ -3469,9 +3543,9 @@ func (s *RetryLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
 		fmt.Println("RETRYING GetMemberUsersNotInChannel")
 	}
@@ -3488,9 +3562,9 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
 		fmt.Println("RETRYING GetMemberUsersPage")
 	}
@@ -3507,9 +3581,9 @@ func (s *RetryLayerGroupStore) GroupChannelCount() (int64, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GroupChannelCount()
 		fmt.Println("RETRYING GroupChannelCount")
 	}
@@ -3526,9 +3600,9 @@ func (s *RetryLayerGroupStore) GroupCount() (int64, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GroupCount()
 		fmt.Println("RETRYING GroupCount")
 	}
@@ -3545,9 +3619,9 @@ func (s *RetryLayerGroupStore) GroupCountWithAllowReference() (int64, *model.App
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GroupCountWithAllowReference()
 		fmt.Println("RETRYING GroupCountWithAllowReference")
 	}
@@ -3564,9 +3638,9 @@ func (s *RetryLayerGroupStore) GroupMemberCount() (int64, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GroupMemberCount()
 		fmt.Println("RETRYING GroupMemberCount")
 	}
@@ -3583,9 +3657,9 @@ func (s *RetryLayerGroupStore) GroupTeamCount() (int64, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.GroupTeamCount()
 		fmt.Println("RETRYING GroupTeamCount")
 	}
@@ -3602,9 +3676,9 @@ func (s *RetryLayerGroupStore) PermanentDeleteMembersByUser(userId string) *mode
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.GroupStore.PermanentDeleteMembersByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteMembersByUser")
 	}
@@ -3621,9 +3695,9 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
 		fmt.Println("RETRYING PermittedSyncableAdmins")
 	}
@@ -3640,9 +3714,9 @@ func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 		fmt.Println("RETRYING TeamMembersMinusGroupMembers")
 	}
@@ -3659,9 +3733,9 @@ func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersToAdd(since, teamID)
 		fmt.Println("RETRYING TeamMembersToAdd")
 	}
@@ -3678,9 +3752,9 @@ func (s *RetryLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.Tea
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersToRemove(teamID)
 		fmt.Println("RETRYING TeamMembersToRemove")
 	}
@@ -3697,9 +3771,9 @@ func (s *RetryLayerGroupStore) Update(group *model.Group) (*model.Group, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.Update(group)
 		fmt.Println("RETRYING Update")
 	}
@@ -3716,9 +3790,9 @@ func (s *RetryLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyn
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.UpdateGroupSyncable(groupSyncable)
 		fmt.Println("RETRYING UpdateGroupSyncable")
 	}
@@ -3735,9 +3809,9 @@ func (s *RetryLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.GroupStore.UpsertMember(groupID, userID)
 		fmt.Println("RETRYING UpsertMember")
 	}
@@ -3754,9 +3828,9 @@ func (s *RetryLayerJobStore) Delete(id string) (string, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.Delete(id)
 		fmt.Println("RETRYING Delete")
 	}
@@ -3773,9 +3847,9 @@ func (s *RetryLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -3792,9 +3866,9 @@ func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetAllByStatus(status)
 		fmt.Println("RETRYING GetAllByStatus")
 	}
@@ -3811,9 +3885,9 @@ func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetAllByType(jobType)
 		fmt.Println("RETRYING GetAllByType")
 	}
@@ -3830,9 +3904,9 @@ func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetAllByTypePage(jobType, offset, limit)
 		fmt.Println("RETRYING GetAllByTypePage")
 	}
@@ -3849,9 +3923,9 @@ func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetAllPage(offset, limit)
 		fmt.Println("RETRYING GetAllPage")
 	}
@@ -3868,9 +3942,9 @@ func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType stri
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetCountByStatusAndType(status, jobType)
 		fmt.Println("RETRYING GetCountByStatusAndType")
 	}
@@ -3887,9 +3961,9 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.GetNewestJobByStatusAndType(status, jobType)
 		fmt.Println("RETRYING GetNewestJobByStatusAndType")
 	}
@@ -3906,9 +3980,9 @@ func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.Save(job)
 		fmt.Println("RETRYING Save")
 	}
@@ -3925,9 +3999,9 @@ func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.UpdateOptimistically(job, currentStatus)
 		fmt.Println("RETRYING UpdateOptimistically")
 	}
@@ -3944,9 +4018,9 @@ func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.UpdateStatus(id, status)
 		fmt.Println("RETRYING UpdateStatus")
 	}
@@ -3963,9 +4037,9 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
 		fmt.Println("RETRYING UpdateStatusOptimistically")
 	}
@@ -3982,9 +4056,9 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.LicenseStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -4001,9 +4075,9 @@ func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.LicenseStore.Save(license)
 		fmt.Println("RETRYING Save")
 	}
@@ -4020,9 +4094,11 @@ func (s *RetryLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.LinkMetadataStore.Get(url, timestamp)
 		fmt.Println("RETRYING Get")
 	}
@@ -4039,9 +4115,11 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.LinkMetadataStore.Save(linkMetadata)
 		fmt.Println("RETRYING Save")
 	}
@@ -4058,9 +4136,9 @@ func (s *RetryLayerOAuthStore) DeleteApp(id string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.OAuthStore.DeleteApp(id)
 		fmt.Println("RETRYING DeleteApp")
 	}
@@ -4077,9 +4155,9 @@ func (s *RetryLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessData(token)
 		fmt.Println("RETRYING GetAccessData")
 	}
@@ -4096,9 +4174,9 @@ func (s *RetryLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessDataByRefreshToken(token)
 		fmt.Println("RETRYING GetAccessDataByRefreshToken")
 	}
@@ -4115,9 +4193,9 @@ func (s *RetryLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
 		fmt.Println("RETRYING GetAccessDataByUserForApp")
 	}
@@ -4134,9 +4212,9 @@ func (s *RetryLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetApp(id)
 		fmt.Println("RETRYING GetApp")
 	}
@@ -4153,9 +4231,9 @@ func (s *RetryLayerOAuthStore) GetAppByUser(userId string, offset int, limit int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAppByUser(userId, offset, limit)
 		fmt.Println("RETRYING GetAppByUser")
 	}
@@ -4172,9 +4250,9 @@ func (s *RetryLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetApps(offset, limit)
 		fmt.Println("RETRYING GetApps")
 	}
@@ -4191,9 +4269,9 @@ func (s *RetryLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAuthData(code)
 		fmt.Println("RETRYING GetAuthData")
 	}
@@ -4210,9 +4288,9 @@ func (s *RetryLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limi
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
 		fmt.Println("RETRYING GetAuthorizedApps")
 	}
@@ -4229,9 +4307,9 @@ func (s *RetryLayerOAuthStore) GetPreviousAccessData(userId string, clientId str
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.GetPreviousAccessData(userId, clientId)
 		fmt.Println("RETRYING GetPreviousAccessData")
 	}
@@ -4248,9 +4326,9 @@ func (s *RetryLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *mod
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteAuthDataByUser")
 	}
@@ -4267,9 +4345,9 @@ func (s *RetryLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.OAuthStore.RemoveAccessData(token)
 		fmt.Println("RETRYING RemoveAccessData")
 	}
@@ -4286,9 +4364,9 @@ func (s *RetryLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.OAuthStore.RemoveAllAccessData()
 		fmt.Println("RETRYING RemoveAllAccessData")
 	}
@@ -4305,9 +4383,9 @@ func (s *RetryLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.OAuthStore.RemoveAuthData(code)
 		fmt.Println("RETRYING RemoveAuthData")
 	}
@@ -4324,9 +4402,9 @@ func (s *RetryLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.SaveAccessData(accessData)
 		fmt.Println("RETRYING SaveAccessData")
 	}
@@ -4343,9 +4421,9 @@ func (s *RetryLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.SaveApp(app)
 		fmt.Println("RETRYING SaveApp")
 	}
@@ -4362,9 +4440,9 @@ func (s *RetryLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.Au
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.SaveAuthData(authData)
 		fmt.Println("RETRYING SaveAuthData")
 	}
@@ -4381,9 +4459,9 @@ func (s *RetryLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.UpdateAccessData(accessData)
 		fmt.Println("RETRYING UpdateAccessData")
 	}
@@ -4400,9 +4478,9 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.OAuthStore.UpdateApp(app)
 		fmt.Println("RETRYING UpdateApp")
 	}
@@ -4419,9 +4497,9 @@ func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, o
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.CompareAndDelete(keyVal, oldValue)
 		fmt.Println("RETRYING CompareAndDelete")
 	}
@@ -4438,9 +4516,9 @@ func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldV
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.CompareAndSet(keyVal, oldValue)
 		fmt.Println("RETRYING CompareAndSet")
 	}
@@ -4457,9 +4535,9 @@ func (s *RetryLayerPluginStore) Delete(pluginId string, key string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PluginStore.Delete(pluginId, key)
 		fmt.Println("RETRYING Delete")
 	}
@@ -4476,9 +4554,9 @@ func (s *RetryLayerPluginStore) DeleteAllExpired() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PluginStore.DeleteAllExpired()
 		fmt.Println("RETRYING DeleteAllExpired")
 	}
@@ -4495,9 +4573,9 @@ func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PluginStore.DeleteAllForPlugin(PluginId)
 		fmt.Println("RETRYING DeleteAllForPlugin")
 	}
@@ -4514,9 +4592,9 @@ func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginK
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.Get(pluginId, key)
 		fmt.Println("RETRYING Get")
 	}
@@ -4533,9 +4611,9 @@ func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.List(pluginId, page, perPage)
 		fmt.Println("RETRYING List")
 	}
@@ -4552,9 +4630,9 @@ func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.SaveOrUpdate(keyVal)
 		fmt.Println("RETRYING SaveOrUpdate")
 	}
@@ -4571,9 +4649,9 @@ func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, valu
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PluginStore.SetWithOptions(pluginId, key, value, options)
 		fmt.Println("RETRYING SetWithOptions")
 	}
@@ -4590,9 +4668,9 @@ func (s *RetryLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFile boo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
 		fmt.Println("RETRYING AnalyticsPostCount")
 	}
@@ -4609,9 +4687,9 @@ func (s *RetryLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsP
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.AnalyticsPostCountsByDay(options)
 		fmt.Println("RETRYING AnalyticsPostCountsByDay")
 	}
@@ -4628,9 +4706,9 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
 		fmt.Println("RETRYING AnalyticsUserCountsWithPostsByDay")
 	}
@@ -4654,9 +4732,9 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PostStore.Delete(postId, time, deleteByID)
 		fmt.Println("RETRYING Delete")
 	}
@@ -4673,9 +4751,9 @@ func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.Post
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.Get(id, skipFetchThreads)
 		fmt.Println("RETRYING Get")
 	}
@@ -4692,9 +4770,9 @@ func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
 		fmt.Println("RETRYING GetDirectPostParentsForExportAfter")
 	}
@@ -4719,9 +4797,9 @@ func (s *RetryLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPosts(userId, offset, limit)
 		fmt.Println("RETRYING GetFlaggedPosts")
 	}
@@ -4738,9 +4816,9 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 		fmt.Println("RETRYING GetFlaggedPostsForChannel")
 	}
@@ -4757,9 +4835,9 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 		fmt.Println("RETRYING GetFlaggedPostsForTeam")
 	}
@@ -4784,9 +4862,9 @@ func (s *RetryLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetOldest()
 		fmt.Println("RETRYING GetOldest")
 	}
@@ -4803,9 +4881,9 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppEr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetOldestEntityCreationTime()
 		fmt.Println("RETRYING GetOldestEntityCreationTime")
 	}
@@ -4822,9 +4900,9 @@ func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetParentsForExportAfter(limit, afterId)
 		fmt.Println("RETRYING GetParentsForExportAfter")
 	}
@@ -4841,9 +4919,9 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostAfterTime(channelId, time)
 		fmt.Println("RETRYING GetPostAfterTime")
 	}
@@ -4860,9 +4938,9 @@ func (s *RetryLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostIdAfterTime(channelId, time)
 		fmt.Println("RETRYING GetPostIdAfterTime")
 	}
@@ -4879,9 +4957,9 @@ func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostIdBeforeTime(channelId, time)
 		fmt.Println("RETRYING GetPostIdBeforeTime")
 	}
@@ -4898,9 +4976,9 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPosts(options, allowFromCache)
 		fmt.Println("RETRYING GetPosts")
 	}
@@ -4917,9 +4995,9 @@ func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsAfter(options)
 		fmt.Println("RETRYING GetPostsAfter")
 	}
@@ -4936,9 +5014,9 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
 		fmt.Println("RETRYING GetPostsBatchForIndexing")
 	}
@@ -4955,9 +5033,9 @@ func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsBefore(options)
 		fmt.Println("RETRYING GetPostsBefore")
 	}
@@ -4974,9 +5052,9 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsByIds(postIds)
 		fmt.Println("RETRYING GetPostsByIds")
 	}
@@ -4993,9 +5071,9 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsCreatedAt(channelId, time)
 		fmt.Println("RETRYING GetPostsCreatedAt")
 	}
@@ -5012,9 +5090,9 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetPostsSince(options, allowFromCache)
 		fmt.Println("RETRYING GetPostsSince")
 	}
@@ -5031,9 +5109,9 @@ func (s *RetryLayerPostStore) GetRepliesForExport(parentId string) ([]*model.Rep
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetRepliesForExport(parentId)
 		fmt.Println("RETRYING GetRepliesForExport")
 	}
@@ -5050,9 +5128,9 @@ func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.GetSingle(id)
 		fmt.Println("RETRYING GetSingle")
 	}
@@ -5076,9 +5154,9 @@ func (s *RetryLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.A
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.Overwrite(post)
 		fmt.Println("RETRYING Overwrite")
 	}
@@ -5095,9 +5173,9 @@ func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 		if resultVar2 == nil {
 			break
 		}
-		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1, resultVar2 = s.PostStore.OverwriteMultiple(posts)
 		fmt.Println("RETRYING OverwriteMultiple")
 	}
@@ -5114,9 +5192,9 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.PermanentDeleteBatch(endTime, limit)
 		fmt.Println("RETRYING PermanentDeleteBatch")
 	}
@@ -5133,9 +5211,9 @@ func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) *model.
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PostStore.PermanentDeleteByChannel(channelId)
 		fmt.Println("RETRYING PermanentDeleteByChannel")
 	}
@@ -5152,9 +5230,9 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(userId string) *model.AppErr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PostStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
 	}
@@ -5171,9 +5249,9 @@ func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.Save(post)
 		fmt.Println("RETRYING Save")
 	}
@@ -5190,9 +5268,9 @@ func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 		if resultVar2 == nil {
 			break
 		}
-		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1, resultVar2 = s.PostStore.SaveMultiple(posts)
 		fmt.Println("RETRYING SaveMultiple")
 	}
@@ -5209,9 +5287,9 @@ func (s *RetryLayerPostStore) Search(teamId string, userId string, params *model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.Search(teamId, userId, params)
 		fmt.Println("RETRYING Search")
 	}
@@ -5228,9 +5306,9 @@ func (s *RetryLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.Searc
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		fmt.Println("RETRYING SearchPostsInTeamForUser")
 	}
@@ -5247,9 +5325,9 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PostStore.Update(newPost, oldPost)
 		fmt.Println("RETRYING Update")
 	}
@@ -5266,9 +5344,9 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PreferenceStore.CleanupFlagsBatch(limit)
 		fmt.Println("RETRYING CleanupFlagsBatch")
 	}
@@ -5285,9 +5363,9 @@ func (s *RetryLayerPreferenceStore) Delete(userId string, category string, name 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PreferenceStore.Delete(userId, category, name)
 		fmt.Println("RETRYING Delete")
 	}
@@ -5304,9 +5382,9 @@ func (s *RetryLayerPreferenceStore) DeleteCategory(userId string, category strin
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PreferenceStore.DeleteCategory(userId, category)
 		fmt.Println("RETRYING DeleteCategory")
 	}
@@ -5323,9 +5401,9 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PreferenceStore.DeleteCategoryAndName(category, name)
 		fmt.Println("RETRYING DeleteCategoryAndName")
 	}
@@ -5342,9 +5420,9 @@ func (s *RetryLayerPreferenceStore) Get(userId string, category string, name str
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PreferenceStore.Get(userId, category, name)
 		fmt.Println("RETRYING Get")
 	}
@@ -5361,9 +5439,9 @@ func (s *RetryLayerPreferenceStore) GetAll(userId string) (model.Preferences, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PreferenceStore.GetAll(userId)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -5380,9 +5458,9 @@ func (s *RetryLayerPreferenceStore) GetCategory(userId string, category string) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.PreferenceStore.GetCategory(userId, category)
 		fmt.Println("RETRYING GetCategory")
 	}
@@ -5399,9 +5477,9 @@ func (s *RetryLayerPreferenceStore) PermanentDeleteByUser(userId string) *model.
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PreferenceStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
 	}
@@ -5418,9 +5496,9 @@ func (s *RetryLayerPreferenceStore) Save(preferences *model.Preferences) *model.
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.PreferenceStore.Save(preferences)
 		fmt.Println("RETRYING Save")
 	}
@@ -5437,9 +5515,9 @@ func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ReactionStore.BulkGetForPosts(postIds)
 		fmt.Println("RETRYING BulkGetForPosts")
 	}
@@ -5456,9 +5534,9 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ReactionStore.Delete(reaction)
 		fmt.Println("RETRYING Delete")
 	}
@@ -5475,9 +5553,9 @@ func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *mode
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.ReactionStore.DeleteAllWithEmojiName(emojiName)
 		fmt.Println("RETRYING DeleteAllWithEmojiName")
 	}
@@ -5494,9 +5572,9 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ReactionStore.GetForPost(postId, allowFromCache)
 		fmt.Println("RETRYING GetForPost")
 	}
@@ -5513,9 +5591,9 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ReactionStore.PermanentDeleteBatch(endTime, limit)
 		fmt.Println("RETRYING PermanentDeleteBatch")
 	}
@@ -5532,9 +5610,9 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.ReactionStore.Save(reaction)
 		fmt.Println("RETRYING Save")
 	}
@@ -5551,9 +5629,9 @@ func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.App
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.AllChannelSchemeRoles()
 		fmt.Println("RETRYING AllChannelSchemeRoles")
 	}
@@ -5570,9 +5648,9 @@ func (s *RetryLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.ChannelHigherScopedPermissions(roleNames)
 		fmt.Println("RETRYING ChannelHigherScopedPermissions")
 	}
@@ -5589,9 +5667,9 @@ func (s *RetryLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.ChannelRolesUnderTeamRole(roleName)
 		fmt.Println("RETRYING ChannelRolesUnderTeamRole")
 	}
@@ -5608,9 +5686,9 @@ func (s *RetryLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppErro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.Delete(roleId)
 		fmt.Println("RETRYING Delete")
 	}
@@ -5627,9 +5705,9 @@ func (s *RetryLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.Get(roleId)
 		fmt.Println("RETRYING Get")
 	}
@@ -5646,9 +5724,9 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.GetAll()
 		fmt.Println("RETRYING GetAll")
 	}
@@ -5665,9 +5743,9 @@ func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.GetByName(name)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -5684,9 +5762,9 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.GetByNames(names)
 		fmt.Println("RETRYING GetByNames")
 	}
@@ -5703,9 +5781,9 @@ func (s *RetryLayerRoleStore) PermanentDeleteAll() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.RoleStore.PermanentDeleteAll()
 		fmt.Println("RETRYING PermanentDeleteAll")
 	}
@@ -5722,9 +5800,9 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.RoleStore.Save(role)
 		fmt.Println("RETRYING Save")
 	}
@@ -5741,9 +5819,11 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.CountByScope(scope)
 		fmt.Println("RETRYING CountByScope")
 	}
@@ -5760,9 +5840,11 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
 		fmt.Println("RETRYING CountWithoutPermission")
 	}
@@ -5779,9 +5861,11 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.Delete(schemeId)
 		fmt.Println("RETRYING Delete")
 	}
@@ -5798,9 +5882,11 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.Get(schemeId)
 		fmt.Println("RETRYING Get")
 	}
@@ -5817,9 +5903,11 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.GetAllPage(scope, offset, limit)
 		fmt.Println("RETRYING GetAllPage")
 	}
@@ -5836,9 +5924,11 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.GetByName(schemeName)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -5855,9 +5945,11 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.SchemeStore.PermanentDeleteAll()
 		fmt.Println("RETRYING PermanentDeleteAll")
 	}
@@ -5874,9 +5966,11 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.SchemeStore.Save(scheme)
 		fmt.Println("RETRYING Save")
 	}
@@ -5893,9 +5987,9 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, *model.AppError
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.AnalyticsSessionCount()
 		fmt.Println("RETRYING AnalyticsSessionCount")
 	}
@@ -5919,9 +6013,9 @@ func (s *RetryLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.Get(sessionIdOrToken)
 		fmt.Println("RETRYING Get")
 	}
@@ -5938,9 +6032,9 @@ func (s *RetryLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.GetSessions(userId)
 		fmt.Println("RETRYING GetSessions")
 	}
@@ -5957,9 +6051,9 @@ func (s *RetryLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
 		fmt.Println("RETRYING GetSessionsExpired")
 	}
@@ -5976,9 +6070,9 @@ func (s *RetryLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) (
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
 		fmt.Println("RETRYING GetSessionsWithActiveDeviceIds")
 	}
@@ -5995,9 +6089,9 @@ func (s *RetryLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *m
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.PermanentDeleteSessionsByUser(teamId)
 		fmt.Println("RETRYING PermanentDeleteSessionsByUser")
 	}
@@ -6014,9 +6108,9 @@ func (s *RetryLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.Remove(sessionIdOrToken)
 		fmt.Println("RETRYING Remove")
 	}
@@ -6033,9 +6127,9 @@ func (s *RetryLayerSessionStore) RemoveAllSessions() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.RemoveAllSessions()
 		fmt.Println("RETRYING RemoveAllSessions")
 	}
@@ -6052,9 +6146,9 @@ func (s *RetryLayerSessionStore) Save(session *model.Session) (*model.Session, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.Save(session)
 		fmt.Println("RETRYING Save")
 	}
@@ -6071,9 +6165,9 @@ func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
 		fmt.Println("RETRYING UpdateDeviceId")
 	}
@@ -6090,9 +6184,9 @@ func (s *RetryLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.UpdateExpiredNotify(sessionid, notified)
 		fmt.Println("RETRYING UpdateExpiredNotify")
 	}
@@ -6109,9 +6203,9 @@ func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.UpdateExpiresAt(sessionId, time)
 		fmt.Println("RETRYING UpdateExpiresAt")
 	}
@@ -6128,9 +6222,9 @@ func (s *RetryLayerSessionStore) UpdateLastActivityAt(sessionId string, time int
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.UpdateLastActivityAt(sessionId, time)
 		fmt.Println("RETRYING UpdateLastActivityAt")
 	}
@@ -6147,9 +6241,9 @@ func (s *RetryLayerSessionStore) UpdateProps(session *model.Session) *model.AppE
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SessionStore.UpdateProps(session)
 		fmt.Println("RETRYING UpdateProps")
 	}
@@ -6166,9 +6260,9 @@ func (s *RetryLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SessionStore.UpdateRoles(userId, roles)
 		fmt.Println("RETRYING UpdateRoles")
 	}
@@ -6185,9 +6279,9 @@ func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.StatusStore.Get(userId)
 		fmt.Println("RETRYING Get")
 	}
@@ -6204,9 +6298,9 @@ func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.StatusStore.GetByIds(userIds)
 		fmt.Println("RETRYING GetByIds")
 	}
@@ -6223,9 +6317,9 @@ func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.StatusStore.GetTotalActiveUsersCount()
 		fmt.Println("RETRYING GetTotalActiveUsersCount")
 	}
@@ -6242,9 +6336,9 @@ func (s *RetryLayerStatusStore) ResetAll() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.StatusStore.ResetAll()
 		fmt.Println("RETRYING ResetAll")
 	}
@@ -6261,9 +6355,9 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppErr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.StatusStore.SaveOrUpdate(status)
 		fmt.Println("RETRYING SaveOrUpdate")
 	}
@@ -6280,9 +6374,9 @@ func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivity
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
 		fmt.Println("RETRYING UpdateLastActivityAt")
 	}
@@ -6299,9 +6393,9 @@ func (s *RetryLayerSystemStore) Get() (model.StringMap, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SystemStore.Get()
 		fmt.Println("RETRYING Get")
 	}
@@ -6318,9 +6412,9 @@ func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SystemStore.GetByName(name)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -6337,9 +6431,9 @@ func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.Sys
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SystemStore.InsertIfExists(system)
 		fmt.Println("RETRYING InsertIfExists")
 	}
@@ -6356,9 +6450,9 @@ func (s *RetryLayerSystemStore) PermanentDeleteByName(name string) (*model.Syste
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.SystemStore.PermanentDeleteByName(name)
 		fmt.Println("RETRYING PermanentDeleteByName")
 	}
@@ -6375,9 +6469,9 @@ func (s *RetryLayerSystemStore) Save(system *model.System) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SystemStore.Save(system)
 		fmt.Println("RETRYING Save")
 	}
@@ -6394,9 +6488,9 @@ func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppErr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SystemStore.SaveOrUpdate(system)
 		fmt.Println("RETRYING SaveOrUpdate")
 	}
@@ -6413,9 +6507,9 @@ func (s *RetryLayerSystemStore) Update(system *model.System) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.SystemStore.Update(system)
 		fmt.Println("RETRYING Update")
 	}
@@ -6432,9 +6526,9 @@ func (s *RetryLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (i
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsGetTeamCountForScheme(schemeId)
 		fmt.Println("RETRYING AnalyticsGetTeamCountForScheme")
 	}
@@ -6451,9 +6545,9 @@ func (s *RetryLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppErro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsPrivateTeamCount()
 		fmt.Println("RETRYING AnalyticsPrivateTeamCount")
 	}
@@ -6470,9 +6564,9 @@ func (s *RetryLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsPublicTeamCount()
 		fmt.Println("RETRYING AnalyticsPublicTeamCount")
 	}
@@ -6489,9 +6583,9 @@ func (s *RetryLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsTeamCount(includeDeleted)
 		fmt.Println("RETRYING AnalyticsTeamCount")
 	}
@@ -6508,9 +6602,9 @@ func (s *RetryLayerTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.ClearAllCustomRoleAssignments()
 		fmt.Println("RETRYING ClearAllCustomRoleAssignments")
 	}
@@ -6534,9 +6628,9 @@ func (s *RetryLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -6553,9 +6647,9 @@ func (s *RetryLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetActiveMemberCount(teamId, restrictions)
 		fmt.Println("RETRYING GetActiveMemberCount")
 	}
@@ -6572,9 +6666,9 @@ func (s *RetryLayerTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAll()
 		fmt.Println("RETRYING GetAll")
 	}
@@ -6591,9 +6685,9 @@ func (s *RetryLayerTeamStore) GetAllForExportAfter(limit int, afterId string) ([
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllForExportAfter(limit, afterId)
 		fmt.Println("RETRYING GetAllForExportAfter")
 	}
@@ -6610,9 +6704,9 @@ func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllPage(offset, limit)
 		fmt.Println("RETRYING GetAllPage")
 	}
@@ -6629,9 +6723,9 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllPrivateTeamListing()
 		fmt.Println("RETRYING GetAllPrivateTeamListing")
 	}
@@ -6648,9 +6742,9 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
 		fmt.Println("RETRYING GetAllPrivateTeamPageListing")
 	}
@@ -6667,9 +6761,9 @@ func (s *RetryLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
 		fmt.Println("RETRYING GetAllPublicTeamPageListing")
 	}
@@ -6686,9 +6780,9 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppErro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllTeamListing()
 		fmt.Println("RETRYING GetAllTeamListing")
 	}
@@ -6705,9 +6799,9 @@ func (s *RetryLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetAllTeamPageListing(offset, limit)
 		fmt.Println("RETRYING GetAllTeamPageListing")
 	}
@@ -6724,9 +6818,9 @@ func (s *RetryLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, *mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetByInviteId(inviteId)
 		fmt.Println("RETRYING GetByInviteId")
 	}
@@ -6743,9 +6837,9 @@ func (s *RetryLayerTeamStore) GetByName(name string) (*model.Team, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetByName(name)
 		fmt.Println("RETRYING GetByName")
 	}
@@ -6762,9 +6856,9 @@ func (s *RetryLayerTeamStore) GetByNames(name []string) ([]*model.Team, *model.A
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetByNames(name)
 		fmt.Println("RETRYING GetByNames")
 	}
@@ -6781,9 +6875,9 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
 		fmt.Println("RETRYING GetChannelUnreadsForAllTeams")
 	}
@@ -6800,9 +6894,9 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
 		fmt.Println("RETRYING GetChannelUnreadsForTeam")
 	}
@@ -6819,9 +6913,9 @@ func (s *RetryLayerTeamStore) GetMember(teamId string, userId string) (*model.Te
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetMember(teamId, userId)
 		fmt.Println("RETRYING GetMember")
 	}
@@ -6838,9 +6932,9 @@ func (s *RetryLayerTeamStore) GetMembers(teamId string, offset int, limit int, t
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
 		fmt.Println("RETRYING GetMembers")
 	}
@@ -6857,9 +6951,9 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamId string, userIds []string, r
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
 		fmt.Println("RETRYING GetMembersByIds")
 	}
@@ -6876,9 +6970,9 @@ func (s *RetryLayerTeamStore) GetTeamMembersForExport(userId string) ([]*model.T
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTeamMembersForExport(userId)
 		fmt.Println("RETRYING GetTeamMembersForExport")
 	}
@@ -6895,9 +6989,9 @@ func (s *RetryLayerTeamStore) GetTeamsByScheme(schemeId string, offset int, limi
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsByScheme(schemeId, offset, limit)
 		fmt.Println("RETRYING GetTeamsByScheme")
 	}
@@ -6914,9 +7008,9 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsByUserId(userId)
 		fmt.Println("RETRYING GetTeamsByUserId")
 	}
@@ -6933,9 +7027,9 @@ func (s *RetryLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMembe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsForUser(userId)
 		fmt.Println("RETRYING GetTeamsForUser")
 	}
@@ -6952,9 +7046,9 @@ func (s *RetryLayerTeamStore) GetTeamsForUserWithPagination(userId string, page 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
 		fmt.Println("RETRYING GetTeamsForUserWithPagination")
 	}
@@ -6971,9 +7065,9 @@ func (s *RetryLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetTotalMemberCount(teamId, restrictions)
 		fmt.Println("RETRYING GetTotalMemberCount")
 	}
@@ -6990,9 +7084,9 @@ func (s *RetryLayerTeamStore) GetUserTeamIds(userId string, allowFromCache bool)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GetUserTeamIds(userId, allowFromCache)
 		fmt.Println("RETRYING GetUserTeamIds")
 	}
@@ -7009,9 +7103,9 @@ func (s *RetryLayerTeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.GroupSyncedTeamCount()
 		fmt.Println("RETRYING GroupSyncedTeamCount")
 	}
@@ -7035,9 +7129,9 @@ func (s *RetryLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.MigrateTeamMembers(fromTeamId, fromUserId)
 		fmt.Println("RETRYING MigrateTeamMembers")
 	}
@@ -7054,9 +7148,9 @@ func (s *RetryLayerTeamStore) PermanentDelete(teamId string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.PermanentDelete(teamId)
 		fmt.Println("RETRYING PermanentDelete")
 	}
@@ -7073,9 +7167,9 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.RemoveAllMembersByTeam(teamId)
 		fmt.Println("RETRYING RemoveAllMembersByTeam")
 	}
@@ -7092,9 +7186,9 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByUser(userId string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.RemoveAllMembersByUser(userId)
 		fmt.Println("RETRYING RemoveAllMembersByUser")
 	}
@@ -7111,9 +7205,9 @@ func (s *RetryLayerTeamStore) RemoveMember(teamId string, userId string) *model.
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.RemoveMember(teamId, userId)
 		fmt.Println("RETRYING RemoveMember")
 	}
@@ -7130,9 +7224,9 @@ func (s *RetryLayerTeamStore) RemoveMembers(teamId string, userIds []string) *mo
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.RemoveMembers(teamId, userIds)
 		fmt.Println("RETRYING RemoveMembers")
 	}
@@ -7149,9 +7243,9 @@ func (s *RetryLayerTeamStore) ResetAllTeamSchemes() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.ResetAllTeamSchemes()
 		fmt.Println("RETRYING ResetAllTeamSchemes")
 	}
@@ -7168,9 +7262,9 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.Save(team)
 		fmt.Println("RETRYING Save")
 	}
@@ -7187,9 +7281,9 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.SaveMember(member, maxUsersPerTeam)
 		fmt.Println("RETRYING SaveMember")
 	}
@@ -7206,9 +7300,9 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 		fmt.Println("RETRYING SaveMultipleMembers")
 	}
@@ -7225,9 +7319,9 @@ func (s *RetryLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.SearchAll(term)
 		fmt.Println("RETRYING SearchAll")
 	}
@@ -7244,9 +7338,9 @@ func (s *RetryLayerTeamStore) SearchAllPaged(term string, page int, perPage int)
 		if resultVar2 == nil {
 			break
 		}
-		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1, resultVar2 = s.TeamStore.SearchAllPaged(term, page, perPage)
 		fmt.Println("RETRYING SearchAllPaged")
 	}
@@ -7263,9 +7357,9 @@ func (s *RetryLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.App
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.SearchOpen(term)
 		fmt.Println("RETRYING SearchOpen")
 	}
@@ -7282,9 +7376,9 @@ func (s *RetryLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.SearchPrivate(term)
 		fmt.Println("RETRYING SearchPrivate")
 	}
@@ -7301,9 +7395,9 @@ func (s *RetryLayerTeamStore) Update(team *model.Team) (*model.Team, *model.AppE
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.Update(team)
 		fmt.Println("RETRYING Update")
 	}
@@ -7320,9 +7414,9 @@ func (s *RetryLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime in
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.UpdateLastTeamIconUpdate(teamId, curTime)
 		fmt.Println("RETRYING UpdateLastTeamIconUpdate")
 	}
@@ -7339,9 +7433,9 @@ func (s *RetryLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.Tea
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.UpdateMember(member)
 		fmt.Println("RETRYING UpdateMember")
 	}
@@ -7358,9 +7452,9 @@ func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string)
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TeamStore.UpdateMembersRole(teamID, userIDs)
 		fmt.Println("RETRYING UpdateMembersRole")
 	}
@@ -7377,9 +7471,9 @@ func (s *RetryLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember)
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.UpdateMultipleMembers(members)
 		fmt.Println("RETRYING UpdateMultipleMembers")
 	}
@@ -7396,9 +7490,9 @@ func (s *RetryLayerTeamStore) UserBelongsToTeams(userId string, teamIds []string
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TeamStore.UserBelongsToTeams(userId, teamIds)
 		fmt.Println("RETRYING UserBelongsToTeams")
 	}
@@ -7415,9 +7509,11 @@ func (s *RetryLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.TermsOfServiceStore.Get(id, allowFromCache)
 		fmt.Println("RETRYING Get")
 	}
@@ -7434,9 +7530,11 @@ func (s *RetryLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.TermsOfServiceStore.GetLatest(allowFromCache)
 		fmt.Println("RETRYING GetLatest")
 	}
@@ -7453,9 +7551,11 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.TermsOfServiceStore.Save(termsOfService)
 		fmt.Println("RETRYING Save")
 	}
@@ -7479,9 +7579,9 @@ func (s *RetryLayerTokenStore) Delete(token string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TokenStore.Delete(token)
 		fmt.Println("RETRYING Delete")
 	}
@@ -7498,9 +7598,9 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, *model.Ap
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.TokenStore.GetByToken(token)
 		fmt.Println("RETRYING GetByToken")
 	}
@@ -7517,9 +7617,9 @@ func (s *RetryLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.Ap
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TokenStore.RemoveAllTokensByType(tokenType)
 		fmt.Println("RETRYING RemoveAllTokensByType")
 	}
@@ -7536,9 +7636,9 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.TokenStore.Save(recovery)
 		fmt.Println("RETRYING Save")
 	}
@@ -7555,9 +7655,9 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.AnalyticsActiveCount(time, options)
 		fmt.Println("RETRYING AnalyticsActiveCount")
 	}
@@ -7574,9 +7674,9 @@ func (s *RetryLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetGuestCount()
 		fmt.Println("RETRYING AnalyticsGetGuestCount")
 	}
@@ -7593,9 +7693,9 @@ func (s *RetryLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.Ap
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetInactiveUsersCount()
 		fmt.Println("RETRYING AnalyticsGetInactiveUsersCount")
 	}
@@ -7612,9 +7712,9 @@ func (s *RetryLayerUserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppE
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetSystemAdminCount()
 		fmt.Println("RETRYING AnalyticsGetSystemAdminCount")
 	}
@@ -7631,9 +7731,9 @@ func (s *RetryLayerUserStore) AutocompleteUsersInChannel(teamId string, channelI
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
 		fmt.Println("RETRYING AutocompleteUsersInChannel")
 	}
@@ -7650,9 +7750,9 @@ func (s *RetryLayerUserStore) ClearAllCustomRoleAssignments() *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.ClearAllCustomRoleAssignments()
 		fmt.Println("RETRYING ClearAllCustomRoleAssignments")
 	}
@@ -7676,9 +7776,9 @@ func (s *RetryLayerUserStore) Count(options model.UserCountOptions) (int64, *mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.Count(options)
 		fmt.Println("RETRYING Count")
 	}
@@ -7695,9 +7795,9 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.DeactivateGuests()
 		fmt.Println("RETRYING DeactivateGuests")
 	}
@@ -7714,9 +7814,9 @@ func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.DemoteUserToGuest(userID)
 		fmt.Println("RETRYING DemoteUserToGuest")
 	}
@@ -7733,9 +7833,9 @@ func (s *RetryLayerUserStore) Get(id string) (*model.User, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.Get(id)
 		fmt.Println("RETRYING Get")
 	}
@@ -7752,9 +7852,9 @@ func (s *RetryLayerUserStore) GetAll() ([]*model.User, *model.AppError) {
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAll()
 		fmt.Println("RETRYING GetAll")
 	}
@@ -7771,9 +7871,9 @@ func (s *RetryLayerUserStore) GetAllAfter(limit int, afterId string) ([]*model.U
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAllAfter(limit, afterId)
 		fmt.Println("RETRYING GetAllAfter")
 	}
@@ -7790,9 +7890,9 @@ func (s *RetryLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAllNotInAuthService(authServices)
 		fmt.Println("RETRYING GetAllNotInAuthService")
 	}
@@ -7809,9 +7909,9 @@ func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAllProfiles(options)
 		fmt.Println("RETRYING GetAllProfiles")
 	}
@@ -7828,9 +7928,9 @@ func (s *RetryLayerUserStore) GetAllProfilesInChannel(channelId string, allowFro
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
 		fmt.Println("RETRYING GetAllProfilesInChannel")
 	}
@@ -7847,9 +7947,9 @@ func (s *RetryLayerUserStore) GetAllUsingAuthService(authService string) ([]*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAllUsingAuthService(authService)
 		fmt.Println("RETRYING GetAllUsingAuthService")
 	}
@@ -7866,9 +7966,9 @@ func (s *RetryLayerUserStore) GetAnyUnreadPostCountForChannel(userId string, cha
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetAnyUnreadPostCountForChannel(userId, channelId)
 		fmt.Println("RETRYING GetAnyUnreadPostCountForChannel")
 	}
@@ -7885,9 +7985,9 @@ func (s *RetryLayerUserStore) GetByAuth(authData *string, authService string) (*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetByAuth(authData, authService)
 		fmt.Println("RETRYING GetByAuth")
 	}
@@ -7904,9 +8004,9 @@ func (s *RetryLayerUserStore) GetByEmail(email string) (*model.User, *model.AppE
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetByEmail(email)
 		fmt.Println("RETRYING GetByEmail")
 	}
@@ -7923,9 +8023,9 @@ func (s *RetryLayerUserStore) GetByUsername(username string) (*model.User, *mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetByUsername(username)
 		fmt.Println("RETRYING GetByUsername")
 	}
@@ -7942,9 +8042,9 @@ func (s *RetryLayerUserStore) GetChannelGroupUsers(channelID string) ([]*model.U
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetChannelGroupUsers(channelID)
 		fmt.Println("RETRYING GetChannelGroupUsers")
 	}
@@ -7985,9 +8085,9 @@ func (s *RetryLayerUserStore) GetForLogin(loginId string, allowSignInWithUsernam
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
 		fmt.Println("RETRYING GetForLogin")
 	}
@@ -8004,9 +8104,9 @@ func (s *RetryLayerUserStore) GetKnownUsers(userID string) ([]string, *model.App
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetKnownUsers(userID)
 		fmt.Println("RETRYING GetKnownUsers")
 	}
@@ -8023,9 +8123,9 @@ func (s *RetryLayerUserStore) GetNewUsersForTeam(teamId string, offset int, limi
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetNewUsersForTeam(teamId, offset, limit, viewRestrictions)
 		fmt.Println("RETRYING GetNewUsersForTeam")
 	}
@@ -8042,9 +8142,9 @@ func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userId string, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfileByGroupChannelIdsForUser(userId, channelIds)
 		fmt.Println("RETRYING GetProfileByGroupChannelIdsForUser")
 	}
@@ -8061,9 +8161,9 @@ func (s *RetryLayerUserStore) GetProfileByIds(userIds []string, options *UserGet
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
 		fmt.Println("RETRYING GetProfileByIds")
 	}
@@ -8080,9 +8180,9 @@ func (s *RetryLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*mod
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfiles(options)
 		fmt.Println("RETRYING GetProfiles")
 	}
@@ -8099,9 +8199,9 @@ func (s *RetryLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
 		fmt.Println("RETRYING GetProfilesByUsernames")
 	}
@@ -8118,9 +8218,9 @@ func (s *RetryLayerUserStore) GetProfilesInChannel(channelId string, offset int,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesInChannel(channelId, offset, limit)
 		fmt.Println("RETRYING GetProfilesInChannel")
 	}
@@ -8137,9 +8237,9 @@ func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(channelId string, off
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
 		fmt.Println("RETRYING GetProfilesInChannelByStatus")
 	}
@@ -8156,9 +8256,9 @@ func (s *RetryLayerUserStore) GetProfilesNotInChannel(teamId string, channelId s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 		fmt.Println("RETRYING GetProfilesNotInChannel")
 	}
@@ -8175,9 +8275,9 @@ func (s *RetryLayerUserStore) GetProfilesNotInTeam(teamId string, groupConstrain
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
 		fmt.Println("RETRYING GetProfilesNotInTeam")
 	}
@@ -8194,9 +8294,9 @@ func (s *RetryLayerUserStore) GetProfilesWithoutTeam(options *model.UserGetOptio
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetProfilesWithoutTeam(options)
 		fmt.Println("RETRYING GetProfilesWithoutTeam")
 	}
@@ -8213,9 +8313,9 @@ func (s *RetryLayerUserStore) GetRecentlyActiveUsersForTeam(teamId string, offse
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetRecentlyActiveUsersForTeam(teamId, offset, limit, viewRestrictions)
 		fmt.Println("RETRYING GetRecentlyActiveUsersForTeam")
 	}
@@ -8232,9 +8332,9 @@ func (s *RetryLayerUserStore) GetSystemAdminProfiles() (map[string]*model.User, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetSystemAdminProfiles()
 		fmt.Println("RETRYING GetSystemAdminProfiles")
 	}
@@ -8251,9 +8351,9 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetTeamGroupUsers(teamID)
 		fmt.Println("RETRYING GetTeamGroupUsers")
 	}
@@ -8270,9 +8370,9 @@ func (s *RetryLayerUserStore) GetUnreadCount(userId string) (int64, *model.AppEr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetUnreadCount(userId)
 		fmt.Println("RETRYING GetUnreadCount")
 	}
@@ -8289,9 +8389,9 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userId string, channelId 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetUnreadCountForChannel(userId, channelId)
 		fmt.Println("RETRYING GetUnreadCountForChannel")
 	}
@@ -8308,9 +8408,9 @@ func (s *RetryLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
 		fmt.Println("RETRYING GetUsersBatchForIndexing")
 	}
@@ -8327,9 +8427,9 @@ func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, *model.AppError) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.InferSystemInstallDate()
 		fmt.Println("RETRYING InferSystemInstallDate")
 	}
@@ -8367,9 +8467,9 @@ func (s *RetryLayerUserStore) PermanentDelete(userId string) *model.AppError {
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.PermanentDelete(userId)
 		fmt.Println("RETRYING PermanentDelete")
 	}
@@ -8386,9 +8486,9 @@ func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) *model.AppError 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.PromoteGuestToUser(userID)
 		fmt.Println("RETRYING PromoteGuestToUser")
 	}
@@ -8405,9 +8505,9 @@ func (s *RetryLayerUserStore) ResetLastPictureUpdate(userId string) *model.AppEr
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.ResetLastPictureUpdate(userId)
 		fmt.Println("RETRYING ResetLastPictureUpdate")
 	}
@@ -8424,9 +8524,9 @@ func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, *model.AppErr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.Save(user)
 		fmt.Println("RETRYING Save")
 	}
@@ -8443,9 +8543,9 @@ func (s *RetryLayerUserStore) Search(teamId string, term string, options *model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.Search(teamId, term, options)
 		fmt.Println("RETRYING Search")
 	}
@@ -8462,9 +8562,9 @@ func (s *RetryLayerUserStore) SearchInChannel(channelId string, term string, opt
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.SearchInChannel(channelId, term, options)
 		fmt.Println("RETRYING SearchInChannel")
 	}
@@ -8481,9 +8581,9 @@ func (s *RetryLayerUserStore) SearchInGroup(groupID string, term string, options
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.SearchInGroup(groupID, term, options)
 		fmt.Println("RETRYING SearchInGroup")
 	}
@@ -8500,9 +8600,9 @@ func (s *RetryLayerUserStore) SearchNotInChannel(teamId string, channelId string
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
 		fmt.Println("RETRYING SearchNotInChannel")
 	}
@@ -8519,9 +8619,9 @@ func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamId string, term string, o
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.SearchNotInTeam(notInTeamId, term, options)
 		fmt.Println("RETRYING SearchNotInTeam")
 	}
@@ -8538,9 +8638,9 @@ func (s *RetryLayerUserStore) SearchWithoutTeam(term string, options *model.User
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.SearchWithoutTeam(term, options)
 		fmt.Println("RETRYING SearchWithoutTeam")
 	}
@@ -8557,9 +8657,9 @@ func (s *RetryLayerUserStore) Update(user *model.User, allowRoleUpdate bool) (*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.Update(user, allowRoleUpdate)
 		fmt.Println("RETRYING Update")
 	}
@@ -8576,9 +8676,9 @@ func (s *RetryLayerUserStore) UpdateAuthData(userId string, service string, auth
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.UpdateAuthData(userId, service, authData, email, resetMfa)
 		fmt.Println("RETRYING UpdateAuthData")
 	}
@@ -8595,9 +8695,9 @@ func (s *RetryLayerUserStore) UpdateFailedPasswordAttempts(userId string, attemp
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.UpdateFailedPasswordAttempts(userId, attempts)
 		fmt.Println("RETRYING UpdateFailedPasswordAttempts")
 	}
@@ -8614,9 +8714,9 @@ func (s *RetryLayerUserStore) UpdateLastPictureUpdate(userId string) *model.AppE
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.UpdateLastPictureUpdate(userId)
 		fmt.Println("RETRYING UpdateLastPictureUpdate")
 	}
@@ -8633,9 +8733,9 @@ func (s *RetryLayerUserStore) UpdateMfaActive(userId string, active bool) *model
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.UpdateMfaActive(userId, active)
 		fmt.Println("RETRYING UpdateMfaActive")
 	}
@@ -8652,9 +8752,9 @@ func (s *RetryLayerUserStore) UpdateMfaSecret(userId string, secret string) *mod
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.UpdateMfaSecret(userId, secret)
 		fmt.Println("RETRYING UpdateMfaSecret")
 	}
@@ -8671,9 +8771,9 @@ func (s *RetryLayerUserStore) UpdatePassword(userId string, newPassword string) 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserStore.UpdatePassword(userId, newPassword)
 		fmt.Println("RETRYING UpdatePassword")
 	}
@@ -8690,9 +8790,9 @@ func (s *RetryLayerUserStore) UpdateUpdateAt(userId string) (int64, *model.AppEr
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.UpdateUpdateAt(userId)
 		fmt.Println("RETRYING UpdateUpdateAt")
 	}
@@ -8709,9 +8809,9 @@ func (s *RetryLayerUserStore) VerifyEmail(userId string, email string) (string, 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserStore.VerifyEmail(userId, email)
 		fmt.Println("RETRYING VerifyEmail")
 	}
@@ -8728,9 +8828,9 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenId string) *model.AppError 
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserAccessTokenStore.Delete(tokenId)
 		fmt.Println("RETRYING Delete")
 	}
@@ -8747,9 +8847,9 @@ func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userId string) *model.
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserAccessTokenStore.DeleteAllForUser(userId)
 		fmt.Println("RETRYING DeleteAllForUser")
 	}
@@ -8766,9 +8866,9 @@ func (s *RetryLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessT
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Get(tokenId)
 		fmt.Println("RETRYING Get")
 	}
@@ -8785,9 +8885,9 @@ func (s *RetryLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetAll(offset, limit)
 		fmt.Println("RETRYING GetAll")
 	}
@@ -8804,9 +8904,9 @@ func (s *RetryLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetByToken(tokenString)
 		fmt.Println("RETRYING GetByToken")
 	}
@@ -8823,9 +8923,9 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userId string, page int, perP
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetByUser(userId, page, perPage)
 		fmt.Println("RETRYING GetByUser")
 	}
@@ -8842,9 +8942,9 @@ func (s *RetryLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*mo
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Save(token)
 		fmt.Println("RETRYING Save")
 	}
@@ -8861,9 +8961,9 @@ func (s *RetryLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Search(term)
 		fmt.Println("RETRYING Search")
 	}
@@ -8880,9 +8980,9 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) *mod
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
 		fmt.Println("RETRYING UpdateTokenDisable")
 	}
@@ -8899,9 +8999,9 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
 		fmt.Println("RETRYING UpdateTokenEnable")
 	}
@@ -8918,9 +9018,11 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 		if resultVar0 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0 = s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
 		fmt.Println("RETRYING Delete")
 	}
@@ -8937,9 +9039,11 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.UserTermsOfServiceStore.GetByUser(userId)
 		fmt.Println("RETRYING GetByUser")
 	}
@@ -8956,9 +9060,11 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 		if resultVar1 == nil {
 			break
 		}
+
 		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
+
 		resultVar0, resultVar1 = s.UserTermsOfServiceStore.Save(userTermsOfService)
 		fmt.Println("RETRYING Save")
 	}
@@ -8975,9 +9081,9 @@ func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.AnalyticsIncomingCount(teamId)
 		fmt.Println("RETRYING AnalyticsIncomingCount")
 	}
@@ -8994,9 +9100,9 @@ func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.AnalyticsOutgoingCount(teamId)
 		fmt.Println("RETRYING AnalyticsOutgoingCount")
 	}
@@ -9020,9 +9126,9 @@ func (s *RetryLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *m
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.DeleteIncoming(webhookId, time)
 		fmt.Println("RETRYING DeleteIncoming")
 	}
@@ -9039,9 +9145,9 @@ func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) *m
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.DeleteOutgoing(webhookId, time)
 		fmt.Println("RETRYING DeleteOutgoing")
 	}
@@ -9058,9 +9164,9 @@ func (s *RetryLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncoming(id, allowFromCache)
 		fmt.Println("RETRYING GetIncoming")
 	}
@@ -9077,9 +9183,9 @@ func (s *RetryLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByChannel(channelId)
 		fmt.Println("RETRYING GetIncomingByChannel")
 	}
@@ -9096,9 +9202,9 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, li
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
 		fmt.Println("RETRYING GetIncomingByTeam")
 	}
@@ -9115,9 +9221,9 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
 		fmt.Println("RETRYING GetIncomingByTeamByUser")
 	}
@@ -9134,9 +9240,9 @@ func (s *RetryLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingList(offset, limit)
 		fmt.Println("RETRYING GetIncomingList")
 	}
@@ -9153,9 +9259,9 @@ func (s *RetryLayerWebhookStore) GetIncomingListByUser(userId string, offset int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
 		fmt.Println("RETRYING GetIncomingListByUser")
 	}
@@ -9172,9 +9278,9 @@ func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook,
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoing(id)
 		fmt.Println("RETRYING GetOutgoing")
 	}
@@ -9191,9 +9297,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannel(channelId string, offset i
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
 		fmt.Println("RETRYING GetOutgoingByChannel")
 	}
@@ -9210,9 +9316,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, us
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
 		fmt.Println("RETRYING GetOutgoingByChannelByUser")
 	}
@@ -9229,9 +9335,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, li
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
 		fmt.Println("RETRYING GetOutgoingByTeam")
 	}
@@ -9248,9 +9354,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId s
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
 		fmt.Println("RETRYING GetOutgoingByTeamByUser")
 	}
@@ -9267,9 +9373,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*mode
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingList(offset, limit)
 		fmt.Println("RETRYING GetOutgoingList")
 	}
@@ -9286,9 +9392,9 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
 		fmt.Println("RETRYING GetOutgoingListByUser")
 	}
@@ -9312,9 +9418,9 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId stri
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
 		fmt.Println("RETRYING PermanentDeleteIncomingByChannel")
 	}
@@ -9331,9 +9437,9 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) *m
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.PermanentDeleteIncomingByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteIncomingByUser")
 	}
@@ -9350,9 +9456,9 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId stri
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
 		fmt.Println("RETRYING PermanentDeleteOutgoingByChannel")
 	}
@@ -9369,9 +9475,9 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) *m
 		if resultVar0 == nil {
 			break
 		}
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0 = s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteOutgoingByUser")
 	}
@@ -9388,9 +9494,9 @@ func (s *RetryLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.SaveIncoming(webhook)
 		fmt.Println("RETRYING SaveIncoming")
 	}
@@ -9407,9 +9513,9 @@ func (s *RetryLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.SaveOutgoing(webhook)
 		fmt.Println("RETRYING SaveOutgoing")
 	}
@@ -9426,9 +9532,9 @@ func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.UpdateIncoming(webhook)
 		fmt.Println("RETRYING UpdateIncoming")
 	}
@@ -9445,9 +9551,9 @@ func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 		if resultVar1 == nil {
 			break
 		}
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
-			break
-		}
+
+		break
+
 		resultVar0, resultVar1 = s.WebhookStore.UpdateOutgoing(hook)
 		fmt.Println("RETRYING UpdateOutgoing")
 	}

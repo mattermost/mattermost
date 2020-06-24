@@ -28,6 +28,10 @@ func isError(typeName string) bool {
 	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
 }
 
+func isAppError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE)
+}
+
 func main() {
 	if err := buildTimerLayer(); err != nil {
 		log.Fatal(err)
@@ -241,6 +245,14 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				}
 			}
 			return "true"
+		},
+		"isAppError": func(results []string) bool {
+			for _, typeName := range results {
+				if isAppError(typeName) {
+					return true
+				}
+			}
+			return false
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {

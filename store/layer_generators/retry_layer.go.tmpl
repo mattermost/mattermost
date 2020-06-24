@@ -8,9 +8,9 @@ package store
 
 import (
 	"context"
-    "strings"
     "fmt"
 	
+	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -46,9 +46,13 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
         if {{$element.Results | errorVar}} == nil {
             break
         }
+        {{if $element.Results | isAppError}}
+        break
+        {{else}}
         if pqErr, ok := {{$element.Results | errorVar}}.(*pq.Error); !ok || pqErr.Code != "40001" {
             break
         }
+        {{end}}
         {{$element.Results | genResultsVars}} = s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
         fmt.Println("RETRYING {{$index}}")
 	}
