@@ -1213,7 +1213,7 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 
 // ConvertUserToBot converts a user to a bot user.
 func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response) {
-	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/convert", "")
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -1227,7 +1227,7 @@ func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSyste
 	if setSystemAdmin {
 		query = "?set_system_admin=true"
 	}
-	r, err := c.DoApiPost(c.GetBotRoute(userId)+"/convert"+query, userPatch.ToJson())
+	r, err := c.DoApiPost(c.GetBotRoute(userId)+"/convert_to_user"+query, userPatch.ToJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
