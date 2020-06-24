@@ -1301,7 +1301,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		LIMIT 30`
 
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query = CockroachQueryBuilder.BuildAnalyticsUserCountsWithPostsByDayQuery(teamId)
+		query = store.CockroachQueryBuilder.BuildAnalyticsUserCountsWithPostsByDayQuery(teamId)
 	}
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query =
@@ -1360,7 +1360,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 		LIMIT 30`
 
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		query = CockroachQueryBuilder.BuildAnalyticsPostCountsByDayQuery(options)
+		query = store.CockroachQueryBuilder.BuildAnalyticsPostCountsByDayQuery(options)
 	}
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1561,8 +1561,8 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		queryString := CockroachQueryBuilder.BuildDetermineMaxPostSizeQuery()
-		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, queryString); err != nil {
+		queryString, args := store.CockroachQueryBuilder.BuildDetermineMaxPostSizeQuery()
+		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, queryString, args...); err != nil {
 			mlog.Error(utils.T("store.sql_post.query_max_post_size.error") + err.Error())
 		}
 	} else {

@@ -70,9 +70,6 @@ const (
 	EXIT_INVALID_LICENSE              = 141
 )
 
-// CockroachQueryBuilder is the responsible of build sql queries for special cases of CockroachDB
-var CockroachQueryBuilder einterfaces.CockroachQueryBuilder
-
 type SqlSupplierStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
@@ -442,7 +439,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 		return count > 0
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		queryString, args := CockroachQueryBuilder.BuildDoesTableExistsQuery(tableName)
+		queryString, args := store.CockroachQueryBuilder.BuildDoesTableExistsQuery(tableName)
 		count, err := ss.GetMaster().SelectInt(queryString, args...)
 
 		if err != nil {
@@ -499,7 +496,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 		return count > 0
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_COCKROACH {
-		queryString, args := CockroachQueryBuilder.BuildDoesColumnExistsQuery(tableName, columnName)
+		queryString, args := store.CockroachQueryBuilder.BuildDoesColumnExistsQuery(tableName, columnName)
 		count, err := ss.GetMaster().SelectInt(queryString, args...)
 
 		if err != nil {

@@ -102,11 +102,14 @@ PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
 	IGNORE:=$(shell rm -f imports/imports.go)
+	IGNORE:=$(shell rm -f store/sqlstore/imports.go)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
+	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/store/imports/imports.go store/sqlstore/imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
 else
 	IGNORE:=$(shell rm -f imports/imports.go)
+	IGNORE:=$(shell rm -f store/sqlstore/imports.go)
 endif
 
 EE_PACKAGES=$(shell $(GO) list ./enterprise/...)

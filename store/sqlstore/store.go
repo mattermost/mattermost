@@ -9,6 +9,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	// Import enterprise sqlstore backends
+	_ "github.com/mattermost/mattermost-server/v5/store/sqlstore/imports"
 )
 
 /*type SqlStore struct {

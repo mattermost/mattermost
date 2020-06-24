@@ -333,7 +333,10 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.AuditStore.Get(user_id, offset, limit)
@@ -349,7 +352,10 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.AuditStore.PermanentDeleteByUser(userId)
@@ -365,7 +371,10 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 	resultVar0 := s.AuditStore.Save(audit)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.AuditStore.Save(audit)
@@ -381,7 +390,10 @@ func (s *RetryLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 	resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.BotStore.Get(userId, includeDeleted)
@@ -397,7 +409,10 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	resultVar0, resultVar1 := s.BotStore.GetAll(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.BotStore.GetAll(options)
@@ -413,7 +428,10 @@ func (s *RetryLayerBotStore) PermanentDelete(userId string) error {
 	resultVar0 := s.BotStore.PermanentDelete(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.BotStore.PermanentDelete(userId)
@@ -429,7 +447,10 @@ func (s *RetryLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	resultVar0, resultVar1 := s.BotStore.Save(bot)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.BotStore.Save(bot)
@@ -445,7 +466,10 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	resultVar0, resultVar1 := s.BotStore.Update(bot)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.BotStore.Update(bot)
@@ -461,7 +485,10 @@ func (s *RetryLayerChannelStore) AnalyticsDeletedTypeCount(teamId string, channe
 	resultVar0, resultVar1 := s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
@@ -477,7 +504,10 @@ func (s *RetryLayerChannelStore) AnalyticsTypeCount(teamId string, channelType s
 	resultVar0, resultVar1 := s.ChannelStore.AnalyticsTypeCount(teamId, channelType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.AnalyticsTypeCount(teamId, channelType)
@@ -493,7 +523,10 @@ func (s *RetryLayerChannelStore) AutocompleteInTeam(teamId string, term string, 
 	resultVar0, resultVar1 := s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
@@ -509,7 +542,10 @@ func (s *RetryLayerChannelStore) AutocompleteInTeamForSearch(teamId string, user
 	resultVar0, resultVar1 := s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
@@ -525,7 +561,10 @@ func (s *RetryLayerChannelStore) ClearAllCustomRoleAssignments() *model.AppError
 	resultVar0 := s.ChannelStore.ClearAllCustomRoleAssignments()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.ClearAllCustomRoleAssignments()
@@ -548,7 +587,10 @@ func (s *RetryLayerChannelStore) CountPostsAfter(channelId string, timestamp int
 	resultVar0, resultVar1 := s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.CountPostsAfter(channelId, timestamp, userId)
@@ -564,7 +606,10 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.CreateDirectChannel(userId, otherUserId)
@@ -580,7 +625,10 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 	resultVar0 := s.ChannelStore.Delete(channelId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.Delete(channelId, time)
@@ -596,7 +644,10 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 	resultVar0, resultVar1 := s.ChannelStore.Get(id, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.Get(id, allowFromCache)
@@ -612,7 +663,10 @@ func (s *RetryLayerChannelStore) GetAll(teamId string) ([]*model.Channel, *model
 	resultVar0, resultVar1 := s.ChannelStore.GetAll(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAll(teamId)
@@ -628,7 +682,10 @@ func (s *RetryLayerChannelStore) GetAllChannelMembersForUser(userId string, allo
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
@@ -644,7 +701,10 @@ func (s *RetryLayerChannelStore) GetAllChannelMembersNotifyPropsForChannel(chann
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
@@ -660,7 +720,10 @@ func (s *RetryLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannels(page, perPage, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannels(page, perPage, opts)
@@ -676,7 +739,10 @@ func (s *RetryLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (in
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsCount(opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelsCount(opts)
@@ -692,7 +758,10 @@ func (s *RetryLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterId
 	resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
@@ -708,7 +777,10 @@ func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 	resultVar0, resultVar1 := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
@@ -724,7 +796,10 @@ func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFro
 	resultVar0, resultVar1 := s.ChannelStore.GetByName(team_id, name, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetByName(team_id, name, allowFromCache)
@@ -740,7 +815,10 @@ func (s *RetryLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 	resultVar0, resultVar1 := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
@@ -756,7 +834,10 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 	resultVar0, resultVar1 := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetByNames(team_id, names, allowFromCache)
@@ -772,7 +853,10 @@ func (s *RetryLayerChannelStore) GetChannelCounts(teamId string, userId string) 
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelCounts(teamId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelCounts(teamId, userId)
@@ -788,7 +872,10 @@ func (s *RetryLayerChannelStore) GetChannelMembersForExport(userId string, teamI
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelMembersForExport(userId, teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelMembersForExport(userId, teamId)
@@ -804,7 +891,10 @@ func (s *RetryLayerChannelStore) GetChannelMembersTimezones(channelId string) ([
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelMembersTimezones(channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelMembersTimezones(channelId)
@@ -820,7 +910,10 @@ func (s *RetryLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelUnread(channelId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelUnread(channelId, userId)
@@ -836,7 +929,10 @@ func (s *RetryLayerChannelStore) GetChannels(teamId string, userId string, inclu
 	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
@@ -852,7 +948,10 @@ func (s *RetryLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, en
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
@@ -868,7 +967,10 @@ func (s *RetryLayerChannelStore) GetChannelsByIds(channelIds []string, includeDe
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
@@ -884,7 +986,10 @@ func (s *RetryLayerChannelStore) GetChannelsByScheme(schemeId string, offset int
 	resultVar0, resultVar1 := s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
@@ -900,7 +1005,10 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 	resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
@@ -916,7 +1024,10 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByName(team_id, name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetDeletedByName(team_id, name)
@@ -932,7 +1043,10 @@ func (s *RetryLayerChannelStore) GetForPost(postId string) (*model.Channel, *mod
 	resultVar0, resultVar1 := s.ChannelStore.GetForPost(postId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetForPost(postId)
@@ -948,7 +1062,10 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 	resultVar0, resultVar1 := s.ChannelStore.GetFromMaster(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetFromMaster(id)
@@ -964,7 +1081,10 @@ func (s *RetryLayerChannelStore) GetGuestCount(channelId string, allowFromCache 
 	resultVar0, resultVar1 := s.ChannelStore.GetGuestCount(channelId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetGuestCount(channelId, allowFromCache)
@@ -980,7 +1100,10 @@ func (s *RetryLayerChannelStore) GetMember(channelId string, userId string) (*mo
 	resultVar0, resultVar1 := s.ChannelStore.GetMember(channelId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMember(channelId, userId)
@@ -996,7 +1119,10 @@ func (s *RetryLayerChannelStore) GetMemberCount(channelId string, allowFromCache
 	resultVar0, resultVar1 := s.ChannelStore.GetMemberCount(channelId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberCount(channelId, allowFromCache)
@@ -1020,7 +1146,10 @@ func (s *RetryLayerChannelStore) GetMemberCountsByGroup(channelID string, includ
 	resultVar0, resultVar1 := s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberCountsByGroup(channelID, includeTimezones)
@@ -1036,7 +1165,10 @@ func (s *RetryLayerChannelStore) GetMemberForPost(postId string, userId string) 
 	resultVar0, resultVar1 := s.ChannelStore.GetMemberForPost(postId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMemberForPost(postId, userId)
@@ -1052,7 +1184,10 @@ func (s *RetryLayerChannelStore) GetMembers(channelId string, offset int, limit 
 	resultVar0, resultVar1 := s.ChannelStore.GetMembers(channelId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMembers(channelId, offset, limit)
@@ -1068,7 +1203,10 @@ func (s *RetryLayerChannelStore) GetMembersByIds(channelId string, userIds []str
 	resultVar0, resultVar1 := s.ChannelStore.GetMembersByIds(channelId, userIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersByIds(channelId, userIds)
@@ -1084,7 +1222,10 @@ func (s *RetryLayerChannelStore) GetMembersForUser(teamId string, userId string)
 	resultVar0, resultVar1 := s.ChannelStore.GetMembersForUser(teamId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersForUser(teamId, userId)
@@ -1100,7 +1241,10 @@ func (s *RetryLayerChannelStore) GetMembersForUserWithPagination(teamId string, 
 	resultVar0, resultVar1 := s.ChannelStore.GetMembersForUserWithPagination(teamId, userId, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMembersForUserWithPagination(teamId, userId, page, perPage)
@@ -1116,7 +1260,10 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, o
 	resultVar0, resultVar1 := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
@@ -1132,7 +1279,10 @@ func (s *RetryLayerChannelStore) GetPinnedPostCount(channelId string, allowFromC
 	resultVar0, resultVar1 := s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetPinnedPostCount(channelId, allowFromCache)
@@ -1148,7 +1298,10 @@ func (s *RetryLayerChannelStore) GetPinnedPosts(channelId string) (*model.PostLi
 	resultVar0, resultVar1 := s.ChannelStore.GetPinnedPosts(channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetPinnedPosts(channelId)
@@ -1164,7 +1317,10 @@ func (s *RetryLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, ch
 	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
@@ -1180,7 +1336,10 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 	resultVar0, resultVar1 := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
@@ -1196,7 +1355,10 @@ func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 	resultVar0, resultVar1 := s.ChannelStore.GetTeamChannels(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GetTeamChannels(teamId)
@@ -1212,7 +1374,10 @@ func (s *RetryLayerChannelStore) GroupSyncedChannelCount() (int64, *model.AppErr
 	resultVar0, resultVar1 := s.ChannelStore.GroupSyncedChannelCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.GroupSyncedChannelCount()
@@ -1228,7 +1393,10 @@ func (s *RetryLayerChannelStore) IncrementMentionCount(channelId string, userId 
 	resultVar0 := s.ChannelStore.IncrementMentionCount(channelId, userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.IncrementMentionCount(channelId, userId)
@@ -1301,7 +1469,10 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelId string, fro
 	resultVar0, resultVar1 := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
@@ -1317,7 +1488,10 @@ func (s *RetryLayerChannelStore) MigratePublicChannels() error {
 	resultVar0 := s.ChannelStore.MigratePublicChannels()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.MigratePublicChannels()
@@ -1333,7 +1507,10 @@ func (s *RetryLayerChannelStore) PermanentDelete(channelId string) error {
 	resultVar0 := s.ChannelStore.PermanentDelete(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.PermanentDelete(channelId)
@@ -1349,7 +1526,10 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.PermanentDeleteByTeam(teamId)
@@ -1365,7 +1545,10 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByChannel(channelId strin
 	resultVar0 := s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.PermanentDeleteMembersByChannel(channelId)
@@ -1381,7 +1564,10 @@ func (s *RetryLayerChannelStore) PermanentDeleteMembersByUser(userId string) *mo
 	resultVar0 := s.ChannelStore.PermanentDeleteMembersByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.PermanentDeleteMembersByUser(userId)
@@ -1397,7 +1583,10 @@ func (s *RetryLayerChannelStore) RemoveAllDeactivatedMembers(channelId string) *
 	resultVar0 := s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
@@ -1413,7 +1602,10 @@ func (s *RetryLayerChannelStore) RemoveMember(channelId string, userId string) *
 	resultVar0 := s.ChannelStore.RemoveMember(channelId, userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.RemoveMember(channelId, userId)
@@ -1429,7 +1621,10 @@ func (s *RetryLayerChannelStore) RemoveMembers(channelId string, userIds []strin
 	resultVar0 := s.ChannelStore.RemoveMembers(channelId, userIds)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.RemoveMembers(channelId, userIds)
@@ -1445,7 +1640,10 @@ func (s *RetryLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
 	resultVar0 := s.ChannelStore.ResetAllChannelSchemes()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.ResetAllChannelSchemes()
@@ -1461,7 +1659,10 @@ func (s *RetryLayerChannelStore) Restore(channelId string, time int64) error {
 	resultVar0 := s.ChannelStore.Restore(channelId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.Restore(channelId, time)
@@ -1477,7 +1678,10 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 	resultVar0, resultVar1 := s.ChannelStore.Save(channel, maxChannelsPerTeam)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.Save(channel, maxChannelsPerTeam)
@@ -1493,7 +1697,10 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 	resultVar0, resultVar1 := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SaveDirectChannel(channel, member1, member2)
@@ -1509,7 +1716,10 @@ func (s *RetryLayerChannelStore) SaveMember(member *model.ChannelMember) (*model
 	resultVar0, resultVar1 := s.ChannelStore.SaveMember(member)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SaveMember(member)
@@ -1525,7 +1735,10 @@ func (s *RetryLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 	resultVar0, resultVar1 := s.ChannelStore.SaveMultipleMembers(members)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SaveMultipleMembers(members)
@@ -1541,7 +1754,10 @@ func (s *RetryLayerChannelStore) SearchAllChannels(term string, opts ChannelSear
 	resultVar0, resultVar1, resultVar2 := s.ChannelStore.SearchAllChannels(term, opts)
 
 	for {
-		if resultVar2 == nil || !strings.Contains(resultVar2.Error(), "TransactionRetryError") {
+		if resultVar2 == nil {
+			break
+		}
+		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1, resultVar2 = s.ChannelStore.SearchAllChannels(term, opts)
@@ -1557,7 +1773,10 @@ func (s *RetryLayerChannelStore) SearchArchivedInTeam(teamId string, term string
 	resultVar0, resultVar1 := s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
@@ -1573,7 +1792,10 @@ func (s *RetryLayerChannelStore) SearchForUserInTeam(userId string, teamId strin
 	resultVar0, resultVar1 := s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
@@ -1589,7 +1811,10 @@ func (s *RetryLayerChannelStore) SearchGroupChannels(userId string, term string)
 	resultVar0, resultVar1 := s.ChannelStore.SearchGroupChannels(userId, term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SearchGroupChannels(userId, term)
@@ -1605,7 +1830,10 @@ func (s *RetryLayerChannelStore) SearchInTeam(teamId string, term string, includ
 	resultVar0, resultVar1 := s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
@@ -1621,7 +1849,10 @@ func (s *RetryLayerChannelStore) SearchMore(userId string, teamId string, term s
 	resultVar0, resultVar1 := s.ChannelStore.SearchMore(userId, teamId, term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.SearchMore(userId, teamId, term)
@@ -1637,7 +1868,10 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 	resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
@@ -1653,7 +1887,10 @@ func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 	resultVar0, resultVar1 := s.ChannelStore.Update(channel)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.Update(channel)
@@ -1669,7 +1906,10 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAt(channelIds []string, userId 
 	resultVar0, resultVar1 := s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.UpdateLastViewedAt(channelIds, userId)
@@ -1685,7 +1925,10 @@ func (s *RetryLayerChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, 
 	resultVar0, resultVar1 := s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.UpdateLastViewedAtPost(unreadPost, userID, mentionCount)
@@ -1701,7 +1944,10 @@ func (s *RetryLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 	resultVar0, resultVar1 := s.ChannelStore.UpdateMember(member)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.UpdateMember(member)
@@ -1717,7 +1963,10 @@ func (s *RetryLayerChannelStore) UpdateMembersRole(channelID string, userIDs []s
 	resultVar0 := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelStore.UpdateMembersRole(channelID, userIDs)
@@ -1733,7 +1982,10 @@ func (s *RetryLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	resultVar0, resultVar1 := s.ChannelStore.UpdateMultipleMembers(members)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.UpdateMultipleMembers(members)
@@ -1749,7 +2001,10 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userId string, channelIds
 	resultVar0, resultVar1 := s.ChannelStore.UserBelongsToChannels(userId, channelIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelStore.UserBelongsToChannels(userId, channelIds)
@@ -1765,7 +2020,10 @@ func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
@@ -1781,7 +2039,10 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 	resultVar0 := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
@@ -1797,7 +2058,10 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 	resultVar0 := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
@@ -1813,7 +2077,10 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 	resultVar0, resultVar1 := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
@@ -1829,7 +2096,10 @@ func (s *RetryLayerClusterDiscoveryStore) Cleanup() *model.AppError {
 	resultVar0 := s.ClusterDiscoveryStore.Cleanup()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ClusterDiscoveryStore.Cleanup()
@@ -1845,7 +2115,10 @@ func (s *RetryLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscove
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Delete(discovery)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.Delete(discovery)
@@ -1861,7 +2134,10 @@ func (s *RetryLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscove
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Exists(discovery)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.Exists(discovery)
@@ -1877,7 +2153,10 @@ func (s *RetryLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterNa
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
@@ -1893,7 +2172,10 @@ func (s *RetryLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery
 	resultVar0 := s.ClusterDiscoveryStore.Save(discovery)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ClusterDiscoveryStore.Save(discovery)
@@ -1909,7 +2191,10 @@ func (s *RetryLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 	resultVar0 := s.ClusterDiscoveryStore.SetLastPingAt(discovery)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ClusterDiscoveryStore.SetLastPingAt(discovery)
@@ -1925,7 +2210,10 @@ func (s *RetryLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *m
 	resultVar0, resultVar1 := s.CommandStore.AnalyticsCommandCount(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.AnalyticsCommandCount(teamId)
@@ -1941,7 +2229,10 @@ func (s *RetryLayerCommandStore) Delete(commandId string, time int64) *model.App
 	resultVar0 := s.CommandStore.Delete(commandId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.CommandStore.Delete(commandId, time)
@@ -1957,7 +2248,10 @@ func (s *RetryLayerCommandStore) Get(id string) (*model.Command, *model.AppError
 	resultVar0, resultVar1 := s.CommandStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.Get(id)
@@ -1973,7 +2267,10 @@ func (s *RetryLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *mo
 	resultVar0, resultVar1 := s.CommandStore.GetByTeam(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.GetByTeam(teamId)
@@ -1989,7 +2286,10 @@ func (s *RetryLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 	resultVar0, resultVar1 := s.CommandStore.GetByTrigger(teamId, trigger)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.GetByTrigger(teamId, trigger)
@@ -2005,7 +2305,10 @@ func (s *RetryLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.App
 	resultVar0 := s.CommandStore.PermanentDeleteByTeam(teamId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.CommandStore.PermanentDeleteByTeam(teamId)
@@ -2021,7 +2324,10 @@ func (s *RetryLayerCommandStore) PermanentDeleteByUser(userId string) *model.App
 	resultVar0 := s.CommandStore.PermanentDeleteByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.CommandStore.PermanentDeleteByUser(userId)
@@ -2037,7 +2343,10 @@ func (s *RetryLayerCommandStore) Save(webhook *model.Command) (*model.Command, *
 	resultVar0, resultVar1 := s.CommandStore.Save(webhook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.Save(webhook)
@@ -2053,7 +2362,10 @@ func (s *RetryLayerCommandStore) Update(hook *model.Command) (*model.Command, *m
 	resultVar0, resultVar1 := s.CommandStore.Update(hook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandStore.Update(hook)
@@ -2076,7 +2388,10 @@ func (s *RetryLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *
 	resultVar0, resultVar1 := s.CommandWebhookStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandWebhookStore.Get(id)
@@ -2092,7 +2407,10 @@ func (s *RetryLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 	resultVar0, resultVar1 := s.CommandWebhookStore.Save(webhook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.CommandWebhookStore.Save(webhook)
@@ -2108,7 +2426,10 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppE
 	resultVar0 := s.CommandWebhookStore.TryUse(id, limit)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.CommandWebhookStore.TryUse(id, limit)
@@ -2124,7 +2445,10 @@ func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Complianc
 	resultVar0, resultVar1 := s.ComplianceStore.ComplianceExport(compliance)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.ComplianceExport(compliance)
@@ -2140,7 +2464,10 @@ func (s *RetryLayerComplianceStore) Get(id string) (*model.Compliance, *model.Ap
 	resultVar0, resultVar1 := s.ComplianceStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.Get(id)
@@ -2156,7 +2483,10 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 	resultVar0, resultVar1 := s.ComplianceStore.GetAll(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.GetAll(offset, limit)
@@ -2172,7 +2502,10 @@ func (s *RetryLayerComplianceStore) MessageExport(after int64, limit int) ([]*mo
 	resultVar0, resultVar1 := s.ComplianceStore.MessageExport(after, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.MessageExport(after, limit)
@@ -2188,7 +2521,10 @@ func (s *RetryLayerComplianceStore) Save(compliance *model.Compliance) (*model.C
 	resultVar0, resultVar1 := s.ComplianceStore.Save(compliance)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.Save(compliance)
@@ -2204,7 +2540,10 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	resultVar0, resultVar1 := s.ComplianceStore.Update(compliance)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ComplianceStore.Update(compliance)
@@ -2220,7 +2559,10 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	resultVar0 := s.EmojiStore.Delete(emoji, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.EmojiStore.Delete(emoji, time)
@@ -2236,7 +2578,10 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	resultVar0, resultVar1 := s.EmojiStore.Get(id, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.Get(id, allowFromCache)
@@ -2252,7 +2597,10 @@ func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 	resultVar0, resultVar1 := s.EmojiStore.GetByName(name, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.GetByName(name, allowFromCache)
@@ -2268,7 +2616,10 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	resultVar0, resultVar1 := s.EmojiStore.GetList(offset, limit, sort)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.GetList(offset, limit, sort)
@@ -2284,7 +2635,10 @@ func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 	resultVar0, resultVar1 := s.EmojiStore.GetMultipleByName(names)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.GetMultipleByName(names)
@@ -2300,7 +2654,10 @@ func (s *RetryLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	resultVar0, resultVar1 := s.EmojiStore.Save(emoji)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.Save(emoji)
@@ -2316,7 +2673,10 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	resultVar0, resultVar1 := s.EmojiStore.Search(name, prefixOnly, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.EmojiStore.Search(name, prefixOnly, limit)
@@ -2332,7 +2692,10 @@ func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, cre
 	resultVar0 := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
@@ -2355,7 +2718,10 @@ func (s *RetryLayerFileInfoStore) DeleteForPost(postId string) (string, *model.A
 	resultVar0, resultVar1 := s.FileInfoStore.DeleteForPost(postId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.DeleteForPost(postId)
@@ -2371,7 +2737,10 @@ func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppErr
 	resultVar0, resultVar1 := s.FileInfoStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.Get(id)
@@ -2387,7 +2756,10 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *mode
 	resultVar0, resultVar1 := s.FileInfoStore.GetByPath(path)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.GetByPath(path)
@@ -2403,7 +2775,10 @@ func (s *RetryLayerFileInfoStore) GetForPost(postId string, readFromMaster bool,
 	resultVar0, resultVar1 := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
@@ -2419,7 +2794,10 @@ func (s *RetryLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	resultVar0, resultVar1 := s.FileInfoStore.GetForUser(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.GetForUser(userId)
@@ -2435,7 +2813,10 @@ func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *mod
 	resultVar0, resultVar1 := s.FileInfoStore.GetWithOptions(page, perPage, opt)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.GetWithOptions(page, perPage, opt)
@@ -2458,7 +2839,10 @@ func (s *RetryLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError
 	resultVar0 := s.FileInfoStore.PermanentDelete(fileId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.FileInfoStore.PermanentDelete(fileId)
@@ -2474,7 +2858,10 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 	resultVar0, resultVar1 := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
@@ -2490,7 +2877,10 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *
 	resultVar0, resultVar1 := s.FileInfoStore.PermanentDeleteByUser(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.PermanentDeleteByUser(userId)
@@ -2506,7 +2896,10 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *
 	resultVar0, resultVar1 := s.FileInfoStore.Save(info)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.FileInfoStore.Save(info)
@@ -2522,7 +2915,10 @@ func (s *RetryLayerGroupStore) AdminRoleGroupsForSyncableMember(userID string, s
 	resultVar0, resultVar1 := s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.AdminRoleGroupsForSyncableMember(userID, syncableID, syncableType)
@@ -2538,7 +2934,10 @@ func (s *RetryLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 	resultVar0, resultVar1 := s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
@@ -2554,7 +2953,10 @@ func (s *RetryLayerGroupStore) ChannelMembersToAdd(since int64, channelID *strin
 	resultVar0, resultVar1 := s.GroupStore.ChannelMembersToAdd(since, channelID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersToAdd(since, channelID)
@@ -2570,7 +2972,10 @@ func (s *RetryLayerGroupStore) ChannelMembersToRemove(channelID *string) ([]*mod
 	resultVar0, resultVar1 := s.GroupStore.ChannelMembersToRemove(channelID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.ChannelMembersToRemove(channelID)
@@ -2586,7 +2991,10 @@ func (s *RetryLayerGroupStore) CountChannelMembersMinusGroupMembers(channelID st
 	resultVar0, resultVar1 := s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.CountChannelMembersMinusGroupMembers(channelID, groupIDs)
@@ -2602,7 +3010,10 @@ func (s *RetryLayerGroupStore) CountGroupsByChannel(channelId string, opts model
 	resultVar0, resultVar1 := s.GroupStore.CountGroupsByChannel(channelId, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.CountGroupsByChannel(channelId, opts)
@@ -2618,7 +3029,10 @@ func (s *RetryLayerGroupStore) CountGroupsByTeam(teamId string, opts model.Group
 	resultVar0, resultVar1 := s.GroupStore.CountGroupsByTeam(teamId, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.CountGroupsByTeam(teamId, opts)
@@ -2634,7 +3048,10 @@ func (s *RetryLayerGroupStore) CountTeamMembersMinusGroupMembers(teamID string, 
 	resultVar0, resultVar1 := s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.CountTeamMembersMinusGroupMembers(teamID, groupIDs)
@@ -2650,7 +3067,10 @@ func (s *RetryLayerGroupStore) Create(group *model.Group) (*model.Group, *model.
 	resultVar0, resultVar1 := s.GroupStore.Create(group)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.Create(group)
@@ -2666,7 +3086,10 @@ func (s *RetryLayerGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyn
 	resultVar0, resultVar1 := s.GroupStore.CreateGroupSyncable(groupSyncable)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.CreateGroupSyncable(groupSyncable)
@@ -2682,7 +3105,10 @@ func (s *RetryLayerGroupStore) Delete(groupID string) (*model.Group, *model.AppE
 	resultVar0, resultVar1 := s.GroupStore.Delete(groupID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.Delete(groupID)
@@ -2698,7 +3124,10 @@ func (s *RetryLayerGroupStore) DeleteGroupSyncable(groupID string, syncableID st
 	resultVar0, resultVar1 := s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.DeleteGroupSyncable(groupID, syncableID, syncableType)
@@ -2714,7 +3143,10 @@ func (s *RetryLayerGroupStore) DeleteMember(groupID string, userID string) (*mod
 	resultVar0, resultVar1 := s.GroupStore.DeleteMember(groupID, userID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.DeleteMember(groupID, userID)
@@ -2730,7 +3162,10 @@ func (s *RetryLayerGroupStore) DistinctGroupMemberCount() (int64, *model.AppErro
 	resultVar0, resultVar1 := s.GroupStore.DistinctGroupMemberCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.DistinctGroupMemberCount()
@@ -2746,7 +3181,10 @@ func (s *RetryLayerGroupStore) Get(groupID string) (*model.Group, *model.AppErro
 	resultVar0, resultVar1 := s.GroupStore.Get(groupID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.Get(groupID)
@@ -2762,7 +3200,10 @@ func (s *RetryLayerGroupStore) GetAllBySource(groupSource model.GroupSource) ([]
 	resultVar0, resultVar1 := s.GroupStore.GetAllBySource(groupSource)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetAllBySource(groupSource)
@@ -2778,7 +3219,10 @@ func (s *RetryLayerGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syn
 	resultVar0, resultVar1 := s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetAllGroupSyncablesByGroupId(groupID, syncableType)
@@ -2794,7 +3238,10 @@ func (s *RetryLayerGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *mod
 	resultVar0, resultVar1 := s.GroupStore.GetByIDs(groupIDs)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetByIDs(groupIDs)
@@ -2810,7 +3257,10 @@ func (s *RetryLayerGroupStore) GetByName(name string, opts model.GroupSearchOpts
 	resultVar0, resultVar1 := s.GroupStore.GetByName(name, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetByName(name, opts)
@@ -2826,7 +3276,10 @@ func (s *RetryLayerGroupStore) GetByRemoteID(remoteID string, groupSource model.
 	resultVar0, resultVar1 := s.GroupStore.GetByRemoteID(remoteID, groupSource)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetByRemoteID(remoteID, groupSource)
@@ -2842,7 +3295,10 @@ func (s *RetryLayerGroupStore) GetByUser(userId string) ([]*model.Group, *model.
 	resultVar0, resultVar1 := s.GroupStore.GetByUser(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetByUser(userId)
@@ -2858,7 +3314,10 @@ func (s *RetryLayerGroupStore) GetGroupSyncable(groupID string, syncableID strin
 	resultVar0, resultVar1 := s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetGroupSyncable(groupID, syncableID, syncableType)
@@ -2874,7 +3333,10 @@ func (s *RetryLayerGroupStore) GetGroups(page int, perPage int, opts model.Group
 	resultVar0, resultVar1 := s.GroupStore.GetGroups(page, perPage, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetGroups(page, perPage, opts)
@@ -2890,7 +3352,10 @@ func (s *RetryLayerGroupStore) GetGroupsAssociatedToChannelsByTeam(teamId string
 	resultVar0, resultVar1 := s.GroupStore.GetGroupsAssociatedToChannelsByTeam(teamId, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsAssociatedToChannelsByTeam(teamId, opts)
@@ -2906,7 +3371,10 @@ func (s *RetryLayerGroupStore) GetGroupsByChannel(channelId string, opts model.G
 	resultVar0, resultVar1 := s.GroupStore.GetGroupsByChannel(channelId, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsByChannel(channelId, opts)
@@ -2922,7 +3390,10 @@ func (s *RetryLayerGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSe
 	resultVar0, resultVar1 := s.GroupStore.GetGroupsByTeam(teamId, opts)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetGroupsByTeam(teamId, opts)
@@ -2938,7 +3409,10 @@ func (s *RetryLayerGroupStore) GetMemberCount(groupID string) (int64, *model.App
 	resultVar0, resultVar1 := s.GroupStore.GetMemberCount(groupID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetMemberCount(groupID)
@@ -2954,7 +3428,10 @@ func (s *RetryLayerGroupStore) GetMemberUsers(groupID string) ([]*model.User, *m
 	resultVar0, resultVar1 := s.GroupStore.GetMemberUsers(groupID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsers(groupID)
@@ -2970,7 +3447,10 @@ func (s *RetryLayerGroupStore) GetMemberUsersInTeam(groupID string, teamID strin
 	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersInTeam(groupID, teamID)
@@ -2986,7 +3466,10 @@ func (s *RetryLayerGroupStore) GetMemberUsersNotInChannel(groupID string, channe
 	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersNotInChannel(groupID, channelID)
@@ -3002,7 +3485,10 @@ func (s *RetryLayerGroupStore) GetMemberUsersPage(groupID string, page int, perP
 	resultVar0, resultVar1 := s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GetMemberUsersPage(groupID, page, perPage)
@@ -3018,7 +3504,10 @@ func (s *RetryLayerGroupStore) GroupChannelCount() (int64, *model.AppError) {
 	resultVar0, resultVar1 := s.GroupStore.GroupChannelCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GroupChannelCount()
@@ -3034,7 +3523,10 @@ func (s *RetryLayerGroupStore) GroupCount() (int64, *model.AppError) {
 	resultVar0, resultVar1 := s.GroupStore.GroupCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GroupCount()
@@ -3050,7 +3542,10 @@ func (s *RetryLayerGroupStore) GroupCountWithAllowReference() (int64, *model.App
 	resultVar0, resultVar1 := s.GroupStore.GroupCountWithAllowReference()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GroupCountWithAllowReference()
@@ -3066,7 +3561,10 @@ func (s *RetryLayerGroupStore) GroupMemberCount() (int64, *model.AppError) {
 	resultVar0, resultVar1 := s.GroupStore.GroupMemberCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GroupMemberCount()
@@ -3082,7 +3580,10 @@ func (s *RetryLayerGroupStore) GroupTeamCount() (int64, *model.AppError) {
 	resultVar0, resultVar1 := s.GroupStore.GroupTeamCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.GroupTeamCount()
@@ -3098,7 +3599,10 @@ func (s *RetryLayerGroupStore) PermanentDeleteMembersByUser(userId string) *mode
 	resultVar0 := s.GroupStore.PermanentDeleteMembersByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.GroupStore.PermanentDeleteMembersByUser(userId)
@@ -3114,7 +3618,10 @@ func (s *RetryLayerGroupStore) PermittedSyncableAdmins(syncableID string, syncab
 	resultVar0, resultVar1 := s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.PermittedSyncableAdmins(syncableID, syncableType)
@@ -3130,7 +3637,10 @@ func (s *RetryLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 	resultVar0, resultVar1 := s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
@@ -3146,7 +3656,10 @@ func (s *RetryLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]
 	resultVar0, resultVar1 := s.GroupStore.TeamMembersToAdd(since, teamID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersToAdd(since, teamID)
@@ -3162,7 +3675,10 @@ func (s *RetryLayerGroupStore) TeamMembersToRemove(teamID *string) ([]*model.Tea
 	resultVar0, resultVar1 := s.GroupStore.TeamMembersToRemove(teamID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.TeamMembersToRemove(teamID)
@@ -3178,7 +3694,10 @@ func (s *RetryLayerGroupStore) Update(group *model.Group) (*model.Group, *model.
 	resultVar0, resultVar1 := s.GroupStore.Update(group)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.Update(group)
@@ -3194,7 +3713,10 @@ func (s *RetryLayerGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyn
 	resultVar0, resultVar1 := s.GroupStore.UpdateGroupSyncable(groupSyncable)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.UpdateGroupSyncable(groupSyncable)
@@ -3210,7 +3732,10 @@ func (s *RetryLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 	resultVar0, resultVar1 := s.GroupStore.UpsertMember(groupID, userID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.GroupStore.UpsertMember(groupID, userID)
@@ -3226,7 +3751,10 @@ func (s *RetryLayerJobStore) Delete(id string) (string, *model.AppError) {
 	resultVar0, resultVar1 := s.JobStore.Delete(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.Delete(id)
@@ -3242,7 +3770,10 @@ func (s *RetryLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
 	resultVar0, resultVar1 := s.JobStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.Get(id)
@@ -3258,7 +3789,10 @@ func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model
 	resultVar0, resultVar1 := s.JobStore.GetAllByStatus(status)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetAllByStatus(status)
@@ -3274,7 +3808,10 @@ func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.
 	resultVar0, resultVar1 := s.JobStore.GetAllByType(jobType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetAllByType(jobType)
@@ -3290,7 +3827,10 @@ func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	resultVar0, resultVar1 := s.JobStore.GetAllByTypePage(jobType, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetAllByTypePage(jobType, offset, limit)
@@ -3306,7 +3846,10 @@ func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *m
 	resultVar0, resultVar1 := s.JobStore.GetAllPage(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetAllPage(offset, limit)
@@ -3322,7 +3865,10 @@ func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType stri
 	resultVar0, resultVar1 := s.JobStore.GetCountByStatusAndType(status, jobType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetCountByStatusAndType(status, jobType)
@@ -3338,7 +3884,10 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	resultVar0, resultVar1 := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.GetNewestJobByStatusAndType(status, jobType)
@@ -3354,7 +3903,10 @@ func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) 
 	resultVar0, resultVar1 := s.JobStore.Save(job)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.Save(job)
@@ -3370,7 +3922,10 @@ func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus 
 	resultVar0, resultVar1 := s.JobStore.UpdateOptimistically(job, currentStatus)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.UpdateOptimistically(job, currentStatus)
@@ -3386,7 +3941,10 @@ func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 	resultVar0, resultVar1 := s.JobStore.UpdateStatus(id, status)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.UpdateStatus(id, status)
@@ -3402,7 +3960,10 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 	resultVar0, resultVar1 := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
@@ -3418,7 +3979,10 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 	resultVar0, resultVar1 := s.LicenseStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.LicenseStore.Get(id)
@@ -3434,7 +3998,10 @@ func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 	resultVar0, resultVar1 := s.LicenseStore.Save(license)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.LicenseStore.Save(license)
@@ -3450,7 +4017,10 @@ func (s *RetryLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 	resultVar0, resultVar1 := s.LinkMetadataStore.Get(url, timestamp)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.LinkMetadataStore.Get(url, timestamp)
@@ -3466,7 +4036,10 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 	resultVar0, resultVar1 := s.LinkMetadataStore.Save(linkMetadata)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.LinkMetadataStore.Save(linkMetadata)
@@ -3482,7 +4055,10 @@ func (s *RetryLayerOAuthStore) DeleteApp(id string) *model.AppError {
 	resultVar0 := s.OAuthStore.DeleteApp(id)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.OAuthStore.DeleteApp(id)
@@ -3498,7 +4074,10 @@ func (s *RetryLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessData(token)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessData(token)
@@ -3514,7 +4093,10 @@ func (s *RetryLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByRefreshToken(token)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessDataByRefreshToken(token)
@@ -3530,7 +4112,10 @@ func (s *RetryLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
@@ -3546,7 +4131,10 @@ func (s *RetryLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppErr
 	resultVar0, resultVar1 := s.OAuthStore.GetApp(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetApp(id)
@@ -3562,7 +4150,10 @@ func (s *RetryLayerOAuthStore) GetAppByUser(userId string, offset int, limit int
 	resultVar0, resultVar1 := s.OAuthStore.GetAppByUser(userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAppByUser(userId, offset, limit)
@@ -3578,7 +4169,10 @@ func (s *RetryLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp
 	resultVar0, resultVar1 := s.OAuthStore.GetApps(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetApps(offset, limit)
@@ -3594,7 +4188,10 @@ func (s *RetryLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model
 	resultVar0, resultVar1 := s.OAuthStore.GetAuthData(code)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAuthData(code)
@@ -3610,7 +4207,10 @@ func (s *RetryLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limi
 	resultVar0, resultVar1 := s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
@@ -3626,7 +4226,10 @@ func (s *RetryLayerOAuthStore) GetPreviousAccessData(userId string, clientId str
 	resultVar0, resultVar1 := s.OAuthStore.GetPreviousAccessData(userId, clientId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.GetPreviousAccessData(userId, clientId)
@@ -3642,7 +4245,10 @@ func (s *RetryLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *mod
 	resultVar0 := s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
@@ -3658,7 +4264,10 @@ func (s *RetryLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
 	resultVar0 := s.OAuthStore.RemoveAccessData(token)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.OAuthStore.RemoveAccessData(token)
@@ -3674,7 +4283,10 @@ func (s *RetryLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 	resultVar0 := s.OAuthStore.RemoveAllAccessData()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.OAuthStore.RemoveAllAccessData()
@@ -3690,7 +4302,10 @@ func (s *RetryLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
 	resultVar0 := s.OAuthStore.RemoveAuthData(code)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.OAuthStore.RemoveAuthData(code)
@@ -3706,7 +4321,10 @@ func (s *RetryLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*mo
 	resultVar0, resultVar1 := s.OAuthStore.SaveAccessData(accessData)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.SaveAccessData(accessData)
@@ -3722,7 +4340,10 @@ func (s *RetryLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *m
 	resultVar0, resultVar1 := s.OAuthStore.SaveApp(app)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.SaveApp(app)
@@ -3738,7 +4359,10 @@ func (s *RetryLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.Au
 	resultVar0, resultVar1 := s.OAuthStore.SaveAuthData(authData)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.SaveAuthData(authData)
@@ -3754,7 +4378,10 @@ func (s *RetryLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*
 	resultVar0, resultVar1 := s.OAuthStore.UpdateAccessData(accessData)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.UpdateAccessData(accessData)
@@ -3770,7 +4397,10 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	resultVar0, resultVar1 := s.OAuthStore.UpdateApp(app)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.OAuthStore.UpdateApp(app)
@@ -3786,7 +4416,10 @@ func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, o
 	resultVar0, resultVar1 := s.PluginStore.CompareAndDelete(keyVal, oldValue)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.CompareAndDelete(keyVal, oldValue)
@@ -3802,7 +4435,10 @@ func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldV
 	resultVar0, resultVar1 := s.PluginStore.CompareAndSet(keyVal, oldValue)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.CompareAndSet(keyVal, oldValue)
@@ -3818,7 +4454,10 @@ func (s *RetryLayerPluginStore) Delete(pluginId string, key string) *model.AppEr
 	resultVar0 := s.PluginStore.Delete(pluginId, key)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PluginStore.Delete(pluginId, key)
@@ -3834,7 +4473,10 @@ func (s *RetryLayerPluginStore) DeleteAllExpired() *model.AppError {
 	resultVar0 := s.PluginStore.DeleteAllExpired()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PluginStore.DeleteAllExpired()
@@ -3850,7 +4492,10 @@ func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppEr
 	resultVar0 := s.PluginStore.DeleteAllForPlugin(PluginId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PluginStore.DeleteAllForPlugin(PluginId)
@@ -3866,7 +4511,10 @@ func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginK
 	resultVar0, resultVar1 := s.PluginStore.Get(pluginId, key)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.Get(pluginId, key)
@@ -3882,7 +4530,10 @@ func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]
 	resultVar0, resultVar1 := s.PluginStore.List(pluginId, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.List(pluginId, page, perPage)
@@ -3898,7 +4549,10 @@ func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 	resultVar0, resultVar1 := s.PluginStore.SaveOrUpdate(keyVal)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.SaveOrUpdate(keyVal)
@@ -3914,7 +4568,10 @@ func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, valu
 	resultVar0, resultVar1 := s.PluginStore.SetWithOptions(pluginId, key, value, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PluginStore.SetWithOptions(pluginId, key, value, options)
@@ -3930,7 +4587,10 @@ func (s *RetryLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFile boo
 	resultVar0, resultVar1 := s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
@@ -3946,7 +4606,10 @@ func (s *RetryLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsP
 	resultVar0, resultVar1 := s.PostStore.AnalyticsPostCountsByDay(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.AnalyticsPostCountsByDay(options)
@@ -3962,7 +4625,10 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (
 	resultVar0, resultVar1 := s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
@@ -3985,7 +4651,10 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	resultVar0 := s.PostStore.Delete(postId, time, deleteByID)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PostStore.Delete(postId, time, deleteByID)
@@ -4001,7 +4670,10 @@ func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.Post
 	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.Get(id, skipFetchThreads)
@@ -4017,7 +4689,10 @@ func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afte
 	resultVar0, resultVar1 := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
@@ -4041,7 +4716,10 @@ func (s *RetryLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPosts(userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPosts(userId, offset, limit)
@@ -4057,7 +4735,10 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
@@ -4073,7 +4754,10 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId strin
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
@@ -4097,7 +4781,10 @@ func (s *RetryLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 	resultVar0, resultVar1 := s.PostStore.GetOldest()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetOldest()
@@ -4113,7 +4800,10 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppEr
 	resultVar0, resultVar1 := s.PostStore.GetOldestEntityCreationTime()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetOldestEntityCreationTime()
@@ -4129,7 +4819,10 @@ func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 	resultVar0, resultVar1 := s.PostStore.GetParentsForExportAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetParentsForExportAfter(limit, afterId)
@@ -4145,7 +4838,10 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 	resultVar0, resultVar1 := s.PostStore.GetPostAfterTime(channelId, time)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostAfterTime(channelId, time)
@@ -4161,7 +4857,10 @@ func (s *RetryLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 	resultVar0, resultVar1 := s.PostStore.GetPostIdAfterTime(channelId, time)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostIdAfterTime(channelId, time)
@@ -4177,7 +4876,10 @@ func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	resultVar0, resultVar1 := s.PostStore.GetPostIdBeforeTime(channelId, time)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostIdBeforeTime(channelId, time)
@@ -4193,7 +4895,10 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	resultVar0, resultVar1 := s.PostStore.GetPosts(options, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPosts(options, allowFromCache)
@@ -4209,7 +4914,10 @@ func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsAfter(options)
@@ -4225,7 +4933,10 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	resultVar0, resultVar1 := s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
@@ -4241,7 +4952,10 @@ func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*mo
 	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsBefore(options)
@@ -4257,7 +4971,10 @@ func (s *RetryLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *m
 	resultVar0, resultVar1 := s.PostStore.GetPostsByIds(postIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsByIds(postIds)
@@ -4273,7 +4990,10 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	resultVar0, resultVar1 := s.PostStore.GetPostsCreatedAt(channelId, time)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsCreatedAt(channelId, time)
@@ -4289,7 +5009,10 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetPostsSince(options, allowFromCache)
@@ -4305,7 +5028,10 @@ func (s *RetryLayerPostStore) GetRepliesForExport(parentId string) ([]*model.Rep
 	resultVar0, resultVar1 := s.PostStore.GetRepliesForExport(parentId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetRepliesForExport(parentId)
@@ -4321,7 +5047,10 @@ func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError
 	resultVar0, resultVar1 := s.PostStore.GetSingle(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.GetSingle(id)
@@ -4344,7 +5073,10 @@ func (s *RetryLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.A
 	resultVar0, resultVar1 := s.PostStore.Overwrite(post)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.Overwrite(post)
@@ -4360,7 +5092,10 @@ func (s *RetryLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 	resultVar0, resultVar1, resultVar2 := s.PostStore.OverwriteMultiple(posts)
 
 	for {
-		if resultVar2 == nil || !strings.Contains(resultVar2.Error(), "TransactionRetryError") {
+		if resultVar2 == nil {
+			break
+		}
+		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1, resultVar2 = s.PostStore.OverwriteMultiple(posts)
@@ -4376,7 +5111,10 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 	resultVar0, resultVar1 := s.PostStore.PermanentDeleteBatch(endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.PermanentDeleteBatch(endTime, limit)
@@ -4392,7 +5130,10 @@ func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) *model.
 	resultVar0 := s.PostStore.PermanentDeleteByChannel(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PostStore.PermanentDeleteByChannel(channelId)
@@ -4408,7 +5149,10 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(userId string) *model.AppErr
 	resultVar0 := s.PostStore.PermanentDeleteByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PostStore.PermanentDeleteByUser(userId)
@@ -4424,7 +5168,10 @@ func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppErr
 	resultVar0, resultVar1 := s.PostStore.Save(post)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.Save(post)
@@ -4440,7 +5187,10 @@ func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 	resultVar0, resultVar1, resultVar2 := s.PostStore.SaveMultiple(posts)
 
 	for {
-		if resultVar2 == nil || !strings.Contains(resultVar2.Error(), "TransactionRetryError") {
+		if resultVar2 == nil {
+			break
+		}
+		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1, resultVar2 = s.PostStore.SaveMultiple(posts)
@@ -4456,7 +5206,10 @@ func (s *RetryLayerPostStore) Search(teamId string, userId string, params *model
 	resultVar0, resultVar1 := s.PostStore.Search(teamId, userId, params)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.Search(teamId, userId, params)
@@ -4472,7 +5225,10 @@ func (s *RetryLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.Searc
 	resultVar0, resultVar1 := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
@@ -4488,7 +5244,10 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	resultVar0, resultVar1 := s.PostStore.Update(newPost, oldPost)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PostStore.Update(newPost, oldPost)
@@ -4504,7 +5263,10 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *mode
 	resultVar0, resultVar1 := s.PreferenceStore.CleanupFlagsBatch(limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PreferenceStore.CleanupFlagsBatch(limit)
@@ -4520,7 +5282,10 @@ func (s *RetryLayerPreferenceStore) Delete(userId string, category string, name 
 	resultVar0 := s.PreferenceStore.Delete(userId, category, name)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PreferenceStore.Delete(userId, category, name)
@@ -4536,7 +5301,10 @@ func (s *RetryLayerPreferenceStore) DeleteCategory(userId string, category strin
 	resultVar0 := s.PreferenceStore.DeleteCategory(userId, category)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PreferenceStore.DeleteCategory(userId, category)
@@ -4552,7 +5320,10 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 	resultVar0 := s.PreferenceStore.DeleteCategoryAndName(category, name)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PreferenceStore.DeleteCategoryAndName(category, name)
@@ -4568,7 +5339,10 @@ func (s *RetryLayerPreferenceStore) Get(userId string, category string, name str
 	resultVar0, resultVar1 := s.PreferenceStore.Get(userId, category, name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PreferenceStore.Get(userId, category, name)
@@ -4584,7 +5358,10 @@ func (s *RetryLayerPreferenceStore) GetAll(userId string) (model.Preferences, *m
 	resultVar0, resultVar1 := s.PreferenceStore.GetAll(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PreferenceStore.GetAll(userId)
@@ -4600,7 +5377,10 @@ func (s *RetryLayerPreferenceStore) GetCategory(userId string, category string) 
 	resultVar0, resultVar1 := s.PreferenceStore.GetCategory(userId, category)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.PreferenceStore.GetCategory(userId, category)
@@ -4616,7 +5396,10 @@ func (s *RetryLayerPreferenceStore) PermanentDeleteByUser(userId string) *model.
 	resultVar0 := s.PreferenceStore.PermanentDeleteByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PreferenceStore.PermanentDeleteByUser(userId)
@@ -4632,7 +5415,10 @@ func (s *RetryLayerPreferenceStore) Save(preferences *model.Preferences) *model.
 	resultVar0 := s.PreferenceStore.Save(preferences)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.PreferenceStore.Save(preferences)
@@ -4648,7 +5434,10 @@ func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 	resultVar0, resultVar1 := s.ReactionStore.BulkGetForPosts(postIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ReactionStore.BulkGetForPosts(postIds)
@@ -4664,7 +5453,10 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 	resultVar0, resultVar1 := s.ReactionStore.Delete(reaction)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ReactionStore.Delete(reaction)
@@ -4680,7 +5472,10 @@ func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *mode
 	resultVar0 := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.ReactionStore.DeleteAllWithEmojiName(emojiName)
@@ -4696,7 +5491,10 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	resultVar0, resultVar1 := s.ReactionStore.GetForPost(postId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ReactionStore.GetForPost(postId, allowFromCache)
@@ -4712,7 +5510,10 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	resultVar0, resultVar1 := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ReactionStore.PermanentDeleteBatch(endTime, limit)
@@ -4728,7 +5529,10 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	resultVar0, resultVar1 := s.ReactionStore.Save(reaction)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.ReactionStore.Save(reaction)
@@ -4744,7 +5548,10 @@ func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.App
 	resultVar0, resultVar1 := s.RoleStore.AllChannelSchemeRoles()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.AllChannelSchemeRoles()
@@ -4760,7 +5567,10 @@ func (s *RetryLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string)
 	resultVar0, resultVar1 := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.ChannelHigherScopedPermissions(roleNames)
@@ -4776,7 +5586,10 @@ func (s *RetryLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*mod
 	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.ChannelRolesUnderTeamRole(roleName)
@@ -4792,7 +5605,10 @@ func (s *RetryLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppErro
 	resultVar0, resultVar1 := s.RoleStore.Delete(roleId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.Delete(roleId)
@@ -4808,7 +5624,10 @@ func (s *RetryLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) 
 	resultVar0, resultVar1 := s.RoleStore.Get(roleId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.Get(roleId)
@@ -4824,7 +5643,10 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	resultVar0, resultVar1 := s.RoleStore.GetAll()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.GetAll()
@@ -4840,7 +5662,10 @@ func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, *model.AppErr
 	resultVar0, resultVar1 := s.RoleStore.GetByName(name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.GetByName(name)
@@ -4856,7 +5681,10 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.
 	resultVar0, resultVar1 := s.RoleStore.GetByNames(names)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.GetByNames(names)
@@ -4872,7 +5700,10 @@ func (s *RetryLayerRoleStore) PermanentDeleteAll() *model.AppError {
 	resultVar0 := s.RoleStore.PermanentDeleteAll()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.RoleStore.PermanentDeleteAll()
@@ -4888,7 +5719,10 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppErr
 	resultVar0, resultVar1 := s.RoleStore.Save(role)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.RoleStore.Save(role)
@@ -4904,7 +5738,10 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	resultVar0, resultVar1 := s.SchemeStore.CountByScope(scope)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.CountByScope(scope)
@@ -4920,7 +5757,10 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 	resultVar0, resultVar1 := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
@@ -4936,7 +5776,10 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.Delete(schemeId)
@@ -4952,7 +5795,10 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.Get(schemeId)
@@ -4968,7 +5814,10 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.GetAllPage(scope, offset, limit)
@@ -4984,7 +5833,10 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 	resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.GetByName(schemeName)
@@ -5000,7 +5852,10 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 	resultVar0 := s.SchemeStore.PermanentDeleteAll()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SchemeStore.PermanentDeleteAll()
@@ -5016,7 +5871,10 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	resultVar0, resultVar1 := s.SchemeStore.Save(scheme)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SchemeStore.Save(scheme)
@@ -5032,7 +5890,10 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, *model.AppError
 	resultVar0, resultVar1 := s.SessionStore.AnalyticsSessionCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.AnalyticsSessionCount()
@@ -5055,7 +5916,10 @@ func (s *RetryLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *
 	resultVar0, resultVar1 := s.SessionStore.Get(sessionIdOrToken)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.Get(sessionIdOrToken)
@@ -5071,7 +5935,10 @@ func (s *RetryLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 	resultVar0, resultVar1 := s.SessionStore.GetSessions(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.GetSessions(userId)
@@ -5087,7 +5954,10 @@ func (s *RetryLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	resultVar0, resultVar1 := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
@@ -5103,7 +5973,10 @@ func (s *RetryLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) (
 	resultVar0, resultVar1 := s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
@@ -5119,7 +5992,10 @@ func (s *RetryLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *m
 	resultVar0 := s.SessionStore.PermanentDeleteSessionsByUser(teamId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.PermanentDeleteSessionsByUser(teamId)
@@ -5135,7 +6011,10 @@ func (s *RetryLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError
 	resultVar0 := s.SessionStore.Remove(sessionIdOrToken)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.Remove(sessionIdOrToken)
@@ -5151,7 +6030,10 @@ func (s *RetryLayerSessionStore) RemoveAllSessions() *model.AppError {
 	resultVar0 := s.SessionStore.RemoveAllSessions()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.RemoveAllSessions()
@@ -5167,7 +6049,10 @@ func (s *RetryLayerSessionStore) Save(session *model.Session) (*model.Session, *
 	resultVar0, resultVar1 := s.SessionStore.Save(session)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.Save(session)
@@ -5183,7 +6068,10 @@ func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 	resultVar0, resultVar1 := s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
@@ -5199,7 +6087,10 @@ func (s *RetryLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 	resultVar0 := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.UpdateExpiredNotify(sessionid, notified)
@@ -5215,7 +6106,10 @@ func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *
 	resultVar0 := s.SessionStore.UpdateExpiresAt(sessionId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.UpdateExpiresAt(sessionId, time)
@@ -5231,7 +6125,10 @@ func (s *RetryLayerSessionStore) UpdateLastActivityAt(sessionId string, time int
 	resultVar0 := s.SessionStore.UpdateLastActivityAt(sessionId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.UpdateLastActivityAt(sessionId, time)
@@ -5247,7 +6144,10 @@ func (s *RetryLayerSessionStore) UpdateProps(session *model.Session) *model.AppE
 	resultVar0 := s.SessionStore.UpdateProps(session)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SessionStore.UpdateProps(session)
@@ -5263,7 +6163,10 @@ func (s *RetryLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 	resultVar0, resultVar1 := s.SessionStore.UpdateRoles(userId, roles)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SessionStore.UpdateRoles(userId, roles)
@@ -5279,7 +6182,10 @@ func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, *model.AppErr
 	resultVar0, resultVar1 := s.StatusStore.Get(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.StatusStore.Get(userId)
@@ -5295,7 +6201,10 @@ func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *mo
 	resultVar0, resultVar1 := s.StatusStore.GetByIds(userIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.StatusStore.GetByIds(userIds)
@@ -5311,7 +6220,10 @@ func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppErr
 	resultVar0, resultVar1 := s.StatusStore.GetTotalActiveUsersCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.StatusStore.GetTotalActiveUsersCount()
@@ -5327,7 +6239,10 @@ func (s *RetryLayerStatusStore) ResetAll() *model.AppError {
 	resultVar0 := s.StatusStore.ResetAll()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.StatusStore.ResetAll()
@@ -5343,7 +6258,10 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppErr
 	resultVar0 := s.StatusStore.SaveOrUpdate(status)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.StatusStore.SaveOrUpdate(status)
@@ -5359,7 +6277,10 @@ func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivity
 	resultVar0 := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
@@ -5375,7 +6296,10 @@ func (s *RetryLayerSystemStore) Get() (model.StringMap, *model.AppError) {
 	resultVar0, resultVar1 := s.SystemStore.Get()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SystemStore.Get()
@@ -5391,7 +6315,10 @@ func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 	resultVar0, resultVar1 := s.SystemStore.GetByName(name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SystemStore.GetByName(name)
@@ -5407,7 +6334,10 @@ func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.Sys
 	resultVar0, resultVar1 := s.SystemStore.InsertIfExists(system)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SystemStore.InsertIfExists(system)
@@ -5423,7 +6353,10 @@ func (s *RetryLayerSystemStore) PermanentDeleteByName(name string) (*model.Syste
 	resultVar0, resultVar1 := s.SystemStore.PermanentDeleteByName(name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.SystemStore.PermanentDeleteByName(name)
@@ -5439,7 +6372,10 @@ func (s *RetryLayerSystemStore) Save(system *model.System) *model.AppError {
 	resultVar0 := s.SystemStore.Save(system)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SystemStore.Save(system)
@@ -5455,7 +6391,10 @@ func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppErr
 	resultVar0 := s.SystemStore.SaveOrUpdate(system)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SystemStore.SaveOrUpdate(system)
@@ -5471,7 +6410,10 @@ func (s *RetryLayerSystemStore) Update(system *model.System) *model.AppError {
 	resultVar0 := s.SystemStore.Update(system)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.SystemStore.Update(system)
@@ -5487,7 +6429,10 @@ func (s *RetryLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (i
 	resultVar0, resultVar1 := s.TeamStore.AnalyticsGetTeamCountForScheme(schemeId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsGetTeamCountForScheme(schemeId)
@@ -5503,7 +6448,10 @@ func (s *RetryLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppErro
 	resultVar0, resultVar1 := s.TeamStore.AnalyticsPrivateTeamCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsPrivateTeamCount()
@@ -5519,7 +6467,10 @@ func (s *RetryLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError
 	resultVar0, resultVar1 := s.TeamStore.AnalyticsPublicTeamCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsPublicTeamCount()
@@ -5535,7 +6486,10 @@ func (s *RetryLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *m
 	resultVar0, resultVar1 := s.TeamStore.AnalyticsTeamCount(includeDeleted)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.AnalyticsTeamCount(includeDeleted)
@@ -5551,7 +6505,10 @@ func (s *RetryLayerTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 	resultVar0 := s.TeamStore.ClearAllCustomRoleAssignments()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.ClearAllCustomRoleAssignments()
@@ -5574,7 +6531,10 @@ func (s *RetryLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	resultVar0, resultVar1 := s.TeamStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.Get(id)
@@ -5590,7 +6550,10 @@ func (s *RetryLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *
 	resultVar0, resultVar1 := s.TeamStore.GetActiveMemberCount(teamId, restrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetActiveMemberCount(teamId, restrictions)
@@ -5606,7 +6569,10 @@ func (s *RetryLayerTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	resultVar0, resultVar1 := s.TeamStore.GetAll()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAll()
@@ -5622,7 +6588,10 @@ func (s *RetryLayerTeamStore) GetAllForExportAfter(limit int, afterId string) ([
 	resultVar0, resultVar1 := s.TeamStore.GetAllForExportAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllForExportAfter(limit, afterId)
@@ -5638,7 +6607,10 @@ func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, 
 	resultVar0, resultVar1 := s.TeamStore.GetAllPage(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllPage(offset, limit)
@@ -5654,7 +6626,10 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.
 	resultVar0, resultVar1 := s.TeamStore.GetAllPrivateTeamListing()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllPrivateTeamListing()
@@ -5670,7 +6645,10 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int
 	resultVar0, resultVar1 := s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
@@ -5686,7 +6664,10 @@ func (s *RetryLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int)
 	resultVar0, resultVar1 := s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
@@ -5702,7 +6683,10 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppErro
 	resultVar0, resultVar1 := s.TeamStore.GetAllTeamListing()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllTeamListing()
@@ -5718,7 +6702,10 @@ func (s *RetryLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*m
 	resultVar0, resultVar1 := s.TeamStore.GetAllTeamPageListing(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetAllTeamPageListing(offset, limit)
@@ -5734,7 +6721,10 @@ func (s *RetryLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, *mode
 	resultVar0, resultVar1 := s.TeamStore.GetByInviteId(inviteId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetByInviteId(inviteId)
@@ -5750,7 +6740,10 @@ func (s *RetryLayerTeamStore) GetByName(name string) (*model.Team, *model.AppErr
 	resultVar0, resultVar1 := s.TeamStore.GetByName(name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetByName(name)
@@ -5766,7 +6759,10 @@ func (s *RetryLayerTeamStore) GetByNames(name []string) ([]*model.Team, *model.A
 	resultVar0, resultVar1 := s.TeamStore.GetByNames(name)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetByNames(name)
@@ -5782,7 +6778,10 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string,
 	resultVar0, resultVar1 := s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
@@ -5798,7 +6797,10 @@ func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 	resultVar0, resultVar1 := s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
@@ -5814,7 +6816,10 @@ func (s *RetryLayerTeamStore) GetMember(teamId string, userId string) (*model.Te
 	resultVar0, resultVar1 := s.TeamStore.GetMember(teamId, userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetMember(teamId, userId)
@@ -5830,7 +6835,10 @@ func (s *RetryLayerTeamStore) GetMembers(teamId string, offset int, limit int, t
 	resultVar0, resultVar1 := s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
@@ -5846,7 +6854,10 @@ func (s *RetryLayerTeamStore) GetMembersByIds(teamId string, userIds []string, r
 	resultVar0, resultVar1 := s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
@@ -5862,7 +6873,10 @@ func (s *RetryLayerTeamStore) GetTeamMembersForExport(userId string) ([]*model.T
 	resultVar0, resultVar1 := s.TeamStore.GetTeamMembersForExport(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTeamMembersForExport(userId)
@@ -5878,7 +6892,10 @@ func (s *RetryLayerTeamStore) GetTeamsByScheme(schemeId string, offset int, limi
 	resultVar0, resultVar1 := s.TeamStore.GetTeamsByScheme(schemeId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsByScheme(schemeId, offset, limit)
@@ -5894,7 +6911,10 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *m
 	resultVar0, resultVar1 := s.TeamStore.GetTeamsByUserId(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsByUserId(userId)
@@ -5910,7 +6930,10 @@ func (s *RetryLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMembe
 	resultVar0, resultVar1 := s.TeamStore.GetTeamsForUser(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsForUser(userId)
@@ -5926,7 +6949,10 @@ func (s *RetryLayerTeamStore) GetTeamsForUserWithPagination(userId string, page 
 	resultVar0, resultVar1 := s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
@@ -5942,7 +6968,10 @@ func (s *RetryLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *m
 	resultVar0, resultVar1 := s.TeamStore.GetTotalMemberCount(teamId, restrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetTotalMemberCount(teamId, restrictions)
@@ -5958,7 +6987,10 @@ func (s *RetryLayerTeamStore) GetUserTeamIds(userId string, allowFromCache bool)
 	resultVar0, resultVar1 := s.TeamStore.GetUserTeamIds(userId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GetUserTeamIds(userId, allowFromCache)
@@ -5974,7 +7006,10 @@ func (s *RetryLayerTeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
 	resultVar0, resultVar1 := s.TeamStore.GroupSyncedTeamCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.GroupSyncedTeamCount()
@@ -5997,7 +7032,10 @@ func (s *RetryLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId s
 	resultVar0, resultVar1 := s.TeamStore.MigrateTeamMembers(fromTeamId, fromUserId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.MigrateTeamMembers(fromTeamId, fromUserId)
@@ -6013,7 +7051,10 @@ func (s *RetryLayerTeamStore) PermanentDelete(teamId string) *model.AppError {
 	resultVar0 := s.TeamStore.PermanentDelete(teamId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.PermanentDelete(teamId)
@@ -6029,7 +7070,10 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppEr
 	resultVar0 := s.TeamStore.RemoveAllMembersByTeam(teamId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.RemoveAllMembersByTeam(teamId)
@@ -6045,7 +7089,10 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByUser(userId string) *model.AppEr
 	resultVar0 := s.TeamStore.RemoveAllMembersByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.RemoveAllMembersByUser(userId)
@@ -6061,7 +7108,10 @@ func (s *RetryLayerTeamStore) RemoveMember(teamId string, userId string) *model.
 	resultVar0 := s.TeamStore.RemoveMember(teamId, userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.RemoveMember(teamId, userId)
@@ -6077,7 +7127,10 @@ func (s *RetryLayerTeamStore) RemoveMembers(teamId string, userIds []string) *mo
 	resultVar0 := s.TeamStore.RemoveMembers(teamId, userIds)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.RemoveMembers(teamId, userIds)
@@ -6093,7 +7146,10 @@ func (s *RetryLayerTeamStore) ResetAllTeamSchemes() *model.AppError {
 	resultVar0 := s.TeamStore.ResetAllTeamSchemes()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.ResetAllTeamSchemes()
@@ -6109,7 +7165,10 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppErr
 	resultVar0, resultVar1 := s.TeamStore.Save(team)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.Save(team)
@@ -6125,7 +7184,10 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 	resultVar0, resultVar1 := s.TeamStore.SaveMember(member, maxUsersPerTeam)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.SaveMember(member, maxUsersPerTeam)
@@ -6141,7 +7203,10 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 	resultVar0, resultVar1 := s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
@@ -6157,7 +7222,10 @@ func (s *RetryLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 	resultVar0, resultVar1 := s.TeamStore.SearchAll(term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.SearchAll(term)
@@ -6173,7 +7241,10 @@ func (s *RetryLayerTeamStore) SearchAllPaged(term string, page int, perPage int)
 	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, page, perPage)
 
 	for {
-		if resultVar2 == nil || !strings.Contains(resultVar2.Error(), "TransactionRetryError") {
+		if resultVar2 == nil {
+			break
+		}
+		if pqErr, ok := resultVar2.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1, resultVar2 = s.TeamStore.SearchAllPaged(term, page, perPage)
@@ -6189,7 +7260,10 @@ func (s *RetryLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.App
 	resultVar0, resultVar1 := s.TeamStore.SearchOpen(term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.SearchOpen(term)
@@ -6205,7 +7279,10 @@ func (s *RetryLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *model.
 	resultVar0, resultVar1 := s.TeamStore.SearchPrivate(term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.SearchPrivate(term)
@@ -6221,7 +7298,10 @@ func (s *RetryLayerTeamStore) Update(team *model.Team) (*model.Team, *model.AppE
 	resultVar0, resultVar1 := s.TeamStore.Update(team)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.Update(team)
@@ -6237,7 +7317,10 @@ func (s *RetryLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime in
 	resultVar0 := s.TeamStore.UpdateLastTeamIconUpdate(teamId, curTime)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.UpdateLastTeamIconUpdate(teamId, curTime)
@@ -6253,7 +7336,10 @@ func (s *RetryLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.Tea
 	resultVar0, resultVar1 := s.TeamStore.UpdateMember(member)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.UpdateMember(member)
@@ -6269,7 +7355,10 @@ func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string)
 	resultVar0 := s.TeamStore.UpdateMembersRole(teamID, userIDs)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TeamStore.UpdateMembersRole(teamID, userIDs)
@@ -6285,7 +7374,10 @@ func (s *RetryLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember)
 	resultVar0, resultVar1 := s.TeamStore.UpdateMultipleMembers(members)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.UpdateMultipleMembers(members)
@@ -6301,7 +7393,10 @@ func (s *RetryLayerTeamStore) UserBelongsToTeams(userId string, teamIds []string
 	resultVar0, resultVar1 := s.TeamStore.UserBelongsToTeams(userId, teamIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TeamStore.UserBelongsToTeams(userId, teamIds)
@@ -6317,7 +7412,10 @@ func (s *RetryLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Get(id, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TermsOfServiceStore.Get(id, allowFromCache)
@@ -6333,7 +7431,10 @@ func (s *RetryLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 	resultVar0, resultVar1 := s.TermsOfServiceStore.GetLatest(allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TermsOfServiceStore.GetLatest(allowFromCache)
@@ -6349,7 +7450,10 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	resultVar0, resultVar1 := s.TermsOfServiceStore.Save(termsOfService)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TermsOfServiceStore.Save(termsOfService)
@@ -6372,7 +7476,10 @@ func (s *RetryLayerTokenStore) Delete(token string) *model.AppError {
 	resultVar0 := s.TokenStore.Delete(token)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TokenStore.Delete(token)
@@ -6388,7 +7495,10 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, *model.Ap
 	resultVar0, resultVar1 := s.TokenStore.GetByToken(token)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.TokenStore.GetByToken(token)
@@ -6404,7 +7514,10 @@ func (s *RetryLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.Ap
 	resultVar0 := s.TokenStore.RemoveAllTokensByType(tokenType)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TokenStore.RemoveAllTokensByType(tokenType)
@@ -6420,7 +7533,10 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) *model.AppError {
 	resultVar0 := s.TokenStore.Save(recovery)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.TokenStore.Save(recovery)
@@ -6436,7 +7552,10 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 	resultVar0, resultVar1 := s.UserStore.AnalyticsActiveCount(time, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.AnalyticsActiveCount(time, options)
@@ -6452,7 +7571,10 @@ func (s *RetryLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) 
 	resultVar0, resultVar1 := s.UserStore.AnalyticsGetGuestCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetGuestCount()
@@ -6468,7 +7590,10 @@ func (s *RetryLayerUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.Ap
 	resultVar0, resultVar1 := s.UserStore.AnalyticsGetInactiveUsersCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetInactiveUsersCount()
@@ -6484,7 +7609,10 @@ func (s *RetryLayerUserStore) AnalyticsGetSystemAdminCount() (int64, *model.AppE
 	resultVar0, resultVar1 := s.UserStore.AnalyticsGetSystemAdminCount()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.AnalyticsGetSystemAdminCount()
@@ -6500,7 +7628,10 @@ func (s *RetryLayerUserStore) AutocompleteUsersInChannel(teamId string, channelI
 	resultVar0, resultVar1 := s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.AutocompleteUsersInChannel(teamId, channelId, term, options)
@@ -6516,7 +7647,10 @@ func (s *RetryLayerUserStore) ClearAllCustomRoleAssignments() *model.AppError {
 	resultVar0 := s.UserStore.ClearAllCustomRoleAssignments()
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.ClearAllCustomRoleAssignments()
@@ -6539,7 +7673,10 @@ func (s *RetryLayerUserStore) Count(options model.UserCountOptions) (int64, *mod
 	resultVar0, resultVar1 := s.UserStore.Count(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.Count(options)
@@ -6555,7 +7692,10 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, *model.AppError) {
 	resultVar0, resultVar1 := s.UserStore.DeactivateGuests()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.DeactivateGuests()
@@ -6571,7 +7711,10 @@ func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) *model.AppError {
 	resultVar0 := s.UserStore.DemoteUserToGuest(userID)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.DemoteUserToGuest(userID)
@@ -6587,7 +7730,10 @@ func (s *RetryLayerUserStore) Get(id string) (*model.User, *model.AppError) {
 	resultVar0, resultVar1 := s.UserStore.Get(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.Get(id)
@@ -6603,7 +7749,10 @@ func (s *RetryLayerUserStore) GetAll() ([]*model.User, *model.AppError) {
 	resultVar0, resultVar1 := s.UserStore.GetAll()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAll()
@@ -6619,7 +7768,10 @@ func (s *RetryLayerUserStore) GetAllAfter(limit int, afterId string) ([]*model.U
 	resultVar0, resultVar1 := s.UserStore.GetAllAfter(limit, afterId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAllAfter(limit, afterId)
@@ -6635,7 +7787,10 @@ func (s *RetryLayerUserStore) GetAllNotInAuthService(authServices []string) ([]*
 	resultVar0, resultVar1 := s.UserStore.GetAllNotInAuthService(authServices)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAllNotInAuthService(authServices)
@@ -6651,7 +7806,10 @@ func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	resultVar0, resultVar1 := s.UserStore.GetAllProfiles(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAllProfiles(options)
@@ -6667,7 +7825,10 @@ func (s *RetryLayerUserStore) GetAllProfilesInChannel(channelId string, allowFro
 	resultVar0, resultVar1 := s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAllProfilesInChannel(channelId, allowFromCache)
@@ -6683,7 +7844,10 @@ func (s *RetryLayerUserStore) GetAllUsingAuthService(authService string) ([]*mod
 	resultVar0, resultVar1 := s.UserStore.GetAllUsingAuthService(authService)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAllUsingAuthService(authService)
@@ -6699,7 +7863,10 @@ func (s *RetryLayerUserStore) GetAnyUnreadPostCountForChannel(userId string, cha
 	resultVar0, resultVar1 := s.UserStore.GetAnyUnreadPostCountForChannel(userId, channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetAnyUnreadPostCountForChannel(userId, channelId)
@@ -6715,7 +7882,10 @@ func (s *RetryLayerUserStore) GetByAuth(authData *string, authService string) (*
 	resultVar0, resultVar1 := s.UserStore.GetByAuth(authData, authService)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetByAuth(authData, authService)
@@ -6731,7 +7901,10 @@ func (s *RetryLayerUserStore) GetByEmail(email string) (*model.User, *model.AppE
 	resultVar0, resultVar1 := s.UserStore.GetByEmail(email)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetByEmail(email)
@@ -6747,7 +7920,10 @@ func (s *RetryLayerUserStore) GetByUsername(username string) (*model.User, *mode
 	resultVar0, resultVar1 := s.UserStore.GetByUsername(username)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetByUsername(username)
@@ -6763,7 +7939,10 @@ func (s *RetryLayerUserStore) GetChannelGroupUsers(channelID string) ([]*model.U
 	resultVar0, resultVar1 := s.UserStore.GetChannelGroupUsers(channelID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetChannelGroupUsers(channelID)
@@ -6803,7 +7982,10 @@ func (s *RetryLayerUserStore) GetForLogin(loginId string, allowSignInWithUsernam
 	resultVar0, resultVar1 := s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetForLogin(loginId, allowSignInWithUsername, allowSignInWithEmail)
@@ -6819,7 +8001,10 @@ func (s *RetryLayerUserStore) GetKnownUsers(userID string) ([]string, *model.App
 	resultVar0, resultVar1 := s.UserStore.GetKnownUsers(userID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetKnownUsers(userID)
@@ -6835,7 +8020,10 @@ func (s *RetryLayerUserStore) GetNewUsersForTeam(teamId string, offset int, limi
 	resultVar0, resultVar1 := s.UserStore.GetNewUsersForTeam(teamId, offset, limit, viewRestrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetNewUsersForTeam(teamId, offset, limit, viewRestrictions)
@@ -6851,7 +8039,10 @@ func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userId string, 
 	resultVar0, resultVar1 := s.UserStore.GetProfileByGroupChannelIdsForUser(userId, channelIds)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfileByGroupChannelIdsForUser(userId, channelIds)
@@ -6867,7 +8058,10 @@ func (s *RetryLayerUserStore) GetProfileByIds(userIds []string, options *UserGet
 	resultVar0, resultVar1 := s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfileByIds(userIds, options, allowFromCache)
@@ -6883,7 +8077,10 @@ func (s *RetryLayerUserStore) GetProfiles(options *model.UserGetOptions) ([]*mod
 	resultVar0, resultVar1 := s.UserStore.GetProfiles(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfiles(options)
@@ -6899,7 +8096,10 @@ func (s *RetryLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 	resultVar0, resultVar1 := s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesByUsernames(usernames, viewRestrictions)
@@ -6915,7 +8115,10 @@ func (s *RetryLayerUserStore) GetProfilesInChannel(channelId string, offset int,
 	resultVar0, resultVar1 := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesInChannel(channelId, offset, limit)
@@ -6931,7 +8134,10 @@ func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(channelId string, off
 	resultVar0, resultVar1 := s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
@@ -6947,7 +8153,10 @@ func (s *RetryLayerUserStore) GetProfilesNotInChannel(teamId string, channelId s
 	resultVar0, resultVar1 := s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
@@ -6963,7 +8172,10 @@ func (s *RetryLayerUserStore) GetProfilesNotInTeam(teamId string, groupConstrain
 	resultVar0, resultVar1 := s.UserStore.GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
@@ -6979,7 +8191,10 @@ func (s *RetryLayerUserStore) GetProfilesWithoutTeam(options *model.UserGetOptio
 	resultVar0, resultVar1 := s.UserStore.GetProfilesWithoutTeam(options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetProfilesWithoutTeam(options)
@@ -6995,7 +8210,10 @@ func (s *RetryLayerUserStore) GetRecentlyActiveUsersForTeam(teamId string, offse
 	resultVar0, resultVar1 := s.UserStore.GetRecentlyActiveUsersForTeam(teamId, offset, limit, viewRestrictions)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetRecentlyActiveUsersForTeam(teamId, offset, limit, viewRestrictions)
@@ -7011,7 +8229,10 @@ func (s *RetryLayerUserStore) GetSystemAdminProfiles() (map[string]*model.User, 
 	resultVar0, resultVar1 := s.UserStore.GetSystemAdminProfiles()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetSystemAdminProfiles()
@@ -7027,7 +8248,10 @@ func (s *RetryLayerUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *
 	resultVar0, resultVar1 := s.UserStore.GetTeamGroupUsers(teamID)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetTeamGroupUsers(teamID)
@@ -7043,7 +8267,10 @@ func (s *RetryLayerUserStore) GetUnreadCount(userId string) (int64, *model.AppEr
 	resultVar0, resultVar1 := s.UserStore.GetUnreadCount(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetUnreadCount(userId)
@@ -7059,7 +8286,10 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userId string, channelId 
 	resultVar0, resultVar1 := s.UserStore.GetUnreadCountForChannel(userId, channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetUnreadCountForChannel(userId, channelId)
@@ -7075,7 +8305,10 @@ func (s *RetryLayerUserStore) GetUsersBatchForIndexing(startTime int64, endTime 
 	resultVar0, resultVar1 := s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.GetUsersBatchForIndexing(startTime, endTime, limit)
@@ -7091,7 +8324,10 @@ func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, *model.AppError) 
 	resultVar0, resultVar1 := s.UserStore.InferSystemInstallDate()
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.InferSystemInstallDate()
@@ -7128,7 +8364,10 @@ func (s *RetryLayerUserStore) PermanentDelete(userId string) *model.AppError {
 	resultVar0 := s.UserStore.PermanentDelete(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.PermanentDelete(userId)
@@ -7144,7 +8383,10 @@ func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) *model.AppError 
 	resultVar0 := s.UserStore.PromoteGuestToUser(userID)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.PromoteGuestToUser(userID)
@@ -7160,7 +8402,10 @@ func (s *RetryLayerUserStore) ResetLastPictureUpdate(userId string) *model.AppEr
 	resultVar0 := s.UserStore.ResetLastPictureUpdate(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.ResetLastPictureUpdate(userId)
@@ -7176,7 +8421,10 @@ func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, *model.AppErr
 	resultVar0, resultVar1 := s.UserStore.Save(user)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.Save(user)
@@ -7192,7 +8440,10 @@ func (s *RetryLayerUserStore) Search(teamId string, term string, options *model.
 	resultVar0, resultVar1 := s.UserStore.Search(teamId, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.Search(teamId, term, options)
@@ -7208,7 +8459,10 @@ func (s *RetryLayerUserStore) SearchInChannel(channelId string, term string, opt
 	resultVar0, resultVar1 := s.UserStore.SearchInChannel(channelId, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.SearchInChannel(channelId, term, options)
@@ -7224,7 +8478,10 @@ func (s *RetryLayerUserStore) SearchInGroup(groupID string, term string, options
 	resultVar0, resultVar1 := s.UserStore.SearchInGroup(groupID, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.SearchInGroup(groupID, term, options)
@@ -7240,7 +8497,10 @@ func (s *RetryLayerUserStore) SearchNotInChannel(teamId string, channelId string
 	resultVar0, resultVar1 := s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.SearchNotInChannel(teamId, channelId, term, options)
@@ -7256,7 +8516,10 @@ func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamId string, term string, o
 	resultVar0, resultVar1 := s.UserStore.SearchNotInTeam(notInTeamId, term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.SearchNotInTeam(notInTeamId, term, options)
@@ -7272,7 +8535,10 @@ func (s *RetryLayerUserStore) SearchWithoutTeam(term string, options *model.User
 	resultVar0, resultVar1 := s.UserStore.SearchWithoutTeam(term, options)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.SearchWithoutTeam(term, options)
@@ -7288,7 +8554,10 @@ func (s *RetryLayerUserStore) Update(user *model.User, allowRoleUpdate bool) (*m
 	resultVar0, resultVar1 := s.UserStore.Update(user, allowRoleUpdate)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.Update(user, allowRoleUpdate)
@@ -7304,7 +8573,10 @@ func (s *RetryLayerUserStore) UpdateAuthData(userId string, service string, auth
 	resultVar0, resultVar1 := s.UserStore.UpdateAuthData(userId, service, authData, email, resetMfa)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.UpdateAuthData(userId, service, authData, email, resetMfa)
@@ -7320,7 +8592,10 @@ func (s *RetryLayerUserStore) UpdateFailedPasswordAttempts(userId string, attemp
 	resultVar0 := s.UserStore.UpdateFailedPasswordAttempts(userId, attempts)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.UpdateFailedPasswordAttempts(userId, attempts)
@@ -7336,7 +8611,10 @@ func (s *RetryLayerUserStore) UpdateLastPictureUpdate(userId string) *model.AppE
 	resultVar0 := s.UserStore.UpdateLastPictureUpdate(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.UpdateLastPictureUpdate(userId)
@@ -7352,7 +8630,10 @@ func (s *RetryLayerUserStore) UpdateMfaActive(userId string, active bool) *model
 	resultVar0 := s.UserStore.UpdateMfaActive(userId, active)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.UpdateMfaActive(userId, active)
@@ -7368,7 +8649,10 @@ func (s *RetryLayerUserStore) UpdateMfaSecret(userId string, secret string) *mod
 	resultVar0 := s.UserStore.UpdateMfaSecret(userId, secret)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.UpdateMfaSecret(userId, secret)
@@ -7384,7 +8668,10 @@ func (s *RetryLayerUserStore) UpdatePassword(userId string, newPassword string) 
 	resultVar0 := s.UserStore.UpdatePassword(userId, newPassword)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserStore.UpdatePassword(userId, newPassword)
@@ -7400,7 +8687,10 @@ func (s *RetryLayerUserStore) UpdateUpdateAt(userId string) (int64, *model.AppEr
 	resultVar0, resultVar1 := s.UserStore.UpdateUpdateAt(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.UpdateUpdateAt(userId)
@@ -7416,7 +8706,10 @@ func (s *RetryLayerUserStore) VerifyEmail(userId string, email string) (string, 
 	resultVar0, resultVar1 := s.UserStore.VerifyEmail(userId, email)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserStore.VerifyEmail(userId, email)
@@ -7432,7 +8725,10 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenId string) *model.AppError 
 	resultVar0 := s.UserAccessTokenStore.Delete(tokenId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserAccessTokenStore.Delete(tokenId)
@@ -7448,7 +8744,10 @@ func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userId string) *model.
 	resultVar0 := s.UserAccessTokenStore.DeleteAllForUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserAccessTokenStore.DeleteAllForUser(userId)
@@ -7464,7 +8763,10 @@ func (s *RetryLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessT
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Get(tokenId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Get(tokenId)
@@ -7480,7 +8782,10 @@ func (s *RetryLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetAll(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetAll(offset, limit)
@@ -7496,7 +8801,10 @@ func (s *RetryLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByToken(tokenString)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetByToken(tokenString)
@@ -7512,7 +8820,10 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userId string, page int, perP
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByUser(userId, page, perPage)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.GetByUser(userId, page, perPage)
@@ -7528,7 +8839,10 @@ func (s *RetryLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*mo
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Save(token)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Save(token)
@@ -7544,7 +8858,10 @@ func (s *RetryLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Search(term)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserAccessTokenStore.Search(term)
@@ -7560,7 +8877,10 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) *mod
 	resultVar0 := s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
@@ -7576,7 +8896,10 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *mode
 	resultVar0 := s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
@@ -7592,7 +8915,10 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 	resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
@@ -7608,7 +8934,10 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserTermsOfServiceStore.GetByUser(userId)
@@ -7624,7 +8953,10 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 	resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.UserTermsOfServiceStore.Save(userTermsOfService)
@@ -7640,7 +8972,10 @@ func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *
 	resultVar0, resultVar1 := s.WebhookStore.AnalyticsIncomingCount(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.AnalyticsIncomingCount(teamId)
@@ -7656,7 +8991,10 @@ func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *
 	resultVar0, resultVar1 := s.WebhookStore.AnalyticsOutgoingCount(teamId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.AnalyticsOutgoingCount(teamId)
@@ -7679,7 +9017,10 @@ func (s *RetryLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *m
 	resultVar0 := s.WebhookStore.DeleteIncoming(webhookId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.DeleteIncoming(webhookId, time)
@@ -7695,7 +9036,10 @@ func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) *m
 	resultVar0 := s.WebhookStore.DeleteOutgoing(webhookId, time)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.DeleteOutgoing(webhookId, time)
@@ -7711,7 +9055,10 @@ func (s *RetryLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*m
 	resultVar0, resultVar1 := s.WebhookStore.GetIncoming(id, allowFromCache)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncoming(id, allowFromCache)
@@ -7727,7 +9074,10 @@ func (s *RetryLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*mode
 	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByChannel(channelId)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByChannel(channelId)
@@ -7743,7 +9093,10 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, li
 	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
@@ -7759,7 +9112,10 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId s
 	resultVar0, resultVar1 := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
@@ -7775,7 +9131,10 @@ func (s *RetryLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*mode
 	resultVar0, resultVar1 := s.WebhookStore.GetIncomingList(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingList(offset, limit)
@@ -7791,7 +9150,10 @@ func (s *RetryLayerWebhookStore) GetIncomingListByUser(userId string, offset int
 	resultVar0, resultVar1 := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
@@ -7807,7 +9169,10 @@ func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook,
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoing(id)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoing(id)
@@ -7823,7 +9188,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannel(channelId string, offset i
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
@@ -7839,7 +9207,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, us
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
@@ -7855,7 +9226,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, li
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
@@ -7871,7 +9245,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId s
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
@@ -7887,7 +9264,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*mode
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingList(offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingList(offset, limit)
@@ -7903,7 +9283,10 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int
 	resultVar0, resultVar1 := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
@@ -7926,7 +9309,10 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId stri
 	resultVar0 := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
@@ -7942,7 +9328,10 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) *m
 	resultVar0 := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.PermanentDeleteIncomingByUser(userId)
@@ -7958,7 +9347,10 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId stri
 	resultVar0 := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
@@ -7974,7 +9366,10 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) *m
 	resultVar0 := s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
 
 	for {
-		if resultVar0 == nil || !strings.Contains(resultVar0.Error(), "TransactionRetryError") {
+		if resultVar0 == nil {
+			break
+		}
+		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0 = s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
@@ -7990,7 +9385,10 @@ func (s *RetryLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*
 	resultVar0, resultVar1 := s.WebhookStore.SaveIncoming(webhook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.SaveIncoming(webhook)
@@ -8006,7 +9404,10 @@ func (s *RetryLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*
 	resultVar0, resultVar1 := s.WebhookStore.SaveOutgoing(webhook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.SaveOutgoing(webhook)
@@ -8022,7 +9423,10 @@ func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	resultVar0, resultVar1 := s.WebhookStore.UpdateIncoming(webhook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.UpdateIncoming(webhook)
@@ -8038,7 +9442,10 @@ func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 	resultVar0, resultVar1 := s.WebhookStore.UpdateOutgoing(hook)
 
 	for {
-		if resultVar1 == nil || !strings.Contains(resultVar1.Error(), "TransactionRetryError") {
+		if resultVar1 == nil {
+			break
+		}
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 		resultVar0, resultVar1 = s.WebhookStore.UpdateOutgoing(hook)

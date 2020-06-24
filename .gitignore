@@ -21,6 +21,7 @@ config/config.json
 
 # Enterprise imports file
 imports/imports.go
+store/sqlstore/imports/imports.go
 
 # Build Targets
 .prebuild

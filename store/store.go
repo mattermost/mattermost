@@ -9,12 +9,16 @@ import (
 	"context"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 )
+
+// CockroachQueryBuilder is the responsible of build sql queries for special cases of CockroachDB
+var CockroachQueryBuilder einterfaces.CockroachQueryBuilder
 
 type StoreResult struct {
 	Data interface{}

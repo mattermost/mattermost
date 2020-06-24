@@ -43,7 +43,10 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
     {{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
     {{if $element.Results | errorPresent}}
     for {
-        if ({{$element.Results | errorVar}} == nil || !strings.Contains({{$element.Results | errorVar}}.Error(), "TransactionRetryError")) {
+        if {{$element.Results | errorVar}} == nil {
+            break
+        }
+        if pqErr, ok := {{$element.Results | errorVar}}.(*pq.Error); !ok || pqErr.Code != "40001" {
             break
         }
         {{$element.Results | genResultsVars}} = s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})

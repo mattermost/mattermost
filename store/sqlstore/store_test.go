@@ -88,10 +88,12 @@ func initStores() {
 		Name:        "PostgreSQL",
 		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
 	})
-	storeTypes = append(storeTypes, &storeType{
-		Name:        "CockroachDB",
-		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_COCKROACH),
-	})
+	if store.CockroachQueryBuilder != nil {
+		storeTypes = append(storeTypes, &storeType{
+			Name:        "CockroachDB",
+			SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_COCKROACH),
+		})
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
