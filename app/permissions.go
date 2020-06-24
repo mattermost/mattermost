@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
@@ -44,7 +45,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Purge all schemes from the database.
 	if err := a.Srv().Store.Scheme().PermanentDeleteAll(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Purge all roles from the database.
