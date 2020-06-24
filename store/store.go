@@ -493,8 +493,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError)
-	Get(id string) (*model.LicenseRecord, *model.AppError)
+	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
+	Get(id string) (*model.LicenseRecord, error)
 }
 
 type TokenStore interface {
