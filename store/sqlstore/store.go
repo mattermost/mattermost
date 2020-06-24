@@ -45,9 +45,9 @@ type SqlStore interface {
 	GetMaster() *gorp.DbMap
 	GetSearchReplica() *gorp.DbMap
 	GetReplica() *gorp.DbMap
-	GetMasterX() *dbWrapper
-	GetSearchReplicaX() *dbWrapper
-	GetReplicaX() *dbWrapper
+	GetMasterX() *SqlxWrapper
+	GetSearchReplicaX() *SqlxWrapper
+	GetReplicaX() *SqlxWrapper
 	GetDbVersion() (string, error)
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
