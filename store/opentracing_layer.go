@@ -3864,7 +3864,7 @@ func (s *OpenTracingLayerJobStore) UpdateStatusOptimistically(id string, current
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LicenseStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -3882,7 +3882,7 @@ func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LicenseStore.Save")
 	s.Root.Store.SetContext(newCtx)
