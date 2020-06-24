@@ -1190,7 +1190,7 @@ func TestSearchAllChannels(t *testing.T) {
 	Client := th.Client
 
 	channel := &model.Channel{
-		DisplayName: "FOOBAR",
+		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
@@ -1202,7 +1202,7 @@ func TestSearchAllChannels(t *testing.T) {
 	foobarchannel, err := th.SystemAdminClient.CreateChannel(channel)
 	CheckNoError(t, err)
 
-	search := &model.ChannelSearch{Term: "oob"}
+	search := &model.ChannelSearch{Term: "bardisplay"}
 
 	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
@@ -1210,7 +1210,7 @@ func TestSearchAllChannels(t *testing.T) {
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
-	search = &model.ChannelSearch{Term: "foo"}
+	search = &model.ChannelSearch{Term: "foobar"}
 
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
@@ -1218,7 +1218,7 @@ func TestSearchAllChannels(t *testing.T) {
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
-	search = &model.ChannelSearch{Term: "bar"}
+	search = &model.ChannelSearch{Term: "displayname"}
 
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)

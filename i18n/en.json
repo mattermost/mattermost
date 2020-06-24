@@ -911,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -4043,6 +4039,26 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Unable to delete this scheme."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Unable to get the scheme."
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Unable to create the scheme."
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid."
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
@@ -5619,6 +5635,10 @@
     "translation": "invalid characters in the name property for group"
   },
   {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
@@ -6687,18 +6707,6 @@
     "translation": "Unable to update the job."
   },
   {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license."
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found."
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license."
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
@@ -7007,14 +7015,6 @@
     "translation": "Unable to delete reaction."
   },
   {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
-  },
-  {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
     "translation": "Unable to delete all reactions with this emoji name."
   },
@@ -7101,54 +7101,6 @@
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme."
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme."
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme."
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid."
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles."
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
