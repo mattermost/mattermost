@@ -6591,18 +6591,6 @@
     "translation": "Unable to update the job."
   },
   {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license."
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found."
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license."
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },

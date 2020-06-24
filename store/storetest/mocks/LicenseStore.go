@@ -15,7 +15,7 @@ type LicenseStore struct {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.LicenseRecord
@@ -27,20 +27,18 @@ func (_m *LicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Save provides a mock function with given fields: license
-func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	ret := _m.Called(license)
 
 	var r0 *model.LicenseRecord
@@ -52,13 +50,11 @@ func (_m *LicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.LicenseRecord) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.LicenseRecord) error); ok {
 		r1 = rf(license)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
