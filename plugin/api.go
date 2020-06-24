@@ -37,6 +37,9 @@ type API interface {
 	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
 
+	RegisterMobileTrigger(trigger *model.MobileTrigger) error
+	UnregisterMobileTrigger(location, trigger string) error
+
 	// GetSession returns the session object for the Session ID
 	//
 	// Minimum server version: 5.2

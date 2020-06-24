@@ -49,6 +49,20 @@ func (api *apiTimerLayer) UnregisterCommand(teamId, trigger string) error {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) RegisterMobileTrigger(trigger *model.MobileTrigger) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterMobileTrigger(trigger)
+	api.recordTime(startTime, "RegisterMobileTrigger", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterMobileTrigger(location, trigger string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterMobileTrigger(location, trigger)
+	api.recordTime(startTime, "UnregisterMobileTrigger", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetSession(sessionId)
@@ -1019,6 +1033,6 @@ func (api *apiTimerLayer) PluginHTTP(request *http.Request) *http.Response {
 func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.PublishUserTyping(userId, channelId, parentId)
-	api.recordTime(startTime, "PublishUserTyping", true)
+	api.recordTime(startTime, "PublishUserTyping", _returnsA == nil)
 	return _returnsA
 }

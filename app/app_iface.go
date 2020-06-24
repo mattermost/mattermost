@@ -762,6 +762,7 @@ type AppIface interface {
 	PermanentDeleteTeamId(teamId string) *model.AppError
 	PermanentDeleteUser(user *model.User) *model.AppError
 	PluginCommandsForTeam(teamId string) []*model.Command
+	MobileTriggers() []*model.MobileTrigger
 	PluginContext() *plugin.Context
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
@@ -922,6 +923,7 @@ type AppIface interface {
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginId, teamId, trigger string)
 	UnregisterPluginCommands(pluginId string)
+	UnregisterPluginMobileTriggers(pluginId string)
 	UpdateActive(user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError)

@@ -10479,6 +10479,23 @@ func (a *OpenTracingAppLayer) PluginCommandsForTeam(teamId string) []*model.Comm
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) MobileTriggers() []*model.MobileTrigger {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginMobileTriggers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MobileTriggers()
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) PluginContext() *plugin.Context {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PluginContext")
@@ -13745,6 +13762,21 @@ func (a *OpenTracingAppLayer) UnregisterPluginCommands(pluginId string) {
 
 	defer span.Finish()
 	a.app.UnregisterPluginCommands(pluginId)
+}
+
+func (a *OpenTracingAppLayer) UnregisterPluginMobileTriggers(pluginId string) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UnregisterPluginCommands")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.UnregisterPluginMobileTriggers(pluginId)
 }
 
 func (a *OpenTracingAppLayer) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {

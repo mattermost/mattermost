@@ -523,6 +523,65 @@ func (s *apiRPCServer) UnregisterCommand(args *Z_UnregisterCommandArgs, returns 
 	return nil
 }
 
+type Z_RegisterMobileTriggerArgs struct {
+	A *model.MobileTrigger
+}
+
+type Z_RegisterMobileTriggerReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) RegisterMobileTrigger(trigger *model.MobileTrigger) error {
+	_args := &Z_RegisterMobileTriggerArgs{trigger}
+	_returns := &Z_RegisterMobileTriggerReturns{}
+	if err := g.client.Call("Plugin.RegisterMobileTrigger", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterMobileTrigger API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterMobileTrigger(args *Z_RegisterMobileTriggerArgs, returns *Z_RegisterMobileTriggerReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterMobileTrigger(trigger *model.MobileTrigger) error
+	}); ok {
+		returns.A = hook.RegisterMobileTrigger(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterMobileTrigger called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UnregisterMobileTriggerArgs struct {
+	A string
+	B string
+}
+
+type Z_UnregisterMobileTriggerReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) UnregisterMobileTrigger(location, trigger string) error {
+	_args := &Z_UnregisterMobileTriggerArgs{location, trigger}
+	_returns := &Z_UnregisterMobileTriggerReturns{}
+	if err := g.client.Call("Plugin.UnregisterMobileTrigger", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterMobileTrigger API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterMobileTrigger(args *Z_UnregisterMobileTriggerArgs, returns *Z_UnregisterMobileTriggerReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterMobileTrigger(location, trigger string) error
+	}); ok {
+		returns.A = hook.UnregisterMobileTrigger(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterMobileTrigger called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetSessionArgs struct {
 	A string
 }

@@ -70,6 +70,15 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
+func (api *PluginAPI) RegisterMobileTrigger(trigger *model.MobileTrigger) error {
+	return api.app.RegisterPluginMobileTrigger(api.id, trigger)
+}
+
+func (api *PluginAPI) UnregisterMobileTrigger(location, trigger string) error {
+	api.app.UnregisterPluginMobileTrigger(api.id, location, trigger)
+	return nil
+}
+
 func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	session, err := api.app.GetSessionById(sessionId)
 

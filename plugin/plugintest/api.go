@@ -2503,6 +2503,20 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
+// RegisterMobileTrigger provides a mock function with given fields: trigger
+func (_m *API) RegisterMobileTrigger(trigger *model.MobileTrigger) error {
+	ret := _m.Called(trigger)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.MobileTrigger) error); ok {
+		r0 = rf(trigger)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemovePlugin provides a mock function with given fields: id
 func (_m *API) RemovePlugin(id string) *model.AppError {
 	ret := _m.Called(id)
@@ -2770,6 +2784,20 @@ func (_m *API) UnregisterCommand(teamId string, trigger string) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
 		r0 = rf(teamId, trigger)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnregisterMobileTrigger provides a mock function with given fields: location, trigger
+func (_m *API) UnregisterMobileTrigger(location string, trigger string) error {
+	ret := _m.Called(location, trigger)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(location, trigger)
 	} else {
 		r0 = ret.Error(0)
 	}

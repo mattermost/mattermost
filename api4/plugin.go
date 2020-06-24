@@ -38,6 +38,8 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
 
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.ApiSessionRequired(getMarketplacePlugins)).Methods("GET")
+
+	api.BaseRoutes.MobilePlugins.Handle("", api.ApiSessionRequired(getMobilePlugins)).Methods("GET")
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -178,6 +180,11 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(response.ToJson()))
+}
+
+func getMobilePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	response := c.App.MobileTriggers()
+	w.Write([]byte(model.MobileTriggerListToJson(response)))
 }
 
 func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
