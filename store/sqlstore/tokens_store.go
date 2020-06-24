@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -56,7 +57,7 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 
 	if err := s.GetReplica().SelectOne(token, "SELECT * FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrInvalidInput("Token", "Token", tokenString)
+			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
 
 		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
