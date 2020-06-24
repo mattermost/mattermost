@@ -265,7 +265,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v1.6.2-0.20200621174440-bb8bcec098be
+# github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.2
