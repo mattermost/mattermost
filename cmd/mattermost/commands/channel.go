@@ -138,7 +138,6 @@ func init() {
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
 	MoveChannelsCmd.Flags().String("username", "", "Required. Username who is moving the channel.")
-	MoveChannelsCmd.Flags().Bool("remove-deactivated-users", false, "Automatically remove any deactivated users from the channel before moving it.")
 
 	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
@@ -404,8 +403,6 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	user := getUserFromUserArg(a, username)
 
-	removeDeactivatedMembers, _ := command.Flags().GetBool("remove-deactivated-users")
-
 	channels := getChannelsFromChannelArgs(a, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
@@ -413,7 +410,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 			continue
 		}
 		originTeamID := channel.TeamId
-		if err := moveChannel(a, team, channel, user, removeDeactivatedMembers); err != nil {
+		if err := moveChannel(a, team, channel, user); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Moved channel '" + channel.Name + "' to " + team.Name + "(" + team.Id + ") from " + originTeamID + ".")
@@ -422,10 +419,14 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	oldTeamId := channel.TeamId
 
-	if err := a.MoveChannel(team, channel, user, removeDeactivatedMembers); err != nil {
+	if err := a.RemoveAllDeactivatedMembersFromChannel(channel); err != nil {
+		return err
+	}
+
+	if err := a.MoveChannel(team, channel, user); err != nil {
 		return err
 	}
 
