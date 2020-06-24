@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -37,8 +38,6 @@ type Session struct {
 	DeviceId       string        `json:"device_id"`
 	Roles          string        `json:"roles"`
 	IsOAuth        bool          `json:"is_oauth"`
-	IsSaml         bool          `json:"is_saml"`
-	IsMobile       bool          `json:"is_mobile"`
 	ExpiredNotify  bool          `json:"expired_notify"`
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
@@ -142,11 +141,35 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (me *Session) IsMobileApp() bool {
-	return len(me.DeviceId) > 0 || me.IsMobile
+	return len(me.DeviceId) > 0 || me.IsMobile()
+}
+
+func (me *Session) IsMobile() bool {
+	val, ok := me.Props["isMobile"]
+	if !ok {
+		return false
+	}
+	isMobile, err := strconv.ParseBool(val)
+	if err != nil {
+		return false
+	}
+	return isMobile
+}
+
+func (me *Session) IsSaml() bool {
+	val, ok := me.Props["isSaml"]
+	if !ok {
+		return false
+	}
+	isSaml, err := strconv.ParseBool(val)
+	if err != nil {
+		return false
+	}
+	return isSaml
 }
 
 func (me *Session) IsSSOLogin() bool {
-	return me.IsOAuth || me.IsSaml
+	return me.IsOAuth || me.IsSaml()
 }
 
 func (me *Session) GetUserRoles() []string {

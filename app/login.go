@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,7 +125,10 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		}
 	}
 
-	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: isOAuth, IsSaml: isSaml, IsMobile: isMobile}
+	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: isOAuth, Props: map[string]string{
+		"isMobile": strconv.FormatBool(isMobile),
+		"isSaml":   strconv.FormatBool(isSaml),
+	}}
 	session.GenerateCSRF()
 
 	if len(deviceId) > 0 {
