@@ -2150,7 +2150,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 	}
 
 	if sysadmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		_, err := a.UpdateUserRoles(
+		_, err = a.UpdateUserRoles(
 			user.Id,
 			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
 			false)
