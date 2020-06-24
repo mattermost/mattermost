@@ -302,7 +302,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		isMobile, _ := strconv.ParseBool(r.URL.Query().Get("isMobile"))
+		isMobile, _ := strconv.ParseBool(props["isMobile"])
 		err = c.App.DoLogin(w, r, user, "", isMobile, true, false)
 		if err != nil {
 			err.Translate(c.App.T)
@@ -360,14 +360,13 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isMobile := true
 	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", "", isMobile)
+	authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", "", true)
 	if err != nil {
 		c.Err = err
 		return
