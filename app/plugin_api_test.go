@@ -1657,5 +1657,6 @@ func TestPluginAPICreateSlashCommand(t *testing.T) {
 	newCmd, appErr := api.app.GetCommand(cmd.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.Equal(t, "", newCmd.CreatorId)
 	require.True(t, foundCommand())
 }
