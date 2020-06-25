@@ -805,7 +805,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		FROM
 			pg_constraint AS c
 		CROSS JOIN
-			(SELECT unnest(conkey) FROM pg_constraint WHERE conrelid='` + strings.ToLower(tableName) + `'::REGCLASS) AS cols(colnum)
+			(SELECT unnest(conkey) FROM pg_constraint WHERE conrelid='` + strings.ToLower(tableName) + `'::REGCLASS AND contype='p') AS cols(colnum)
 		INNER JOIN
 			pg_attribute AS a ON a.attrelid = c.conrelid
 		AND cols.colnum = a.attnum
