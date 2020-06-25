@@ -5043,6 +5043,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin id."
+  },
+  {
     "id": "model.command_hook.channel_id.app_error",
     "translation": "Invalid channel id."
   },
