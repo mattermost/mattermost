@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
 )
+
+const DELETE_POSTS_BATCH_SIZE = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -207,6 +210,72 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	}
 
 	return postIds, matches, nil
+}
+
+func (b *BleveEngine) deletePosts(searchRequest *bleve.SearchRequest, batchSize int) (int64, error) {
+	resultsCount := int64(0)
+
+	for {
+		// As we are deleting the posts after fetching them, we need to keep
+		// From fixed always to 0
+		searchRequest.From = 0
+		searchRequest.Size = batchSize
+		results, err := b.PostIndex.Search(searchRequest)
+		if err != nil {
+			return -1, err
+		}
+		batch := b.PostIndex.NewBatch()
+		for _, post := range results.Hits {
+			batch.Delete(post.ID)
+		}
+		if err := b.PostIndex.Batch(batch); err != nil {
+			return -1, err
+		}
+		resultsCount += int64(results.Hits.Len())
+		if results.Hits.Len() < batchSize {
+			break
+		}
+	}
+
+	return resultsCount, nil
+}
+
+func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(channelID)
+	query.SetField("ChannelId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteChannelPosts",
+			"bleveengine.delete_channel_posts.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int64("deleted", deleted))
+
+	return nil
+}
+
+func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(userID)
+	query.SetField("UserId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteUserPosts",
+			"bleveengine.delete_user_posts.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+
+	return nil
 }
 
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {

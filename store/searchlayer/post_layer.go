@@ -49,9 +49,43 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 	}
 }
 
+func (s SearchPostStore) deleteChannelPostsIndex(channelID string) {
+	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
+					mlog.Error("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+				}
+				mlog.Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
+			})
+		}
+	}
+}
+
+func (s SearchPostStore) deleteUserPostsIndex(userID string) {
+	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+				if err := engineCopy.DeleteUserPosts(userID); err != nil {
+					mlog.Error("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+				}
+				mlog.Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
+			})
+		}
+	}
+}
+
 func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, *model.AppError) {
 	post, err := s.PostStore.Update(newPost, oldPost)
 
+	if err == nil {
+		s.indexPost(post)
+	}
+	return post, err
+}
+
+func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	post, err := s.PostStore.Overwrite(post)
 	if err == nil {
 		s.indexPost(post)
 	}
@@ -77,6 +111,22 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 				s.deletePostIndex(postList.Posts[postList.Order[0]])
 			}
 		}
+	}
+	return err
+}
+
+func (s SearchPostStore) PermanentDeleteByUser(userID string) *model.AppError {
+	err := s.PostStore.PermanentDeleteByUser(userID)
+	if err == nil {
+		s.deleteUserPostsIndex(userID)
+	}
+	return err
+}
+
+func (s SearchPostStore) PermanentDeleteByChannel(channelID string) *model.AppError {
+	err := s.PostStore.PermanentDeleteByChannel(channelID)
+	if err == nil {
+		s.deleteChannelPostsIndex(channelID)
 	}
 	return err
 }
