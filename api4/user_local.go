@@ -32,7 +32,7 @@ func (api *API) InitUserLocal() {
 }
 
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localDeleteAll", audit.Fail)
+	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
 	if err := c.App.PermanentDeleteAllUsers(); err != nil {
