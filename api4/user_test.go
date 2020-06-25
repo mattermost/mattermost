@@ -1901,6 +1901,23 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 	})
 
 	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
+		// Basic user creates a team and a channel
+		team, err := th.App.CreateTeamWithUser(&model.Team{
+			DisplayName: "User Created Team",
+			Name:        "user-created-team",
+			Email:       "usercreatedteam@test.com",
+			Type:        model.TEAM_OPEN,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannelWithUser(&model.Channel{
+			DisplayName: "User Created Channel",
+			Name: "user-created-channel",
+			Type: model.CHANNEL_OPEN,
+			TeamId: team.Id,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
 		// Check that we have users and posts in the database
 		users, err := th.App.Srv().Store.User().GetAll()
 		require.Nil(t, err)
@@ -1922,6 +1939,15 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
 		require.Nil(t, err)
 		require.Equal(t, postCount, int64(0))
+
+		// Check that the channel and team created by the user were not deleted
+		rTeam, err := th.App.GetTeam(team.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rTeam)
+
+		rChannel, err := th.App.GetChannel(channel.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rChannel)
 	})
 }
 
