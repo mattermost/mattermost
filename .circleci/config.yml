@@ -28,12 +28,9 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
+          trap 'npm ci && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
-      - run:
-          name: Run when s3 download fails
-          command: npm ci && make build
-          when: on_fail
       - persist_to_workspace:
           root: ~/mattermost
           paths:
