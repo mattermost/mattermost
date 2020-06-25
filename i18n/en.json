@@ -5015,6 +5015,10 @@
     "translation": "Invalid Method."
   },
   {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin id."
+  },
+  {
     "id": "model.command.is_valid.team_id.app_error",
     "translation": "Invalid team ID."
   },
@@ -5041,10 +5045,6 @@
   {
     "id": "model.command.is_valid.user_id.app_error",
     "translation": "Invalid user id."
-  },
-  {
-    "id": "model.command.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin id."
   },
   {
     "id": "model.command_hook.channel_id.app_error",
