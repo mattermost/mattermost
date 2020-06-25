@@ -33,7 +33,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	action := r.URL.Query().Get("action")
-	isMobile := action == "mobile"
+	isMobile := action == model.OAUTH_ACTION_MOBILE
 	redirectTo := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
@@ -50,7 +50,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["redirect_to"] = redirectTo
 	}
 
-	relayProps["isMobile"] = strconv.FormatBool(isMobile)
+	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
 
 	if len(relayProps) > 0 {
 		relayState = b64.StdEncoding.EncodeToString([]byte(model.MapToJson(relayProps)))
@@ -146,8 +146,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	isMobile, _ := strconv.ParseBool(relayProps["isMobile"])
-
+	isMobile, parseErr := strconv.ParseBool(relayProps[model.USER_AUTH_SERVICE_IS_MOBILE])
+	if parseErr != nil {
+		mlog.Debug(err.Error())
+	}
 	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
 	if err != nil {
 		c.Err = err

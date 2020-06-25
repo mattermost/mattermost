@@ -302,7 +302,10 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAUTH_ACTION_SSO_TO_EMAIL {
 		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		isMobile, _ := strconv.ParseBool(props["isMobile"])
+		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
+		if parseErr != nil {
+			mlog.Debug(err.Error())
+		}
 		err = c.App.DoLogin(w, r, user, "", isMobile, true, false)
 		if err != nil {
 			err.Translate(c.App.T)

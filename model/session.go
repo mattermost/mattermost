@@ -8,6 +8,8 @@ import (
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -145,24 +147,26 @@ func (me *Session) IsMobileApp() bool {
 }
 
 func (me *Session) IsMobile() bool {
-	val, ok := me.Props["isMobile"]
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_MOBILE]
 	if !ok {
 		return false
 	}
 	isMobile, err := strconv.ParseBool(val)
 	if err != nil {
+		mlog.Debug(err.Error())
 		return false
 	}
 	return isMobile
 }
 
 func (me *Session) IsSaml() bool {
-	val, ok := me.Props["isSaml"]
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_SAML]
 	if !ok {
 		return false
 	}
 	isSaml, err := strconv.ParseBool(val)
 	if err != nil {
+		mlog.Debug(err.Error())
 		return false
 	}
 	return isSaml

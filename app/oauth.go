@@ -361,7 +361,7 @@ func (a *App) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, serv
 		stateProps["redirect_to"] = redirectTo
 	}
 
-	stateProps["isMobile"] = strconv.FormatBool(isMobile)
+	stateProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
 
 	authUrl, err := a.GetAuthorizationCode(w, r, service, stateProps, loginHint)
 	if err != nil {

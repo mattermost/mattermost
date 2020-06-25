@@ -210,7 +210,22 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				"isMobile": "true",
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length mobile when isMobile in props is set and takes priority over saml", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.USER_AUTH_SERVICE_IS_SAML:   "true",
 			},
 		}
 		session, err := th.App.CreateSession(session)
@@ -236,7 +251,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
 			Props: map[string]string{
-				"isSaml": "true",
+				model.USER_AUTH_SERVICE_IS_SAML: "true",
 			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
