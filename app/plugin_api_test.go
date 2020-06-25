@@ -1624,3 +1624,38 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 		})
 	}
 }
+
+func TestPluginAPICreateSlashCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	foundCommand := func() bool {
+		cmds, appErr := api.app.ListTeamCommands(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		for _, cmd := range cmds {
+			if cmd.Trigger == "testcmd" {
+				return true
+			}
+		}
+		return false
+	}
+
+	require.False(t, foundCommand())
+
+	cmd := &model.Command{
+		TeamId:  th.BasicTeam.Id,
+		Trigger: "testcmd",
+		Method:  "G",
+		URL:     "http://test.com/testcmd",
+	}
+
+	cmd, appErr := api.CreateSlashCommand(cmd)
+	require.Nil(t, appErr)
+
+	newCmd, appErr := api.app.GetCommand(cmd.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.True(t, foundCommand())
+}

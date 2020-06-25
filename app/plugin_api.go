@@ -913,3 +913,12 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
 }
+
+func (api *PluginAPI) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	cmd.CreatorId = ""
+	cmd.PluginId = api.id
+
+	cmd, appErr := api.app.CreateCommand(cmd)
+
+	return cmd, appErr
+}
