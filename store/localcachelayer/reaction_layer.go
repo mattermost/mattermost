@@ -36,8 +36,9 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 		return s.ReactionStore.GetForPost(postId, false)
 	}
 
-	if reaction := s.rootStore.doStandardReadCache(s.rootStore.reactionCache, postId); reaction != nil {
-		return reaction.([]*model.Reaction), nil
+	var reaction []*model.Reaction
+	if err := s.rootStore.doStandardReadCache(s.rootStore.reactionCache, postId, &reaction); err == nil {
+		return reaction, nil
 	}
 
 	reaction, err := s.ReactionStore.GetForPost(postId, false)

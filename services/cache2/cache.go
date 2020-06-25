@@ -43,4 +43,7 @@ type Cache interface {
 
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 	GetInvalidateClusterEvent() string
+
+	// Name returns the name of the cache
+	Name() string
 }

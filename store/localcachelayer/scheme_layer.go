@@ -29,8 +29,9 @@ func (s LocalCacheSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error)
 }
 
 func (s LocalCacheSchemeStore) Get(schemeId string) (*model.Scheme, error) {
-	if scheme := s.rootStore.doStandardReadCache(s.rootStore.schemeCache, schemeId); scheme != nil {
-		return scheme.(*model.Scheme), nil
+	var scheme *model.Scheme
+	if err := s.rootStore.doStandardReadCache(s.rootStore.schemeCache, schemeId, &scheme); err == nil {
+		return scheme, nil
 	}
 
 	scheme, err := s.SchemeStore.Get(schemeId)
