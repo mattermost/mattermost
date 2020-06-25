@@ -4889,7 +4889,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o10 := model.Channel{
 		TeamId:      teamId,
 		DisplayName: "The",
-		Name:        "the",
+		Name:        "thename",
 		Type:        model.CHANNEL_OPEN,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
@@ -4942,7 +4942,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		{"prefix", teamId, "off-", false, &model.ChannelList{&o7, &o6}},
 		{"full match with dash", teamId, "off-topic", false, &model.ChannelList{&o6}},
 		{"town square", teamId, "town square", false, &model.ChannelList{&o9}},
-		{"the in name", teamId, "the", false, &model.ChannelList{&o10}},
+		{"the in name", teamId, "thename", false, &model.ChannelList{&o10}},
 		{"Mobile", teamId, "Mobile", false, &model.ChannelList{&o11}},
 		{"search purpose", teamId, "now searchable", false, &model.ChannelList{&o12}},
 		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},
