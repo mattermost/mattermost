@@ -31,6 +31,7 @@ jobs:
           trap 'npm ci && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          trap - ERR
       - persist_to_workspace:
           root: ~/mattermost
           paths:
