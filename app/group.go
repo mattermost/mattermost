@@ -4,9 +4,11 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
@@ -57,6 +59,10 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 	return deletedGroup, err
 }
 
+func (a *App) GetGroupMemberCount(groupID string) (int64, *model.AppError) {
+	return a.Srv().Store.Group().GetMemberCount(groupID)
+}
+
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {
 	return a.Srv().Store.Group().GetMemberUsers(groupID)
 }
@@ -67,7 +73,7 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 		return nil, 0, err
 	}
 
-	count, err := a.Srv().Store.Group().GetMemberCount(groupID)
+	count, err := a.GetGroupMemberCount(groupID)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -90,10 +96,15 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 
 	// reject the syncable creation if the group isn't already associated to the parent team
 	if groupSyncable.Type == model.GroupSyncableTypeChannel {
-		var channel *model.Channel
-		channel, err = a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
-		if err != nil {
-			return nil, err
+		channel, nErr := a.Srv().Store.Channel().Get(groupSyncable.SyncableId, true)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.channel.get.find.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		var team *model.Team
