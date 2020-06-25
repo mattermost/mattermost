@@ -58,6 +58,16 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 		return err
 	}
 
+	// Remove the "System" table entry that marks the emoji permissions migration as done.
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err != nil {
+		return err
+	}
+
+	// Remove the "System" table entry that marks the guest roles permissions migration as done.
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err != nil {
+		return err
+	}
+
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
 	a.DoAppMigrations()
 
