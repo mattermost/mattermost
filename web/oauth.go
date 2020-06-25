@@ -304,7 +304,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		isMobile, parseErr := strconv.ParseBool(props[model.USER_AUTH_SERVICE_IS_MOBILE])
 		if parseErr != nil {
-			mlog.Debug(err.Error())
+			mlog.Error("Error parsing boolean property from props", mlog.Err(parseErr))
 		}
 		err = c.App.DoLogin(w, r, user, "", isMobile, true, false)
 		if err != nil {

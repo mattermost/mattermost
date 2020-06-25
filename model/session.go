@@ -153,7 +153,7 @@ func (me *Session) IsMobile() bool {
 	}
 	isMobile, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Debug(err.Error())
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isMobile
@@ -166,7 +166,7 @@ func (me *Session) IsSaml() bool {
 	}
 	isSaml, err := strconv.ParseBool(val)
 	if err != nil {
-		mlog.Debug(err.Error())
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
 		return false
 	}
 	return isSaml

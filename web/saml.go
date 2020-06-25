@@ -148,7 +148,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isMobile, parseErr := strconv.ParseBool(relayProps[model.USER_AUTH_SERVICE_IS_MOBILE])
 	if parseErr != nil {
-		mlog.Debug(err.Error())
+		mlog.Error("Error parsing boolean property from relay props", mlog.Err(parseErr))
 	}
 	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
 	if err != nil {
