@@ -4,12 +4,14 @@
 package sqlstore
 
 import (
-	"github.com/pkg/errors"
+	"net/http"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 )
 
 type SqlReactionStore struct {
@@ -56,19 +58,24 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 }
 
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransaction(transaction)
+	err := store.WithDeadlockRetry(func() error {
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return errors.Wrap(err, "begin_transaction")
+		}
+		defer finalizeTransaction(transaction)
 
-	err = deleteReactionAndUpdatePost(transaction, reaction)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed while deleting reaction or updating post")
-	}
+		if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
+			return errors.Wrap(err, "deleteReactionAndUpdatePost")
+		}
 
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
+		if err := transaction.Commit(); err != nil {
+			return errors.Wrap(err, "commit_transaction")
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to delete reaction")
 	}
 
 	return reaction, nil
@@ -104,7 +111,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				PostId IN `+keys+`
 			ORDER BY
 				CreateAt`, params); err != nil {
-		return nil, errors.Wrap(err, "failed to get Reactions")
+		return nil, model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
 	}
 	return reactions, nil
 }
@@ -119,21 +126,35 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 				Reactions
 			WHERE
 				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		return errors.Wrapf(err, "failed to get Reacions with emijiName=%s", emojiName)
+		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
-	if _, err := s.GetMaster().Exec(
-		`DELETE FROM
+	err := store.WithDeadlockRetry(func() error {
+		_, err := s.GetMaster().Exec(
+			`DELETE FROM
 				Reactions
 			WHERE
-				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		return errors.Wrapf(err, "failed to delete Reactions with emijiName=%s", emojiName)
+				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName})
+		return err
+	})
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
 
 	for _, reaction := range reactions {
-		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
-			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
-			mlog.Warn("Unable to update Post.HasReactions while removing reactions", mlog.String("post_id", reaction.PostId), mlog.Err(err))
+		reaction := reaction
+		err := store.WithDeadlockRetry(func() error {
+			_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
+				map[string]interface{}{
+					"PostId":   reaction.PostId,
+					"UpdateAt": model.GetMillis(),
+				})
+			return err
+		})
+		if err != nil {
+			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
+				mlog.String("post_id", reaction.PostId),
+				mlog.Err(err))
 		}
 	}
 

@@ -222,10 +222,15 @@ type AppIface interface {
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
+	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
+	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NewWebConn returns a new WebConn instance.
 	NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn
 	// NewWebHub creates a new Hub.
 	NewWebHub() *Hub
+	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
+	NotifySessionsExpired() *model.AppError
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(post *model.Post)
@@ -290,9 +295,6 @@ type AppIface interface {
 	// The result can be used, for example, to determine the set of users who would be removed from a team if the team
 	// were group-constrained with the given groups.
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
-	// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
-	// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-	MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError
 	// This function migrates the default built in roles from code/config to the database.
 	DoAdvancedPermissionsMigration()
 	// This to be used for places we check the users password when they are already logged in
@@ -539,6 +541,7 @@ type AppIface interface {
 	GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError)
 	GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
+	GetGroupMemberCount(groupID string) (int64, *model.AppError)
 	GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError)
 	GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]*model.User, int, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
@@ -785,6 +788,7 @@ type AppIface interface {
 	RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginId string, command *model.Command) error
 	ReloadConfig() error
+	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
 	RemovePlugin(id string) *model.AppError
@@ -834,6 +838,7 @@ type AppIface interface {
 	SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError)
 	SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersInTeam(teamId, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
@@ -900,7 +905,6 @@ type AppIface interface {
 	SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool)
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
-	StartPushNotificationsHubWorkers()
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

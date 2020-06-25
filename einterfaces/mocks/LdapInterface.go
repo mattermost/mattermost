@@ -87,6 +87,20 @@ func (_m *LdapInterface) FirstLoginSync(userID string, userAuthService string, u
 	return r0
 }
 
+// GetADLdapIdFromSAMLId provides a mock function with given fields: authData
+func (_m *LdapInterface) GetADLdapIdFromSAMLId(authData string) string {
+	ret := _m.Called(authData)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(authData)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetAllGroupsPage provides a mock function with given fields: page, perPage, opts
 func (_m *LdapInterface) GetAllGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	ret := _m.Called(page, perPage, opts)
@@ -288,4 +302,9 @@ func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword
 	}
 
 	return r0
+}
+
+// UpdateProfilePictureIfNecessary provides a mock function with given fields: _a0, _a1
+func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 *model.User, _a1 *model.Session) {
+	_m.Called(_a0, _a1)
 }
