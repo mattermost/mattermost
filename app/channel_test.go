@@ -68,6 +68,40 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	require.NotNil(t, err, "Outgoing webhook wasn't deleted")
 }
 
+func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	var err *model.AppError
+
+	team := th.CreateTeam()
+	channel := th.CreateChannel(team)
+	defer func() {
+		th.App.PermanentDeleteChannel(channel)
+		th.App.PermanentDeleteTeam(team)
+	}()
+
+	_, err = th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
+
+	deacivatedUser := th.CreateUser()
+	_, err = th.App.AddUserToTeam(team.Id, deacivatedUser.Id, "")
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(deacivatedUser, channel)
+	require.Nil(t, err)
+	channelMembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
+	require.Nil(t, err)
+	require.Len(t, *channelMembers, 2)
+	_, err = th.App.UpdateActive(deacivatedUser, false)
+	require.Nil(t, err)
+
+	err = th.App.RemoveAllDeactivatedMembersFromChannel(channel)
+	require.Nil(t, err)
+
+	channelMembers, err = th.App.GetChannelMembersPage(channel.Id, 0, 10000000)
+	require.Nil(t, err)
+	require.Len(t, *channelMembers, 1)
+}
+
 func TestMoveChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -97,13 +131,13 @@ func TestMoveChannel(t *testing.T) {
 	_, err = th.App.AddUserToChannel(th.BasicUser2, channel1)
 	require.Nil(t, err)
 
-	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false)
+	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
 	require.NotNil(t, err, "Should have failed due to mismatched members.")
 
 	_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
-	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser, false)
+	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
 	require.Nil(t, err)
 
 	// Test moving a channel with a deactivated user who isn't in the destination team.
@@ -123,11 +157,8 @@ func TestMoveChannel(t *testing.T) {
 	_, err = th.App.UpdateActive(deacivatedUser, false)
 	require.Nil(t, err)
 
-	err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser, false)
+	err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser)
 	require.NotNil(t, err, "Should have failed due to mismatched deacivated member.")
-
-	err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser, true)
-	require.Nil(t, err)
 
 	// Test moving a channel with no members.
 	channel3 := &model.Channel{
@@ -142,7 +173,7 @@ func TestMoveChannel(t *testing.T) {
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteChannel(channel3)
 
-	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
+	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser)
 	assert.Nil(t, err)
 }
 

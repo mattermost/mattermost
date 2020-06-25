@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -17,8 +18,8 @@ const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
 func (s *Server) LoadLicense() {
 	licenseId := ""
-	props, err := s.Store.System().Get()
-	if err == nil {
+	props, nErr := s.Store.System().Get()
+	if nErr == nil {
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
 
@@ -27,16 +28,16 @@ func (s *Server) LoadLicense() {
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
-			if _, appErr := s.SaveLicense(licenseBytes); appErr != nil {
-				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(appErr))
+			if _, err := s.SaveLicense(licenseBytes); err != nil {
+				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
 			}
 		}
 	}
 
-	record, appErr := s.Store.License().Get(licenseId)
-	if appErr != nil {
+	record, nErr := s.Store.License().Get(licenseId)
+	if nErr != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
 		s.SetLicense(nil)
 		return
@@ -74,10 +75,16 @@ func (s *Server) SaveLicense(licenseBytes []byte) (*model.License, *model.AppErr
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, err = s.Store.License().Save(record)
-	if err != nil {
+	_, nErr := s.Store.License().Save(record)
+	if nErr != nil {
 		s.RemoveLicense()
-		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	sysVar := &model.System{}
