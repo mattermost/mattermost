@@ -2633,6 +2633,31 @@ func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams
 	return r0, r1
 }
 
+// SearchPostsInTeamForUser provides a mock function with given fields: teamId, userId, searchParams
+func (_m *API) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	ret := _m.Called(teamId, userId, searchParams)
+
+	var r0 *model.PostSearchResults
+	if rf, ok := ret.Get(0).(func(string, string, model.SearchParameter) *model.PostSearchResults); ok {
+		r0 = rf(teamId, userId, searchParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostSearchResults)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.SearchParameter) *model.AppError); ok {
+		r1 = rf(teamId, userId, searchParams)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchTeams provides a mock function with given fields: term
 func (_m *API) SearchTeams(term string) ([]*model.Team, *model.AppError) {
 	ret := _m.Called(term)
