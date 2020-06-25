@@ -6,13 +6,13 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/mattermost/gorp"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlSchemeStore struct {
@@ -46,48 +46,48 @@ func (s SqlSchemeStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
 }
 
-func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	if len(scheme.Id) == 0 {
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
-			return nil, model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
 
-		newScheme, appErr := s.createScheme(scheme, transaction)
-		if appErr != nil {
-			return nil, appErr
+		newScheme, err := s.createScheme(scheme, transaction)
+		if err != nil {
+			return nil, err
 		}
 		if err := transaction.Commit(); err != nil {
-			return nil, model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "commit_transaction")
 		}
 		return newScheme, nil
 	}
 
 	if !scheme.IsValid() {
-		return nil, model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.invalid_scheme.app_error", nil, "schemeId="+scheme.Id, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Scheme", "<any>", fmt.Sprintf("%v", scheme))
 	}
 
 	scheme.UpdateAt = model.GetMillis()
 
 	rowsChanged, err := s.GetMaster().Update(scheme)
 	if err != nil {
-		return nil, model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to update Scheme")
 	}
 	if rowsChanged != 1 {
-		return nil, model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+		return nil, errors.New("no record to update")
 	}
 
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Transaction) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Transaction) (*model.Scheme, error) {
 	// Fetch the default system scheme roles to populate default permissions.
 	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
-	roles, err := s.SqlStore.Role().GetByNames(defaultRoleNames)
-	if err != nil {
-		return nil, err
+	roles, appErr := s.SqlStore.Role().GetByNames(defaultRoleNames)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	for _, role := range roles {
@@ -108,7 +108,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 	}
 
 	if len(defaultRoles) != 6 {
-		return nil, model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
+		return nil, errors.New("createScheme: unable to retrieve default scheme roles")
 	}
 
 	// Create the appropriate default roles for the scheme.
@@ -221,11 +221,11 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 
 	// Validate the scheme
 	if !scheme.IsValidForCreate() {
-		return nil, model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.invalid_scheme.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Scheme", "<any>", fmt.Sprintf("%v", scheme))
 	}
 
 	if err := transaction.Insert(scheme); err != nil {
-		return nil, model.NewAppError("SqlSchemeStore.Save", "store.sql_scheme.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to save Scheme")
 	}
 
 	return scheme, nil
@@ -241,49 +241,51 @@ func filterModerated(permissions []string) []string {
 	return filteredPermissions
 }
 
-func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
-		return nil, model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
 	}
 
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	var scheme model.Scheme
 
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Name = :Name", map[string]interface{}{"Name": schemeName}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlSchemeStore.GetByName", "store.sql_scheme.get.app_error", nil, "Name="+schemeName+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeName=%s", schemeName))
 		}
-		return nil, model.NewAppError("SqlSchemeStore.GetByName", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Scheme with schemeName=%s", schemeName)
 	}
 
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	// Get the scheme
 	var scheme model.Scheme
 	if err := s.GetReplica().SelectOne(&scheme, "SELECT * from Schemes WHERE Id = :Id", map[string]interface{}{"Id": schemeId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Scheme", fmt.Sprintf("schemeId=%s", schemeId))
 		}
-		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.get.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Scheme with schemeId=%s", schemeId)
 	}
 
 	// Update any teams or channels using this scheme to the default scheme.
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
 		if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
-			return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_teams.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "failed to update Teams with schemeId=%s", schemeId)
 		}
+
+		s.Team().ClearCaches()
 	} else if scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
-			return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.reset_channels.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "failed to update Channels with schemeId=%s", schemeId)
 		}
 
 		// Blow away the channel caches.
@@ -309,7 +311,7 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError
 	queryArgs["DeleteAt"] = time
 
 	if _, err := s.GetMaster().Exec("UPDATE Roles SET UpdateAt = :UpdateAt, DeleteAt = :DeleteAt WHERE Name IN ("+inQuery+")", queryArgs); err != nil {
-		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.role_update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to update Roles with name in (%s)", inQuery)
 	}
 
 	// Delete the scheme itself.
@@ -318,15 +320,15 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError
 
 	rowsChanged, err := s.GetMaster().Update(&scheme)
 	if err != nil {
-		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "Id="+schemeId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to update Scheme with schemeId=%s", schemeId)
 	}
 	if rowsChanged != 1 {
-		return nil, model.NewAppError("SqlSchemeStore.Delete", "store.sql_scheme.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+		return nil, errors.New("no record to update")
 	}
 	return &scheme, nil
 }
 
-func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	var schemes []*model.Scheme
 
 	scopeClause := ""
@@ -335,29 +337,29 @@ func (s *SqlSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*mod
 	}
 
 	if _, err := s.GetReplica().Select(&schemes, "SELECT * from Schemes WHERE DeleteAt = 0 "+scopeClause+" ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset, "Scope": scope}); err != nil {
-		return nil, model.NewAppError("SqlSchemeStore.Get", "store.sql_scheme.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Schemes")
 	}
 
 	return schemes, nil
 }
 
-func (s *SqlSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *SqlSchemeStore) PermanentDeleteAll() error {
 	if _, err := s.GetMaster().Exec("DELETE from Schemes"); err != nil {
-		return model.NewAppError("SqlSchemeStore.PermanentDeleteAll", "store.sql_scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to delete Schemes")
 	}
 
 	return nil
 }
 
-func (s *SqlSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (s *SqlSchemeStore) CountByScope(scope string) (int64, error) {
 	count, err := s.GetReplica().SelectInt("SELECT count(*) FROM Schemes WHERE Scope = :Scope AND DeleteAt = 0", map[string]interface{}{"Scope": scope})
 	if err != nil {
-		return int64(0), model.NewAppError("SqlSchemeStore.CountByScope", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return int64(0), errors.Wrap(err, "failed to count Schemes by scope")
 	}
 	return count, nil
 }
 
-func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 	joinCol := fmt.Sprintf("Default%s%sRole", roleScope, roleType)
 	query := fmt.Sprintf(`
 		SELECT
@@ -371,7 +373,7 @@ func (s *SqlSchemeStore) CountWithoutPermission(schemeScope, permissionID string
 	`, joinCol, schemeScope, permissionID)
 	count, err := s.GetReplica().SelectInt(query)
 	if err != nil {
-		return int64(0), model.NewAppError("SqlSchemeStore.CountWithoutPermission", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return int64(0), errors.Wrap(err, "failed to count Schemes without permission")
 	}
 	return count, nil
 }

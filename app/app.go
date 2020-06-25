@@ -70,7 +70,6 @@ func (a *App) InitServer() {
 		a.notification = a.srv.Notification
 		a.saml = a.srv.Saml
 
-		a.StartPushNotificationsHubWorkers()
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
 				if appErr := a.DeactivateGuests(); appErr != nil {
@@ -85,12 +84,6 @@ func (a *App) InitServer() {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
 		}
-
-		pluginsRoute := a.srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-		pluginsRoute.HandleFunc("", a.ServePluginRequest)
-		pluginsRoute.HandleFunc("/public/{public_file:.*}", a.ServePluginPublicRequest)
-		pluginsRoute.HandleFunc("/{anything:.*}", a.ServePluginRequest)
-		a.srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
 
 		// Scheduler must be started before cluster.
 		a.initJobs()
@@ -139,6 +132,10 @@ func (a *App) initJobs() {
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
+	if jobsExpiryNotifyInterface != nil {
+		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
+	}
+
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
