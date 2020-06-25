@@ -320,7 +320,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider,
+					s.CacheProvider2,
 				),
 				s.SearchEngine,
 				s.Config(),
