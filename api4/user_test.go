@@ -1912,9 +1912,9 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 
 		channel, err := th.App.CreateChannelWithUser(&model.Channel{
 			DisplayName: "User Created Channel",
-			Name: "user-created-channel",
-			Type: model.CHANNEL_OPEN,
-			TeamId: team.Id,
+			Name:        "user-created-channel",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
 		}, th.BasicUser.Id)
 		require.Nil(t, err)
 
