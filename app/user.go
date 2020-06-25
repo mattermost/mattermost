@@ -1670,6 +1670,9 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 	if props.NotInTeamId != "" {
 		return a.SearchUsersNotInTeam(props.NotInTeamId, props.Term, options)
 	}
+	if props.InGroupId != "" {
+		return a.SearchUsersInGroup(props.InGroupId, props.Term, options)
+	}
 	return a.SearchUsersInTeam(props.TeamId, props.Term, options)
 }
 
@@ -1734,6 +1737,20 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
 	users, err := a.Srv().Store.User().SearchWithoutTeam(term, options)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		a.SanitizeProfile(user, options.IsAdmin)
+	}
+
+	return users, nil
+}
+
+func (a *App) SearchUsersInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
+	users, err := a.Srv().Store.User().SearchInGroup(groupID, term, options)
 	if err != nil {
 		return nil, err
 	}
@@ -2061,6 +2078,18 @@ func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	omitUsers := make(map[string]bool, 1)
+	omitUsers[userId] = true
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", channelId, "", omitUsers)
+	event.Add("parent_id", parentId)
+	event.Add("user_id", userId)
+	a.Publish(event)
 
 	return nil
 }

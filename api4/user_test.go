@@ -1084,6 +1084,44 @@ func TestSearchUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	require.True(t, findUserInList(th.BasicUser.Id, users), "should have found user")
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, InGroupId: group.Id}
+	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
+		_, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission when searching for users in a group", func(t *testing.T) {
+		_, resp = th.Client.SearchUsers(search)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Returns empty list when no users found searching for users in a group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Empty(t, users)
+	})
+
+	_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns user in group user found in group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
 }
 
 func findUserInList(id string, users []*model.User) bool {
@@ -2326,6 +2364,54 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetUsersInGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	var response *model.Response
+	var users []*model.User
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		_, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNotImplementedStatus(t, response)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		_, response = th.Client.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckForbiddenStatus(t, response)
+	})
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group when called by system admin", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNoError(t, response)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users when pagination out of range", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 5, 60, "")
+		CheckNoError(t, response)
+		assert.Empty(t, users)
+	})
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -4457,7 +4543,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
-	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+	CheckErrorMessage(t, resp, "app.user_terms_of_service.get_by_user.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	require.Nil(t, err)
@@ -4513,6 +4599,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
+		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
@@ -4779,5 +4866,80 @@ func TestGetKnownUsers(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.Len(t, userIds, 2)
 		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
+	})
+}
+
+func TestPublishUserTyping(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tr := model.TypingRequest{
+		ChannelId: th.BasicChannel.Id,
+		ParentId:  "randomparentid",
+	}
+
+	t.Run("should return ok for non-system admin when triggering typing event for own user", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping(th.BasicUser.Id, tr)
+		CheckNoError(t, resp)
+	})
+
+	t.Run("should return ok for system admin when triggering typing event for own user", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
+		CheckNoError(t, resp)
+	})
+
+	t.Run("should return forbidden for non-system admin when triggering a typing event for a different user", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping(th.BasicUser2.Id, tr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should return bad request when triggering a typing event for an invalid user id", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping("invalid", tr)
+		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should send typing event via websocket when triggering a typing event for a user with a common channel", func(t *testing.T) {
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		wsResp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, wsResp.Status)
+
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.BasicUser2.Id, tr)
+		CheckNoError(t, resp)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_TYPING, func(resp *model.WebSocketEvent) {
+			assert.Equal(t, th.BasicChannel.Id, resp.GetBroadcast().ChannelId)
+
+			eventUserId, ok := resp.GetData()["user_id"].(string)
+			require.True(t, ok, "expected user_id")
+			assert.Equal(t, th.BasicUser2.Id, eventUserId)
+
+			eventParentId, ok := resp.GetData()["parent_id"].(string)
+			require.True(t, ok, "expected parent_id")
+			assert.Equal(t, "randomparentid", eventParentId)
+		})
+	})
+
+	th.Server.Busy.Set(time.Second * 10)
+
+	t.Run("should return service unavailable for non-system admin user when triggering a typing event and server busy", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping("invalid", tr)
+		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("should return service unavailable for system admin user when triggering a typing event and server busy", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
+		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
+		CheckServiceUnavailableStatus(t, resp)
 	})
 }

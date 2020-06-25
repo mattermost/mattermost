@@ -24,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
-	analytics "github.com/segmentio/analytics-go"
 
 	"golang.org/x/crypto/acme/autocert"
 
@@ -93,7 +92,8 @@ type Server struct {
 	hubsLock sync.RWMutex
 	hubs     []*Hub
 
-	PushNotificationsHub PushNotificationsHub
+	PushNotificationsHub   PushNotificationsHub
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	runjobs bool
 	Jobs    *jobs.JobServer
@@ -129,14 +129,12 @@ type Server struct {
 	clientConfigHash    atomic.Value
 	limitedClientConfig atomic.Value
 
-	diagnosticId     string
-	diagnosticClient analytics.Client
-	rudderClient     rudder.Client
+	diagnosticId string
+	rudderClient rudder.Client
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService            httpservice.HTTPService
-	pushNotificationClient *http.Client // TODO: move this to it's own package
+	HTTPService httpservice.HTTPService
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -316,7 +314,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider,
+					s.CacheProvider2,
 				),
 				s.SearchEngine,
 				s.Config(),
@@ -1157,26 +1155,8 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
+// initDiagnostics initialises the Rudder client for the diagnostics system.
 func (s *Server) initDiagnostics(endpoint string) {
-	if s.diagnosticClient == nil {
-		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
-		// For testing
-		if endpoint != "" {
-			config.Endpoint = endpoint
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
-		client.Enqueue(analytics.Identify{
-			UserId: s.diagnosticId,
-		})
-
-		s.diagnosticClient = client
-	}
-}
-
-func (s *Server) initRudder(endpoint string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1199,24 +1179,13 @@ func (s *Server) initRudder(endpoint string) {
 	}
 }
 
-// shutdownDiagnostics closes the diagnostic client.
+// shutdownDiagnostics closes the diagnostics system Rudder client.
 func (s *Server) shutdownDiagnostics() error {
-	var segmentErr, rudderErr error
-	if s.diagnosticClient != nil {
-		segmentErr = s.diagnosticClient.Close()
-	}
-
 	if s.rudderClient != nil {
-		rudderErr = s.rudderClient.Close()
+		return s.rudderClient.Close()
 	}
 
-	if segmentErr != nil && rudderErr != nil {
-		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
-	} else if segmentErr != nil {
-		return segmentErr
-	}
-
-	return rudderErr
+	return nil
 }
 
 // GetHubs returns the list of hubs. This method is safe
@@ -1270,6 +1239,10 @@ func (s *Server) TotalWebsocketConnections() int {
 	}
 
 	return int(count)
+}
+
+func (s *Server) ClusterHealthScore() int {
+	return s.Cluster.HealthScore()
 }
 
 func (s *Server) ensureDiagnosticId() {

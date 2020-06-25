@@ -1089,13 +1089,13 @@ func (_m *API) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return r0, r1
 }
 
-// GetGroupByName provides a mock function with given fields: name, opts
-func (_m *API) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	ret := _m.Called(name, opts)
+// GetGroupByName provides a mock function with given fields: name
+func (_m *API) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	ret := _m.Called(name)
 
 	var r0 *model.Group
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) *model.Group); ok {
-		r0 = rf(name, opts)
+	if rf, ok := ret.Get(0).(func(string) *model.Group); ok {
+		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Group)
@@ -1103,8 +1103,8 @@ func (_m *API) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.G
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
-		r1 = rf(name, opts)
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2443,6 +2443,22 @@ func (_m *API) PluginHTTP(request *http.Request) *http.Response {
 	return r0
 }
 
+// PublishUserTyping provides a mock function with given fields: userId, channelId, parentId
+func (_m *API) PublishUserTyping(userId string, channelId string, parentId string) *model.AppError {
+	ret := _m.Called(userId, channelId, parentId)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+		r0 = rf(userId, channelId, parentId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PublishWebSocketEvent provides a mock function with given fields: event, payload, broadcast
 func (_m *API) PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast) {
 	_m.Called(event, payload, broadcast)
@@ -2608,6 +2624,31 @@ func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
 		r1 = rf(teamId, paramsList)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchPostsInTeamForUser provides a mock function with given fields: teamId, userId, searchParams
+func (_m *API) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	ret := _m.Called(teamId, userId, searchParams)
+
+	var r0 *model.PostSearchResults
+	if rf, ok := ret.Get(0).(func(string, string, model.SearchParameter) *model.PostSearchResults); ok {
+		r0 = rf(teamId, userId, searchParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostSearchResults)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.SearchParameter) *model.AppError); ok {
+		r1 = rf(teamId, userId, searchParams)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
