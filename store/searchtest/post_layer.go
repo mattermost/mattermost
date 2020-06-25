@@ -19,6 +19,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{ENGINE_ALL},
 	},
 	{
+		Name: "Should be able to search posts using pagination",
+		Fn:   testSearchPostsWithPagination,
+		Tags: []string{ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
+	},
+	{
 		Name: "Should return pinned and unpinned posts",
 		Fn:   testSearchReturnPinnedAndUnpinned,
 		Tags: []string{ENGINE_ALL},
@@ -276,9 +281,9 @@ func testSearchPostsIncludingDMs(t *testing.T, th *SearchTestHelper) {
 	require.Nil(t, err)
 	defer th.deleteChannel(direct)
 
-	p1, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.POST_DEFAULT, 10000, false)
+	p1, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
-	_, err = th.createPost(th.User.Id, direct.Id, "dm other", "", model.POST_DEFAULT, 20000, false)
+	_, err = th.createPost(th.User.Id, direct.Id, "dm other", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
@@ -291,20 +296,33 @@ func testSearchPostsIncludingDMs(t *testing.T, th *SearchTestHelper) {
 	require.Len(t, results.Posts, 2)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+}
 
-	t.Run("Should be able to correctly use pagination", func(t *testing.T) {
-		results, err = th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 1)
-		require.Nil(t, err)
+func testSearchPostsWithPagination(t *testing.T, th *SearchTestHelper) {
+	direct, err := th.createDirectChannel(th.Team.Id, "direct", "direct", []*model.User{th.User, th.User2})
+	require.Nil(t, err)
+	defer th.deleteChannel(direct)
 
-		require.Len(t, results.Posts, 1)
-		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	p1, err := th.createPost(th.User.Id, direct.Id, "dm test", "", model.POST_DEFAULT, 10000, false)
+	require.Nil(t, err)
+	_, err = th.createPost(th.User.Id, direct.Id, "dm other", "", model.POST_DEFAULT, 20000, false)
+	require.Nil(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "channel test", "", model.POST_DEFAULT, 0, false)
+	require.Nil(t, err)
+	defer th.deleteUserPosts(th.User.Id)
 
-		results, err = th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 1, 1)
-		require.Nil(t, err)
+	params := &model.SearchParams{Terms: "test"}
+	results, err := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 1)
+	require.Nil(t, err)
 
-		require.Len(t, results.Posts, 1)
-		th.checkPostInSearchResults(t, p1.Id, results.Posts)
-	})
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+
+	results, err = th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 1, 1)
+	require.Nil(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
 
 func testSearchReturnPinnedAndUnpinned(t *testing.T, th *SearchTestHelper) {
