@@ -12,6 +12,7 @@ import (
 	
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/model"
+    "github.com/pkg/errors"
 )
 
 type {{.Name}} struct {
@@ -49,7 +50,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
         {{if $element.Results | isAppError}}
         break
         {{else}}
-        if pqErr, ok := {{$element.Results | errorVar}}.(*pq.Error); !ok || pqErr.Code != "40001" {
+        if pqErr, ok := errors.Cause({{$element.Results | errorVar}}).(*pq.Error); !ok || pqErr.Code != "40001" {
             break
         }
         {{end}}

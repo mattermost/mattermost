@@ -12,6 +12,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 )
 
 type RetryLayer struct {
@@ -394,7 +395,7 @@ func (s *RetryLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -415,7 +416,7 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -436,7 +437,7 @@ func (s *RetryLayerBotStore) PermanentDelete(userId string) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -457,7 +458,7 @@ func (s *RetryLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -478,7 +479,7 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -620,7 +621,7 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -641,7 +642,7 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -662,7 +663,7 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -740,7 +741,7 @@ func (s *RetryLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -761,7 +762,7 @@ func (s *RetryLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (in
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -820,7 +821,7 @@ func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFro
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -841,7 +842,7 @@ func (s *RetryLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -862,7 +863,7 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -959,7 +960,7 @@ func (s *RetryLayerChannelStore) GetChannels(teamId string, userId string, inclu
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1037,7 +1038,7 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1058,7 +1059,7 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1098,7 +1099,7 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1298,7 +1299,7 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, o
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1528,7 +1529,7 @@ func (s *RetryLayerChannelStore) MigratePublicChannels() error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1549,7 +1550,7 @@ func (s *RetryLayerChannelStore) PermanentDelete(channelId string) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1570,7 +1571,7 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1705,7 +1706,7 @@ func (s *RetryLayerChannelStore) Restore(channelId string, time int64) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1726,7 +1727,7 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1747,7 +1748,7 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1920,7 +1921,7 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -1941,7 +1942,7 @@ func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2076,7 +2077,7 @@ func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2097,7 +2098,7 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2118,7 +2119,7 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2139,7 +2140,7 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2623,7 +2624,7 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2644,7 +2645,7 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2665,7 +2666,7 @@ func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2686,7 +2687,7 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2707,7 +2708,7 @@ func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2728,7 +2729,7 @@ func (s *RetryLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -2749,7 +2750,7 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -4095,7 +4096,7 @@ func (s *RetryLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -4116,7 +4117,7 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5820,7 +5821,7 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5841,7 +5842,7 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5862,7 +5863,7 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5883,7 +5884,7 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5904,7 +5905,7 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5925,7 +5926,7 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5946,7 +5947,7 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -5967,7 +5968,7 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -7282,7 +7283,7 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -7303,7 +7304,7 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -7514,7 +7515,7 @@ func (s *RetryLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -7535,7 +7536,7 @@ func (s *RetryLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -7556,7 +7557,7 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -9023,7 +9024,7 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 			break
 		}
 
-		if pqErr, ok := resultVar0.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -9044,7 +9045,7 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
@@ -9065,7 +9066,7 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 			break
 		}
 
-		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
 			break
 		}
 
