@@ -2,6 +2,7 @@ package pluginapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -9,6 +10,9 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
 )
+
+// numRetries is the number of times the setAtomicWithRetries will retry before returning an error.
+const numRetries = 5
 
 // KVService exposes methods to read and write key-value pairs for the active plugin.
 //
@@ -136,6 +140,51 @@ func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (bool
 // Minimum server version: 5.18
 func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (bool, error) {
 	return k.Set(key, nil, SetAtomic(oldValue))
+}
+
+// SetAtomicWithRetries will set a key-value pair atomically using compare and set semantics:
+// it will read key's value (to get oldValue), perform valueFunc (to get newValue),
+// and compare and set (comparing oldValue and setting newValue).
+//
+// Parameters:
+//
+//      `key`              is the key to get and set.
+//      `valueFunc`        is a user-provided function that will take the old value as a []byte and
+//                         return the new value or an error. If valueFunc needs to operate on
+//                         oldValue, it will need to use the oldValue as a []byte, or convert
+//                         oldValue into the expected type (e.g., by parsing it, or marshaling it
+//                         into the expected struct). It should then return the newValue as the type
+//                         expected to be stored.
+//
+// Returns:
+//
+//       Returns err if the key could not be retrieved (DB error), valueFunc returned an error,
+//               if the key could not be set (DB error), or if the key could not be set (after retries).
+//       Returns nil if the value was set.
+//
+// Minimum server version: 5.18
+func (k *KVService) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue interface{}, err error)) error {
+	for i := 0; i < numRetries; i++ {
+		var oldVal []byte
+		if err := k.Get(key, &oldVal); err != nil {
+			return errors.Wrapf(err, "failed to get value for key %s", key)
+		}
+
+		newVal, err := valueFunc(oldVal)
+		if err != nil {
+			return errors.Wrap(err, "valueFunc failed")
+		}
+
+		if saved, err := k.Set(key, newVal, SetAtomic(oldVal)); err != nil {
+			return errors.Wrapf(err, "DB failed to set value for key %s", key)
+		} else if saved {
+			return nil
+		}
+
+		// small delay to allow cooperative scheduling to do its thing
+		time.Sleep(10 * time.Millisecond)
+	}
+	return fmt.Errorf("failed to set value after %d retries", numRetries)
 }
 
 // Get gets the value for the given key into the given interface.
