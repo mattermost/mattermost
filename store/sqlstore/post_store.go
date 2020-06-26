@@ -1302,8 +1302,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 
 	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 		query = store.CockroachQueryBuilder.BuildAnalyticsUserCountsWithPostsByDayQuery(teamId)
-	}
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query =
 			`SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value

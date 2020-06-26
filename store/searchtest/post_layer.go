@@ -261,6 +261,9 @@ var searchPostStoreTests = []searchTest{
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
+	if s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
+		t.Skip("Cockroach db doesn't support full text search")
+	}
 	th := &SearchTestHelper{
 		Store: s,
 	}

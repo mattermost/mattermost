@@ -923,7 +923,7 @@ func (_m *TeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 // SaveMember provides a mock function with given fields: member, maxUsersPerTeam
-func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
+func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	ret := _m.Called(member, maxUsersPerTeam)
 
 	var r0 *model.TeamMember
@@ -935,20 +935,18 @@ func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) error); ok {
 		r1 = rf(member, maxUsersPerTeam)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // SaveMultipleMembers provides a mock function with given fields: members, maxUsersPerTeam
-func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError) {
+func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
 	ret := _m.Called(members, maxUsersPerTeam)
 
 	var r0 []*model.TeamMember
@@ -960,13 +958,11 @@ func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPe
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]*model.TeamMember, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*model.TeamMember, int) error); ok {
 		r1 = rf(members, maxUsersPerTeam)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

@@ -1855,7 +1855,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 				END
 			)
 		`
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES || s.DriverName() == model.DATABASE_DRIVER_COCKROACH {
 			distinctTimezones = `
 				DISTINCT(
 					CASE WHEN Timezone::json->>'useAutomaticTimezone' = 'true' AND LENGTH(Timezone) > 74
@@ -2845,6 +2845,10 @@ func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.Channe
 }
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	if len(userIds) == 0 {
+		return nil, model.NewAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.empty.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
+	}
+
 	var dbMembers channelMemberWithSchemeRolesList
 	props := make(map[string]interface{})
 	idQuery := ""

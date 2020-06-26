@@ -7273,7 +7273,7 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppErr
 
 }
 
-func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 
 	resultVar0, resultVar1 := s.TeamStore.SaveMember(member, maxUsersPerTeam)
 
@@ -7282,7 +7282,9 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 			break
 		}
 
-		break
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0, resultVar1 = s.TeamStore.SaveMember(member, maxUsersPerTeam)
 		fmt.Println("RETRYING SaveMember")
@@ -7292,7 +7294,7 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 
 }
 
-func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
 
 	resultVar0, resultVar1 := s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 
@@ -7301,7 +7303,9 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 			break
 		}
 
-		break
+		if pqErr, ok := resultVar1.(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0, resultVar1 = s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 		fmt.Println("RETRYING SaveMultipleMembers")
