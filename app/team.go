@@ -599,9 +599,9 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 			switch {
 			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 				return nil, false, appErr
-			case errors.As(nErr, &conflictErr): // in case we haven't converted to plain error.
+			case errors.As(nErr, &conflictErr):
 				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
-			case errors.As(nErr, &limitExeededErr): // in case we haven't converted to plain error.
+			case errors.As(nErr, &limitExeededErr):
 				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
 			default: // last fallback in case it doesn't map to an existing app error.
 				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
