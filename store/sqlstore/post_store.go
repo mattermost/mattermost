@@ -1746,7 +1746,7 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	for _, params := range paramsList {
 		// remove any term that contains only non-alphanumeric chars
 		// ex: "abcd ** ef*g &^!" >> "abcd ef*g"
-		params.Terms = removeNonAlphaNumericTerms(params.Terms)
+		params.Terms = removeNonAlphaNumericTerms(params.Terms, " ")
 		params.IncludeDeletedChannels = includeDeletedChannels
 		params.OrTerms = isOrSearch
 

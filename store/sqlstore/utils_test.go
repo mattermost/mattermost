@@ -77,25 +77,55 @@ func TestSanitizeSearchTerm(t *testing.T) {
 	require.Equal(t, result, expected)
 }
 
-func TestFilterNonAlphaNumericWords(t *testing.T) {
+func TestRemoveNonAlphaNumericWords(t *testing.T) {
+	const (
+		sep           = " "
+		chineseHello  = "你好"
+		japaneseHello = "こんにちは"
+	)
+
 	terms := ""
 	expected := ""
-	result := removeNonAlphaNumericTerms(terms)
+	result := removeNonAlphaNumericTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = "hello"
 	expected = "hello"
-	result = removeNonAlphaNumericTerms(terms)
+	result = removeNonAlphaNumericTerms(terms, sep)
+	require.Equal(t, result, expected)
+
+	terms = japaneseHello
+	expected = japaneseHello
+	result = removeNonAlphaNumericTerms(terms, sep)
+	require.Equal(t, result, expected)
+
+	terms = chineseHello
+	expected = chineseHello
+	result = removeNonAlphaNumericTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = "hello*"
 	expected = "hello*"
-	result = removeNonAlphaNumericTerms(terms)
+	result = removeNonAlphaNumericTerms(terms, sep)
 	require.Equal(t, result, expected)
 
-	terms = "hel*lo &** **"
-	expected = "hel*lo"
-	result = removeNonAlphaNumericTerms(terms)
+	terms = japaneseHello + "*"
+	expected = japaneseHello + "*"
+	result = removeNonAlphaNumericTerms(terms, sep)
 	require.Equal(t, result, expected)
 
+	terms = japaneseHello + "*" + chineseHello
+	expected = japaneseHello + "*" + chineseHello
+	result = removeNonAlphaNumericTerms(terms, sep)
+	require.Equal(t, result, expected)
+
+	terms = "hel*lo &** ** hello"
+	expected = "hel*lo hello"
+	result = removeNonAlphaNumericTerms(terms, sep)
+	require.Equal(t, result, expected)
+
+	terms = japaneseHello + " ** &&* " + chineseHello
+	expected = japaneseHello + " " + chineseHello
+	result = removeNonAlphaNumericTerms(terms, sep)
+	require.Equal(t, result, expected)
 }

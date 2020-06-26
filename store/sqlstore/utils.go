@@ -55,8 +55,8 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 }
 
 // removeNonAlphaNumericTerms removes all words that only contains non-alphanumeric chars from given line
-func removeNonAlphaNumericTerms(line string) string {
-	words := strings.Split(line, " ")
+func removeNonAlphaNumericTerms(line, separator string) string {
+	words := strings.Split(line, separator)
 	filteredResult := make([]string, 0, len(words))
 
 	for _, w := range words {
@@ -64,10 +64,10 @@ func removeNonAlphaNumericTerms(line string) string {
 			filteredResult = append(filteredResult, strings.TrimSpace(w))
 		}
 	}
-	return strings.Join(filteredResult, " ")
+	return strings.Join(filteredResult, separator)
 }
 
-// isAlphaNumericWord returns true in case any letter or digit is present, false otherwise
+// containsAlphaNumericChar returns true in case any letter or digit is present, false otherwise
 func containsAlphaNumericChar(s string) bool {
 	for _, r := range s {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
