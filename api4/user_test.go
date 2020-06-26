@@ -1148,6 +1148,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		Username        string
 		ExpectedResults int
 		MoreThan        bool
+		ShouldFail      bool
 	}{
 		{
 			"Autocomplete in channel for specific username",
@@ -1155,6 +1156,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			channelId,
 			username,
 			1,
+			false,
 			false,
 		},
 		{
@@ -1164,6 +1166,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			"amazonses",
 			0,
 			false,
+			false,
 		},
 		{
 			"Search for all users",
@@ -1172,13 +1175,15 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			"",
 			2,
 			true,
+			false,
 		},
 		{
-			"Search all in specific channel",
+			"Fail when the teamId is not provided",
 			"",
 			channelId,
 			"",
 			2,
+			true,
 			true,
 		},
 	}
@@ -1187,12 +1192,17 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			th.LoginBasic()
 			rusers, resp := th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.USER_SEARCH_DEFAULT_LIMIT, "")
-			CheckNoError(t, resp)
-			if tc.MoreThan {
-				assert.True(t, len(rusers.Users) >= tc.ExpectedResults)
+			if tc.ShouldFail {
+				CheckErrorMessage(t, resp, "api.user.autocomplete_users.missing_team_id.app_error")
 			} else {
-				assert.Len(t, rusers.Users, tc.ExpectedResults)
+				CheckNoError(t, resp)
+				if tc.MoreThan {
+					assert.True(t, len(rusers.Users) >= tc.ExpectedResults)
+				} else {
+					assert.Len(t, rusers.Users, tc.ExpectedResults)
+				}
 			}
+
 			th.Client.Logout()
 			_, resp = th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 			CheckUnauthorizedStatus(t, resp)
