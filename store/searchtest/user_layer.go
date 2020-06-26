@@ -610,13 +610,13 @@ func testShouldBeAbleToSearchFilteringByRole(t *testing.T, th *SearchTestHelper)
 		Limit: model.USER_SEARCH_DEFAULT_LIMIT,
 	}
 	t.Run("Should autocomplete users filtering by roles", func(t *testing.T) {
-		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "basicusername", options)
+		users, apperr := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users.OutOfChannel)
 	})
 	t.Run("Should search users filtering by roles", func(t *testing.T) {
-		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername", options)
+		users, apperr := th.Store.User().Search(th.Team.Id, "", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{userAlternate}, users)
 	})
