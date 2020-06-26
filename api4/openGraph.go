@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
 const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
-var openGraphDataCache = cache2.NewLRU(&cache2.LRUOptions{
+var openGraphDataCache = cache.NewLRU(&cache.LRUOptions{
 	Size: OPEN_GRAPH_METADATA_CACHE_SIZE,
 })
 

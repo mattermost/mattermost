@@ -76,7 +76,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
