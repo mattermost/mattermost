@@ -1657,3 +1657,50 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 		require.Equal(t, float64(i), resp.Data["value"])
 	}
 }
+
+func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	basicPostText := &th.BasicPost.Message
+	unknwonTerm := "Unknown Message"
+
+	testCases := []struct {
+		description      string
+		teamId           string
+		userId           string
+		params           model.SearchParameter
+		expectedPostsLen int
+	}{
+		{
+			"empty params",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{},
+			0,
+		},
+		{
+			"doesn't match any posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{Terms: &unknwonTerm},
+			0,
+		},
+		{
+			"matched posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{Terms: basicPostText},
+			1,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamId, testCase.userId, testCase.params)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
+		})
+	}
+}

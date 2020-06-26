@@ -1377,8 +1377,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1745,8 +1745,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2060,8 +2060,8 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2375,8 +2375,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2386,8 +2386,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
@@ -2807,8 +2807,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s2, err = ss.Scheme().Save(s2)
-	require.Nil(t, err)
+	s2, nErr := ss.Scheme().Save(s2)
+	require.Nil(t, nErr)
 	t.Log(s2)
 
 	t2, err := ss.Team().Save(&model.Team{
