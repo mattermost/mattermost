@@ -4,8 +4,6 @@
 package sqlstore
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -111,7 +109,7 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 				PostId IN `+keys+`
 			ORDER BY
 				CreateAt`, params); err != nil {
-		return nil, model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to get Reactions")
 	}
 	return reactions, nil
 }

@@ -3946,7 +3946,7 @@
     "id": "app.plugin.write_file.saving.app_error",
     "translation": "An error occurred while saving the file."
   },
- {
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
