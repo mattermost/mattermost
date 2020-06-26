@@ -660,11 +660,11 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 }
 
 func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
-	// transaction, err := s.GetMaster().Begin()
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "begin_transaction")
-	// }
-	// defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
 
 	newTeamMembers := map[string]int{}
 	users := map[string]bool{}
@@ -714,8 +714,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		User  sql.NullString
 		Admin sql.NullString
 	}
-	// _, err = transaction.Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
-	_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
+	_, err = transaction.Select(&defaultTeamsRoles, sqlRolesQuery, argsRoles...)
 	if err != nil {
 		return nil, errors.Wrap(err, "default_team_roles_select")
 	}
@@ -746,8 +745,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 			TeamId string `db:"TeamId"`
 		}
 
-		// _, err = transaction.Select(&counters, sqlCountQuery, argsCount...)
-		_, err = s.GetMaster().Select(&counters, sqlCountQuery, argsCount...)
+		_, err = transaction.Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
 			return nil, errors.Wrap(err, "member_count_select")
 		}
@@ -775,12 +773,15 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		return nil, errors.Wrap(err, "insert_members_to_sql")
 	}
 
-	// if _, err := transaction.Exec(sql, args...); err != nil {
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
+	if _, err := transaction.Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY", "\"primary\""}) {
 			return nil, store.NewErrConflict("TeamMember", err, "team_member_not_exists")
 		}
 		return nil, errors.Wrap(err, "unable_to_save_team_member")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.TeamMember{}
