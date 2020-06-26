@@ -1372,7 +1372,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 	})
 
 	t.Run("verify EnterprisePlugins is false for TE", func(t *testing.T) {
-		hitServer := false
+		requestHandled := false
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			licenseType, ok := req.URL.Query()["enterprise_plugins"]
@@ -1386,7 +1386,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			_, err = res.Write(json)
 			require.NoError(t, err)
 
-			hitServer = true
+			requestHandled = true
 		}))
 		defer func() { testServer.Close() }()
 
@@ -1401,11 +1401,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
-		assert.True(t, hitServer)
+		assert.True(t, requestHandled)
 	})
 
 	t.Run("verify EnterprisePlugins is false for E10", func(t *testing.T) {
-		hitServer := false
+		requestHandled := false
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			licenseType, ok := req.URL.Query()["enterprise_plugins"]
@@ -1419,7 +1419,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			_, err = res.Write(json)
 			require.NoError(t, err)
 
-			hitServer = true
+			requestHandled = true
 		}))
 		defer func() { testServer.Close() }()
 
@@ -1439,11 +1439,11 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
-		assert.True(t, hitServer)
+		assert.True(t, requestHandled)
 	})
 
 	t.Run("verify EnterprisePlugins is true for E20", func(t *testing.T) {
-		hitServer := false
+		requestHandled := false
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			licenseType, ok := req.URL.Query()["enterprise_plugins"]
@@ -1457,7 +1457,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			_, err = res.Write(json)
 			require.NoError(t, err)
 
-			hitServer = true
+			requestHandled = true
 		}))
 		defer func() { testServer.Close() }()
 
@@ -1473,7 +1473,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
 		CheckInternalErrorStatus(t, resp)
 		require.Nil(t, manifest)
-		assert.True(t, hitServer)
+		assert.True(t, requestHandled)
 	})
 
 	t.Run("install prepackaged and remote plugins through marketplace", func(t *testing.T) {
