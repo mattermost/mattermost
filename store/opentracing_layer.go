@@ -329,7 +329,7 @@ type OpenTracingLayerWebhookStore struct {
 	Root *OpenTracingLayer
 }
 
-func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -347,7 +347,7 @@ func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.PermanentDeleteByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -365,7 +365,7 @@ func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) *model
 	return resultVar0
 }
 
-func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.Save")
 	s.Root.Store.SetContext(newCtx)
