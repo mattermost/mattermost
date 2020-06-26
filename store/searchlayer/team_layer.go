@@ -13,7 +13,7 @@ type SearchTeamStore struct {
 	rootStore *SearchStore
 }
 
-func (s SearchTeamStore) SaveMember(teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
+func (s SearchTeamStore) SaveMember(teamMember *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	member, err := s.TeamStore.SaveMember(teamMember, maxUsersPerTeam)
 	if err == nil {
 		s.rootStore.indexUserFromID(member.UserId)

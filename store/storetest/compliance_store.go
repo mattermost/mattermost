@@ -111,23 +111,23 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1, err = ss.User().Save(u1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	require.Nil(t, nErr)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 	u2, err = ss.User().Save(u2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	require.Nil(t, nErr)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, nErr := ss.Channel().Save(c1, -1)
+	c1, nErr = ss.Channel().Save(c1, -1)
 	require.Nil(t, nErr)
 
 	o1 := &model.Post{}
@@ -220,23 +220,23 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1, err = ss.User().Save(u1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	require.Nil(t, nErr)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 	u2, err = ss.User().Save(u2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	require.Nil(t, nErr)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1, nErr := ss.Channel().Save(c1, -1)
+	c1, nErr = ss.Channel().Save(c1, -1)
 	require.Nil(t, nErr)
 
 	cDM, nErr := ss.Channel().CreateDirectChannel(u1, u2)
@@ -317,11 +317,11 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -329,11 +329,11 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	}
 	user2, err = ss.User().Save(user2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -342,7 +342,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts twice in the public channel
@@ -421,11 +421,11 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -433,11 +433,11 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	}
 	user2, err = ss.User().Save(user2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a private channel
 	channel := &model.Channel{
@@ -446,7 +446,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Private Channel",
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts twice in the private channel
@@ -527,11 +527,11 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -539,11 +539,11 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	}
 	user2, err = ss.User().Save(user2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// as well as a DM channel between those users
 	directMessageChannel, nErr := ss.Channel().CreateDirectChannel(user1, user2)
@@ -608,11 +608,11 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -620,11 +620,11 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	}
 	user2, err = ss.User().Save(user2)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user2.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	user3 := &model.User{
 		Email:    MakeEmail(),
@@ -632,11 +632,11 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	}
 	user3, err = ss.User().Save(user3)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user3.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// can't create a group channel directly, because importing app creates an import cycle, so we have to fake it
 	groupMessageChannel := &model.Channel{
@@ -644,7 +644,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Name:   model.NewId(),
 		Type:   model.CHANNEL_GROUP,
 	}
-	groupMessageChannel, nErr := ss.Channel().Save(groupMessageChannel, -1)
+	groupMessageChannel, nErr = ss.Channel().Save(groupMessageChannel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts in the GM
@@ -705,11 +705,11 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -718,7 +718,7 @@ func testEditExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
@@ -798,11 +798,11 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -811,7 +811,7 @@ func testEditAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
@@ -910,11 +910,11 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -923,7 +923,7 @@ func testDeleteExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
@@ -995,11 +995,11 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 	}
 	user1, err = ss.User().Save(user1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// need a public channel
 	channel := &model.Channel{
@@ -1008,7 +1008,7 @@ func testDeleteAfterExportMessage(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr = ss.Channel().Save(channel, -1)
 	require.Nil(t, nErr)
 
 	// user1 posts in the public channel
