@@ -329,7 +329,7 @@ type OpenTracingLayerWebhookStore struct {
 	Root *OpenTracingLayer
 }
 
-func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -347,7 +347,7 @@ func (s *OpenTracingLayerAuditStore) Get(user_id string, offset int, limit int) 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.PermanentDeleteByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -365,7 +365,7 @@ func (s *OpenTracingLayerAuditStore) PermanentDeleteByUser(userId string) *model
 	return resultVar0
 }
 
-func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *OpenTracingLayerAuditStore) Save(audit *model.Audit) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "AuditStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -3864,7 +3864,7 @@ func (s *OpenTracingLayerJobStore) UpdateStatusOptimistically(id string, current
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LicenseStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -3882,7 +3882,7 @@ func (s *OpenTracingLayerLicenseStore) Get(id string) (*model.LicenseRecord, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (s *OpenTracingLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "LicenseStore.Save")
 	s.Root.Store.SetContext(newCtx)

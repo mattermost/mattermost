@@ -329,7 +329,7 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
-func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
@@ -345,7 +345,7 @@ func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
@@ -361,7 +361,7 @@ func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 	return resultVar0
 }
 
-func (s *TimerLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.Save(audit)
@@ -3518,7 +3518,7 @@ func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LicenseStore.Get(id)
@@ -3534,7 +3534,7 @@ func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LicenseStore.Save(license)
