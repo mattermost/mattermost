@@ -54,8 +54,8 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 	}
 }
 
-// filterNonAlphaNumericTerms removes all words that only contains non-alphanumeric chars from given line
-func filterNonAlphaNumericTerms(line string) string {
+// removeNonAlphaNumericTerms removes all words that only contains non-alphanumeric chars from given line
+func removeNonAlphaNumericTerms(line string) string {
 	words := strings.Split(line, " ")
 	filteredResult := make([]string, 0, len(words))
 
