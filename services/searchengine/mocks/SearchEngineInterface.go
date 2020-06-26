@@ -48,6 +48,22 @@ func (_m *SearchEngineInterface) DeleteChannel(channel *model.Channel) *model.Ap
 	return r0
 }
 
+// DeleteChannelPosts provides a mock function with given fields: channelID
+func (_m *SearchEngineInterface) DeleteChannelPosts(channelID string) *model.AppError {
+	ret := _m.Called(channelID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeletePost provides a mock function with given fields: post
 func (_m *SearchEngineInterface) DeletePost(post *model.Post) *model.AppError {
 	ret := _m.Called(post)
@@ -71,6 +87,22 @@ func (_m *SearchEngineInterface) DeleteUser(user *model.User) *model.AppError {
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(*model.User) *model.AppError); ok {
 		r0 = rf(user)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeleteUserPosts provides a mock function with given fields: userID
+func (_m *SearchEngineInterface) DeleteUserPosts(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

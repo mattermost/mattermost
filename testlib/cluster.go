@@ -21,6 +21,10 @@ func (c *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm e
 	c.clusterMessageHandler = crm
 }
 
+func (c *FakeClusterInterface) HealthScore() int {
+	return 0
+}
+
 func (c *FakeClusterInterface) GetClusterId() string { return "" }
 
 func (c *FakeClusterInterface) IsLeader() bool { return false }
