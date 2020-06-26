@@ -20,6 +20,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -101,7 +102,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
 		if err != nil {
-			return "", err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		upstreamRequest.ChannelId = cookie.ChannelId
@@ -359,6 +366,7 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	params := make(map[string]string)
 	params["plugin_id"] = pluginId
 	r = mux.SetURLVars(r, params)
+	r.URL.RawQuery = inURL.Query().Encode()
 
 	a.ServePluginRequest(w, r)
 
