@@ -966,6 +966,14 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.26
 	PublishUserTyping(userId, channelId, parentId string) *model.AppError
+
+	// CreateSlashCommand creates a server-owned slash command that is not handled by the plugin
+	// itself, and which will persist past the life of the plugin. The command will have its
+	// CreatorId set to "" and its PluginId set to the id of the plugin that created it.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.26
+	CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

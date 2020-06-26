@@ -1029,3 +1029,10 @@ func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) 
 	api.recordTime(startTime, "PublishUserTyping", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateSlashCommand(cmd)
+	api.recordTime(startTime, "CreateSlashCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}

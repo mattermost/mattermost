@@ -4482,3 +4482,32 @@ func (s *apiRPCServer) PublishUserTyping(args *Z_PublishUserTypingArgs, returns 
 	}
 	return nil
 }
+
+type Z_CreateSlashCommandArgs struct {
+	A *model.Command
+}
+
+type Z_CreateSlashCommandReturns struct {
+	A *model.Command
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	_args := &Z_CreateSlashCommandArgs{cmd}
+	_returns := &Z_CreateSlashCommandReturns{}
+	if err := g.client.Call("Plugin.CreateSlashCommand", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateSlashCommand API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateSlashCommand(args *Z_CreateSlashCommandArgs, returns *Z_CreateSlashCommandReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateSlashCommand(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateSlashCommand called but not implemented."))
+	}
+	return nil
+}
