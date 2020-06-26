@@ -303,7 +303,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider,
+					s.CacheProvider2,
 				),
 				s.SearchEngine,
 				s.Config(),
@@ -1289,6 +1289,10 @@ func (s *Server) TotalWebsocketConnections() int {
 	}
 
 	return int(count)
+}
+
+func (s *Server) ClusterHealthScore() int {
+	return s.Cluster.HealthScore()
 }
 
 func (s *Server) ensureDiagnosticId() {
