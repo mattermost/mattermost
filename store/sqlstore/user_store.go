@@ -422,6 +422,8 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -713,6 +715,8 @@ func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
