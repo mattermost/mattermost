@@ -2963,6 +2963,22 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "We encountered an error finding the audits."
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error deleting the audits."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "We encountered an error saving the audit."
+  },
+  {
     "id": "app.bot.createbot.internal_error",
     "translation": "Unable to save the bot."
   },
@@ -6173,26 +6189,6 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql_audit.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "We encountered an error finding the audits."
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits."
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
