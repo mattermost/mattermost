@@ -526,6 +526,8 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()

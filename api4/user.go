@@ -532,6 +532,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
 	inactive := r.URL.Query().Get("inactive")
+	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
@@ -559,6 +560,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
 	inactiveBool, _ := strconv.ParseBool(inactive)
+	activeBool, _ := strconv.ParseBool(active)
+
+	if inactiveBool && activeBool {
+		c.SetInvalidUrlParam("inactive")
+	}
 
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
@@ -575,6 +581,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
+		Active:           activeBool,
 		Role:             role,
 		Sort:             sort,
 		Page:             c.Params.Page,
