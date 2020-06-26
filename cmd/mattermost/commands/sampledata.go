@@ -563,9 +563,18 @@ func createChannelMembership(channelName string, guest bool) app.UserChannelImpo
 	}
 }
 
+func getSampleTeamName(idx int) string {
+	for {
+		name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+		if !model.IsReservedTeamName(name) {
+			return name
+		}
+	}
+}
+
 func createTeam(idx int) app.LineImportData {
 	displayName := fake.Word()
-	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+	name := getSampleTeamName(idx)
 	allowOpenInvite := rand.Intn(2) == 0
 
 	description := fake.Paragraph()
