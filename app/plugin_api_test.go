@@ -1578,6 +1578,86 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	require.Equal(expectedPosts, postList.ToSlice())
 }
 
+func TestPluginHTTPConnHijack(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "OK", string(body))
+}
+
+func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("ws://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	wsc, err := model.NewWebSocketClient(reqURL, "")
+	require.Nil(t, err)
+	require.NotNil(t, wsc)
+
+	wsc.Listen()
+	defer wsc.Close()
+
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK)
+
+	for i := 0; i < 10; i++ {
+		wsc.SendMessage("custom_action", map[string]interface{}{"value": i})
+		var resp *model.WebSocketResponse
+		select {
+		case resp = <-wsc.ResponseChannel:
+		case <-time.After(1 * time.Second):
+		}
+		require.NotNil(t, resp)
+		require.Equal(t, resp.Status, model.STATUS_OK)
+		require.Equal(t, "custom_action", resp.Data["action"])
+		require.Equal(t, float64(i), resp.Data["value"])
+	}
+}
+
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
