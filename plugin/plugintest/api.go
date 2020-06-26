@@ -193,6 +193,31 @@ func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return r0, r1
 }
 
+// CreateSlashCommand provides a mock function with given fields: cmd
+func (_m *API) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	ret := _m.Called(cmd)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
+		r0 = rf(cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+		r1 = rf(cmd)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreateTeam provides a mock function with given fields: team
 func (_m *API) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	ret := _m.Called(team)

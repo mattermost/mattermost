@@ -81,11 +81,12 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// If the CreatorId is blank, this should be a command created by a plugin. The PluginId should not be blank.
-	if o.CreatorId == "" && o.PluginId == "" {
+	// If the CreatorId is blank, this should be a command created by a plugin.
+	if o.CreatorId == "" && !IsValidPluginId(o.PluginId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.plugin_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// If the PluginId is blank, this should be a command associated with a userId.
 	if o.PluginId == "" && !IsValidId(o.CreatorId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
