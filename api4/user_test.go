@@ -4769,6 +4769,36 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 }
 
+func TestVerifyUserEmailWithoutToken(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Should verify a new user", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
+		ruser, _ := th.Client.CreateUser(&user)
+
+		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken(ruser.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, vuser.Id)
+	})
+
+	t.Run("Should not be able to find user", func(t *testing.T) {
+		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken("randomId")
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
+		require.Nil(t, vuser)
+	})
+
+	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
+		user := th.CreateUser()
+		vuser, resp := th.Client.VerifyUserEmailWithoutToken(user.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		require.Nil(t, vuser)
+	})
+}
+
 func TestGetKnownUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
