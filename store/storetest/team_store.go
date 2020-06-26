@@ -1197,14 +1197,14 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, 0)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 1 metadata: team members limit exeeded", nErr.Error())
 	})
 
 	t.Run("too many members because previous existing members", func(t *testing.T) {
@@ -1215,7 +1215,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr = ss.Team().SaveMember(m2, 1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exeeded", nErr.Error())
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
@@ -1226,7 +1226,7 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, nErr = ss.Team().SaveMember(m2, -1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+		require.Contains(t, nErr.Error(), "team_member_already_exists")
 	})
 
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
@@ -1537,7 +1537,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
 	t.Run("too many members in one team", func(t *testing.T) {
@@ -1546,7 +1546,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exeeded", nErr.Error())
 	})
 
 	t.Run("too many members in one team because previous existing members", func(t *testing.T) {
@@ -1560,7 +1560,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 
 		_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 4 metadata: team members limit exeeded", nErr.Error())
 	})
 
 	t.Run("too many members, but in different teams", func(t *testing.T) {
@@ -1573,7 +1573,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m5 := &model.TeamMember{TeamId: teamID2, UserId: u2.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 3 metadata: team members limit exeeded", nErr.Error())
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
@@ -1582,7 +1582,7 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+		require.Contains(t, nErr.Error(), "team_member_already_exists")
 	})
 
 	t.Run("insert members correctly (in team without scheme)", func(t *testing.T) {

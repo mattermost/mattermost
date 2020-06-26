@@ -769,7 +769,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "team_member_not_exists")
+			return nil, store.NewErrConflict("TeamMember", err, "team_member_already_exists")
 		}
 		return nil, errors.Wrap(err, "unable_to_save_team_member")
 	}
