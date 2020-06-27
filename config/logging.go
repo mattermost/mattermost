@@ -111,7 +111,10 @@ type fileSrc struct {
 
 func newFileSrc(dsn string) (*fileSrc, error) {
 	src := &fileSrc{}
-	return src, src.Set(dsn)
+	if err := src.Set(dsn); err != nil {
+		return nil, err
+	}
+	return src, nil
 }
 
 // Set updates the dsn specifying the file source and reloads.

@@ -470,7 +470,9 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if license == nil || !*license.Features.AdvancedLogging {
-		mlog.ShutdownAdvancedLogging(context.Background())
+		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancelCtx()
+		mlog.ShutdownAdvancedLogging(timeoutCtx)
 	}
 
 	// Enable developer settings if this is a "dev" build
@@ -575,6 +577,11 @@ func (s *Server) initLogging() error {
 			}
 		})
 
+		// In case initLogging is called more than once.
+		if s.advancedLogListenerCleanup != nil {
+			s.advancedLogListenerCleanup()
+		}
+
 		s.advancedLogListenerCleanup = func() {
 			cfg.RemoveListener(listenerId)
 		}
@@ -677,14 +684,18 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	if err := mlog.Flush(context.Background()); err != nil {
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer timeoutCancel()
+	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Error("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
 
 	// this should just write the "server stopped" record, the rest are already flushed.
-	_ = mlog.ShutdownAdvancedLogging(context.Background())
+	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
+	defer timeoutCancel2()
+	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
 
 	return nil
 }
