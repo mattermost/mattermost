@@ -374,9 +374,9 @@ type SessionStore interface {
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) *model.AppError
-	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
-	PermanentDeleteByUser(userId string) *model.AppError
+	Save(audit *model.Audit) error
+	Get(user_id string, offset int, limit int) (model.Audits, error)
+	PermanentDeleteByUser(userId string) error
 }
 
 type ClusterDiscoveryStore interface {
