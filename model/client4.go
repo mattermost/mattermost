@@ -1211,6 +1211,16 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
+func (c *Client4) PermanentDeleteAllUsers() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUsersRoute())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // SendPasswordResetEmail will send a link for password resetting to a user with the
 // provided email.
 func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
