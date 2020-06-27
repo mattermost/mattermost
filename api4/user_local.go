@@ -6,11 +6,13 @@ package api4
 import (
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("", api.ApiLocal(getUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("", api.ApiLocal(localPermanentDeleteAllUsers)).Methods("DELETE")
 	api.BaseRoutes.Users.Handle("", api.ApiLocal(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiLocal(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiLocal(getUsersByIds)).Methods("POST")
@@ -27,6 +29,19 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiLocal(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(getUserAccessTokensForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(createUserAccessToken)).Methods("POST")
+}
+
+func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if err := c.App.PermanentDeleteAllUsers(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
