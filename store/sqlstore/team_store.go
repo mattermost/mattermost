@@ -9,12 +9,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -741,7 +742,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 
 		_, err = s.GetMaster().Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
-			return nil, errors.Wrap(err, "member_count_select")
+			return nil, errors.Wrap(err, "failed to count users in the teams of the memberships")
 		}
 
 		for teamId, newMembers := range newTeamMembers {
@@ -752,7 +753,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 				}
 			}
 			if existingMembers+newMembers > maxUsersPerTeam {
-				return nil, store.NewErrLimitExceeded("TeamMember", existingMembers+newMembers, "team members limit exeeded")
+				return nil, store.NewErrLimitExceeded("TeamMember", existingMembers+newMembers, "team members limit exceeded")
 			}
 		}
 	}
@@ -769,7 +770,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 
 	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
 		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "team_member_already_exists")
+			return nil, store.NewErrConflict("TeamMember", err, "")
 		}
 		return nil, errors.Wrap(err, "unable_to_save_team_member")
 	}

@@ -60,13 +60,13 @@ func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 	if _, nErr := a.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
-		var limitExeededErr *store.ErrLimitExceeded
+		var limitExceededErr *store.ErrLimitExceeded
 		switch {
 		case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
 			return appErr
 		case errors.As(nErr, &conflictErr):
 			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
-		case errors.As(nErr, &limitExeededErr):
+		case errors.As(nErr, &limitExceededErr):
 			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
 		default: // last fallback in case it doesn't map to an existing app error.
 			return model.NewAppError("CreateBasicUser", "app.create_basic_user.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)

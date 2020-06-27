@@ -3311,8 +3311,16 @@
     "translation": "Error importing user channel memberships. Failed to save preferences."
   },
   {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Unable to import the new team membership because it already exists"
+  },
+  {
     "id": "app.import.import_user_teams.save_members.error",
     "translation": "Unable to import team memberships"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Unable to import team membership because no more members are allowed in that team"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
