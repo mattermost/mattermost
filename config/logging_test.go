@@ -17,6 +17,20 @@ const (
 	badJSON   = `{"file":{ Type="file"}}`
 )
 
+type fgetFunc func(string) ([]byte, error)
+
+func (f fgetFunc) GetFile(path string) ([]byte, error) {
+	return f(path)
+}
+
+func getValidFile(path string) ([]byte, error) {
+	return []byte(validJSON), nil
+}
+
+func getInvalidFile(path string) ([]byte, error) {
+	return nil, os.ErrNotExist
+}
+
 func TestNewLogConfigSrc(t *testing.T) {
 	tempFile, err := ioutil.TempFile("", "testAdvancedLogging.conf")
 	require.NoError(t, err)
@@ -27,10 +41,11 @@ func TestNewLogConfigSrc(t *testing.T) {
 	tests := []struct {
 		name     string
 		dsn      string
+		fget     FileGetter
 		wantErr  bool
 		wantType LogConfigSrc
 	}{
-		{name: "empty dsn", dsn: "", wantErr: true, wantType: nil},
+		{name: "empty dsn", dsn: "", fget: fgetFunc(getInvalidFile), wantErr: true, wantType: nil},
 		{name: "garbage dsn", dsn: "!@wfejwcevioj", wantErr: true, wantType: nil},
 		{name: "valid json dsn", dsn: validJSON, wantErr: false, wantType: &jsonSrc{}},
 		{name: "invalid json dsn", dsn: badJSON, wantErr: true, wantType: nil},

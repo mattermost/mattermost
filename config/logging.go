@@ -4,9 +4,7 @@
 package config
 
 import (
-	"encoding/json"
-	"errors"
-	"io/ioutil"
+	"os"
 	"strings"
 	"sync"
 
@@ -15,6 +13,10 @@ import (
 
 type LogSrcListener func(old, new mlog.LogTargetCfg)
 
+type FileGetter interface {
+	GetFile(name string) ([]byte, error)
+}
+
 // LogConfigSrc abstracts the Advanced Logging configuration so that implementations can
 // fetch from file, database, etc.
 type LogConfigSrc interface {
@@ -22,7 +24,7 @@ type LogConfigSrc interface {
 	Get() mlog.LogTargetCfg
 
 	// Set updates the dsn specifying the source and reloads
-	Set(dsn string) (err error)
+	Set(dsn string, fget FileGetter) (err error)
 
 	// AddListener adds a callback function to invoke when the configuration is modified.
 	AddListener(listener LogSrcListener) string
@@ -36,18 +38,13 @@ type LogConfigSrc interface {
 
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a
 // file, JSON string, or database.
-func NewLogConfigSrc(dsn string) (LogConfigSrc, error) {
+func NewLogConfigSrc(dsn string, fget FileGetter) (LogConfigSrc, error) {
 	dsn = strings.TrimSpace(dsn)
 
 	if IsJsonMap(dsn) {
 		return newJSONSrc(dsn)
 	}
-
-	if strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://") {
-		return newDatabaseSrc(dsn)
-	}
-
-	return newFileSrc(dsn)
+	return newFileSrc(dsn, fget)
 }
 
 // commonSrc
@@ -80,15 +77,14 @@ type jsonSrc struct {
 	commonSrc
 }
 
-func newJSONSrc(dsn string) (*jsonSrc, error) {
+func newJSONSrc(data string) (*jsonSrc, error) {
 	src := &jsonSrc{}
-	return src, src.Set(dsn)
+	return src, src.Set(data, nil)
 }
 
-// Set updates the dsn specifying the source and reloads
-func (src *jsonSrc) Set(dsn string) error {
-	cfg := make(mlog.LogTargetCfg)
-	err := json.Unmarshal([]byte(dsn), &cfg)
+// Set updates the JSON specifying the source and reloads
+func (src *jsonSrc) Set(data string, _ FileGetter) error {
+	cfg, err := JSONToLogTargetCfg([]byte(data))
 	if err != nil {
 		return err
 	}
@@ -106,12 +102,15 @@ func (src *jsonSrc) Close() error {
 
 type fileSrc struct {
 	commonSrc
+	path    string
 	watcher *watcher
 }
 
-func newFileSrc(dsn string) (*fileSrc, error) {
-	src := &fileSrc{}
-	if err := src.Set(dsn); err != nil {
+func newFileSrc(path string, fget FileGetter) (*fileSrc, error) {
+	src := &fileSrc{
+		path: path,
+	}
+	if err := src.Set(path, fget); err != nil {
 		return nil, err
 	}
 	return src, nil
@@ -120,24 +119,36 @@ func newFileSrc(dsn string) (*fileSrc, error) {
 // Set updates the dsn specifying the file source and reloads.
 // The file will be watched for changes and reloaded as needed,
 // and all listeners notified.
-func (src *fileSrc) Set(dsn string) error {
-	path, err := resolveConfigFilePath(dsn)
+func (src *fileSrc) Set(path string, fget FileGetter) error {
+	data, err := fget.GetFile(path)
 	if err != nil {
 		return err
 	}
 
-	data, err := ioutil.ReadFile(path)
+	cfg, err := JSONToLogTargetCfg(data)
 	if err != nil {
 		return err
 	}
 
-	cfg := make(mlog.LogTargetCfg)
-	if err = json.Unmarshal(data, &cfg); err != nil {
-		return err
+	src.set(cfg)
+
+	// If path is a real file and not just the name of a database resource then watch it for changes.
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
+
+	src.mutex.Lock()
+	defer src.mutex.Unlock()
+
+	if src.watcher != nil {
+		if err := src.watcher.Close(); err != nil {
+			mlog.Error("failed to close watcher", mlog.Err(err))
+		}
+		src.watcher = nil
 	}
 
 	watcher, err := newWatcher(path, func() {
-		if serr := src.Set(path); serr != nil {
+		if serr := src.Set(path, fget); serr != nil {
 			mlog.Error("failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
 		}
 	})
@@ -145,15 +156,6 @@ func (src *fileSrc) Set(dsn string) error {
 		return err
 	}
 
-	src.set(cfg)
-
-	src.mutex.Lock()
-	defer src.mutex.Unlock()
-	if src.watcher != nil {
-		if err := src.watcher.Close(); err != nil {
-			mlog.Error("failed to close watcher", mlog.Err(err))
-		}
-	}
 	src.watcher = watcher
 
 	return nil
@@ -169,26 +171,4 @@ func (src *fileSrc) Close() error {
 		src.watcher = nil
 	}
 	return err
-}
-
-// databaseSrc
-
-type databaseSrc struct {
-	commonSrc
-}
-
-func newDatabaseSrc(dsn string) (*databaseSrc, error) {
-	src := &databaseSrc{}
-	return src, src.Set(dsn)
-}
-
-// Set updates the dsn specifying the database source and reloads.
-func (src *databaseSrc) Set(dsn string) error {
-	//src.set(cfg)
-	return errors.New("database source not implemented yet")
-}
-
-// Close cleans up resources.
-func (src *databaseSrc) Close() error {
-	return nil
 }

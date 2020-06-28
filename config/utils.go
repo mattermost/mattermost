@@ -167,3 +167,12 @@ func IsJsonMap(data string) bool {
 	var m map[string]interface{}
 	return json.Unmarshal([]byte(data), &m) == nil
 }
+
+func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
+	cfg := make(mlog.LogTargetCfg)
+	err := json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
