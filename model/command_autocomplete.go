@@ -87,6 +87,7 @@ type AutocompleteDynamicListArg struct {
 
 // AutocompleteBoolArg is used to input one of the arguments like t,f,true or false
 type AutocompleteBoolArg struct {
+	Hint      string
 	BoolValue string
 }
 
@@ -178,18 +179,18 @@ func (ad *AutocompleteData) AddNamedDynamicListArgument(name, helpText, url stri
 }
 
 // AddBoolArgument adds positional AutocompleteArgTypeBool argument to the command.
-func (ad *AutocompleteData) AddBoolArgument(helpText, BoolValue string, required bool) {
-	ad.AddNamedBoolArgument("", helpText, BoolValue, required)
+func (ad *AutocompleteData) AddBoolArgument(helpText, hint, BoolValue string, required bool) {
+	ad.AddNamedBoolArgument("", helpText, hint, BoolValue, required)
 }
 
 // AddNamedBoolArgument adds named AutocompleteArgTypeBool argument to the command.
-func (ad *AutocompleteData) AddNamedBoolArgument(name, helpText, BoolValue string, required bool) {
+func (ad *AutocompleteData) AddNamedBoolArgument(name, helpText, hint, BoolValue string, required bool) {
 	argument := AutocompleteArg{
 		Name:     name,
 		HelpText: helpText,
 		Type:     AutocompleteArgTypeBool,
 		Required: required,
-		Data:     &AutocompleteBoolArg{BoolValue: BoolValue},
+		Data:     &AutocompleteBoolArg{Hint: hint, BoolValue: BoolValue},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
