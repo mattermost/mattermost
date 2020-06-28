@@ -133,6 +133,7 @@ func (src *fileSrc) Set(path string, fget FileGetter) error {
 	src.set(cfg)
 
 	// If path is a real file and not just the name of a database resource then watch it for changes.
+	// Absolute paths are explicit and require no resolution.
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil
 	}

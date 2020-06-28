@@ -559,14 +559,24 @@ func (s *Server) initLogging() error {
 	})
 
 	// Configure advanced logging.
-	// Advanced logging is E20 only, however logging is initialized before the license
+	// Advanced logging is E20 only, however logging must be initialized before the license
 	// file is loaded.  If no valid E20 license exists then advanced logging will be
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
-		cfg, err := config.NewLogConfigSrc(*s.Config().LogSettings.AdvancedLoggingConfig)
+		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
+
+		// If this is a file based config we need the full path so it can be watched.
+		if !config.IsJsonMap(dsn) {
+			if fs, ok := s.configStore.(*config.FileStore); ok {
+				dsn = fs.GetFilePath(dsn)
+			}
+		}
+
+		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}
+
 		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
 		}
