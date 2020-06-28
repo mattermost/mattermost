@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/go-i18n/i18n"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -211,7 +212,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, WarnMetricPrefix) {
 			if value == "true" {
-				result[key] = a.getWarnMetricStatusForId(key)
+				result[key], _ = a.getWarnMetricStatusForId(key, nil)
 			}
 		}
 	}
@@ -219,17 +220,29 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusForId(warnMetricId string) *model.WarnMetricStatus {
+func (a *App) getWarnMetricStatusForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricMessages) {
+	var warnMetricStatus *model.WarnMetricStatus
+	var warnMetricMessages *model.WarnMetricMessages
+
 	switch warnMetricId {
 	case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-		return &model.WarnMetricStatus{
-			Id:    model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
+		warnMetricStatus = &model.WarnMetricStatus{
+			Id:    warnMetricId,
 			AaeId: "AAE-010-1010",
 			Limit: 500,
 		}
+		if T != nil {
+			warnMetricMessages = &model.WarnMetricMessages{
+				Bot:           T("api.server.warn_metric.number_of_active_users.notification", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId}),
+				BotMailToBody: T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"AaeId": warnMetricStatus.AaeId, "Limit": warnMetricStatus.Limit}),
+				EmailBody:     T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId}),
+			}
+		}
+	default:
+		mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
+		return nil, nil
 	}
-
-	return nil
+	return warnMetricStatus, warnMetricMessages
 }
 
 func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
@@ -296,22 +309,16 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 			return appErr
 		}
 
-		var warnMetricMessage string
-		var warnMetricStatus *model.WarnMetricStatus
-
-		switch warnMetricId {
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			warnMetricStatus = a.getWarnMetricStatusForId(warnMetricId)
-			warnMetricMessage = T("api.server.warn_metric.number_of_active_users.notification", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId})
-		default:
-			mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
-		}
-
+		warnMetricStatus, warnMetricMessages := a.getWarnMetricStatusForId(warnMetricId, T)
 		botPost := &model.Post{
 			UserId:    bot.UserId,
 			ChannelId: channel.Id,
 			Message:   "",
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
+		}
+
+		if warnMetricStatus == nil {
+			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
 		}
 
 		actions := []*model.PostAction{}
@@ -331,7 +338,7 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 						"bot_user_id": bot.UserId,
 						"force_ack":   false,
 					},
-					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+					URL: fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId),
 				},
 			},
 		)
@@ -339,7 +346,7 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		attachments := []*model.SlackAttachment{{
 			AuthorName: bot.DisplayName,
 			Title:      "",
-			Text:       warnMetricMessage,
+			Text:       warnMetricMessages.Bot,
 			Actions:    actions,
 		}}
 		model.ParseSlackAttachment(botPost, attachments)

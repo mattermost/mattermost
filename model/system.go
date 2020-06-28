@@ -80,6 +80,12 @@ type WarnMetricStatus struct {
 	Limit int64  `json:"limit,omitempty"`
 }
 
+type WarnMetricMessages struct {
+	Bot           string
+	BotMailToBody string
+	EmailBody     string
+}
+
 func (wms *WarnMetricStatus) ToJson() string {
 	b, _ := json.Marshal(wms)
 	return string(b)

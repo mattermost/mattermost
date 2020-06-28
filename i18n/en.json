@@ -1915,10 +1915,6 @@
     "translation": "Error starting server, err:%v"
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_body",
-    "translation": "Mattermost support request for {{.AaeId}}: Team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance."
-  },
-  {
     "id": "api.server.warn_metric.bot_response.mailto_contact_header",
     "translation": "Contact: {{.Contact}}"
   },
@@ -1953,6 +1949,10 @@
   {
     "id": "api.server.warn_metric.bot_response.notification_success",
     "translation": "Mattermost support contacted."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+    "translation": "Mattermost support request for {{.AaeId}}: Team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance.\r\n"
   },
   {
     "id": "api.server.warn_metric.contact_support",
@@ -4079,8 +4079,24 @@
     "translation": "List of admins is empty."
   },
   {
+    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+    "translation": "Could not find metric."
+  },
+  {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Failed to store value for {{.WarnMetricName}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+    "translation": "Mattermost support request for {{.AaeId}}: Team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users.notification",
+    "translation": "Warning: Your team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance. {{.AaeId}}\r\n*Contacting support sends your contact information to Mattermost, Inc. [Learn More](https://mattermost.com/pl/default-aae-faq).*"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+    "translation": "Mattermost support request for {{ .AaeId }}: Team exceeds {{ .Limit }} users. Consider activating user management access controls to ensure compliance."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",

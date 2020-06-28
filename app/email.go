@@ -549,19 +549,13 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 		bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
 		bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
-		var subject string
-
-		switch warnMetricId {
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			warnMetricStatus := a.getWarnMetricStatusForId(warnMetricId)
-			if warnMetricStatus != nil {
-				subject = T("api.templates.warn_metric_ack.subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId})
-				bodyPage.Props["Title"] = T("api.templates.warn_metric_ack.number_of_active_users.body",
-					map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId})
-			}
-		default:
+		warnMetricStatus, warnMetricMessages := a.getWarnMetricStatusForId(warnMetricId, T)
+		if warnMetricStatus == nil {
 			return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 		}
+
+		subject := T("api.templates.warn_metric_ack.subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId})
+		bodyPage.Props["Title"] = warnMetricMessages.EmailBody
 
 		if err = mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
 			mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))

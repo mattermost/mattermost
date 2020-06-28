@@ -422,7 +422,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		if forceAck {
 			return appErr
 		}
-		mailtoLink := a.buildWarnMetricMailtoLink(warnMetricId, user)
+		mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
 		actions := []*model.PostAction{}
 		actions = append(actions,
 			&model.PostAction{
@@ -432,7 +432,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 				Options: []*model.PostActionOptions{
 					{
 						Text:  "ExternalUrl",
-						Value: mailtoLink,
+						Value: mailtoLinkText,
 					},
 				},
 				Integration: &model.PostActionIntegration{
@@ -463,16 +463,26 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 	return nil
 }
 
-func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
-	warnMetricStatus := a.getWarnMetricStatusForId(warnMetricId)
+type MailToLinkContent struct {
+	MailRecipient string `json:"mail_recipient"`
+	MailCC        string `json:"mail_cc"`
+	MailSubject   string `json:"mail_subject"`
+	MailBody      string `json:"mail_body"`
+}
 
-	const mailRecipient = "support@mattermost.com"
-	mailSubject := utils.T("api.server.warn_metric.bot_response.mailto_subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId})
-	mailBody := utils.T("api.server.warn_metric.bot_response.mailto_body", map[string]interface{}{"AaeId": warnMetricStatus.AaeId, "Limit": warnMetricStatus.Limit})
+func (mlc *MailToLinkContent) ToJson() string {
+	b, _ := json.Marshal(mlc)
+	return string(b)
+}
+
+func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+	T := utils.GetUserTranslations(user.Locale)
+	warnMetricStatus, warnMetricMessages := a.getWarnMetricStatusForId(warnMetricId, T)
+
+	mailBody := warnMetricMessages.BotMailToBody
+	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
 	mailBody += "\r\n"
-	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
-	mailBody += "\r\n"
-	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
 	mailBody += "\r\n"
 
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
@@ -483,17 +493,22 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 		mailBody += "\r\n"
 	}
 
-	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
 	mailBody += "\r\n"
 
-	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.DiagnosticId()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.DiagnosticId()})
 	mailBody += "\r\n"
 
-	mailBody += utils.T("api.server.warn_metric.bot_response.mailto_footer")
+	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
 
-	mailToLinkText := "mailto:" + mailRecipient + "?cc=" + user.Email + "&subject=" + url.QueryEscape(mailSubject) + "&body=" + url.QueryEscape(mailBody)
+	mailToLinkContent := &MailToLinkContent{
+		MailRecipient: "support@mattermost.com",
+		MailCC:        user.Email,
+		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject", map[string]interface{}{"AaeId": warnMetricStatus.AaeId}),
+		MailBody:      mailBody,
+	}
 
-	return mailToLinkText
+	return mailToLinkContent.ToJson()
 }
 
 func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
