@@ -41,6 +41,13 @@ func (b StatementBuilderType) RunWith(runner BaseRunner) StatementBuilderType {
 	return setRunWith(b, runner).(StatementBuilderType)
 }
 
+// Where adds WHERE expressions to the query.
+//
+// See SelectBuilder.Where for more information.
+func (b StatementBuilderType) Where(pred interface{}, args ...interface{}) StatementBuilderType {
+	return builder.Append(b, "WhereParts", newWherePart(pred, args...)).(StatementBuilderType)
+}
+
 // StatementBuilder is a parent builder for other builders, e.g. SelectBuilder.
 var StatementBuilder = StatementBuilderType(builder.EmptyBuilder).PlaceholderFormat(Question)
 
