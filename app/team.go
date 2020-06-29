@@ -1265,8 +1265,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay

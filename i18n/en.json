@@ -2623,6 +2623,10 @@
     "translation": "Unable to get user by email."
   },
   {
+    "id": "api.user.invite.error",
+    "translation": "Error sending mail invite to user."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
@@ -4351,20 +4355,12 @@
     "translation": "Failed to delete the channel"
   },
   {
-    "id": "ent.elasticsearch.delete_channel_posts.error",
-    "translation": "Failed to delete channel posts"
-  },
-  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
-  },
-  {
-    "id": "ent.elasticsearch.delete_user_posts.error",
-    "translation": "Failed to delete user posts"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
