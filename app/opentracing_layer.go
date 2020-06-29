@@ -12413,7 +12413,14 @@ func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName stri
 	}()
 
 	defer span.Finish()
-	return a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
+	resultVar0 := a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
