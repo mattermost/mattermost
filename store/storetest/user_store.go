@@ -516,6 +516,36 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			sanitized(u7),
 		}, actual)
 	})
+
+	t.Run("filter to active", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Active:  true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+			sanitized(u3),
+			sanitized(u4),
+			sanitized(u5),
+		}, actual)
+	})
+
+	t.Run("try to filter to active and inactive", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:     0,
+			PerPage:  10,
+			Inactive: true,
+			Active:   true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u6),
+			sanitized(u7),
+		}, actual)
+	})
 }
 
 func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
@@ -649,6 +679,36 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u5),
+		}, actual)
+	})
+
+	t.Run("filter to active", func(t *testing.T) {
+		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  10,
+			Active:   true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+			sanitized(u3),
+			sanitized(u4),
+		}, actual)
+	})
+
+	t.Run("try to filter to active and inactive", func(t *testing.T) {
+		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  10,
+			Inactive: true,
+			Active:   true,
 		})
 		require.Nil(t, err)
 		require.Equal(t, []*model.User{
