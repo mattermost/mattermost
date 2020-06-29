@@ -1501,6 +1501,10 @@
     "translation": "The number of users requested is not correct."
   },
   {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
