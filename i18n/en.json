@@ -911,10 +911,6 @@
     "translation": "Logout of Mattermost"
   },
   {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
-  },
-  {
     "id": "api.command_logout.name",
     "translation": "logout"
   },
@@ -2515,6 +2511,10 @@
     "translation": "Unsupported OAuth service provider."
   },
   {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Team id parameter is required to autocomplete by channel."
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2969,6 +2969,22 @@
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "We encountered an error finding the audits."
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error deleting the audits."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "app.bot.createbot.internal_error",
@@ -4059,12 +4075,20 @@
     "translation": "Failed to delete the channel."
   },
   {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "bleveengine.index_channel.error",
@@ -4331,12 +4355,20 @@
     "translation": "Failed to delete the channel"
   },
   {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -5527,6 +5559,10 @@
     "translation": "invalid characters in the name property for group"
   },
   {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
+  },
+  {
     "id": "model.group.remote_id.app_error",
     "translation": "invalid remote id property for group."
   },
@@ -6139,10 +6175,6 @@
     "translation": "insert error"
   },
   {
-    "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
-  },
-  {
     "id": "store.select_error",
     "translation": "select error"
   },
@@ -6161,26 +6193,6 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql_audit.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "We encountered an error finding the audits."
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits."
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6595,18 +6607,6 @@
     "translation": "Unable to update the job."
   },
   {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license."
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found."
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license."
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
@@ -6913,14 +6913,6 @@
   {
     "id": "store.sql_reaction.delete.app_error",
     "translation": "Unable to delete reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
