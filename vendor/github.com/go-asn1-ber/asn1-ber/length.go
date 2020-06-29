@@ -71,11 +71,11 @@ func readLength(reader io.Reader) (length int, read int, err error) {
 }
 
 func encodeLength(length int) []byte {
-	length_bytes := encodeUnsignedInteger(uint64(length))
-	if length > 127 || len(length_bytes) > 1 {
-		longFormBytes := []byte{(LengthLongFormBitmask | byte(len(length_bytes)))}
-		longFormBytes = append(longFormBytes, length_bytes...)
-		length_bytes = longFormBytes
+	lengthBytes := encodeUnsignedInteger(uint64(length))
+	if length > 127 || len(lengthBytes) > 1 {
+		longFormBytes := []byte{LengthLongFormBitmask | byte(len(lengthBytes))}
+		longFormBytes = append(longFormBytes, lengthBytes...)
+		lengthBytes = longFormBytes
 	}
-	return length_bytes
+	return lengthBytes
 }

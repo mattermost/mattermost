@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.9
+	github.com/minio/md5-simd v1.1.0
 	github.com/minio/sha256-simd v0.1.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/sirupsen/logrus v1.5.0 // indirect
