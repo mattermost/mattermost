@@ -12379,7 +12379,7 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
+func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendInviteEmails")
 
@@ -12391,7 +12391,7 @@ func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName stri
 	}()
 
 	defer span.Finish()
-	a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
+	return a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
 }
 
 func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
