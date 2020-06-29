@@ -7566,6 +7566,65 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
+
+	t.Run("should create initial favorites/channels/DMs categories for multiple users", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
+
+		user2 := &model.User{Id: model.NewId()}
+
+		nErr = ss.Channel().CreateInitialSidebarCategories(user2, teamId)
+		assert.Nil(t, nErr)
+
+		res, err := ss.Channel().GetSidebarCategories(user2.Id, teamId)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
+	})
+
+	t.Run("should create initial favorites/channels/DMs categories on different teams", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
+
+		teamId2 := model.NewId()
+
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, teamId2)
+		assert.Nil(t, nErr)
+
+		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId2)
+		assert.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
+	})
+
+	t.Run("shouldn't create additional categories when ones already exist", func(t *testing.T) {
+		user := &model.User{Id: model.NewId()}
+		teamId := model.NewId()
+
+		nErr := ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		require.Nil(t, nErr)
+
+		initialCategories, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		require.Nil(t, err)
+
+		// Calling CreateInitialSidebarCategories a second time shouldn't create any new categories
+		nErr = ss.Channel().CreateInitialSidebarCategories(user, teamId)
+		assert.Nil(t, nErr)
+
+		res, err := ss.Channel().GetSidebarCategories(user.Id, teamId)
+		assert.Nil(t, err)
+		assert.Equal(t, initialCategories.Categories, res.Categories)
+	})
 }
 
 func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
