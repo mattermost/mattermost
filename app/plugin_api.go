@@ -77,6 +77,7 @@ func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*mode
 		return nil, err
 	}
 	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.SiteURL = api.app.GetSiteURL()
 	response, appErr := api.app.ExecuteCommand(commandArgs)
 	if appErr != nil {
 		return response, fmt.Errorf(appErr.Error())
