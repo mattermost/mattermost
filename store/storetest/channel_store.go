@@ -621,8 +621,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 	require.Len(t, *list, 1, "invalid number of channels")
 
-	list, err = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
-	require.Nil(t, err)
+	list, nErr = ss.Channel().GetMoreChannels(o1.TeamId, m1.UserId, 0, 100)
+	require.Nil(t, nErr)
 	require.Len(t, *list, 1, "invalid number of channels")
 
 	cresult := ss.Channel().PermanentDelete(o2.Id)
@@ -1077,8 +1077,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1097,7 +1097,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1238,8 +1238,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
 		}
-		cs, err = ss.Scheme().Save(cs)
-		require.Nil(t, err)
+		cs, nErr := ss.Scheme().Save(cs)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1588,8 +1588,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -1608,7 +1608,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1763,8 +1763,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
 		}
-		cs, err = ss.Scheme().Save(cs)
-		require.Nil(t, err)
+		cs, nErr := ss.Scheme().Save(cs)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2102,8 +2102,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2122,7 +2122,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2265,8 +2265,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
 		}
-		cs, err = ss.Scheme().Save(cs)
-		require.Nil(t, err)
+		cs, nErr := ss.Scheme().Save(cs)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2612,8 +2612,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_TEAM,
 		}
-		ts, err = ss.Scheme().Save(ts)
-		require.Nil(t, err)
+		ts, nErr := ss.Scheme().Save(ts)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -2632,7 +2632,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2782,8 +2782,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Description: model.NewId(),
 			Scope:       model.SCHEME_SCOPE_CHANNEL,
 		}
-		cs, err = ss.Scheme().Save(cs)
-		require.Nil(t, err)
+		cs, nErr := ss.Scheme().Save(cs)
+		require.Nil(t, nErr)
 
 		team := &model.Team{
 			DisplayName: "Name",
@@ -4896,7 +4896,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o10 := model.Channel{
 		TeamId:      teamId,
 		DisplayName: "The",
-		Name:        "the",
+		Name:        "thename",
 		Type:        model.CHANNEL_OPEN,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
@@ -4949,7 +4949,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		{"prefix", teamId, "off-", false, &model.ChannelList{&o7, &o6}},
 		{"full match with dash", teamId, "off-topic", false, &model.ChannelList{&o6}},
 		{"town square", teamId, "town square", false, &model.ChannelList{&o9}},
-		{"the in name", teamId, "the", false, &model.ChannelList{&o10}},
+		{"the in name", teamId, "thename", false, &model.ChannelList{&o10}},
 		{"Mobile", teamId, "Mobile", false, &model.ChannelList{&o11}},
 		{"search purpose", teamId, "now searchable", false, &model.ChannelList{&o12}},
 		{"pipe ignored", teamId, "town square |", false, &model.ChannelList{&o9}},

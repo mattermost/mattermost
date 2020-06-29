@@ -49,6 +49,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
+	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiSessionRequired(verifyUserEmailWithoutToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
 
@@ -884,9 +885,18 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		// Applying the provided teamId here is useful for DMs and GMs which don't belong
-		// to a team. Applying it when the channel does belong to a team makes less sense,
-		// but the permissions are checked above regardless.
+		// We're using the channelId to search for users inside that channel and the team
+		// to get the not in channel list. Also we want to include the DM and GM users for
+		// that team which could only be obtained having the team id.
+		if len(teamId) == 0 {
+			c.Err = model.NewAppError("autocompleteUser",
+				"api.user.autocomplete_users.missing_team_id.app_error",
+				nil,
+				"channelId="+channelId,
+				http.StatusInternalServerError,
+			)
+			return
+		}
 		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
@@ -2331,4 +2341,36 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("verifyUserEmailWithoutToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", user.Id)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.VerifyUserEmail(user.Id, user.Email); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("user verified")
+
+	w.Write([]byte(user.ToJson()))
 }
