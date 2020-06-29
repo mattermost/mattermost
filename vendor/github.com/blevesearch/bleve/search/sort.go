@@ -233,7 +233,11 @@ func (so SortOrder) Compare(cachedScoring, cachedDesc []bool, i, j *DocumentMatc
 		} else {
 			iVal := i.Sort[x]
 			jVal := j.Sort[x]
-			c = strings.Compare(iVal, jVal)
+			if iVal < jVal {
+				c = -1
+			} else if iVal > jVal {
+				c = 1
+			}
 		}
 
 		if c == 0 {
