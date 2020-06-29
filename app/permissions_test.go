@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testWriter struct {
@@ -251,6 +253,27 @@ func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
 		t.Errorf("Expected count to be %v but got %v", expected, actual)
 	}
 
+}
+
+func TestMigration(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	role, err := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	require.Nil(t, err)
+	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_USE_GROUP_MENTIONS.Id)
+
+	th.App.ResetPermissionsSystem()
+
+	role, err = th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
+	require.Nil(t, err)
+	assert.Contains(t, role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
+	assert.Contains(t, role.Permissions, model.PERMISSION_USE_GROUP_MENTIONS.Id)
 }
 
 func withMigrationMarkedComplete(th *TestHelper, f func()) {

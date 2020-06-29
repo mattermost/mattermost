@@ -134,8 +134,11 @@ func (a *App) DoEmojisPermissionsMigration() {
 		return
 	}
 
-	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
-	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions,
+		model.PERMISSION_CREATE_EMOJIS.Id,
+		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
+	)
 	if _, err := a.Srv().Store.Role().Save(systemAdminRole); err != nil {
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return
