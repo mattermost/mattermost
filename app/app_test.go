@@ -103,6 +103,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"channel_admin": {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+			model.PERMISSION_USE_GROUP_MENTIONS.Id,
 		},
 		"team_user": {
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
@@ -221,6 +222,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
+			model.PERMISSION_USE_GROUP_MENTIONS.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
@@ -231,7 +233,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, role.Permissions, permissions)
 	}
-
 	// Add a license and change the policy config.
 	restrictPublicChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
 	restrictPrivateChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement
@@ -292,6 +293,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"channel_admin": {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+			model.PERMISSION_USE_GROUP_MENTIONS.Id,
 		},
 		"team_user": {
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
@@ -412,6 +414,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
+			model.PERMISSION_USE_GROUP_MENTIONS.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
