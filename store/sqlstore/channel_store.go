@@ -1816,6 +1816,7 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
+		defaultTimezoneLength := `74`
 		endOfFirstKey := `LOCATE(':', Users.Timezone) + 2`
 		lengthOfFirstValue := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
 		endOfSecondKey := `LOCATE(',', Users.Timezone) + 19`
@@ -1833,14 +1834,14 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 			COUNT(ChannelMembers.UserId) AS ChannelMemberCount,
 			COUNT(DISTINCT
 				(
-					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}' AND LENGTH(Timezone) > 74
+					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
 					THEN
 					SUBSTRING(
 						Timezone
 						FROM ` + endOfFirstKey + `
 						FOR ` + lengthOfFirstValue + `
 					)
-					WHEN Timezone like '%"useAutomaticTimezone":"false"}' AND LENGTH(Timezone) > 74
+					WHEN Timezone like '%"useAutomaticTimezone":"false"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
 					THEN
 						SUBSTRING(
 						Timezone
