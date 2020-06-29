@@ -26,6 +26,7 @@ import (
 	"net/url"
 
 	"github.com/minio/minio-go/v6/pkg/s3utils"
+	"github.com/minio/minio-go/v6/pkg/tags"
 )
 
 // PutObjectTagging replaces or creates object tag(s)
@@ -46,23 +47,12 @@ func (c Client) PutObjectTaggingWithContext(ctx context.Context, bucketName, obj
 	urlValues := make(url.Values)
 	urlValues.Set("tagging", "")
 
-	tags := make([]tag, 0)
-	for k, v := range objectTags {
-		t := tag{
-			Key:   k,
-			Value: v,
-		}
-		tags = append(tags, t)
+	tags, err := tags.NewTags(objectTags, true)
+	if err != nil {
+		return err
 	}
 
-	// Prepare Tagging struct
-	reqBody := tagging{
-		TagSet: tagSet{
-			Tags: tags,
-		},
-	}
-
-	reqBytes, err := xml.Marshal(reqBody)
+	reqBytes, err := xml.Marshal(tags)
 	if err != nil {
 		return err
 	}
