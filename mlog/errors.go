@@ -5,18 +5,12 @@ package mlog
 
 import "github.com/wiggin77/logr"
 
-/*
-lgr.OnLoggerError = onLoggerError
-lgr.OnQueueFull = onQueueFull
-lgr.OnTargetQueueFull = onTargetQueueFull
-*/
-
 // onLoggerError is called when the logging system encounters an error,
 // such as a target not able to write records. The targets will keep trying
 // however the error will be logged with a dedicated level that can be output
 // to a safe/always available target for monitoring or alerting.
 func onLoggerError(err error) {
-	Log(LvlLogError, "monitor/alert", Err(err))
+	Log(LvlLogError, "advanced logging error", Err(err))
 }
 
 // onQueueFull is called when the main logger queue is full, indicating the

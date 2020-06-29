@@ -224,7 +224,7 @@ func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
 
 func (l *Logger) Flush(cxt context.Context) error {
 	if l.logrLogger != nil {
-		return l.logrLogger.Logr().Flush() // TODO: use context when lib updated
+		return l.logrLogger.Logr().Flush() // TODO: use context when Logr lib supports it.
 	}
 	return nil
 }
@@ -232,7 +232,7 @@ func (l *Logger) Flush(cxt context.Context) error {
 func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
 	var err error
 	if l.logrLogger != nil {
-		err = l.logrLogger.Logr().Shutdown() // TODO: use context when Logr lib updated
+		err = l.logrLogger.Logr().Shutdown() // TODO: use context when Logr lib supports it.
 		l.logrLogger = nil
 	}
 	return err

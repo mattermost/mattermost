@@ -53,11 +53,11 @@ func defaultCriticalLog(msg string, fields ...Field) {
 }
 
 func defaultCustomLog(lvl LogLevel, msg string, fields ...Field) {
-	// custom log levels only output once log targets are configured.
+	// custom log levels are only output once log targets are configured.
 }
 
 func defaultCustomMultiLog(lvl []LogLevel, msg string, fields ...Field) {
-	// custom log levels only output once log targets are configured.
+	// custom log levels are only output once log targets are configured.
 }
 
 func defaultFlush(ctx context.Context) error {

@@ -564,9 +564,10 @@ func (s *Server) initLogging() error {
 	// shutdown once license is loaded/checked.
 	if *s.Config().LogSettings.AdvancedLoggingConfig != "" {
 		dsn := *s.Config().LogSettings.AdvancedLoggingConfig
+		isJson := config.IsJsonMap(dsn)
 
 		// If this is a file based config we need the full path so it can be watched.
-		if !config.IsJsonMap(dsn) {
+		if !isJson {
 			if fs, ok := s.configStore.(*config.FileStore); ok {
 				dsn = fs.GetFilePath(dsn)
 			}
@@ -579,6 +580,10 @@ func (s *Server) initLogging() error {
 
 		if err := mlog.ConfigAdvancedLogging(cfg.Get()); err != nil {
 			return fmt.Errorf("error configuring advanced logging, %w", err)
+		}
+
+		if !isJson {
+			mlog.Info("Loaded advanced logging config", mlog.String("source", dsn))
 		}
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
@@ -694,7 +699,7 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*10)
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Error("Error flushing logs", mlog.Err(err))
