@@ -4355,12 +4355,20 @@
     "translation": "Failed to delete the channel"
   },
   {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
