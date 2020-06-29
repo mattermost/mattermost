@@ -1898,6 +1898,69 @@ func TestDeleteUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPermanentDeleteAllUsers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("The endpoint should not be available for neither normal nor sysadmin users", func(t *testing.T) {
+		_, resp := th.Client.PermanentDeleteAllUsers()
+		CheckNotFoundStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.PermanentDeleteAllUsers()
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
+		// Basic user creates a team and a channel
+		team, err := th.App.CreateTeamWithUser(&model.Team{
+			DisplayName: "User Created Team",
+			Name:        "user-created-team",
+			Email:       "usercreatedteam@test.com",
+			Type:        model.TEAM_OPEN,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannelWithUser(&model.Channel{
+			DisplayName: "User Created Channel",
+			Name:        "user-created-channel",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Check that we have users and posts in the database
+		users, err := th.App.Srv().Store.User().GetAll()
+		require.Nil(t, err)
+		require.Greater(t, len(users), 0)
+
+		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, err)
+		require.Greater(t, postCount, int64(0))
+
+		// Delete all users and their posts
+		_, resp := th.LocalClient.PermanentDeleteAllUsers()
+		require.Nil(t, resp.Error)
+
+		// Check that both user and post tables are empty
+		users, err = th.App.Srv().Store.User().GetAll()
+		require.Nil(t, err)
+		require.Len(t, users, 0)
+
+		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, err)
+		require.Equal(t, postCount, int64(0))
+
+		// Check that the channel and team created by the user were not deleted
+		rTeam, err := th.App.GetTeam(team.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rTeam)
+
+		rChannel, err := th.App.GetChannel(channel.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rChannel)
+	})
+}
+
 func TestUpdateUserRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
