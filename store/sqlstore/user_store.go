@@ -1527,6 +1527,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			Nickname:    user.Nickname,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,
+			Roles:       user.Roles,
 			CreateAt:    user.CreateAt,
 			DeleteAt:    user.DeleteAt,
 			TeamsIds:    []string{},
