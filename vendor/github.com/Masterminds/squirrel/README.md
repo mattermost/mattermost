@@ -94,7 +94,7 @@ query := sq.Insert("nodes").
 query.QueryRow().Scan(&node.id)
 ```
 
-You can escape question mask by inserting two question marks:
+You can escape question marks by inserting two question marks:
 
 ```sql
 SELECT * FROM nodes WHERE meta->'format' ??| array[?,?]

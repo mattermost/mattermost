@@ -187,6 +187,11 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		Users:    usersNumber.Users,
 	}
 
+	if trialLicenseRequest.SiteURL == "" {
+		c.Err = model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if err := c.App.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
 		c.Err = err
 		return

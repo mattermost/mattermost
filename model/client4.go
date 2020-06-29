@@ -1211,6 +1211,16 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
+func (c *Client4) PermanentDeleteAllUsers() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUsersRoute())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // SendPasswordResetEmail will send a link for password resetting to a user with the
 // provided email.
 func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
@@ -1323,6 +1333,16 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
+func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify/member", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
 }
 
 // SendVerificationEmail will send an email to the user with the provided email address, if

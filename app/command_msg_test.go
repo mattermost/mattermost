@@ -20,20 +20,21 @@ func TestMsgProvider(t *testing.T) {
 	th.LinkUserToTeam(th.BasicUser, team)
 	cmd := &msgProvider{}
 
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+
 	// Check without permission to create a DM channel.
 	resp := cmd.DoCommand(th.App, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
 		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: "",
-		},
 	}, "@"+th.BasicUser2.Username+" hello")
 
 	channelName := model.GetDMNameFromIds(th.BasicUser.Id, th.BasicUser2.Id)
 	assert.Equal(t, "api.command_msg.permission.app_error", resp.Text)
 	assert.Equal(t, "", resp.GotoLocation)
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	// Check with permission to create a DM channel.
 	resp = cmd.DoCommand(th.App, &model.CommandArgs{
@@ -41,9 +42,6 @@ func TestMsgProvider(t *testing.T) {
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
 		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: model.SYSTEM_USER_ROLE_ID,
-		},
 	}, "@"+th.BasicUser2.Username+" hello")
 
 	assert.Equal(t, "", resp.Text)
@@ -55,9 +53,6 @@ func TestMsgProvider(t *testing.T) {
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
 		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			Roles: "",
-		},
 	}, "@"+th.BasicUser2.Username+" hello")
 
 	assert.Equal(t, "", resp.Text)
@@ -76,9 +71,6 @@ func TestMsgProvider(t *testing.T) {
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
 		UserId:  guest.Id,
-		Session: model.Session{
-			Roles: model.SYSTEM_GUEST_ROLE_ID,
-		},
 	}, "@"+user.Username+" hello")
 
 	assert.Equal(t, "api.command_msg.missing.app_error", resp.Text)
@@ -93,9 +85,6 @@ func TestMsgProvider(t *testing.T) {
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
 		UserId:  guest.Id,
-		Session: model.Session{
-			Roles: model.SYSTEM_GUEST_ROLE_ID,
-		},
 	}, "@"+user.Username+" hello")
 
 	channelName = model.GetDMNameFromIds(guest.Id, user.Id)
