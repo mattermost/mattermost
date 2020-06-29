@@ -1211,6 +1211,16 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
+func (c *Client4) PermanentDeleteAllUsers() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUsersRoute())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // SendPasswordResetEmail will send a link for password resetting to a user with the
 // provided email.
 func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
@@ -1323,6 +1333,16 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
+func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify/member", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
 }
 
 // SendVerificationEmail will send an email to the user with the provided email address, if
@@ -2201,7 +2221,16 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 
 // GetAllChannels get all the channels. Must be a system administrator.
 func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	return c.getAllChannels(page, perPage, etag, false)
+}
+
+// GetAllChannelsIncludeDeleted get all the channels. Must be a system administrator.
+func (c *Client4) GetAllChannelsIncludeDeleted(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	return c.getAllChannels(page, perPage, etag, true)
+}
+
+func (c *Client4) getAllChannels(page int, perPage int, etag string, includeDeleted bool) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=%v", page, perPage, includeDeleted)
 	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -2445,6 +2474,19 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// MoveChannel moves the channel to the destination team.
+func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
+	requestBody := map[string]string{
+		"team_id": teamId,
+	}
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelFromJson(r.Body), BuildResponse(r)
 }
 
 // GetChannelByName returns a channel based on the provided channel name and team id strings.
