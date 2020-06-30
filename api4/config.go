@@ -244,7 +244,7 @@ func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("migrateConfig", audit.Fail)
 	auditRec.AddMeta("from", from)
-	auditRec.AddMeta("to", from)
+	auditRec.AddMeta("to", to)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {

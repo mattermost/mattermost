@@ -3247,7 +3247,7 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
 
-// MigrateConfig will migrate existing config with the new one.
+// MigrateConfig will migrate existing config to the new one.
 func (c *Client4) MigrateConfig(from, to string) (bool, *Response) {
 	m := make(map[string]string, 2)
 	m["from"] = from
