@@ -1432,7 +1432,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 		l := model.NewTestLicense()
 		// model.NewTestLicense generates a E20 license
 		*l.Features.EnterprisePlugins = false
-		th.App.Srv().SetLicense(l)
+		th.App.SetLicense(l)
 
 		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
 		pRequest := &model.InstallMarketplacePluginRequest{}
@@ -1466,7 +1466,7 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
 		})
 
-		th.App.Srv().SetLicense(model.NewTestLicense("enterprise_plugins"))
+		th.App.SetLicense(model.NewTestLicense("enterprise_plugins"))
 
 		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
 		pRequest := &model.InstallMarketplacePluginRequest{}
