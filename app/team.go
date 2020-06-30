@@ -1149,11 +1149,10 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 					Error: err,
 				})
 			}
-			err = nil // it isn't expecting an error, but a list of emails that failed
 		}
 	}
 
-	return inviteListWithErrors, err
+	return inviteListWithErrors, nil
 }
 
 func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
