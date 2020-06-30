@@ -348,7 +348,7 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 	var days int
 	if session.IsMobileApp() {
 		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
-	} else if session.IsOAuth {
+	} else if session.IsSSOLogin() {
 		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
 	} else {
 		days = *a.Config().ServiceSettings.SessionLengthWebInDays
