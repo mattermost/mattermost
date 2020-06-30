@@ -212,6 +212,12 @@ type ReattachConfig struct {
 	Protocol Protocol
 	Addr     net.Addr
 	Pid      int
+
+	// Test is set to true if this is reattaching to to a plugin in "test mode"
+	// (see ServeConfig.Test). In this mode, client.Kill will NOT kill the
+	// process and instead will rely on the plugin to terminate itself. This
+	// should not be used in non-test environments.
+	Test bool
 }
 
 // SecureConfig is used to configure a client to verify the integrity of an
@@ -825,13 +831,19 @@ func (c *Client) reattach() (net.Addr, error) {
 		c.exited = true
 	}(p.Pid)
 
-	// Set the address and process
+	// Set the address and protocol
 	c.address = c.config.Reattach.Addr
-	c.process = p
 	c.protocol = c.config.Reattach.Protocol
 	if c.protocol == "" {
 		// Default the protocol to net/rpc for backwards compatibility
 		c.protocol = ProtocolNetRPC
+	}
+
+	// If we're in test mode, we do NOT set the process. This avoids the
+	// process being killed (the only purpose we have for c.process), since
+	// in test mode the process is responsible for exiting on its own.
+	if !c.config.Reattach.Test {
+		c.process = p
 	}
 
 	return c.address, nil
