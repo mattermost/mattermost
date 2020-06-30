@@ -1900,9 +1900,9 @@ func TestPermanentDeleteUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+	enableAPIUserDeletion := *th.App.Config().ServiceSettings.EnableAPIUserDeletion
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIUserDeletion = &enableAPIUserDeletion })
 	}()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
