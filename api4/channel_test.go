@@ -3852,7 +3852,6 @@ func TestMoveChannel(t *testing.T) {
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	})
-
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
@@ -3955,4 +3954,4 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
 	})
-})
+}
