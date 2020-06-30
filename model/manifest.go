@@ -198,7 +198,7 @@ type Manifest struct {
 type ManifestServer struct {
 	// Executables are the paths to your executable binaries, specifying multiple entry points
 	// for different platforms when bundled together in a single plugin.
-	Executables *ManifestExecutables `json:"executables,omitempty" yaml:"executables,omitempty"`
+	Executables map[string]string `json:"executables,omitempty" yaml:"executables,omitempty"`
 
 	// Executable is the path to your executable binary. This should be relative to the root
 	// of your bundle and the location of the manifest file.
@@ -208,16 +208,6 @@ type ManifestServer struct {
 	// If your plugin is compiled for multiple platforms, consider bundling them together
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
-}
-
-type ManifestExecutables struct {
-	// LinuxAmd64 is the path to your executable binary for the corresponding platform
-	LinuxAmd64 string `json:"linux-amd64,omitempty" yaml:"linux-amd64,omitempty"`
-	// DarwinAmd64 is the path to your executable binary for the corresponding platform
-	DarwinAmd64 string `json:"darwin-amd64,omitempty" yaml:"darwin-amd64,omitempty"`
-	// WindowsAmd64 is the path to your executable binary for the corresponding platform
-	// This file must have a ".exe" extension
-	WindowsAmd64 string `json:"windows-amd64,omitempty" yaml:"windows-amd64,omitempty"`
 }
 
 type ManifestWebapp struct {
@@ -288,12 +278,11 @@ func (m *Manifest) GetExecutableForRuntime(goOs, goArch string) string {
 
 	var executable string
 	if server.Executables != nil {
-		if goOs == "linux" && goArch == "amd64" {
-			executable = server.Executables.LinuxAmd64
-		} else if goOs == "darwin" && goArch == "amd64" {
-			executable = server.Executables.DarwinAmd64
-		} else if goOs == "windows" && goArch == "amd64" {
-			executable = server.Executables.WindowsAmd64
+		comb := fmt.Sprintf("%s-%s", goOs, goArch)
+		val, exist := server.Executables[comb]
+
+		if exist {
+			executable = val
 		}
 	}
 
