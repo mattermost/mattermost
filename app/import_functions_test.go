@@ -63,8 +63,8 @@ func TestImportImportScheme(t *testing.T) {
 	err := th.App.importScheme(&data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
 	data.DisplayName = ptrStr("display name")
@@ -72,8 +72,8 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(&data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing an invalid scheme.
 	data.DisplayName = nil
@@ -81,8 +81,8 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
 	data.DisplayName = ptrStr("display name")
@@ -90,8 +90,8 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	scheme, err := th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -147,8 +147,8 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
-	scheme, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -203,8 +203,8 @@ func TestImportImportScheme(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	scheme, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -250,8 +250,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err := th.App.importScheme(&data, true)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme in dryRun mode.
 	data.DisplayName = ptrStr("display name")
@@ -259,8 +259,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(&data, true)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing an invalid scheme.
 	data.DisplayName = nil
@@ -268,8 +268,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.NotNil(t, err, "Scheme should not have imported.")
+	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.NotNil(t, nErr, "Scheme should not have imported.")
 
 	// Try importing a valid scheme with all params set.
 	data.DisplayName = ptrStr("display name")
@@ -277,8 +277,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	scheme, err := th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -334,8 +334,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.Nil(t, err, "Should have succeeded: %v", err)
 
-	scheme, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -390,8 +390,8 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	err = th.App.importScheme(&data, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	scheme, err = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-	require.Nil(t, err, "Failed to import scheme: %v", err)
+	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
+	require.Nil(t, nErr, "Failed to import scheme: %v", err)
 
 	assert.Equal(t, *data.Name, scheme.Name)
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
@@ -1374,8 +1374,8 @@ func TestImportImportUser(t *testing.T) {
 	err = th.App.importScheme(teamSchemeData, false)
 	assert.Nil(t, err)
 
-	teamScheme, err := th.App.Srv().Store.Scheme().GetByName(*teamSchemeData.Name)
-	require.Nil(t, err, "Failed to import scheme")
+	teamScheme, nErr := th.App.Srv().Store.Scheme().GetByName(*teamSchemeData.Name)
+	require.Nil(t, nErr, "Failed to import scheme")
 
 	teamData := &TeamImportData{
 		Name:            ptrStr(model.NewId()),

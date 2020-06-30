@@ -3088,7 +3088,7 @@ func (a *OpenTracingAppLayer) DoLocalRequest(rawURL string, body []byte) (*http.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError {
+func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile bool, isOAuth bool, isSaml bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLogin")
 
@@ -3100,7 +3100,7 @@ func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, us
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DoLogin(w, r, user, deviceId)
+	resultVar0 := a.app.DoLogin(w, r, user, deviceId, isMobile, isOAuth, isSaml)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -6215,7 +6215,7 @@ func (a *OpenTracingAppLayer) GetOAuthImplicitRedirect(userId string, authReques
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string, action string, redirectTo string, loginHint string) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service string, teamId string, action string, redirectTo string, loginHint string, isMobile bool) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetOAuthLoginEndpoint")
 
@@ -6227,7 +6227,7 @@ func (a *OpenTracingAppLayer) GetOAuthLoginEndpoint(w http.ResponseWriter, r *ht
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(w, r, service, teamId, action, redirectTo, loginHint)
+	resultVar0, resultVar1 := a.app.GetOAuthLoginEndpoint(w, r, service, teamId, action, redirectTo, loginHint, isMobile)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9966,7 +9966,7 @@ func (a *OpenTracingAppLayer) MigrateFilenamesToFileInfos(post *model.Post) []*m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
+func (a *OpenTracingAppLayer) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MoveChannel")
 
@@ -9978,7 +9978,7 @@ func (a *OpenTracingAppLayer) MoveChannel(team *model.Team, channel *model.Chann
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MoveChannel(team, channel, user, removeDeactivatedMembers)
+	resultVar0 := a.app.MoveChannel(team, channel, user)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11020,6 +11020,28 @@ func (a *OpenTracingAppLayer) ReloadConfig() error {
 
 	defer span.Finish()
 	resultVar0 := a.app.ReloadConfig()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveAllDeactivatedMembersFromChannel")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveAllDeactivatedMembersFromChannel(channel)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

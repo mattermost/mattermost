@@ -516,6 +516,36 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			sanitized(u7),
 		}, actual)
 	})
+
+	t.Run("filter to active", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Active:  true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+			sanitized(u3),
+			sanitized(u4),
+			sanitized(u5),
+		}, actual)
+	})
+
+	t.Run("try to filter to active and inactive", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:     0,
+			PerPage:  10,
+			Inactive: true,
+			Active:   true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u6),
+			sanitized(u7),
+		}, actual)
+	})
 }
 
 func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
@@ -649,6 +679,36 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 			Page:     0,
 			PerPage:  10,
 			Inactive: true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u5),
+		}, actual)
+	})
+
+	t.Run("filter to active", func(t *testing.T) {
+		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  10,
+			Active:   true,
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+			sanitized(u3),
+			sanitized(u4),
+		}, actual)
+	})
+
+	t.Run("try to filter to active and inactive", func(t *testing.T) {
+		actual, err := ss.User().GetProfiles(&model.UserGetOptions{
+			InTeamId: teamId,
+			Page:     0,
+			PerPage:  10,
+			Inactive: true,
+			Active:   true,
 		})
 		require.Nil(t, err)
 		require.Equal(t, []*model.User{
@@ -2042,7 +2102,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 
 	err = ss.User().UpdateMfaActive(u1.Id, true)
 	require.Nil(t, err)
@@ -3362,7 +3422,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Ensure update at timestamp changes
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond)
 
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3374,7 +3434,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Ensure update at timestamp changes
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond)
 
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3424,7 +3484,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	// Ensure update at timestamp changes
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond)
 
 	// Add u2 to team 1
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
@@ -3446,7 +3506,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	// Ensure update at timestamp changes
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond)
 
 	e := ss.Team().RemoveMember(teamId, u1.Id)
 	require.Nil(t, e)
@@ -3475,7 +3535,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	// Ensure update at timestamp changes
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond)
 
 	u4, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3690,7 +3750,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3717,7 +3777,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	startTime := u2.CreateAt
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(time.Millisecond)
 
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -4754,6 +4814,9 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 
 	assert.NotZero(t, user.LastPictureUpdate)
 	assert.NotZero(t, user.UpdateAt)
+
+	// Ensure update at timestamp changes
+	time.Sleep(time.Millisecond)
 
 	err = ss.User().ResetLastPictureUpdate(u1.Id)
 	require.Nil(t, err)
