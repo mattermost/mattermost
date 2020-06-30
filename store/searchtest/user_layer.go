@@ -164,6 +164,22 @@ func TestSearchUserStore(t *testing.T, s store.Store, testEngine *SearchTestEngi
 }
 
 func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
+	options := &model.UserSearchOptions{
+		AllowFullNames: true,
+		Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+	}
+	users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
+	require.Nil(t, err)
+	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
+	th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
+
+	t.Run("Should be able to correctly honor limit when autocompleting", func(t *testing.T) {
+		result, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
+		require.Nil(t, err)
+		require.Len(t, result.InChannel, 1)
+		require.Len(t, result.OutOfChannel, 1)
+	})
+
 	t.Run("Return all users in team", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
 		users, err := th.Store.User().AutocompleteUsersInChannel(th.Team.Id, th.ChannelBasic.Id, "", options)
@@ -171,6 +187,7 @@ func testGetAllUsersInChannelWithEmptyTerm(t *testing.T, th *SearchTestHelper) {
 		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User}, users.InChannel)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{th.User2}, users.OutOfChannel)
 	})
+
 	t.Run("Return all users in teams even though some of them don't have a team associated", func(t *testing.T) {
 		options := createDefaultOptions(true, false, false)
 		userAlternate, err := th.createUser("user-alternate", "user-alternate", "user", "alternate")
@@ -772,6 +789,15 @@ func testSearchUsersInTeam(t *testing.T, th *SearchTestHelper) {
 		users, apperr := th.Store.User().Search(th.Team.Id, "basicusername1", options)
 		require.Nil(t, apperr)
 		th.assertUsersMatchInAnyOrder(t, []*model.User{}, users)
+	})
+	t.Run("Should honor the limit when searching users in team", func(t *testing.T) {
+		optionsWithLimit := &model.UserSearchOptions{
+			Limit: 1,
+		}
+
+		users, apperr := th.Store.User().Search(th.Team.Id, "", optionsWithLimit)
+		require.Nil(t, apperr)
+		require.Len(t, users, 1)
 	})
 }
 
