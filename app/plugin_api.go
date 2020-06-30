@@ -898,6 +898,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}
 	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
+	newURL.RawQuery = request.URL.Query().Encode()
 	request.URL = newURL
 	if destinationPluginId == "" || err != nil {
 		message := "No plugin specified. Form of URL should be /<pluginid>/*"

@@ -1505,6 +1505,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -2505,6 +2509,10 @@
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Unsupported OAuth service provider."
+  },
+  {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Team id parameter is required to autocomplete by channel."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -6169,10 +6177,6 @@
   {
     "id": "store.insert_error",
     "translation": "insert error"
-  },
-  {
-    "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
   },
   {
     "id": "store.select_error",
