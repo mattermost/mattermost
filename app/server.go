@@ -92,7 +92,6 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	hubsLock sync.RWMutex
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
