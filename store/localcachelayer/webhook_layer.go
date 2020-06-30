@@ -41,8 +41,9 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 		return s.WebhookStore.GetIncoming(id, allowFromCache)
 	}
 
-	if incomingWebhook := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id); incomingWebhook != nil {
-		return incomingWebhook.(*model.IncomingWebhook), nil
+	var incomingWebhook *model.IncomingWebhook
+	if err := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id, &incomingWebhook); err == nil {
+		return incomingWebhook, nil
 	}
 
 	incomingWebhook, err := s.WebhookStore.GetIncoming(id, allowFromCache)

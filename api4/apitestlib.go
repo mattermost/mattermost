@@ -98,11 +98,11 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	if includeCache {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
@@ -131,7 +131,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	wsapi.Init(th.App.Srv())
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -146,9 +146,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
@@ -169,6 +169,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	th.App.InitServer()
 
 	return th
 }
@@ -265,7 +267,7 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 
 	me.ShutdownApp()

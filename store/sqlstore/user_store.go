@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 
@@ -329,21 +328,44 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) *model.AppErr
 }
 
 func (us SqlUserStore) Get(id string) (*model.User, *model.AppError) {
-	query := us.usersQuery.Where("Id = ?", id)
+	failure := func(err error, id string, statusCode int) *model.AppError {
+		details := "user_id=" + id + ", " + err.Error()
+		return model.NewAppError("SqlUserStore.Get", id, nil, details, statusCode)
+	}
 
+	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	row := us.GetReplica().Db.QueryRow(queryString, args...)
+
+	var user model.User
+	var props, notifyProps, timezone []byte
+	err = row.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username,
+		&user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified,
+		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
+		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
+		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret,
+		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, failure(err, store.MISSING_ACCOUNT_ERROR, http.StatusNotFound)
+		}
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+
+	}
+	if err = json.Unmarshal(props, &user.Props); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
 	}
 
-	user := &model.User{}
-	if err := us.GetReplica().SelectOne(user, queryString, args...); err == sql.ErrNoRows {
-		return nil, model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
-	} else if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	return user, nil
+	return &user, nil
 }
 
 func (us SqlUserStore) GetAll() ([]*model.User, *model.AppError) {
@@ -400,6 +422,8 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -504,6 +528,8 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -689,6 +715,8 @@ func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -809,7 +837,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 		OrderBy("u.Username ASC")
 
 	if options.Since > 0 {
-		query = query.Where(squirrel.Gt(map[string]interface{}{
+		query = query.Where(sq.Gt(map[string]interface{}{
 			"u.UpdateAt": options.Since,
 		}))
 	}
@@ -1218,6 +1246,15 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
+func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
+
+	return us.performSearch(query, term, options)
+}
+
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
@@ -1496,6 +1533,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			Nickname:    user.Nickname,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,
+			Roles:       user.Roles,
 			CreateAt:    user.CreateAt,
 			DeleteAt:    user.DeleteAt,
 			TeamsIds:    []string{},

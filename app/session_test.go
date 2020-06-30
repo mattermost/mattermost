@@ -60,7 +60,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = false })
 
@@ -110,7 +110,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
 
 	// Test regular session with timeout set to 0, should not timeout
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0 })
@@ -133,7 +133,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
 		guest := th.CreateGuest()
@@ -206,11 +206,53 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
+	t.Run("get session length mobile when isMobile in props is set", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length mobile when isMobile in props is set and takes priority over saml", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.USER_AUTH_SERVICE_IS_SAML:   "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
 	t.Run("get session length SSO", func(t *testing.T) {
 		session := &model.Session{
 			UserId:  model.NewId(),
 			IsOAuth: true,
 		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*2, sessionLength)
+	})
+
+	t.Run("get session length SSO using props", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_SAML: "true",
+			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
