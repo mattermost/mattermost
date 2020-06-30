@@ -255,14 +255,13 @@ func (s *Server) createPushNotificationsHub() {
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
+		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
 	}
 	go hub.start()
 	s.PushNotificationsHub = hub
 }
 
 func (hub *PushNotificationsHub) start() {
-	hub.sema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
-
 	for notification := range hub.notificationsChan {
 		// Adding to the waitgroup first.
 		hub.wg.Add(1)
