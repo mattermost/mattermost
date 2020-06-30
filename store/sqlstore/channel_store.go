@@ -1816,17 +1816,20 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
+		// Length of default timezone (len {"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"})
 		defaultTimezoneLength := `74`
-		endOfFirstKey := `LOCATE(':', Users.Timezone) + 2`
-		lengthOfFirstValue := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
-		endOfSecondKey := `LOCATE(',', Users.Timezone) + 19`
-		lengthOfSecondValue := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
+
+		// Beginning and end of the value for the automatic and manual timezones respectively
+		autoTimezone := `LOCATE(':', Users.Timezone) + 2`
+		autoTimezoneEnd := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
+		manualTimezone := `LOCATE(',', Users.Timezone) + 19`
+		manualTimezoneEnd := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
 
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			endOfFirstKey = `POSITION(':' IN Users.Timezone) + 2`
-			lengthOfFirstValue = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
-			endOfSecondKey = `POSITION(',' IN Users.Timezone) + 19`
-			lengthOfSecondValue = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
+			autoTimezone = `POSITION(':' IN Users.Timezone) + 2`
+			autoTimezoneEnd = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
+			manualTimezone = `POSITION(',' IN Users.Timezone) + 19`
+			manualTimezoneEnd = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
 		}
 
 		selectStr = `
@@ -1838,15 +1841,15 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 					THEN
 					SUBSTRING(
 						Timezone
-						FROM ` + endOfFirstKey + `
-						FOR ` + lengthOfFirstValue + `
+						FROM ` + autoTimezone + `
+						FOR ` + autoTimezoneEnd + `
 					)
 					WHEN Timezone like '%"useAutomaticTimezone":"false"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
 					THEN
 						SUBSTRING(
 						Timezone
-						FROM ` + endOfSecondKey + `
-						FOR ` + lengthOfSecondValue + `
+						FROM ` + manualTimezone + `
+						FOR ` + manualTimezoneEnd + `
 					)
 					END
 				)
