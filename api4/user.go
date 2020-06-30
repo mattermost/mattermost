@@ -1080,7 +1080,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if _, err = c.App.UpdateActive(user, false); err != nil {
+	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+		err = c.App.PermanentDeleteUser(user)
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
 		c.Err = err
 		return
 	}

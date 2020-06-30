@@ -19,6 +19,7 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.User.Handle("", api.ApiLocal(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiLocal(updateUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("", api.ApiLocal(deleteUser)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("/roles", api.ApiLocal(updateUserRoles)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiLocal(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/active", api.ApiLocal(updateUserActive)).Methods("PUT")

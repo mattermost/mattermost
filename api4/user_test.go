@@ -1857,34 +1857,32 @@ func TestDeleteUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	user := th.BasicUser
 	th.LoginBasic()
-
-	testUser := th.SystemAdminUser
-	_, resp := th.Client.DeleteUser(testUser.Id)
+	_, resp := th.Client.DeleteUser(th.SystemAdminUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-
-	_, resp = th.Client.DeleteUser(user.Id)
+	_, resp = th.Client.DeleteUser(th.BasicUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.Client.Login(testUser.Email, testUser.Password)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp = c.DeleteUser(model.NewId())
+		CheckNotFoundStatus(t, resp)
 
-	user.Id = model.NewId()
-	_, resp = th.Client.DeleteUser(user.Id)
-	CheckNotFoundStatus(t, resp)
+		_, resp = c.DeleteUser("junk")
+		CheckBadRequestStatus(t, resp)
 
-	user.Id = "junk"
-	_, resp = th.Client.DeleteUser(user.Id)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.Client.DeleteUser(testUser.Id)
-	CheckNoError(t, resp)
+		userToDelete := th.CreateUser()
+		_, resp = c.DeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+	})
 
 	selfDeleteUser := th.CreateUser()
-	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
+	th.LoginBasic()
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
+	CheckForbiddenStatus(t, resp)
 
+	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.TeamSettings.EnableUserDeactivation = false
 	})
@@ -1896,6 +1894,46 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
 	CheckNoError(t, resp)
+}
+
+func TestPermanentDeleteUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
+	}()
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		userToDelete := th.CreateUser()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
+
+		// Does not error when deletion is disabled, just soft deletes
+		ok, resp := c.PermanentDeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		u, err := th.App.GetUser(userToDelete.Id)
+		assert.Nil(t, err)
+		assert.True(t, u.DeleteAt > 0)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
+
+		ok, resp = c.PermanentDeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		_, err = th.App.GetTeam(userToDelete.Id)
+		assert.NotNil(t, err)
+
+		ok, resp = c.PermanentDeleteUser("junk")
+		CheckBadRequestStatus(t, resp)
+
+		require.False(t, ok, "should have returned false")
+	})
+
 }
 
 func TestPermanentDeleteAllUsers(t *testing.T) {
