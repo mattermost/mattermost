@@ -428,6 +428,22 @@ func (_m *API) DeletePreferencesForUser(userId string, preferences []model.Prefe
 	return r0
 }
 
+// DeleteSlashCommand provides a mock function with given fields: commandID
+func (_m *API) DeleteSlashCommand(commandID string) *model.AppError {
+	ret := _m.Called(commandID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(commandID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteTeam provides a mock function with given fields: teamId
 func (_m *API) DeleteTeam(teamId string) *model.AppError {
 	ret := _m.Called(teamId)
@@ -1585,6 +1601,31 @@ func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	return r0, r1
 }
 
+// GetSlashCommand provides a mock function with given fields: commandID
+func (_m *API) GetSlashCommand(commandID string) (*model.Command, *model.AppError) {
+	ret := _m.Called(commandID)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(string) *model.Command); ok {
+		r0 = rf(commandID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(commandID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetSystemInstallDate provides a mock function with given fields:
 func (_m *API) GetSystemInstallDate() (int64, *model.AppError) {
 	ret := _m.Called()
@@ -2349,6 +2390,31 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
+// ListSlashCommands provides a mock function with given fields: teamID, customOnly
+func (_m *API) ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+	ret := _m.Called(teamID, customOnly)
+
+	var r0 []*model.Command
+	if rf, ok := ret.Get(0).(func(string, bool) []*model.Command); ok {
+		r0 = rf(teamID, customOnly)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(teamID, customOnly)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // LoadPluginConfiguration provides a mock function with given fields: dest
 func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	ret := _m.Called(dest)
@@ -2393,6 +2459,22 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_ca = append(_ca, msg)
 	_ca = append(_ca, keyValuePairs...)
 	_m.Called(_ca...)
+}
+
+// MoveSlashCommand provides a mock function with given fields: commandID, newTeamID
+func (_m *API) MoveSlashCommand(commandID string, newTeamID string) *model.AppError {
+	ret := _m.Called(commandID, newTeamID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(commandID, newTeamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // OpenInteractiveDialog provides a mock function with given fields: dialog
@@ -2982,6 +3064,31 @@ func (_m *API) UpdatePreferencesForUser(userId string, preferences []model.Prefe
 	}
 
 	return r0
+}
+
+// UpdateSlashCommand provides a mock function with given fields: commandID, cmd
+func (_m *API) UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+	ret := _m.Called(commandID, cmd)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(string, *model.Command) *model.Command); ok {
+		r0 = rf(commandID, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, *model.Command) *model.AppError); ok {
+		r1 = rf(commandID, cmd)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateTeam provides a mock function with given fields: team

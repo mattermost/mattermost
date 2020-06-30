@@ -923,3 +923,50 @@ func (api *PluginAPI) CreateSlashCommand(cmd *model.Command) (*model.Command, *m
 
 	return cmd, appErr
 }
+
+func (api *PluginAPI) ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+	var commands []*model.Command
+	var appErr *model.AppError
+
+	if customOnly {
+		commands, appErr = api.app.ListTeamCommands(teamID)
+	} else {
+		commands, appErr = api.app.ListAllCommands(teamID, api.app.T)
+	}
+	return commands, appErr
+}
+
+func (api *PluginAPI) GetSlashCommand(commandID string) (*model.Command, *model.AppError) {
+	return api.app.GetCommand(commandID)
+}
+
+func (api *PluginAPI) UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+	oldCmd, appErr := api.GetSlashCommand(commandID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if cmd.TeamId != oldCmd.TeamId {
+		return nil, model.NewAppError("UpdateSlashCommand", "api.command.team_mismatch.app_error", nil, "plugin_id="+api.id, http.StatusBadRequest)
+	}
+
+	return api.app.UpdateCommand(oldCmd, cmd)
+}
+
+func (api *PluginAPI) MoveSlashCommand(commandID string, newTeamID string) *model.AppError {
+	cmd, appErr := api.GetSlashCommand(commandID)
+	if appErr != nil {
+		return appErr
+	}
+
+	newTeam, appErr := api.app.GetTeam(newTeamID)
+	if appErr != nil {
+		return appErr
+	}
+
+	return api.app.MoveCommand(newTeam, cmd)
+}
+
+func (api *PluginAPI) DeleteSlashCommand(commandID string) *model.AppError {
+	return api.app.DeleteCommand(commandID)
+}
