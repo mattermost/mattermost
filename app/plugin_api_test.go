@@ -1256,6 +1256,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			if r.URL.Path != "/api/v2/test" {
 				return
 			}
+
+			if r.URL.Query().Get("abc") != "xyz" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()
@@ -1285,7 +1290,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 			buf := bytes.Buffer{}
 			buf.WriteString("This is the request")
-			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test?abc=xyz", &buf)
 			if err != nil {
 				return nil, err.Error()
 			}
