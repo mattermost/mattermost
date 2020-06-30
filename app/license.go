@@ -17,12 +17,12 @@ import (
 
 const (
 	requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
-	LicenseENV      = "MM_LICENSE"
+	LicenseEnv      = "MM_LICENSE"
 )
 
 func (s *Server) LoadLicense() {
 	// ENV var overrides all other sources of license.
-	licenseStr := os.Getenv(LicenseENV)
+	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
 		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
 			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
