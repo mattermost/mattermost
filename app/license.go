@@ -25,7 +25,7 @@ func (s *Server) LoadLicense() {
 	licenseStr := os.Getenv(LicenseENV)
 	if licenseStr != "" {
 		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
-			mlog.Info("License key from ENV valid unlocking enterprise features.")
+			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
 		}
 		return
 	}
