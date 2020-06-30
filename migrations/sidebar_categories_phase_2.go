@@ -86,10 +86,10 @@ func (worker *Worker) runSidebarCategoriesPhase2Migration(lastDone string) (bool
 	var nextStep ProgressStep
 	switch progress.CurrentStep {
 	case StepCategories:
-		result, nErr = worker.app.Srv().Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId)
+		result, nErr = worker.srv.Store.Channel().MigrateSidebarCategories(progress.LastTeamId, progress.LastUserId)
 		nextStep = StepFavorites
 	case StepFavorites:
-		result, nErr = worker.app.Srv().Store.Channel().MigrateFavoritesToSidebarChannels(progress.LastUserId, progress.LastSortOrder)
+		result, nErr = worker.srv.Store.Channel().MigrateFavoritesToSidebarChannels(progress.LastUserId, progress.LastSortOrder)
 		nextStep = StepEnd
 	default:
 		return false, "", model.NewAppError("MigrationsWorker.runSidebarCategoriesPhase2Migration", "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress", map[string]interface{}{"progress": progress.ToJson()}, "", http.StatusInternalServerError)
