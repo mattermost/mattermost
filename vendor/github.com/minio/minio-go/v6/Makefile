@@ -2,7 +2,11 @@ all: checks
 
 .PHONY: examples docs
 
-checks: vet test examples functional-test
+checks: diff vet test examples functional-test
+
+diff:
+	@curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b . v1.21.0
+	@./golangci-lint run --timeout=5m --config ./.golangci.yml
 
 vet:
 	@GO111MODULE=on go vet ./...

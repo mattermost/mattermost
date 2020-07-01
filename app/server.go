@@ -320,7 +320,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider,
+					s.CacheProvider2,
 				),
 				s.SearchEngine,
 				s.Config(),
@@ -1289,5 +1289,8 @@ func (s *Server) initJobs() {
 	}
 	if jobsBleveIndexerInterface != nil {
 		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
+	}
+	if jobsMigrationsInterface != nil {
+		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
 }

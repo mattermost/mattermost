@@ -1505,6 +1505,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "marshal error"
   },
@@ -2507,6 +2511,10 @@
     "translation": "Unsupported OAuth service provider."
   },
   {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Team id parameter is required to autocomplete by channel."
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2961,6 +2969,22 @@
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "We encountered an error finding the audits."
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error deleting the audits."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "app.bot.createbot.internal_error",
@@ -4051,12 +4075,20 @@
     "translation": "Failed to delete the channel."
   },
   {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "bleveengine.index_channel.error",
@@ -4323,12 +4355,20 @@
     "translation": "Failed to delete the channel"
   },
   {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -6135,10 +6175,6 @@
     "translation": "insert error"
   },
   {
-    "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
-  },
-  {
     "id": "store.select_error",
     "translation": "select error"
   },
@@ -6157,26 +6193,6 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql_audit.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "We encountered an error finding the audits."
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits."
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
