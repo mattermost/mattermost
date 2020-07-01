@@ -103,7 +103,7 @@ webapp/coverage
 
 .agignore
 .ctags
-tags
+/tags
 .idea
 
 debug
