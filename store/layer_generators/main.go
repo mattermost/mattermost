@@ -28,6 +28,10 @@ func isError(typeName string) bool {
 	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
 }
 
+func isAppError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE)
+}
+
 func main() {
 	if err := buildTimerLayer(); err != nil {
 		log.Fatal(err)
@@ -35,6 +39,22 @@ func main() {
 	if err := buildOpenTracingLayer(); err != nil {
 		log.Fatal(err)
 	}
+	if err := buildRetryLayer(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func buildRetryLayer() error {
+	code, err := generateLayer("RetryLayer", "retry_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(path.Join("retry_layer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -225,6 +245,14 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				}
 			}
 			return "true"
+		},
+		"isAppError": func(results []string) bool {
+			for _, typeName := range results {
+				if isAppError(typeName) {
+					return true
+				}
+			}
+			return false
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {

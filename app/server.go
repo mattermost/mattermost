@@ -317,7 +317,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					s.sqlStore,
+					store.NewRetryLayer(s.sqlStore),
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider2,
