@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -523,18 +524,24 @@ func (tx *Tx) write() error {
 
 	// Write pages to disk in order.
 	for _, p := range pages {
-		rem := (uint64(p.overflow) + 1) * uint64(tx.db.pageSize)
+		size := (int(p.overflow) + 1) * tx.db.pageSize
 		offset := int64(p.id) * int64(tx.db.pageSize)
-		var written uintptr
 
 		// Write out page in "max allocation" sized chunks.
+		ptr := uintptr(unsafe.Pointer(p))
 		for {
-			sz := rem
+			// Limit our write to our max allocation size.
+			sz := size
 			if sz > maxAllocSize-1 {
 				sz = maxAllocSize - 1
 			}
-			buf := unsafeByteSlice(unsafe.Pointer(p), written, 0, int(sz))
 
+			// Write chunk to disk.
+			buf := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+				Data: ptr,
+				Len:  sz,
+				Cap:  sz,
+			}))
 			if _, err := tx.db.ops.writeAt(buf, offset); err != nil {
 				return err
 			}
@@ -543,14 +550,14 @@ func (tx *Tx) write() error {
 			tx.stats.Write++
 
 			// Exit inner for loop if we've written all the chunks.
-			rem -= sz
-			if rem == 0 {
+			size -= sz
+			if size == 0 {
 				break
 			}
 
 			// Otherwise move offset forward and move pointer to next chunk.
 			offset += int64(sz)
-			written += uintptr(sz)
+			ptr += uintptr(sz)
 		}
 	}
 
@@ -569,7 +576,11 @@ func (tx *Tx) write() error {
 			continue
 		}
 
-		buf := unsafeByteSlice(unsafe.Pointer(p), 0, 0, tx.db.pageSize)
+		buf := *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+			Data: uintptr(unsafe.Pointer(p)),
+			Len:  tx.db.pageSize,
+			Cap:  tx.db.pageSize,
+		}))
 
 		// See https://go.googlesource.com/go/+/f03c9202c43e0abb130669852082117ca50aa9b1
 		for i := range buf {
