@@ -329,7 +329,7 @@ type RetryLayerWebhookStore struct {
 	Root *RetryLayer
 }
 
-func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 
 	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
 
@@ -338,7 +338,9 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 			break
 		}
 
-		break
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0, resultVar1 = s.AuditStore.Get(user_id, offset, limit)
 		fmt.Println("RETRYING Get")
@@ -348,7 +350,7 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 
 }
 
-func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) error {
 
 	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
 
@@ -357,7 +359,9 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 			break
 		}
 
-		break
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0 = s.AuditStore.PermanentDeleteByUser(userId)
 		fmt.Println("RETRYING PermanentDeleteByUser")
@@ -367,7 +371,7 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 
 }
 
-func (s *RetryLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 
 	resultVar0 := s.AuditStore.Save(audit)
 
@@ -376,7 +380,9 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) *model.AppError {
 			break
 		}
 
-		break
+		if pqErr, ok := errors.Cause(resultVar0).(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0 = s.AuditStore.Save(audit)
 		fmt.Println("RETRYING Save")
@@ -4049,7 +4055,7 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 
 }
 
-func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 
 	resultVar0, resultVar1 := s.LicenseStore.Get(id)
 
@@ -4058,7 +4064,9 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 			break
 		}
 
-		break
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0, resultVar1 = s.LicenseStore.Get(id)
 		fmt.Println("RETRYING Get")
@@ -4068,7 +4076,7 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 
 }
 
-func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 
 	resultVar0, resultVar1 := s.LicenseStore.Save(license)
 
@@ -4077,7 +4085,9 @@ func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 			break
 		}
 
-		break
+		if pqErr, ok := errors.Cause(resultVar1).(*pq.Error); !ok || pqErr.Code != "40001" {
+			break
+		}
 
 		resultVar0, resultVar1 = s.LicenseStore.Save(license)
 		fmt.Println("RETRYING Save")
