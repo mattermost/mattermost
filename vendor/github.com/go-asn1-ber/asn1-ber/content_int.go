@@ -6,7 +6,7 @@ func encodeUnsignedInteger(i uint64) []byte {
 
 	var j int
 	for ; n > 0; n-- {
-		out[j] = (byte(i >> uint((n-1)*8)))
+		out[j] = byte(i >> uint((n-1)*8))
 		j++
 	}
 

@@ -37,6 +37,11 @@ type TextFormatter struct {
 	// Force quoting of all values
 	ForceQuote bool
 
+	// DisableQuote disables quoting for all values.
+	// DisableQuote will have a lower priority than ForceQuote.
+	// If both of them are set to true, quote will be forced on all values.
+	DisableQuote bool
+
 	// Override coloring based on CLICOLOR and CLICOLOR_FORCE. - https://bixense.com/clicolors/
 	EnvironmentOverrideColors bool
 
@@ -291,6 +296,9 @@ func (f *TextFormatter) needsQuoting(text string) bool {
 	}
 	if f.QuoteEmptyFields && len(text) == 0 {
 		return true
+	}
+	if f.DisableQuote {
+		return false
 	}
 	for _, ch := range text {
 		if !((ch >= 'a' && ch <= 'z') ||
