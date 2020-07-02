@@ -1806,6 +1806,7 @@ func TestPluginAPIMoveSlashCommand(t *testing.T) {
 	require.Nil(t, appErr)
 
 	newCmd2, appErr := api.GetSlashCommand(newCmd.Id)
+	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd2.PluginId)
 	require.Equal(t, "", newCmd2.CreatorId)
 	require.Equal(t, team1.Id, newCmd2.TeamId)
