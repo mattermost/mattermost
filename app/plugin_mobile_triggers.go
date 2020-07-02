@@ -7,65 +7,65 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type PluginMobileTrigger struct {
-	Trigger  *model.MobileTrigger
-	PluginId string
+type PluginIntegration struct {
+	Integration *model.PluginIntegration
+	PluginID    string
 }
 
-func (a *App) RegisterPluginMobileTrigger(pluginId string, trigger *model.MobileTrigger) error {
-	a.Srv().pluginMobileTriggersLock.Lock()
-	defer a.Srv().pluginMobileTriggersLock.Unlock()
+func (a *App) RegisterPluginIntegration(pluginID string, integration *model.PluginIntegration) error {
+	a.Srv().pluginIntegrationsLock.Lock()
+	defer a.Srv().pluginIntegrationsLock.Unlock()
 
-	trigger.PluginId = pluginId
-	for _, pt := range a.Srv().pluginMobileTriggers {
-		if pt.Trigger.Trigger == trigger.Trigger && pt.Trigger.Location == trigger.Location {
-			if pt.PluginId == pluginId {
-				pt.Trigger = trigger
+	integration.PluginID = pluginID
+	for _, pt := range a.Srv().pluginIntegrations {
+		if pt.Integration.RequestURL == integration.RequestURL && pt.Integration.Location == integration.Location {
+			if pt.PluginID == pluginID {
+				pt.Integration = integration
 				return nil
 			}
 		}
 	}
 
-	a.Srv().pluginMobileTriggers = append(a.Srv().pluginMobileTriggers, &PluginMobileTrigger{
-		Trigger:  trigger,
-		PluginId: pluginId,
+	a.Srv().pluginIntegrations = append(a.Srv().pluginIntegrations, &PluginIntegration{
+		Integration: integration,
+		PluginID:    pluginID,
 	})
 	return nil
 }
 
-func (a *App) UnregisterPluginMobileTrigger(pluginId, location, trigger string) {
-	a.Srv().pluginMobileTriggersLock.Lock()
-	defer a.Srv().pluginMobileTriggersLock.Unlock()
+func (a *App) UnregisterPluginIntegration(pluginID, location, requestURL string) {
+	a.Srv().pluginIntegrationsLock.Lock()
+	defer a.Srv().pluginIntegrationsLock.Unlock()
 
-	var remaining []*PluginMobileTrigger
-	for _, pt := range a.Srv().pluginMobileTriggers {
-		if pt.PluginId != pluginId || pt.Trigger.Location != location || pt.Trigger.Trigger != trigger {
+	var remaining []*PluginIntegration
+	for _, pt := range a.Srv().pluginIntegrations {
+		if pt.PluginID != pluginID || pt.Integration.Location != location || pt.Integration.RequestURL != requestURL {
 			remaining = append(remaining, pt)
 		}
 	}
-	a.Srv().pluginMobileTriggers = remaining
+	a.Srv().pluginIntegrations = remaining
 }
 
-func (a *App) UnregisterPluginMobileTriggers(pluginId string) {
-	a.Srv().pluginMobileTriggersLock.Lock()
-	defer a.Srv().pluginMobileTriggersLock.Unlock()
+func (a *App) UnregisterPluginIntegrations(pluginID string) {
+	a.Srv().pluginIntegrationsLock.Lock()
+	defer a.Srv().pluginIntegrationsLock.Unlock()
 
-	var remaining []*PluginMobileTrigger
-	for _, pt := range a.Srv().pluginMobileTriggers {
-		if pt.PluginId != pluginId {
+	var remaining []*PluginIntegration
+	for _, pt := range a.Srv().pluginIntegrations {
+		if pt.PluginID != pluginID {
 			remaining = append(remaining, pt)
 		}
 	}
-	a.Srv().pluginMobileTriggers = remaining
+	a.Srv().pluginIntegrations = remaining
 }
 
-func (a *App) MobileTriggers() []*model.MobileTrigger {
-	a.Srv().pluginMobileTriggersLock.Lock()
-	defer a.Srv().pluginMobileTriggersLock.Unlock()
+func (a *App) PluginIntegrations() []*model.PluginIntegration {
+	a.Srv().pluginIntegrationsLock.Lock()
+	defer a.Srv().pluginIntegrationsLock.Unlock()
 
-	var triggers []*model.MobileTrigger
-	for _, pt := range a.Srv().pluginMobileTriggers {
-		triggers = append(triggers, pt.Trigger)
+	var triggers []*model.PluginIntegration
+	for _, pt := range a.Srv().pluginIntegrations {
+		triggers = append(triggers, pt.Integration)
 	}
 	return triggers
 }

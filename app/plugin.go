@@ -392,7 +392,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
 	a.UnregisterPluginCommands(id)
-	a.UnregisterPluginMobileTriggers(id)
+	a.UnregisterPluginIntegrations(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
 	if err := a.SaveConfig(a.Config(), true); err != nil {

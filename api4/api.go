@@ -59,7 +59,7 @@ type Routes struct {
 	Plugins *mux.Router // 'api/v4/plugins'
 	Plugin  *mux.Router // 'api/v4/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}'
 
-	MobilePlugins *mux.Router // 'api/v4/mobilePlugins'
+	PluginIntegrations *mux.Router // 'api/v4/pluginIntegrations'
 
 	PublicFile *mux.Router // '/files/{file_id:[A-Za-z0-9]+}/public'
 
@@ -176,7 +176,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Plugins = api.BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
 	api.BaseRoutes.Plugin = api.BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 
-	api.BaseRoutes.MobilePlugins = api.BaseRoutes.ApiRoot.PathPrefix("/mobilePlugins").Subrouter()
+	api.BaseRoutes.PluginIntegrations = api.BaseRoutes.ApiRoot.PathPrefix("/pluginIntegrations").Subrouter()
 
 	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	api.BaseRoutes.Command = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()

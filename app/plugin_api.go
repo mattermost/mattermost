@@ -70,12 +70,12 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
-func (api *PluginAPI) RegisterMobileTrigger(trigger *model.MobileTrigger) error {
-	return api.app.RegisterPluginMobileTrigger(api.id, trigger)
+func (api *PluginAPI) RegisterPluginIntegration(integration *model.PluginIntegration) error {
+	return api.app.RegisterPluginIntegration(api.id, integration)
 }
 
-func (api *PluginAPI) UnregisterMobileTrigger(location, trigger string) error {
-	api.app.UnregisterPluginMobileTrigger(api.id, location, trigger)
+func (api *PluginAPI) UnregisterPluginIntegration(location, requestURL string) error {
+	api.app.UnregisterPluginIntegration(api.id, location, requestURL)
 	return nil
 }
 

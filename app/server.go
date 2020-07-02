@@ -127,8 +127,8 @@ type Server struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	pluginMobileTriggers     []*PluginMobileTrigger
-	pluginMobileTriggersLock sync.RWMutex
+	pluginIntegrations     []*PluginIntegration
+	pluginIntegrationsLock sync.RWMutex
 
 	clientConfig        atomic.Value
 	clientConfigHash    atomic.Value

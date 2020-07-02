@@ -8,36 +8,42 @@ import (
 	"io"
 )
 
-type MobileTrigger struct {
-	PluginId string `json:"id"`
-	Location string `json:"location"`
-	Trigger  string `json:"trigger"`
+const (
+	ScopeMobile = "mobile"
+	ScopeWebApp = "webapp"
+)
+
+type PluginIntegration struct {
+	PluginID   string   `json:"id"`
+	Location   string   `json:"location"`
+	RequestURL string   `json:"request_url"`
+	Scope      []string `json:"scope"`
 	//	Extra    interface{} `json:"extra"`
 	Extra string `json:"extra"` // Should use interface{} to be able to create different extras for different locations
 }
 
-type MobileTriggerChannelHeader struct {
+type MobileIntegrationChannelHeader struct {
 	DefaultMessage string `json:"default_message"`
 }
 
-func (o *MobileTrigger) ToJson() string {
+func (o *PluginIntegration) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
 }
 
-func MobileTriggerFromJson(data io.Reader) *MobileTrigger {
-	var o *MobileTrigger
+func PluginIntegrationFromJson(data io.Reader) *PluginIntegration {
+	var o *PluginIntegration
 	json.NewDecoder(data).Decode(&o)
 	return o
 }
 
-func MobileTriggerListToJson(l []*MobileTrigger) string {
+func PluginIntegrationListToJson(l []*PluginIntegration) string {
 	b, _ := json.Marshal(l)
 	return string(b)
 }
 
-func MobileTriggerListFromJson(data io.Reader) []*MobileTrigger {
-	var o []*MobileTrigger
+func PluginIntegrationListFromJson(data io.Reader) []*PluginIntegration {
+	var o []*PluginIntegration
 	json.NewDecoder(data).Decode(&o)
 	return o
 }

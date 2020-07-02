@@ -763,8 +763,8 @@ type AppIface interface {
 	PermanentDeleteTeamId(teamId string) *model.AppError
 	PermanentDeleteUser(user *model.User) *model.AppError
 	PluginCommandsForTeam(teamId string) []*model.Command
-	MobileTriggers() []*model.MobileTrigger
 	PluginContext() *plugin.Context
+	PluginIntegrations() []*model.PluginIntegration
 	PostActionCookieSecret() []byte
 	PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError
 	PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch
@@ -788,6 +788,7 @@ type AppIface interface {
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginId string, command *model.Command) error
+	RegisterPluginIntegration(pluginID string, integration *model.PluginIntegration) error
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
@@ -926,7 +927,8 @@ type AppIface interface {
 	TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
 	UnregisterPluginCommand(pluginId, teamId, trigger string)
 	UnregisterPluginCommands(pluginId string)
-	UnregisterPluginMobileTriggers(pluginId string)
+	UnregisterPluginIntegration(pluginID, location, requestURL string)
+	UnregisterPluginIntegrations(pluginID string)
 	UpdateActive(user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError
 	UpdateChannelMemberNotifyProps(data map[string]string, channelId string, userId string) (*model.ChannelMember, *model.AppError)
