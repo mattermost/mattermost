@@ -329,7 +329,7 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
-func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
@@ -345,7 +345,7 @@ func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
@@ -361,7 +361,7 @@ func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 	return resultVar0
 }
 
-func (s *TimerLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.Save(audit)
@@ -3518,7 +3518,7 @@ func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LicenseStore.Get(id)
@@ -3534,7 +3534,7 @@ func (s *TimerLayerLicenseStore) Get(id string) (*model.LicenseRecord, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+func (s *TimerLayerLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.LicenseStore.Save(license)
@@ -4780,7 +4780,7 @@ func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) *model.
 	return resultVar0
 }
 
-func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.BulkGetForPosts(postIds)
@@ -4796,7 +4796,7 @@ func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.Delete(reaction)
@@ -4812,7 +4812,7 @@ func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
@@ -4828,7 +4828,7 @@ func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *mode
 	return resultVar0
 }
 
-func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.GetForPost(postId, allowFromCache)
@@ -4844,7 +4844,7 @@ func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
@@ -4860,7 +4860,7 @@ func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.Save(reaction)
@@ -5036,7 +5036,7 @@ func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.CountByScope(scope)
@@ -5052,7 +5052,7 @@ func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
@@ -5068,7 +5068,7 @@ func (s *TimerLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
@@ -5084,7 +5084,7 @@ func (s *TimerLayerSchemeStore) Delete(schemeId string) (*model.Scheme, *model.A
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
@@ -5100,7 +5100,7 @@ func (s *TimerLayerSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
@@ -5116,7 +5116,7 @@ func (s *TimerLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
@@ -5132,7 +5132,7 @@ func (s *TimerLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s *TimerLayerSchemeStore) PermanentDeleteAll() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SchemeStore.PermanentDeleteAll()
@@ -5148,7 +5148,7 @@ func (s *TimerLayerSchemeStore) PermanentDeleteAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SchemeStore.Save(scheme)

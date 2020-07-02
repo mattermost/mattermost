@@ -36,6 +36,14 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		if tmem == nil {
 			_, err = a.AddTeamMember(channel.TeamId, userChannel.UserID)
 			if err != nil {
+				if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+					a.Log().Info("User not added to channel - the domain associated with the user is not in the list of allowed team domains",
+						mlog.String("user_id", userChannel.UserID),
+						mlog.String("channel_id", userChannel.ChannelID),
+						mlog.String("team_id", channel.TeamId),
+					)
+					continue
+				}
 				return err
 			}
 			a.Log().Info("added teammember",
@@ -77,6 +85,13 @@ func (a *App) createDefaultTeamMemberships(since int64, teamID *string) error {
 	for _, userTeam := range teamMembers {
 		_, err := a.AddTeamMember(userTeam.TeamID, userTeam.UserID)
 		if err != nil {
+			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
+				a.Log().Info("User not added to team - the domain associated with the user is not in the list of allowed team domains",
+					mlog.String("user_id", userTeam.UserID),
+					mlog.String("team_id", userTeam.TeamID),
+				)
+				continue
+			}
 			return err
 		}
 

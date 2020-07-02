@@ -20,9 +20,11 @@ type CommandArgs struct {
 	Command         string               `json:"command"`
 	SiteURL         string               `json:"-"`
 	T               goi18n.TranslateFunc `json:"-"`
-	Session         Session              `json:"-"`
 	UserMentions    UserMentionMap       `json:"-"`
 	ChannelMentions ChannelMentionMap    `json:"-"`
+
+	// DO NOT USE Session field is deprecated. MM-26398
+	Session Session `json:"-"`
 }
 
 func (o *CommandArgs) ToJson() string {
