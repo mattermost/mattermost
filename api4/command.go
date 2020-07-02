@@ -382,7 +382,8 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		roleId = model.SYSTEM_ADMIN_ROLE_ID
 	}
 
-	userInput := r.URL.Query().Get("user_input")
+	query := r.URL.Query()
+	userInput := query.Get("user_input")
 	if userInput == "" {
 		c.SetInvalidParam("userInput")
 		return
@@ -395,7 +396,19 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
-	suggestions := c.App.GetSuggestions(commands, userInput, roleId)
+	commandArgs := &model.CommandArgs{
+		ChannelId: query.Get("channel_id"),
+		TeamId:    c.Params.TeamId,
+		RootId:    query.Get("root_id"),
+		ParentId:  query.Get("parent_id"),
+		UserId:    c.App.Session().UserId,
+		T:         c.App.T,
+		Session:   *c.App.Session(),
+		SiteURL:   c.GetSiteURLHeader(),
+		Command:   userInput,
+	}
+
+	suggestions := c.App.GetSuggestions(commandArgs, commands, roleId)
 
 	w.Write(model.AutocompleteSuggestionsToJSON(suggestions))
 }
