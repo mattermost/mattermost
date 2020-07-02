@@ -321,15 +321,6 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 		return
 	}
 
-	sender, appErr := a.GetUser(senderUserId)
-	if appErr != nil {
-		a.Log().Error("Email invite not sent, unable to find the sender user.",
-			mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id),
-			mlog.Err(appErr))
-		return
-	}
-
 	for _, invite := range invites {
 		if len(invite) > 0 {
 			subject := utils.T("api.templates.invite_subject",
@@ -337,7 +328,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        a.ClientConfig()["SiteName"]})
 
-			bodyPage := a.newEmailTemplate("invite_body", sender.Locale)
+			bodyPage := a.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
@@ -409,7 +400,7 @@ func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        a.ClientConfig()["SiteName"]})
 
-			bodyPage := a.newEmailTemplate("invite_body", sender.Locale)
+			bodyPage := a.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
