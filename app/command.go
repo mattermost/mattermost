@@ -85,17 +85,6 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 		}
 	}
 
-	for _, value := range commandProviders {
-		if cmd := value.GetCommand(a, T); cmd != nil {
-			cpy := *cmd
-			if cpy.AutoComplete && !seen[cpy.Trigger] {
-				cpy.Sanitize()
-				seen[cpy.Trigger] = true
-				commands = append(commands, &cpy)
-			}
-		}
-	}
-
 	if *a.Config().ServiceSettings.EnableCommands {
 		teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 		if err != nil {
@@ -107,6 +96,17 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 				cmd.Sanitize()
 				seen[cmd.Trigger] = true
 				commands = append(commands, cmd)
+			}
+		}
+	}
+
+	for _, value := range commandProviders {
+		if cmd := value.GetCommand(a, T); cmd != nil {
+			cpy := *cmd
+			if cpy.AutoComplete && !seen[cpy.Trigger] {
+				cpy.Sanitize()
+				seen[cpy.Trigger] = true
+				commands = append(commands, &cpy)
 			}
 		}
 	}
