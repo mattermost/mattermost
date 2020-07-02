@@ -90,10 +90,15 @@ func TestExecuteCommand(t *testing.T) {
 
 		for TestCase, result := range TestCases {
 			args := &model.CommandArgs{
-				Command: TestCase,
-				T:       func(s string, args ...interface{}) string { return s },
+				Command:   TestCase,
+				TeamId:    th.BasicTeam.Id,
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				T:         func(s string, args ...interface{}) string { return s },
 			}
-			resp, _ := th.App.ExecuteCommand(args)
+			resp, err := th.App.ExecuteCommand(args)
+			require.Nil(t, err)
+			require.NotNil(t, resp)
 
 			assert.Equal(t, resp.Text, result)
 		}
