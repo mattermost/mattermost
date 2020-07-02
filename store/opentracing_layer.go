@@ -5274,7 +5274,7 @@ func (s *OpenTracingLayerPreferenceStore) Save(preferences *model.Preferences) *
 	return resultVar0
 }
 
-func (s *OpenTracingLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (s *OpenTracingLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.BulkGetForPosts")
 	s.Root.Store.SetContext(newCtx)
@@ -5292,7 +5292,7 @@ func (s *OpenTracingLayerReactionStore) BulkGetForPosts(postIds []string) ([]*mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *OpenTracingLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -5310,7 +5310,7 @@ func (s *OpenTracingLayerReactionStore) Delete(reaction *model.Reaction) (*model
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.DeleteAllWithEmojiName")
 	s.Root.Store.SetContext(newCtx)
@@ -5328,7 +5328,7 @@ func (s *OpenTracingLayerReactionStore) DeleteAllWithEmojiName(emojiName string)
 	return resultVar0
 }
 
-func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.GetForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -5346,7 +5346,7 @@ func (s *OpenTracingLayerReactionStore) GetForPost(postId string, allowFromCache
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.PermanentDeleteBatch")
 	s.Root.Store.SetContext(newCtx)
@@ -5364,7 +5364,7 @@ func (s *OpenTracingLayerReactionStore) PermanentDeleteBatch(endTime int64, limi
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ReactionStore.Save")
 	s.Root.Store.SetContext(newCtx)
