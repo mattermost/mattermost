@@ -457,7 +457,7 @@ type AppIface interface {
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError)
-	DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) *model.AppError
+	DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile, isOAuth, isSaml bool) *model.AppError
 	DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError)
 	DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
@@ -579,7 +579,7 @@ type AppIface interface {
 	GetOAuthAppsByCreator(userId string, page, perPage int) ([]*model.OAuthApp, *model.AppError)
 	GetOAuthCodeRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
 	GetOAuthImplicitRedirect(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
-	GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamId, action, redirectTo, loginHint string) (string, *model.AppError)
+	GetOAuthLoginEndpoint(w http.ResponseWriter, r *http.Request, service, teamId, action, redirectTo, loginHint string, isMobile bool) (string, *model.AppError)
 	GetOAuthSignupEndpoint(w http.ResponseWriter, r *http.Request, service, teamId string) (string, *model.AppError)
 	GetOAuthStateToken(token string) (*model.Token, *model.AppError)
 	GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph
