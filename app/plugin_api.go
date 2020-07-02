@@ -424,6 +424,40 @@ func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.Searc
 	return postList.ToSlice(), nil
 }
 
+func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	var terms string
+	if searchParams.Terms != nil {
+		terms = *searchParams.Terms
+	}
+
+	timeZoneOffset := 0
+	if searchParams.TimeZoneOffset != nil {
+		timeZoneOffset = *searchParams.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if searchParams.IsOrSearch != nil {
+		isOrSearch = *searchParams.IsOrSearch
+	}
+
+	page := 0
+	if searchParams.Page != nil {
+		page = *searchParams.Page
+	}
+
+	perPage := 100
+	if searchParams.PerPage != nil {
+		perPage = *searchParams.PerPage
+	}
+
+	includeDeletedChannels := false
+	if searchParams.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *searchParams.IncludeDeletedChannels
+	}
+
+	return api.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+}
+
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
@@ -480,8 +514,8 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	return api.app.GetGroup(groupId)
 }
 
-func (api *PluginAPI) GetGroupByName(name string, opts model.GroupSearchOpts) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name, opts)
+func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
+	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
@@ -873,6 +907,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}
 	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
+	newURL.RawQuery = request.URL.Query().Encode()
 	request.URL = newURL
 	if destinationPluginId == "" || err != nil {
 		message := "No plugin specified. Form of URL should be /<pluginid>/*"
