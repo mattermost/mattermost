@@ -53,7 +53,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnConfigurationChange() error {
-				p.API.LogError("hello")
 				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
 					return err
 				}
@@ -62,7 +61,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				p.API.LogError("team", "team", p.configuration.TeamId)
 				err := p.API.RegisterCommand(&model.Command{
 					TeamId: p.configuration.TeamId,
 					Trigger: "plugin",
@@ -73,7 +71,6 @@ func TestPluginCommand(t *testing.T) {
 				if err != nil {
 					p.API.LogError("error", "err", err)
 				}
-				p.API.LogDebug("team", "team", p.configuration.TeamId)
 
 				return err
 			}
@@ -244,7 +241,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnConfigurationChange() error {
-				p.API.LogError("hello")
 				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
 					return err
 				}
@@ -253,7 +249,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				p.API.LogError("team", "team", p.configuration.TeamId)
 				err := p.API.RegisterCommand(&model.Command{
 					TeamId: p.configuration.TeamId,
 					Trigger: "code",
@@ -264,7 +259,6 @@ func TestPluginCommand(t *testing.T) {
 				if err != nil {
 					p.API.LogError("error", "err", err)
 				}
-				p.API.LogDebug("team", "team", p.configuration.TeamId)
 
 				return err
 			}
@@ -289,16 +283,6 @@ func TestPluginCommand(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
 		require.Equal(t, "text", resp.Text)
-
-		err2 := th.App.DisablePlugin(pluginIds[0])
-		require.Nil(t, err2)
-
-		commands, err3 := th.App.ListAutocompleteCommands(args.TeamId, utils.T)
-		require.Nil(t, err3)
-
-		for _, commands := range commands {
-			require.NotEqual(t, "plugin", commands.Trigger)
-		}
 
 		th.App.RemovePlugin(pluginIds[0])
 	})
