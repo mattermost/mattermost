@@ -7617,7 +7617,7 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]int
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInput string, roleID string) []model.AutocompleteSuggestion {
+func (a *OpenTracingAppLayer) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSuggestions")
 
@@ -7629,7 +7629,7 @@ func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInpu
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetSuggestions(commands, userInput, roleID)
+	resultVar0 := a.app.GetSuggestions(commandArgs, commands, roleID)
 
 	return resultVar0
 }
