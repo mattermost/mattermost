@@ -83,6 +83,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2380,4 +2383,102 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		c.SetInvalidParam("force")
+		return
+	}
+
+	matchField, ok := props["match_field"].(string)
+	if !ok {
+		c.SetInvalidParam("match_field")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("match_field", matchField)
+	auditRec.AddMeta("force", force)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToLdap", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	auto, ok := props["auto"].(bool)
+	if !ok {
+		c.SetInvalidParam("auto")
+		return
+	}
+	matches, ok := props["matches"].(map[string]interface{})
+	if !ok {
+		c.SetInvalidParam("matches")
+		return
+	}
+	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+
+	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("matches", matches)
+	auditRec.AddMeta("auto", auto)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

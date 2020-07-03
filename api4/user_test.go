@@ -5075,3 +5075,25 @@ func TestPublishUserTyping(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 }
+
+func TestMigrateAuthToLDAP(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToLdap("email", "a", false)
+	CheckForbiddenStatus(t, err)
+
+	_, err = th.SystemAdminClient.MigrateAuthToLdap("email", "a", false)
+	CheckNotImplementedStatus(t, err)
+}
+
+func TestMigrateAuthToSAML(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+	CheckForbiddenStatus(t, err)
+
+	_, err = th.SystemAdminClient.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+	CheckNotImplementedStatus(t, err)
+}
