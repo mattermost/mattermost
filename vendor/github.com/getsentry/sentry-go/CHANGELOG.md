@@ -4,6 +4,17 @@
 
 - "I am running away from my responsibilities. And it feels good." – Michael Scott, Season 4, "Money"
 
+## v0.6.1
+
+- fix: Use NewEvent to init Event struct (#220)
+
+_NOTE:_
+A change introduced in v0.6.0 with the intent of avoiding allocations made a
+pattern used in official examples break in certain circumstances (attempting
+to write to a nil map).
+This release reverts the change such that maps in the Event struct are always
+allocated.
+
 ## v0.6.0
 
 - feat: Read module dependencies from runtime/debug (#199)

@@ -263,7 +263,7 @@ func (p PostPolicy) String() string {
 	return string(p.marshalJSON())
 }
 
-// marshalJSON - Provides Marshalled JSON in bytes.
+// marshalJSON - Provides Marshaled JSON in bytes.
 func (p PostPolicy) marshalJSON() []byte {
 	expirationStr := `"expiration":"` + p.expiration.Format(expirationDateFormat) + `"`
 	var conditionsStr string
@@ -285,7 +285,7 @@ func (p PostPolicy) marshalJSON() []byte {
 	return []byte(retStr)
 }
 
-// base64 - Produces base64 of PostPolicy's Marshalled json.
+// base64 - Produces base64 of PostPolicy's Marshaled json.
 func (p PostPolicy) base64() string {
 	return base64.StdEncoding.EncodeToString(p.marshalJSON())
 }

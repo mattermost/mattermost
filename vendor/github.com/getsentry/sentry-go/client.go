@@ -320,7 +320,8 @@ func (client *Client) eventFromException(exception error, level Level) *Event {
 		err = usageError{fmt.Errorf("%s called with nil error", callerFunctionName())}
 	}
 
-	event := &Event{Level: level}
+	event := NewEvent()
+	event.Level = level
 
 	for i := 0; i < maxErrorDepth && err != nil; i++ {
 		event.Exception = append(event.Exception, Exception{
