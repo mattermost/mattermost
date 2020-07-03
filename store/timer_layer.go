@@ -329,7 +329,7 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
-func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model.Audits, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
@@ -345,7 +345,7 @@ func (s *TimerLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
@@ -361,7 +361,7 @@ func (s *TimerLayerAuditStore) PermanentDeleteByUser(userId string) *model.AppEr
 	return resultVar0
 }
 
-func (s *TimerLayerAuditStore) Save(audit *model.Audit) *model.AppError {
+func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.AuditStore.Save(audit)
@@ -4780,7 +4780,7 @@ func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) *model.
 	return resultVar0
 }
 
-func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.BulkGetForPosts(postIds)
@@ -4796,7 +4796,7 @@ func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.Delete(reaction)
@@ -4812,7 +4812,7 @@ func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
@@ -4828,7 +4828,7 @@ func (s *TimerLayerReactionStore) DeleteAllWithEmojiName(emojiName string) *mode
 	return resultVar0
 }
 
-func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.GetForPost(postId, allowFromCache)
@@ -4844,7 +4844,7 @@ func (s *TimerLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
@@ -4860,7 +4860,7 @@ func (s *TimerLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ReactionStore.Save(reaction)

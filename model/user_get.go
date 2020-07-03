@@ -20,6 +20,8 @@ type UserGetOptions struct {
 	WithoutTeam bool
 	// Filters the inactive users
 	Inactive bool
+	// Filters the active users
+	Active bool
 	// Filters for the given role
 	Role string
 	// Sorting option

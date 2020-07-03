@@ -13,6 +13,8 @@ import (
 const (
 	USER_AUTH_SERVICE_SAML      = "saml"
 	USER_AUTH_SERVICE_SAML_TEXT = "SAML"
+	USER_AUTH_SERVICE_IS_SAML   = "isSaml"
+	USER_AUTH_SERVICE_IS_MOBILE = "isMobile"
 )
 
 type SamlAuthRequest struct {
