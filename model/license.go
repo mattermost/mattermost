@@ -41,12 +41,14 @@ type Customer struct {
 }
 
 type TrialLicenseRequest struct {
-	ServerID string `json:"server_id"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	SiteURL  string `json:"site_url"`
-	SiteName string `json:"site_name"`
-	Users    int    `json:"users"`
+	ServerID              string `json:"server_id"`
+	Email                 string `json:"email"`
+	Name                  string `json:"name"`
+	SiteURL               string `json:"site_url"`
+	SiteName              string `json:"site_name"`
+	Users                 int    `json:"users"`
+	TermsAccepted         bool   `json:"terms_accepted"`
+	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
 }
 
 func (tlr *TrialLicenseRequest) ToJson() string {
