@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/search/query"
 )
+
+const DELETE_POSTS_BATCH_SIZE = 500
 
 func (b *BleveEngine) IndexPost(post *model.Post, teamId string) *model.AppError {
 	b.Mutex.RLock()
@@ -193,7 +196,8 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 		query.AddMustNot(notFilters...)
 	}
 
-	search := bleve.NewSearchRequest(query)
+	search := bleve.NewSearchRequestOptions(query, perPage, page*perPage, false)
+	search.SortBy([]string{"-CreateAt"})
 	results, err := b.PostIndex.Search(search)
 	if err != nil {
 		return nil, nil, model.NewAppError("Bleveengine.SearchPosts", "bleveengine.search_posts.error", nil, err.Error(), http.StatusInternalServerError)
@@ -207,6 +211,72 @@ func (b *BleveEngine) SearchPosts(channels *model.ChannelList, searchParams []*m
 	}
 
 	return postIds, matches, nil
+}
+
+func (b *BleveEngine) deletePosts(searchRequest *bleve.SearchRequest, batchSize int) (int64, error) {
+	resultsCount := int64(0)
+
+	for {
+		// As we are deleting the posts after fetching them, we need to keep
+		// From fixed always to 0
+		searchRequest.From = 0
+		searchRequest.Size = batchSize
+		results, err := b.PostIndex.Search(searchRequest)
+		if err != nil {
+			return -1, err
+		}
+		batch := b.PostIndex.NewBatch()
+		for _, post := range results.Hits {
+			batch.Delete(post.ID)
+		}
+		if err := b.PostIndex.Batch(batch); err != nil {
+			return -1, err
+		}
+		resultsCount += int64(results.Hits.Len())
+		if results.Hits.Len() < batchSize {
+			break
+		}
+	}
+
+	return resultsCount, nil
+}
+
+func (b *BleveEngine) DeleteChannelPosts(channelID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(channelID)
+	query.SetField("ChannelId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteChannelPosts",
+			"bleveengine.delete_channel_posts.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Posts for channel deleted", mlog.String("channel_id", channelID), mlog.Int64("deleted", deleted))
+
+	return nil
+}
+
+func (b *BleveEngine) DeleteUserPosts(userID string) *model.AppError {
+	b.Mutex.RLock()
+	defer b.Mutex.RUnlock()
+
+	query := bleve.NewTermQuery(userID)
+	query.SetField("UserId")
+	search := bleve.NewSearchRequest(query)
+	deleted, err := b.deletePosts(search, DELETE_POSTS_BATCH_SIZE)
+	if err != nil {
+		return model.NewAppError("Bleveengine.DeleteUserPosts",
+			"bleveengine.delete_user_posts.error", nil,
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Info("Posts for user deleted", mlog.String("user_id", userID), mlog.Int64("deleted", deleted))
+
+	return nil
 }
 
 func (b *BleveEngine) DeletePost(post *model.Post) *model.AppError {
@@ -242,6 +312,7 @@ func (b *BleveEngine) SearchChannels(teamId, term string) ([]string, *model.AppE
 	}
 
 	query := bleve.NewSearchRequest(bleve.NewConjunctionQuery(queries...))
+	query.Size = model.CHANNEL_SEARCH_DEFAULT_LIMIT
 	results, err := b.ChannelIndex.Search(query)
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchChannels", "bleveengine.search_channels.error", nil, err.Error(), http.StatusInternalServerError)
@@ -299,7 +370,9 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 
 	query := bleve.NewConjunctionQuery(queries...)
 
-	uchan, err := b.UserIndex.Search(bleve.NewSearchRequest(query))
+	uchanSearch := bleve.NewSearchRequest(query)
+	uchanSearch.Size = options.Limit
+	uchan, err := b.UserIndex.Search(uchanSearch)
 	if err != nil {
 		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.uchan.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -334,7 +407,9 @@ func (b *BleveEngine) SearchUsersInChannel(teamId, channelId string, restrictedT
 		boolQ.AddMust(restrictedChannelsQ)
 	}
 
-	nuchan, err := b.UserIndex.Search(bleve.NewSearchRequest(boolQ))
+	nuchanSearch := bleve.NewSearchRequest(boolQ)
+	nuchanSearch.Size = options.Limit
+	nuchan, err := b.UserIndex.Search(nuchanSearch)
 	if err != nil {
 		return nil, nil, model.NewAppError("Bleveengine.SearchUsersInChannel", "bleveengine.search_users_in_channel.nuchan.error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -396,7 +471,7 @@ func (b *BleveEngine) SearchUsersInTeam(teamId string, restrictedToChannels []st
 	}
 
 	search := bleve.NewSearchRequest(rootQ)
-
+	search.Size = options.Limit
 	results, err := b.UserIndex.Search(search)
 	if err != nil {
 		return nil, model.NewAppError("Bleveengine.SearchUsersInTeam", "bleveengine.search_users_in_team.error", nil, err.Error(), http.StatusInternalServerError)

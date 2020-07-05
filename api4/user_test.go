@@ -1084,6 +1084,44 @@ func TestSearchUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	require.True(t, findUserInList(th.BasicUser.Id, users), "should have found user")
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	search = &model.UserSearch{Term: th.BasicUser.Username, InGroupId: group.Id}
+	t.Run("Requires ldap license when searching in group", func(t *testing.T) {
+		_, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission when searching for users in a group", func(t *testing.T) {
+		_, resp = th.Client.SearchUsers(search)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Returns empty list when no users found searching for users in a group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Empty(t, users)
+	})
+
+	_, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns user in group user found in group", func(t *testing.T) {
+		users, resp = th.SystemAdminClient.SearchUsers(search)
+		CheckNoError(t, resp)
+		require.Equal(t, users[0].Id, th.BasicUser.Id)
+	})
 }
 
 func findUserInList(id string, users []*model.User) bool {
@@ -1110,6 +1148,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		Username        string
 		ExpectedResults int
 		MoreThan        bool
+		ShouldFail      bool
 	}{
 		{
 			"Autocomplete in channel for specific username",
@@ -1117,6 +1156,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			channelId,
 			username,
 			1,
+			false,
 			false,
 		},
 		{
@@ -1126,6 +1166,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			"amazonses",
 			0,
 			false,
+			false,
 		},
 		{
 			"Search for all users",
@@ -1134,13 +1175,15 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			"",
 			2,
 			true,
+			false,
 		},
 		{
-			"Search all in specific channel",
+			"Fail when the teamId is not provided",
 			"",
 			channelId,
 			"",
 			2,
+			true,
 			true,
 		},
 	}
@@ -1149,12 +1192,17 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			th.LoginBasic()
 			rusers, resp := th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.USER_SEARCH_DEFAULT_LIMIT, "")
-			CheckNoError(t, resp)
-			if tc.MoreThan {
-				assert.True(t, len(rusers.Users) >= tc.ExpectedResults)
+			if tc.ShouldFail {
+				CheckErrorMessage(t, resp, "api.user.autocomplete_users.missing_team_id.app_error")
 			} else {
-				assert.Len(t, rusers.Users, tc.ExpectedResults)
+				CheckNoError(t, resp)
+				if tc.MoreThan {
+					assert.True(t, len(rusers.Users) >= tc.ExpectedResults)
+				} else {
+					assert.Len(t, rusers.Users, tc.ExpectedResults)
+				}
 			}
+
 			th.Client.Logout()
 			_, resp = th.Client.AutocompleteUsersInChannel(tc.TeamId, tc.ChannelId, tc.Username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 			CheckUnauthorizedStatus(t, resp)
@@ -1850,6 +1898,69 @@ func TestDeleteUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestPermanentDeleteAllUsers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("The endpoint should not be available for neither normal nor sysadmin users", func(t *testing.T) {
+		_, resp := th.Client.PermanentDeleteAllUsers()
+		CheckNotFoundStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.PermanentDeleteAllUsers()
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
+		// Basic user creates a team and a channel
+		team, err := th.App.CreateTeamWithUser(&model.Team{
+			DisplayName: "User Created Team",
+			Name:        "user-created-team",
+			Email:       "usercreatedteam@test.com",
+			Type:        model.TEAM_OPEN,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannelWithUser(&model.Channel{
+			DisplayName: "User Created Channel",
+			Name:        "user-created-channel",
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      team.Id,
+		}, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		// Check that we have users and posts in the database
+		users, err := th.App.Srv().Store.User().GetAll()
+		require.Nil(t, err)
+		require.Greater(t, len(users), 0)
+
+		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, err)
+		require.Greater(t, postCount, int64(0))
+
+		// Delete all users and their posts
+		_, resp := th.LocalClient.PermanentDeleteAllUsers()
+		require.Nil(t, resp.Error)
+
+		// Check that both user and post tables are empty
+		users, err = th.App.Srv().Store.User().GetAll()
+		require.Nil(t, err)
+		require.Len(t, users, 0)
+
+		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, err)
+		require.Equal(t, postCount, int64(0))
+
+		// Check that the channel and team created by the user were not deleted
+		rTeam, err := th.App.GetTeam(team.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rTeam)
+
+		rChannel, err := th.App.GetChannel(channel.Id)
+		require.Nil(t, err)
+		require.NotNil(t, rChannel)
+	})
+}
+
 func TestUpdateUserRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2134,6 +2245,35 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetActiveUsersInTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	teamId := th.BasicTeam.Id
+
+	th.SystemAdminClient.UpdateUserActive(th.BasicUser2.Id, false)
+	rusers, resp := th.Client.GetActiveUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	require.NotZero(t, len(rusers))
+	for _, u := range rusers {
+		require.Zero(t, u.DeleteAt, "should not be deleted")
+		require.NotEqual(t, th.BasicUser2.Id, "should not include deactivated user")
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	require.Len(t, rusers, 1, "should be 1 per page")
+
+	// Check case where we have supplied both active and inactive flags
+	_, err := th.Client.DoApiGet("/users?inactive=true&active=true", "")
+	require.NotNil(t, err)
+
+	th.Client.Logout()
+	_, resp = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetUsersWithoutTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2326,6 +2466,54 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
 	CheckNoError(t, resp)
+}
+
+func TestGetUsersInGroup(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	var response *model.Response
+	var users []*model.User
+
+	t.Run("Requires ldap license", func(t *testing.T) {
+		_, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNotImplementedStatus(t, response)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("Requires manage system permission to access users in group", func(t *testing.T) {
+		th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		_, response = th.Client.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckForbiddenStatus(t, response)
+	})
+
+	user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Nickname: "test user1", Password: "test-password-1", Username: "test-user-1", Roles: model.SYSTEM_USER_ROLE_ID})
+	assert.Nil(t, err)
+	_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
+	assert.Nil(t, err)
+
+	t.Run("Returns users in group when called by system admin", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 0, 60, "")
+		CheckNoError(t, response)
+		assert.Equal(t, users[0].Id, user1.Id)
+	})
+
+	t.Run("Returns no users when pagination out of range", func(t *testing.T) {
+		users, response = th.SystemAdminClient.GetUsersInGroup(group.Id, 5, 60, "")
+		CheckNoError(t, response)
+		assert.Empty(t, users)
+	})
 }
 
 func TestUpdateUserMfa(t *testing.T) {
@@ -4457,7 +4645,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 	defer th.TearDown()
 
 	_, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
-	CheckErrorMessage(t, resp, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error")
+	CheckErrorMessage(t, resp, "app.user_terms_of_service.get_by_user.no_rows.app_error")
 
 	termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
 	require.Nil(t, err)
@@ -4513,6 +4701,7 @@ func TestLoginErrorMessage(t *testing.T) {
 		*cfg.SamlSettings.IdpUrl = "https://localhost/adfs/ls"
 		*cfg.SamlSettings.IdpDescriptorUrl = "https://localhost/adfs/services/trust"
 		*cfg.SamlSettings.IdpMetadataUrl = "https://localhost/adfs/metadata"
+		*cfg.SamlSettings.ServiceProviderIdentifier = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.AssertionConsumerServiceURL = "https://localhost/login/sso/saml"
 		*cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName
 		*cfg.SamlSettings.PrivateKeyFile = app.SamlPrivateKeyName
@@ -4682,6 +4871,36 @@ func TestPromoteGuestToUser(t *testing.T) {
 	})
 }
 
+func TestVerifyUserEmailWithoutToken(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Should verify a new user", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
+		ruser, _ := th.Client.CreateUser(&user)
+
+		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken(ruser.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, ruser.Id, vuser.Id)
+	})
+
+	t.Run("Should not be able to find user", func(t *testing.T) {
+		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken("randomId")
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
+		require.Nil(t, vuser)
+	})
+
+	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
+		user := th.CreateUser()
+		vuser, resp := th.Client.VerifyUserEmailWithoutToken(user.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+		require.Nil(t, vuser)
+	})
+}
+
 func TestGetKnownUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -4779,5 +4998,80 @@ func TestGetKnownUsers(t *testing.T) {
 		CheckNoError(t, resp)
 		assert.Len(t, userIds, 2)
 		assert.ElementsMatch(t, userIds, []string{u2.Id, u3.Id})
+	})
+}
+
+func TestPublishUserTyping(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tr := model.TypingRequest{
+		ChannelId: th.BasicChannel.Id,
+		ParentId:  "randomparentid",
+	}
+
+	t.Run("should return ok for non-system admin when triggering typing event for own user", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping(th.BasicUser.Id, tr)
+		CheckNoError(t, resp)
+	})
+
+	t.Run("should return ok for system admin when triggering typing event for own user", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
+		CheckNoError(t, resp)
+	})
+
+	t.Run("should return forbidden for non-system admin when triggering a typing event for a different user", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping(th.BasicUser2.Id, tr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should return bad request when triggering a typing event for an invalid user id", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping("invalid", tr)
+		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("should send typing event via websocket when triggering a typing event for a user with a common channel", func(t *testing.T) {
+		webSocketClient, err := th.CreateWebSocketClient()
+		assert.Nil(t, err)
+		defer webSocketClient.Close()
+
+		webSocketClient.Listen()
+
+		time.Sleep(300 * time.Millisecond)
+		wsResp := <-webSocketClient.ResponseChannel
+		require.Equal(t, model.STATUS_OK, wsResp.Status)
+
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.BasicUser2.Id, tr)
+		CheckNoError(t, resp)
+
+		assertExpectedWebsocketEvent(t, webSocketClient, model.WEBSOCKET_EVENT_TYPING, func(resp *model.WebSocketEvent) {
+			assert.Equal(t, th.BasicChannel.Id, resp.GetBroadcast().ChannelId)
+
+			eventUserId, ok := resp.GetData()["user_id"].(string)
+			require.True(t, ok, "expected user_id")
+			assert.Equal(t, th.BasicUser2.Id, eventUserId)
+
+			eventParentId, ok := resp.GetData()["parent_id"].(string)
+			require.True(t, ok, "expected parent_id")
+			assert.Equal(t, "randomparentid", eventParentId)
+		})
+	})
+
+	th.Server.Busy.Set(time.Second * 10)
+
+	t.Run("should return service unavailable for non-system admin user when triggering a typing event and server busy", func(t *testing.T) {
+		_, resp := th.Client.PublishUserTyping("invalid", tr)
+		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
+		CheckServiceUnavailableStatus(t, resp)
+	})
+
+	t.Run("should return service unavailable for system admin user when triggering a typing event and server busy", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
+		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
+		CheckServiceUnavailableStatus(t, resp)
 	})
 }

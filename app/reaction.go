@@ -4,6 +4,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -36,9 +37,15 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	reaction, err = a.Srv().Store.Reaction().Save(reaction)
-	if err != nil {
-		return nil, err
+	reaction, nErr := a.Srv().Store.Reaction().Save(reaction)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("SaveReactionForPost", "app.reaction.save.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// The post is always modified since the UpdateAt always changes
@@ -52,7 +59,11 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	return a.Srv().Store.Reaction().GetForPost(postId, true)
+	reactions, err := a.Srv().Store.Reaction().GetForPost(postId, true)
+	if err != nil {
+		return nil, model.NewAppError("GetReactionsForPost", "app.reaction.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return reactions, nil
 }
 
 func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
@@ -60,7 +71,7 @@ func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Re
 
 	allReactions, err := a.Srv().Store.Reaction().BulkGetForPosts(postIds)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetBulkReactionsForPosts", "app.reaction.bulk_get_for_post_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, reaction := range allReactions {
@@ -95,7 +106,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	}
 
 	if channel.DeleteAt > 0 {
-		return model.NewAppError("deleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+		return model.NewAppError("DeleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
@@ -105,7 +116,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		}
 
 		if !a.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
-			return model.NewAppError("deleteReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
+			return model.NewAppError("DeleteReactionForPost", "api.reaction.town_square_read_only", nil, "", http.StatusForbidden)
 		}
 	}
 
@@ -115,7 +126,7 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	}
 
 	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
-		return err
+		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// The post is always modified since the UpdateAt always changes

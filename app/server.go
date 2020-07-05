@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -23,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
-	analytics "github.com/segmentio/analytics-go"
 
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
@@ -41,11 +41,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
+	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -91,7 +94,8 @@ type Server struct {
 	hubsLock sync.RWMutex
 	hubs     []*Hub
 
-	PushNotificationsHub PushNotificationsHub
+	PushNotificationsHub   PushNotificationsHub
+	pushNotificationClient *http.Client // TODO: move this to it's own package
 
 	runjobs bool
 	Jobs    *jobs.JobServer
@@ -127,14 +131,12 @@ type Server struct {
 	clientConfigHash    atomic.Value
 	limitedClientConfig atomic.Value
 
-	diagnosticId     string
-	diagnosticClient analytics.Client
-	rudderClient     rudder.Client
+	diagnosticId string
+	rudderClient rudder.Client
 
 	phase2PermissionsMigrationComplete bool
 
-	HTTPService            httpservice.HTTPService
-	pushNotificationClient *http.Client // TODO: move this to it's own package
+	HTTPService httpservice.HTTPService
 
 	ImageProxy *imageproxy.ImageProxy
 
@@ -275,8 +277,155 @@ func NewServer(options ...Option) (*Server, error) {
 		Size: model.STATUS_CACHE_SIZE,
 	})
 
-	if err := s.RunOldAppInitialization(); err != nil {
+	s.createPushNotificationsHub()
+
+	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	}
+
+	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
+
+		message.Add("config", s.ClientConfigWithComputed())
+		s.Go(func() {
+			s.Publish(message)
+		})
+	})
+	s.licenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.configOrLicenseListener()
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
+		message.Add("license", s.GetSanitizedClientLicense())
+		s.Go(func() {
+			s.Publish(message)
+		})
+
+	})
+
+	if err := s.setupInviteEmailRateLimiting(); err != nil {
 		return nil, err
+	}
+
+	mlog.Info("Server is initializing...")
+
+	s.initEnterprise()
+
+	if s.newStore == nil {
+		s.newStore = func() store.Store {
+			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+			searchStore := searchlayer.NewSearchLayer(
+				localcachelayer.NewLocalCacheLayer(
+					s.sqlStore,
+					s.Metrics,
+					s.Cluster,
+					s.CacheProvider2,
+				),
+				s.SearchEngine,
+				s.Config(),
+			)
+
+			s.AddConfigListener(func(prevCfg, cfg *model.Config) {
+				searchStore.UpdateConfig(cfg)
+			})
+
+			s.sqlStore.UpdateLicense(s.License())
+			s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+				s.sqlStore.UpdateLicense(newLicense)
+			})
+
+			return store.NewTimerLayer(
+				searchStore,
+				s.Metrics,
+			)
+		}
+	}
+
+	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
+		mlog.Error("Failed to parse server templates", mlog.Err(err))
+	} else {
+		s.htmlTemplateWatcher = htmlTemplateWatcher
+	}
+
+	s.Store = s.newStore()
+
+	if model.BuildEnterpriseReady == "true" {
+		s.LoadLicense()
+	}
+
+	s.initJobs()
+
+	if s.joinCluster && s.Cluster != nil {
+		s.Cluster.StartInterNodeCommunication()
+	}
+
+	if err := s.ensureAsymmetricSigningKey(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
+	if err := s.ensurePostActionCookieSecret(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+	}
+
+	if err := s.ensureInstallationDate(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure installation date")
+	}
+
+	if err := s.ensureFirstServerRunTimestamp(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
+	}
+
+	s.ensureDiagnosticId()
+	s.regenerateClientConfig()
+
+	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		if s.Jobs != nil && s.Jobs.Schedulers != nil {
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		}
+	})
+
+	subpath, err := utils.GetSubpathFromConfig(s.Config())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse SiteURL subpath")
+	}
+	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
+
+	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
+	fakeApp := New(ServerConnector(s))
+	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", fakeApp.ServePluginRequest)
+
+	// If configured with a subpath, redirect 404s at the root back into the subpath.
+	if subpath != "/" {
+		s.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = path.Join(subpath, r.URL.Path)
+			http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		})
+	}
+
+	s.WebSocketRouter = &WebSocketRouter{
+		server:   s,
+		handlers: make(map[string]webSocketHandler),
+	}
+
+	if err := mailservice.TestConnection(s.Config()); err != nil {
+		mlog.Error("Mail server connection test is failed: " + err.Message)
+	}
+
+	if _, err := url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
+		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
+	}
+
+	backend, appErr := s.FileBackend()
+	if appErr == nil {
+		appErr = backend.TestConnection()
+	}
+	if appErr != nil {
+		mlog.Error("Problem with file storage settings", mlog.Err(appErr))
 	}
 
 	model.AppErrorInit(utils.T)
@@ -1007,26 +1156,8 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
+// initDiagnostics initialises the Rudder client for the diagnostics system.
 func (s *Server) initDiagnostics(endpoint string) {
-	if s.diagnosticClient == nil {
-		config := analytics.Config{}
-		config.Logger = analytics.StdLogger(s.Log.StdLog(mlog.String("source", "segment")))
-		// For testing
-		if endpoint != "" {
-			config.Endpoint = endpoint
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, _ := analytics.NewWithConfig(SEGMENT_KEY, config)
-		client.Enqueue(analytics.Identify{
-			UserId: s.diagnosticId,
-		})
-
-		s.diagnosticClient = client
-	}
-}
-
-func (s *Server) initRudder(endpoint string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1049,24 +1180,13 @@ func (s *Server) initRudder(endpoint string) {
 	}
 }
 
-// shutdownDiagnostics closes the diagnostic client.
+// shutdownDiagnostics closes the diagnostics system Rudder client.
 func (s *Server) shutdownDiagnostics() error {
-	var segmentErr, rudderErr error
-	if s.diagnosticClient != nil {
-		segmentErr = s.diagnosticClient.Close()
-	}
-
 	if s.rudderClient != nil {
-		rudderErr = s.rudderClient.Close()
+		return s.rudderClient.Close()
 	}
 
-	if segmentErr != nil && rudderErr != nil {
-		return errors.New(fmt.Sprintf("%s, %s", segmentErr.Error(), rudderErr.Error()))
-	} else if segmentErr != nil {
-		return segmentErr
-	}
-
-	return rudderErr
+	return nil
 }
 
 // GetHubs returns the list of hubs. This method is safe
@@ -1122,6 +1242,10 @@ func (s *Server) TotalWebsocketConnections() int {
 	return int(count)
 }
 
+func (s *Server) ClusterHealthScore() int {
+	return s.Cluster.HealthScore()
+}
+
 func (s *Server) ensureDiagnosticId() {
 	if s.diagnosticId != "" {
 		return
@@ -1165,5 +1289,8 @@ func (s *Server) initJobs() {
 	}
 	if jobsBleveIndexerInterface != nil {
 		s.Jobs.BleveIndexer = jobsBleveIndexerInterface(s)
+	}
+	if jobsMigrationsInterface != nil {
+		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
 }
