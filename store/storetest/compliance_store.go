@@ -165,40 +165,40 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1}
-	cposts, err := ss.Compliance().ComplianceExport(cr1)
-	require.Nil(t, err)
+	cposts, nErr := ss.Compliance().ComplianceExport(cr1)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email}
-	cposts, err = ss.Compliance().ComplianceExport(cr2)
-	require.Nil(t, err)
+	cposts, nErr = ss.Compliance().ComplianceExport(cr2)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 1)
 	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr3 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email}
-	cposts, err = ss.Compliance().ComplianceExport(cr3)
-	require.Nil(t, err)
+	cposts, nErr = ss.Compliance().ComplianceExport(cr3)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message}
-	cposts, err = ss.Compliance().ComplianceExport(cr4)
-	require.Nil(t, err)
+	cposts, nErr = ss.Compliance().ComplianceExport(cr4)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 1)
 	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message + " " + o1.Message}
-	cposts, err = ss.Compliance().ComplianceExport(cr5)
-	require.Nil(t, err)
+	cposts, nErr = ss.Compliance().ComplianceExport(cr5)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 2)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 
 	cr6 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email, Keywords: o2a.Message + " " + o1.Message}
-	cposts, err = ss.Compliance().ComplianceExport(cr6)
-	require.Nil(t, err)
+	cposts, nErr = ss.Compliance().ComplianceExport(cr6)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 2)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[1].PostId, o2a.Id)
@@ -284,8 +284,8 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
-	cposts, err := ss.Compliance().ComplianceExport(cr1)
-	require.Nil(t, err)
+	cposts, nErr := ss.Compliance().ComplianceExport(cr1)
+	require.Nil(t, nErr)
 	assert.Len(t, cposts, 4)
 	assert.Equal(t, cposts[0].PostId, o1.Id)
 	assert.Equal(t, cposts[len(cposts)-1].PostId, o3.Id)

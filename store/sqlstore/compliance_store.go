@@ -4,12 +4,13 @@
 package sqlstore
 
 import (
-	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlComplianceStore struct {
@@ -36,51 +37,51 @@ func newSqlComplianceStore(sqlStore SqlStore) store.ComplianceStore {
 func (s SqlComplianceStore) createIndexesIfNotExists() {
 }
 
-func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	compliance.PreSave()
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
 
 	if err := s.GetMaster().Insert(compliance); err != nil {
-		return nil, model.NewAppError("SqlComplianceStore.Save", "store.sql_compliance.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to save Compliance")
 	}
 	return compliance, nil
 }
 
-func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, error) {
 	if err := compliance.IsValid(); err != nil {
 		return nil, err
 	}
 
 	if _, err := s.GetMaster().Update(compliance); err != nil {
-		return nil, model.NewAppError("SqlComplianceStore.Update", "store.sql_compliance.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to update Compliance")
 	}
 	return compliance, nil
 }
 
-func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, *model.AppError) {
+func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, error) {
 	query := "SELECT * FROM Compliances ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset"
 
 	var compliances model.Compliances
 	if _, err := s.GetReplica().Select(&compliances, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find all Compliances")
 	}
 	return compliances, nil
 }
 
-func (s SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+func (s SqlComplianceStore) Get(id string) (*model.Compliance, error) {
 	obj, err := s.GetReplica().Get(model.Compliance{}, id)
 	if err != nil {
-		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Compliance with id=%s", id)
 	}
 	if obj == nil {
-		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, "", http.StatusNotFound)
+		return nil, store.NewErrNotFound("Compliance", id)
 	}
 	return obj.(*model.Compliance), nil
 }
 
-func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
+func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, error) {
 	props := map[string]interface{}{"StartTime": job.StartAt, "EndTime": job.EndAt}
 
 	keywordQuery := ""
@@ -201,12 +202,12 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 	var cposts []*model.CompliancePost
 
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-		return nil, model.NewAppError("SqlPostStore.ComplianceExport", "store.sql_post.compliance_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "unable to export compliance")
 	}
 	return cposts, nil
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError) {
+func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	props := map[string]interface{}{"StartTime": after, "Limit": limit}
 	query :=
 		`SELECT
@@ -250,7 +251,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-		return nil, model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "unable to export messages")
 	}
 	return cposts, nil
 }

@@ -3131,6 +3131,14 @@
     "translation": "Cluster API endpoint not found."
   },
   {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "We encountered an error retrieving the compliance reports."
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "We encountered an error saving the compliance report."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -6519,18 +6527,6 @@
     "translation": "Invalid webhook."
   },
   {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "We encountered an error retrieving the compliance reports."
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data."
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "We encountered an error saving the compliance report."
-  },
-  {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
     "translation": "Unable to delete attachments of the user."
   },
@@ -6761,10 +6757,6 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
