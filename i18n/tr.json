@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Bu varsayılan kanal özel bir kanala dönüştürülemez."
+        "translation": "Bu varsayılan kanal, özel bir kanala dönüştürülemez."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -868,7 +868,7 @@
     },
     {
         "id": "api.command_join.fail.app_error",
-        "translation": "Kanala katılınılırken bir sorun çıktı."
+        "translation": "Kanala katılma sırasında bir sorun çıktı."
     },
     {
         "id": "api.command_join.hint",
@@ -960,7 +960,7 @@
     },
     {
         "id": "api.command_mute.error",
-        "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+        "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
     },
     {
         "id": "api.command_mute.hint",
@@ -1654,7 +1654,7 @@
     },
     {
         "id": "api.post.create_post.town_square_read_only",
-        "translation": "Kanal salt okunur. Yalnız izni olan üyeler buraya ileti gönderebilir."
+        "translation": "Bu kanal salt okunur. Buraya yalnız izni olan kullanıcılar ileti gönderebilir."
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
@@ -2392,7 +2392,7 @@
     },
     {
         "id": "api.templates.verify_body.button",
-        "translation": "E-postayı Doğrula"
+        "translation": "E-posta Adresini Doğrula"
     },
     {
         "id": "api.templates.verify_body.info",
@@ -2412,7 +2412,7 @@
     },
     {
         "id": "api.templates.welcome_body.button",
-        "translation": "E-postayı Doğrula"
+        "translation": "E-posta Adresini Doğrula"
     },
     {
         "id": "api.templates.welcome_body.info",
@@ -2552,7 +2552,7 @@
     },
     {
         "id": "api.user.create_user.no_open_server",
-        "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen yöneticiniz ile görüşerek bir çağrı göndermesini isteyin."
+        "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen bir çağrı göndermesi için yöneticiniz ile görüşün."
     },
     {
         "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2668,7 +2668,7 @@
     },
     {
         "id": "api.user.oauth_to_email.not_available.app_error",
-        "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
+        "translation": "Kimlik Doğrulama Aktarımı yapılandırması yapılmamış ya da bu sunucu üzerinde kullanılamıyor."
     },
     {
         "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -6128,7 +6128,7 @@
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
@@ -6148,7 +6148,7 @@
     },
     {
         "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
@@ -6164,7 +6164,7 @@
     },
     {
         "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
@@ -6228,7 +6228,7 @@
     },
     {
         "id": "store.sql_channel.save_member.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_channel.save_member.exists.app_error",
@@ -6248,7 +6248,7 @@
     },
     {
         "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
@@ -6268,7 +6268,7 @@
     },
     {
         "id": "store.sql_channel.update.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_channel.update.exists.app_error",
@@ -6312,7 +6312,7 @@
     },
     {
         "id": "store.sql_channel_member_history.log_join_event.app_error",
-        "translation": "Kanal üyeleri geçmişi kaydedilemedi."
+        "translation": "Kanal üye geçmişi kaydedilemedi."
     },
     {
         "id": "store.sql_channel_member_history.log_leave_event.update_error",
@@ -6560,7 +6560,7 @@
     },
     {
         "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "İşlem yapılamadı."
+        "translation": "İşlem tamamlanamadı."
     },
     {
         "id": "store.sql_oauth.delete.open_transaction.app_error",
@@ -7124,11 +7124,11 @@
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Veritabanı işlemine başlanamadı."
+        "translation": "Veritabanı hareketi işlenmeye başlanamadı."
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
@@ -7188,7 +7188,7 @@
     },
     {
         "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Belirtilen şemaya uygun kanallar alınamadı."
+        "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
     },
     {
         "id": "store.sql_team.get_member.app_error",
@@ -7220,7 +7220,7 @@
     },
     {
         "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
@@ -7336,11 +7336,11 @@
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Veritabanı işlemine başlanamadı."
+        "translation": "Veritabanı hareketi işlenmeye başlanamadı."
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
@@ -7360,11 +7360,11 @@
     },
     {
         "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-        "translation": "Veritabanı işlemine başlanamadı."
+        "translation": "Veritabanı hareketi işlenmeye başlanamadı."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
@@ -7464,11 +7464,11 @@
     },
     {
         "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
+        "translation": "Veritabanı hareketi işlenemedi."
     },
     {
         "id": "store.sql_user.promote_guest.open_transaction.app_error",
-        "translation": "Veritabanı işlemi başlatılamadı."
+        "translation": "Veritabanı hareketi işlenmeye başlanamadı."
     },
     {
         "id": "store.sql_user.promote_guest.team_members_update.app_error",
@@ -7500,7 +7500,7 @@
     },
     {
         "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticiniz ile görüşün."
+        "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için Sistem Yöneticiniz ile görüşün."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -7636,7 +7636,7 @@
     },
     {
         "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-        "translation": "Hizmet koşulları metni alınamadı."
+        "translation": "Hizmet koşulları alınamadı."
     },
     {
         "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
@@ -7644,7 +7644,7 @@
     },
     {
         "id": "store.sql_user_terms_of_service.save.app_error",
-        "translation": "Hizmet koşulları metni kaydedilemedi."
+        "translation": "Hizmet koşulları kaydedilemedi."
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7808,7 +7808,7 @@
     },
     {
         "id": "web.command_webhook.parse.app_error",
-        "translation": "Gelen veriler işlenemedi."
+        "translation": "Alınan veriler işlenemedi."
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.chrome",
@@ -7928,7 +7928,7 @@
     },
     {
         "id": "web.incoming_webhook.parse.app_error",
-        "translation": "Gelen veriler işlenemedi."
+        "translation": "Alınan veriler işlenemedi."
     },
     {
         "id": "web.incoming_webhook.permissions.app_error",
@@ -7957,5 +7957,13 @@
     {
         "id": "api.team.import_team.unknown_import_from.app_error",
         "translation": "İçe aktarma kaynağı bilinmiyor."
+    },
+    {
+        "id": "model.group.name.invalid_length.app_error",
+        "translation": "Ad içinde 1 ile 64 arasında küçük alfasayısal karakterler kullanılmalıdır."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Hizmet Sağlayıcı belirteci gerekli"
     }
 ]
