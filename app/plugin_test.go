@@ -75,8 +75,8 @@ func TestPluginKeyValueStore(t *testing.T) {
 		ExpireAt: 0,
 	}
 
-	_, err = th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
-	assert.Nil(t, err)
+	_, nErr := th.App.Srv().Store.Plugin().SaveOrUpdate(kv)
+	assert.Nil(t, nErr)
 
 	// Test fetch by keyname (this key does not exist but hashed key will be used for lookup)
 	ret, err = th.App.GetPluginKey(pluginId, "key2")
