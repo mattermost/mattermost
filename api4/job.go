@@ -5,6 +5,8 @@ package api4
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -33,6 +35,37 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
+	if forceDownload {
+		fileName := "actiance_export.xml"
+		fileMime := "application/xml"
+		if job.Data["export_type"] == "csv" {
+			fileName = "csv_export.zip"
+			fileMime = "applicaiton/zip"
+		}
+
+		filePath := "export/" + job.Id + "/" + fileName
+		data, readFileErr := c.App.ReadFile(filePath)
+		if readFileErr != nil {
+			c.Err = readFileErr
+			return
+		}
+
+		fileReader, err := c.App.FileReader(filePath)
+		if err != nil {
+			c.Err = err
+			c.Err.StatusCode = http.StatusNotFound
+			return
+		}
+		defer fileReader.Close()
+
+		err = writeFileResponse(fileName, fileMime, int64(len(data)), time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	w.Write([]byte(job.ToJson()))
