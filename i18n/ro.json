@@ -81,7 +81,7 @@
     },
     {
         "id": "api.admin.remove_certificate.delete.app_error",
-        "translation": "Eroare în timpul ștergerii OAuth2 App"
+        "translation": "A apărut o eroare la ștergerea certificatului."
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
@@ -149,15 +149,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Nici un fișier sub 'imaginea' în cerere"
+        "translation": "Nici un fișier sub 'imaginea' în cerere."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Nu s-a putut parsa forma multipartidă"
+        "translation": "Nu s-a putut parsa forma multipartidă."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -185,19 +185,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Nici un fișier sub 'imaginea' în cerere"
+        "translation": "Nici un fișier sub 'imaginea' în cerere."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Nu sa putut deschide fişierul de imagine"
+        "translation": "Nu sa putut deschide fişierul de imagine."
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Nu s-a putut parsa forma multipartidă"
+        "translation": "Nu s-a putut parsa forma multipartidă."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -225,7 +225,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Nu sa reușit adăugarea utilizatorului la canal"
+        "translation": "Nu sa reușit adăugarea utilizatorului la canal."
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -233,7 +233,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Nu se poate adăuga utilizator la acest tip de canal"
+        "translation": "Nu se poate adăuga utilizator la acest tip de canal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Acest canal implicit nu poate fi transformat într-un canal privat."
+        "translation": "Acest canal implicit nu poate fi convertit într-un canal privat."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -257,11 +257,11 @@
     },
     {
         "id": "api.channel.create_channel.direct_channel.app_error",
-        "translation": "Trebuie să utilizeze serviciul API createDirectChannel pentru crearea directă a canalelor de mesaje"
+        "translation": "Trebuie să utilizeze serviciul API createDirectChannel pentru crearea directă a canalelor de mesaje."
     },
     {
         "id": "api.channel.create_channel.max_channel_limit.app_error",
-        "translation": "Nu se poate crea mai mult de {{.MaxChannelsPerTeam}} canale pentru echipa curenta"
+        "translation": "Nu se poate crea mai mult de {{.MaxChannelsPerTeam}} canale pentru echipa curenta."
     },
     {
         "id": "api.channel.create_default_channels.off_topic",
@@ -273,15 +273,15 @@
     },
     {
         "id": "api.channel.create_direct_channel.invalid_user.app_error",
-        "translation": "Invalid ID-ul de utilizator pentru crearea directa a unui canal"
+        "translation": "Invalid ID-ul de utilizator pentru crearea directa a unui canal."
     },
     {
         "id": "api.channel.create_group.bad_size.app_error",
-        "translation": "Mesaj de grup de canale trebuie să conțină cel puțin 3 și nu mai mult de 8 utilizatori"
+        "translation": "Mesaj de grup de canale trebuie să conțină cel puțin 3 și nu mai mult de 8 utilizatori."
     },
     {
         "id": "api.channel.create_group.bad_user.app_error",
-        "translation": "Unul dintre utilizatorii furnizați nu există"
+        "translation": "Unul dintre utilizatorii furnizați nu există."
     },
     {
         "id": "api.channel.delete_channel.archived",
@@ -289,11 +289,11 @@
     },
     {
         "id": "api.channel.delete_channel.cannot.app_error",
-        "translation": "Nu poți șterge canalul implicit {{.Channel}}"
+        "translation": "Nu poți șterge canalul implicit {{.Channel}}."
     },
     {
         "id": "api.channel.delete_channel.deleted.app_error",
-        "translation": "Canalul a fost arhivat sau șters"
+        "translation": "Canalul a fost arhivat sau șters."
     },
     {
         "id": "api.channel.delete_channel.type.invalid",
@@ -309,7 +309,7 @@
     },
     {
         "id": "api.channel.join_channel.permissions.app_error",
-        "translation": "Nu aveți permisiunile corespunzătoare"
+        "translation": "Nu aveți permisiunile corespunzătoare."
     },
     {
         "id": "api.channel.join_channel.post_and_forget",
@@ -317,11 +317,11 @@
     },
     {
         "id": "api.channel.leave.default.app_error",
-        "translation": "Nu poți părăsi canalul implicit {{.Channel}}"
+        "translation": "Nu poți părăsi canalul implicit {{.Channel}}."
     },
     {
         "id": "api.channel.leave.direct.app_error",
-        "translation": "Nu pot lăsa un mesaj direct pe canal"
+        "translation": "Nu pot lăsa un mesaj direct pe canal."
     },
     {
         "id": "api.channel.leave.last_member.app_error",
@@ -337,7 +337,7 @@
     },
     {
         "id": "api.channel.patch_update_channel.forbidden.app_error",
-        "translation": "Actualizarea canalului a eșuat"
+        "translation": "Actualizarea canalului a eșuat."
     },
     {
         "id": "api.channel.post_channel_privacy_message.error",
@@ -381,7 +381,7 @@
     },
     {
         "id": "api.channel.remove.default.app_error",
-        "translation": "Nu se poate elimina utilizatorul din canalul implicit {{.Channel}}"
+        "translation": "Nu se poate elimina utilizatorul din canalul implicit {{.Channel}}."
     },
     {
         "id": "api.channel.remove_channel_member.type.app_error",
@@ -405,7 +405,7 @@
     },
     {
         "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-        "translation": "Nu puteți redenumi un canal de mesaje directe"
+        "translation": "Nu puteți redenumi un canal de mesaje directe."
     },
     {
         "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
@@ -721,7 +721,7 @@
     },
     {
         "id": "api.command_echo.high_volume.app_error",
-        "translation": "Volumul mare de solicitare ecou, ​​nu poate procesa cererea"
+        "translation": "Volumul mare de solicitare ecou, nu poate procesa cererea."
     },
     {
         "id": "api.command_echo.hint",
@@ -772,7 +772,7 @@
         "translation": {
             "one": "În imposibilitatea de a găsi utilizatorul: {{.Users}}",
             "few": "În imposibilitatea de a găsi utilizatorii: {{.Users}}",
-            "other": ""
+            "other": "În imposibilitatea de a găsi utilizatori: {{.Users}}"
         }
     },
     {
@@ -1204,7 +1204,7 @@
         "translation": {
             "one": "Ai o nouă notificare.",
             "few": "Ai {{.Count}} notificări noi.",
-            "other": ""
+            "other": "Au {{.Count}} notificări noi."
         }
     },
     {
@@ -1212,7 +1212,7 @@
         "translation": {
             "one": "[{{.SiteName}}] Notificare nouă pentru {{.Month}} {{.Day}}, {{.Year}}",
             "few": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}",
-            "other": ""
+            "other": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}"
         }
     },
     {
@@ -1445,7 +1445,7 @@
     },
     {
         "id": "api.license.add_license.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.license.add_license.expired.app_error",
@@ -1700,7 +1700,7 @@
         "translation": {
             "one": "{{.Count}} fișier trimis: {{.Filenames}}",
             "few": "{{.Count}} fișiere trimise: {{.Filenames}}",
-            "other": ""
+            "other": "{{.Count}} fișiere trimise: {{.Filenames}}"
         }
     },
     {
@@ -1708,7 +1708,7 @@
         "translation": {
             "one": "{{.Count}} imagine trimisă: {{.Filenames}}",
             "few": "{{.Count}} imagini trimise: {{.Filenames}}",
-            "other": ""
+            "other": "{{.Count}} imagini trimise: {{.Filenames}}"
         }
     },
     {
@@ -2017,7 +2017,7 @@
     },
     {
         "id": "api.team.import_team.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.team.import_team.integer.app_error",
@@ -2125,7 +2125,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -2805,7 +2805,7 @@
     },
     {
         "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "Gama goală sub 'imagine' în cerere"
+        "translation": "Gama goală sub 'imagine' în cerere."
     },
     {
         "id": "api.user.upload_profile_user.decode.app_error",
@@ -7954,5 +7954,29 @@
     {
         "id": "model.group.name.invalid_length.app_error",
         "translation": "Numele trebuie să fie 1-64 caractere alfanumerice cu litere mici"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Identificatorul furnizorului de servicii este necesar"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Sursa de import necunoscută."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Nu se poate solicita o licență de încercare. Vă rugăm să configurați o adresă URL a site-ului în secțiunea server web din cea mai importantă consolă de sistem."
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "Nu se poate obține o licență de încercare, încercați din nou sau contactați la adresa support@mattermost.com."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Pentru a solicita licență, trebuie să acceptați Acordul de evaluare software și politica de confidențialitate."
+    },
+    {
+        "id": "api.license.request-trial.bad-request",
+        "translation": "Numărul de utilizatori solicitați nu este corect."
     }
 ]
