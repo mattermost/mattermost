@@ -4,13 +4,17 @@
 package mlog
 
 import (
-	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
+	"io"
 	"net"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/wiggin77/merror"
 )
 
 const (
@@ -28,10 +32,9 @@ func TestNewTcpTarget(t *testing.T) {
 	targets := map[string]*LogTarget{"tcp_test": &target}
 
 	t.Run("logging", func(t *testing.T) {
-		var buf bytes.Buffer
-		server, err := newSocketServer(testPort, &buf)
+		buf := &buffer{}
+		server, err := newSocketServer(testPort, buf)
 		require.NoError(t, err)
-		defer server.stopServer()
 
 		data := []string{"I drink your milkshake!", "We don't need no badges!", "You can't fight in here! This is the war room!"}
 
@@ -41,8 +44,18 @@ func TestNewTcpTarget(t *testing.T) {
 		for _, s := range data {
 			logr.Info(s)
 		}
+		err = logr.Logr().Flush()
+		require.NoError(t, err)
 		err = logr.Logr().Shutdown()
 		require.NoError(t, err)
+
+		err = server.waitForAnyConnection()
+		require.NoError(t, err)
+
+		err = server.stopServer(true)
+		require.NoError(t, err)
+
+		fmt.Println("socket server stopped")
 
 		sdata := buf.String()
 		for _, s := range data {
@@ -51,16 +64,29 @@ func TestNewTcpTarget(t *testing.T) {
 	})
 }
 
+// socketServer is a simple socket server used for testing TCP log targets.
+// Note: There is more synchronization here than normally needed to avoid flaky tests.
+//       For example, it's possible for a unit test to create a socketServer, attempt
+//       writing to it, and stop the socket server before "go ss.listen()" gets scheduled.
 type socketServer struct {
 	listener net.Listener
-	buf      *bytes.Buffer
-	conns    map[string]net.Conn
+	anyConn  chan struct{}
+	buf      *buffer
+	conns    map[string]*socketServerConn
+	mux      sync.Mutex
 }
 
-func newSocketServer(port int, buf *bytes.Buffer) (*socketServer, error) {
+type socketServerConn struct {
+	raddy string
+	conn  net.Conn
+	done  chan struct{}
+}
+
+func newSocketServer(port int, buf *buffer) (*socketServer, error) {
 	ss := &socketServer{
-		buf:   buf,
-		conns: make(map[string]net.Conn),
+		buf:     buf,
+		conns:   make(map[string]*socketServerConn),
+		anyConn: make(chan struct{}),
 	}
 
 	addy := fmt.Sprintf(":%d", port)
@@ -76,34 +102,108 @@ func newSocketServer(port int, buf *bytes.Buffer) (*socketServer, error) {
 
 func (ss *socketServer) listen() {
 	for {
-		c, err := ss.listener.Accept()
+		conn, err := ss.listener.Accept()
 		if err != nil {
 			return
 		}
-		go ss.handleConnection(c)
+		sconn := &socketServerConn{raddy: conn.RemoteAddr().String(), conn: conn, done: make(chan struct{})}
+		ss.registerConnection(sconn)
+		go ss.handleConnection(sconn)
 	}
 }
 
-func (ss *socketServer) handleConnection(conn net.Conn) {
-	raddy := conn.RemoteAddr().String()
-	defer delete(ss.conns, raddy)
-	defer conn.Close()
+func (ss *socketServer) waitForAnyConnection() error {
+	var err error
+	select {
+	case <-ss.anyConn:
+		fmt.Println("waitForAnyConnection done")
+	case <-time.After(5 * time.Second):
+		err = errors.New("wait for any connection timed out")
+	}
+	return err
+}
 
-	reader := bufio.NewReader(conn)
+func (ss *socketServer) handleConnection(sconn *socketServerConn) {
+	close(ss.anyConn)
+	defer ss.unregisterConnection(sconn)
+	buf := make([]byte, 1024)
 
 	for {
-		data, err := reader.ReadString('\n')
-		if err != nil {
+		n, err := sconn.conn.Read(buf)
+		if n > 0 {
+			fmt.Printf("Read: %s\n", buf[:n])
+			ss.buf.Write(buf[:n])
+		} else {
+			fmt.Println("Read: empty")
+		}
+		if err == io.EOF {
+			fmt.Println("Read: EOF")
+			ss.signalDone(sconn)
 			return
 		}
-		ss.buf.WriteString(data)
 	}
 }
 
-func (ss *socketServer) stopServer() {
+func (ss *socketServer) registerConnection(sconn *socketServerConn) {
+	ss.mux.Lock()
+	defer ss.mux.Unlock()
+	fmt.Println("registering ", sconn.raddy)
+	ss.conns[sconn.raddy] = sconn
+}
+
+func (ss *socketServer) unregisterConnection(sconn *socketServerConn) {
+	ss.mux.Lock()
+	defer ss.mux.Unlock()
+	fmt.Println("unregistering ", sconn.raddy)
+	delete(ss.conns, sconn.raddy)
+}
+
+func (ss *socketServer) signalDone(sconn *socketServerConn) {
+	ss.mux.Lock()
+	defer ss.mux.Unlock()
+	fmt.Println("signaling done ", sconn.raddy)
+	close(sconn.done)
+}
+
+func (ss *socketServer) stopServer(wait bool) error {
+	errs := merror.New()
 	ss.listener.Close()
-	for k, conn := range ss.conns {
-		conn.Close()
-		delete(ss.conns, k)
+
+	ss.mux.Lock()
+	// defensive copy; no more connections can be accepted so copy will stay current.
+	conns := make(map[string]*socketServerConn, len(ss.conns))
+	fmt.Println("stopping socket server: conn count = ", len(ss.conns))
+	for k, v := range ss.conns {
+		conns[k] = v
 	}
+	ss.mux.Unlock()
+
+	for _, sconn := range conns {
+		if wait {
+			select {
+			case <-sconn.done:
+				fmt.Printf("%s done\n", sconn.raddy)
+			case <-time.After(time.Second * 5):
+				errs.Append(errors.New("timed out"))
+			}
+		}
+	}
+	return errs.ErrorOrNil()
+}
+
+type buffer struct {
+	buf bytes.Buffer
+	mux sync.Mutex
+}
+
+func (b *buffer) Write(p []byte) (n int, err error) {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+	return b.buf.Write(p)
+}
+
+func (s *buffer) String() string {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	return s.buf.String()
 }
