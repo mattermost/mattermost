@@ -85,8 +85,6 @@ func isQuotedWord(s string) bool {
 	if len(s) < 2 {
 		return false
 	}
-	if s[0] == '"' && s[len(s)-1] == '"' {
-		return true
-	}
-	return false
+
+	return s[0] == '"' && s[len(s)-1] == '"'
 }
