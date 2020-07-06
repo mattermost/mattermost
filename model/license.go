@@ -13,7 +13,7 @@ const (
 	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
 	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://licensing.mattermost.com/renew"
+	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
 )
 
 type LicenseRecord struct {
