@@ -4292,7 +4292,7 @@
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": ""
+    "translation": "Unable to create the zip file"
   },
   {
     "id": "ent.compliance.csv.post.export.appError",
