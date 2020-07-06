@@ -538,7 +538,6 @@ func (s *RetryLayerChannelStore) ClearAllCustomRoleAssignments() *model.AppError
 func (s *RetryLayerChannelStore) ClearCaches() {
 
 	s.ChannelStore.ClearCaches()
-	return
 
 }
 
@@ -991,49 +990,42 @@ func (s *RetryLayerChannelStore) IncrementMentionCount(channelId string, userId 
 func (s *RetryLayerChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 
 	s.ChannelStore.InvalidateAllChannelMembersForUser(userId)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 
 	s.ChannelStore.InvalidateCacheForChannelMembersNotifyProps(channelId)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidateChannel(id string) {
 
 	s.ChannelStore.InvalidateChannel(id)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidateChannelByName(teamId string, name string) {
 
 	s.ChannelStore.InvalidateChannelByName(teamId, name)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidateGuestCount(channelId string) {
 
 	s.ChannelStore.InvalidateGuestCount(channelId)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidateMemberCount(channelId string) {
 
 	s.ChannelStore.InvalidateMemberCount(channelId)
-	return
 
 }
 
 func (s *RetryLayerChannelStore) InvalidatePinnedPostCount(channelId string) {
 
 	s.ChannelStore.InvalidatePinnedPostCount(channelId)
-	return
 
 }
 
@@ -1502,7 +1494,6 @@ func (s *RetryLayerCommandStore) Update(hook *model.Command) (*model.Command, *m
 func (s *RetryLayerCommandWebhookStore) Cleanup() {
 
 	s.CommandWebhookStore.Cleanup()
-	return
 
 }
 
@@ -1709,7 +1700,6 @@ func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, cre
 func (s *RetryLayerFileInfoStore) ClearCaches() {
 
 	s.FileInfoStore.ClearCaches()
-	return
 
 }
 
@@ -1752,7 +1742,6 @@ func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *mod
 func (s *RetryLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 
 	s.FileInfoStore.InvalidateFileInfosForPostCache(postId, deleted)
-	return
 
 }
 
@@ -2385,7 +2374,6 @@ func (s *RetryLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (
 func (s *RetryLayerPostStore) ClearCaches() {
 
 	s.PostStore.ClearCaches()
-	return
 
 }
 
@@ -2530,7 +2518,6 @@ func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError
 func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelId string) {
 
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
-	return
 
 }
 
@@ -2997,7 +2984,6 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, *model.AppError
 func (s *RetryLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 
 	s.SessionStore.Cleanup(expiryTime, batchSize)
-	return
 
 }
 
@@ -3196,7 +3182,6 @@ func (s *RetryLayerTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 func (s *RetryLayerTeamStore) ClearCaches() {
 
 	s.TeamStore.ClearCaches()
-	return
 
 }
 
@@ -3359,7 +3344,6 @@ func (s *RetryLayerTeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
 func (s *RetryLayerTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 
 	s.TeamStore.InvalidateAllTeamIdsForUser(userId)
-	return
 
 }
 
@@ -3546,7 +3530,6 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 func (s *RetryLayerTokenStore) Cleanup() {
 
 	s.TokenStore.Cleanup()
-	return
 
 }
 
@@ -3613,7 +3596,6 @@ func (s *RetryLayerUserStore) ClearAllCustomRoleAssignments() *model.AppError {
 func (s *RetryLayerUserStore) ClearCaches() {
 
 	s.UserStore.ClearCaches()
-	return
 
 }
 
@@ -3842,21 +3824,18 @@ func (s *RetryLayerUserStore) InferSystemInstallDate() (int64, *model.AppError) 
 func (s *RetryLayerUserStore) InvalidateProfileCacheForUser(userId string) {
 
 	s.UserStore.InvalidateProfileCacheForUser(userId)
-	return
 
 }
 
 func (s *RetryLayerUserStore) InvalidateProfilesInChannelCache(channelId string) {
 
 	s.UserStore.InvalidateProfilesInChannelCache(channelId)
-	return
 
 }
 
 func (s *RetryLayerUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 
 	s.UserStore.InvalidateProfilesInChannelCacheByUser(userId)
-	return
 
 }
 
@@ -4109,7 +4088,6 @@ func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *
 func (s *RetryLayerWebhookStore) ClearCaches() {
 
 	s.WebhookStore.ClearCaches()
-	return
 
 }
 
@@ -4206,7 +4184,6 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int
 func (s *RetryLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 
 	s.WebhookStore.InvalidateWebhookCache(webhook)
-	return
 
 }
 
