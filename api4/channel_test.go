@@ -735,6 +735,42 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	require.Len(t, channels, 1, "should be one channel per page")
 }
 
+func TestGetPrivateChannelsForTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+
+	// normal user
+	_, resp := th.Client.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		channels, resp := c.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		// th.BasicPrivateChannel and th.BasicPrivateChannel2
+		require.Len(t, channels, 2, "wrong number of private channels")
+		for _, c := range channels {
+			// check all channels included are private
+			require.Equal(t, model.CHANNEL_PRIVATE, c.Type, "should include private channels only")
+		}
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 0, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 10000, 100, "")
+		CheckNoError(t, resp)
+		require.Empty(t, channels, "should be no channel")
+
+		_, resp = c.GetPrivateChannelsForTeam("junk", 0, 100, "")
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
