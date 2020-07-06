@@ -23,6 +23,8 @@ const (
 	DefaultConnectedString = "Successfully connected. Please close this window."
 	// DefaultOAuth2StateTimeToLive is the duration the states from the OAuth flow will live in the KVStore by default.
 	DefaultOAuth2StateTimeToLive = 5 * time.Minute
+	// DefaultPayloadTimeToLive is the duration the user payload will live in the KVStore by default.
+	DefaultPayloadTimeToLive = 10 * time.Minute
 )
 
 const (
@@ -40,18 +42,21 @@ type OAuther interface {
 	Deauthorize(userID string) error
 	// ServeHTTP implements http.Handler
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	// AddPayload stores some information to be returned after the flow is over
+	AddPayload(userID string, payload []byte) error
 }
 
 type oAuther struct {
 	pluginURL             string
 	config                oauth2.Config
-	onConnect             func(userID string, token oauth2.Token)
+	onConnect             func(userID string, token oauth2.Token, payload []byte)
 	store                 common.KVStore
 	logger                logger.Logger
 	storePrefix           string
 	oAuthURL              string
 	connectedString       string
 	oAuth2StateTimeToLive time.Duration
+	payloadTimeToLive     time.Duration
 }
 
 /*
@@ -72,7 +77,7 @@ New creates a new OAuther.
 func New(
 	pluginURL string,
 	oAuthConfig oauth2.Config,
-	onConnect func(userID string, token oauth2.Token),
+	onConnect func(userID string, token oauth2.Token, payload []byte),
 	store common.KVStore,
 	l logger.Logger,
 	options ...Option,
@@ -87,6 +92,7 @@ func New(
 		oAuthURL:              DefaultOAuthURL,
 		connectedString:       DefaultConnectedString,
 		oAuth2StateTimeToLive: DefaultOAuth2StateTimeToLive,
+		payloadTimeToLive:     DefaultPayloadTimeToLive,
 	}
 
 	for _, option := range options {
@@ -116,7 +122,7 @@ NewFromClient creates a new OAuther from the plugin api client.
 func NewFromClient(
 	client *pluginapi.Client,
 	oAuthConfig oauth2.Config,
-	onConnect func(userID string, token oauth2.Token),
+	onConnect func(userID string, token oauth2.Token, payload []byte),
 	l logger.Logger,
 	options ...Option,
 ) OAuther {
@@ -151,6 +157,10 @@ func (o *oAuther) getStateKey(userID string) string {
 	return o.storePrefix + "state_" + userID
 }
 
+func (o *oAuther) getPayloadKey(userID string) string {
+	return o.storePrefix + "payload_" + userID
+}
+
 func (o *oAuther) Deauthorize(userID string) error {
 	err := o.store.Delete(o.getTokenKey(userID))
 	if err != nil {
@@ -169,4 +179,13 @@ func (o *oAuther) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		http.NotFound(w, r)
 	}
+}
+
+func (o *oAuther) AddPayload(userID string, payload []byte) error {
+	_, err := o.store.Set(o.getPayloadKey(userID), payload, pluginapi.SetExpiry(o.payloadTimeToLive))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
