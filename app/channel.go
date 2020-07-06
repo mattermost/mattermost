@@ -2383,6 +2383,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		return err
 	}
 
+	if appErr := a.Srv().Store.Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); appErr != nil {
+		return appErr
+	}
+
 	channel.TeamId = team.Id
 	if _, err := a.Srv().Store.Channel().Update(channel); err != nil {
 		var appErr *model.AppError
@@ -2597,4 +2601,71 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 
 		page++
 	}
+}
+
+func (a *App) createInitialSidebarCategories(user *model.User, team *model.Team) *model.AppError {
+	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(user, team.Id)
+
+	if nErr != nil {
+		return model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+}
+
+func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategoryOrder(userId, teamId)
+}
+
+func (a *App) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	return a.Srv().Store.Channel().GetSidebarCategory(categoryId)
+}
+
+func (a *App) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	category, err := a.Srv().Store.Channel().CreateSidebarCategory(userId, teamId, newCategory)
+	if err != nil {
+		return nil, err
+	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_CREATED, teamId, "", userId, nil)
+	message.Add("category_id", category.Id)
+	a.Publish(message)
+	return category, nil
+}
+
+func (a *App) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError {
+	err := a.Srv().Store.Channel().UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
+	if err != nil {
+		return err
+	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED, teamId, "", userId, nil)
+	message.Add("order", categoryOrder)
+	a.Publish(message)
+	return nil
+}
+
+func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	result, err := a.Srv().Store.Channel().UpdateSidebarCategories(userId, teamId, categories)
+	if err != nil {
+		return nil, err
+	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
+	a.Publish(message)
+	return result, nil
+}
+
+func (a *App) DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError {
+	err := a.Srv().Store.Channel().DeleteSidebarCategory(categoryId)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED, teamId, "", userId, nil)
+	message.Add("category_id", categoryId)
+	a.Publish(message)
+
+	return nil
 }

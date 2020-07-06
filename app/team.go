@@ -653,6 +653,15 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return err
 	}
 
+	if err := a.createInitialSidebarCategories(user, team); err != nil {
+		mlog.Error(
+			"Encountered an issue creating default sidebar categories.",
+			mlog.String("user_id", user.Id),
+			mlog.String("team_id", team.Id),
+			mlog.Err(err),
+		)
+	}
+
 	shouldBeAdmin := team.Email == user.Email
 
 	if !user.IsGuest() {
@@ -969,6 +978,10 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 		return err
 	}
 
+	if err := a.Srv().Store.Channel().ClearSidebarOnTeamLeave(user.Id, teamMember.TeamId); err != nil {
+		return err
+	}
+
 	// delete the preferences that set the last channel used in the team and other team specific preferences
 	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
 		return err
@@ -1031,8 +1044,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
-	if err != nil {
+	if err := a.RemoveTeamMemberFromTeam(teamMember, requestorId); err != nil {
 		return err
 	}
 

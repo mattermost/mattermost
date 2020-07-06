@@ -415,6 +415,7 @@ type AppIface interface {
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(session *model.Session) (*model.Session, *model.AppError)
+	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 	CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError)
 	CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError)
@@ -449,6 +450,7 @@ type AppIface interface {
 	DeletePreferences(userId string, preferences model.Preferences) *model.AppError
 	DeleteReactionForPost(reaction *model.Reaction) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
+	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
 	DiagnosticId() string
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
@@ -633,6 +635,9 @@ type AppIface interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	GetSessionById(sessionId string) (*model.Session, *model.AppError)
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
+	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
 	GetSinglePost(postId string) (*model.Post, *model.AppError)
 	GetSiteURL() string
 	GetStatus(userId string) (*model.Status, *model.AppError)
@@ -861,6 +866,7 @@ type AppIface interface {
 	Session() *model.Session
 	SessionCacheLength() int
 	SessionHasPermissionTo(session model.Session, permission *model.Permission) bool
+	SessionHasPermissionToCategory(session model.Session, userId, teamId, categoryId string) bool
 	SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool
 	SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool
 	SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool
@@ -953,6 +959,8 @@ type AppIface interface {
 	UpdateRole(role *model.Role) (*model.Role, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateSessionsIsGuest(userId string, isGuest bool)
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 	UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError)
 	UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError)
