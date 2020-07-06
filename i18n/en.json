@@ -6323,6 +6323,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
   },
