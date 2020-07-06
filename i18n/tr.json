@@ -960,7 +960,7 @@
     },
     {
         "id": "api.command_mute.error",
-        "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+        "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
     },
     {
         "id": "api.command_mute.hint",
@@ -2668,7 +2668,7 @@
     },
     {
         "id": "api.user.oauth_to_email.not_available.app_error",
-        "translation": "Kimlik Doğrulama Aktarımı yapılandırması yapılmamış ya da bu sunucu üzerinde kullanılamıyor."
+        "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
     },
     {
         "id": "api.user.promote_guest_to_user.no_guest.app_error",
@@ -5384,7 +5384,7 @@
     },
     {
         "id": "model.incoming_hook.parse_data.app_error",
-        "translation": "Alınan veriler işlenemedi."
+        "translation": "Gelen veriler işlenemedi."
     },
     {
         "id": "model.incoming_hook.team_id.app_error",
@@ -7188,7 +7188,7 @@
     },
     {
         "id": "store.sql_team.get_by_scheme.app_error",
-        "translation": "Belirtilen şemanın uygulanabileceği kanallar alınamadı."
+        "translation": "Belirtilen şemaya uygun kanallar alınamadı."
     },
     {
         "id": "store.sql_team.get_member.app_error",
@@ -7808,7 +7808,7 @@
     },
     {
         "id": "web.command_webhook.parse.app_error",
-        "translation": "Alınan veriler işlenemedi."
+        "translation": "Gelen veriler işlenemedi."
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.chrome",
@@ -7928,7 +7928,7 @@
     },
     {
         "id": "web.incoming_webhook.parse.app_error",
-        "translation": "Alınan veriler işlenemedi."
+        "translation": "Gelen veriler işlenemedi."
     },
     {
         "id": "web.incoming_webhook.permissions.app_error",
@@ -7965,5 +7965,13 @@
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "Hizmet Sağlayıcı belirteci gerekli"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Lisans isteğinde bulunmak için Mattermost Yazılım Değerlendirme Sözleşmesi ve Gizlilik İllkesini kabul etmelisiniz."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Deneme isteği yapılamadı. Lütfen Mattermost sistem panosundaki web sunucu bölümünden bir site adresi yapılandırın."
     }
 ]
