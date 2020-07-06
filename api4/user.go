@@ -533,6 +533,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
 	inactive := r.URL.Query().Get("inactive")
+	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
@@ -560,6 +561,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
 	inactiveBool, _ := strconv.ParseBool(inactive)
+	activeBool, _ := strconv.ParseBool(active)
+
+	if inactiveBool && activeBool {
+		c.SetInvalidUrlParam("inactive")
+	}
 
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
@@ -576,6 +582,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
+		Active:           activeBool,
 		Role:             role,
 		Sort:             sort,
 		Page:             c.Params.Page,
@@ -885,9 +892,18 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		// Applying the provided teamId here is useful for DMs and GMs which don't belong
-		// to a team. Applying it when the channel does belong to a team makes less sense,
-		// but the permissions are checked above regardless.
+		// We're using the channelId to search for users inside that channel and the team
+		// to get the not in channel list. Also we want to include the DM and GM users for
+		// that team which could only be obtained having the team id.
+		if len(teamId) == 0 {
+			c.Err = model.NewAppError("autocompleteUser",
+				"api.user.autocomplete_users.missing_team_id.app_error",
+				nil,
+				"channelId="+channelId,
+				http.StatusInternalServerError,
+			)
+			return
+		}
 		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
@@ -1548,7 +1564,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(w, r, user, deviceId)
+	err = c.App.DoLogin(w, r, user, deviceId, false, false, false)
 	if err != nil {
 		c.Err = err
 		return
