@@ -924,6 +924,39 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	assert.ElementsMatch(t, expectedChannels, channels)
 }
 
+func TestGetPrivateChannelsForTeam(t *testing.T) {
+	th := Setup(t)
+	team := th.CreateTeam()
+	defer th.TearDown()
+
+	var expectedChannels []*model.Channel
+	for i := 0; i < 8; i++ {
+		channel := model.Channel{
+			DisplayName: fmt.Sprintf("Private %v", i),
+			Name:        fmt.Sprintf("private_%v", i),
+			Type:        model.CHANNEL_PRIVATE,
+			TeamId:      team.Id,
+		}
+		var rchannel *model.Channel
+		rchannel, err := th.App.CreateChannel(&channel, false)
+		require.Nil(t, err)
+		require.NotNil(t, rchannel)
+		defer th.App.PermanentDeleteChannel(rchannel)
+
+		// Store the user ids for comparison later
+		expectedChannels = append(expectedChannels, rchannel)
+	}
+
+	// Fetch private channels multipile times
+	channelList, err := th.App.GetPrivateChannelsForTeam(team.Id, 0, 5)
+	require.Nil(t, err)
+	channelList2, err := th.App.GetPrivateChannelsForTeam(team.Id, 5, 5)
+	require.Nil(t, err)
+
+	channels := append(*channelList, *channelList2...)
+	assert.ElementsMatch(t, expectedChannels, channels)
+}
+
 func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

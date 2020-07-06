@@ -1635,6 +1635,10 @@ func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*m
 	return a.Srv().Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
 }
 
+func (a *App) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	return a.Srv().Store.Channel().GetPrivateChannelsForTeam(teamId, offset, limit)
+}
+
 func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
 	return a.Srv().Store.Channel().GetMember(channelId, userId)
 }
