@@ -156,6 +156,7 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
+	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
@@ -541,12 +542,12 @@ type FileInfoStore interface {
 }
 
 type ReactionStore interface {
-	Save(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError)
-	DeleteAllWithEmojiName(emojiName string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
+	Save(reaction *model.Reaction) (*model.Reaction, error)
+	Delete(reaction *model.Reaction) (*model.Reaction, error)
+	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error)
+	DeleteAllWithEmojiName(emojiName string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 }
 
 type JobStore interface {
