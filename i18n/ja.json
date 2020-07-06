@@ -6127,7 +6127,7 @@
     },
     {
         "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-        "translation": "データベーストランザクションを開ませんでした"
+        "translation": "データベーストランザクションを開けませんでした"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.select.app_error",
@@ -7944,5 +7944,29 @@
     {
         "id": "model.group.name.invalid_length.app_error",
         "translation": "名前は1~64文字の小文字の英数字にしてください"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "サービスプロバイダー識別子が必要です"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "インポートソースが見つかりません。"
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "トライアルライセンスをリクエストできませんでした。システムコンソールのWebサーバーセクションにある サイトURL を設定してください。"
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "トライアルライセンスを取得できませんでした。再度試してみるか、support@mattermost.com に連絡してください。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "ライセンスをリクエストするには、Mattermost Software Evaluation Agreement と プライバシーポリシーに同意しなくてはなりません。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request",
+        "translation": "要求されたユーザーの数が正しくありません。"
     }
 ]
