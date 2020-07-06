@@ -7948,14 +7948,22 @@
     },
     {
         "id": "api.license.request_trial_license.app_error",
-        "translation": ""
+        "translation": "No se puede obtener una licencia de prueba, intente nuevamente o póngase en contacto con support@mattermost.com."
     },
     {
         "id": "api.license.request-trial.bad-request",
-        "translation": ""
+        "translation": "El número de usuarios solicitados no es correcto."
     },
     {
         "id": "model.group.name.invalid_length.app_error",
         "translation": "Debe tener de 1 hasta 64 caracteres alfanuméricos en minúscula"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Se requiere el identificador del proveedor de servicios"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Origen de importación desconocido."
     }
 ]
