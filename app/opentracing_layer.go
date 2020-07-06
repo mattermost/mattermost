@@ -6987,6 +6987,28 @@ func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPrivateChannelsForTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetPrivateChannelsForTeam(teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProfileImage")
@@ -7617,7 +7639,7 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]int
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInput string, roleID string) []model.AutocompleteSuggestion {
+func (a *OpenTracingAppLayer) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSuggestions")
 
@@ -7629,7 +7651,7 @@ func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInpu
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetSuggestions(commands, userInput, roleID)
+	resultVar0 := a.app.GetSuggestions(commandArgs, commands, roleID)
 
 	return resultVar0
 }
