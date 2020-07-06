@@ -54,13 +54,14 @@ func finalizeTransaction(transaction *gorp.Transaction) {
 	}
 }
 
-// removeNonAlphaNumericTerms removes all words that only contains non-alphanumeric chars from given line
-func removeNonAlphaNumericTerms(line, separator string) string {
+// removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain
+// non-alphanumeric chars from given line
+func removeNonAlphaNumericUnquotedTerms(line, separator string) string {
 	words := strings.Split(line, separator)
 	filteredResult := make([]string, 0, len(words))
 
 	for _, w := range words {
-		if containsAlphaNumericChar(w) {
+		if isQuotedWord(w) || containsAlphaNumericChar(w) {
 			filteredResult = append(filteredResult, strings.TrimSpace(w))
 		}
 	}
@@ -73,6 +74,19 @@ func containsAlphaNumericChar(s string) bool {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			return true
 		}
+	}
+	return false
+}
+
+// isQuotedWord return true if the input string is quoted, false otherwise. Ex :-
+// 		"quoted string"  -  will return true
+// 		unquoted string  -  will return false
+func isQuotedWord(s string) bool {
+	if len(s) < 2 {
+		return false
+	}
+	if s[0] == '"' && s[len(s)-1] == '"' {
+		return true
 	}
 	return false
 }

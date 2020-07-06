@@ -77,7 +77,7 @@ func TestSanitizeSearchTerm(t *testing.T) {
 	require.Equal(t, result, expected)
 }
 
-func TestRemoveNonAlphaNumericWords(t *testing.T) {
+func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 	const (
 		sep           = " "
 		chineseHello  = "你好"
@@ -86,46 +86,51 @@ func TestRemoveNonAlphaNumericWords(t *testing.T) {
 
 	terms := ""
 	expected := ""
-	result := removeNonAlphaNumericTerms(terms, sep)
+	result := removeNonAlphaNumericUnquotedTerms(terms, sep)
+	require.Equal(t, result, expected)
+
+	terms = "h"
+	expected = "h"
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = "hello"
 	expected = "hello"
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = japaneseHello
 	expected = japaneseHello
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = chineseHello
 	expected = chineseHello
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = "hello*"
 	expected = "hello*"
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = japaneseHello + "*"
 	expected = japaneseHello + "*"
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
-	terms = japaneseHello + "*" + chineseHello
-	expected = japaneseHello + "*" + chineseHello
-	result = removeNonAlphaNumericTerms(terms, sep)
+	terms = japaneseHello + " \"*\" " + chineseHello
+	expected = japaneseHello + " \"*\" " + chineseHello
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
 	terms = "hel*lo &** ** hello"
 	expected = "hel*lo hello"
-	result = removeNonAlphaNumericTerms(terms, sep)
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 
-	terms = japaneseHello + " ** &&* " + chineseHello
-	expected = japaneseHello + " " + chineseHello
-	result = removeNonAlphaNumericTerms(terms, sep)
+	terms = japaneseHello + " \"*\" &&* " + chineseHello
+	expected = japaneseHello + " \"*\" " + chineseHello
+	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
 	require.Equal(t, result, expected)
 }
