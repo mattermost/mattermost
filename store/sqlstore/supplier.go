@@ -855,6 +855,10 @@ func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableNa
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
 }
 
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
+}
+
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_FULL_TEXT, false)
 }
