@@ -61,7 +61,7 @@
     },
     {
         "id": "api.admin.add_certificate.open.app_error",
-        "translation": "Kon het certificaat-bestand niet openen"
+        "translation": "Kon het certificaat-bestand niet openen."
     },
     {
         "id": "api.admin.add_certificate.saving.app_error",
@@ -69,7 +69,7 @@
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
-        "translation": "Kan het bedrijfslogo niet verwijderen, bestand niet gevonden"
+        "translation": "Kan het bedrijfslogo niet verwijderen, bestand niet gevonden."
     },
     {
         "id": "api.admin.file_read_error",
@@ -93,7 +93,7 @@
     },
     {
         "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
-        "translation": "Kon het certificaat-bestand niet opslaan."
+        "translation": "Kon het bestand met het certificaat niet opslaan."
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
@@ -105,7 +105,7 @@
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-        "translation": "Identiteitsprovider SSO Services node ontbreekt in XML"
+        "translation": "Identiteitsprovider SSO Services node ontbreekt in XML."
     },
     {
         "id": "api.admin.saml.metadata.app_error",
@@ -7957,5 +7957,13 @@
     {
         "id": "model.group.name.invalid_length.app_error",
         "translation": "Naam moet 1 tot 64 kleine letters bevatten"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Service Provider Indentifier is vereist"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Onbekende importbron."
     }
 ]
