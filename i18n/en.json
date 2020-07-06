@@ -1429,6 +1429,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.invalid_channel",
+    "translation": "Channel listed in the request doesn't belong to the user"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
@@ -3029,6 +3033,10 @@
   {
     "id": "app.channel.create_direct_channel.internal_error",
     "translation": "Unable to save direct channel."
+  },
+  {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Unable to create initial sidebar categories for user."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4863,6 +4871,14 @@
     "translation": "Unable to run migration job due to unknown migration key."
   },
   {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+    "translation": "Migration failed due to database error."
+  },
+  {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
+  },
+  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token."
   },
@@ -6195,6 +6211,18 @@
     "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
+    "id": "sidebar.category.channels",
+    "translation": "Channels"
+  },
+  {
+    "id": "sidebar.category.dm",
+    "translation": "Direct Messages"
+  },
+  {
+    "id": "sidebar.category.favorites",
+    "translation": "Favorites"
+  },
+  {
     "id": "store.insert_error",
     "translation": "insert error"
   },
@@ -6425,6 +6453,22 @@
   {
     "id": "store.sql_channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+    "translation": "Unable to commit transaction."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+    "translation": "Unable to delete non-custom category."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",

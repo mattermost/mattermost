@@ -165,7 +165,21 @@ func TestAddUserToTeam(t *testing.T) {
 		_, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser3.Id, "")
 		require.NotNil(t, err, "Should not have allowed restricted user3")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
+	})
 
+	t.Run("should set up initial sidebar categories when joining a team", func(t *testing.T) {
+		user := th.CreateUser()
+		team := th.CreateTeam()
+
+		_, err := th.App.AddUserToTeam(team.Id, user.Id, "")
+		require.Nil(t, err)
+
+		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		require.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
 }
 
@@ -389,6 +403,27 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, err = th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		require.NotNil(t, err, "Should not add restricted user")
 		require.Equal(t, "JoinUserToTeam", err.Where, "Error should be JoinUserToTeam")
+	})
+
+	t.Run("should set up initial sidebar categories when joining a team by token", func(t *testing.T) {
+		user := th.CreateUser()
+		team := th.CreateTeam()
+
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": team.Id}),
+		)
+		require.Nil(t, th.App.Srv().Store.Token().Save(token))
+
+		_, err := th.App.AddUserToTeamByToken(user.Id, token.Token)
+		require.Nil(t, err)
+
+		res, err := th.App.GetSidebarCategories(user.Id, team.Id)
+		require.Nil(t, err)
+		assert.Len(t, res.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
+		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
 }
 

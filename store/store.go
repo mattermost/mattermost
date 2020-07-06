@@ -138,6 +138,8 @@ type ChannelStore interface {
 	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, error)
+	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError
+	ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
@@ -214,6 +216,17 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
+	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error)
+	CreateInitialSidebarCategories(user *model.User, teamId string) error
+	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error)
+	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
+	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError
+	DeleteSidebarCategory(categoryId string) *model.AppError
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
