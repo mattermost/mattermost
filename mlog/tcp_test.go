@@ -55,8 +55,6 @@ func TestNewTcpTarget(t *testing.T) {
 		err = server.stopServer(true)
 		require.NoError(t, err)
 
-		fmt.Println("socket server stopped")
-
 		sdata := buf.String()
 		for _, s := range data {
 			require.Contains(t, sdata, s)
@@ -116,7 +114,6 @@ func (ss *socketServer) waitForAnyConnection() error {
 	var err error
 	select {
 	case <-ss.anyConn:
-		fmt.Println("waitForAnyConnection done")
 	case <-time.After(5 * time.Second):
 		err = errors.New("wait for any connection timed out")
 	}
@@ -131,13 +128,9 @@ func (ss *socketServer) handleConnection(sconn *socketServerConn) {
 	for {
 		n, err := sconn.conn.Read(buf)
 		if n > 0 {
-			fmt.Printf("Read: %s\n", buf[:n])
 			ss.buf.Write(buf[:n])
-		} else {
-			fmt.Println("Read: empty")
 		}
 		if err == io.EOF {
-			fmt.Println("Read: EOF")
 			ss.signalDone(sconn)
 			return
 		}
@@ -147,21 +140,18 @@ func (ss *socketServer) handleConnection(sconn *socketServerConn) {
 func (ss *socketServer) registerConnection(sconn *socketServerConn) {
 	ss.mux.Lock()
 	defer ss.mux.Unlock()
-	fmt.Println("registering ", sconn.raddy)
 	ss.conns[sconn.raddy] = sconn
 }
 
 func (ss *socketServer) unregisterConnection(sconn *socketServerConn) {
 	ss.mux.Lock()
 	defer ss.mux.Unlock()
-	fmt.Println("unregistering ", sconn.raddy)
 	delete(ss.conns, sconn.raddy)
 }
 
 func (ss *socketServer) signalDone(sconn *socketServerConn) {
 	ss.mux.Lock()
 	defer ss.mux.Unlock()
-	fmt.Println("signaling done ", sconn.raddy)
 	close(sconn.done)
 }
 
@@ -172,7 +162,6 @@ func (ss *socketServer) stopServer(wait bool) error {
 	ss.mux.Lock()
 	// defensive copy; no more connections can be accepted so copy will stay current.
 	conns := make(map[string]*socketServerConn, len(ss.conns))
-	fmt.Println("stopping socket server: conn count = ", len(ss.conns))
 	for k, v := range ss.conns {
 		conns[k] = v
 	}
@@ -182,7 +171,6 @@ func (ss *socketServer) stopServer(wait bool) error {
 		if wait {
 			select {
 			case <-sconn.done:
-				fmt.Printf("%s done\n", sconn.raddy)
 			case <-time.After(time.Second * 5):
 				errs.Append(errors.New("timed out"))
 			}
