@@ -190,8 +190,8 @@ func (b *buffer) Write(p []byte) (n int, err error) {
 	return b.buf.Write(p)
 }
 
-func (s *buffer) String() string {
-	s.mux.Lock()
-	defer s.mux.Unlock()
-	return s.buf.String()
+func (b *buffer) String() string {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+	return b.buf.String()
 }
