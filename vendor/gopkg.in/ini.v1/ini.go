@@ -18,8 +18,10 @@
 package ini
 
 import (
+	"os"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 const (
@@ -55,8 +57,10 @@ var (
 	DefaultFormatRight = ""
 )
 
+var inTest = len(os.Args) > 0 && strings.HasSuffix(strings.TrimSuffix(os.Args[0], ".exe"), ".test")
+
 func init() {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" && !inTest {
 		LineBreak = "\r\n"
 	}
 }

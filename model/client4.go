@@ -939,6 +939,17 @@ func (c *Client4) GetRecentlyActiveUsersInTeam(teamId string, page int, perPage 
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetActiveUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?active=true&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	r, err := c.DoApiGet(c.GetUsersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetUsersNotInTeam returns a page of users who are not in a team. Page counting starts at 0.
 func (c *Client4) GetUsersNotInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?not_in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
@@ -1211,6 +1222,16 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
+func (c *Client4) PermanentDeleteAllUsers() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUsersRoute())
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // SendPasswordResetEmail will send a link for password resetting to a user with the
 // provided email.
 func (c *Client4) SendPasswordResetEmail(email string) (bool, *Response) {
@@ -1323,6 +1344,16 @@ func (c *Client4) VerifyUserEmail(token string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// VerifyUserEmailWithoutToken will verify a user's email by its Id. (Requires manage system role)
+func (c *Client4) VerifyUserEmailWithoutToken(userId string) (*User, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/email/verify/member", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
 }
 
 // SendVerificationEmail will send an email to the user with the provided email address, if
@@ -2352,6 +2383,17 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 	}
 	defer closeBody(r)
 	return PostListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
+func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
+	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
