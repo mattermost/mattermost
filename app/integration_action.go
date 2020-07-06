@@ -353,9 +353,23 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
+
+	// merge the rawQuery params (if any) with the function's provided values
+	rawValues := inURL.Query()
+	if len(rawValues) != 0 {
+		if values == nil {
+			values = make(url.Values)
+		}
+		for k, vs := range rawValues {
+			for _, v := range vs {
+				values.Add(k, v)
+			}
+		}
+	}
 	if values != nil {
 		base.RawQuery = values.Encode()
 	}
+
 	w := &LocalResponseWriter{}
 	r, err := http.NewRequest(method, base.String(), bytes.NewReader(body))
 	if err != nil {
@@ -366,7 +380,6 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	params := make(map[string]string)
 	params["plugin_id"] = pluginId
 	r = mux.SetURLVars(r, params)
-	r.URL.RawQuery = inURL.Query().Encode()
 
 	a.ServePluginRequest(w, r)
 
