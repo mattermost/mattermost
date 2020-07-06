@@ -1745,7 +1745,7 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
-		// remove any term that contains only non-alphanumeric chars
+		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 		params.IncludeDeletedChannels = includeDeletedChannels
