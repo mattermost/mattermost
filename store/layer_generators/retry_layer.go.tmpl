@@ -34,48 +34,51 @@ type {{.Name}} struct {
 
 {{end}}
 
+func isRepeatableError(err error) bool {
+	var pqErr *pq.Error
+	var mysqlErr *mysql.MySQLError
+	switch {
+	case errors.As(errors.Cause(err), &pqErr):
+		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
+			return true
+		}
+	case errors.As(errors.Cause(err), &mysqlErr):
+		if mysqlErr.Number == mySQLDeadlockCode {
+			return true
+		}
+	}
+	return false
+}
+
 {{range $substoreName, $substore := .SubStores}}
 {{range $index, $element := $substore.Methods}}
 func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinParamsWithType}}) {{$element.Results | joinResultsForSignature}} {
     {{if $element.Results | len | eq 0}}
-    s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-    return
+        s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
     {{else}}
-    {{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-    {{if $element.Results | errorPresent}}
-    tries := 0
-    for {
-        tries++
-        if {{$element.Results | errorVar}} == nil {
-            break
-        }
-        {{if $element.Results | isAppError}}
-        break
+        {{if $element.Results | errorPresent}}
+            {{if $element.Results | isAppError}}
+                return s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
+            {{else}}
+                tries := 0
+                for {
+                    {{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
+                    if {{$element.Results | errorVar}} == nil {
+                        return {{$element.Results | genResultsVars}}
+                    }
+                    if !isRepeatableError({{$element.Results | errorVar}}) {
+                        return {{$element.Results | genResultsVars}}
+                    }
+                    tries++
+                    if tries > 3 {
+                        {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
+                        return {{$element.Results | genResultsVars}}
+                    }
+                }
+            {{end}}
         {{else}}
-        if tries > 3 {
-            break
-            {{$element.Results | errorVar}} = errors.Wrap({{$element.Results | errorVar}}, "giving up after 3 consecutive repeatable transaction failures")
-        }
-        var pqErr *pq.Error
-        var mysqlErr *mysql.MySQLError
-        switch {
-            case errors.As(errors.Cause({{$element.Results | errorVar}}), &pqErr):
-                if pqErr.Code != "40001" && pqErr.Code != "40P01" {
-                    break
-                }
-            case errors.As(errors.Cause({{$element.Results | errorVar}}), &mysqlErr):
-                if mysqlErr.Number != mySQLDeadlockCode {
-                    break
-                }
-            default:
-                break
-        }
-
+            return s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
         {{end}}
-        {{$element.Results | genResultsVars}} = s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
-	}
-    {{end}}
-    return {{$element.Results | genResultsVars}}
     {{end}}
 }
 {{end}}
