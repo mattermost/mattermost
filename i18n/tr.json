@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Bu varsayılan kanal, özel bir kanala dönüştürülemez."
+        "translation": "Bu varsayılan kanal özel bir kanala dönüştürülemez."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -1654,7 +1654,7 @@
     },
     {
         "id": "api.post.create_post.town_square_read_only",
-        "translation": "Bu kanal salt okunur. Buraya yalnız izni olan kullanıcılar ileti gönderebilir."
+        "translation": "Kanal salt okunur. Yalnız izni olan üyeler buraya ileti gönderebilir."
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
@@ -2552,7 +2552,7 @@
     },
     {
         "id": "api.user.create_user.no_open_server",
-        "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen bir çağrı göndermesi için yöneticiniz ile görüşün."
+        "translation": "Sunucu hesap açılmasına izin vermiyor. Lütfen yöneticiniz ile görüşerek bir çağrı göndermesini isteyin."
     },
     {
         "id": "api.user.create_user.signup_email_disabled.app_error",
