@@ -98,17 +98,17 @@ func (a *App) CompareAndDeletePluginKey(pluginId string, key string, oldValue []
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
 	if kv, err := a.Srv().Store.Plugin().Get(pluginId, key); err == nil {
 		return kv.Value, nil
-	} else if nfErr, ok := err.(*store.ErrNotFound); ok {
-		mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(nfErr))
-		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+	} else if _, ok := err.(*store.ErrNotFound); !ok {
+		mlog.Error("Failed to query plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Lookup using the hashed version of the key for keys written prior to v5.6.
 	if kv, err := a.Srv().Store.Plugin().Get(pluginId, getKeyHash(key)); err == nil {
 		return kv.Value, nil
-	} else if nfErr, ok := err.(*store.ErrNotFound); ok {
-		mlog.Error("Failed to query plugin key value using hashed key", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(nfErr))
-		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+	} else if _, ok := err.(*store.ErrNotFound); !ok {
+		mlog.Error("Failed to query plugin key value using hashed key", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return nil, model.NewAppError("GetPluginKey", "app.plugin_store.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil, nil
