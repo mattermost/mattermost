@@ -7956,5 +7956,9 @@
     {
         "id": "api.team.import_team.unknown_import_from.app_error",
         "translation": "位置导入来源。"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "必须提供服务提供商标识"
     }
 ]
