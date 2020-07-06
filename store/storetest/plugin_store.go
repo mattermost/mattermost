@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"net/http"
 	"sort"
 	"testing"
 
@@ -64,7 +63,7 @@ func setupKVs(t *testing.T, ss store.Store) (string, func()) {
 	}
 }
 
-func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)) {
+func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -107,8 +106,8 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 		assert.Equal(t, []byte(value), kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
-		actualKV, err := ss.Plugin().Get(pluginId, key)
-		require.Nil(t, err)
+		actualKV, nErr := ss.Plugin().Get(pluginId, key)
+		require.Nil(t, nErr)
 		assert.Equal(t, kv, actualKV)
 	})
 
@@ -137,9 +136,10 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 		assert.Nil(t, kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
-		actualKV, err := ss.Plugin().Get(pluginId, key)
-		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		actualKV, nErr := ss.Plugin().Get(pluginId, key)
+		_, ok := nErr.(*store.ErrNotFound)
+		require.NotNil(t, nErr)
+		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	})
 
@@ -174,8 +174,8 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 		assert.Equal(t, []byte(newValue), kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
-		actualKV, err := ss.Plugin().Get(pluginId, key)
-		require.Nil(t, err)
+		actualKV, nErr := ss.Plugin().Get(pluginId, key)
+		require.Nil(t, nErr)
 		assert.Equal(t, kv, actualKV)
 	})
 
@@ -209,22 +209,23 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 		assert.Nil(t, kv.Value)
 		assert.Equal(t, expireAt, kv.ExpireAt)
 
-		actualKV, err := ss.Plugin().Get(pluginId, key)
-		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		actualKV, nErr := ss.Plugin().Get(pluginId, key)
+		_, ok := nErr.(*store.ErrNotFound)
+		require.NotNil(t, nErr)
+		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	})
 }
 
 func testPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier) {
-	doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+	doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 		return ss.Plugin().SaveOrUpdate(kv)
 	})
 }
 
 // doTestPluginCompareAndSet exercises the CompareAndSet functionality, but abstracts the actual
 // call to same to allow reuse with SetWithOptions
-func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)) {
+func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
 		_, tearDown := setupKVs(t, ss)
 		defer tearDown()
@@ -250,8 +251,8 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 		require.Nil(t, err)
 		require.True(t, ok, "should have succeeded to CompareAndSet")
 
-		actualKV, err := ss.Plugin().Get(kv.PluginId, kv.Key)
-		require.Nil(t, err)
+		actualKV, nErr := ss.Plugin().Get(kv.PluginId, kv.Key)
+		require.Nil(t, nErr)
 
 		// When tested with KVSetWithOptions, a strict comparison can fail because that
 		// function accepts a relative time and makes its own call to model.GetMillis(),
@@ -275,13 +276,14 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 		require.Nil(t, err)
 		require.False(t, ok, "should have failed to CompareAndSet")
 
-		actualKV, err := ss.Plugin().Get(kv.PluginId, kv.Key)
+		actualKV, nErr := ss.Plugin().Get(kv.PluginId, kv.Key)
 		if existingKV == nil {
-			require.NotNil(t, err)
-			assert.Equal(t, err.StatusCode, http.StatusNotFound)
+			require.NotNil(t, nErr)
+			_, ok := nErr.(*store.ErrNotFound)
+			assert.True(t, ok)
 			assert.Nil(t, actualKV)
 		} else {
-			require.Nil(t, err)
+			require.Nil(t, nErr)
 			assert.Equal(t, existingKV, actualKV)
 		}
 	}
@@ -294,9 +296,10 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 		require.Nil(t, err)
 		require.True(t, ok, "should have succeeded to CompareAndSet")
 
-		actualKV, err := ss.Plugin().Get(kv.PluginId, kv.Key)
-		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		actualKV, nErr := ss.Plugin().Get(kv.PluginId, kv.Key)
+		_, ok = nErr.(*store.ErrNotFound)
+		require.NotNil(t, nErr)
+		assert.True(t, ok)
 		assert.Nil(t, actualKV)
 	}
 
@@ -518,7 +521,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 }
 
 func testPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier) {
-	doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 		return ss.Plugin().CompareAndSet(kv, oldValue)
 	})
 }
@@ -686,7 +689,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 
 	t.Run("atomic", func(t *testing.T) {
-		doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+		doTestPluginCompareAndSet(t, ss, s, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic:   true,
@@ -702,7 +705,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 	})
 
 	t.Run("non-atomic", func(t *testing.T) {
-		doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+		doTestPluginSaveOrUpdate(t, ss, s, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic: false,
@@ -712,11 +715,11 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 				options.ExpireInSeconds = (kv.ExpireAt - now) / 1000
 			}
 
-			ok, appErr := ss.Plugin().SetWithOptions(kv.PluginId, kv.Key, kv.Value, options)
+			ok, err := ss.Plugin().SetWithOptions(kv.PluginId, kv.Key, kv.Value, options)
 			if !ok {
-				return nil, appErr
+				return nil, err
 			} else {
-				return kv, appErr
+				return kv, err
 			}
 		})
 	})
@@ -727,9 +730,10 @@ func testPluginGet(t *testing.T, ss store.Store) {
 		pluginId := model.NewId()
 		key := model.NewId()
 
-		kv, err := ss.Plugin().Get(pluginId, key)
-		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		kv, nErr := ss.Plugin().Get(pluginId, key)
+		_, ok := nErr.(*store.ErrNotFound)
+		require.NotNil(t, nErr)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -750,8 +754,9 @@ func testPluginGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		kv, err = ss.Plugin().Get(model.NewId(), key)
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -772,8 +777,9 @@ func testPluginGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -794,8 +800,9 @@ func testPluginGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -816,8 +823,9 @@ func testPluginGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		kv, err = ss.Plugin().Get(pluginId, model.NewId())
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -875,8 +883,9 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		kv, err := ss.Plugin().Get(pluginId, key)
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, kv)
 	})
 
@@ -921,8 +930,9 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 			require.Nil(t, err)
 
 			kv, err = ss.Plugin().Get(pluginId, key)
+			_, ok := err.(*store.ErrNotFound)
 			require.NotNil(t, err)
-			assert.Equal(t, err.StatusCode, http.StatusNotFound)
+			assert.True(t, ok)
 			assert.Nil(t, kv)
 		})
 	}
@@ -985,12 +995,14 @@ func testPluginDeleteAllForPlugin(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		_, err = ss.Plugin().Get(kv.PluginId, kv.Key)
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 
 		_, err = ss.Plugin().Get(kv.PluginId, kv2.Key)
+		_, ok = err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 	})
 }
 
@@ -1168,8 +1180,9 @@ func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
 		assert.Equal(t, kvA1, actualKVA1)
 
 		actualKVA2, err := ss.Plugin().Get(pluginIdA, expiredKVA2.Key)
+		_, ok := err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, actualKVA2)
 
 		actualKVB1, err := ss.Plugin().Get(pluginIdB, kvB1.Key)
@@ -1177,8 +1190,9 @@ func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
 		assert.Equal(t, kvB1, actualKVB1)
 
 		actualKVB2, err := ss.Plugin().Get(pluginIdB, expiredKVB2.Key)
+		_, ok = err.(*store.ErrNotFound)
 		require.NotNil(t, err)
-		assert.Equal(t, err.StatusCode, http.StatusNotFound)
+		assert.True(t, ok)
 		assert.Nil(t, actualKVB2)
 	})
 }
