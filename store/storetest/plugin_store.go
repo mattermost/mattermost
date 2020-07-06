@@ -77,7 +77,9 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, s SqlSupplier, doer 
 
 		kv, err := doer(kv)
 		require.NotNil(t, err)
-		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", err.Id)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", appErr.Id)
 		assert.Nil(t, kv)
 	})
 
@@ -239,8 +241,10 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, s SqlSupplier, comp
 
 		ok, err := compareAndSet(kv, nil)
 		require.NotNil(t, err)
-		assert.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", err.Id)
 		assert.False(t, ok)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", appErr.Id)
 	})
 
 	// assertChanged verifies that CompareAndSet successfully changes to the given value.
@@ -540,8 +544,10 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		ok, err := ss.Plugin().CompareAndDelete(kv, nil)
 		require.NotNil(t, err)
-		assert.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", err.Id)
 		assert.False(t, ok)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", appErr.Id)
 	})
 
 	t.Run("non-existent key should fail", func(t *testing.T) {
@@ -669,8 +675,10 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		ok, err := ss.Plugin().SetWithOptions(pluginId, key, []byte(value), options)
 		require.NotNil(t, err)
-		require.Equal(t, "model.plugin_kvset_options.is_valid.old_value.app_error", err.Id)
 		assert.False(t, ok)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		require.Equal(t, "model.plugin_kvset_options.is_valid.old_value.app_error", appErr.Id)
 	})
 
 	t.Run("invalid kv", func(t *testing.T) {
@@ -684,8 +692,10 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		ok, err := ss.Plugin().SetWithOptions(pluginId, key, []byte(value), options)
 		require.NotNil(t, err)
-		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", err.Id)
 		assert.False(t, ok)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		require.Equal(t, "model.plugin_key_value.is_valid.plugin_id.app_error", appErr.Id)
 	})
 
 	t.Run("atomic", func(t *testing.T) {
