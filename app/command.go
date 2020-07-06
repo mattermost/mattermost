@@ -77,16 +77,6 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
-	for _, value := range commandProviders {
-		if cmd := value.GetCommand(a, T); cmd != nil {
-			cpy := *cmd
-			if cpy.AutoComplete && !seen[cpy.Id] {
-				cpy.Sanitize()
-				seen[cpy.Trigger] = true
-				commands = append(commands, &cpy)
-			}
-		}
-	}
 
 	for _, cmd := range a.PluginCommandsForTeam(teamId) {
 		if cmd.AutoComplete && !seen[cmd.Trigger] {
@@ -102,10 +92,21 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 		}
 
 		for _, cmd := range teamCmds {
-			if cmd.AutoComplete && !seen[cmd.Id] {
+			if cmd.AutoComplete && !seen[cmd.Trigger] {
 				cmd.Sanitize()
 				seen[cmd.Trigger] = true
 				commands = append(commands, cmd)
+			}
+		}
+	}
+
+	for _, value := range commandProviders {
+		if cmd := value.GetCommand(a, T); cmd != nil {
+			cpy := *cmd
+			if cpy.AutoComplete && !seen[cpy.Trigger] {
+				cpy.Sanitize()
+				seen[cpy.Trigger] = true
+				commands = append(commands, &cpy)
 			}
 		}
 	}
@@ -183,12 +184,8 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	args.TriggerId = triggerId
 
-	cmd, response := a.tryExecuteBuiltInCommand(args, trigger, message)
-	if cmd != nil && response != nil {
-		return a.HandleCommandResponse(cmd, args, response, true)
-	}
-
-	cmd, response, appErr = a.tryExecutePluginCommand(args)
+	// Plugins can override built in and custom commands
+	cmd, response, appErr := a.tryExecutePluginCommand(args)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
@@ -196,12 +193,18 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
+	// Custom commands can override built ins
 	cmd, response, appErr = a.tryExecuteCustomCommand(args, trigger, message)
 	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
 		return a.HandleCommandResponse(cmd, args, response, false)
+	}
+
+	cmd, response = a.tryExecuteBuiltInCommand(args, trigger, message)
+	if cmd != nil && response != nil {
+		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
