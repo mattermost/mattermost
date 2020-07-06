@@ -6,17 +6,18 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
-	"sync"
 )
 
 type SqlPostStore struct {
