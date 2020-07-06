@@ -542,6 +542,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidUrlParam("team_id")
@@ -573,6 +576,19 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidUrlParam("inactive")
 	}
 
+	roles := []string{}
+	if rolesString != "" {
+		roles = strings.Split(rolesString, ",")
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(inChannelId) != 0 {
+		channelRoles = strings.Split(rolesString, ",")
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(inTeamId) != 0 {
+		teamRoles = strings.Split(teamRolesString, ",")
+	}
+
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -590,6 +606,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Inactive:         inactiveBool,
 		Active:           activeBool,
 		Role:             role,
+		Roles:            roles,
+		ChannelRoles:     channelRoles,
+		TeamRoles:        teamRoles,
 		Sort:             sort,
 		Page:             c.Params.Page,
 		PerPage:          c.Params.PerPage,
@@ -824,6 +843,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: props.GroupConstrained,
 		Limit:            props.Limit,
 		Role:             props.Role,
+		Roles:            props.Roles,
+		ChannelRoles:     props.ChannelRoles,
+		TeamRoles:        props.TeamRoles,
 	}
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {

@@ -68,6 +68,7 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
 	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss, s) })
 	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
+	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
 	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
 	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
@@ -2291,6 +2292,152 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 	}
 }
 
+func testUserStoreSearch(t *testing.T, ss store.Store) {
+	u1 := &model.User{
+		Username:  "jimbo1" + model.NewId(),
+		FirstName: "Tim",
+		LastName:  "Bill",
+		Nickname:  "Rob",
+		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Roles:     "system_user system_admin",
+	}
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
+
+	u2 := &model.User{
+		Username: "jim2-bobby" + model.NewId(),
+		Email:    MakeEmail(),
+		Roles:    "system_user",
+	}
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
+
+	u3 := &model.User{
+		Username: "jimbo3" + model.NewId(),
+		Email:    MakeEmail(),
+		Roles:    "system_guest",
+	}
+	_, err = ss.User().Save(u3)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
+
+	// The users returned from the database will have AuthData as an empty string.
+	nilAuthData := new(string)
+	*nilAuthData = ""
+	u1.AuthData = nilAuthData
+	u2.AuthData = nilAuthData
+	u3.AuthData = nilAuthData
+
+	t1id := model.NewId()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u1.Id, SchemeAdmin: true, SchemeUser: true}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u2.Id, SchemeAdmin: true, SchemeUser: true}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u3.Id, SchemeAdmin: false, SchemeUser: true}, -1)
+	require.Nil(t, err)
+
+	testCases := []struct {
+		Description string
+		TeamId      string
+		Term        string
+		Options     *model.UserSearchOptions
+		Expected    []*model.User
+	}{
+		{
+			"search jimb, team 1",
+			t1id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jimb, team 1 with team member filter",
+			t1id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				TeamRoles:      []string{model.TEAM_USER_ROLE_ID},
+			},
+			[]*model.User{u3},
+		},
+		{
+			"search jimb, team 1 with team admin filter",
+			t1id,
+			"jimb",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jim, team 1 with team admin filter",
+			t1id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
+			},
+			[]*model.User{u2, u1},
+		},
+		{
+			"search jim, team 1 with team admin and team user filter",
+			t1id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID},
+			},
+			[]*model.User{u2, u1, u3},
+		},
+		{
+			"search jim, team 1 with team user and system admin filters",
+			t1id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
+				TeamRoles:      []string{model.TEAM_USER_ROLE_ID},
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jim, team 1 with system guest filter",
+			t1id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Roles:          []string{model.SYSTEM_GUEST_ROLE_ID},
+				TeamRoles:      []string{},
+			},
+			[]*model.User{u3},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := ss.User().Search(
+				testCase.TeamId,
+				testCase.Term,
+				testCase.Options,
+			)
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
+		})
+	}
+}
+
 func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	u1 := &model.User{
 		Username:  "jimbo1" + model.NewId(),
@@ -2524,6 +2671,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		LastName:  "Bill",
 		Nickname:  "Rob",
 		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
 	require.Nil(t, err)
@@ -2532,6 +2680,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	u2 := &model.User{
 		Username: "jim-bobby" + model.NewId(),
 		Email:    MakeEmail(),
+		Roles:    "system_user",
 	}
 	_, err = ss.User().Save(u2)
 	require.Nil(t, err)
@@ -2541,6 +2690,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
+		Roles:    "system_user",
 	}
 	_, err = ss.User().Save(u3)
 	require.Nil(t, err)
@@ -2592,18 +2742,24 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeAdmin: true,
+		SchemeUser:  true,
 	})
 	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeAdmin: false,
+		SchemeUser:  true,
 	})
 	require.Nil(t, err)
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeAdmin: false,
+		SchemeUser:  true,
 	})
 	require.Nil(t, err)
 
@@ -2666,6 +2822,66 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 			},
 			[]*model.User{},
+		},
+		{
+			"search jim, allow inactive, channel 1 with system admin filter",
+			c1.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search jim, allow inactive, channel 1 with system admin and system user filter",
+			c1.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID},
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jim, allow inactive, channel 1 with channel user filter",
+			c1.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID},
+			},
+			[]*model.User{u3},
+		},
+		{
+			"search jim, allow inactive, channel 1 with channel user and channel admin filter",
+			c1.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID},
+			},
+			[]*model.User{u1, u3},
+		},
+		{
+			"search jim, allow inactive, channel 2 with channel user filter",
+			c2.Id,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				AllowInactive:  true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID},
+			},
+			[]*model.User{u2},
 		},
 	}
 
