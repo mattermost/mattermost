@@ -26,7 +26,6 @@ func TestJoinCommandNoChannel(t *testing.T) {
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}, "asdsad")
 
 	assert.Equal(t, "api.command_join.list.app_error", resp.Text)
@@ -54,7 +53,6 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}, channel2.Name)
 
 	assert.Equal(t, "", resp.Text)
@@ -83,7 +81,6 @@ func TestJoinCommandWithTilde(t *testing.T) {
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}, "~"+channel2.Name)
 
 	assert.Equal(t, "", resp.Text)
@@ -104,13 +101,14 @@ func TestJoinCommandPermissions(t *testing.T) {
 
 	cmd := &JoinProvider{}
 
+	user3 := th.CreateUser()
+
 	// Try a public channel *without* permission.
 	args := &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
-		UserId:  th.BasicUser2.Id,
+		UserId:  user3.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
 	}
 
 	actual := cmd.DoCommand(th.App, args, "~"+channel2.Name).Text
@@ -122,7 +120,6 @@ func TestJoinCommandPermissions(t *testing.T) {
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual = cmd.DoCommand(th.App, args, "~"+channel2.Name).Text
@@ -142,7 +139,6 @@ func TestJoinCommandPermissions(t *testing.T) {
 		UserId:  th.BasicUser2.Id,
 		SiteURL: "http://test.url",
 		TeamId:  th.BasicTeam.Id,
-		Session: model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual = cmd.DoCommand(th.App, args, "~"+channel3.Name).Text

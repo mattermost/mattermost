@@ -735,6 +735,42 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	require.Len(t, channels, 1, "should be one channel per page")
 }
 
+func TestGetPrivateChannelsForTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+
+	// normal user
+	_, resp := th.Client.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		channels, resp := c.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		// th.BasicPrivateChannel and th.BasicPrivateChannel2
+		require.Len(t, channels, 2, "wrong number of private channels")
+		for _, c := range channels {
+			// check all channels included are private
+			require.Equal(t, model.CHANNEL_PRIVATE, c.Type, "should include private channels only")
+		}
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 0, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 10000, 100, "")
+		CheckNoError(t, resp)
+		require.Empty(t, channels, "should be no channel")
+
+		_, resp = c.GetPrivateChannelsForTeam("junk", 0, 100, "")
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestGetPublicChannelsForTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -919,6 +955,15 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	var originalConfigVal bool
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		originalConfigVal = *cfg.TeamSettings.ExperimentalViewArchivedChannels
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = originalConfigVal
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, resp := client.GetAllChannels(0, 20, "")
 		CheckNoError(t, resp)
@@ -940,6 +985,34 @@ func TestGetAllChannels(t *testing.T) {
 		channels, resp = client.GetAllChannels(10000, 10000, "")
 		CheckNoError(t, resp)
 		require.Empty(t, *channels)
+
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		require.Nil(t, resp.Error)
+		beforeCount := len(*channels)
+
+		firstChannel := (*channels)[0].Channel
+
+		ok, resp := client.DeleteChannel(firstChannel.Id)
+		require.Nil(t, resp.Error)
+		require.True(t, ok)
+
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		var ids []string
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.Len(t, *channels, beforeCount-1)
+		require.NotContains(t, ids, firstChannel.Id)
+
+		channels, resp = client.GetAllChannelsIncludeDeleted(0, 10000, "")
+		ids = []string{}
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.True(t, len(*channels) > beforeCount)
+		require.Contains(t, ids, firstChannel.Id)
 	})
 
 	_, resp := Client.GetAllChannels(0, 20, "")
@@ -1153,7 +1226,7 @@ func TestSearchAllChannels(t *testing.T) {
 	Client := th.Client
 
 	channel := &model.Channel{
-		DisplayName: "FOOBAR",
+		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
@@ -1165,7 +1238,7 @@ func TestSearchAllChannels(t *testing.T) {
 	foobarchannel, err := th.SystemAdminClient.CreateChannel(channel)
 	CheckNoError(t, err)
 
-	search := &model.ChannelSearch{Term: "oob"}
+	search := &model.ChannelSearch{Term: "bardisplay"}
 
 	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
@@ -1173,7 +1246,7 @@ func TestSearchAllChannels(t *testing.T) {
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
-	search = &model.ChannelSearch{Term: "foo"}
+	search = &model.ChannelSearch{Term: "foobar"}
 
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
@@ -1181,7 +1254,7 @@ func TestSearchAllChannels(t *testing.T) {
 	assert.Len(t, *channels, 1)
 	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
 
-	search = &model.ChannelSearch{Term: "bar"}
+	search = &model.ChannelSearch{Term: "displayname"}
 
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
@@ -3752,4 +3825,68 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		}
 		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
 	})
+}
+
+func TestMoveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+	team1 := th.BasicTeam
+	team2 := th.CreateTeam()
+
+	t.Run("Should move channel", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		ch, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, ch.TeamId)
+	})
+
+	t.Run("Should fail when trying to move a private channel", func(t *testing.T) {
+		channel := th.CreatePrivateChannel()
+		_, resp := Client.MoveChannel(channel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
+		user := th.CreateUser()
+		dmChannel := th.CreateDmChannel(user)
+		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
+		user := th.CreateUser()
+
+		gmChannel, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		require.Nil(t, err)
+		_, resp := Client.MoveChannel(gmChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail due to permissions", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		_, resp := Client.MoveChannel(publicChannel.Id, team1.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
+	t.Run("Should fail to move channel due to a member not member of target team", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		user := th.BasicUser
+
+		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
+	})
+
 }

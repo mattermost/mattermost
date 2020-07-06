@@ -332,6 +332,10 @@
     "translation": "%v left the channel."
   },
   {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Unable to move direct or group message channels"
+  },
+  {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -905,10 +909,6 @@
   {
     "id": "api.command_logout.desc",
     "translation": "Logout of Mattermost"
-  },
-  {
-    "id": "api.command_logout.fail_message",
-    "translation": "Failed to log out"
   },
   {
     "id": "api.command_logout.name",
@@ -1501,8 +1501,16 @@
     "translation": "The number of users requested is not correct."
   },
   {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
     "id": "api.marshal_error",
@@ -2067,6 +2075,10 @@
     "translation": "Malformed request: filesize field is not present."
   },
   {
+    "id": "api.team.import_team.unknown_import_from.app_error",
+    "translation": "Unknown import source."
+  },
+  {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
   },
@@ -2501,6 +2513,10 @@
   {
     "id": "api.user.authorize_oauth_user.unsupported.app_error",
     "translation": "Unsupported OAuth service provider."
+  },
+  {
+    "id": "api.user.autocomplete_users.missing_team_id.app_error",
+    "translation": "Team id parameter is required to autocomplete by channel."
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2959,6 +2975,22 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.audit.get.finding.app_error",
+    "translation": "We encountered an error finding the audits."
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
+    "id": "app.audit.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error deleting the audits."
+  },
+  {
+    "id": "app.audit.save.saving.app_error",
+    "translation": "We encountered an error saving the audit."
+  },
+  {
     "id": "app.bot.createbot.internal_error",
     "translation": "Unable to save the bot."
   },
@@ -3041,6 +3073,10 @@
   {
     "id": "app.channel.get_deleted.missing.app_error",
     "translation": "No deleted channels exist."
+  },
+  {
+    "id": "app.channel.get_more_channels.get.app_error",
+    "translation": "Unable to get the channels."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3923,12 +3959,48 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post."
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Unable to get all reactions with this emoji name."
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post."
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Unable to save reaction."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
   {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
+  },
+  {
+    "id": "app.scheme.delete.app_error",
+    "translation": "Unable to delete this scheme."
+  },
+  {
+    "id": "app.scheme.get.app_error",
+    "translation": "Unable to get the scheme."
+  },
+  {
+    "id": "app.scheme.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete the schemes."
+  },
+  {
+    "id": "app.scheme.save.app_error",
+    "translation": "Unable to create the scheme."
+  },
+  {
+    "id": "app.scheme.save.invalid_scheme.app_error",
+    "translation": "The provided scheme is invalid."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3987,6 +4059,22 @@
     "translation": "Invalid or missing token."
   },
   {
+    "id": "app.user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -4007,12 +4095,20 @@
     "translation": "Failed to delete the channel."
   },
   {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "bleveengine.delete_post.error",
     "translation": "Failed to delete the post."
   },
   {
     "id": "bleveengine.delete_user.error",
     "translation": "Failed to delete the user."
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "bleveengine.index_channel.error",
@@ -4235,6 +4331,10 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.reactions_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -4279,12 +4379,20 @@
     "translation": "Failed to delete the channel"
   },
   {
+    "id": "ent.elasticsearch.delete_channel_posts.error",
+    "translation": "Failed to delete channel posts"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
     "translation": "Failed to delete the user"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user_posts.error",
+    "translation": "Failed to delete user posts"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -5323,6 +5431,10 @@
     "translation": "Invalid Signature Algorithm."
   },
   {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Service Provider Identifier is required"
+  },
+  {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
     "translation": "Invalid Username attribute. Must be set."
   },
@@ -5469,6 +5581,10 @@
   {
     "id": "model.group.name.invalid_chars.app_error",
     "translation": "invalid characters in the name property for group"
+  },
+  {
+    "id": "model.group.name.invalid_length.app_error",
+    "translation": "Name must be 1 to 64 lowercase alphanumeric characters."
   },
   {
     "id": "model.group.remote_id.app_error",
@@ -6083,10 +6199,6 @@
     "translation": "insert error"
   },
   {
-    "id": "store.search_user_store.empty_team_id",
-    "translation": "Failed to get list of allowed channels for team: empty teamId"
-  },
-  {
     "id": "store.select_error",
     "translation": "select error"
   },
@@ -6105,26 +6217,6 @@
   {
     "id": "store.sql.convert_string_map",
     "translation": "FromDb: Unable to convert StringMap to *string"
-  },
-  {
-    "id": "store.sql_audit.app_error",
-    "translation": "Failed to build query."
-  },
-  {
-    "id": "store.sql_audit.get.finding.app_error",
-    "translation": "We encountered an error finding the audits."
-  },
-  {
-    "id": "store.sql_audit.get.limit.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error deleting the audits."
-  },
-  {
-    "id": "store.sql_audit.save.saving.app_error",
-    "translation": "We encountered an error saving the audit."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
@@ -6227,12 +6319,12 @@
     "translation": "Unable to get the channel members."
   },
   {
-    "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -6543,18 +6635,6 @@
     "translation": "Unable to update the job."
   },
   {
-    "id": "store.sql_license.get.app_error",
-    "translation": "We encountered an error getting the license."
-  },
-  {
-    "id": "store.sql_license.get.missing.app_error",
-    "translation": "A license with that ID was not found."
-  },
-  {
-    "id": "store.sql_license.save.app_error",
-    "translation": "We encountered an error saving the license."
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
@@ -6855,50 +6935,6 @@
     "translation": "Unable to update the preference."
   },
   {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
-  },
-  {
-    "id": "store.sql_reaction.delete.app_error",
-    "translation": "Unable to delete reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Unable to open transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Unable to commit transaction while deleting reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Unable to delete all reactions with this emoji name."
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Unable to get all reactions with this emoji name."
-  },
-  {
-    "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post."
-  },
-  {
-    "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions."
-  },
-  {
-    "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction."
-  },
-  {
-    "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction."
-  },
-  {
-    "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction."
-  },
-  {
     "id": "store.sql_recover.delete.app_error",
     "translation": "Unable to delete token."
   },
@@ -6957,54 +6993,6 @@
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Unable to delete the roles belonging to this scheme."
-  },
-  {
-    "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Unable to delete the scheme."
-  },
-  {
-    "id": "store.sql_scheme.get.app_error",
-    "translation": "Unable to get the scheme."
-  },
-  {
-    "id": "store.sql_scheme.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Unable to reset all channels using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Unable to reset all teams using this scheme to the default scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Unable to create the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.invalid_scheme.app_error",
-    "translation": "The provided scheme is invalid."
-  },
-  {
-    "id": "store.sql_scheme.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Unable to retrieve the default scheme roles."
-  },
-  {
-    "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Unable to update the scheme."
-  },
-  {
-    "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the scheme."
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -7621,22 +7609,6 @@
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
     "translation": "Unable to enable the access token."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
