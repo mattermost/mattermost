@@ -2385,6 +2385,17 @@ func (c *Client4) GetPinnedPosts(channelId string, etag string) (*PostList, *Res
 	return PostListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetPrivateChannelsForTeam returns a list of private channels based on the provided team id string.
+func (c *Client4) GetPrivateChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
+	query := fmt.Sprintf("/private?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsForTeamRoute(teamId)+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // GetPublicChannelsForTeam returns a list of public channels based on the provided team id string.
 func (c *Client4) GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*Channel, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)

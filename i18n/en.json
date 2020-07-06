@@ -1501,6 +1501,10 @@
     "translation": "The number of users requested is not correct."
   },
   {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
@@ -6317,6 +6321,10 @@
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
+  },
+  {
+    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
