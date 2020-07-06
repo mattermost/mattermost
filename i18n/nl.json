@@ -53,7 +53,7 @@
     },
     {
         "id": "api.admin.add_certificate.array.app_error",
-        "translation": "Geen bestand in 'certificate' veld bij aanvraag."
+        "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
     },
     {
         "id": "api.admin.add_certificate.no_file.app_error",
@@ -7969,5 +7969,9 @@
     {
         "id": "api.license.request_trial_license.no-site-url.app_error",
         "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Je moet de Mattermost Evaluation Agreement en Privacy Policy aanvaarden om een licentie te kunnen aanvragen."
     }
 ]
