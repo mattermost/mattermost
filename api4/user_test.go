@@ -3068,7 +3068,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
+	token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(ruser.Id, email)
 	require.Nil(t, err, "Unable to create email verify token")
 
 	_, resp := th.Client.VerifyUserEmail(token.Token)

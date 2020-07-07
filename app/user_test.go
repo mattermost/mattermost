@@ -381,7 +381,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Equal(t, currentEmail, user2.Email)
 		assert.True(t, user2.EmailVerified)
 
-		token, err := th.App.CreateVerifyEmailToken(user2.Id, newEmail)
+		token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(user2.Id, newEmail)
 		assert.Nil(t, err)
 
 		err = th.App.VerifyEmailFromToken(token.Token)
