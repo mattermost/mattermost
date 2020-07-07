@@ -65,7 +65,7 @@
     },
     {
         "id": "api.admin.add_certificate.saving.app_error",
-        "translation": "Невозможно сохранить файл сертификата."
+        "translation": "Не удалось сохранить файл сертификата."
     },
     {
         "id": "api.admin.file_read_error",
@@ -153,7 +153,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Канал по умолчанию не может быть преобразован в приватный."
+        "translation": "Этот канал по умолчанию не может быть преобразован в приватный."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -709,7 +709,7 @@
     },
     {
         "id": "api.command_join.fail.app_error",
-        "translation": "Во время присоединения к каналу произошла ошибка."
+        "translation": "При подключении к каналу произошла ошибка."
     },
     {
         "id": "api.command_join.hint",
@@ -797,7 +797,7 @@
     },
     {
         "id": "api.command_mute.error",
-        "translation": "Не удалось найти канал {{.Channel}}. Пожалуйста, используйте [дескриптор канала] (https://about.mattermost.com/default-channel-handle-documentation) для идентификации каналов."
+        "translation": "Не удалось найти канал {{.Channel}}. Для идентификации каналов используйте [название канала] (https://about.mattermost.com/default-channel-handle-documentation)."
     },
     {
         "id": "api.command_mute.hint",
@@ -1023,8 +1023,8 @@
         "id": "api.email_batching.send_batched_email_notification.body_text",
         "translation": {
             "one": "У вас есть новое уведомление.",
-            "few": "У вас есть {{.Count}} уведомления.",
-            "many": "У вас есть {{.Count}} уведомлений."
+            "few": "У вас {{.Count}} новых уведомления.",
+            "many": "У вас {{.Count}} новых уведомлений."
         }
     },
     {
@@ -7870,5 +7870,81 @@
     {
         "id": "app.scheme.get.app_error",
         "translation": "Не удалось получить схему."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Требуется идентификатор поставщика услуг"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Не получилось удалить сообщения пользователя"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Не получилось удалить сообщения канала"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Не получилось удалить сообщения пользователя"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Не получилось удалить сообщения канала"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "Невозможно удалить эту схему."
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Мы столкнулись с ошибкой при сохранении аудитов."
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Мы столкнулись с ошибкой при удалении аудитов."
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Превышен лимит для разделения по страницам."
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Мы обнаружили ошибку при поиске аудитов."
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "Параметр идентификатора команды необходим для автозаполнения по каналу."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Невозможно переместить каналы личных сообщений или групповые каналы"
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций."
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Не удалось сохранить реакцию."
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Не удалось получить реакции для данного сообщения."
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Не удалось получить все реакции с данным именем эмодзи."
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Не удалось получить реакции для данного сообщения."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Невозможно запросить пробную лицензию. Пожалуйста, настройте URL сайта в разделе Системная консоль веб-сервера Mattermost."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Вы должны принять Соглашение об оценке программного обеспечения Mattermost и Политику конфиденциальности, чтобы запросить лицензию."
     }
 ]
