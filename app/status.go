@@ -4,8 +4,12 @@
 package app
 
 import (
+	"errors"
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
@@ -69,7 +73,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		for _, s := range statuses {
@@ -117,7 +121,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		for _, s := range statuses {
@@ -342,7 +346,18 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	return a.Srv().Store.Status().Get(userId)
+	status, err := a.Srv().Store.Status().Get(userId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetStatus", "app.status.get.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetStatus", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return status, nil
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

@@ -637,7 +637,7 @@ func TestCreatePostCheckOnlineStatus(t *testing.T) {
 
 	_, err = th.App.GetStatus(th.BasicUser.Id)
 	require.NotNil(t, err)
-	assert.Equal(t, "store.sql_status.get.missing.app_error", err.Id)
+	assert.Equal(t, "app.status.get.missing.app_error", err.Id)
 
 	req = httptest.NewRequest("POST", "/api/v4/posts", strings.NewReader(post.ToJson()))
 	req.Header.Set(model.HEADER_AUTH, "Bearer "+session.Token)

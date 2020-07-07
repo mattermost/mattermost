@@ -5643,7 +5643,7 @@ func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.StatusStore.Get(userId)
@@ -5659,7 +5659,7 @@ func (s *TimerLayerStatusStore) Get(userId string) (*model.Status, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.StatusStore.GetByIds(userIds)
@@ -5675,7 +5675,7 @@ func (s *TimerLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+func (s *TimerLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.StatusStore.GetTotalActiveUsersCount()
@@ -5691,7 +5691,7 @@ func (s *TimerLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerStatusStore) ResetAll() *model.AppError {
+func (s *TimerLayerStatusStore) ResetAll() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.StatusStore.ResetAll()
@@ -5707,7 +5707,7 @@ func (s *TimerLayerStatusStore) ResetAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.StatusStore.SaveOrUpdate(status)
@@ -5723,7 +5723,7 @@ func (s *TimerLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppErr
 	return resultVar0
 }
 
-func (s *TimerLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s *TimerLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
