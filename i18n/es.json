@@ -6352,11 +6352,11 @@
     },
     {
         "id": "api.license.request-trial.bad-request",
-        "translation": ""
+        "translation": "El número de usuarios solicitados no es correcto."
     },
     {
         "id": "api.license.request_trial_license.app_error",
-        "translation": ""
+        "translation": "No se puede obtener una licencia de prueba, intente nuevamente o póngase en contacto con support@mattermost.com."
     },
     {
         "id": "model.group.name.invalid_length.app_error",
@@ -7757,5 +7757,141 @@
     {
         "id": "ent.elasticsearch.index_user.error",
         "translation": "Error al indexar el usuario"
+    },
+    {
+        "id": "store.sql_session.update_expired_notify.app_error",
+        "translation": "No se puede actualizar expired_notify."
+    },
+    {
+        "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+        "translation": "No se puede obtener el tiempo de creación de entidad más antiguo."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Se requiere el identificador del proveedor de servicios"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Error al eliminar los mensajes del usuario"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Error al eliminar los mensajes del canal"
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Encontramos un error al eliminar permanentemente el lote de reacciones."
+    },
+    {
+        "id": "ent.cluster.timeout.error",
+        "translation": "Se agotó el tiempo de espera esperando la respuesta del clúster"
+    },
+    {
+        "id": "ent.cluster.json_encode.error",
+        "translation": "Se produjo un error al ordenar la solicitud JSON"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Error al eliminar los mensajes del usuario"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Error al eliminar los mensajes del canal"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "No se puede eliminar este esquema."
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "No se puede guardar la reacción."
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "No se puede obtener las reacciones del mensaje."
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "No se puede obtener las reacciones con el nombre del emoticon suministrado."
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "No se pueden obtener reacciones del mensaje."
+    },
+    {
+        "id": "app.emoji.get_by_name.no_result",
+        "translation": "No pudimos encontrar el emoji."
+    },
+    {
+        "id": "app.emoji.get.no_result",
+        "translation": "No pudimos encontrar el emoji."
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "No se pueden guardar el emoji."
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "No se puede actualizar el canal."
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "No se puede restaurar el canal."
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "No se pueden contar todos los canales."
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Encontramos un error guardando la auditoria."
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Encontramos un error al eliminar los audits."
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Límite de paginación excedido."
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Encontramos un error al encontrar las auditorías."
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "Se requiere el parámetro de identificación del equipo para autocompletar por canal."
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Origen de importación desconocido."
+    },
+    {
+        "id": "api.push_notifications.session.expired",
+        "translation": "Sesión caducada: Inicie sesión para continuar recibiendo notificaciones. El administrador del sistema configura las sesiones para {{.siteName}} para que caduquen cada {{.daysCount}} día (s)."
+    },
+    {
+        "id": "api.post.error_get_post_id.pending",
+        "translation": "No se puede obtener el mensaje pendiente."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
+    },
+    {
+        "id": "api.file.upload_file.incorrect_channelId.app_error",
+        "translation": "No se puede cargar el archivo. ID de canal incorrecto: {{.channelId}}"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "server_error: se encontró un error interno del servidor al crear el emoji."
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "La URL del sitio no se puede borrar."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "No se pueden mover canales de mensajes directos o grupales"
     }
 ]
