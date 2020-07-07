@@ -53,7 +53,13 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		return err
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
+	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(&preferences); err != nil {
+		return err
+	}
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userId, nil)
+	a.Publish(message)
+
+	message = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
 	message.Add("preferences", preferences.ToJson())
 	a.Publish(message)
 
