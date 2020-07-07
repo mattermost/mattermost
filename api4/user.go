@@ -30,6 +30,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
@@ -504,6 +505,55 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats, err := c.App.GetTotalUsersStats(restrictions)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(stats.ToJson()))
+}
+
+func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("in_team")
+	channelID := r.URL.Query().Get("in_channel")
+	includeDeleted := r.URL.Query().Get("include_deleted")
+	includeBotAccounts := r.URL.Query().Get("include_bots")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
+
+	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
+	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+
+	roles := []string{}
+	if rolesString != "" {
+		roles = strings.Split(rolesString, ",")
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(channelID) != 0 {
+		channelRoles = strings.Split(channelRolesString, ",")
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(teamID) != 0 {
+		teamRoles = strings.Split(teamRolesString, ",")
+	}
+
+	options := &model.UserCountOptions{
+		IncludeDeleted:     includeDeletedBool,
+		IncludeBotAccounts: includeBotAccountsBool,
+		TeamId:             teamID,
+		ChannelId:          channelID,
+		Roles:              roles,
+		ChannelRoles:       channelRoles,
+		TeamRoles:          teamRoles,
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	stats, err := c.App.GetFilteredUsersStats(options)
 	if err != nil {
 		c.Err = err
 		return

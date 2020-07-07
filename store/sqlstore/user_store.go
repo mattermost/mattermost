@@ -476,6 +476,8 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += `OR u.Roles LIKE '` + sanitizedRole + escapeString
 			}
 		}
+
+		queryString = "(" + queryString + ")"
 	}
 
 	if len(channelRoles) > 0 && channelRoles[0] != "" {
@@ -498,13 +500,13 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += "OR "
 			}
 			if schemeAdmin && schemeUser {
-				queryString += `(cm.SchemeUser = true)`
+				queryString += `(cm.SchemeUser = true AND u.Roles = 'system_user')`
 			} else if schemeAdmin {
-				queryString += `(cm.SchemeAdmin = true)`
+				queryString += `(cm.SchemeAdmin = true AND u.Roles = 'system_user')`
 			} else if schemeUser {
-				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false)`
+				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false AND u.Roles = 'system_user')`
 			} else if schemeGuest {
-				queryString += `(cm.SchemeGuest = true)`
+				queryString += `(cm.SchemeGuest = true AND u.Roles = 'system_guest')`
 			}
 		}
 	}
@@ -529,19 +531,19 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += "OR "
 			}
 			if schemeAdmin && schemeUser {
-				queryString += `(tm.SchemeUser = true)`
+				queryString += `(tm.SchemeUser = true AND u.Roles = 'system_user')`
 			} else if schemeAdmin {
-				queryString += `(tm.SchemeAdmin = true)`
+				queryString += `(tm.SchemeAdmin = true AND u.Roles = 'system_user')`
 			} else if schemeUser {
-				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false)`
+				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false AND u.Roles = 'system_user')`
 			} else if schemeGuest {
-				queryString += `(tm.SchemeGuest = true)`
+				queryString += `(tm.SchemeGuest = true AND u.Roles = 'system_guest')`
 			}
 		}
 	}
 
 	if queryString != "" {
-		query = query.Where(queryString)
+		query = query.Where("(" + queryString + ")")
 	}
 
 	return query
@@ -1169,6 +1171,7 @@ func (us SqlUserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 	if !options.IncludeDeleted {
@@ -1189,10 +1192,13 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 
 	if options.TeamId != "" {
 		query = query.LeftJoin("TeamMembers AS tm ON u.Id = tm.UserId").Where("tm.TeamId = ? AND tm.DeleteAt = 0", options.TeamId)
+	} else if options.ChannelId != "" {
+		query = query.LeftJoin("ChannelMembers AS cm ON u.Id = cm.UserId").Where("cm.ChannelId = ?", options.ChannelId)
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
 
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if isPostgreSQL {
 		query = query.PlaceholderFormat(sq.Dollar)
 	}
 
