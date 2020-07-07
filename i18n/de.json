@@ -6401,5 +6401,1413 @@
     {
         "id": "web.incoming_webhook.user.app_error",
         "translation": "Der Benutzer konnte nicht gefunden werden"
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.app_error",
+        "translation": "Konnte Symbolbild nicht hochladen."
+    },
+    {
+        "id": "api.bot.get_bot_icon_image.read.app_error",
+        "translation": "Konnte Symbolbild-Datei nicht lesen."
+    },
+    {
+        "id": "api.bot.delete_bot_icon_image.app_error",
+        "translation": "Konnte Symbolbild nicht hochladen."
+    },
+    {
+        "id": "api.bot.create_disabled",
+        "translation": "Bot-Erstellung wurde deaktiviert."
+    },
+    {
+        "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+        "translation": "Fehlender Inhaltstyp."
+    },
+    {
+        "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+        "translation": "Ungültiger Inhaltstyp."
+    },
+    {
+        "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+        "translation": "Ungültiger Zertifikatstext."
+    },
+    {
+        "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+        "translation": "Fehlender Identitätsanbieter-SSO-Services-Knoten in der XML."
+    },
+    {
+        "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+        "translation": "Fehlender Identitätsanbieter-Schlüsseldeskriptorknoten in der XML."
+    },
+    {
+        "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+        "translation": "Fehlender SSO-Deskriptorknoten für Identitätsanbieter in der XML-Datei."
+    },
+    {
+        "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+        "translation": "Konnte die Zertifikatsdatei nicht speichern."
+    },
+    {
+        "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+        "translation": "Fehler bei der Syntaxanalyse der Metadateninformationen, die vom Identitätsanbieter empfangen wurden."
+    },
+    {
+        "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+        "translation": "Fehler beim Abrufen von Metadaten aus Identitätsanbieter-URL."
+    },
+    {
+        "id": "api.admin.delete_brand_image.storage.not_found",
+        "translation": "Konnte Markenbild nicht löschen, es wurde nicht gefunden."
+    },
+    {
+        "id": "model.group.name.invalid_length.app_error",
+        "translation": "Der Name darf aus 1 bis 64 Kleinbuchstaben bestehen"
+    },
+    {
+        "id": "app.scheme.save.invalid_scheme.app_error",
+        "translation": "Das angegebene Schema ist ungültig."
+    },
+    {
+        "id": "app.scheme.save.app_error",
+        "translation": "Konnte Schema nicht erstellen."
+    },
+    {
+        "id": "app.scheme.permanent_delete_all.app_error",
+        "translation": "Die Schemas konnten permanent gelöscht werden."
+    },
+    {
+        "id": "app.scheme.get.app_error",
+        "translation": "Konnte das Schema nicht abrufen."
+    },
+    {
+        "id": "app.channel.get_more_channels.get.app_error",
+        "translation": "Konnte die Kanäle nicht abrufen."
+    },
+    {
+        "id": "web.error.unsupported_browser.system_browser_or",
+        "translation": "oder"
+    },
+    {
+        "id": "web.error.unsupported_browser.system_browser_make_default",
+        "translation": "Standard festlegen"
+    },
+    {
+        "id": "web.error.unsupported_browser.open_system_browser.edge",
+        "translation": "Edge öffnen"
+    },
+    {
+        "id": "web.error.unsupported_browser.no_longer_support_version",
+        "translation": "Dieser Version ihres Browsers wird von Mattermost nicht mehr unterstützt."
+    },
+    {
+        "id": "web.error.unsupported_browser.no_longer_support",
+        "translation": "Dieser Browser wird von Mattermost nicht mehr unterstützt."
+    },
+    {
+        "id": "web.error.unsupported_browser.min_os_version.windows",
+        "translation": "Windows 7+"
+    },
+    {
+        "id": "web.error.unsupported_browser.min_os_version.mac",
+        "translation": "macOS 10.9+"
+    },
+    {
+        "id": "web.error.unsupported_browser.min_browser_version.safari",
+        "translation": "Version 12+"
+    },
+    {
+        "id": "web.error.unsupported_browser.min_browser_version.firefox",
+        "translation": "Version 60+"
+    },
+    {
+        "id": "web.error.unsupported_browser.min_browser_version.edge",
+        "translation": "Version 44+"
+    },
+    {
+        "id": "web.error.unsupported_browser.min_browser_version.chrome",
+        "translation": "Version 61+"
+    },
+    {
+        "id": "web.error.unsupported_browser.learn_more",
+        "translation": "Erfahren Sie mehr über unterstützte Browser."
+    },
+    {
+        "id": "web.error.unsupported_browser.install_guide.windows",
+        "translation": "Installationsanleitung"
+    },
+    {
+        "id": "web.error.unsupported_browser.install_guide.mac",
+        "translation": "Installationsanleitung"
+    },
+    {
+        "id": "web.error.unsupported_browser.download_the_app",
+        "translation": "Laden Sie die App herunter"
+    },
+    {
+        "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
+        "translation": "Laden Sie die Mattermost-App herunter oder verwenden Sie einen unterstützten Browser für ein besseres Erlebnis."
+    },
+    {
+        "id": "web.error.unsupported_browser.download",
+        "translation": "Laden Sie die App herunter"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_title.safari",
+        "translation": "Safari"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_title.firefox",
+        "translation": "Firefox"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_title.edge",
+        "translation": "Microsoft Edge"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_title.chrome",
+        "translation": "Google Chrome"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_get_latest.safari",
+        "translation": "Holen Sie sich den neuesten Safari-Browser"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+        "translation": "Holen Sie sich den neuesten Firefox-Browser"
+    },
+    {
+        "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+        "translation": "Holen Sie sich den neuesten Chrome-Browser"
+    },
+    {
+        "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
+        "translation": "Konnte Gäste nicht deaktivieren."
+    },
+    {
+        "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
+        "translation": "Konnte die Liste der deaktivierten Gäste-IDs nicht abrufen."
+    },
+    {
+        "id": "store.sql_user.promote_guest.user_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Benutzer."
+    },
+    {
+        "id": "store.sql_user.promote_guest.team_members_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Teammitgliedschaften des Benutzers."
+    },
+    {
+        "id": "store.sql_user.promote_guest.open_transaction.app_error",
+        "translation": "Konnte Datenbanktransaktion nicht öffnen."
+    },
+    {
+        "id": "store.sql_user.promote_guest.commit_transaction.app_error",
+        "translation": "Konnte die Datenbanktransaktion nicht ausführen."
+    },
+    {
+        "id": "store.sql_user.promote_guest.channel_members_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Kanalmitgliedschaften des Benutzers."
+    },
+    {
+        "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+        "translation": "Konnte die Benutzer-Stapel nicht zur Indizierung abrufen."
+    },
+    {
+        "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+        "translation": "Konnte die Teammitglieder nicht zur Indizierung abrufen."
+    },
+    {
+        "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+        "translation": "Konnte die Kanalmitglieder nicht zur Indizierung abrufen."
+    },
+    {
+        "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
+        "translation": "Es trat ein Fehler beim Finden der Benutzerprofile auf"
+    },
+    {
+        "id": "store.sql_user.get_known_users.get_users.app_error",
+        "translation": "Konnte bekannte Benutzer nicht aus der Datenbank abrufen."
+    },
+    {
+        "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Benutzer."
+    },
+    {
+        "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Teammitgliedschaften des Benutzers."
+    },
+    {
+        "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
+        "translation": "Konnte Datenbanktransaktion nicht öffnen."
+    },
+    {
+        "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
+        "translation": "Konnte die Datenbanktransaktion nicht ausführen."
+    },
+    {
+        "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
+        "translation": "Fehler beim Aktualisieren der Kanalmitgliedschaften des Benutzers."
+    },
+    {
+        "id": "store.sql_user.count.app_error",
+        "translation": "UserCountOptions machen keinen Sinn."
+    },
+    {
+        "id": "store.sql_team.user_belongs_to_teams.app_error",
+        "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Teams gehört."
+    },
+    {
+        "id": "store.sql_team.search_private_team.app_error",
+        "translation": "Es trat ein Fehler beim Suchen nach privaten Teams auf."
+    },
+    {
+        "id": "store.sql_team.get_user_team_ids.app_error",
+        "translation": "Konnte die Liste der Team eines Benutzers nicht abrufen."
+    },
+    {
+        "id": "store.sql_team.get_by_names.missing.app_error",
+        "translation": "Konnte einige der angeforderten Teams nicht finden."
+    },
+    {
+        "id": "store.sql_team.get_by_names.app_error",
+        "translation": "Konnte das Teammitglied nicht abrufen."
+    },
+    {
+        "id": "store.sql_team.get_by_name.missing.app_error",
+        "translation": "Konnte das existierende Team nicht finden."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_listing.app_error",
+        "translation": "Konnte nicht alle privaten Teams abrufen."
+    },
+    {
+        "id": "store.sql_team.get_active_member_count.app_error",
+        "translation": "Konnte die Anzahl der Teammitglieder nicht abrufen."
+    },
+    {
+        "id": "store.sql_team.analytics_public_team_count.app_error",
+        "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
+    },
+    {
+        "id": "store.sql_team.analytics_private_team_count.app_error",
+        "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
+    },
+    {
+        "id": "store.sql_system.save.commit_transaction.app_error",
+        "translation": "Konnte die Datenbanktransaktion nicht ausführen."
+    },
+    {
+        "id": "store.sql_session.update_props.app_error",
+        "translation": "Konnte Sitzungseinstellungen nicht aktualisieren."
+    },
+    {
+        "id": "store.sql_session.update_expires_at.app_error",
+        "translation": "Unable to update expires_at."
+    },
+    {
+        "id": "store.sql_role.get_all.app_error",
+        "translation": "Konnte nicht alle Rollen abrufen."
+    },
+    {
+        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+        "translation": "Konnte nicht alle Token eines Typs entfernen."
+    },
+    {
+        "id": "store.sql_post.populate_reply_count.app_error",
+        "translation": "Unable to get the post replies count"
+    },
+    {
+        "id": "store.sql_post.get_post_id_around.app_error",
+        "translation": "Konnte Nachricht nicht in dem ausgewählten Zeitraum abrufen."
+    },
+    {
+        "id": "store.sql_post.get_post_after_time.app_error",
+        "translation": "Konnte Nachricht nicht nach dem ausgewählten Zeitraum abrufen."
+    },
+    {
+        "id": "store.sql_post.get_direct_posts.app_error",
+        "translation": "Konnte die Direktnachrichten nicht abrufen."
+    },
+    {
+        "id": "store.sql_plugin_store.list.app_error",
+        "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
+    },
+    {
+        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
+        "translation": "Nach KVCompareAndSet mit unverändertem Wert wurde mehr als 1 Zeile in MySQL gefunden."
+    },
+    {
+        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
+        "translation": "Fehler beim Abfragen der vorhandenen Zeile in MySQL nach KVCompareAndSet mit unverändertem Wert."
+    },
+    {
+        "id": "store.sql_group.permanent_delete_members_by_user.app_error",
+        "translation": "Konnte das Gruppenmitglied mit der Benutzer-ID \"{{.UserId}}\" nicht entfernen."
+    },
+    {
+        "id": "store.sql_group.app_error",
+        "translation": "Fehler beim Erstellen der Abfrage."
+    },
+    {
+        "id": "store.sql_file_info.get_with_options.app_error",
+        "translation": "Konnte die Dateiinformationen über Pfad abrufen."
+    },
+    {
+        "id": "store.sql_channel.user_belongs_to_channels.app_error",
+        "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
+    },
+    {
+        "id": "store.sql_channel.update_last_viewed_at_post.app_error",
+        "translation": "Konnte Kanal nicht als ungelesen markieren."
+    },
+    {
+        "id": "store.sql_channel.search_group_channels.app_error",
+        "translation": "Konnte die Gruppenkanäle für den angegebenen Benutzer und Begriff nicht abrufen."
+    },
+    {
+        "id": "store.sql_channel.get_pinnedpost_count.app_error",
+        "translation": "Konnte die Anzahl der angehefteten Nachrichten nicht ermitteln."
+    },
+    {
+        "id": "store.sql_channel.get_channels_by_ids.app_error",
+        "translation": "Konnte die Kanäle nicht nach IDs abrufen."
+    },
+    {
+        "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+        "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
+    },
+    {
+        "id": "store.sql_channel.get_all_direct.app_error",
+        "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
+    },
+    {
+        "id": "store.sql_channel.count_posts_since.app_error",
+        "translation": "Konnte Nachrichten seit dem angegebenen Datum nicht zählen."
+    },
+    {
+        "id": "store.sql_audit.app_error",
+        "translation": "Failed to build query"
+    },
+    {
+        "id": "store.sql.build_query.app_error",
+        "translation": "Fehler beim Erstellen der Abfrage."
+    },
+    {
+        "id": "store.search_user_store.empty_team_id",
+        "translation": "Failed to get list of allowed channels for team: empty teamId"
+    },
+    {
+        "id": "searchengine.bleve.disabled.error",
+        "translation": "Error purging Bleve indexes: engine is disabled"
+    },
+    {
+        "id": "plugin_api.bot_cant_create_bot",
+        "translation": "Bot kann keinen Bot-Benutzer erstellen."
+    },
+    {
+        "id": "plugin.api.get_users_in_channel",
+        "translation": "Konnte die Benutzer nicht finden, ungültige Sortierkriterien."
+    },
+    {
+        "id": "model.user.is_valid.update_at.app_error",
+        "translation": "Aktualisier am muss eine gültige Zeit sein"
+    },
+    {
+        "id": "model.user.is_valid.position.app_error",
+        "translation": "Ungültige Position: Darf nicht länger als 128 Zeichen sein."
+    },
+    {
+        "id": "model.user.is_valid.password_limit.app_error",
+        "translation": "Konnte aufgrund der Einschränkungen von bcrypt kein Passwort mit mehr als 72 Zeichen setzen."
+    },
+    {
+        "id": "model.user.is_valid.nickname.app_error",
+        "translation": "Ungültiger Spitzname."
+    },
+    {
+        "id": "model.user.is_valid.locale.app_error",
+        "translation": "Ungültiges Gebietsschema."
+    },
+    {
+        "id": "model.user.is_valid.last_name.app_error",
+        "translation": "Ungültiger Nachname."
+    },
+    {
+        "id": "model.user.is_valid.id.app_error",
+        "translation": "Ungültige Benutzer-ID."
+    },
+    {
+        "id": "model.user.is_valid.first_name.app_error",
+        "translation": "Ungültiger Vorname."
+    },
+    {
+        "id": "model.user.is_valid.create_at.app_error",
+        "translation": "Erstellt am muss eine gültige Zeit sein"
+    },
+    {
+        "id": "model.user.is_valid.auth_data_type.app_error",
+        "translation": "Ungültiger Benutzer, Auth-Daten müssen mit Auth-Typ gesetzt sein."
+    },
+    {
+        "id": "model.user.is_valid.auth_data_pwd.app_error",
+        "translation": "Ungültiger Benutzer, Passwort und Auth-Daten können nicht gesetzt werden."
+    },
+    {
+        "id": "model.user.is_valid.auth_data.app_error",
+        "translation": "Ungültige Auth-Daten."
+    },
+    {
+        "id": "model.team.is_valid.invite_id.app_error",
+        "translation": "Ungültige Einladungs-ID."
+    },
+    {
+        "id": "model.post.channel_notifications_disabled_in_channel.message",
+        "translation": "Kanalbenachrichtigungen sind in {{.ChannelName}} deaktiviert. {{.Mention}} hat keine Benachrichtigungen ausgelöst."
+    },
+    {
+        "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
+        "translation": "Ungültiger alter Wert; er sollte nicht gesetzt werden, wenn die Operation nicht atomar ist."
+    },
+    {
+        "id": "model.guest.is_valid.emails.app_error",
+        "translation": "Ungültige E-Mail-Adressen."
+    },
+    {
+        "id": "model.guest.is_valid.email.app_error",
+        "translation": "Ungültige E-Mail-Adresse"
+    },
+    {
+        "id": "model.guest.is_valid.channels.app_error",
+        "translation": "Ungültige Kanäle."
+    },
+    {
+        "id": "model.guest.is_valid.channel.app_error",
+        "translation": "Ungültiger Kanal."
+    },
+    {
+        "id": "model.group.name.invalid_chars.app_error",
+        "translation": "invalid characters in the name property for group"
+    },
+    {
+        "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+        "translation": "Ungültiger Signaturalgorithmus."
+    },
+    {
+        "id": "model.config.is_valid.saml_guest_attribute.app_error",
+        "translation": "Ungültiges Gastattribut. Muss in der Form 'feld=wert' vorliegen."
+    },
+    {
+        "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
+        "translation": "Ungültiger kanonischer Algorithmus."
+    },
+    {
+        "id": "model.config.is_valid.saml_admin_attribute.app_error",
+        "translation": "Ungültiges Admin-Attribut. Muss in der Form 'feld=wert' vorliegen."
+    },
+    {
+        "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+        "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht."
+    },
+    {
+        "id": "model.config.is_valid.bleve_search.filename.app_error",
+        "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht."
+    },
+    {
+        "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
+        "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung SearchEnabled auf wahr steht."
+    },
+    {
+        "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
+        "translation": "Elasticsearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn die Elasticsearch-Einstellung AutocompleteEnabled auf wahr steht."
+    },
+    {
+        "id": "model.config.is_valid.bleve_search.bulk_indexing_time_window_seconds.app_error",
+        "translation": "Zeitfenster für Elasticsearch-Bulk-Indizierung muss mindestens eine Sekunde sein."
+    },
+    {
+        "id": "model.command.is_valid.autocomplete_data.app_error",
+        "translation": "Invalid AutocompleteData"
+    },
+    {
+        "id": "model.channel.is_valid.name.app_error",
+        "translation": "Ungültiger Kanalname. Benutzerkennungen sind in Kanalnamen für Kanäle, die keine Direktnachrichtenkanäle sind, nicht erlaubt. "
+    },
+    {
+        "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+        "translation": "Fehler beim Dekodieren von base64 der Auslöse-ID für interaktiven Dialog."
+    },
+    {
+        "id": "groups.unsupported_syncable_type",
+        "translation": "Nicht unterstützter synchronisierbarer Typ '{{.Value}}'."
+    },
+    {
+        "id": "group_not_associated_to_synced_team",
+        "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+    },
+    {
+        "id": "ent.ldap.validate_guest_filter.app_error",
+        "translation": "Ungültiger AD/LDAP-Gast-Filter."
+    },
+    {
+        "id": "ent.ldap.validate_admin_filter.app_error",
+        "translation": "Ungültiger AD/LDAP-Admin-Filter."
+    },
+    {
+        "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+        "translation": "Größenbegrenzung überschritten. Überprüfen Sie Ihre [maximale Seitengröße](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    },
+    {
+        "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+        "translation": "Fehler beim Löschen von Team- oder Kanalmitgliedschaften."
+    },
+    {
+        "id": "ent.id_loaded.license_disable.app_error",
+        "translation": "Ihre Lizenz unterstützt keine ID-geladenen Push-Benachrichtigungen."
+    },
+    {
+        "id": "ent.elasticsearch.start.parse_server_version.app_error",
+        "translation": "Fehler beim Verarbeiten der Elasticsearch-Server-Version."
+    },
+    {
+        "id": "ent.elasticsearch.start.get_server_version.app_error",
+        "translation": "Fehler beim Abrufen der Elasticsearch-Server-Version."
+    },
+    {
+        "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
+        "translation": "Konnte Suchergebnisse nicht dekodieren"
+    },
+    {
+        "id": "ent.elasticsearch.search_users.search_failed",
+        "translation": "Suche konnte nicht abgeschlossen werden"
+    },
+    {
+        "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+        "translation": "Konnte Suchergebnisse nicht dekodieren"
+    },
+    {
+        "id": "ent.elasticsearch.search_channels.search_failed",
+        "translation": "Suche konnte nicht abgeschlossen werden"
+    },
+    {
+        "id": "ent.elasticsearch.search_channels.disabled",
+        "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    },
+    {
+        "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
+        "translation": "Fehler beim Abrufen des Elasticsearch-Index"
+    },
+    {
+        "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+        "translation": "Versuche einen neunen Stapel zu indizieren, wenn alle Entitäten vollständig sind."
+    },
+    {
+        "id": "ent.elasticsearch.index_user.error",
+        "translation": "Fehler beim Indizieren der Benutzer."
+    },
+    {
+        "id": "ent.elasticsearch.index_channel.error",
+        "translation": "Fehler beim Indizieren des Kanals."
+    },
+    {
+        "id": "ent.elasticsearch.delete_user.error",
+        "translation": "Fehler beim Löschen des Benutzers."
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel.error",
+        "translation": "Fehler beim Löschen des Kanals."
+    },
+    {
+        "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+        "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Benutzer."
+    },
+    {
+        "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+        "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Nachrichten."
+    },
+    {
+        "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+        "translation": "Fehler beim Erstellen der Elasticsearch-Vorlage für Kanäle."
+    },
+    {
+        "id": "ent.compliance.csv.warning.appError",
+        "translation": "Konnte die EML-Datei nicht erstellen."
+    },
+    {
+        "id": "ent.compliance.csv.metadata.json.zipfile.appError",
+        "translation": "Konnte die EML-Datei nicht erstellen."
+    },
+    {
+        "id": "cli.outgoing_webhook.inconsistent_state.app_error",
+        "translation": "Der ausgehende Webhook wird gelöscht, aber aufgrund eines Fehlers kann kein neuer Webhook erstellt werden."
+    },
+    {
+        "id": "bleveengine.stop_user_index.error",
+        "translation": "Failed to close user index."
+    },
+    {
+        "id": "bleveengine.stop_post_index.error",
+        "translation": "Failed to close post index."
+    },
+    {
+        "id": "bleveengine.stop_channel_index.error",
+        "translation": "Failed to close channel index."
+    },
+    {
+        "id": "bleveengine.search_users_in_team.error",
+        "translation": "Suche konnte nicht abgeschlossen werden."
+    },
+    {
+        "id": "bleveengine.search_users_in_channel.uchan.error",
+        "translation": "Suche konnte nicht abgeschlossen werden."
+    },
+    {
+        "id": "bleveengine.search_users_in_channel.nuchan.error",
+        "translation": "Suche konnte nicht abgeschlossen werden."
+    },
+    {
+        "id": "bleveengine.search_posts.error",
+        "translation": "Suche konnte nicht abgeschlossen werden."
+    },
+    {
+        "id": "bleveengine.search_channels.error",
+        "translation": "Suche konnte nicht abgeschlossen werden."
+    },
+    {
+        "id": "bleveengine.purge_user_index.error",
+        "translation": "Failed to purge user indexes."
+    },
+    {
+        "id": "bleveengine.purge_post_index.error",
+        "translation": "Failed to purge post indexes."
+    },
+    {
+        "id": "bleveengine.purge_channel_index.error",
+        "translation": "Failed to purge channel indexes."
+    },
+    {
+        "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
+        "translation": "Versuche einen neunen Stapel zu indizieren, wenn alle Entitäten vollständig sind."
+    },
+    {
+        "id": "bleveengine.indexer.do_job.parse_start_time.error",
+        "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
+    },
+    {
+        "id": "bleveengine.indexer.do_job.parse_end_time.error",
+        "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
+    },
+    {
+        "id": "bleveengine.indexer.do_job.get_oldest_post.error",
+        "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
+    },
+    {
+        "id": "bleveengine.indexer.do_job.engine_inactive",
+        "translation": "Failed to run Bleve index job: engine is inactive."
+    },
+    {
+        "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+        "translation": "Failed to index user batch."
+    },
+    {
+        "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+        "translation": "Failed to index post batch."
+    },
+    {
+        "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+        "translation": "Failed to index channel batch."
+    },
+    {
+        "id": "bleveengine.index_user.error",
+        "translation": "Fehler beim Indizieren des Benutzers."
+    },
+    {
+        "id": "bleveengine.index_post.error",
+        "translation": "Fehler beim Indizieren der Nachricht."
+    },
+    {
+        "id": "bleveengine.index_channel.error",
+        "translation": "Fehler beim Indizieren des Kanals."
+    },
+    {
+        "id": "bleveengine.delete_user.error",
+        "translation": "Fehler beim Löschen des Benutzers."
+    },
+    {
+        "id": "bleveengine.delete_post.error",
+        "translation": "Fehler beim Löschen der Nachricht."
+    },
+    {
+        "id": "bleveengine.delete_channel.error",
+        "translation": "Fehler beim Löschen des Kanals."
+    },
+    {
+        "id": "bleveengine.create_user_index.error",
+        "translation": "Error creating the bleve user index."
+    },
+    {
+        "id": "bleveengine.create_post_index.error",
+        "translation": "Error creating the bleve post index."
+    },
+    {
+        "id": "bleveengine.create_channel_index.error",
+        "translation": "Error creating the bleve channel index."
+    },
+    {
+        "id": "bleveengine.already_started.error",
+        "translation": "Bleve is already started."
+    },
+    {
+        "id": "app.user_terms_of_service.save.app_error",
+        "translation": "Konnte die Nutzungsbedingungen nicht speichern."
+    },
+    {
+        "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
+        "translation": "Keine Nutzungsbedingungen gefunden."
+    },
+    {
+        "id": "app.user_terms_of_service.get_by_user.app_error",
+        "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+    },
+    {
+        "id": "app.user_terms_of_service.delete.app_error",
+        "translation": "Konnte die Nutzungsbedingungen nicht löschen."
+    },
+    {
+        "id": "app.terms_of_service.get.no_rows.app_error",
+        "translation": "Keine Nutzungsbedingungen gefunden."
+    },
+    {
+        "id": "app.terms_of_service.get.app_error",
+        "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+    },
+    {
+        "id": "app.terms_of_service.create.existing.app_error",
+        "translation": "Speichern darf bei existierenden Nutzungsbedingungen nicht aufgerufen werden."
+    },
+    {
+        "id": "app.terms_of_service.create.app_error",
+        "translation": "Konnte die Nutzungsbedingungen nicht speichern."
+    },
+    {
+        "id": "app.team.rename_team.name_occupied",
+        "translation": "Konnte Team nicht umbenennen, der Name wird bereits verwendet."
+    },
+    {
+        "id": "app.team.invite_token.group_constrained.error",
+        "translation": "Konnte einem gruppenbeschränkten Team durch Token nicht beitreten."
+    },
+    {
+        "id": "app.team.invite_id.group_constrained.error",
+        "translation": "Konnte einem gruppenbeschränkten Team durch Einladung nicht beitreten."
+    },
+    {
+        "id": "app.plugin.write_file.saving.app_error",
+        "translation": "Es ist ein Fehler beim Speichern der Datei aufgetreten."
+    },
+    {
+        "id": "app.plugin.write_file.read.app_error",
+        "translation": "Es ist ein Fehler beim Lesen der Datei aufgetreten."
+    },
+    {
+        "id": "app.plugin.webapp_bundle.app_error",
+        "translation": "Konnte Plugin-Webapp-Bundle nicht generieren."
+    },
+    {
+        "id": "app.plugin.sync.read_local_folder.app_error",
+        "translation": "Fehler beim Lesen des lokalen Plugin-Ordners."
+    },
+    {
+        "id": "app.plugin.sync.list_filestore.app_error",
+        "translation": "Fehler beim Lesen von Dateien aus dem Plugin-Ordner im Dateispeicher."
+    },
+    {
+        "id": "app.plugin.store_signature.app_error",
+        "translation": "Konnte die Plugin-Signatur nicht im konfigurierten Dateispeicher abspeichern."
+    },
+    {
+        "id": "app.plugin.store_bundle.app_error",
+        "translation": "Konnte das Plugin nicht im konfigurierten Dateispeicher abspeichern."
+    },
+    {
+        "id": "app.plugin.signature_decode.app_error",
+        "translation": "Konnte base64-Signatur nicht dekodieren."
+    },
+    {
+        "id": "app.plugin.restart.app_error",
+        "translation": "Konnte das Plugin kann beim Upgrade nicht neu starten."
+    },
+    {
+        "id": "app.plugin.remove_bundle.app_error",
+        "translation": "Konnte Plugin-Bundle nicht aus dem Dateispeicher entfernen."
+    },
+    {
+        "id": "app.plugin.modify_saml.app_error",
+        "translation": "Saml-Dateien können nicht modifiziert werden."
+    },
+    {
+        "id": "app.plugin.marshal.app_error",
+        "translation": "Fehler beim Anordnen von Marktplatz-Plugins."
+    },
+    {
+        "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
+        "translation": "Die gesuchte Marktplatz-Plugin-Signatur konnte nicht gefunden werden."
+    },
+    {
+        "id": "app.plugin.marketplace_plugins.not_found.app_error",
+        "translation": "Das gesuchte Marktplatz-Plugin konnte nicht gefunden werden."
+    },
+    {
+        "id": "app.plugin.marketplace_plugin_request.app_error",
+        "translation": "Fehler bei der Entschlüsselung der Anforderung des Marktplatz-Plugins."
+    },
+    {
+        "id": "app.plugin.marketplace_disabled.app_error",
+        "translation": "Marktplatz wurde deaktiviert. Bitte prüfen Sie ihre Logs für Details."
+    },
+    {
+        "id": "app.plugin.marketplace_client.failed_to_fetch",
+        "translation": "Fehler beim Abrufen der Plugins vom Marktplatz-Server."
+    },
+    {
+        "id": "app.plugin.marketplace_client.app_error",
+        "translation": "Fehler beim Erstellen des Marktplatz-Clients."
+    },
+    {
+        "id": "app.plugin.invalid_version.app_error",
+        "translation": "Die Plugin-Version konnte nicht verarbeitet werden."
+    },
+    {
+        "id": "app.plugin.install_marketplace_plugin.app_error",
+        "translation": "Fehler beim Installieren von Marktplatz-Plugin."
+    },
+    {
+        "id": "app.plugin.get_public_key.get_file.app_error",
+        "translation": "Es ist ein Fehler beim Abrufen des öffentlichen Schlüssels aus dem Speicher aufgetreten."
+    },
+    {
+        "id": "app.plugin.flag_managed.app_error",
+        "translation": "Konnte das Plugin nicht so einstellen, dass es vom Dateispeicher verwaltet wird."
+    },
+    {
+        "id": "app.plugin.delete_public_key.delete.app_error",
+        "translation": "Es ist ein Fehler beim Löschen des öffentlichen Schlüssels aufgetreten."
+    },
+    {
+        "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+        "translation": "Ungültige Einstellung des Teammotivs für Benutzer."
+    },
+    {
+        "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
+        "translation": "User AuthService and AuthData are mutually inclusive."
+    },
+    {
+        "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+        "translation": "Ungültige Einstellung des Zeige-Ungelesene-Bereichs für Benutzer."
+    },
+    {
+        "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+        "translation": "Ungültige Einstellung der Nachrichtenformatierung für Benutzer."
+    },
+    {
+        "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+        "translation": "Ungültige Einstellung der Markdown-Vorschau für Benutzer."
+    },
+    {
+        "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+        "translation": "Ungültige Einstellung des E-Mail-Stapelverarbeitungs-Intervalls für Benutzer."
+    },
+    {
+        "id": "app.import.validate_post_import_data.props_too_large.error",
+        "translation": "Post Props are longer than the maximum permitted length."
+    },
+    {
+        "id": "app.import.import_user_teams.save_preferences.error",
+        "translation": "Konnte die Einstellungen für das Teammotiv nicht speichern."
+    },
+    {
+        "id": "app.import.import_user_channels.channel_not_found.error",
+        "translation": "Error importing user channels. Channel not found."
+    },
+    {
+        "id": "app.import.get_users_by_username.some_users_not_found.error",
+        "translation": "Einige Benutzer nicht gefunden"
+    },
+    {
+        "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+        "translation": "Einige Teams nicht gefunden"
+    },
+    {
+        "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+        "translation": "Konnte benutzerdefinierte Emoji-Bilder nicht kopieren."
+    },
+    {
+        "id": "app.emoji.get_list.internal_error",
+        "translation": "Konnte das Emoji nicht abrufen."
+    },
+    {
+        "id": "app.emoji.get_by_name.app_error",
+        "translation": "Konnte das Emoji nicht abrufen."
+    },
+    {
+        "id": "app.emoji.get.app_error",
+        "translation": "Konnte das Emoji nicht abrufen."
+    },
+    {
+        "id": "app.emoji.delete.no_results",
+        "translation": "Das zu löschende Emoji konnte nicht gefunden werden."
+    },
+    {
+        "id": "app.emoji.delete.app_error",
+        "translation": "Konnte das Emoji nicht löschen."
+    },
+    {
+        "id": "app.channel_member_history.log_leave_event.internal_error",
+        "translation": "Fehler beim Speichern der Historie der Kanalmitglieder. Fehler beim Aktualisieren des Beitrittsdatensatzes"
+    },
+    {
+        "id": "app.channel_member_history.log_join_event.internal_error",
+        "translation": "Fehler beim Speichern der Historie der Kanalmitglieder."
+    },
+    {
+        "id": "app.channel.update.bad_id",
+        "translation": "Konnte den Kanal nicht aktualisieren."
+    },
+    {
+        "id": "app.channel.permanent_delete.app_error",
+        "translation": "Konnte den Kanal nicht löschen."
+    },
+    {
+        "id": "app.channel.get_deleted.missing.app_error",
+        "translation": "Es existieren keine gelöschten Kanäle."
+    },
+    {
+        "id": "app.channel.get_deleted.existing.app_error",
+        "translation": "Konnte den bestehenden gelöschte Kanal nicht finden."
+    },
+    {
+        "id": "app.channel.get_channels.not_found.app_error",
+        "translation": "Es wurden keine Kanäle gefunden."
+    },
+    {
+        "id": "app.channel.get_channels.get.app_error",
+        "translation": "Konnte die Kanäle nicht abrufen."
+    },
+    {
+        "id": "app.channel.get_by_name.missing.app_error",
+        "translation": "Kanal existiert nicht."
+    },
+    {
+        "id": "app.channel.get_by_name.existing.app_error",
+        "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    },
+    {
+        "id": "app.channel.get_all_channels.app_error",
+        "translation": "Konnte nicht alle Kanäle abrufen."
+    },
+    {
+        "id": "app.channel.get.find.app_error",
+        "translation": "Wir konnte den Kanal nicht finden"
+    },
+    {
+        "id": "app.channel.get.existing.app_error",
+        "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    },
+    {
+        "id": "app.channel.delete.app_error",
+        "translation": "Konnte den Kanal nicht löschen."
+    },
+    {
+        "id": "app.channel.create_direct_channel.internal_error",
+        "translation": "Konnte den Kanal nicht speichern."
+    },
+    {
+        "id": "app.channel.create_channel.internal_error",
+        "translation": "Konnte den Kanal nicht speichern."
+    },
+    {
+        "id": "app.bot.permenent_delete.bad_id",
+        "translation": "Konnte den Bot nicht löschen."
+    },
+    {
+        "id": "app.bot.permanent_delete.internal_error",
+        "translation": "Unable to delete the bot permanently."
+    },
+    {
+        "id": "app.bot.patchbot.internal_error",
+        "translation": "Konnte den Bot nicht aktualisieren."
+    },
+    {
+        "id": "app.bot.getbots.internal_error",
+        "translation": "Konnte die Bots nicht abrufen."
+    },
+    {
+        "id": "app.bot.getbot.internal_error",
+        "translation": "Konnte den Bot nicht abrufen."
+    },
+    {
+        "id": "app.bot.get_disable_bot_sysadmin_message",
+        "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die nun deaktiviert wurden.\n\n{{.BotNames}}{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die nun deaktiviert wurden, darunter die folgenden:\n\n{{.BotNames}}{{end}}Sie können den Besitz jedes Bots übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} wurde deaktiviert. Sie verwalteten die folgenden Bot-Konten, die noch aktiviert sind.\n\n{{.BotNames}}\n{{else}}{{.UserName}} wurde deaktiviert und verwaltete {{.NumBots}} Bot-Konten, die immer noch aktiviert sind, einschließlich der folgenden:\n\n{{.BotNames}}{{end}}Wir empfehlen Ihnen dringend, die Eigentumsrechte an jedem Bot zu übernehmen, indem Sie ihn unter **Integrationen > Bot-Konten** wieder aktivieren und neue Token für den Bot erstellen.\n\nErfahren Sie mehr in der [Dokumentation] (https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nWenn Sie möchten, dass Bot-Konten nach der Benutzerdeaktivierung automatisch deaktiviert werden, setzen Sie \"Bot-Konten nach der Benutzerdeaktivierung deaktivieren\" in **Systemkonsole > Integrationen > Bot-Konten** auf wahr.{{end}}"
+    },
+    {
+        "id": "app.bot.createbot.internal_error",
+        "translation": "Konnte den Bot nicht speichern."
+    },
+    {
+        "id": "app.admin.test_site_url.failure",
+        "translation": "Dies ist keine gültige Live-URL"
+    },
+    {
+        "id": "app.admin.saml.invalid_response_from_idp.app_error",
+        "translation": "Konnte die vom Identitätsanbieter empfangene Antwort nicht lesen."
+    },
+    {
+        "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+        "translation": "Fehler beim Lesen der Antwortnutzdaten, die vom Identitätsanbieter empfangen wurden."
+    },
+    {
+        "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+        "translation": "Die XML-Metadateninformationen, die vom Identitätsanbieter empfangen wurden, konnten nicht decodiert werden."
+    },
+    {
+        "id": "api.websocket_handler.server_busy.app_error",
+        "translation": "Der Server ist ausgelastet, unkritische Dienste sind vorübergehend nicht verfügbar."
+    },
+    {
+        "id": "api.user.update_user.accepted_guest_domain.app_error",
+        "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains für Gastkonten. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+    },
+    {
+        "id": "api.user.update_user.accepted_domain.app_error",
+        "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+    },
+    {
+        "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+        "translation": "Sie können kein Gastkonto aktivieren, da die Funktion Gastzugang nicht aktiviert ist."
+    },
+    {
+        "id": "api.user.reset_password.token_parse.error",
+        "translation": "Konnte Passwortrücksetzungs-Token nicht verarbeiten."
+    },
+    {
+        "id": "api.user.promote_guest_to_user.no_guest.app_error",
+        "translation": "Der Gast kann nicht in einen regulären Benutzer umgewandelt werden, da er kein Gast ist."
+    },
+    {
+        "id": "api.user.login.invalid_credentials_username",
+        "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    },
+    {
+        "id": "api.user.login.invalid_credentials_sso",
+        "translation": "Gültige E-Mail und/oder Passwort eingeben oder mit anderer Anmeldemethode anmelden."
+    },
+    {
+        "id": "api.user.login.invalid_credentials_email_username",
+        "translation": "Gültige E-Mail und/oder Passwort eingeben."
+    },
+    {
+        "id": "api.user.login.invalid_credentials_email",
+        "translation": "Gültige E-Mail und/oder Passwort eingeben"
+    },
+    {
+        "id": "api.user.login.guest_accounts.license.error",
+        "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+    },
+    {
+        "id": "api.user.login.guest_accounts.disabled.error",
+        "translation": "Gastkonten sind deaktiviert"
+    },
+    {
+        "id": "api.user.demote_user_to_guest.already_guest.app_error",
+        "translation": "Der Benutzer kann nicht in einen Gast umgewandelt werden, da er bereits ein Gast ist."
+    },
+    {
+        "id": "api.user.create_user.invalid_invitation_type.app_error",
+        "translation": "Konnte Benutzer nicht erstellen, ungültige Einladung."
+    },
+    {
+        "id": "api.user.create_user.guest_accounts.license.app_error",
+        "translation": "Ihre Lizenz unterstützt Gastkonten nicht."
+    },
+    {
+        "id": "api.user.create_user.guest_accounts.disabled.app_error",
+        "translation": "Gastkonten sind deaktiviert."
+    },
+    {
+        "id": "api.user.create_password_token.error",
+        "translation": "Konnte Kennwortwiederherstellungs-Token nicht erstellen."
+    },
+    {
+        "id": "api.templates.remove_expired_license.subject",
+        "translation": "Mattermost Enterprise license has been disabled."
+    },
+    {
+        "id": "api.templates.remove_expired_license.body.title",
+        "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+    },
+    {
+        "id": "api.templates.remove_expired_license.body.renew_button",
+        "translation": "Renew License"
+    },
+    {
+        "id": "api.templates.invite_guest_subject",
+        "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
+    },
+    {
+        "id": "api.templates.invite_body_guest.info",
+        "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
+    },
+    {
+        "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+        "translation": "Ungültige Aktualisierung von Teammitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
+    },
+    {
+        "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
+        "translation": "Seitenumbruch nicht implementiert für die öffentliche Teamsuche."
+    },
+    {
+        "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
+        "translation": "Seitenumbruch nicht implementiert für die private Teamsuche."
+    },
+    {
+        "id": "api.team.remove_member.group_constrained.app_error",
+        "translation": "Konnte Benutzer nicht aus einem gruppenbeschränkten Team entfernen."
+    },
+    {
+        "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+        "translation": "Die Kanäle der Einladung müssen Teil des Teams der Einladung sein."
+    },
+    {
+        "id": "api.team.invate_guests_to_channels.license.error",
+        "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+    },
+    {
+        "id": "api.team.invate_guests_to_channels.disabled.error",
+        "translation": "Gastkonten sind deaktiviert"
+    },
+    {
+        "id": "api.team.invalidate_all_email_invites.app_error",
+        "translation": "Fehler beim Annulieren von E-Mail-Einladungen."
+    },
+    {
+        "id": "api.team.get_all_teams.insufficient_permissions",
+        "translation": "Sie haben nicht die nötigen Berechtigungen, um die Kanalüberschrift zu bearbeiten."
+    },
+    {
+        "id": "api.team.demote_user_to_guest.license.error",
+        "translation": "Ihre Lizenz unterstützt Gastkonten nicht"
+    },
+    {
+        "id": "api.team.demote_user_to_guest.disabled.error",
+        "translation": "Gastkonten sind deaktiviert."
+    },
+    {
+        "id": "api.team.add_user_to_team_from_invite.guest.app_error",
+        "translation": "Gäste dürfen einem Team nicht durch einen Einladungslink beitreten. Bitte fordern Sie eine Einladung in das Team per E-Mail an."
+    },
+    {
+        "id": "api.team.add_members.user_denied",
+        "translation": "Dieses Team wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Team synchronisiert ist."
+    },
+    {
+        "id": "api.team.add_members.error",
+        "translation": "Fehler beim Hinzufügen von Teammitglied(ern)."
+    },
+    {
+        "id": "api.system.id_loaded.not_available.app_error",
+        "translation": "ID-geladene Push-Benachrichtigungen sind auf diesem Server nicht konfiguriert oder werden nicht unterstützt."
+    },
+    {
+        "id": "api.slackimport.slack_import.zip.file_too_large",
+        "translation": "{{.Filename}} im Zip-Archiv zu groß für die Verarbeitung für den Slack-Import\r\n"
+    },
+    {
+        "id": "api.push_notifications_ack.message.parse.app_error",
+        "translation": "Es ist ein Fehler beim Erstellen der Push-Benachrichtigungs-Bestätigungs-Nachricht aufgetreten."
+    },
+    {
+        "id": "api.push_notifications_ack.forward.app_error",
+        "translation": "Es ist ein Fehler beim Senden der Quittungslieferung an den Push-Benachrichtigungsdienst aufgetreten."
+    },
+    {
+        "id": "api.push_notifications.message.parse.app_error",
+        "translation": "Es ist ein Fehler beim Erstellen der Push-Benachrichtigungsnachricht aufgetreten."
+    },
+    {
+        "id": "api.push_notification.id_loaded.fetch.app_error",
+        "translation": "Es ist ein Fehler beim Abrufen der ID-geladenen Push-Benachrichtigung aufgetreten."
+    },
+    {
+        "id": "api.push_notification.id_loaded.default_message",
+        "translation": "Sie haben eine neue Nachricht erhalten."
+    },
+    {
+        "id": "api.push_notification.disabled.app_error",
+        "translation": "Push-Benachrichtigungen sind auf diesem Server deaktiviert."
+    },
+    {
+        "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+        "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn zu diesem Kanal hinzuzufügen, muss er zu den verknüpften Gruppen hinzugefügt werden."
+    },
+    {
+        "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+        "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie zu diesem Kanal hinzuzufügen, müssen sie zu den verknüpften Gruppen hinzugefügt werden."
+    },
+    {
+        "id": "api.post.check_for_out_of_channel_group_users.message.none",
+        "translation": "@{{.GroupName}} has no members on this team"
+    },
+    {
+        "id": "api.plugin.verify_plugin.app_error",
+        "translation": "Konnte Plugin-Signatur nicht verifizieren."
+    },
+    {
+        "id": "api.plugin.install.download_failed.app_error",
+        "translation": "Es ist ein Fehler beim Herunterladen des Plugins aufgetreten."
+    },
+    {
+        "id": "api.plugin.add_public_key.open.app_error",
+        "translation": "Es ist ein Fehler beim Öffnen der öffentlichen Schlüsseldatei aufgetreten."
+    },
+    {
+        "id": "api.license.remove_expired_license.failed.error",
+        "translation": "Fehler beim Senden der Konto-Deaktivierungs-E-Mail"
+    },
+    {
+        "id": "api.ldap_groups.existing_user_name_error",
+        "translation": "group name already exists as a user name"
+    },
+    {
+        "id": "api.ldap_groups.existing_reserved_name_error",
+        "translation": "group name already exists as a reserved name"
+    },
+    {
+        "id": "api.ldap_groups.existing_group_name_error",
+        "translation": "Gruppenmitglied existiert bereits"
+    },
+    {
+        "id": "api.image.get.app_error",
+        "translation": "Requested image url cannot be parsed."
+    },
+    {
+        "id": "api.file.upload_file.rejected_by_plugin.app_error",
+        "translation": "Konnte Datei {{.Filename}} nicht hochladen. Zurückgewiesen durch Plugin: {{.Reason}}"
+    },
+    {
+        "id": "api.context.server_busy.app_error",
+        "translation": "Der Server ist ausgelastet, unkritische Dienste sind vorübergehend nicht verfügbar."
+    },
+    {
+        "id": "api.context.local_origin_required.app_error",
+        "translation": "This endpoint requires a local request origin."
+    },
+    {
+        "id": "api.config.update_config.restricted_merge.app_error",
+        "translation": "Fehler beim Zusammenführen der angegebenen Konfiguration."
+    },
+    {
+        "id": "api.command_remove.group_constrained_user_denied",
+        "translation": "Der Benutzer kann von ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
+    },
+    {
+        "id": "api.command_invite.user_not_in_team.app_error",
+        "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
+    },
+    {
+        "id": "api.command_invite.group_constrained_user_denied",
+        "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
+    },
+    {
+        "id": "api.command.execute_command.format.app_error",
+        "translation": "Dem Wort für die Befehlsauslösung fehlt das führenden Slash-Zeichen."
+    },
+    {
+        "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+        "translation": "Ungültige Aktualisierung von Teammitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
+    },
+    {
+        "id": "api.channel.update_channel_privacy.default_channel_error",
+        "translation": "Der Standardkanal kann nicht privat gemacht werden."
+    },
+    {
+        "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+        "translation": "Ungültige Aktualisierung von Kanalmitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
+    },
+    {
+        "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+        "translation": "Ungültige Aktualisierung von Kanalmitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
+    },
+    {
+        "id": "api.channel.update_channel.typechange.app_error",
+        "translation": "Kanaltyp kann nicht aktualisiert werden."
+    },
+    {
+        "id": "api.channel.restore_channel.unarchived",
+        "translation": "{{.Username}} hat den Kanal wiederhergestellt."
+    },
+    {
+        "id": "api.channel.restore_channel.restored.app_error",
+        "translation": "Konnte Kanal nicht wiederherstellen. Der Kanal ist nicht archiviert."
+    },
+    {
+        "id": "api.channel.remove_user_from_channel.app_error",
+        "translation": "Der Benutzer konnte nicht aus diesem Kanaltyp entfernt werden."
+    },
+    {
+        "id": "api.channel.remove_members.denied",
+        "translation": "Entfernen der Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
+    },
+    {
+        "id": "api.channel.remove_member.group_constrained.app_error",
+        "translation": "Konnte einen Benutzer nicht aus einem gruppenbeschränkten Kanal entfernen."
+    },
+    {
+        "id": "api.channel.patch_channel_moderations.license.error",
+        "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+    },
+    {
+        "id": "api.channel.guest_join_channel.post_and_forget",
+        "translation": "%v hat den Kanal als Gast betreten."
+    },
+    {
+        "id": "api.channel.get_channel_moderations.license.error",
+        "translation": "Ihre Lizenz unterstützt die Datenaufbewahrung nicht."
+    },
+    {
+        "id": "api.channel.channel_member_counts_by_group.license.error",
+        "translation": "Ihre Lizenz unterstützt Gruppen nicht"
+    },
+    {
+        "id": "api.channel.add_members.user_denied",
+        "translation": "Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
+    },
+    {
+        "id": "api.channel.add_members.error",
+        "translation": "Fehler beim Hinzufügen von Kanalmitglied(ern)."
+    },
+    {
+        "id": "api.channel.add_guest.added",
+        "translation": "%v wurde durch %v als Gast zum Kanal hinzugefügt."
+    },
+    {
+        "id": "api.bot.teams_channels.add_message_mobile",
+        "translation": "Bitte fügen Sie mich den Teams und Kanälen hinzu, mit denen ich interagieren soll. Um dies zu tun, verwenden Sie den Browser oder die Mattermost-Desktop-App."
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.too_large.app_error",
+        "translation": "Konnte Symbolbild-Datei nicht hochladen. Datei ist zu groß."
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.parse.app_error",
+        "translation": "Kann Multipart-Formular nicht verarbeiten."
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.open.app_error",
+        "translation": "Konnte Bilddatei nicht öffnen"
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.no_file.app_error",
+        "translation": "Keine Datei unter 'image' in der Anfrage."
+    },
+    {
+        "id": "api.bot.set_bot_icon_image.array.app_error",
+        "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
     }
 ]

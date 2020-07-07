@@ -7874,5 +7874,25 @@
     {
         "id": "web.error.unsupported_browser.system_browser_or",
         "translation": "или"
+    },
+    {
+        "id": "model.group.name.invalid_length.app_error",
+        "translation": "Имя должно быть иметь длину от 1 до 64 символов, содержащих буквы и цифры в нижнем регистре"
+    },
+    {
+        "id": "app.scheme.save.invalid_scheme.app_error",
+        "translation": "Указанная схема недействительна."
+    },
+    {
+        "id": "app.scheme.save.app_error",
+        "translation": "Не удалось создать схему."
+    },
+    {
+        "id": "app.scheme.permanent_delete_all.app_error",
+        "translation": "Мы не смогли окончательно удалить схемы."
+    },
+    {
+        "id": "app.scheme.get.app_error",
+        "translation": "Не удалось получить схему."
     }
 ]

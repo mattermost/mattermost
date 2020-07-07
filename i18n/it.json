@@ -7861,5 +7861,25 @@
     {
         "id": "web.error.unsupported_browser.system_browser_or",
         "translation": "oppure"
+    },
+    {
+        "id": "model.group.name.invalid_length.app_error",
+        "translation": "Il nome deve avere lunghezza compresa tra 1 e 64 caratteri alfanumerici in minuscolo."
+    },
+    {
+        "id": "app.scheme.save.invalid_scheme.app_error",
+        "translation": "Lo schema fornito non è valido"
+    },
+    {
+        "id": "app.scheme.save.app_error",
+        "translation": "Impossibile creare lo schema"
+    },
+    {
+        "id": "app.scheme.permanent_delete_all.app_error",
+        "translation": "Impossibile eliminare definitivamente tutti gli schemi"
+    },
+    {
+        "id": "app.scheme.get.app_error",
+        "translation": "Impossibile ottenere lo schema"
     }
 ]
