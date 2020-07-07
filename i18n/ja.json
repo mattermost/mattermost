@@ -5067,7 +5067,7 @@
     },
     {
         "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-        "translation": "データベーストランザクションを開ませんでした"
+        "translation": "データベーストランザクションを開けませんでした"
     },
     {
         "id": "store.sql_channel.migrate_channel_members.select.app_error",
