@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/wiggin77/logr"
 )
 
 // defaultLog manually encodes the log to STDERR, providing a basic, default logging implementation
@@ -72,4 +74,10 @@ func defaultAdvancedConfig(cfg LogTargetCfg) error {
 
 func defaultAdvancedShutdown(ctx context.Context) error {
 	return nil
+}
+
+func defaultAddTarget(target logr.Target) error {
+	// mlog.AddTarget should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot AddTarget on default logger")
 }

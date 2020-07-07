@@ -6,6 +6,7 @@ package mlog
 import (
 	"context"
 
+	"github.com/wiggin77/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -30,7 +31,7 @@ func InitGlobalLogger(logger *Logger) {
 	Flush = globalLogger.Flush
 	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
 	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
-
+	AddTarget = globalLogger.AddTarget
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -43,6 +44,7 @@ type LogFuncCustomMulti func([]LogLevel, string, ...Field)
 type FlushFunc func(context.Context) error
 type ConfigFunc func(cfg LogTargetCfg) error
 type ShutdownFunc func(context.Context) error
+type AddTargetFunc func(logr.Target) error
 
 // DON'T USE THIS Modify the level on the app logger
 func GloballyDisableDebugLogForTest() {
@@ -65,3 +67,4 @@ var Flush FlushFunc = defaultFlush
 
 var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
 var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
+var AddTarget AddTargetFunc = defaultAddTarget

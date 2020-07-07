@@ -577,7 +577,7 @@ func (s *Server) initLogging() error {
 			}
 		}
 
-		cfg, err := config.NewLogConfigSrc(dsn, s.configStore)
+		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
 		if err != nil {
 			return fmt.Errorf("invalid advanced logging config, %w", err)
 		}

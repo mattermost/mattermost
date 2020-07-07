@@ -28,7 +28,6 @@ func Migrate(from, to string) error {
 		*sourceConfig.SamlSettings.IdpCertificateFile,
 		*sourceConfig.SamlSettings.PublicCertificateFile,
 		*sourceConfig.SamlSettings.PrivateKeyFile,
-		*sourceConfig.LogSettings.AdvancedLoggingConfig,
 	}
 
 	// Only migrate advanced logging config if it is not embedded JSON.

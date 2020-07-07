@@ -229,6 +229,9 @@ func (l *Logger) Flush(cxt context.Context) error {
 	return nil
 }
 
+// ShutdownAdvancedLogging stops the logger from accepting new log records and tries to
+// flush queues within the context timeout. Once complete all targets are shutdown
+// and any resources released.
 func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
 	var err error
 	if l.logrLogger != nil {
@@ -239,7 +242,8 @@ func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
 }
 
 // ConfigAdvancedLoggingConfig (re)configures advanced logging based on the
-// specified log targets.
+// specified log targets. This is the easiest way to get the advanced logger
+// configured via a config source such as file.
 func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 	if l.logrLogger != nil {
 		if err := l.ShutdownAdvancedLogging(context.Background()); err != nil {
@@ -254,4 +258,11 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 
 	l.logrLogger = logr
 	return nil
+}
+
+// AddTarget adds a logr.Target to the advanced logger. This is the preferred method
+// to add custom targets or provide configuration that cannot be expressed via a
+//config source.
+func (l *Logger) AddTarget(target logr.Target) error {
+	return l.logrLogger.Logr().AddTarget(target)
 }

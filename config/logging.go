@@ -38,10 +38,10 @@ type LogConfigSrc interface {
 
 // NewLogConfigSrc creates an advanced logging configuration source, backed by a
 // file, JSON string, or database.
-func NewLogConfigSrc(dsn string, fget FileGetter) (LogConfigSrc, error) {
+func NewLogConfigSrc(dsn string, isJSON bool, fget FileGetter) (LogConfigSrc, error) {
 	dsn = strings.TrimSpace(dsn)
 
-	if IsJsonMap(dsn) {
+	if isJSON {
 		return newJSONSrc(dsn)
 	}
 	return newFileSrc(dsn, fget)
