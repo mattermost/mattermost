@@ -2614,7 +2614,19 @@ func (a *App) createInitialSidebarCategories(userId, teamId string) *model.AppEr
 }
 
 func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
-	return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+
+	if len(categories.Categories) == 0 && err == nil {
+		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
+		nErr := a.createInitialSidebarCategories(userId, teamId)
+		if nErr != nil {
+			return nil, nErr
+		}
+
+		categories, err = a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+	}
+
+	return categories, err
 }
 
 func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
