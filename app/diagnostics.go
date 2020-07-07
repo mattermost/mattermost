@@ -335,6 +335,7 @@ func (s *Server) trackConfig() {
 		"enable_opentracing":                                      *cfg.ServiceSettings.EnableOpenTracing,
 		"experimental_data_prefetch":                              *cfg.ServiceSettings.ExperimentalDataPrefetch,
 		"enable_local_mode":                                       *cfg.ServiceSettings.EnableLocalMode,
+		"enable_ask_community_link":                               *cfg.ServiceSettings.EnableAskCommunityLink,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
