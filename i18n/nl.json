@@ -7612,7 +7612,7 @@
     },
     {
         "id": "api.license.remove_expired_license.failed.error",
-        "translation": "Fout bij het het verzenden van de e-mail voor het uitschakelen van de licentie."
+        "translation": "Fout bij het verzenden van de e-mail voor het uitschakelen van de licentie."
     },
     {
         "id": "api.ldap_groups.existing_user_name_error",
@@ -7732,7 +7732,7 @@
     },
     {
         "id": "api.bot.teams_channels.add_message_mobile",
-        "translation": "Voeg me toe aan aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
+        "translation": "Voeg me toe aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -7829,5 +7829,105 @@
     {
         "id": "app.audit.get.finding.app_error",
         "translation": "Er is een fout gevonden bij het zoeken naar de audit data"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Fout bij het verwijden van de kanaalberichten"
+    },
+    {
+        "id": "store.sql_session.update_expired_notify.app_error",
+        "translation": "Fout bij het bijwerken van expired_notify."
+    },
+    {
+        "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+        "translation": "Fout bij het ophalen van het aanmaakmoment van de oudste entiteit."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "Service Provider Identifier is verplicht"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Fout bij het verwijderen van de berichten van de gebruiker"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Fout bij het verwijden van de kanaalberichten"
+    },
+    {
+        "id": "ent.cluster.timeout.error",
+        "translation": "Timeout bij het wachten op het antwoord van de cluster"
+    },
+    {
+        "id": "ent.cluster.json_encode.error",
+        "translation": "Er trad een fout op bij het opstellen van het JSON verzoek"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Fout bij het verwijderen van de berichten van de gebruiker"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "Kon het schema niet verwijderen."
+    },
+    {
+        "id": "app.emoji.get_by_name.no_result",
+        "translation": "We konden de emoticon niet vinden."
+    },
+    {
+        "id": "app.emoji.get.no_result",
+        "translation": "We konden de emoticon niet vinden."
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "Fout bij het bewaren van de emoticon."
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "Fout bij het bijwerken van het kanaal."
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "Fout bij het herstellen van het kanaal."
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "Fout bij het tellen van alle kanalen."
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "Team id parameter is verplicht bij automatisch aanvullen per kanaal."
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Onbekende importbron."
+    },
+    {
+        "id": "api.push_notifications.session.expired",
+        "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.daysCount}} dag(-en)."
+    },
+    {
+        "id": "api.post.error_get_post_id.pending",
+        "translation": "Kan het hangende bericht niet ophalen."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Er liep iets mis bij het permanent verwijden van de batch met reacties."
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Fout bij het bewaren van de reactie."
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Kan de reacties op dit bericht niet ophalen."
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Fout bij het ophalen van alle reacties met deze emoticonnaam."
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Kan de reacties op dit bericht niet ophalen."
     }
 ]
