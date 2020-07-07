@@ -15,39 +15,46 @@ func TestTestLdap(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, resp := th.SystemAdminClient.TestLdap()
-	CheckNotImplementedStatus(t, resp)
-	require.NotNil(t, resp.Error)
-	require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.TestLdap()
+		CheckNotImplementedStatus(t, resp)
+		require.NotNil(t, resp.Error)
+		require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
-
-	_, resp = th.Client.TestLdap()
+	_, resp := th.Client.TestLdap()
 	CheckForbiddenStatus(t, resp)
 	require.NotNil(t, resp.Error)
 	require.Equal(t, "api.context.permissions.app_error", resp.Error.Id)
 
-	_, resp = th.SystemAdminClient.TestLdap()
-	CheckNotImplementedStatus(t, resp)
-	require.NotNil(t, resp.Error)
-	require.Equal(t, "ent.ldap.disabled.app_error", resp.Error.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.TestLdap()
+		CheckNotImplementedStatus(t, resp)
+		require.NotNil(t, resp.Error)
+		require.Equal(t, "ent.ldap.disabled.app_error", resp.Error.Id)
+	})
 }
 
 func TestSyncLdap(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	_, resp := th.SystemAdminClient.SyncLdap()
-	CheckNotImplementedStatus(t, resp)
-	require.NotNil(t, resp.Error)
-	require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.TestLdap()
+		CheckNotImplementedStatus(t, resp)
+		require.NotNil(t, resp.Error)
+		require.Equal(t, "api.ldap_groups.license_error", resp.Error.Id)
+	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
-	_, resp = th.SystemAdminClient.SyncLdap()
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.SyncLdap()
+		CheckNoError(t, resp)
+	})
 
-	_, resp = th.Client.SyncLdap()
+	_, resp := th.Client.SyncLdap()
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -58,8 +65,10 @@ func TestGetLdapGroups(t *testing.T) {
 	_, resp := th.Client.GetLdapGroups()
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetLdapGroups()
-	CheckNotImplementedStatus(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.GetLdapGroups()
+		CheckNotImplementedStatus(t, resp)
+	})
 }
 
 func TestLinkLdapGroup(t *testing.T) {

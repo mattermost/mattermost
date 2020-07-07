@@ -529,9 +529,9 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	appErr = a.Srv().Store.Bot().PermanentDelete(user.Id)
-	if appErr != nil {
-		return fmt.Errorf("Unable to delete bot. Error: %s", appErr.Error())
+	err = a.Srv().Store.Bot().PermanentDelete(user.Id)
+	if err != nil {
+		return fmt.Errorf("Unable to delete bot. Error: %v", err)
 	}
 
 	CommandPrettyPrintln("id: " + user.Id)
@@ -623,7 +623,7 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 		return fmt.Errorf("Email invites are disabled.")
 	}
 
-	a.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
+	a.Srv().EmailService.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
 	auditRec := a.MakeAuditRecord("inviteUser", audit.Success)

@@ -6,6 +6,7 @@ package app
 import (
 	"math"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -30,8 +31,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 
 	var session *model.Session
 	var err *model.AppError
-	if ts, ok := a.Srv().sessionCache.Get(token); ok {
-		session = ts.(*model.Session)
+	if err := a.Srv().sessionCache.Get(token, &session); err == nil {
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
 		}
@@ -75,7 +75,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	}
 
 	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
-		!session.IsOAuth &&
+		!session.IsOAuth && !session.IsMobileApp() &&
 		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN &&
 		!*a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
 
@@ -178,15 +178,15 @@ func (a *App) ClearSessionCacheForAllUsers() {
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
-	keys := a.Srv().sessionCache.Keys()
-
-	for _, key := range keys {
-		if ts, ok := a.Srv().sessionCache.Get(key); ok {
-			session := ts.(*model.Session)
-			if session.UserId == userId {
-				a.Srv().sessionCache.Remove(key)
-				if a.Metrics() != nil {
-					a.Metrics().IncrementMemCacheInvalidationCounterSession()
+	if keys, err := a.Srv().sessionCache.Keys(); err == nil {
+		var session *model.Session
+		for _, key := range keys {
+			if err := a.Srv().sessionCache.Get(key, &session); err == nil {
+				if session.UserId == userId {
+					a.Srv().sessionCache.Remove(key)
+					if a.Metrics() != nil {
+						a.Metrics().IncrementMemCacheInvalidationCounterSession()
+					}
 				}
 			}
 		}
@@ -201,11 +201,14 @@ func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
-	a.Srv().sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*a.Config().ServiceSettings.SessionCacheInMinutes*60))
+	a.Srv().sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*a.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
 
 func (a *App) SessionCacheLength() int {
-	return a.Srv().sessionCache.Len()
+	if l, err := a.Srv().sessionCache.Len(); err == nil {
+		return l
+	}
+	return 0
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
@@ -345,7 +348,7 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 	var days int
 	if session.IsMobileApp() {
 		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
-	} else if session.IsOAuth {
+	} else if session.IsSSOLogin() {
 		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
 	} else {
 		days = *a.Config().ServiceSettings.SessionLengthWebInDays
@@ -373,7 +376,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
-		if err := a.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}
