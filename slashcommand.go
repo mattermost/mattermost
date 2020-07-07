@@ -24,3 +24,10 @@ func (c *SlashCommandService) Register(command *model.Command) error {
 func (c *SlashCommandService) Unregister(teamID, trigger string) error {
 	return c.api.UnregisterCommand(teamID, trigger)
 }
+
+// ExecuteSlashCommand executes a slash command.
+//
+// Minimum server version: 5.26
+func (c *SlashCommandService) ExecuteSlashCommand(command *model.CommandArgs) (*model.CommandResponse, error) {
+	return c.api.ExecuteSlashCommand(command)
+}
