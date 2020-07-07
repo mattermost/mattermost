@@ -385,7 +385,7 @@
     },
     {
         "id": "api.command.invite_people.no_email",
-        "translation": "정확한 이메일을 입력해주세요"
+        "translation": "하나 이상의 유효한 전자우편 주소를 지정해주세요"
     },
     {
         "id": "api.command.invite_people.sent",
@@ -1755,7 +1755,7 @@
     },
     {
         "id": "api.team.invite_members.invalid_email.app_error",
-        "translation": "해당 이메일은 허가된 도메인이 아닙니다: {{.Addresses}}. 시스템 어드민에게 문의해 주세요."
+        "translation": "허가된 도메인의 전자우편 주소가 아닙니다: {{.Addresses}}. 자세한 내용은 시스템 관리자에게 문의해 주세요."
     },
     {
         "id": "api.team.invite_members.no_one.app_error",
