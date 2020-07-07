@@ -72,15 +72,15 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 }
 
 func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
-	user, err := api.app.GetUser(commandArgs.UserId)
-	if err != nil {
-		return nil, err
+	user, appErr := api.app.GetUser(commandArgs.UserId)
+	if appErr != nil {
+		return nil, appErr
 	}
 	commandArgs.T = utils.GetUserTranslations(user.Locale)
 	commandArgs.SiteURL = api.app.GetSiteURL()
 	response, appErr := api.app.ExecuteCommand(commandArgs)
 	if appErr != nil {
-		return response, fmt.Errorf(appErr.Error())
+		return response, appErr
 	}
 	return response, nil
 }
