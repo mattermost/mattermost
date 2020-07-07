@@ -4,7 +4,7 @@
 package app
 
 import (
-	"hash/fnv"
+	"hash/maphash"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -82,18 +82,16 @@ func (a *App) HubStart() {
 	numberOfHubs := runtime.NumCPU() * 2
 	mlog.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
-	a.Srv().SetHubs(make([]*Hub, numberOfHubs))
+	hubs := make([]*Hub, numberOfHubs)
 
-	for i := 0; i < len(a.Srv().GetHubs()); i++ {
-		newHub := a.NewWebHub()
-		newHub.connectionIndex = i
-		err := a.Srv().SetHub(i, newHub)
-		if err != nil {
-			mlog.Warn("Error starting hub", mlog.Err(err), mlog.Int("index", i))
-			continue
-		}
-		newHub.Start()
+	for i := 0; i < numberOfHubs; i++ {
+		hubs[i] = a.NewWebHub()
+		hubs[i].connectionIndex = i
+		hubs[i].Start()
 	}
+	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
+	// during the start of the program and always read from after that.
+	a.srv.hubs = hubs
 }
 
 func (a *App) invalidateCacheForUserSkipClusterSend(userId string) {
@@ -116,11 +114,9 @@ func (a *App) InvalidateWebConnSessionCacheForUser(userId string) {
 func (s *Server) HubStop() {
 	mlog.Info("stopping websocket hub connections")
 
-	for _, hub := range s.GetHubs() {
+	for _, hub := range s.hubs {
 		hub.Stop()
 	}
-
-	s.SetHubs([]*Hub{})
 }
 
 func (a *App) HubStop() {
@@ -129,19 +125,15 @@ func (a *App) HubStop() {
 
 // GetHubForUserId returns the hub for a given user id.
 func (s *Server) GetHubForUserId(userId string) *Hub {
-	if len(s.GetHubs()) == 0 {
-		return nil
-	}
-
-	hash := fnv.New32a()
+	// TODO: check if caching the userId -> hub mapping
+	// is worth the memory tradeoff.
+	// https://mattermost.atlassian.net/browse/MM-26629.
+	var hash maphash.Hash
+	hash.SetSeed(s.hashSeed)
 	hash.Write([]byte(userId))
-	index := hash.Sum32() % uint32(len(s.GetHubs()))
-	hub, err := s.GetHub(int(index))
-	if err != nil {
-		mlog.Warn("Requested hub doesn't exist", mlog.Int("hub_index", int(index)))
-		return nil
-	}
-	return hub
+	index := hash.Sum64() % uint64(len(s.hubs))
+
+	return s.hubs[int(index)]
 }
 
 func (a *App) GetHubForUserId(userId string) *Hub {
@@ -207,7 +199,7 @@ func (s *Server) PublishSkipClusterSend(message *model.WebSocketEvent) {
 			hub.Broadcast(message)
 		}
 	} else {
-		for _, hub := range s.GetHubs() {
+		for _, hub := range s.hubs {
 			hub.Broadcast(message)
 		}
 	}
@@ -427,8 +419,8 @@ func (h *Hub) Start() {
 			case webSessionMessage := <-h.checkRegistered:
 				conns := connIndex.ForUser(webSessionMessage.userId)
 				var isRegistered bool
-				for _, item := range conns {
-					if item.sessionToken.Load().(string) == webSessionMessage.sessionToken {
+				for _, conn := range conns {
+					if conn.GetSessionToken() == webSessionMessage.sessionToken {
 						isRegistered = true
 					}
 				}
