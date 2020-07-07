@@ -684,7 +684,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalDataPrefetch = NewBool(true)
 	}
 
-	if s.ExperimentalDataPrefetch == nil {
+	if s.EnableAskCommunityLink == nil {
 		s.EnableAskCommunityLink = NewBool(true)
 	}
 
