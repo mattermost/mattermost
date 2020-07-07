@@ -5607,42 +5607,6 @@
         "translation": "Impossibile aggiornare le preferenze."
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Impossibile ottenere le reazioni per la pubblicazione."
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Impossibile eliminare la reazione."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Impossibile eliminare le reazioni con il nome emoji fornito."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Impossibile recuperare le reazione con il nome emoji fornito."
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Impossibile ottenere le reazioni per la pubblicazione."
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Si è verificato un errore durante la cancellazione delle reazioni."
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Impossibile aprire la transazione durante il salvataggio della reazione."
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Impossibile completare la transazione durante il salvataggio della reazione."
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Impossibile salvare la reazione."
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Impossibile eliminare il token."
     },

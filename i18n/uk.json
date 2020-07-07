@@ -5612,42 +5612,6 @@
         "translation": "Не вдається зберегти налаштування"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Не вдалося отримати реакції для даного повідомлення"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Не вдається видалити реакцію"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Неможливо видалити всі реакції за допомогою цієї назви смайлика"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Не вдається отримати всі реакції за допомогою цієї назви"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Не вдалося отримати реакції для даного повідомлення"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Не вдалося відкрити транзакцію при збереженні реакції"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Не вдалося зробити транзакцію при збереженні реакції"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Неможливо зберегти реакцію"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Неможливо видалити токен"
     },

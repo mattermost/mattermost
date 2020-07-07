@@ -5602,42 +5602,6 @@
         "translation": "無法更新偏好"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "無法取得對於文章的互動"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "無法刪除互動"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "無法刪除此繪文字名稱的互動"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "無法取得此繪文字名稱的互動"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "無法取得對於文章的互動"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "永久批次刪除回應時遇到錯誤"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "儲存互動時無法開啟交易"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "儲存互動時無法交付交易"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "無法儲存互動"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "無法刪除 Token"
     },

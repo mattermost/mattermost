@@ -5607,42 +5607,6 @@
         "translation": "Ayar güncellenemedi."
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "İletinin tepkileri alınamadı."
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Tepki silinemedi."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Belirtilen emoji adının kullanıldığı tüm tepkiler silinemedi."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Belirtilen emoji adının kullanıldığı tüm tepkiler alınamadı."
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "İletinin tepkileri alınamadı."
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Toplu yanıtlar kalıcı olarak silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Tepki kaydedilirken işlem açılamadı."
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Tepki kaydedilirken işlem yapılamadı."
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Tepki kaydedilemedi."
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Kod silinemedi."
     },

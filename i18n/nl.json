@@ -5607,42 +5607,6 @@
         "translation": "Unable to update the preference"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Unable to get reactions for post"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Unable to delete all reactions with this emoji name"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Unable to get all reactions with this emoji name"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Unable to get reactions for post"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "We encountered an error permanently deleting the batch of reactions"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Unable to open transaction while saving reaction"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Unable to commit transaction while saving reaction"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Bericht kan niet opgehaald worden"
     },

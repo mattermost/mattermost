@@ -5602,42 +5602,6 @@
         "translation": "无法更新偏好"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "无法获取消息的互动"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "无法删除互动"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "无法用提供的表情符删除互动"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "无法用提供的表情符获取互动"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "无法获取消息的互动"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "批量永久删除互动时遇到错误"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "无法保存互动时打开事务"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "无法保存互动时提交事务"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "无法保存互动"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "无法删除令牌"
     },

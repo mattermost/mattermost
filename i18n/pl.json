@@ -5612,42 +5612,6 @@
         "translation": "Nie można zaktualizować preferencji"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Nie można uzyskać reakcji na wiadomość"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Nie można usunąć reakcji"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Nie można usunąć wszystkich reakcji za pomocą tej nazwy emoji"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Nie można uzyskać wszystkich reakcji z tą nazwą emoji"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Nie udało się pobrać reakcji dla wiadomości"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Nie udało się rozpocząć transakcji w trakcie zapisywania reakcji"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Nie udało się zakończyć transakcji w trakcie zapisywania reakcji"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Nie udało się zapisać reakcji"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Nie można usunąć tokenu"
     },

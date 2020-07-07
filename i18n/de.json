@@ -5607,42 +5607,6 @@
         "translation": "Konnte die Einstellung nicht aktualisieren."
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Konnte Reaktion nicht löschen."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Konnte Reaktion mit dem angegebenen Emoji-Namen nicht löschen."
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Konnte nicht alle Reaktionen mit dem gegebenen Emoji-Namen abrufen."
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Konnte Transaktion zum Speichern der Reaktion nicht öffnen"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Konnte Transaktion zum Speichern der Reaktion nicht ausführen"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Konnte Reaktion nicht speichern"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Konnte Token nicht löschen."
     },

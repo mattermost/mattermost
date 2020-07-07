@@ -5602,42 +5602,6 @@
         "translation": "設定を更新できませんでした"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "投稿に対するリアクションを取得できません"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "リアクションを削除できません"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "この絵文字名のリアクションは削除できません"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "この絵文字名のリアクションを取得できません"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "投稿に対するリアクションを取得できません"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "リアクションバッチを完全に削除する際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "リアクションの保存中はトランザクションを開けません"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "リアクションの保存中はトランザクションをコミットできません"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "リアクションを保存できません"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "トークンを削除できません"
     },

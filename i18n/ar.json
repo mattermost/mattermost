@@ -352,14 +352,6 @@
         "translation": "حدث خطأ عند تحديث المحادثة"
     },
     {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "حدث خطأ عند تحديث المحادثة"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "حدث خطأ عند تحديث المحادثة"
-    },
-    {
         "id": "store.sql_file_info.delete_for_post.app_error",
         "translation": "Die Datei konnte nicht an den Beitrag angehängt werden"
     },

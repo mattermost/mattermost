@@ -5612,42 +5612,6 @@
         "translation": "Imposibil de actualizat preferința"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Nu pot primi reacții pentru postare"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Imposibil de șters reacţie"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Imposibil de șters toate reacțiile cu acest nume emoji"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Imposibilitatea de a obţine toate reacţiile cu acest nume emoji"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Imposibilitatea de a obţine reacţii pentru post"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Am intalnit o eroare permanent a şterge lotul de reacţii"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Imposibilă deschiderea tranzacţiei în timp ce economisirea de reacţie"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Imposibilitatea de a comite tranzacţiei în timp ce economisirea de reacţie"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Imposibil de salvat reacţie"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Imposibil de șters token"
     },

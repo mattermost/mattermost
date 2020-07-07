@@ -328,14 +328,6 @@
         "translation": "ቻናሉን ማስተካከል አልተቻለም."
     },
     {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "ቻናሉን ማስተካከል አልተቻለም."
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "ቻናሉን ማስተካከል አልተቻለም."
-    },
-    {
         "id": "store.sql_preference.update.app_error",
         "translation": "ቻናሉን ማስተካከል አልተቻለም."
     },

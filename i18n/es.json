@@ -5607,42 +5607,6 @@
         "translation": "No se puede actualizar la preferencia"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "No se puede obtener las reacciones del mensaje"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "No se puede eliminar la reacción"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "No se puede eliminar las reacciones con el nombre del emoticon suministrado"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "No se puede obtener las reacciones con el nombre del emoticon suministrado"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "No se puede obtener las reacciones del mensaje"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Hemos detectado un error al eliminar permanentemente el lote de reacciones"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "No se puede abrir la transacción, mientras se guarda la reacción"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Incapaz de confirmar la transacción, mientras se guarda la reacción"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "No se puede guardar la reacción"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "No se puede eliminar el token"
     },

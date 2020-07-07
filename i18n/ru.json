@@ -5612,42 +5612,6 @@
         "translation": "Unable to update the preference"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Не удалось получить реакции для данного сообщения"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Не удалось удалить реакцию"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Не удалось удалить реакцию с данным именем эмодзи"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Не удалось получить реакцию с данным именем эмодзи"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Не удалось получить реакции для данного сообщения"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "We encountered an error permanently deleting the batch of reactions"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Не удалось открыть транзакцию при сохранении реакции"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Не удалось совершить транзакцию при сохранении реакции"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Не удалось сохранить реакцию"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Не удалось удалить плагин"
     },

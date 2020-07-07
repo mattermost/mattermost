@@ -5607,42 +5607,6 @@
         "translation": "Não foi possível atualizar a preferencia"
     },
     {
-        "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Não é possível obter as reações para a publicação"
-    },
-    {
-        "id": "store.sql_reaction.delete.app_error",
-        "translation": "Não é possível excluir a reação"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-        "translation": "Não é possível excluir todas as reações com este nome de emoji"
-    },
-    {
-        "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Não é possível obter as reações com este nome emoji"
-    },
-    {
-        "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Não é possível obter as reações para a publicação"
-    },
-    {
-        "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "Encontramos um erro ao apagar o lote de reações"
-    },
-    {
-        "id": "store.sql_reaction.save.begin.app_error",
-        "translation": "Não é possível abrir a transação ao salvar a reação"
-    },
-    {
-        "id": "store.sql_reaction.save.commit.app_error",
-        "translation": "Não é possível submeter a transação ao salvar a reação"
-    },
-    {
-        "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Não é possível salvar a reação"
-    },
-    {
         "id": "store.sql_recover.delete.app_error",
         "translation": "Não é possível excluir o token"
     },
