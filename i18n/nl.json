@@ -7793,5 +7793,25 @@
     {
         "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
         "translation": "Ontbrekende Identity Provider SSO decriptors node in de XML."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
+    },
+    {
+        "id": "api.file.upload_file.incorrect_channelId.app_error",
+        "translation": "Kan het bestand niet opladen. Foutief kanaal ID: {{.channelId}}"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "server_error: Een interne fout trad op bij het aanmaken van de emoticon."
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "Site URL kan niet worden leeggemaakt."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Kan directe berichtenkanaal of groepskanaal niet verplaatsen"
     }
 ]
