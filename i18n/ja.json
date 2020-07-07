@@ -7744,5 +7744,157 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "ブランド画像が見つからないため、削除できませんでした。"
+    },
+    {
+        "id": "store.sql_session.update_expired_notify.app_error",
+        "translation": "expired_notifyを更新できませんでした。"
+    },
+    {
+        "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+        "translation": "最も古いエンティティの作成時間を取得できませんでした。"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "サービスプロバイダー識別子が必要です"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "ユーザー投稿を削除できませんでした"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "チャンネル投稿を削除できませんでした"
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "リアクションの一括削除中にエラーが発生しました。"
+    },
+    {
+        "id": "ent.cluster.timeout.error",
+        "translation": "クラスターのレスポンスがタイムアウトしました"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "チャンネル投稿を削除できませんでした"
+    },
+    {
+        "id": "ent.cluster.json_encode.error",
+        "translation": "JSONリクエストを変換する際にエラーが発生しました"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "ユーザー投稿を削除できませんでした"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "このスキーマを削除できませんでした。"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "リアクションを保存できませんでした。"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "投稿に対するリアクションを取得できませんでした。"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "この絵文字名のリアクションを取得できませんでした。"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "投稿へのリアクションを取得できませんでした。"
+    },
+    {
+        "id": "app.emoji.get_by_name.no_result",
+        "translation": "絵文字を見つけられませんでした。"
+    },
+    {
+        "id": "app.emoji.get.no_result",
+        "translation": "絵文字を見つけられませんでした。"
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "絵文字を保存できませんでした。"
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "チャンネルを更新できませんでした。"
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "チャンネルを復元できませんでした。"
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "全チャンネルをカウントできませんでした。"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "監査ログを保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "監査ログを削除する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "ページングの限度を超えました。"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "監査ログを見つける際にエラーが発生しました。"
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "チャンネルの自動補完にはチームIDパラメータが必要です。"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "インポートソースが見つかりません。"
+    },
+    {
+        "id": "api.push_notifications.session.expired",
+        "translation": "セッション期限切れ: 通知を受け取るにはログインしてください。{{.siteName}}のセッションはシステム管理者によって {{.daysCount}} 日ごとに期限切れになるよう設定されています。"
+    },
+    {
+        "id": "api.post.error_get_post_id.pending",
+        "translation": "保留中の投稿を取得できませんでした。"
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "トライアルライセンスをリクエストできませんでした。システムコンソールのWebサーバーセクションにある サイトURL を設定してください。"
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "トライアルライセンスを取得できませんでした。再度試してみるか、support@mattermost.com に連絡してください。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "ライセンスをリクエストするには、Mattermost Software Evaluation Agreement と プライバシーポリシーに同意しなくてはなりません。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request",
+        "translation": "要求されたユーザーの数が正しくありません。"
+    },
+    {
+        "id": "api.file.upload_file.incorrect_channelId.app_error",
+        "translation": "ファイルをアップロードできませんでした。不正なチャンネルID: {{.channelId}}"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "サーバーエラー: 絵文字を作成する際にサーバー内部エラーが発生しました。"
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "サイトURLをクリアできません。"
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "ダイレクトメッセージチャンネル、もしくはグループメッセージチャンネルは移動できません"
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "非公開チャンネルを取得できませんでした。"
     }
 ]
