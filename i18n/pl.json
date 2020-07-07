@@ -57,7 +57,7 @@
     },
     {
         "id": "api.admin.add_certificate.no_file.app_error",
-        "translation": "Brak pliku w polu 'Certyfikat' w żądaniu"
+        "translation": "Brak pliku w polu 'Certyfikat' w żądaniu."
     },
     {
         "id": "api.admin.add_certificate.open.app_error",
@@ -65,7 +65,7 @@
     },
     {
         "id": "api.admin.add_certificate.saving.app_error",
-        "translation": "Nie można zapisać pliku certyfikatu"
+        "translation": "Nie można zapisać pliku certyfikatu."
     },
     {
         "id": "api.admin.file_read_error",
@@ -77,7 +77,7 @@
     },
     {
         "id": "api.admin.remove_certificate.delete.app_error",
-        "translation": "Podczas usuwania aplikacji OAuth2 wystąpił błąd"
+        "translation": "Podczas usuwania certyfikatu wystąpił błąd."
     },
     {
         "id": "api.admin.saml.metadata.app_error",
@@ -7790,5 +7790,21 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "Nie można usunąć obrazu marki, nie znaleziono."
+    },
+    {
+        "id": "api.file.upload_file.incorrect_channelId.app_error",
+        "translation": "Nie można wgrać pliku. Niepoprawe ID kanału: {{.channelId}}"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "server_error: Wystąpił wewnętrzny błąd serwera podczas tworzenia emoji."
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "Adres URL strony nie może zostać wyczyszczony."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
     }
 ]
