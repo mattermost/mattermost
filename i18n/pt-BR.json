@@ -7749,5 +7749,9 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "Não foi possível excluir a imagem da marca, não foi encontrada."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Não foi possível mover canais de mensagens diretas ou de grupo"
     }
 ]
