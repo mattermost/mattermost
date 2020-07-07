@@ -7914,5 +7914,25 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Imposibil de obținut canale private."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Nu a reuşit să deschidă tranzacţiei date"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Nu s-a putut efectua tranzacția"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Mesaje Directe"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Canale"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migrarea a eșuat din cauza datelor de progres invalide."
     }
 ]

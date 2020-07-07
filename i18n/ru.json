@@ -7910,5 +7910,25 @@
     {
         "id": "api.license.request-trial.bad-request.terms-not-accepted",
         "translation": "Вы должны принять Соглашение об оценке программного обеспечения Mattermost и Политику конфиденциальности, чтобы запросить лицензию."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Failed to open the database transaction"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Не удалось зафиксировать транзакцию"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Личные сообщения"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Каналы"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migration failed due to invalid progress data."
     }
 ]

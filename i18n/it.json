@@ -7873,5 +7873,45 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Impossibile spostare i canali di gruppo o di messaggi diretti"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Impossibile connettersi al database"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Impossibile confermare la transazione"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Messaggio Privato"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Canali"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migrazione fallita a causa di dati di progresso non validi."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Impossibile salvare la reazione"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Impossibile ottenere le reazioni per la pubblicazione"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Impossibile recuperare le reazione con il nome emoji fornito"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Impossibile ottenere le reazioni per la pubblicazione"
     }
 ]

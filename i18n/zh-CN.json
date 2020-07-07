@@ -7864,5 +7864,45 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "无法移动私信或群组消息频道"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "打开数据库事务失败。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "无法提交事务"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "私信"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "频道"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "迁移因无效进度数据失败。"
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "批量永久删除互动时遇到错误"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "无法保存互动"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "无法获取消息的互动"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "无法用提供的表情符获取互动"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "无法获取消息的互动"
     }
 ]

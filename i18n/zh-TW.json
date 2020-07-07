@@ -7744,5 +7744,61 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "無法刪除品牌圖片，沒有找到檔案。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "開啟資料庫交易時失敗"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "無法提交交易"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "直接傳訊"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "頻道"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "由於無效的進度資料，移轉失敗"
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "永久批次刪除回應時遇到錯誤"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "無法儲存互動"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "無法取得對於文章的互動"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "無法取得此繪文字名稱的互動"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "無法取得對於文章的互動"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "儲存稽核紀錄時遇到錯誤"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "刪除稽核紀錄時遇到錯誤"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "分頁已達限制"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "尋找稽核紀錄時遇到錯誤"
     }
 ]

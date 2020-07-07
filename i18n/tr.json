@@ -7909,5 +7909,25 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Özel kanallar alınamadı."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Veritabanı işlemi açılamadı."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "İşlem tamamlanamadı."
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Doğrudan İletiler"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Kanallar"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
     }
 ]

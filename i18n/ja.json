@@ -7896,5 +7896,25 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "非公開チャンネルを取得できませんでした。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "データベーストランザクションを開けませんでした"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "トランザクションをコミットできませんでした"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "ダイレクトメッセージ"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "チャンネル"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "不正な進捗データのため移行に失敗しました。"
     }
 ]

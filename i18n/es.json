@@ -7893,5 +7893,25 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "No se pueden mover canales de mensajes directos o grupales"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "No se pudo abrir la transacción de base de datos"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "No se puede perpetrar la transacción"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Mensajes Directos"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Canales"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "La migración ha fallado porque hay datos erróneos de progreso."
     }
 ]

@@ -7749,5 +7749,61 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "Impossible de supprimer l'image de marque. Image introuvable."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Impossible d'ouvrir la transaction de la base de données"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Impossible de valider la transaction"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Messages personnels"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Canaux"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "La migration a échoué à cause de données de progression invalides."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Une erreur s'est produite lors de la suppression définitive du lot de réactions"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Impossible de sauvegarder cette réaction"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Impossible de récupérer les réactions du message spécifié"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Impossible de récupérer toutes les réactions portant le nom d'émoticône spécifié"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Impossible de récupérer les réactions du message spécifié"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Une erreur s'est produite lors de l'enregistrement des audits"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Une erreur s'est produite lors de la suppression des audits"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Limite dépassée pour la pagination"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des audits"
     }
 ]

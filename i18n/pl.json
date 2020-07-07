@@ -7770,5 +7770,61 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Nie można przenosić czatów grupowych lub prywatnych kanałów wiadomości"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Nie powiodło się otwarcie transakcji bazy danych"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Nie można dokonać transakcji"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Wiadomości bezpośrednie"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Kanały"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migracja nie powiodła się z powodu nieprawidłowych danych o postępach."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Nie udało się zapisać reakcji"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Nie można uzyskać reakcji na wiadomość"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Nie można uzyskać wszystkich reakcji z tą nazwą emoji"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Nie można uzyskać reakcji na wiadomość"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Napotkaliśmy błąd zapisując audyty"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Napotkaliśmy błąd usuwając audyty"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Przekroczono limit stronicowania"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Napotkaliśmy błąd szukając audytów"
     }
 ]

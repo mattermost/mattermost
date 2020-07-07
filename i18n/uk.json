@@ -7754,5 +7754,61 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "Unable to delete brand image, not found."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Не вдалося відкрити транзакцію бази даних"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Не вдається здійснити транзакцію"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Особисті повідомлення"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Канали"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Не вдалося перемістити через недійсні дані про перебіг."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Неможливо зберегти реакцію"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Не вдалося отримати реакції для даного повідомлення"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Не вдається отримати всі реакції за допомогою цієї назви"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Не вдалося отримати реакції для даного повідомлення"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Перевищене обмеження кількості сторінок"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
     }
 ]

@@ -7753,5 +7753,61 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Não foi possível mover canais de mensagens diretas ou de grupo"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Falha ao abrir a transação com o bando de dados"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Não é possível confirmar a transação"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Mensagens Diretas"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Canais"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "A migração falhou devido a dados de progresso inválidos."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Encontramos um erro ao apagar o lote de reações"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Não é possível salvar a reação"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Não é possível obter as reações para a publicação"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Não é possível obter as reações com este nome emoji"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Não é possível obter as reações para a publicação"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Encontramos um erro ao salvar o audits"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Encontramos um erro ao deletar o audits"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Limite excedido para paginação"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Encontramos um erro ao procurar o audits"
     }
 ]

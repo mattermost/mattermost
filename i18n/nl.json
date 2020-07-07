@@ -7901,5 +7901,25 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Kan de privé-kanalen niet ophalen."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Failed to open the database transaction"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "De transactie kan niet worden vastgelegt"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Privé bericht"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Kanalen"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migration failed due to invalid progress data."
     }
 ]

@@ -7744,5 +7744,61 @@
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
         "translation": "브랜드 이미지 파일을 찾을 수 없어 삭제 할 수 없습니다."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Failed to open the database transaction"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Unable to commit transaction"
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "개인 메시지"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "채널"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migration failed due to invalid progress data."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "We encountered an error permanently deleting the batch of reactions"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Unable to get reactions for post"
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Unable to get all reactions with this emoji name"
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Unable to get reactions for post"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "We encountered an error saving the audit"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "We encountered an error deleting the audits"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Limit exceeded for paging"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "We encountered an error finding the audits"
     }
 ]
