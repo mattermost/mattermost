@@ -95,7 +95,6 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
-	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.ServiceSettings.EnableAskCommunityLink)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
@@ -240,6 +239,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 

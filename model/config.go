@@ -337,7 +337,6 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
-	EnableAskCommunityLink                            *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -682,10 +681,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExperimentalDataPrefetch == nil {
 		s.ExperimentalDataPrefetch = NewBool(true)
-	}
-
-	if s.EnableAskCommunityLink == nil {
-		s.EnableAskCommunityLink = NewBool(true)
 	}
 
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
@@ -1601,6 +1596,7 @@ type SupportSettings struct {
 	SupportEmail                           *string
 	CustomTermsOfServiceEnabled            *bool
 	CustomTermsOfServiceReAcceptancePeriod *int
+	EnableAskCommunityLink                 *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1654,6 +1650,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
 		s.CustomTermsOfServiceReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
+	}
+
+	if s.EnableAskCommunityLink == nil {
+		s.EnableAskCommunityLink = NewBool(true)
 	}
 }
 
