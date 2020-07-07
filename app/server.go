@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
+	"hash/maphash"
 	"net"
 	"net/http"
 	"net/url"
@@ -91,8 +92,8 @@ type Server struct {
 	EmailBatching    *EmailBatchingJob
 	EmailRateLimiter *throttled.GCRARateLimiter
 
-	hubsLock sync.RWMutex
 	hubs     []*Hub
+	hashSeed maphash.Seed
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -177,8 +178,10 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
+		hashSeed:            maphash.MakeSeed(),
 	}
 
+	mlog.Info("Server is initializing...")
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -209,6 +212,11 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
+
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	fakeApp := New(ServerConnector(s))
+	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SENTRY_DSN, "placeholder") {
@@ -308,8 +316,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, err
 	}
 
-	mlog.Info("Server is initializing...")
-
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -393,7 +399,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
 	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
-	fakeApp := New(ServerConnector(s))
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
@@ -1189,53 +1194,16 @@ func (s *Server) shutdownDiagnostics() error {
 	return nil
 }
 
-// GetHubs returns the list of hubs. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) GetHubs() []*Hub {
-	s.hubsLock.RLock()
-	defer s.hubsLock.RUnlock()
-	return s.hubs
-}
-
-// getHub gets the element at the given index in the hubs list. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) GetHub(index int) (*Hub, error) {
-	s.hubsLock.RLock()
-	defer s.hubsLock.RUnlock()
-	if index >= len(s.hubs) {
-		return nil, errors.New("Hub element doesn't exist")
-	}
-	return s.hubs[index], nil
-}
-
-// SetHubs sets a new list of hubs. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) SetHubs(hubs []*Hub) {
-	s.hubsLock.Lock()
-	defer s.hubsLock.Unlock()
-	s.hubs = hubs
-}
-
-// SetHub sets the element at the given index in the hubs list. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) SetHub(index int, hub *Hub) error {
-	s.hubsLock.Lock()
-	defer s.hubsLock.Unlock()
-	if index >= len(s.hubs) {
-		return errors.New("Index is greater than the size of the hubs list")
-	}
-	s.hubs[index] = hub
-	return nil
-}
-
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
 	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
 }
 
 func (s *Server) TotalWebsocketConnections() int {
+	// This method is only called after the hub is initialized.
+	// Therefore, no mutex is needed to protect s.hubs.
 	count := int64(0)
-	for _, hub := range s.GetHubs() {
+	for _, hub := range s.hubs {
 		count = count + atomic.LoadInt64(&hub.connectionCount)
 	}
 
