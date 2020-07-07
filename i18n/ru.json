@@ -4976,22 +4976,6 @@
         "translation": "FromDb: Невозможно преобразовать StringMap в *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Обнаружены проблемы с поиском аудитов"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Превышено ограничение количества страниц"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Обнаружены проблемы с удалением аудитов"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Обнаружены проблемы с сохранением аудита"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6904,10 +6888,6 @@
         "translation": "не удалось построить запрос."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Не удалось построить запрос."
-    },
-    {
         "id": "store.sql_channel.get_all_direct.app_error",
         "translation": "Невозможно получить все каналы личных сообщений."
     },
@@ -7346,10 +7326,6 @@
     {
         "id": "plugin.api.get_users_in_channel",
         "translation": "Не удалось получить список пользователей, некорректный критерий сортировки."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Не удалось получить список разрешенных каналов для команды: пустой teamId"
     },
     {
         "id": "store.sql_channel.count_posts_since.app_error",

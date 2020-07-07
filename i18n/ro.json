@@ -4976,22 +4976,6 @@
         "translation": "FromDb: Imposibil de convertit StringMap în *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Am întâmpinat o eroare în găsirea auditurilor"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Limita depășită pentru paginare"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Am întâmpinat o eroare la ștergerea auditurilor"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Am întâmpinat o eroare la salvarea auditului"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6732,16 +6716,8 @@
         "translation": "Imposibil de numărat mesaje de la data dată."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "nu a reușit să creeze interogarea."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Nu a reușit să obțină lista canalelor permise pentru echipă: echipă teamId"
     },
     {
         "id": "searchengine.bleve.disabled.error",

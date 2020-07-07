@@ -4971,22 +4971,6 @@
         "translation": "Veritabanından: StringMap *string olarak dönüştürülemedi"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Denetimler aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Sayfalandırma sınırı aşıldı."
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Denetimler silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Denetim kaydedilirken bir sorun çıktı."
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot bulunamadı."
     },
@@ -6839,10 +6823,6 @@
         "translation": "sorgu oluşturulamadı."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Sorgu oluşturulamadı."
-    },
-    {
         "id": "store.sql_channel.count_posts_since.app_error",
         "translation": "Belirtilen tarihten sonraki iletilerin sayısı belirlenemedi."
     },
@@ -7205,10 +7185,6 @@
     {
         "id": "plugin.api.get_users_in_channel",
         "translation": "Kullanıcılar alınamadı. Sıralama ölçütü geçersiz."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Takım için izin verilen kanal listesi alınamadı: Takım kodu boş"
     },
     {
         "id": "store.sql_channel.search_group_channels.app_error",

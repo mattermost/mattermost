@@ -4971,22 +4971,6 @@
         "translation": "FromDb: Kan StringMap niet naar *string omzetten"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Er is een fout gevonden bij het zoeken naar de audit data"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Grens bereikt voor opdelen in pagina's"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Fout opgestreden bij het verwijderen van de audit data"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Fout bij het opslaan van de audit data"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6751,16 +6735,8 @@
         "translation": "Kan berichten niet tellen vanaf de opgegeven datum."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "maken van query is mislukt."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Fout bij het ophalen van de lijst met toegestane kanalen voor team: leeg teamId"
     },
     {
         "id": "searchengine.bleve.disabled.error",

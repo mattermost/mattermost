@@ -4966,22 +4966,6 @@
         "translation": "FromDb: 無法將 StringMap 轉換為 *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "尋找稽核紀錄時遇到錯誤"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "分頁已達限制"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "刪除稽核紀錄時遇到錯誤"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "儲存稽核紀錄時遇到錯誤"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6722,16 +6706,8 @@
         "translation": "無法計算自給定日期以來的訊息"
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "建立查詢時失敗"
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "取得團隊許可頻道清單失敗：teamId 為空值"
     },
     {
         "id": "searchengine.bleve.disabled.error",

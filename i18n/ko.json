@@ -4966,22 +4966,6 @@
         "translation": "FromDb: Unable to convert StringMap to *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "We encountered an error finding the audits"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Limit exceeded for paging"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "We encountered an error deleting the audits"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "We encountered an error saving the audit"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6722,16 +6706,8 @@
         "translation": "지정된 날짜 이후로 메시지 갯수를 셀 수 없습니다."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "쿼리를 작성하지 못했습니다."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Failed to get list of allowed channels for team: empty teamId"
     },
     {
         "id": "searchengine.bleve.disabled.error",

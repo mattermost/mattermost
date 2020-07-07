@@ -4971,22 +4971,6 @@
         "translation": "FromDb: Konnte StringMap nicht zu *string konvertieren"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Die Grenze für Paging wurde überschritten"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Es trat ein Fehler beim Löschen der Audits auf"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Es trat ein Fehler beim Speichern der Audits auf"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6783,16 +6767,8 @@
         "translation": "Konnte Nachrichten seit dem angegebenen Datum nicht zählen."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "Fehler beim Erstellen der Abfrage."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Failed to get list of allowed channels for team: empty teamId"
     },
     {
         "id": "searchengine.bleve.disabled.error",

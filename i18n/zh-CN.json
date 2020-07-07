@@ -4966,22 +4966,6 @@
         "translation": "来自数据库：不能从 StringMap 转换到 *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "我们查找审计时遇到一个错误"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "已达到分页限制"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "我们删除审计时遇到了一个错误"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "我们保存审计时遇到错误"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6870,10 +6854,6 @@
         "translation": "建立查询失败。"
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "建立查询失败。"
-    },
-    {
         "id": "store.sql_channel.count_posts_since.app_error",
         "translation": "无法以指定的日期计算消息数。"
     },
@@ -7160,10 +7140,6 @@
     {
         "id": "model.user.is_valid.update_at.app_error",
         "translation": "更新时必须是有效时间。"
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "获取团队允许的频道列表失败：空 teamId"
     },
     {
         "id": "store.sql_channel.search_group_channels.app_error",

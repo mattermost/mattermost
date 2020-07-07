@@ -4971,22 +4971,6 @@
         "translation": "FromDb : Impossible de convertir StringMap en *string"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des audits"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "Limite dépassée pour la pagination"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Une erreur s'est produite lors de la suppression des audits"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Une erreur s'est produite lors de l'enregistrement des audits"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6727,16 +6711,8 @@
         "translation": "Impossible de compter les messages à partir de la date indiquée."
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "Impossible de construire la requête."
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "Failed to get list of allowed channels for team: empty teamId"
     },
     {
         "id": "searchengine.bleve.disabled.error",

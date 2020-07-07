@@ -4966,22 +4966,6 @@
         "translation": "FromDb: StringMapを*stringに変換できません"
     },
     {
-        "id": "store.sql_audit.get.finding.app_error",
-        "translation": "監査データを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_audit.get.limit.app_error",
-        "translation": "これ以上のページを生成できません"
-    },
-    {
-        "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "監査データを削除する際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_audit.save.saving.app_error",
-        "translation": "監査データを保存する際にエラーが発生しました"
-    },
-    {
         "id": "store.sql_bot.get.missing.app_error",
         "translation": "Bot does not exist"
     },
@@ -6722,16 +6706,8 @@
         "translation": "与えられた日付以降のメッセージをカウントできませんでした。"
     },
     {
-        "id": "store.sql_audit.app_error",
-        "translation": "Failed to build query"
-    },
-    {
         "id": "store.sql.build_query.app_error",
         "translation": "クエリーを構築できませんでした。"
-    },
-    {
-        "id": "store.search_user_store.empty_team_id",
-        "translation": "チームで許可されたチャンネルリストを取得できませんでした: チームIDが空です"
     },
     {
         "id": "searchengine.bleve.disabled.error",
