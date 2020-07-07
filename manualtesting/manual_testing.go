@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/app/slashcommands"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -93,7 +94,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user := &model.User{
 			Email:    "success+" + model.NewId() + "simulator.amazonses.com",
 			Nickname: username[0],
-			Password: app.USER_PASSWORD}
+			Password: slashcommands.USER_PASSWORD}
 
 		user, resp := client.CreateUser(user)
 		if resp.Error != nil {
@@ -107,7 +108,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		userID = user.Id
 
 		// Login as user to generate auth token
-		_, resp = client.LoginById(user.Id, app.USER_PASSWORD)
+		_, resp = client.LoginById(user.Id, slashcommands.USER_PASSWORD)
 		if resp.Error != nil {
 			c.Err = resp.Error
 			return
