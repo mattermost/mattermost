@@ -600,10 +600,10 @@ func (s *TimerLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
+func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userId string, teamId string) error {
 	start := timemodule.Now()
 
-	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(user, teamId)
+	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {

@@ -2603,8 +2603,8 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	}
 }
 
-func (a *App) createInitialSidebarCategories(user *model.User, team *model.Team) *model.AppError {
-	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(user, team.Id)
+func (a *App) createInitialSidebarCategories(userId, teamId string) *model.AppError {
+	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userId, teamId)
 
 	if nErr != nil {
 		return model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
