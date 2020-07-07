@@ -33,11 +33,11 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
-	sourceTeam := th.CreateTeam()
-	targetTeam := th.CreateTeam()
+	sourceTeam := th.createTeam()
+	targetTeam := th.createTeam()
 
 	command := &model.Command{}
 	command.CreatorId = model.NewId()
@@ -68,8 +68,8 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -88,8 +88,8 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestExecuteCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
 		TestCases := map[string]string{
@@ -136,8 +136,8 @@ func TestExecuteCommand(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	command := &model.Command{}
 	args := &model.CommandArgs{
@@ -180,7 +180,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	// Channel id is specified by response, it should override the command args value.
 	channel := th.CreateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
-	th.AddUserToChannel(th.BasicUser, channel)
+	th.addUserToChannel(th.BasicUser, channel)
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
@@ -263,7 +263,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
-	channel = th.CreatePrivateChannel(th.BasicTeam)
+	channel = th.createPrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
@@ -292,8 +292,8 @@ func TestHandleCommandResponsePost(t *testing.T) {
 }
 
 func TestHandleCommandResponse(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	command := &model.Command{}
 
@@ -350,8 +350,8 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
@@ -446,12 +446,12 @@ func TestDoCommandRequest(t *testing.T) {
 }
 
 func TestMentionsToTeamMembers(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
-	otherTeam := th.CreateTeam()
-	otherUser := th.CreateUser()
-	th.LinkUserToTeam(otherUser, otherTeam)
+	otherTeam := th.createTeam()
+	otherUser := th.createUser()
+	th.linkUserToTeam(otherUser, otherTeam)
 
 	fixture := []struct {
 		message     string
@@ -532,11 +532,11 @@ func TestMentionsToTeamMembers(t *testing.T) {
 }
 
 func TestMentionsToPublicChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	otherPublicChannel := th.CreateChannel(th.BasicTeam)
-	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+	privateChannel := th.createPrivateChannel(th.BasicTeam)
 
 	fixture := []struct {
 		message     string

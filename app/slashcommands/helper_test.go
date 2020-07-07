@@ -20,11 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
-	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
-	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -128,18 +124,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	return th
 }
 
-func SetupEnterprise(tb testing.TB) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	return setupTestHelper(dbStore, true, true, tb, nil)
-}
-
-func Setup(tb testing.TB) *TestHelper {
+func setup(tb testing.TB) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
@@ -150,35 +135,6 @@ func Setup(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, false, true, tb, nil)
 }
 
-func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, false, false, tb, nil)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
-	return th
-}
-
-func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
-	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, true, false, tb, nil)
-	emptyMockStore := mocks.Store{}
-	emptyMockStore.On("Close").Return(nil)
-	th.App.Srv().Store = &emptyMockStore
-	return th
-}
-
-func SetupWithCustomConfig(tb testing.TB, configSet func(*model.Config)) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-
-	return setupTestHelper(dbStore, false, true, tb, configSet)
-}
-
 var initBasicOnce sync.Once
 var userCache struct {
 	SystemAdminUser *model.User
@@ -186,19 +142,19 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) initBasic() *TestHelper {
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
-		me.SystemAdminUser = me.CreateUser()
+		me.SystemAdminUser = me.createUser()
 		me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 		me.SystemAdminUser, _ = me.App.GetUser(me.SystemAdminUser.Id)
 		userCache.SystemAdminUser = me.SystemAdminUser.DeepCopy()
 
-		me.BasicUser = me.CreateUser()
+		me.BasicUser = me.createUser()
 		me.BasicUser, _ = me.App.GetUser(me.BasicUser.Id)
 		userCache.BasicUser = me.BasicUser.DeepCopy()
 
-		me.BasicUser2 = me.CreateUser()
+		me.BasicUser2 = me.createUser()
 		me.BasicUser2, _ = me.App.GetUser(me.BasicUser2.Id)
 		userCache.BasicUser2 = me.BasicUser2.DeepCopy()
 	})
@@ -208,20 +164,16 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser2 = userCache.BasicUser2.DeepCopy()
 	mainHelper.GetSQLSupplier().GetMaster().Insert(me.SystemAdminUser, me.BasicUser, me.BasicUser2)
 
-	me.BasicTeam = me.CreateTeam()
+	me.BasicTeam = me.createTeam()
 
-	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
-	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	me.linkUserToTeam(me.BasicUser, me.BasicTeam)
+	me.linkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
-	me.BasicPost = me.CreatePost(me.BasicChannel)
+	me.BasicPost = me.createPost(me.BasicChannel)
 	return me
 }
 
-func (me *TestHelper) MakeEmail() string {
-	return "success_" + model.NewId() + "@simulator.amazonses.com"
-}
-
-func (me *TestHelper) CreateTeam() *model.Team {
+func (me *TestHelper) createTeam() *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
@@ -242,15 +194,15 @@ func (me *TestHelper) CreateTeam() *model.Team {
 	return team
 }
 
-func (me *TestHelper) CreateUser() *model.User {
-	return me.CreateUserOrGuest(false)
+func (me *TestHelper) createUser() *model.User {
+	return me.createUserOrGuest(false)
 }
 
-func (me *TestHelper) CreateGuest() *model.User {
-	return me.CreateUserOrGuest(true)
+func (me *TestHelper) createGuest() *model.User {
+	return me.createUserOrGuest(true)
 }
 
-func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
+func (me *TestHelper) createUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -282,33 +234,11 @@ func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	return user
 }
 
-func (me *TestHelper) CreateBot() *model.Bot {
-	id := model.NewId()
-
-	bot := &model.Bot{
-		Username:    "bot" + id,
-		DisplayName: "a bot",
-		Description: "bot",
-		OwnerId:     me.BasicUser.Id,
-	}
-
-	me.App.Log().SetConsoleLevel(mlog.LevelError)
-	bot, err := me.App.CreateBot(bot)
-	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	me.App.Log().SetConsoleLevel(mlog.LevelDebug)
-	return bot
-}
-
 func (me *TestHelper) CreateChannel(team *model.Team) *model.Channel {
 	return me.createChannel(team, model.CHANNEL_OPEN)
 }
 
-func (me *TestHelper) CreatePrivateChannel(team *model.Team) *model.Channel {
+func (me *TestHelper) createPrivateChannel(team *model.Team) *model.Channel {
 	return me.createChannel(team, model.CHANNEL_PRIVATE)
 }
 
@@ -358,7 +288,7 @@ func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 	return channel
 }
 
-func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
+func (me *TestHelper) createDmChannel(user *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
@@ -372,7 +302,7 @@ func (me *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 	return channel
 }
 
-func (me *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
+func (me *TestHelper) createGroupChannel(user1 *model.User, user2 *model.User) *model.Channel {
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
 	var channel *model.Channel
@@ -386,7 +316,7 @@ func (me *TestHelper) CreateGroupChannel(user1 *model.User, user2 *model.User) *
 	return channel
 }
 
-func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
+func (me *TestHelper) createPost(channel *model.Channel) *model.Post {
 	id := model.NewId()
 
 	post := &model.Post{
@@ -408,27 +338,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
-func (me *TestHelper) CreateMessagePost(channel *model.Channel, message string) *model.Post {
-	post := &model.Post{
-		UserId:    me.BasicUser.Id,
-		ChannelId: channel.Id,
-		Message:   message,
-		CreateAt:  model.GetMillis() - 10000,
-	}
-
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	utils.EnableDebugLogForTest()
-	return post
-}
-
-func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
+func (me *TestHelper) linkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
 	err := me.App.JoinUserToTeam(team, user, "")
@@ -442,21 +352,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
-func (me *TestHelper) RemoveUserFromTeam(user *model.User, team *model.Team) {
-	utils.DisableDebugLogForTest()
-
-	err := me.App.RemoveUserFromTeam(team.Id, user.Id, "")
-	if err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-
-	utils.EnableDebugLogForTest()
-}
-
-func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
+func (me *TestHelper) addUserToChannel(user *model.User, channel *model.Channel) *model.ChannelMember {
 	utils.DisableDebugLogForTest()
 
 	member, err := me.App.AddUserToChannel(user, channel)
@@ -472,103 +368,7 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 	return member
 }
 
-func (me *TestHelper) CreateRole(roleName string) *model.Role {
-	role, _ := me.App.CreateRole(&model.Role{Name: roleName, DisplayName: roleName, Description: roleName, Permissions: []string{}})
-	return role
-}
-
-func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
-	utils.DisableDebugLogForTest()
-
-	scheme, err := me.App.CreateScheme(&model.Scheme{
-		DisplayName: "Test Scheme Display Name",
-		Name:        model.NewId(),
-		Description: "Test scheme description",
-		Scope:       model.SCHEME_SCOPE_TEAM,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	roleNames := []string{
-		scheme.DefaultTeamAdminRole,
-		scheme.DefaultTeamUserRole,
-		scheme.DefaultTeamGuestRole,
-		scheme.DefaultChannelAdminRole,
-		scheme.DefaultChannelUserRole,
-		scheme.DefaultChannelGuestRole,
-	}
-
-	var roles []*model.Role
-	for _, roleName := range roleNames {
-		role, err := me.App.GetRoleByName(roleName)
-		if err != nil {
-			panic(err)
-		}
-		roles = append(roles, role)
-	}
-
-	utils.EnableDebugLogForTest()
-
-	return scheme, roles
-}
-
-func (me *TestHelper) CreateGroup() *model.Group {
-	id := model.NewId()
-	group := &model.Group{
-		DisplayName: "dn_" + id,
-		Name:        model.NewString("name" + id),
-		Source:      model.GroupSourceLdap,
-		Description: "description_" + id,
-		RemoteId:    model.NewId(),
-	}
-
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if group, err = me.App.CreateGroup(group); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	utils.EnableDebugLogForTest()
-	return group
-}
-
-func (me *TestHelper) CreateEmoji() *model.Emoji {
-	utils.DisableDebugLogForTest()
-
-	emoji, err := me.App.Srv().Store.Emoji().Save(&model.Emoji{
-		CreatorId: me.BasicUser.Id,
-		Name:      model.NewRandomString(10),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	utils.EnableDebugLogForTest()
-
-	return emoji
-}
-
-func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
-	utils.DisableDebugLogForTest()
-
-	reaction, err := me.App.SaveReactionForPost(&model.Reaction{
-		UserId:    user.Id,
-		PostId:    post.Id,
-		EmojiName: emojiName,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	utils.EnableDebugLogForTest()
-
-	return reaction
-}
-
-func (me *TestHelper) ShutdownApp() {
+func (me *TestHelper) shutdownApp() {
 	done := make(chan bool)
 	go func() {
 		me.Server.Shutdown()
@@ -584,104 +384,18 @@ func (me *TestHelper) ShutdownApp() {
 	}
 }
 
-func (me *TestHelper) TearDown() {
+func (me *TestHelper) tearDown() {
 	if me.IncludeCacheLayer {
 		// Clean all the caches
 		me.App.Srv().InvalidateAllCaches()
 	}
-	me.ShutdownApp()
+	me.shutdownApp()
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
 	}
 }
 
-func (me *TestHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
-	return mainHelper.GetSQLSupplier()
-}
-
-func (me *TestHelper) ResetRoleMigration() {
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
-		panic(err)
-	}
-
-	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
-
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
-		panic(err)
-	}
-}
-
-func (me *TestHelper) ResetEmojisMigration() {
-	sqlSupplier := mainHelper.GetSQLSupplier()
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' create_emojis', '') WHERE builtin=True"); err != nil {
-		panic(err)
-	}
-
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_emojis', '') WHERE builtin=True"); err != nil {
-		panic(err)
-	}
-
-	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ' delete_others_emojis', '') WHERE builtin=True"); err != nil {
-		panic(err)
-	}
-
-	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
-
-	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
-		panic(err)
-	}
-}
-
-func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	teamCount, err := me.App.Srv().Store.Team().AnalyticsTeamCount(false)
-	require.Nil(t, err, "Failed to get team count.")
-	require.Equalf(t, teamCount, expected, "Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
-}
-
-func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	count, err := me.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	require.Nilf(t, err, "Failed to get channel count.")
-	require.Equalf(t, count, expected, "Unexpected number of channels. Expected: %v, found: %v", expected, count)
-}
-
-func (me *TestHelper) SetupTeamScheme() *model.Scheme {
-	scheme := model.Scheme{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_TEAM,
-	}
-
-	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
-		panic(err)
-	}
-}
-
-func (me *TestHelper) SetupChannelScheme() *model.Scheme {
-	scheme := model.Scheme{
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Scope:       model.SCHEME_SCOPE_CHANNEL,
-	}
-
-	if scheme, err := me.App.CreateScheme(&scheme); err == nil {
-		return scheme
-	} else {
-		panic(err)
-	}
-}
-
-func (me *TestHelper) SetupPluginAPI() *app.PluginAPI {
-	manifest := &model.Manifest{
-		Id: "pluginid",
-	}
-
-	return app.NewPluginAPI(me.App, manifest)
-}
-
-func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+func (me *TestHelper) removePermissionFromRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
 	role, err1 := me.App.GetRoleByName(roleName)
@@ -713,7 +427,7 @@ func (me *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 	utils.EnableDebugLogForTest()
 }
 
-func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
+func (me *TestHelper) addPermissionToRole(permission string, roleName string) {
 	utils.DisableDebugLogForTest()
 
 	role, err1 := me.App.GetRoleByName(roleName)

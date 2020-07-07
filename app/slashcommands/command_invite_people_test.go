@@ -12,8 +12,8 @@ import (
 )
 
 func TestInvitePeopleProvider(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.SendEmailNotifications = true
@@ -22,7 +22,7 @@ func TestInvitePeopleProvider(t *testing.T) {
 
 	cmd := InvitePeopleProvider{}
 
-	notTeamUser := th.CreateUser()
+	notTeamUser := th.createUser()
 
 	// Test without required permissions
 	args := &model.CommandArgs{

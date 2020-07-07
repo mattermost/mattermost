@@ -13,18 +13,18 @@ import (
 )
 
 func TestInviteProvider(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
-	dmChannel := th.CreateDmChannel(th.BasicUser2)
+	dmChannel := th.createDmChannel(th.BasicUser2)
 	privateChannel2 := th.createChannelWithAnotherUser(th.BasicTeam, model.CHANNEL_PRIVATE, th.BasicUser2.Id)
 
-	basicUser3 := th.CreateUser()
-	th.LinkUserToTeam(basicUser3, th.BasicTeam)
-	basicUser4 := th.CreateUser()
-	deactivatedUser := th.CreateUser()
+	basicUser3 := th.createUser()
+	th.linkUserToTeam(basicUser3, th.BasicTeam)
+	basicUser4 := th.createUser()
+	deactivatedUser := th.createUser()
 	th.App.UpdateActive(deactivatedUser, false)
 
 	var err *model.AppError
@@ -175,8 +175,8 @@ func TestInviteProvider(t *testing.T) {
 }
 
 func TestInviteGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	th.BasicTeam.GroupConstrained = model.NewBool(true)
 	var err *model.AppError
@@ -189,7 +189,7 @@ func TestInviteGroup(t *testing.T) {
 
 	groupChannelUser1 := "@" + th.BasicUser.Username + " ~" + privateChannel.Name
 	groupChannelUser2 := "@" + th.BasicUser2.Username + " ~" + privateChannel.Name
-	basicUser3 := th.CreateUser()
+	basicUser3 := th.createUser()
 	groupChannelUser3 := "@" + basicUser3.Username + " ~" + privateChannel.Name
 
 	InviteP := InviteProvider{}

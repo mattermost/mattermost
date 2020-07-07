@@ -13,10 +13,10 @@ import (
 )
 
 func TestRenameProviderDoCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
 
 	rp := RenameProvider{}
 	args := &model.CommandArgs{
@@ -38,7 +38,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	}
 
 	// Try a public channel *without* permission.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -50,9 +50,9 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_rename.permission.app_error", actual)
 
 	// Try a private channel *with* permission.
-	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+	privateChannel := th.createPrivateChannel(th.BasicTeam)
 
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.addPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -64,7 +64,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "", actual)
 
 	// Try a private channel *without* permission.
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id, model.CHANNEL_USER_ROLE_ID)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -76,10 +76,10 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_rename.permission.app_error", actual)
 
 	// Try a group channel *with* being a member.
-	user1 := th.CreateUser()
-	user2 := th.CreateUser()
+	user1 := th.createUser()
+	user2 := th.createUser()
 
-	groupChannel := th.CreateGroupChannel(user1, user2)
+	groupChannel := th.createGroupChannel(user1, user2)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
@@ -91,7 +91,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 	assert.Equal(t, "api.command_channel_rename.direct_group.app_error", actual)
 
 	// Try a direct channel *with* being a member.
-	directChannel := th.CreateDmChannel(user1)
+	directChannel := th.createDmChannel(user1)
 
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },

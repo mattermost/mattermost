@@ -12,8 +12,8 @@ import (
 )
 
 func TestMeProviderDoCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
 	mp := MeProvider{}
 

@@ -13,14 +13,14 @@ import (
 )
 
 func TestMsgProvider(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := setup(t).initBasic()
+	defer th.tearDown()
 
-	team := th.CreateTeam()
-	th.LinkUserToTeam(th.BasicUser, team)
+	team := th.createTeam()
+	th.linkUserToTeam(th.BasicUser, team)
 	cmd := &msgProvider{}
 
-	th.RemovePermissionFromRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+	th.removePermissionFromRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	// Check without permission to create a DM channel.
 	resp := cmd.DoCommand(th.App, &model.CommandArgs{
@@ -34,7 +34,7 @@ func TestMsgProvider(t *testing.T) {
 	assert.Equal(t, "api.command_msg.permission.app_error", resp.Text)
 	assert.Equal(t, "", resp.GotoLocation)
 
-	th.AddPermissionToRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+	th.addPermissionToRole(model.PERMISSION_CREATE_DIRECT_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	// Check with permission to create a DM channel.
 	resp = cmd.DoCommand(th.App, &model.CommandArgs{
@@ -59,12 +59,12 @@ func TestMsgProvider(t *testing.T) {
 	assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
 
 	// Check that a guest user cannot message a user who is not in a channel/team with him
-	guest := th.CreateGuest()
-	user := th.CreateUser()
+	guest := th.createGuest()
+	user := th.createUser()
 
-	th.LinkUserToTeam(user, team)
-	th.LinkUserToTeam(guest, th.BasicTeam)
-	th.AddUserToChannel(guest, th.BasicChannel)
+	th.linkUserToTeam(user, team)
+	th.linkUserToTeam(guest, th.BasicTeam)
+	th.addUserToChannel(guest, th.BasicChannel)
 
 	resp = cmd.DoCommand(th.App, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
@@ -77,8 +77,8 @@ func TestMsgProvider(t *testing.T) {
 	assert.Equal(t, "", resp.GotoLocation)
 
 	// Check that a guest user can message a user who is in a channel/team with him
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, th.BasicChannel)
+	th.linkUserToTeam(user, th.BasicTeam)
+	th.addUserToChannel(user, th.BasicChannel)
 
 	resp = cmd.DoCommand(th.App, &model.CommandArgs{
 		T:       i18n.IdentityTfunc(),
