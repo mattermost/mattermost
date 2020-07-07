@@ -7813,5 +7813,21 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Kan directe berichtenkanaal of groepskanaal niet verplaatsen"
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Fout bij het opslaan van de audit data"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Fout opgestreden bij het verwijderen van de audit data"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Grens bereikt voor opdelen in pagina's"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Er is een fout gevonden bij het zoeken naar de audit data"
     }
 ]

@@ -7785,5 +7785,61 @@
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
         "translation": "Leeres Array unterhalb von 'image' in der Anfrage."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+        "translation": "Konnte Datenbanktransaktion nicht öffnen"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+        "translation": "Konnte die Transaktion nicht ausführen."
+    },
+    {
+        "id": "sidebar.category.dm",
+        "translation": "Direktnachricht"
+    },
+    {
+        "id": "sidebar.category.channels",
+        "translation": "Kanäle"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+        "translation": "Migration aufgrund ungültiger Fortschrittsdaten fehlgeschlagen ."
+    },
+    {
+        "id": "ent.data_retention.reactions_batch.internal_error",
+        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
+    },
+    {
+        "id": "app.reaction.save.save.app_error",
+        "translation": "Konnte Reaktion nicht speichern"
+    },
+    {
+        "id": "app.reaction.get_for_post.app_error",
+        "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
+    },
+    {
+        "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+        "translation": "Konnte nicht alle Reaktionen mit dem gegebenen Emoji-Namen abrufen."
+    },
+    {
+        "id": "app.reaction.bulk_get_for_post_ids.app_error",
+        "translation": "Konnte Reaktionen für Nachricht nicht abrufen."
+    },
+    {
+        "id": "app.audit.save.saving.app_error",
+        "translation": "Es trat ein Fehler beim Speichern der Audits auf"
+    },
+    {
+        "id": "app.audit.permanent_delete_by_user.app_error",
+        "translation": "Es trat ein Fehler beim Löschen der Audits auf"
+    },
+    {
+        "id": "app.audit.get.limit.app_error",
+        "translation": "Die Grenze für Paging wurde überschritten"
+    },
+    {
+        "id": "app.audit.get.finding.app_error",
+        "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
     }
 ]
