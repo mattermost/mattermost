@@ -26,7 +26,6 @@ import (
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -89,8 +88,7 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailBatching    *EmailBatchingJob
-	EmailRateLimiter *throttled.GCRARateLimiter
+	EmailService *EmailService
 
 	hubs     []*Hub
 	hashSeed maphash.Seed
@@ -312,10 +310,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	if err := s.setupInviteEmailRateLimiting(); err != nil {
-		return nil, err
-	}
-
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -356,6 +350,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.Store = s.newStore()
 
+	emailService, err := NewEmailService(s)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to initialize email service")
+	}
+	s.EmailService = emailService
+
 	if model.BuildEnterpriseReady == "true" {
 		s.LoadLicense()
 	}
@@ -366,19 +366,19 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if err := s.ensureAsymmetricSigningKey(); err != nil {
+	if err = s.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := s.ensurePostActionCookieSecret(); err != nil {
+	if err = s.ensurePostActionCookieSecret(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
-	if err := s.ensureInstallationDate(); err != nil {
+	if err = s.ensureInstallationDate(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure installation date")
 	}
 
-	if err := s.ensureFirstServerRunTimestamp(); err != nil {
+	if err = s.ensureFirstServerRunTimestamp(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
@@ -417,11 +417,11 @@ func NewServer(options ...Option) (*Server, error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	if err := mailservice.TestConnection(s.Config()); err != nil {
-		mlog.Error("Mail server connection test is failed: " + err.Message)
+	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
+		mlog.Error("Mail server connection test is failed: " + appErr.Message)
 	}
 
-	if _, err := url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
+	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
 	}
 
@@ -437,9 +437,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
-	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {
-		s.InitEmailBatching()
+		s.EmailService.InitEmailBatching()
 	})
 
 	// Start plugin health check job
@@ -496,8 +495,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if err := s.Store.Status().ResetAll(); err != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(err))
+	if appErr = s.Store.Status().ResetAll(); appErr != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(appErr))
 	}
 
 	if s.startMetrics && s.Metrics != nil {
@@ -1073,7 +1072,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
