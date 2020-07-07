@@ -83,54 +83,23 @@ func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
 		chineseHello  = "你好"
 		japaneseHello = "こんにちは"
 	)
-
-	terms := ""
-	expected := ""
-	result := removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = "h"
-	expected = "h"
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = "hello"
-	expected = "hello"
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = japaneseHello
-	expected = japaneseHello
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = chineseHello
-	expected = chineseHello
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = "hello*"
-	expected = "hello*"
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = japaneseHello + "*"
-	expected = japaneseHello + "*"
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = japaneseHello + " \"*\" " + chineseHello
-	expected = japaneseHello + " \"*\" " + chineseHello
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = "hel*lo &** ** hello"
-	expected = "hel*lo hello"
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
-
-	terms = japaneseHello + " \"*\" &&* " + chineseHello
-	expected = japaneseHello + " \"*\" " + chineseHello
-	result = removeNonAlphaNumericUnquotedTerms(terms, sep)
-	require.Equal(t, result, expected)
+	tests := []struct {
+		term string
+		want string
+		name string
+	}{
+		{term: "", want: "", name: "empty"},
+		{term: "h", want: "h", name: "singleChar"},
+		{term: "hello", want: "hello", name: "multiChar"},
+		{term: `hel*lo "**" **& hello`, want: `hel*lo "**" hello`, name: "quoted_unquoted_english"},
+		{term: japaneseHello + chineseHello, want: japaneseHello + chineseHello, name: "japanese_chinese"},
+		{term: japaneseHello + ` "*" ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: `quoted_japanese_and_chinese`},
+		{term: japaneseHello + ` "*" &&* ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: "quoted_unquoted_japanese_and_chinese"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
+			require.Equal(t, test.want, got)
+		})
+	}
 }
