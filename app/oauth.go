@@ -571,9 +571,11 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 
 	buf := bytes.Buffer{}
 	if _, err := buf.ReadFrom(userData); err != nil {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+		return nil, model.NewAppError("LoginByOAuth2", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
+
+	mlog.Debug(string(buf.Bytes()))
 	authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
 
 	authData := ""
@@ -582,7 +584,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	}
 
 	if len(authData) == 0 {
-		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
@@ -715,11 +717,13 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 		Secure:   secure,
 	}
 
+	mlog.Debug(fmt.Sprintf("%v", oauthCookie))
 	http.SetCookie(w, oauthCookie)
 
 	clientId := *sso.Id
 	endpoint := *sso.AuthEndpoint
 	scope := *sso.Scope
+	mlog.Debug(*sso.Scope)
 
 	tokenExtra := generateOAuthStateTokenExtra(props["email"], props["action"], cookieValue)
 	stateToken, err := a.CreateOAuthStateToken(tokenExtra)
@@ -728,6 +732,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	props["token"] = stateToken.Token
+	mlog.Debug(model.MapToJson(props))
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	siteUrl := a.GetSiteURL()
@@ -762,7 +767,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	}
 
 	stateStr := string(b)
-
+	mlog.Debug(stateStr)
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
 	expectedToken, appErr := a.GetOAuthStateToken(stateProps["token"])
@@ -812,6 +817,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
+	mlog.Debug(*sso.TokenEndpoint)
 	req, requestErr := http.NewRequest("POST", *sso.TokenEndpoint, strings.NewReader(p.Encode()))
 	if requestErr != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, requestErr.Error(), http.StatusInternalServerError)
@@ -830,6 +836,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	tee := io.TeeReader(resp.Body, &buf)
 	ar := model.AccessResponseFromJson(tee)
 
+	mlog.Debug(string(buf.String()))
 	if ar == nil || resp.StatusCode != http.StatusOK {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d", buf.String(), resp.StatusCode), http.StatusInternalServerError)
 	}
@@ -842,8 +849,18 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
 	}
 
+	// mlog.Debug(ar.IdToken)
+
+	// parts := strings.Split(ar.IdToken, ".")
+	// b, err = b64.StdEncoding.DecodeString(parts[1])
+	// if err != nil {
+	// 	mlog.Error(err.Error())
+	// }
+	// mlog.Debug(string(b))
+
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
+	mlog.Debug(*sso.UserApiEndpoint)
 	req, requestErr = http.NewRequest("GET", *sso.UserApiEndpoint, strings.NewReader(""))
 	if requestErr != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
@@ -863,7 +880,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 
-		mlog.Error("Error getting OAuth user", mlog.String("body_string", bodyString))
+		mlog.Error("Error getting OAuth user", mlog.Int("response", resp.StatusCode), mlog.String("body_string", bodyString))
 
 		if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
 			// Return a nicer error when the user hasn't accepted GitLab's terms of service

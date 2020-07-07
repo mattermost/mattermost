@@ -267,6 +267,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	state := r.URL.Query().Get("state")
+	mlog.Debug(state)
+	mlog.Debug(r.URL.Query().Get("scope"))
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
@@ -338,6 +340,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	mlog.Debug("loginWithOAuthloginWithOAuth")
 	c.RequireService()
 	if c.Err != nil {
 		return
@@ -357,6 +360,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	mlog.Debug(authUrl)
 
 	http.Redirect(w, r, authUrl, http.StatusFound)
 }
