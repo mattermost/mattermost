@@ -77,6 +77,7 @@ type Params struct {
 	IncludeDeleted            bool
 	FilterAllowReference      bool
 	FilterParentTeamPermitted bool
+	CategoryId                string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -91,6 +92,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["team_id"]; ok {
 		params.TeamId = val
+	}
+
+	if val, ok := props["category_id"]; ok {
+		params.CategoryId = val
 	}
 
 	if val, ok := props["invite_id"]; ok {

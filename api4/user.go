@@ -1185,7 +1185,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
-			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})

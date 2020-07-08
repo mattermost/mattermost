@@ -1795,3 +1795,66 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	_, err := th.App.MarkChannelsAsViewed([]string{"channelID"}, "userID", th.App.Session().Id)
 	require.Nil(t, err)
 }
+
+func TestSidebarCategory(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(basicChannel2)
+	user := th.CreateUser()
+	defer th.App.Srv().Store.User().PermanentDelete(user.Id)
+	th.LinkUserToTeam(user, th.BasicTeam)
+	th.AddUserToChannel(user, basicChannel2)
+
+	var createdCategory *model.SidebarCategoryWithChannels
+	t.Run("CreateSidebarCategory", func(t *testing.T) {
+		catData := model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "TEST",
+			},
+			Channels: []string{th.BasicChannel.Id, basicChannel2.Id, basicChannel2.Id},
+		}
+		_, err := th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, &catData)
+		require.NotNil(t, err, "Should return error due to duplicate IDs")
+		catData.Channels = []string{th.BasicChannel.Id, basicChannel2.Id}
+		cat, err := th.App.CreateSidebarCategory(user.Id, th.BasicTeam.Id, &catData)
+		require.Nil(t, err, "Expected no error")
+		require.NotNil(t, cat, "Expected category object, got nil")
+		createdCategory = cat
+	})
+
+	t.Run("UpdateSidebarCategories", func(t *testing.T) {
+		require.NotNil(t, createdCategory)
+		createdCategory.Channels = []string{th.BasicChannel.Id}
+		updatedCat, err := th.App.UpdateSidebarCategories(user.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{createdCategory})
+		require.Nil(t, err, "Expected no error")
+		require.NotNil(t, updatedCat, "Expected category object, got nil")
+		require.Len(t, updatedCat, 1)
+		require.Len(t, updatedCat[0].Channels, 1)
+		require.Equal(t, updatedCat[0].Channels[0], th.BasicChannel.Id)
+	})
+
+	t.Run("UpdateSidebarCategoryOrder", func(t *testing.T) {
+		err := th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, []string{th.BasicChannel.Id, basicChannel2.Id})
+		require.NotNil(t, err, "Should return error due to invalid order")
+
+		actualOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
+		require.Nil(t, err, "Should fetch order successfully")
+
+		actualOrder[2], actualOrder[3] = actualOrder[3], actualOrder[2]
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
+		require.Nil(t, err, "Should update order successfully")
+
+		actualOrder[2] = "asd"
+		err = th.App.UpdateSidebarCategoryOrder(user.Id, th.BasicTeam.Id, actualOrder)
+		require.NotNil(t, err, "Should return error due to invalid id")
+	})
+
+	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
+		catOrder, err := th.App.GetSidebarCategoryOrder(user.Id, th.BasicTeam.Id)
+		require.Nil(t, err, "Expected no error")
+		require.Len(t, catOrder, 4)
+		require.Equal(t, catOrder[1], createdCategory.Id, "the newly created category should be after favorites")
+	})
+}
