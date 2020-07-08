@@ -7423,6 +7423,125 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Nil(t, res)
 	})
 
+	t.Run("should not affect other users' favorites preferences", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Create the initial categories and find the favorites category
+		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory := categories.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
+
+		// Create the other users' categories
+		userId2 := model.NewId()
+
+		nErr = ss.Channel().CreateInitialSidebarCategories(userId2, teamId)
+		require.Nil(t, nErr)
+
+		categories2, err := ss.Channel().GetSidebarCategories(userId2, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory2 := categories2.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory2.Type)
+
+		// Have both users join a channel
+		channel, nErr := ss.Channel().Save(&model.Channel{
+			Name:   "channel",
+			Type:   model.CHANNEL_OPEN,
+			TeamId: teamId,
+		}, 10)
+		require.Nil(t, nErr)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			UserId:      userId,
+			ChannelId:   channel.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			UserId:      userId2,
+			ChannelId:   channel.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		// Have user1 favorite it
+		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+
+		// And user2 favorite it
+		_, err = ss.Channel().UpdateSidebarCategories(userId2, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory2.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		// And then user1 unfavorite it
+		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+
+		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		// And finally user2 favorite it
+		_, err = ss.Channel().UpdateSidebarCategories(userId2, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory2.SidebarCategory,
+				Channels:        []string{},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+
+		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+	})
+
 	t.Run("channels removed from Channels or DMs categories should be re-added", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
