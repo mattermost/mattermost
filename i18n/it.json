@@ -153,7 +153,7 @@
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Nessun file per il campo 'immagine' nella richiesta."
+        "translation": "Nessun file nel campo 'immagine' nella richiesta."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
@@ -229,7 +229,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-        "translation": "Impossibile aggiungere gli utenti al canale perché sono stati rimossi dalla squadra."
+        "translation": "Impossibile aggiungere gli utenti al canale perché sono stati rimossi dal gruppo."
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
@@ -237,7 +237,7 @@
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
-        "translation": "Questo canale è stato convertito in un Canale Pubblico e un membro di qualsiasi squadra può entrare a farne parte."
+        "translation": "Questo canale è stato convertito in un Canale Pubblico e ogni membro del gruppo può farne parte."
     },
     {
         "id": "api.channel.change_channel_privacy.public_to_private",
@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Questo canale predefinito non può essere convertito in un canale privato."
+        "translation": "Questo canale predefinito non può essere convertito in canale privato."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -333,7 +333,7 @@
     },
     {
         "id": "api.channel.patch_channel_moderations.license.error",
-        "translation": "La tua licenza non supporta la ritenzione dei dati del canale"
+        "translation": "La tua licenza non supporta la ritenzione dei dati"
     },
     {
         "id": "api.channel.patch_update_channel.forbidden.app_error",
@@ -509,7 +509,7 @@
     },
     {
         "id": "api.command.invite_people.desc",
-        "translation": "Manda un email di invito alla tua squadra Mattermost"
+        "translation": "Manda un email di invito al tuo gruppo Mattermost"
     },
     {
         "id": "api.command.invite_people.email_invitations_off",
@@ -601,7 +601,7 @@
     },
     {
         "id": "api.command_channel_purpose.hint",
-        "translation": "[testo]"
+        "translation": "[text]"
     },
     {
         "id": "api.command_channel_purpose.message.app_error",
@@ -637,7 +637,7 @@
     },
     {
         "id": "api.command_channel_rename.hint",
-        "translation": "[testo]"
+        "translation": "[text]"
     },
     {
         "id": "api.command_channel_rename.message.app_error",
@@ -669,7 +669,7 @@
     },
     {
         "id": "api.command_code.hint",
-        "translation": "[testo]"
+        "translation": "[text]"
     },
     {
         "id": "api.command_code.message.app_error",
@@ -784,7 +784,7 @@
     },
     {
         "id": "api.command_groupmsg.name",
-        "translation": "messaggio"
+        "translation": "Messaggio"
     },
     {
         "id": "api.command_groupmsg.permission.app_error",
@@ -800,7 +800,7 @@
     },
     {
         "id": "api.command_invite.channel.app_error",
-        "translation": "Errore nel caricamento del canale corrente."
+        "translation": "Errore nel caricamento del canale."
     },
     {
         "id": "api.command_invite.channel.error",
@@ -832,7 +832,7 @@
     },
     {
         "id": "api.command_invite.missing_user.app_error",
-        "translation": "Impossibile trovare l'utente. Può essere stato disattivato dall'Amministratore di Sistema."
+        "translation": "Impossibile trovare l'utente. Può essere stato disattivato dall'Amministrator di Sistema."
     },
     {
         "id": "api.command_invite.name",
@@ -948,7 +948,7 @@
     },
     {
         "id": "api.command_msg.name",
-        "translation": "messaggio"
+        "translation": "Messaggio"
     },
     {
         "id": "api.command_msg.permission.app_error",
@@ -1218,7 +1218,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -1298,7 +1298,7 @@
     },
     {
         "id": "api.file.get_public_link.disabled.app_error",
-        "translation": "I collegamenti pubblici sono stati disabilitati."
+        "translation": "I collegamenti pubblici sono stati disabilitati"
     },
     {
         "id": "api.file.get_public_link.no_post.app_error",
@@ -1410,7 +1410,7 @@
     },
     {
         "id": "api.incoming_webhook.disabled.app_error",
-        "translation": "I webhook in ingresso sono stati disabilitati dall'amministratore di sistema."
+        "translation": "I webhook in ingresso sono stati disabilitati dall'amministratore del sistema."
     },
     {
         "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1562,7 +1562,7 @@
     },
     {
         "id": "api.oauth.register_oauth_app.turn_off.app_error",
-        "translation": "L'amministratore di sistema ha disabilitato il servizio per l'autenticazione OAuth 2.0."
+        "translation": "L'amministratore di sistema ha disabilitato l'OAuth2."
     },
     {
         "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1590,7 +1590,7 @@
     },
     {
         "id": "api.outgoing_webhook.disabled.app_error",
-        "translation": "I webhooks in uscita sono stati disabilitati dall'amministratore di sistema."
+        "translation": "I webhooks in uscita sono stati disabilitati dall'Amministratore di Distema."
     },
     {
         "id": "api.plugin.add_public_key.open.app_error",
@@ -1630,11 +1630,11 @@
     },
     {
         "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-        "translation": "@{{.Usernames}} e @{{.LastUsername}} non sono stati avvisati di questa citazione poiché non sono nel canale."
+        "translation": "@{{.Usernames}} e @{{.LastUsername}} sono stati citati, ma non riceveranno notifiche in quanto non appartengono più a questo canale."
     },
     {
         "id": "api.post.check_for_out_of_channel_mentions.message.one",
-        "translation": "@{{.Username}} non è stato avvisato di questa citazione poiché non è nel canale."
+        "translation": "@{{.Username}} è stato citato, ma non riceverà notifiche in quanto non appartiene più a questo canale."
     },
     {
         "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1654,7 +1654,7 @@
     },
     {
         "id": "api.post.create_post.town_square_read_only",
-        "translation": "Il canale è in sola lettura. Solo i membri con i permessi corretti possono pubblicare qui."
+        "translation": "Questo canale è in sola lettura. Solo i membri con i permessi corretti possono pubblicare qui."
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
@@ -1848,7 +1848,7 @@
     },
     {
         "id": "api.scheme.get_teams_for_scheme.scope.error",
-        "translation": "Impossibile elencare le squadre per lo schema poiché lo schema fornito non è uno schema di squadra."
+        "translation": "Impossibile elencare i gruppo per lo schema poiché lo schema fornito non è uno scheda di gruppo."
     },
     {
         "id": "api.scheme.patch_scheme.license.error",
@@ -1912,7 +1912,7 @@
     },
     {
         "id": "api.slackimport.slack_add_users.merge_existing_failed",
-        "translation": "L'utente Slack è stato unito ad un utente Mattermost con email {{.Email}} e nome-utente {{.Username}}, ma non è stato possibile aggiungerlo alle sue squadre.\r\n"
+        "translation": "L'utente Slack è stato unito ad un utente Mattermost con email {{.Email}} e nome-utente {{.Username}}, ma non è stato possibile aggiungere l'utente al team.\r\n"
     },
     {
         "id": "api.slackimport.slack_add_users.missing_email_address",
@@ -1948,7 +1948,7 @@
     },
     {
         "id": "api.slackimport.slack_import.team_fail",
-        "translation": "Impossibile identificare la squadra in cui importare.\r\n"
+        "translation": "Impossibile identificare il team in cui eseguire l'import.\r\n"
     },
     {
         "id": "api.slackimport.slack_import.zip.app_error",
@@ -1976,11 +1976,11 @@
     },
     {
         "id": "api.team.add_user_to_team.added",
-        "translation": "%v aggiunto alla squadra da parte di %v."
+        "translation": "%v aggiunto al gruppo da parte di %v."
     },
     {
         "id": "api.team.add_user_to_team.missing_parameter.app_error",
-        "translation": "Parametro necessario per aggiungere l'utente alla squadra."
+        "translation": "Parametro necessario per aggiungere l'utente al gruppo."
     },
     {
         "id": "api.team.add_user_to_team_from_invite.guest.app_error",
@@ -2000,7 +2000,7 @@
     },
     {
         "id": "api.team.get_invite_info.not_open_team",
-        "translation": "L'invito non è valido a causa del fatto che questa non è una squadra aperta."
+        "translation": "L'invito non è valido a causa del fatto che il gruppo non è aperto."
     },
     {
         "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -2008,7 +2008,7 @@
     },
     {
         "id": "api.team.get_team_icon.read_file.app_error",
-        "translation": "Impossibile leggere il file con l'icona della squadra."
+        "translation": "Impossibile leggere il file con l'icona del gruppo."
     },
     {
         "id": "api.team.import_team.array.app_error",
@@ -2068,7 +2068,7 @@
     },
     {
         "id": "api.team.is_team_creation_allowed.disabled.app_error",
-        "translation": "La creazione di squadre è stata disabilitata. Chiedi al tuo amministratore per maggiori informazioni."
+        "translation": "La creazione di gruppi è stata disabilitata. Chiedi al tuo amministratore per maggiori informazioni."
     },
     {
         "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -2076,7 +2076,7 @@
     },
     {
         "id": "api.team.join_team.post_and_forget",
-        "translation": "%v si è unito alla squadra."
+        "translation": "%v si è unito al gruppo."
     },
     {
         "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -2084,7 +2084,7 @@
     },
     {
         "id": "api.team.leave.left",
-        "translation": "%v ha lasciato la squadra."
+        "translation": "%v ha lasciato il gruppo."
     },
     {
         "id": "api.team.move_channel.post.error",
@@ -2092,7 +2092,7 @@
     },
     {
         "id": "api.team.move_channel.success",
-        "translation": "Questo canale è stato spostato in questa squadra da %v."
+        "translation": "Questo canale è stato spostato in questo gruppo da %v."
     },
     {
         "id": "api.team.remove_member.group_constrained.app_error",
@@ -2104,11 +2104,11 @@
     },
     {
         "id": "api.team.remove_user_from_team.missing.app_error",
-        "translation": "L'utente non è membro di questa squadra."
+        "translation": "L'utente non è membro di questo gruppo."
     },
     {
         "id": "api.team.remove_user_from_team.removed",
-        "translation": "%v è stato rimosso dalla squadra."
+        "translation": "%v è stato rimosso dal gruppo."
     },
     {
         "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
@@ -2120,7 +2120,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "La richiesta contiene una lista vuota nel campo 'image'."
+        "translation": "Lista vuota per il campo 'image' nella richiesta."
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -2140,7 +2140,7 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "La richiesta non contiene file nel campo 'image'."
+        "translation": "Nessun file nel campo 'immagine' nella richiesta."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
@@ -2148,11 +2148,11 @@
     },
     {
         "id": "api.team.set_team_icon.parse.app_error",
-        "translation": "Errore durante l'analisi della form multipart."
+        "translation": "Errore durante l'analisi del multipart-form."
     },
     {
         "id": "api.team.set_team_icon.storage.app_error",
-        "translation": "Impossibile caricare l'icona della squadra. Lo spazio di archiviazione delle immagini non è configurato."
+        "translation": "Impossibile caricare l'icona del gruppo. Lo spazio di archiviazione delle immagini non è configurato."
     },
     {
         "id": "api.team.set_team_icon.too_large.app_error",
@@ -2168,11 +2168,11 @@
     },
     {
         "id": "api.team.update_member_roles.not_a_member",
-        "translation": "L'utente indicato non è membro della squadra specificato."
+        "translation": "L'utente indicato non è membro del gruppo specificato."
     },
     {
         "id": "api.team.update_restricted_domains.mismatch.app_error",
-        "translation": "Limitare la squadra a {{ .Domain }} non è permesso dalle impostazioni di sistema. Contattare l'Amministratore di Sistema."
+        "translation": "Limitare i gruppi d {{ .Domain }} non è permesso dalle impostazioni di sistema. Contattare l'Amministratore di Sistema."
     },
     {
         "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -2180,11 +2180,11 @@
     },
     {
         "id": "api.team.update_team_scheme.license.error",
-        "translation": "La licenza non supporta l'aggiornamento dello schema di squadra"
+        "translation": "La licenza non supporta l'aggiornamento dello schema del gruppo"
     },
     {
         "id": "api.team.update_team_scheme.scheme_scope.error",
-        "translation": "Impossibile attribuire lo schema ala squadra poiché lo schema fornito non è uno schema di squadra."
+        "translation": "Impossibile attribuire lo schema al gruppo poiché lo schema fornito non è uno schema di gruppo."
     },
     {
         "id": "api.templates.deactivate_body.info",
@@ -2224,7 +2224,7 @@
     },
     {
         "id": "api.templates.email_change_verify_body.title",
-        "translation": "Hai aggiornato la tua email"
+        "translation": "Hai agiornato la tua email"
     },
     {
         "id": "api.templates.email_change_verify_subject",
@@ -2232,7 +2232,7 @@
     },
     {
         "id": "api.templates.email_footer",
-        "translation": "Per modificare le tue preferenze di notifica, accedi al sito della tua squadra e vai su Impostazioni Account > Notifiche."
+        "translation": "Per modificare le tue preferenze di notifica, accedi al gruppo e vai su Impostazioni Account > Notifiche."
     },
     {
         "id": "api.templates.email_info1",
@@ -2244,7 +2244,7 @@
     },
     {
         "id": "api.templates.email_info3",
-        "translation": "Squadra {{.SiteName}}"
+        "translation": "Il gruppo {{.SiteName}}"
     },
     {
         "id": "api.templates.email_organization",
@@ -2256,15 +2256,15 @@
     },
     {
         "id": "api.templates.invite_body.button",
-        "translation": "Unisciti alla squadra"
+        "translation": "Entra nel gruppo"
     },
     {
         "id": "api.templates.invite_body.extra_info",
-        "translation": "Mattermost permette di condividere messaggi e file da PC o telefono, con ricerche e archiviazione. Dopo essere entrato in [[{{.TeamDisplayName}}]], potrai iscriverti alla tua nuova squadra e accedere a queste funzioni dall'indirizzo web:"
+        "translation": "Mattermost permette di condividere messaggi e file da PC o telefono, con ricerche e archiviazione. Dopo essere entrato in [[{{.TeamDisplayName}}]], potrai iscriverti al tuo nuovo team e accedere a queste funzioni dall'indirizzo web:"
     },
     {
         "id": "api.templates.invite_body.info",
-        "translation": "[[{{.SenderName}}]], ti ha invitato ad unirti a  [[{{.TeamDisplayName}}]]."
+        "translation": "Il gruppo {{.SenderStatus}} [[{{.SenderName}}]], ti ha invitato ad unirti a [[{{.TeamDisplayName}}]]."
     },
     {
         "id": "api.templates.invite_body.title",
@@ -2280,7 +2280,7 @@
     },
     {
         "id": "api.templates.invite_subject",
-        "translation": "[{{ .SiteName }}] {{ .SenderName }} ti ha invitato ad unirti alla squadra {{ .TeamDisplayName }}"
+        "translation": "[{{ .SiteName }}] [{{ .SiteName }}] ti ha invitato ad unirti al gruppo {{ .TeamDisplayName }}"
     },
     {
         "id": "api.templates.mfa_activated_body.info",
@@ -2552,7 +2552,7 @@
     },
     {
         "id": "api.user.create_user.no_open_server",
-        "translation": "Questo server non supporta la registrazione pubblica.  Contatta un amministratore per ricevere un invito."
+        "translation": "Questo server non permette la registrazione aperta. Chiedi all'Amministratore per ricevere un invito."
     },
     {
         "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2656,7 +2656,7 @@
     },
     {
         "id": "api.user.login_by_oauth.parse.app_error",
-        "translation": "Impossibile leggere i dati di autenticazione dall'oggetto {{.Service}}."
+        "translation": "Impossibile parsare gli auth data dall'oggetto {{.Service}}."
     },
     {
         "id": "api.user.login_ldap.not_available.app_error",
@@ -2732,7 +2732,7 @@
     },
     {
         "id": "api.user.send_password_reset.sso.app_error",
-        "translation": "Non è possibile reimpostare la password per gli account SSO."
+        "translation": "Non è possibile reimpostare la password per account SSO (Single Sign-On)."
     },
     {
         "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2760,7 +2760,7 @@
     },
     {
         "id": "api.user.update_active.permissions.app_error",
-        "translation": "Non possiedi i permessi per proseguire con l'operazione."
+        "translation": "Non si dispone dei permessi necessari."
     },
     {
         "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2816,7 +2816,7 @@
     },
     {
         "id": "api.user.upload_profile_user.no_file.app_error",
-        "translation": "Nessun file per il campo 'immagine' nella richiesta."
+        "translation": "Nessun file nel campo 'immagine' nella richiesta."
     },
     {
         "id": "api.user.upload_profile_user.open.app_error",
@@ -2832,7 +2832,7 @@
     },
     {
         "id": "api.user.upload_profile_user.too_large.app_error",
-        "translation": "Impossibile caricare il file. Il file è troppo grande."
+        "translation": "Impossibile caricare la foto profilo. Il file è troppo grande."
     },
     {
         "id": "api.user.upload_profile_user.upload_profile.app_error",
@@ -2900,11 +2900,11 @@
     },
     {
         "id": "api.webhook.update_outgoing.intersect.app_error",
-        "translation": "I webhooks dallo stesso canale non possono avere gli stessi URL innesco/callback."
+        "translation": "Outgoing webhooks dallo stesso canale non possono avere lo stesso trigger/callback URLs."
     },
     {
         "id": "api.websocket_handler.invalid_param.app_error",
-        "translation": "Parametro {{.Name}} non valido."
+        "translation": "Parametro {{.Name}} invalido."
     },
     {
         "id": "api.websocket_handler.server_busy.app_error",
@@ -2972,7 +2972,7 @@
     },
     {
         "id": "app.channel.move_channel.members_do_not_match.error",
-        "translation": "Impossibile spostare il canale a meno che tutti i membri del canale non siano membri della squadra di destinazione."
+        "translation": "Impossibile spostare il canale a meno che tutti i membri del canale non siano membri del gruppo di destinazione."
     },
     {
         "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3052,7 +3052,7 @@
     },
     {
         "id": "app.import.import_channel.team_not_found.error",
-        "translation": "Errore di importazione del canale. La squadra \"{{.TeamName}}\" non è stata trovata."
+        "translation": "Errore di importazione del canale. Il gruppo di nome \"{{.TeamName}}\" non è stato trovato."
     },
     {
         "id": "app.import.import_direct_channel.create_direct_channel.error",
@@ -3100,7 +3100,7 @@
     },
     {
         "id": "app.import.import_line.null_team.error",
-        "translation": "La riga di dati da importare è di tipo \"team\" ma l'oggetto squadra è nullo."
+        "translation": "La riga di dati da importare è di tipo \"team\" ma l'oggetto gruppo è nullo."
     },
     {
         "id": "app.import.import_line.null_user.error",
@@ -3128,11 +3128,11 @@
     },
     {
         "id": "app.import.import_team.scheme_deleted.error",
-        "translation": "Impossibile impostare la squadra per usare uno schema eliminato."
+        "translation": "Impossibile impostare il gruppo per usare uno schema eliminato."
     },
     {
         "id": "app.import.import_team.scheme_wrong_scope.error",
-        "translation": "La squadra deve avere uno schema assegnato all'interno dello stesso scopo."
+        "translation": "Il gruppo deve avere uno schema assegnato all'interno dello stesso scopo."
     },
     {
         "id": "app.import.import_user.save_preferences.error",
@@ -3188,7 +3188,7 @@
     },
     {
         "id": "app.import.validate_channel_import_data.team_missing.error",
-        "translation": "Manca una proprietà richiesta del canale: squadra"
+        "translation": "Manca una proprietà richiesta del canale: gruppo"
     },
     {
         "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -3292,7 +3292,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.team_missing.error",
-        "translation": "Proprietà della pubblicazione mancante: squadra."
+        "translation": "Proprietà della pubblicazione mancante: gruppo."
     },
     {
         "id": "app.import.validate_post_import_data.user_missing.error",
@@ -3388,43 +3388,43 @@
     },
     {
         "id": "app.import.validate_team_import_data.description_length.error",
-        "translation": "La descrizione della squadra è troppo lunga."
+        "translation": "La descrizione del gruppo è troppo lunga."
     },
     {
         "id": "app.import.validate_team_import_data.display_name_length.error",
-        "translation": "Il campo display_name della squadra non è nella gamma di lunghezze consentita."
+        "translation": "Il campo display_name del gruppo non è nella gamma di lunghezze consentita."
     },
     {
         "id": "app.import.validate_team_import_data.display_name_missing.error",
-        "translation": "Proprietà della squadra mancante: display_name."
+        "translation": "Proprietà del gruppo mancante: display_name."
     },
     {
         "id": "app.import.validate_team_import_data.name_characters.error",
-        "translation": "Il nome della squadra contiene caratteri non validi."
+        "translation": "Il nome del gruppo contiene caratteri non validi."
     },
     {
         "id": "app.import.validate_team_import_data.name_length.error",
-        "translation": "Nome della squadra troppo lungo."
+        "translation": "Nome del gruppo troppo lungo."
     },
     {
         "id": "app.import.validate_team_import_data.name_missing.error",
-        "translation": "Proprietà della squadra mancante: nome."
+        "translation": "Proprietà del gruppo mancante: nome."
     },
     {
         "id": "app.import.validate_team_import_data.name_reserved.error",
-        "translation": "Il nome della squadra contiene parole riservate."
+        "translation": "Il nome del gruppo contiene parole riservate."
     },
     {
         "id": "app.import.validate_team_import_data.scheme_invalid.error",
-        "translation": "Nome schema non valido per la squadra."
+        "translation": "Nome schema non valido per il gruppo."
     },
     {
         "id": "app.import.validate_team_import_data.type_invalid.error",
-        "translation": "Il tipo della squadra non è valido."
+        "translation": "Il tipo di gruppo non è valido."
     },
     {
         "id": "app.import.validate_team_import_data.type_missing.error",
-        "translation": "Proprietà della squadra mancante: type."
+        "translation": "Proprietà del gruppo mancante: type."
     },
     {
         "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3548,7 +3548,7 @@
     },
     {
         "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
-        "translation": "Ruoli non validi per le iscrizioni alla squadra dell'utente."
+        "translation": "Ruoli non validi per le iscrizioni al gruppo dell'utente."
     },
     {
         "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
@@ -3556,7 +3556,7 @@
     },
     {
         "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
-        "translation": "Nome squadra mancante nelle iscrizioni alle squadre dell'utente."
+        "translation": "Nome gruppo mancante nelle iscrizioni al gruppo dell'utente."
     },
     {
         "id": "app.notification.body.intro.direct.full",
@@ -3564,7 +3564,7 @@
     },
     {
         "id": "app.notification.body.intro.direct.generic",
-        "translation": "Hai un nuovo messaggio diretto da {{.SenderName}}"
+        "translation": "Hai un nuovo messaggio diretto da @{{.SenderName}}"
     },
     {
         "id": "app.notification.body.intro.group_message.full",
@@ -3572,7 +3572,7 @@
     },
     {
         "id": "app.notification.body.intro.group_message.generic",
-        "translation": "Hai un nuovo messaggio di gruppo da {{.SenderName}}"
+        "translation": "Hai un nuovo messaggio di gruppo da @{{.SenderName}}"
     },
     {
         "id": "app.notification.body.intro.notification.full",
@@ -3580,11 +3580,11 @@
     },
     {
         "id": "app.notification.body.intro.notification.generic",
-        "translation": "Hai una nuova notifica da {{.SenderName}}"
+        "translation": "Hai una nuova notifica da @{{.SenderName}}"
     },
     {
         "id": "app.notification.body.text.direct.full",
-        "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+        "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
     },
     {
         "id": "app.notification.body.text.direct.generic",
@@ -3596,11 +3596,11 @@
     },
     {
         "id": "app.notification.body.text.group_message.full2",
-        "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+        "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
     },
     {
         "id": "app.notification.body.text.group_message.generic",
-        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
     },
     {
         "id": "app.notification.body.text.notification.full",
@@ -3608,15 +3608,15 @@
     },
     {
         "id": "app.notification.body.text.notification.full2",
-        "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+        "translation": "@{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
     },
     {
         "id": "app.notification.body.text.notification.generic",
-        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
     },
     {
         "id": "app.notification.subject.direct.full",
-        "translation": "[{{.SiteName}}] Nuovo messaggio diretto da {{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
+        "translation": "[{{.SiteName}}] Nuovo messaggio diretto da @{{.SenderDisplayName}} il {{.Month}} {{.Day}}, {{.Year}}"
     },
     {
         "id": "app.notification.subject.group_message.full",
@@ -3624,7 +3624,7 @@
     },
     {
         "id": "app.notification.subject.group_message.generic",
-        "translation": "[{{.SiteName}}] Nuovo messaggio di gruppo il {{.Month}} {{.Day}}, {{.Year}}"
+        "translation": "[{{.SiteName}}] Nuovo messaggio di gruppo on {{.Month}} {{.Day}}, {{.Year}}"
     },
     {
         "id": "app.notification.subject.notification.full",
@@ -3824,7 +3824,7 @@
     },
     {
         "id": "app.team.join_user_to_team.max_accounts.app_error",
-        "translation": "Questa squadra ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
+        "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
     },
     {
         "id": "app.team.rename_team.name_occupied",
@@ -4188,7 +4188,7 @@
     },
     {
         "id": "ent.elasticsearch.search_posts.disabled",
-        "translation": "La ricerca Elasticsearch è disabilitata su questo server"
+        "translation": "La ricerca elasticsearch è disabilitata su questo server"
     },
     {
         "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -4584,7 +4584,7 @@
     },
     {
         "id": "mfa.validate_token.authenticate.app_error",
-        "translation": "Errore cercando di autenticare il token MFA."
+        "translation": "Token MFA invalido."
     },
     {
         "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4596,7 +4596,7 @@
     },
     {
         "id": "model.access.is_valid.access_token.app_error",
-        "translation": "Token di accesso invalido."
+        "translation": "Token di accesso invalido"
     },
     {
         "id": "model.access.is_valid.client_id.app_error",
@@ -4612,7 +4612,7 @@
     },
     {
         "id": "model.access.is_valid.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.authorize.is_valid.auth_code.app_error",
@@ -4624,7 +4624,7 @@
     },
     {
         "id": "model.authorize.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.authorize.is_valid.expires.app_error",
@@ -4632,7 +4632,7 @@
     },
     {
         "id": "model.authorize.is_valid.redirect_uri.app_error",
-        "translation": "Uri di redirect non valido."
+        "translation": "Uri di redirect invalido."
     },
     {
         "id": "model.authorize.is_valid.response_type.app_error",
@@ -4648,7 +4648,7 @@
     },
     {
         "id": "model.authorize.is_valid.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.bot.is_valid.create_at.app_error",
@@ -4660,7 +4660,7 @@
     },
     {
         "id": "model.bot.is_valid.description.app_error",
-        "translation": "Descrizione invalida."
+        "translation": "Descrizione non valida."
     },
     {
         "id": "model.bot.is_valid.update_at.app_error",
@@ -4668,7 +4668,7 @@
     },
     {
         "id": "model.bot.is_valid.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.bot.is_valid.username.app_error",
@@ -4680,7 +4680,7 @@
     },
     {
         "id": "model.channel.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.channel.is_valid.creator_id.app_error",
@@ -4708,11 +4708,11 @@
     },
     {
         "id": "model.channel.is_valid.type.app_error",
-        "translation": "Tipo non valido."
+        "translation": "Tipo non valido"
     },
     {
         "id": "model.channel.is_valid.update_at.app_error",
-        "translation": "Aggiornato alle deve essere un tempo valido."
+        "translation": "Aggiornato alle deve essere un tempo valido"
     },
     {
         "id": "model.channel_member.is_valid.channel_id.app_error",
@@ -4740,7 +4740,7 @@
     },
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.client.connecting.app_error",
@@ -4776,11 +4776,11 @@
     },
     {
         "id": "model.command.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.command.is_valid.description.app_error",
-        "translation": "Descrizione invalida."
+        "translation": "Descrizione non valida."
     },
     {
         "id": "model.command.is_valid.display_name.app_error",
@@ -4808,7 +4808,7 @@
     },
     {
         "id": "model.command.is_valid.update_at.app_error",
-        "translation": "Aggiornato alle deve essere un tempo valido."
+        "translation": "Aggiornato alle deve essere un tempo valido"
     },
     {
         "id": "model.command.is_valid.url.app_error",
@@ -4820,7 +4820,7 @@
     },
     {
         "id": "model.command.is_valid.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.command_hook.channel_id.app_error",
@@ -4832,7 +4832,7 @@
     },
     {
         "id": "model.command_hook.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.command_hook.id.app_error",
@@ -4844,15 +4844,15 @@
     },
     {
         "id": "model.command_hook.root_id.app_error",
-        "translation": "Id radice non valido."
+        "translation": "Id radice non valido"
     },
     {
         "id": "model.command_hook.user_id.app_error",
-        "translation": "Id utente non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.compliance.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere una data valida."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.compliance.is_valid.desc.app_error",
@@ -4920,7 +4920,7 @@
     },
     {
         "id": "model.config.is_valid.display.custom_url_schemes.app_error",
-        "translation": "Lo schema URL personalizzato {{.Scheme}} non è valido. Gli schemi URL personalizzati devono iniziare con una lettera e contenere solo lettere, numeri, più (+), punti (.) e trattini (-)."
+        "translation": "Lo schema URL personalizzato {{.Scheme}} non è valido. Gli schemi URL personalizzati devono iniziare con una lettera e contenere solo lettere, numeri e trattini (-)."
     },
     {
         "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5044,7 +5044,7 @@
     },
     {
         "id": "model.config.is_valid.max_channels.app_error",
-        "translation": "Numero massimo di canali per squadra non valido nelle impostazioni di squadra. Deve essere un numero positivo."
+        "translation": "Numero massimo di canali per gruppo non valido nelle impostazioni gruppo. Deve essere un numero positivo."
     },
     {
         "id": "model.config.is_valid.max_file_size.app_error",
@@ -5052,11 +5052,11 @@
     },
     {
         "id": "model.config.is_valid.max_notify_per_channel.app_error",
-        "translation": "Numero massimo notifiche per canale non valido per le impostazioni di squadra. Deve essere un numero positivo."
+        "translation": "Numero massimo notifiche per canale non valido per le impostazioni gruppo. Deve essere un numero positivo."
     },
     {
         "id": "model.config.is_valid.max_users.app_error",
-        "translation": "Numero massimo utenti per squadra non valido per le impostazioni di squadra. Deve essere un numero positivo."
+        "translation": "Numero massimo utenti per gruppo non valido per le impostazioni gruppo. Deve essere un numero positivo."
     },
     {
         "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -5248,7 +5248,7 @@
     },
     {
         "id": "model.emoji.update_at.app_error",
-        "translation": "Aggiornato alle deve essere un orario valido."
+        "translation": "Aggiornato alle deve essere un tempo valido"
     },
     {
         "id": "model.emoji.user_id.app_error",
@@ -5364,7 +5364,7 @@
     },
     {
         "id": "model.incoming_hook.create_at.app_error",
-        "translation": "Creato alle deve essere un orario valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.incoming_hook.description.app_error",
@@ -5388,15 +5388,15 @@
     },
     {
         "id": "model.incoming_hook.team_id.app_error",
-        "translation": "ID gruppo non valido."
+        "translation": "ID del gruppo non valido."
     },
     {
         "id": "model.incoming_hook.update_at.app_error",
-        "translation": "Aggiornato alle deve essere un tempo valido."
+        "translation": "Aggiornato alle deve essere un tempo valido"
     },
     {
         "id": "model.incoming_hook.user_id.app_error",
-        "translation": "User id non valido."
+        "translation": "Id utente non valido"
     },
     {
         "id": "model.incoming_hook.username.app_error",
@@ -5404,7 +5404,7 @@
     },
     {
         "id": "model.job.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.job.is_valid.id.app_error",
@@ -5460,7 +5460,7 @@
     },
     {
         "id": "model.oauth.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido."
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.oauth.is_valid.creator_id.app_error",
@@ -5480,11 +5480,11 @@
     },
     {
         "id": "model.oauth.is_valid.name.app_error",
-        "translation": "Nome non valido."
+        "translation": "Nome non valido"
     },
     {
         "id": "model.oauth.is_valid.update_at.app_error",
-        "translation": "Aggiorna alle deve essere un tempo valido."
+        "translation": "Aggiornato alle deve essere un tempo valido"
     },
     {
         "id": "model.outgoing_hook.icon_url.app_error",
@@ -5496,7 +5496,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-        "translation": "Id canale non valido"
+        "translation": "Id canale non valido."
     },
     {
         "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -5504,23 +5504,23 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido"
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.outgoing_hook.is_valid.description.app_error",
-        "translation": "Descrizione invalida"
+        "translation": "Descrizione non valida."
     },
     {
         "id": "model.outgoing_hook.is_valid.display_name.app_error",
-        "translation": "Titolo non valido"
+        "translation": "Titolo non valido."
     },
     {
         "id": "model.outgoing_hook.is_valid.id.app_error",
-        "translation": "ID non valido"
+        "translation": "ID non valido."
     },
     {
         "id": "model.outgoing_hook.is_valid.team_id.app_error",
-        "translation": "ID della squadra non valido"
+        "translation": "ID del gruppo non valido."
     },
     {
         "id": "model.outgoing_hook.is_valid.token.app_error",
@@ -5536,7 +5536,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.url.app_error",
-        "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://."
+        "translation": "URL invalido. Deve essere un URL valido e iniziare con http:// o https://"
     },
     {
         "id": "model.outgoing_hook.is_valid.user_id.app_error",
@@ -5572,11 +5572,11 @@
     },
     {
         "id": "model.post.is_valid.channel_id.app_error",
-        "translation": "Id canale non valido"
+        "translation": "Id canale non valido."
     },
     {
         "id": "model.post.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido"
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.post.is_valid.file_ids.app_error",
@@ -5592,7 +5592,7 @@
     },
     {
         "id": "model.post.is_valid.id.app_error",
-        "translation": "ID non valido"
+        "translation": "ID non valido."
     },
     {
         "id": "model.post.is_valid.msg.app_error",
@@ -5604,7 +5604,7 @@
     },
     {
         "id": "model.post.is_valid.parent_id.app_error",
-        "translation": "Id genitore non valido"
+        "translation": "Id genitore non valido."
     },
     {
         "id": "model.post.is_valid.props.app_error",
@@ -5652,7 +5652,7 @@
     },
     {
         "id": "model.reaction.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido"
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.reaction.is_valid.emoji_name.app_error",
@@ -5668,7 +5668,7 @@
     },
     {
         "id": "model.team.is_valid.characters.app_error",
-        "translation": "Nome deve essere 2 o più lettere minuscole alfanumeriche"
+        "translation": "Nome deve essere 2 o più lettere minuscole alfanumeriche."
     },
     {
         "id": "model.team.is_valid.company.app_error",
@@ -5676,11 +5676,11 @@
     },
     {
         "id": "model.team.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido"
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.team.is_valid.description.app_error",
-        "translation": "Descrizione invalida"
+        "translation": "Descrizione non valida."
     },
     {
         "id": "model.team.is_valid.domains.app_error",
@@ -5688,11 +5688,11 @@
     },
     {
         "id": "model.team.is_valid.email.app_error",
-        "translation": "Email invalida"
+        "translation": "Email invalida."
     },
     {
         "id": "model.team.is_valid.id.app_error",
-        "translation": "ID non valido"
+        "translation": "ID non valido."
     },
     {
         "id": "model.team.is_valid.invite_id.app_error",
@@ -5720,7 +5720,7 @@
     },
     {
         "id": "model.team_member.is_valid.team_id.app_error",
-        "translation": "ID della squadra non valido"
+        "translation": "ID del gruppo non valido."
     },
     {
         "id": "model.team_member.is_valid.user_id.app_error",
@@ -5748,11 +5748,11 @@
     },
     {
         "id": "model.user.is_valid.create_at.app_error",
-        "translation": "Creato alle deve essere un tempo valido"
+        "translation": "Creato alle deve essere un periodo di tempo valido."
     },
     {
         "id": "model.user.is_valid.email.app_error",
-        "translation": "Email invalida"
+        "translation": "Email invalida."
     },
     {
         "id": "model.user.is_valid.first_name.app_error",
@@ -5852,7 +5852,7 @@
     },
     {
         "id": "model.user.is_valid.username.app_error",
-        "translation": "Il nome utente deve iniziare con una lettera e contenere da 3 a 22 caratteri inclusi numeri, lettere e i simboli \".\",\"-\" e \"_\"."
+        "translation": "Il nome utente deve iniziare con una lettera e contenere da 3 a 22 caratteri inclusi numeri, lettere minuscole e i simboli \".\",\"-\" e \"_\"."
     },
     {
         "id": "model.user_access_token.is_valid.description.app_error",
@@ -5968,7 +5968,7 @@
     },
     {
         "id": "store.sql_bot.get.missing.app_error",
-        "translation": "Il bot non esiste"
+        "translation": "Bot does not exist"
     },
     {
         "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -6000,7 +6000,7 @@
     },
     {
         "id": "store.sql_channel.delete.channel.app_error",
-        "translation": "Impossibile cancellare il canale"
+        "translation": "Impossibile cancellare il canale."
     },
     {
         "id": "store.sql_channel.get.existing.app_error",
@@ -6028,7 +6028,7 @@
     },
     {
         "id": "store.sql_channel.get_by_name.missing.app_error",
-        "translation": "Il canale non esiste"
+        "translation": "Il canale non esiste."
     },
     {
         "id": "store.sql_channel.get_by_scheme.app_error",
@@ -6044,7 +6044,7 @@
     },
     {
         "id": "store.sql_channel.get_channels.not_found.app_error",
-        "translation": "Nessun canale trovato"
+        "translation": "Nessun canale trovato."
     },
     {
         "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
@@ -6064,15 +6064,15 @@
     },
     {
         "id": "store.sql_channel.get_deleted.existing.app_error",
-        "translation": "Non è stato possibile trovare il canale eliminato"
+        "translation": "Non è stato possibile trovare il canale eliminato."
     },
     {
         "id": "store.sql_channel.get_deleted.missing.app_error",
-        "translation": "Non ci sono canali eliminati"
+        "translation": "Non ci sono canali eliminati."
     },
     {
         "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-        "translation": "Non è stato possibile trovare il canale eliminato"
+        "translation": "Non è stato possibile trovare il canale eliminato."
     },
     {
         "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
@@ -6144,7 +6144,7 @@
     },
     {
         "id": "store.sql_channel.permanent_delete.app_error",
-        "translation": "Impossibile cancellare il canale"
+        "translation": "Impossibile cancellare il canale."
     },
     {
         "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
@@ -6216,7 +6216,7 @@
     },
     {
         "id": "store.sql_channel.save_channel.exists.app_error",
-        "translation": "Un canale con quel nome esiste già nella stessa squadra"
+        "translation": "Un canale con quel nome esiste già nello stesso gruppo"
     },
     {
         "id": "store.sql_channel.save_channel.limit.app_error",
@@ -6260,7 +6260,7 @@
     },
     {
         "id": "store.sql_channel.update.app_error",
-        "translation": "Errore durante l'aggiornamento del canale"
+        "translation": "Errore durante l'aggiornamento del canale."
     },
     {
         "id": "store.sql_channel.update.archived_channel.app_error",
@@ -6312,7 +6312,7 @@
     },
     {
         "id": "store.sql_channel_member_history.log_join_event.app_error",
-        "translation": "Impossibile registrare la cronologia del membro del canale"
+        "translation": "Impossibile registrare la cronologia del membro del canale."
     },
     {
         "id": "store.sql_channel_member_history.log_leave_event.update_error",
@@ -6416,23 +6416,23 @@
     },
     {
         "id": "store.sql_emoji.delete.app_error",
-        "translation": "Impossibile cancellare l'emoji"
+        "translation": "Impossibile cancellare l'emoji."
     },
     {
         "id": "store.sql_emoji.delete.no_results",
-        "translation": "Non è stato possibile trovare l'emoji da eliminare"
+        "translation": "Non è stato possibile trovare l'emoji da eliminare."
     },
     {
         "id": "store.sql_emoji.get.app_error",
-        "translation": "Impossibile ottenere l'emoji"
+        "translation": "Impossibile ottenere l'emoji."
     },
     {
         "id": "store.sql_emoji.get_all.app_error",
-        "translation": "Impossibile ottenere l'emoji"
+        "translation": "Impossibile ottenere l'emoji."
     },
     {
         "id": "store.sql_emoji.get_by_name.app_error",
-        "translation": "Impossibile ottenere l'emoji"
+        "translation": "Impossibile ottenere l'emoji."
     },
     {
         "id": "store.sql_emoji.save.app_error",
@@ -6504,7 +6504,7 @@
     },
     {
         "id": "store.sql_group.unique_constraint",
-        "translation": "un gruppo con quel nome esiste già"
+        "translation": "Un gruppo con quel nome esiste già"
     },
     {
         "id": "store.sql_group.uniqueness_error",
@@ -7120,7 +7120,7 @@
     },
     {
         "id": "store.sql_team.analytics_team_count.app_error",
-        "translation": "Impossibile contare le squadre"
+        "translation": "Impossibile contare i gruppi"
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -7132,19 +7132,19 @@
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-        "translation": "Errore recuperando i membri della squadra"
+        "translation": "Errore recuperando i membri del gruppo"
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Errore durante l'aggiornamento del membro della squadra"
+        "translation": "Errore durante l'aggiornamento del membro del gruppo"
     },
     {
         "id": "store.sql_team.get.find.app_error",
-        "translation": "Non è stato possibile trovare la squadra esistente"
+        "translation": "Non è stato possibile trovare il gruppo esistente"
     },
     {
         "id": "store.sql_team.get.finding.app_error",
-        "translation": "Errore riscontrato nel trovare la squadra"
+        "translation": "Errore riscontrato nel trovare il gruppo"
     },
     {
         "id": "store.sql_team.get_active_member_count.app_error",
@@ -7152,7 +7152,7 @@
     },
     {
         "id": "store.sql_team.get_all.app_error",
-        "translation": "Non è stato possibile recuperare tutte le squadre"
+        "translation": "Non è stato possibile recuperare tutti i gruppi"
     },
     {
         "id": "store.sql_team.get_all_private_team_listing.app_error",
@@ -7160,23 +7160,23 @@
     },
     {
         "id": "store.sql_team.get_all_team_listing.app_error",
-        "translation": "Non è stato possibile recuperare tutte le squadre"
+        "translation": "Non è stato possibile recuperare tutti i gruppi"
     },
     {
         "id": "store.sql_team.get_by_invite_id.find.app_error",
-        "translation": "Non è stato possibile trovare la squadra esistente"
+        "translation": "Non è stato possibile trovare il gruppo esistente"
     },
     {
         "id": "store.sql_team.get_by_invite_id.finding.app_error",
-        "translation": "Non è stato possibile trovare la squadra esistente"
+        "translation": "Non è stato possibile trovare il gruppo esistente"
     },
     {
         "id": "store.sql_team.get_by_name.app_error",
-        "translation": "Non è stato possibile trovare la squadra esistente"
+        "translation": "Non è stato possibile trovare il gruppo esistente"
     },
     {
         "id": "store.sql_team.get_by_name.missing.app_error",
-        "translation": "Non è stato possibile trovare la squadra esistente"
+        "translation": "Non è stato possibile trovare il gruppo esistente"
     },
     {
         "id": "store.sql_team.get_by_names.app_error",
@@ -7192,11 +7192,11 @@
     },
     {
         "id": "store.sql_team.get_member.app_error",
-        "translation": "Impossibile ottenere il membro della squadra"
+        "translation": "Impossibile ottenere il membro del gruppo"
     },
     {
         "id": "store.sql_team.get_member.missing.app_error",
-        "translation": "Nessun membro trovato con l'ID utente e l'ID squadra specificati"
+        "translation": "Nessun membro trovato con l'ID utente e l'ID gruppo specificati"
     },
     {
         "id": "store.sql_team.get_member_count.app_error",
@@ -7204,15 +7204,15 @@
     },
     {
         "id": "store.sql_team.get_members.app_error",
-        "translation": "Impossibile ottenere i membri della squadra"
+        "translation": "Impossibile ottenere i membri del gruppo"
     },
     {
         "id": "store.sql_team.get_members_by_ids.app_error",
-        "translation": "Impossibile ottenere i membri della squadra"
+        "translation": "Impossibile ottenere i membri del gruppo"
     },
     {
         "id": "store.sql_team.get_unread.app_error",
-        "translation": "Impossibile ottenere i messaggi non letti delle squadre"
+        "translation": "Impossibile ottenere i messaggi non letti dei gruppi"
     },
     {
         "id": "store.sql_team.get_user_team_ids.app_error",
@@ -7228,51 +7228,51 @@
     },
     {
         "id": "store.sql_team.migrate_team_members.select.app_error",
-        "translation": " Impossibile selezionare l'insieme dei membri della squadra"
+        "translation": " Impossibile selezionare l'insieme dei membri del gruppo"
     },
     {
         "id": "store.sql_team.migrate_team_members.update.app_error",
-        "translation": "Errore durante l'aggiornamento del membro della squadra"
+        "translation": "Errore durante l'aggiornamento del membro del gruppo"
     },
     {
         "id": "store.sql_team.permanent_delete.app_error",
-        "translation": "Impossibile cancellare la squadra esistente"
+        "translation": "Impossibile cancellare il gruppo esistente"
     },
     {
         "id": "store.sql_team.remove_member.app_error",
-        "translation": "Impossibile rimuovere il membro dalla squadra"
+        "translation": "Impossibile rimuovere il membro dal gruppo"
     },
     {
         "id": "store.sql_team.reset_all_team_schemes.app_error",
-        "translation": "Impossibile resettare gli schemi della squadra"
+        "translation": "Impossibile resettare gli schemi del gruppo"
     },
     {
         "id": "store.sql_team.save.app_error",
-        "translation": "Impossibile salvare la squadra"
+        "translation": "Impossibile salvare il gruppo"
     },
     {
         "id": "store.sql_team.save.domain_exists.app_error",
-        "translation": "Una squadra con quel nome esiste già"
+        "translation": "Un gruppo con quel nome esiste già"
     },
     {
         "id": "store.sql_team.save.existing.app_error",
-        "translation": "L'aggiornamento deve essere invocato per la squadra esistente"
+        "translation": "L'aggiornamento deve essere invocato per il gruppo esistente"
     },
     {
         "id": "store.sql_team.save_member.exists.app_error",
-        "translation": "Un membro di squadra quell'ID esiste già"
+        "translation": "Un membro gruppo quell'ID esiste già"
     },
     {
         "id": "store.sql_team.save_member.save.app_error",
-        "translation": "Impossibile salvare il membro della squadra"
+        "translation": "Impossibile salvare il membro del gruppo"
     },
     {
         "id": "store.sql_team.search_all_team.app_error",
-        "translation": "Riscontrato un errore nella ricerca delle squadre"
+        "translation": "Riscontrato un errore nella ricerca dei gruppi"
     },
     {
         "id": "store.sql_team.search_open_team.app_error",
-        "translation": "Riscontrato un errore nella ricerca delle squadre aperte"
+        "translation": "Riscontrato un errore nella ricerca dei gruppi aperti"
     },
     {
         "id": "store.sql_team.search_private_team.app_error",
@@ -7280,23 +7280,23 @@
     },
     {
         "id": "store.sql_team.update.app_error",
-        "translation": "Impossibile aggiornare la squadra"
+        "translation": "Impossibile aggiornare il gruppo"
     },
     {
         "id": "store.sql_team.update.find.app_error",
-        "translation": "Non è stato possibile trovare la squadra da aggiornare"
+        "translation": "Non è stato possibile trovare il gruppo da aggiornare"
     },
     {
         "id": "store.sql_team.update.finding.app_error",
-        "translation": "Errore riscontrato nel trovare la squadra"
+        "translation": "Errore riscontrato nel trovare il gruppo"
     },
     {
         "id": "store.sql_team.update.updating.app_error",
-        "translation": "Riscontrato un errore nell'aggiornamento della squadra"
+        "translation": "Riscontrato un errore nel aggiornamento del gruppo"
     },
     {
         "id": "store.sql_team.update_last_team_icon_update.app_error",
-        "translation": "Impossibile aggiornare la data dell'ultimo aggiornamento dell'icona di squadra"
+        "translation": "Impossibile aggiornare la data dell'ultimo aggiornamento all'icona del gruppo"
     },
     {
         "id": "store.sql_team.user_belongs_to_teams.app_error",
@@ -7316,7 +7316,7 @@
     },
     {
         "id": "store.sql_terms_of_service_store.save.existing.app_error",
-        "translation": "Non deve chiamare salva per i termini di servizio esistenti"
+        "translation": "Non deve chiamare salva per i termini di servizio esistenti."
     },
     {
         "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -7380,7 +7380,7 @@
     },
     {
         "id": "store.sql_user.get_by_auth.missing_account.app_error",
-        "translation": "Non è stato possibile trovare un account esistente per questa squadra con il tipo di autenticazione specificato. Per accedere a questa squadra è necessario un invito da parte del proprietario."
+        "translation": "Non è stato possibile trovare un account esistente per questo gruppo con il tipo di autenticazione specificato. Per accedere a questo gruppo è necessario un invito da parte del proprietario."
     },
     {
         "id": "store.sql_user.get_by_auth.other.app_error",
@@ -7388,11 +7388,11 @@
     },
     {
         "id": "store.sql_user.get_by_username.app_error",
-        "translation": "Non è stato possibile trovare un account esistente con il nome utente specificato per questa squadra. Potrebbe essere necessario disporre di un invito da parte del proprietario per poter accedere a questa squadra."
+        "translation": "Non è stato possibile trovare un account esistente con il nome utente specificato per questo gruppo. Potrebbe essere necessario disporre di un invito da parte del proprietario per poter accedere a questo gruppo."
     },
     {
         "id": "store.sql_user.get_for_login.app_error",
-        "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario della squadra per l'accesso."
+        "translation": "Non è stato possibile trovare un account con le credenziali fornite. Potrebbe essere necessario disporre di un invito da parte del proprietario del gruppo per l'accesso."
     },
     {
         "id": "store.sql_user.get_for_login.multiple_users",
@@ -7500,11 +7500,11 @@
     },
     {
         "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Questa squadra ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
+        "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
-        "translation": "Impossibile recuperare il conteggio dei membri della squadra"
+        "translation": "Impossibile recuperare il conteggio dei membri del gruppo"
     },
     {
         "id": "store.sql_user.save.username_exists.app_error",
@@ -7516,7 +7516,7 @@
     },
     {
         "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Esiste già un account con quel nome utente. Per favore contatta il tuo Amministratore."
+        "translation": "Esiste già un account con questo nome utente. Per favore contatta il tuo Amministratore."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -7808,7 +7808,7 @@
     },
     {
         "id": "web.command_webhook.parse.app_error",
-        "translation": "Impossibile analizzare i dati in ingresso"
+        "translation": "Impossibile analizzare i dati in ingresso."
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.chrome",
@@ -7928,7 +7928,7 @@
     },
     {
         "id": "web.incoming_webhook.parse.app_error",
-        "translation": "Impossibile analizzare i dati in ingresso"
+        "translation": "Impossibile analizzare i dati in ingresso."
     },
     {
         "id": "web.incoming_webhook.permissions.app_error",
@@ -7957,5 +7957,17 @@
     {
         "id": "api.team.import_team.unknown_import_from.app_error",
         "translation": "Sorgente di importazione sconosciuta."
+    },
+    {
+        "id": "model.group.name.invalid_length.app_error",
+        "translation": "Il nome deve avere lunghezza compresa tra 1 e 64 caratteri alfanumerici in minuscolo."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Impossibile richiedere una licenza di prova. Configurare l'URL del sito nella sezione server web della console di sistema di Mattermost."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "L'identificativo del fornitore del servizio è richiesto"
     }
 ]
