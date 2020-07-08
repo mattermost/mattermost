@@ -2623,10 +2623,36 @@ func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebar
 			return nil, nErr
 		}
 
-		categories, err = a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+		categories, err = a.waitForSidebarCategories(userId, teamId)
 	}
 
 	return categories, err
+}
+
+// waitForSidebarCategories is used to get a user's sidebar categories after they've been created since there may be
+// replication lag if any database replicas exist. It will wait until results are available to return them.
+func (a *App) waitForSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	if len(a.Config().SqlSettings.DataSourceReplicas) == 0 {
+		// The categories should be available immediately on a single database
+		return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+	}
+
+	now := model.GetMillis()
+
+	for model.GetMillis()-now < 12000 {
+		time.Sleep(100 * time.Millisecond)
+
+		categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+
+		if err != nil || len(categories.Categories) > 0 {
+			// We've found something, so return
+			return categories, err
+		}
+	}
+
+	mlog.Error("waitForSidebarCategories giving up", mlog.String("user_id", userId), mlog.String("team_id", teamId))
+
+	return &model.OrderedSidebarCategories{}, nil
 }
 
 func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {
