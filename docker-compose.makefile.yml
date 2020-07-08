@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    restart: no
+    restart: 'no'
     container_name: mattermost-mysql
     ports:
       - "3306:3306"
@@ -9,7 +9,7 @@ services:
         file: build/docker-compose.common.yml
         service: mysql
   postgres:
-    restart: no
+    restart: 'no'
     container_name: mattermost-postgres
     ports:
       - "5432:5432"
@@ -17,7 +17,7 @@ services:
         file: build/docker-compose.common.yml
         service: postgres
   minio:
-    restart: no
+    restart: 'no'
     container_name: mattermost-minio
     ports:
       - "9000:9000"
@@ -25,7 +25,7 @@ services:
         file: build/docker-compose.common.yml
         service: minio
   inbucket:
-    restart: no
+    restart: 'no'
     container_name: mattermost-inbucket
     ports:
       - "10025:10025"
@@ -35,7 +35,7 @@ services:
         file: build/docker-compose.common.yml
         service: inbucket
   openldap:
-    restart: no
+    restart: 'no'
     container_name: mattermost-openldap
     ports:
       - "389:389"
@@ -44,7 +44,7 @@ services:
         file: build/docker-compose.common.yml
         service: openldap
   elasticsearch:
-    restart: no
+    restart: 'no'
     container_name: mattermost-elasticsearch
     ports:
       - "9200:9200"
@@ -53,7 +53,7 @@ services:
         file: build/docker-compose.common.yml
         service: elasticsearch
   dejavu:
-    restart: no
+    restart: 'no'
     container_name: mattermost-dejavu
     ports:
       - "1358:1358"
@@ -61,7 +61,7 @@ services:
         file: build/docker-compose.common.yml
         service: dejavu
   keycloak:
-    restart: no
+    restart: 'no'
     container_name: mattermost-saml
     ports:
       - "8484:8080"
