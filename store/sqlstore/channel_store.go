@@ -2064,27 +2064,45 @@ func (s SqlChannelStore) GetMemberCountsByGroup(channelID string, includeTimezon
 	selectStr := "GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount"
 
 	if includeTimezones {
-		distinctTimezones := `
-			DISTINCT(
-				CASE WHEN JSON_EXTRACT(Timezone, '$.useAutomaticTimezone') = 'true' AND LENGTH(Timezone) > 74
-				THEN JSON_EXTRACT(Timezone, '$.automaticTimezone')
-				WHEN LENGTH(Timezone) > 74
-				THEN JSON_EXTRACT(Timezone, '$.manualTimezone')
-				END
-			)
-		`
+		// Length of default timezone (len {"automaticTimezone":"","manualTimezone":"","useAutomaticTimezone":"true"})
+		defaultTimezoneLength := `74`
+
+		// Beginning and end of the value for the automatic and manual timezones respectively
+		autoTimezone := `LOCATE(':', Users.Timezone) + 2`
+		autoTimezoneEnd := `LOCATE(',', Users.Timezone) - LOCATE(':', Users.Timezone) - 3`
+		manualTimezone := `LOCATE(',', Users.Timezone) + 19`
+		manualTimezoneEnd := `LOCATE('useAutomaticTimezone', Users.Timezone) - 22 - LOCATE(',', Users.Timezone)`
+
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			distinctTimezones = `
-				DISTINCT(
-					CASE WHEN Timezone::json->>'useAutomaticTimezone' = 'true' AND LENGTH(Timezone) > 74
-					THEN Timezone::json->>'automaticTimezone'
-					WHEN LENGTH(Timezone) > 74
-					THEN Timezone::json->>'manualTimezone'
+			autoTimezone = `POSITION(':' IN Users.Timezone) + 2`
+			autoTimezoneEnd = `POSITION(',' IN Users.Timezone) - POSITION(':' IN Users.Timezone) - 3`
+			manualTimezone = `POSITION(',' IN Users.Timezone) + 19`
+			manualTimezoneEnd = `POSITION('useAutomaticTimezone' IN Users.Timezone) - 22 - POSITION(',' IN Users.Timezone)`
+		}
+
+		selectStr = `
+			GroupMembers.GroupId,
+			COUNT(ChannelMembers.UserId) AS ChannelMemberCount,
+			COUNT(DISTINCT
+				(
+					CASE WHEN Timezone like '%"useAutomaticTimezone":"true"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
+					THEN
+					SUBSTRING(
+						Timezone
+						FROM ` + autoTimezone + `
+						FOR ` + autoTimezoneEnd + `
+					)
+					WHEN Timezone like '%"useAutomaticTimezone":"false"}' AND LENGTH(Timezone) > ` + defaultTimezoneLength + `
+					THEN
+						SUBSTRING(
+						Timezone
+						FROM ` + manualTimezone + `
+						FOR ` + manualTimezoneEnd + `
+					)
 					END
 				)
-			`
-		}
-		selectStr = `GroupMembers.GroupId, COUNT(ChannelMembers.UserId) AS ChannelMemberCount, COUNT(` + distinctTimezones + `) AS ChannelMemberTimezonesCount`
+			) AS ChannelMemberTimezonesCount
+		`
 	}
 
 	query := s.getQueryBuilder().
