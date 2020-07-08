@@ -61,7 +61,7 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) (*model.PluginKe
 		} else if rowsAffected == 0 {
 			// No rows were affected by the update, so let's try an insert
 			if err := ps.GetMaster().Insert(kv); err != nil {
-				return nil, store.NewErrInvalidInput("PluginKeyValue", "<PluginId, Key>", fmt.Sprintf("<%s, %s>", kv.PluginId, kv.Key))
+				return nil, errors.Wrap(err, "failed to save PluginKeyValue")
 			}
 		}
 	} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {

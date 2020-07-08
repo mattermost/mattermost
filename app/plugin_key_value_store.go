@@ -50,12 +50,9 @@ func (a *App) SetPluginKeyWithOptions(pluginId string, key string, value []byte,
 	if err != nil {
 		mlog.Error("Failed to set plugin key value with options", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &appErr):
 			return false, appErr
-		case errors.As(err, &invErr):
-			return false, model.NewAppError("SetPluginKeyWithOptions", "app.plugin_store.save.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
 			return false, model.NewAppError("SetPluginKeyWithOptions", "app.plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
