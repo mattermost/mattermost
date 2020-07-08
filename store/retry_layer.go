@@ -349,17 +349,17 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.AuditStore.Get(user_id, offset, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.AuditStore.Get(user_id, offset, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -369,17 +369,17 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.AuditStore.PermanentDeleteByUser(userId)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.AuditStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -389,17 +389,17 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.AuditStore.Save(audit)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.AuditStore.Save(audit)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -409,17 +409,17 @@ func (s *RetryLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.BotStore.Get(userId, includeDeleted)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.BotStore.Get(userId, includeDeleted)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -429,17 +429,17 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.BotStore.GetAll(options)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.BotStore.GetAll(options)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -449,17 +449,17 @@ func (s *RetryLayerBotStore) PermanentDelete(userId string) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.BotStore.PermanentDelete(userId)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.BotStore.PermanentDelete(userId)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -469,17 +469,17 @@ func (s *RetryLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.BotStore.Save(bot)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.BotStore.Save(bot)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -489,17 +489,17 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.BotStore.Update(bot)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.BotStore.Update(bot)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -551,17 +551,17 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -571,17 +571,17 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.Delete(channelId, time)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.Delete(channelId, time)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -591,17 +591,17 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.Get(id, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.Get(id, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -629,17 +629,17 @@ func (s *RetryLayerChannelStore) GetAllChannels(page int, perPage int, opts Chan
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetAllChannels(page, perPage, opts)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetAllChannels(page, perPage, opts)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -649,17 +649,17 @@ func (s *RetryLayerChannelStore) GetAllChannelsCount(opts ChannelSearchOpts) (in
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetAllChannelsCount(opts)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetAllChannelsCount(opts)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -681,17 +681,17 @@ func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFro
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetByName(team_id, name, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetByName(team_id, name, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -701,17 +701,17 @@ func (s *RetryLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -721,17 +721,17 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -765,17 +765,17 @@ func (s *RetryLayerChannelStore) GetChannels(teamId string, userId string, inclu
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -803,17 +803,17 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -823,17 +823,17 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetDeletedByName(team_id, name)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetDeletedByName(team_id, name)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -849,17 +849,17 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetFromMaster(id)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetFromMaster(id)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -929,17 +929,17 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, o
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1045,17 +1045,17 @@ func (s *RetryLayerChannelStore) MigratePublicChannels() error {
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.MigratePublicChannels()
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.MigratePublicChannels()
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1065,17 +1065,17 @@ func (s *RetryLayerChannelStore) PermanentDelete(channelId string) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.PermanentDelete(channelId)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.PermanentDelete(channelId)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1085,17 +1085,17 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.PermanentDeleteByTeam(teamId)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.PermanentDeleteByTeam(teamId)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1141,17 +1141,17 @@ func (s *RetryLayerChannelStore) Restore(channelId string, time int64) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.Restore(channelId, time)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.Restore(channelId, time)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1161,17 +1161,17 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.Save(channel, maxChannelsPerTeam)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.Save(channel, maxChannelsPerTeam)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1181,17 +1181,17 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1249,17 +1249,17 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1269,17 +1269,17 @@ func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelStore.Update(channel)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelStore.Update(channel)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1325,17 +1325,17 @@ func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1345,17 +1345,17 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1365,17 +1365,17 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 
 	tries := 0
 	for {
-		resultVar0 := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1385,17 +1385,17 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1555,17 +1555,17 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 
 	tries := 0
 	for {
-		resultVar0 := s.EmojiStore.Delete(emoji, time)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.EmojiStore.Delete(emoji, time)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -1575,17 +1575,17 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.Get(id, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.Get(id, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1595,17 +1595,17 @@ func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.GetByName(name, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.GetByName(name, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1615,17 +1615,17 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.GetList(offset, limit, sort)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.GetList(offset, limit, sort)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1635,17 +1635,17 @@ func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.GetMultipleByName(names)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.GetMultipleByName(names)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1655,17 +1655,17 @@ func (s *RetryLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.Save(emoji)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.Save(emoji)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -1675,17 +1675,17 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.EmojiStore.Search(name, prefixOnly, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.EmojiStore.Search(name, prefixOnly, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2109,17 +2109,17 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.LicenseStore.Get(id)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.LicenseStore.Get(id)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2129,17 +2129,17 @@ func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.LicenseStore.Save(license)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.LicenseStore.Save(license)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2149,17 +2149,17 @@ func (s *RetryLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.LinkMetadataStore.Get(url, timestamp)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.LinkMetadataStore.Get(url, timestamp)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2169,17 +2169,17 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.LinkMetadataStore.Save(linkMetadata)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.LinkMetadataStore.Save(linkMetadata)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2639,17 +2639,17 @@ func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ReactionStore.BulkGetForPosts(postIds)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ReactionStore.BulkGetForPosts(postIds)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2659,17 +2659,17 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ReactionStore.Delete(reaction)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ReactionStore.Delete(reaction)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2679,17 +2679,17 @@ func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 
 	tries := 0
 	for {
-		resultVar0 := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -2699,17 +2699,17 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ReactionStore.GetForPost(postId, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ReactionStore.GetForPost(postId, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2719,17 +2719,17 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2739,17 +2739,17 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.ReactionStore.Save(reaction)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.ReactionStore.Save(reaction)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2819,17 +2819,17 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.CountByScope(scope)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.CountByScope(scope)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2839,17 +2839,17 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2859,17 +2859,17 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.Delete(schemeId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.Delete(schemeId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2879,17 +2879,17 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.Get(schemeId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.Get(schemeId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2899,17 +2899,17 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.GetAllPage(scope, offset, limit)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.GetAllPage(scope, offset, limit)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2919,17 +2919,17 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.GetByName(schemeName)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.GetByName(schemeName)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -2939,17 +2939,17 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 
 	tries := 0
 	for {
-		resultVar0 := s.SchemeStore.PermanentDeleteAll()
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.SchemeStore.PermanentDeleteAll()
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -2959,17 +2959,17 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.SchemeStore.Save(scheme)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.SchemeStore.Save(scheme)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -3471,17 +3471,17 @@ func (s *RetryLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.TermsOfServiceStore.Get(id, allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.TermsOfServiceStore.Get(id, allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -3491,17 +3491,17 @@ func (s *RetryLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.TermsOfServiceStore.GetLatest(allowFromCache)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.TermsOfServiceStore.GetLatest(allowFromCache)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -3511,17 +3511,17 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.TermsOfServiceStore.Save(termsOfService)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.TermsOfServiceStore.Save(termsOfService)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -4017,17 +4017,17 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 
 	tries := 0
 	for {
-		resultVar0 := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
-		if resultVar0 == nil {
-			return resultVar0
+		err := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
+		if err == nil {
+			return err
 		}
-		if !isRepeatableError(resultVar0) {
-			return resultVar0
+		if !isRepeatableError(err) {
+			return err
 		}
 		tries++
 		if tries > 3 {
-			resultVar0 = errors.Wrap(resultVar0, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 	}
 
@@ -4037,17 +4037,17 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.UserTermsOfServiceStore.GetByUser(userId)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.UserTermsOfServiceStore.GetByUser(userId)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 
@@ -4057,17 +4057,17 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 
 	tries := 0
 	for {
-		resultVar0, resultVar1 := s.UserTermsOfServiceStore.Save(userTermsOfService)
-		if resultVar1 == nil {
-			return resultVar0, resultVar1
+		result, err := s.UserTermsOfServiceStore.Save(userTermsOfService)
+		if err == nil {
+			return result, err
 		}
-		if !isRepeatableError(resultVar1) {
-			return resultVar0, resultVar1
+		if !isRepeatableError(err) {
+			return result, err
 		}
 		tries++
 		if tries > 3 {
-			resultVar1 = errors.Wrap(resultVar1, "giving up after 3 consecutive repeatable transaction failures")
-			return resultVar0, resultVar1
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 	}
 

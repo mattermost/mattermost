@@ -233,15 +233,21 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"genResultsVars": func(results []string) string {
 			vars := []string{}
-			for i := range results {
-				vars = append(vars, fmt.Sprintf("resultVar%d", i))
+			for i, typeName := range results {
+				if isError(typeName) {
+					vars = append(vars, "err")
+				} else if i == 0 {
+					vars = append(vars, "result")
+				} else {
+					vars = append(vars, fmt.Sprintf("resultVar%d", i))
+				}
 			}
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d == nil", i)
+					return fmt.Sprintf("err == nil")
 				}
 			}
 			return "true"
@@ -263,9 +269,9 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return false
 		},
 		"errorVar": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d", i)
+					return "err"
 				}
 			}
 			return ""
