@@ -113,7 +113,7 @@
     },
     {
         "id": "api.admin.saml.not_available.app_error",
-        "translation": "SAML 2.0 не налаштований та не підтримується на цьому сервері."
+        "translation": "Символ бренда не налаштована та не підтримується на цьому сервері.  "
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "This default channel cannot be converted into a private channel."
+        "translation": "Цей стандартний канал не може бути конвертований в приватний."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -293,7 +293,7 @@
     },
     {
         "id": "api.channel.delete_channel.deleted.app_error",
-        "translation": "Даний канал був переміщений в архів, або видалений "
+        "translation": "Даний канал був переміщений в архів, або видалений"
     },
     {
         "id": "api.channel.delete_channel.type.invalid",
@@ -421,7 +421,7 @@
     },
     {
         "id": "api.channel.update_channel.deleted.app_error",
-        "translation": "Даний канал був переміщений в архів, або видалений "
+        "translation": "Даний канал був переміщений в архів, або видалений"
     },
     {
         "id": "api.channel.update_channel.tried.app_error",
@@ -569,7 +569,7 @@
     },
     {
         "id": "api.command_channel_header.hint",
-        "translation": "текс"
+        "translation": "текст "
     },
     {
         "id": "api.command_channel_header.message.app_error",
@@ -601,7 +601,7 @@
     },
     {
         "id": "api.command_channel_purpose.hint",
-        "translation": "текс"
+        "translation": "текст "
     },
     {
         "id": "api.command_channel_purpose.message.app_error",
@@ -637,7 +637,7 @@
     },
     {
         "id": "api.command_channel_rename.hint",
-        "translation": "текс"
+        "translation": "текст "
     },
     {
         "id": "api.command_channel_rename.message.app_error",
@@ -669,7 +669,7 @@
     },
     {
         "id": "api.command_code.hint",
-        "translation": "текс"
+        "translation": "текст "
     },
     {
         "id": "api.command_code.message.app_error",
@@ -785,7 +785,7 @@
     },
     {
         "id": "api.command_groupmsg.name",
-        "translation": "Повідомлення"
+        "translation": "повідомлення "
     },
     {
         "id": "api.command_groupmsg.permission.app_error",
@@ -805,7 +805,7 @@
     },
     {
         "id": "api.command_invite.channel.error",
-        "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+        "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
     },
     {
         "id": "api.command_invite.desc",
@@ -817,7 +817,7 @@
     },
     {
         "id": "api.command_invite.fail.app_error",
-        "translation": "Під час приєднання до каналу сталася помилка. "
+        "translation": "Під час приєднання до каналу сталася помилка."
     },
     {
         "id": "api.command_invite.group_constrained_user_denied",
@@ -833,7 +833,7 @@
     },
     {
         "id": "api.command_invite.missing_user.app_error",
-        "translation": "Ми не змогли знайти користувача. Можливо він заблокований Системним адміністратором."
+        "translation": "Не вдалося знайти користувача. Можливо він заблокований системним адміністратором."
     },
     {
         "id": "api.command_invite.name",
@@ -869,7 +869,7 @@
     },
     {
         "id": "api.command_join.fail.app_error",
-        "translation": "Під час приєднання до каналу сталася помилка. "
+        "translation": "Під час приєднання до каналу сталася помилка."
     },
     {
         "id": "api.command_join.hint",
@@ -945,11 +945,11 @@
     },
     {
         "id": "api.command_msg.missing.app_error",
-        "translation": "Не вдається знайти користувача."
+        "translation": "Не вдається знайти користувача"
     },
     {
         "id": "api.command_msg.name",
-        "translation": "Повідомлення"
+        "translation": "повідомлення "
     },
     {
         "id": "api.command_msg.permission.app_error",
@@ -961,7 +961,7 @@
     },
     {
         "id": "api.command_mute.error",
-        "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів."
+        "translation": "Не вдається знайти канал {{.Channel}}. Будь-ласка, скористайтесь [документацією](https://about.mattermost.com/default-channel-handle-documentation) для ідентифікаціі каналів. "
     },
     {
         "id": "api.command_mute.hint",
@@ -1045,7 +1045,7 @@
     },
     {
         "id": "api.command_remove.missing.app_error",
-        "translation": "Ми не змогли знайти користувача. Можливо він заблокований Системним адміністратором."
+        "translation": "Не вдалося знайти користувача. Можливо він заблокований системним адміністратором."
     },
     {
         "id": "api.command_remove.name",
@@ -1065,7 +1065,7 @@
     },
     {
         "id": "api.command_search.hint",
-        "translation": "текс"
+        "translation": "текст "
     },
     {
         "id": "api.command_search.name",
@@ -1221,7 +1221,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -1301,7 +1301,7 @@
     },
     {
         "id": "api.file.get_public_link.disabled.app_error",
-        "translation": "Публічні посилання вимкнено "
+        "translation": "Публічні посилання вимкнено"
     },
     {
         "id": "api.file.get_public_link.no_post.app_error",
@@ -1413,7 +1413,7 @@
     },
     {
         "id": "api.incoming_webhook.disabled.app_error",
-        "translation": "Вхідні вебхуки були відключені системним адміністратором."
+        "translation": "Додаткові смайли були відключені системним адміністратором. "
     },
     {
         "id": "api.incoming_webhook.invalid_username.app_error",
@@ -2161,7 +2161,7 @@
     },
     {
         "id": "api.team.set_team_icon.too_large.app_error",
-        "translation": "Не вдається завантажити піктограму команди. Файл завеликий."
+        "translation": "Неможливо завантажити файл. Він занадто великий. "
     },
     {
         "id": "api.team.set_team_icon.write_file.app_error",
@@ -2337,7 +2337,7 @@
     },
     {
         "id": "api.templates.reset_body.button",
-        "translation": "Скинути пароль"
+        "translation": "Скинути мій пароль "
     },
     {
         "id": "api.templates.reset_body.info1",
@@ -2485,7 +2485,7 @@
     },
     {
         "id": "api.user.check_user_mfa.bad_code.app_error",
-        "translation": "Невірний MFA токен"
+        "translation": "Невірний MFA токен."
     },
     {
         "id": "api.user.check_user_password.invalid.app_error",
@@ -2557,7 +2557,7 @@
     },
     {
         "id": "api.user.create_user.no_open_server",
-        "translation": "Цей сервер не дозволяє відкрити реєстрацію. Будь-ласка, зверніться до свого адміністратора, щоб отримати запрошення."
+        "translation": "Цей сервер не дозволяє відкрити реєстрацію. Будь ласка, зверніться до свого адміністратора, щоб отримати запрошення."
     },
     {
         "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2705,7 +2705,7 @@
     },
     {
         "id": "api.user.saml.not_available.app_error",
-        "translation": "SAML 2.0 не налаштований та не підтримується на цьому сервері."
+        "translation": "Символ бренда не налаштована та не підтримується на цьому сервері.  "
     },
     {
         "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -2837,7 +2837,7 @@
     },
     {
         "id": "api.user.upload_profile_user.too_large.app_error",
-        "translation": "Не вдається завантажити піктограму команди. Файл завеликий. "
+        "translation": "Неможливо завантажити файл. Він занадто великий. "
     },
     {
         "id": "api.user.upload_profile_user.upload_profile.app_error",
@@ -4485,7 +4485,7 @@
     },
     {
         "id": "ent.saml.service_disable.app_error",
-        "translation": "SAML 2.0 не налаштований та не підтримується на цьому сервері."
+        "translation": "Символ бренда не налаштована та не підтримується на цьому сервері.  "
     },
     {
         "id": "group_not_associated_to_synced_team",
@@ -4561,7 +4561,7 @@
     },
     {
         "id": "mfa.activate.bad_token.app_error",
-        "translation": "Невірний MFA токен"
+        "translation": "Невірний MFA токен."
     },
     {
         "id": "mfa.activate.save_active.app_error",
@@ -4589,7 +4589,7 @@
     },
     {
         "id": "mfa.validate_token.authenticate.app_error",
-        "translation": "Невірний MFA токен"
+        "translation": "Невірний MFA токен."
     },
     {
         "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4617,7 +4617,7 @@
     },
     {
         "id": "model.access.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.authorize.is_valid.auth_code.app_error",
@@ -4653,7 +4653,7 @@
     },
     {
         "id": "model.authorize.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.bot.is_valid.create_at.app_error",
@@ -4673,7 +4673,7 @@
     },
     {
         "id": "model.bot.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.bot.is_valid.username.app_error",
@@ -4745,7 +4745,7 @@
     },
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.client.connecting.app_error",
@@ -4825,7 +4825,7 @@
     },
     {
         "id": "model.command.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.command_hook.channel_id.app_error",
@@ -4853,7 +4853,7 @@
     },
     {
         "id": "model.command_hook.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.compliance.is_valid.create_at.app_error",
@@ -5401,7 +5401,7 @@
     },
     {
         "id": "model.incoming_hook.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.incoming_hook.username.app_error",
@@ -5545,7 +5545,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.outgoing_hook.is_valid.words.app_error",
@@ -5633,7 +5633,7 @@
     },
     {
         "id": "model.post.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.preference.is_valid.category.app_error",
@@ -5641,7 +5641,7 @@
     },
     {
         "id": "model.preference.is_valid.id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.preference.is_valid.name.app_error",
@@ -5669,7 +5669,7 @@
     },
     {
         "id": "model.reaction.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.team.is_valid.characters.app_error",
@@ -5729,7 +5729,7 @@
     },
     {
         "id": "model.team_member.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.token.is_valid.expiry",
@@ -5765,7 +5765,7 @@
     },
     {
         "id": "model.user.is_valid.id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.user.is_valid.last_name.app_error",
@@ -5873,7 +5873,7 @@
     },
     {
         "id": "model.user_access_token.is_valid.user_id.app_error",
-        "translation": "Недійсний ідентифікатор користувача"
+        "translation": "Недійсний ідентифікатор користувача "
     },
     {
         "id": "model.utils.decode_json.app_error",
@@ -5901,7 +5901,7 @@
     },
     {
         "id": "plugin_api.get_file_link.disabled.app_error",
-        "translation": "Публічні посилання вимкнено "
+        "translation": "Публічні посилання вимкнено"
     },
     {
         "id": "plugin_api.get_file_link.no_post.app_error",
@@ -6577,7 +6577,7 @@
     },
     {
         "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Виникла помилка під час пошуку токену доступу"
+        "translation": "У нас виникла помилка під час пошуку токену доступу"
     },
     {
         "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
@@ -6609,7 +6609,7 @@
     },
     {
         "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Виникла помилка під час пошуку токену доступу"
+        "translation": "У нас виникла помилка під час пошуку токену доступу"
     },
     {
         "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -7457,7 +7457,7 @@
     },
     {
         "id": "store.sql_user.missing_account.const",
-        "translation": "Не вдається знайти користувача."
+        "translation": "Не вдається знайти користувача"
     },
     {
         "id": "store.sql_user.permanent_delete.app_error",
@@ -7925,7 +7925,7 @@
     },
     {
         "id": "web.incoming_webhook.disabled.app_error",
-        "translation": "Вхідні вебхуки були відключені системним адміністратором."
+        "translation": "Додаткові смайли були відключені системним адміністратором. "
     },
     {
         "id": "web.incoming_webhook.invalid.app_error",
