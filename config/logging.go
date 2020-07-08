@@ -47,39 +47,24 @@ func NewLogConfigSrc(dsn string, isJSON bool, fget FileGetter) (LogConfigSrc, er
 	return newFileSrc(dsn, fget)
 }
 
-// commonSrc
+// jsonSrc
 
-type commonSrc struct {
+type jsonSrc struct {
 	logSrcEmitter
 	mutex sync.RWMutex
 	cfg   mlog.LogTargetCfg
 }
 
-// Get fetches the current, cached configuration
-func (src *commonSrc) Get() mlog.LogTargetCfg {
-	src.mutex.RLock()
-	defer src.mutex.RUnlock()
-	return src.cfg
-}
-
-func (src *commonSrc) set(cfg mlog.LogTargetCfg) {
-	src.mutex.Lock()
-	defer src.mutex.Unlock()
-
-	old := src.cfg
-	src.cfg = cfg
-	src.invokeConfigListeners(old, cfg)
-}
-
-// jsonSrc
-
-type jsonSrc struct {
-	commonSrc
-}
-
 func newJSONSrc(data string) (*jsonSrc, error) {
 	src := &jsonSrc{}
 	return src, src.Set(data, nil)
+}
+
+// Get fetches the current, cached configuration
+func (src *jsonSrc) Get() mlog.LogTargetCfg {
+	src.mutex.RLock()
+	defer src.mutex.RUnlock()
+	return src.cfg
 }
 
 // Set updates the JSON specifying the source and reloads
@@ -93,6 +78,15 @@ func (src *jsonSrc) Set(data string, _ FileGetter) error {
 	return nil
 }
 
+func (src *jsonSrc) set(cfg mlog.LogTargetCfg) {
+	src.mutex.Lock()
+	defer src.mutex.Unlock()
+
+	old := src.cfg
+	src.cfg = cfg
+	src.invokeConfigListeners(old, cfg)
+}
+
 // Close cleans up resources.
 func (src *jsonSrc) Close() error {
 	return nil
@@ -101,7 +95,10 @@ func (src *jsonSrc) Close() error {
 // fileSrc
 
 type fileSrc struct {
-	commonSrc
+	logSrcEmitter
+	mutex sync.RWMutex
+	cfg   mlog.LogTargetCfg
+
 	path    string
 	watcher *watcher
 }
@@ -114,6 +111,13 @@ func newFileSrc(path string, fget FileGetter) (*fileSrc, error) {
 		return nil, err
 	}
 	return src, nil
+}
+
+// Get fetches the current, cached configuration
+func (src *fileSrc) Get() mlog.LogTargetCfg {
+	src.mutex.RLock()
+	defer src.mutex.RUnlock()
+	return src.cfg
 }
 
 // Set updates the dsn specifying the file source and reloads.
@@ -160,6 +164,15 @@ func (src *fileSrc) Set(path string, fget FileGetter) error {
 	src.watcher = watcher
 
 	return nil
+}
+
+func (src *fileSrc) set(cfg mlog.LogTargetCfg) {
+	src.mutex.Lock()
+	defer src.mutex.Unlock()
+
+	old := src.cfg
+	src.cfg = cfg
+	src.invokeConfigListeners(old, cfg)
 }
 
 // Close cleans up resources.
