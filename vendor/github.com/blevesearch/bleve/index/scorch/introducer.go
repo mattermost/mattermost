@@ -45,13 +45,7 @@ type epochWatcher struct {
 	notifyCh notificationChan
 }
 
-type snapshotReversion struct {
-	snapshot  *IndexSnapshot
-	applied   chan error
-	persisted chan error
-}
-
-func (s *Scorch) mainLoop() {
+func (s *Scorch) introducerLoop() {
 	var epochWatchers []*epochWatcher
 OUTER:
 	for {

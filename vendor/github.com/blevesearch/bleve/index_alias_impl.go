@@ -44,6 +44,16 @@ func NewIndexAlias(indexes ...Index) *indexAliasImpl {
 	}
 }
 
+// VisitIndexes invokes the visit callback on every
+// indexes included in the index alias.
+func (i *indexAliasImpl) VisitIndexes(visit func(Index)) {
+	i.mutex.RLock()
+	for _, idx := range i.indexes {
+		visit(idx)
+	}
+	i.mutex.RUnlock()
+}
+
 func (i *indexAliasImpl) isAliasToSingleIndex() error {
 	if len(i.indexes) < 1 {
 		return ErrorAliasEmpty
