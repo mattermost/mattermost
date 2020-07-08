@@ -4,18 +4,21 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+const FILE_PATH = "export/%s/%s"
+
 func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.ApiSessionRequired(downloadJob)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.ApiSessionRequired(cancelJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getJobsByType)).Methods("GET")
 }
@@ -37,38 +40,41 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
-	if forceDownload {
-		fileName := "actiance_export.xml"
-		fileMime := "application/xml"
-		if job.Data["export_type"] == "csv" {
-			fileName = "csv_export.zip"
-			fileMime = "applicaiton/zip"
-		}
+	w.Write([]byte(job.ToJson()))
+}
 
-		filePath := "export/" + job.Id + "/" + fileName
-		data, readFileErr := c.App.ReadFile(filePath)
-		if readFileErr != nil {
-			c.Err = readFileErr
-			return
-		}
-
-		fileReader, err := c.App.FileReader(filePath)
-		if err != nil {
-			c.Err = err
-			c.Err.StatusCode = http.StatusNotFound
-			return
-		}
-		defer fileReader.Close()
-
-		err = writeFileResponse(fileName, fileMime, int64(len(data)), time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
-		if err != nil {
-			c.Err = err
-			return
-		}
+func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireJobId()
+	if c.Err != nil {
+		return
 	}
 
-	w.Write([]byte(job.ToJson()))
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+		return
+	}
+
+	job, err := c.App.GetJob(c.Params.JobId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	filePath := fmt.Sprintf(FILE_PATH, job.Id, model.FILE_INFO[job.Data["export_type"]]["fileName"])
+	fileReader, err := c.App.FileReader(filePath)
+	if err != nil {
+		c.Err = err
+		c.Err.StatusCode = http.StatusNotFound
+		return
+	}
+	defer fileReader.Close()
+
+	data, _ := c.App.ReadFile(filePath)
+	err = writeFileResponse(model.FILE_INFO[job.Data["export_type"]]["fileName"], model.FILE_INFO[job.Data["export_type"]]["fileMime"], int64(len(data)), time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	if err != nil {
+		c.Err = err
+		return
+	}
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
