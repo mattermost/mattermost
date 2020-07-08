@@ -18,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/utils"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -443,7 +442,6 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	var userTeamMap []struct {
 		UserId string
 		TeamId string
-		Locale *string
 	}
 
 	transaction, err := s.GetMaster().Begin()
@@ -453,7 +451,7 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 
 	defer finalizeTransaction(transaction)
 
-	if _, err := transaction.Select(&userTeamMap, "SELECT TeamId, UserId, Users.Locale FROM TeamMembers LEFT JOIN Users ON Users.Id=UserId WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
+	if _, err := transaction.Select(&userTeamMap, "SELECT TeamId, UserId FROM TeamMembers LEFT JOIN Users ON Users.Id=UserId WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
 		return nil, err
 	}
 
@@ -463,12 +461,7 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	}
 
 	for _, u := range userTeamMap {
-		locale := "en"
-		if u.Locale != nil {
-			locale = *u.Locale
-		}
-
-		if err := s.createInitialSidebarCategoriesT(transaction, &model.User{Id: u.UserId, Locale: locale}, u.TeamId); err != nil {
+		if err := s.createInitialSidebarCategoriesT(transaction, u.UserId, u.TeamId); err != nil {
 			return nil, err
 		}
 	}
@@ -483,14 +476,14 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 	return data, nil
 }
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
+func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return err
 	}
 	defer finalizeTransaction(transaction)
 
-	if err := s.createInitialSidebarCategoriesT(transaction, user, teamId); err != nil {
+	if err := s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
 		return err
 	}
 
@@ -501,14 +494,12 @@ func (s SqlChannelStore) CreateInitialSidebarCategories(user *model.User, teamId
 	return nil
 }
 
-func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, user *model.User, teamId string) error {
-	T := utils.GetUserTranslations(user.Locale)
-
+func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Transaction, userId, teamId string) error {
 	selectQuery, selectParams, _ := s.getQueryBuilder().
 		Select("Type").
 		From("SidebarCategories").
 		Where(sq.Eq{
-			"UserId": user.Id,
+			"UserId": userId,
 			"TeamId": teamId,
 			"Type":   []model.SidebarCategoryType{model.SidebarCategoryFavorites, model.SidebarCategoryChannels, model.SidebarCategoryDirectMessages},
 		}).ToSql()
@@ -531,9 +522,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 
 	if !hasCategoryOfType(model.SidebarCategoryFavorites) {
 		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.favorites"),
+			DisplayName: "Favorites", // This will be retranslated by the client into the user's locale
 			Id:          model.NewId(),
-			UserId:      user.Id,
+			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortDefault,
 			SortOrder:   model.DefaultSidebarSortOrderFavorites,
@@ -545,9 +536,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 
 	if !hasCategoryOfType(model.SidebarCategoryChannels) {
 		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.channels"),
+			DisplayName: "Channels", // This will be retranslateed by the client into the user's locale
 			Id:          model.NewId(),
-			UserId:      user.Id,
+			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortDefault,
 			SortOrder:   model.DefaultSidebarSortOrderChannels,
@@ -559,9 +550,9 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 
 	if !hasCategoryOfType(model.SidebarCategoryDirectMessages) {
 		if err := transaction.Insert(&model.SidebarCategory{
-			DisplayName: T("sidebar.category.dm"),
+			DisplayName: "Direct Messages", // This will be retranslateed by the client into the user's locale
 			Id:          model.NewId(),
-			UserId:      user.Id,
+			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortRecent,
 			SortOrder:   model.DefaultSidebarSortOrderDMs,
