@@ -20,8 +20,8 @@ func init() {
 		SYSTEM_POST_ALL_PUBLIC_ROLE_ID,
 		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
 		SYSTEM_USER_MANAGER_ROLE_ID,
-		SYSTEM_CONSOLE_VIEWER_ROLE_ID,
-		SYSTEM_JUNIOR_ADMIN_ROLE_ID,
+		SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
+		SYSTEM_RESTRICTED_ADMIN_ROLE_ID,
 
 		TEAM_GUEST_ROLE_ID,
 		TEAM_USER_ROLE_ID,
@@ -46,8 +46,8 @@ const (
 	SYSTEM_POST_ALL_PUBLIC_ROLE_ID   = "system_post_all_public"
 	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
 	SYSTEM_USER_MANAGER_ROLE_ID      = "system_user_manager"
-	SYSTEM_CONSOLE_VIEWER_ROLE_ID    = "system_console_viewer"
-	SYSTEM_JUNIOR_ADMIN_ROLE_ID      = "system_junior_admin"
+	SYSTEM_READ_ONLY_ADMIN_ROLE_ID   = "system_read_only_admin"
+	SYSTEM_RESTRICTED_ADMIN_ROLE_ID  = "system_restricted_admin"
 
 	TEAM_GUEST_ROLE_ID           = "team_guest"
 	TEAM_USER_ROLE_ID            = "team_user"
@@ -599,8 +599,8 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	roles[SYSTEM_CONSOLE_VIEWER_ROLE_ID] = &Role{
-		Name:        "system_console_viewer",
+	roles[SYSTEM_READ_ONLY_ADMIN_ROLE_ID] = &Role{
+		Name:        "system_read_only_admin",
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
 		Permissions: []string{
@@ -621,8 +621,8 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	roles[SYSTEM_JUNIOR_ADMIN_ROLE_ID] = &Role{
-		Name:        "system_junior_admin",
+	roles[SYSTEM_RESTRICTED_ADMIN_ROLE_ID] = &Role{
+		Name:        "system_restricted_admin",
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
 		Permissions: []string{
