@@ -630,7 +630,7 @@ func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, o
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
+func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(userId string, teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CreateInitialSidebarCategories")
 	s.Root.Store.SetContext(newCtx)
@@ -639,7 +639,7 @@ func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(user *mode
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(user, teamId)
+	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
