@@ -18,7 +18,7 @@ func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.ApiSessionRequired(downloadJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadJob)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.ApiSessionRequired(cancelJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getJobsByType)).Methods("GET")
 }
@@ -56,21 +56,28 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
-		c.Err = err
+		c.Err = &model.AppError{
+			Id:         err.Id,
+			Message:    err.Message,
+			StatusCode: err.StatusCode,
+		}
 		return
 	}
 
 	filePath := fmt.Sprintf(FILE_PATH, job.Id, model.FILE_INFO[job.Data["export_type"]]["fileName"])
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
-		c.Err = err
+		c.Err = &model.AppError{
+			Id:         err.Id,
+			Message:    err.Message,
+			StatusCode: err.StatusCode,
+		}
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
 	defer fileReader.Close()
 
-	data, _ := c.App.ReadFile(filePath)
-	err = writeFileResponse(model.FILE_INFO[job.Data["export_type"]]["fileName"], model.FILE_INFO[job.Data["export_type"]]["fileMime"], int64(len(data)), time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	err = writeFileResponse(model.FILE_INFO[job.Data["export_type"]]["fileName"], model.FILE_INFO[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 	if err != nil {
 		c.Err = err
 		return
