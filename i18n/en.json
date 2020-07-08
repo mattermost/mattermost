@@ -6211,18 +6211,6 @@
     "translation": "Error purging Bleve indexes: engine is disabled"
   },
   {
-    "id": "sidebar.category.channels",
-    "translation": "Channels"
-  },
-  {
-    "id": "sidebar.category.dm",
-    "translation": "Direct Messages"
-  },
-  {
-    "id": "sidebar.category.favorites",
-    "translation": "Favorites"
-  },
-  {
     "id": "store.insert_error",
     "translation": "insert error"
   },
