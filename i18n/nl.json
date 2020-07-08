@@ -53,7 +53,7 @@
     },
     {
         "id": "api.admin.add_certificate.array.app_error",
-        "translation": "Geen bestand in 'certificate' veld bij aanvraag."
+        "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
     },
     {
         "id": "api.admin.add_certificate.no_file.app_error",
@@ -109,7 +109,7 @@
     },
     {
         "id": "api.admin.saml.metadata.app_error",
-        "translation": "Er is een fout opgetreden tijdens het opstellen van Service Provider Metadata."
+        "translation": "Er is een fout opgetreden tijdens het opzetten van Service Provider Metadata."
     },
     {
         "id": "api.admin.saml.not_available.app_error",
@@ -145,19 +145,19 @@
     },
     {
         "id": "api.admin.test_s3.missing_s3_bucket",
-        "translation": "S3 Bucket is required"
+        "translation": "S3 Bucket is vereist"
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Lege array bij 'image' in aanvraag"
+        "translation": "Lege array bij 'image' in aanvraag."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Geen bestand bij 'image' in aanvraag"
+        "translation": "Geen bestand bij 'image' in aanvraag."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Kan het 'multipart'-formulier niet verwerken"
+        "translation": "Kan het 'multipart'-formulier niet verwerken."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -181,23 +181,23 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.app_error",
-        "translation": "Kan de pictogram afbeelding niet uploaden"
+        "translation": "Kan de pictogram afbeelding niet uploaden."
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Lege array bij 'image' in aanvraag"
+        "translation": "Lege array bij 'image' in aanvraag."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Geen bestand bij 'image' in aanvraag"
+        "translation": "Geen bestand bij 'image' in aanvraag."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Kan licentie bestand niet openen"
+        "translation": "Kan afbeeldingsbestand niet openen."
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Kan het 'multipart'-formulier niet verwerken"
+        "translation": "Kan het 'multipart'-formulier niet verwerken."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -205,7 +205,7 @@
     },
     {
         "id": "api.bot.teams_channels.add_message_mobile",
-        "translation": "Voeg me toe aan aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
+        "translation": "Voeg me toe aan de teams en kanalen waarin je met me wil praten. Gebruik hiervoor je browser of de Mattermost desktop app."
     },
     {
         "id": "api.channel.add_guest.added",
@@ -225,7 +225,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Kan de gebruiker niet aan het kanaal toevoegen"
+        "translation": "Kan de gebruiker niet aan het kanaal toevoegen."
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -233,7 +233,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal"
+        "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -253,15 +253,15 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
-        "translation": "The channel requested to convert is already a private channel."
+        "translation": "Het te converteren kanaal is reeds een privé-kanaal."
     },
     {
         "id": "api.channel.create_channel.direct_channel.app_error",
-        "translation": "U moet de 'createDirectChannel' API service gebruiken om een direct kanaal aan te maken"
+        "translation": "Je moet de 'createDirectChannel' API service gebruiken om een direct kanaal aan te maken."
     },
     {
         "id": "api.channel.create_channel.max_channel_limit.app_error",
-        "translation": "Kan niet meer dan {{.MaxChannelsPerTeam}} kanalen aanmaken voor het huidige team"
+        "translation": "Kan niet meer dan {{.MaxChannelsPerTeam}} kanalen aanmaken voor het huidige team."
     },
     {
         "id": "api.channel.create_default_channels.off_topic",
@@ -277,11 +277,11 @@
     },
     {
         "id": "api.channel.create_group.bad_size.app_error",
-        "translation": "Groep bericht kanalen moeten tenminste 3 en niet meer dan 8 gebruikers bevatten"
+        "translation": "Groep bericht kanalen moeten tenminste 3 en niet meer dan 8 gebruikers bevatten."
     },
     {
         "id": "api.channel.create_group.bad_user.app_error",
-        "translation": "Een van de opgegeven gebruikers bestaat niet"
+        "translation": "Een van de opgegeven gebruikers bestaat niet."
     },
     {
         "id": "api.channel.delete_channel.archived",
@@ -289,15 +289,15 @@
     },
     {
         "id": "api.channel.delete_channel.cannot.app_error",
-        "translation": "Het standaardkanaal {{.Channel}} kan niet verwijderd worden"
+        "translation": "Het standaardkanaal {{.Channel}} kan niet verwijderd worden."
     },
     {
         "id": "api.channel.delete_channel.deleted.app_error",
-        "translation": "Het kanaal is gearchiveerd of verwijderd"
+        "translation": "Het kanaal is gearchiveerd of verwijderd."
     },
     {
         "id": "api.channel.delete_channel.type.invalid",
-        "translation": "Unable to delete direct or group message channels"
+        "translation": "Kan het directe berichtenkanaal of groepsberichtenkanaal niet verwijderen"
     },
     {
         "id": "api.channel.get_channel_moderations.license.error",
@@ -309,7 +309,7 @@
     },
     {
         "id": "api.channel.join_channel.permissions.app_error",
-        "translation": "U beschikt niet over de juiste rechten"
+        "translation": "Je beschikt niet over de juiste rechten."
     },
     {
         "id": "api.channel.join_channel.post_and_forget",
@@ -317,11 +317,11 @@
     },
     {
         "id": "api.channel.leave.default.app_error",
-        "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten"
+        "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten."
     },
     {
         "id": "api.channel.leave.direct.app_error",
-        "translation": "Een direct kanaal kan niet verlaten worden"
+        "translation": "Een direct kanaal kan niet verlaten worden."
     },
     {
         "id": "api.channel.leave.last_member.app_error",
@@ -333,15 +333,15 @@
     },
     {
         "id": "api.channel.patch_channel_moderations.license.error",
-        "translation": "Je licentie ondersteunt geen kanaal moderatie."
+        "translation": "Jouw licentie ondersteunt geen kanaalmoderatie"
     },
     {
         "id": "api.channel.patch_update_channel.forbidden.app_error",
-        "translation": "Kan de kanalen niet ophalen"
+        "translation": "Kan de kanalen niet ophalen."
     },
     {
         "id": "api.channel.post_channel_privacy_message.error",
-        "translation": "Failed to post channel privacy update message."
+        "translation": "Fout bij het verzenden van het kanaal privacy update bericht."
     },
     {
         "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -381,11 +381,11 @@
     },
     {
         "id": "api.channel.remove.default.app_error",
-        "translation": "Kan het standaardkanaal {{.Channel}} niet verlaten"
+        "translation": "Kan de gebruiker niet verwijderen uit het standaardkanaal {{.Channel}}."
     },
     {
         "id": "api.channel.remove_channel_member.type.app_error",
-        "translation": "Unable to remove user from a channel."
+        "translation": "Kan de gebruiker niet verwijderen van een kanaal."
     },
     {
         "id": "api.channel.remove_member.group_constrained.app_error",
@@ -405,11 +405,11 @@
     },
     {
         "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-        "translation": "You cannot rename a direct message channel"
+        "translation": "Je kan geen directberichtenkanaal hernoemen."
     },
     {
         "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-        "translation": "You cannot rename a group message channel"
+        "translation": "Je kan de naam niet wijzigen van een groepsberichtenkanaal."
     },
     {
         "id": "api.channel.restore_channel.restored.app_error",
@@ -421,11 +421,11 @@
     },
     {
         "id": "api.channel.update_channel.deleted.app_error",
-        "translation": "Het kanaal is gearchiveerd of verwijderd"
+        "translation": "Het kanaal is gearchiveerd of verwijderd."
     },
     {
         "id": "api.channel.update_channel.tried.app_error",
-        "translation": "Een ongeldige bijwerkings-poging van het standaard kanaal {{.Channel}} is geprobeerd"
+        "translation": "Er werd geprobeerd om een ongeldige aanpassing toe doen van het standaard kanaal {{.Channel}}."
     },
     {
         "id": "api.channel.update_channel.typechange.app_error",
@@ -441,7 +441,7 @@
     },
     {
         "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-        "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+        "translation": "De toegekende rol wordt beheerd door een schema en kan daardoor niet rechtstreeks toegekend worden aan een kanaallid."
     },
     {
         "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -449,11 +449,11 @@
     },
     {
         "id": "api.channel.update_channel_scheme.license.error",
-        "translation": "Your license does not support updating a channel's scheme"
+        "translation": "Jouw licentie staat niet toe om een kanaalschema te wijzigen"
     },
     {
         "id": "api.channel.update_channel_scheme.scheme_scope.error",
-        "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+        "translation": "Kan het schema niet toepassen op het kanaal want het toegevoegde schema is geen kanaalschema."
     },
     {
         "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -461,7 +461,7 @@
     },
     {
         "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-        "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+        "translation": "De toegekende rol wordt beheerd door een schema en kan daardoor niet rechtstreeks toegekend worden aan een teamlid."
     },
     {
         "id": "api.command.admin_only.app_error",
@@ -469,7 +469,7 @@
     },
     {
         "id": "api.command.command_post.forbidden.app_error",
-        "translation": "Specified user is not a member of specified channel."
+        "translation": "De gespecificeerde gebruikers is geen lid van het gespecificeerde kanaal."
     },
     {
         "id": "api.command.disabled.app_error",
@@ -481,19 +481,19 @@
     },
     {
         "id": "api.command.execute_command.create_post_failed.app_error",
-        "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+        "translation": "Opdracht '{{.Trigger}}' kon geen antwoord plaatsen. Contacteer je systeembeheerder."
     },
     {
         "id": "api.command.execute_command.failed.app_error",
-        "translation": "Opdracht met activeer-woord '{{.Trigger}}' is mislukt"
+        "translation": "Opdracht met activeer-woord '{{.Trigger}}' is mislukt."
     },
     {
         "id": "api.command.execute_command.failed_empty.app_error",
-        "translation": "Opdracht met activeer-woord '{{.Trigger}}' stuurde een leeg antwoord"
+        "translation": "Opdracht met activeer-woord '{{.Trigger}}' stuurde een leeg antwoord."
     },
     {
         "id": "api.command.execute_command.failed_resp.app_error",
-        "translation": "Opdracht met activeer-woord '{{.Trigger}}' kreeg antwoord {{.Status}}"
+        "translation": "Opdracht met activeer-woord '{{.Trigger}}' kreeg antwoord {{.Status}}."
     },
     {
         "id": "api.command.execute_command.format.app_error",
@@ -501,11 +501,11 @@
     },
     {
         "id": "api.command.execute_command.not_found.app_error",
-        "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+        "translation": "Opdracht met trigger '{{.Trigger}}' niet gevonden. Om een bericht te versturen dat begint met een \"/\", voeg een spatie toe aan het begin van het bericht."
     },
     {
         "id": "api.command.execute_command.start.app_error",
-        "translation": "Geen opdracht activeer-woorden gevonden"
+        "translation": "Geen opdracht activeer-woorden gevonden."
     },
     {
         "id": "api.command.invite_people.desc",
@@ -513,7 +513,7 @@
     },
     {
         "id": "api.command.invite_people.email_invitations_off",
-        "translation": "Email invitations are disabled, no invite(s) sent"
+        "translation": "E-mailuitnodingen zijn uitgeschakeld. Er werd geen uitnodiging verzonden"
     },
     {
         "id": "api.command.invite_people.email_off",
@@ -529,7 +529,7 @@
     },
     {
         "id": "api.command.invite_people.invite_off",
-        "translation": "User creation has been disabled on this server, no invite(s) sent"
+        "translation": "Het aanmaken van gebruikers is uitgeschakeld op deze server. Er werd geen uitnodiging verstuurd"
     },
     {
         "id": "api.command.invite_people.name",
@@ -545,7 +545,7 @@
     },
     {
         "id": "api.command.team_mismatch.app_error",
-        "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
+        "translation": "Fout bij het bijwerken van commando's voor meerdere teams."
     },
     {
         "id": "api.command_away.desc",
@@ -561,11 +561,11 @@
     },
     {
         "id": "api.command_channel_header.channel.app_error",
-        "translation": "Error to retrieve the current channel."
+        "translation": "Fout bij het ophalen van het huidige kanaal."
     },
     {
         "id": "api.command_channel_header.desc",
-        "translation": "Edit the channel header"
+        "translation": "Kanaalhoofding wijzigen"
     },
     {
         "id": "api.command_channel_header.hint",
@@ -577,27 +577,27 @@
     },
     {
         "id": "api.command_channel_header.name",
-        "translation": "header"
+        "translation": "hoofding"
     },
     {
         "id": "api.command_channel_header.permission.app_error",
-        "translation": "You don't have the appropriate permissions to edit the channel header."
+        "translation": "Je hebt niet voldoende rechten om de kanaalhoofding te wijzigen."
     },
     {
         "id": "api.command_channel_header.update_channel.app_error",
-        "translation": "Error to update the current channel."
+        "translation": "Fout bij het bijwerken van het huidige kanaal."
     },
     {
         "id": "api.command_channel_purpose.channel.app_error",
-        "translation": "Error to retrieve the current channel."
+        "translation": "Fout bij het ophalen van het huidige kanaal."
     },
     {
         "id": "api.command_channel_purpose.desc",
-        "translation": "Edit the channel purpose"
+        "translation": "Wijzig het kanaaldoel"
     },
     {
         "id": "api.command_channel_purpose.direct_group.app_error",
-        "translation": "Unable to set purpose for direct message channels. Use /header to set the header instead."
+        "translation": "Kan geen doel instellen voor directe berichtkanalen. Gebruik /header om de hoofding in te stellen."
     },
     {
         "id": "api.command_channel_purpose.hint",
@@ -605,11 +605,11 @@
     },
     {
         "id": "api.command_channel_purpose.message.app_error",
-        "translation": "Een bericht moet worden opgegeven met het /echo commando."
+        "translation": "Een bericht moet worden opgegeven met het /purpose commando."
     },
     {
         "id": "api.command_channel_purpose.name",
-        "translation": "purpose"
+        "translation": "doel"
     },
     {
         "id": "api.command_channel_purpose.permission.app_error",
@@ -617,15 +617,15 @@
     },
     {
         "id": "api.command_channel_purpose.update_channel.app_error",
-        "translation": "Error to update the current channel."
+        "translation": "Fout bij het bijwerken van het huidige kanaal."
     },
     {
         "id": "api.command_channel_remove.channel.app_error",
-        "translation": "Error retrieving the current channel."
+        "translation": "Fout bij het ophalen van het huidige kanaal."
     },
     {
         "id": "api.command_channel_rename.channel.app_error",
-        "translation": "Error to retrieve the current channel."
+        "translation": "Fout bij het ophalen van het huidige kanaal."
     },
     {
         "id": "api.command_channel_rename.desc",
@@ -633,7 +633,7 @@
     },
     {
         "id": "api.command_channel_rename.direct_group.app_error",
-        "translation": "Een direct kanaal kan niet verlaten worden"
+        "translation": "Een direct kanaal kan niet hernoemd worden."
     },
     {
         "id": "api.command_channel_rename.hint",
@@ -653,11 +653,11 @@
     },
     {
         "id": "api.command_channel_rename.too_long.app_error",
-        "translation": "Channel name must be {{.Length}} or fewer characters"
+        "translation": "Kanaalnaam moet {{.Length}}  of minder karakters zijn."
     },
     {
         "id": "api.command_channel_rename.too_short.app_error",
-        "translation": "Channel name must be {{.Length}} or more characters"
+        "translation": "Kanaalnaam moet {{.Length}} of meer karakters zijn."
     },
     {
         "id": "api.command_channel_rename.update_channel.app_error",
@@ -713,7 +713,7 @@
     },
     {
         "id": "api.command_echo.delay.app_error",
-        "translation": "Wachttijden moeten kleiner dan 10000 seconden zijn"
+        "translation": "Wachttijden moeten kleiner dan 10000 seconden zijn."
     },
     {
         "id": "api.command_echo.desc",
@@ -721,7 +721,7 @@
     },
     {
         "id": "api.command_echo.high_volume.app_error",
-        "translation": "Teveel echo verzoeken, kan het verzoek niet verwerken"
+        "translation": "Teveel echo verzoeken, kan het verzoek niet verwerken."
     },
     {
         "id": "api.command_echo.hint",
@@ -749,7 +749,7 @@
     },
     {
         "id": "api.command_expand_collapse.fail.app_error",
-        "translation": "Er is een fout opgetreden tijdens het vergroten van de voorbeelden"
+        "translation": "Er is een fout opgetreden tijdens het vergroten van de voorbeelden."
     },
     {
         "id": "api.command_groupmsg.desc",
@@ -880,7 +880,7 @@
     },
     {
         "id": "api.command_join.missing.app_error",
-        "translation": "Kan de kanalen niet ophalen"
+        "translation": "Kan de kanalen niet ophalen."
     },
     {
         "id": "api.command_join.name",
@@ -944,7 +944,7 @@
     },
     {
         "id": "api.command_msg.missing.app_error",
-        "translation": "Kan de kanalen niet ophalen"
+        "translation": "Kan de gebruiker niet vinden."
     },
     {
         "id": "api.command_msg.name",
@@ -1008,7 +1008,7 @@
     },
     {
         "id": "api.command_online.desc",
-        "translation": "Stel uw status in naar Online."
+        "translation": "Stel jouw status in op online"
     },
     {
         "id": "api.command_online.name",
@@ -1072,7 +1072,7 @@
     },
     {
         "id": "api.command_search.unsupported.app_error",
-        "translation": "The search command is not supported on your device"
+        "translation": "De zoekopdracht wordt niet ondersteund op jouw toestel."
     },
     {
         "id": "api.command_settings.desc",
@@ -1084,7 +1084,7 @@
     },
     {
         "id": "api.command_settings.unsupported.app_error",
-        "translation": "The settings command is not supported on your device"
+        "translation": "De instellingsopdracht wordt niet ondersteund op jouw toestel."
     },
     {
         "id": "api.command_shortcuts.desc",
@@ -1096,7 +1096,7 @@
     },
     {
         "id": "api.command_shortcuts.unsupported.app_error",
-        "translation": "The shortcuts command is not supported on your device"
+        "translation": "De snelkoppelingsopdracht wordt niet ondersteund op jouw toestel."
     },
     {
         "id": "api.command_shrug.desc",
@@ -1124,11 +1124,11 @@
     },
     {
         "id": "api.context.invalid_body_param.app_error",
-        "translation": "Invalid or missing {{.Name}} in request body"
+        "translation": "Foutief of ontrbrekend {{.Name}} in request body."
     },
     {
         "id": "api.context.invalid_param.app_error",
-        "translation": "Ongeldig {{.Name}} parameter"
+        "translation": "Ongeldig {{.Name}} parameter."
     },
     {
         "id": "api.context.invalid_token.error",
@@ -1136,7 +1136,7 @@
     },
     {
         "id": "api.context.invalid_url_param.app_error",
-        "translation": "Invalid or missing {{.Name}} parameter in request URL"
+        "translation": "Ongeldig of ontbrekende {{.Name}} parameter in request URL."
     },
     {
         "id": "api.context.local_origin_required.app_error",
@@ -1148,7 +1148,7 @@
     },
     {
         "id": "api.context.permissions.app_error",
-        "translation": "U beschikt niet over de juiste rechten"
+        "translation": "Je beschikt niet over de juiste rechten."
     },
     {
         "id": "api.context.server_busy.app_error",
@@ -1160,11 +1160,11 @@
     },
     {
         "id": "api.context.token_provided.app_error",
-        "translation": "Sessie is niet OAuth, maar token was doorgegeven in de query string"
+        "translation": "Sessie is niet OAuth, maar token was doorgegeven in de query string."
     },
     {
         "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
-        "translation": "Custom terms of service feature is disabled"
+        "translation": "Aangepaste servicevoorwaarden zijn uitgeschakeld."
     },
     {
         "id": "api.create_terms_of_service.empty_text.app_error",
@@ -1172,11 +1172,11 @@
     },
     {
         "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-        "translation": "Kanaal voor e-mail batch taken was vol. Verhoog a.u.b. de EmailBatchingBufferSize"
+        "translation": "Het kanaal voor het ontvangen van bulk e-mailberichten was vol. Verhoog a.u.b. de EmailBatchingBufferSize."
     },
     {
         "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-        "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder"
+        "translation": "Bulk emails zijn uitgeschakeld door de systeembeheerder."
     },
     {
         "id": "api.email_batching.render_batched_post.date",
@@ -1218,7 +1218,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "Ongeldige gebruikers id"
+        "translation": "Ongeldige gebruikersid."
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -1238,7 +1238,7 @@
     },
     {
         "id": "api.emoji.get_image.read.app_error",
-        "translation": "Kon plaatje niet lezen voor emoji"
+        "translation": "Kon afbeeldingsbestand niet lezen voor emoticon."
     },
     {
         "id": "api.emoji.storage.app_error",
@@ -1286,23 +1286,23 @@
     },
     {
         "id": "api.file.get_file.public_invalid.app_error",
-        "translation": "De publieke link lijkt niet geldig"
+        "translation": "De publieke link lijkt niet geldig."
     },
     {
         "id": "api.file.get_file_preview.no_preview.app_error",
-        "translation": "Bestand heeft geen voorvertoning afbeelding"
+        "translation": "Bestand heeft geen voorvertoningsafbeelding."
     },
     {
         "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
-        "translation": "Bestand heeft geen miniatuur afbeelding"
+        "translation": "Bestand heeft geen miniatuur afbeelding."
     },
     {
         "id": "api.file.get_public_link.disabled.app_error",
-        "translation": "Publieke links zijn uitgeschakeld"
+        "translation": "Publieke links zijn uitgeschakeld."
     },
     {
         "id": "api.file.get_public_link.no_post.app_error",
-        "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker. "
+        "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
     },
     {
         "id": "api.file.move_file.copy_within_s3.app_error",
@@ -1322,19 +1322,19 @@
     },
     {
         "id": "api.file.read_file.reading_local.app_error",
-        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag."
     },
     {
         "id": "api.file.read_file.s3.app_error",
-        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
     },
     {
         "id": "api.file.reader.reading_local.app_error",
-        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale server opslag."
     },
     {
         "id": "api.file.reader.s3.app_error",
-        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit lokale opslag"
+        "translation": "Er is een fout opgetreden bij het lezen van een bestand uit S3 opslag."
     },
     {
         "id": "api.file.test_connection.local.connection.app_error",
@@ -1366,7 +1366,7 @@
     },
     {
         "id": "api.file.upload_file.large_image_detailed.app_error",
-        "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+        "translation": "{{.Filename}} grootte ({{.Width}} op {{.Height}} pixels) overschrijdt de limieten."
     },
     {
         "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1394,15 +1394,15 @@
     },
     {
         "id": "api.file.write_file.s3.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3"
+        "translation": "Er is een probleem opgetreden tijdens het schrijven naar S3."
     },
     {
         "id": "api.file.write_file_locally.create_dir.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het aanmaken van een directory voor een nieuw bestand"
+        "translation": "Er is een probleem opgetreden tijdens het aanmaken van een map voor het nieuwe bestand."
     },
     {
         "id": "api.file.write_file_locally.writing.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het schrijven naar lokale opslag"
+        "translation": "Er is een probleem opgetreden tijdens het schrijven naar lokale serveropslag."
     },
     {
         "id": "api.image.get.app_error",
@@ -1414,7 +1414,7 @@
     },
     {
         "id": "api.incoming_webhook.invalid_username.app_error",
-        "translation": "Ongeldige gebruikersnaam"
+        "translation": "Ongeldige gebruikersnaam."
     },
     {
         "id": "api.io_error",
@@ -1442,7 +1442,7 @@
     },
     {
         "id": "api.license.add_license.array.app_error",
-        "translation": "Lege data bij 'license' in aanvraag"
+        "translation": "Lege data bij 'license' in aanvraag."
     },
     {
         "id": "api.license.add_license.expired.app_error",
@@ -1458,11 +1458,11 @@
     },
     {
         "id": "api.license.add_license.no_file.app_error",
-        "translation": "Geen bestand bij 'license' in aanvraag"
+        "translation": "Geen bestand bij 'license' in aanvraag."
     },
     {
         "id": "api.license.add_license.open.app_error",
-        "translation": "Kan licentie bestand niet openen"
+        "translation": "Kan licentiebestand niet openen."
     },
     {
         "id": "api.license.add_license.save.app_error",
@@ -1490,7 +1490,7 @@
     },
     {
         "id": "api.oauth.allow_oauth.redirect_callback.app_error",
-        "translation": "ongeldige aanvraag: De opgegeven redirect_uri komt niet overeen met de geregistreerde callback_url"
+        "translation": "ongeldige aanvraag: De opgegeven redirect_uri komt niet overeen met de geregistreerde callback_url."
     },
     {
         "id": "api.oauth.allow_oauth.turn_off.app_error",
@@ -1502,19 +1502,19 @@
     },
     {
         "id": "api.oauth.get_access_token.bad_client_id.app_error",
-        "translation": "ongeldige aanvraag: Verkeerd client_id"
+        "translation": "ongeldige aanvraag: Foutief client_id."
     },
     {
         "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-        "translation": "ongeldige aanvraag (invalid_request): Mist client_secret"
+        "translation": "ongeldige aanvraag (invalid_request): Ontbrekend client_secret."
     },
     {
         "id": "api.oauth.get_access_token.bad_grant.app_error",
-        "translation": "ongeldige aanvraag: Verkeerd grant_type"
+        "translation": "ongeldige aanvraag: Foutief grant_type."
     },
     {
         "id": "api.oauth.get_access_token.credentials.app_error",
-        "translation": "Ongeldige client (invalid_client): Ongeldige client credentials"
+        "translation": "Ongeldige client (invalid_client): Ongeldige client credentials."
     },
     {
         "id": "api.oauth.get_access_token.disabled.app_error",
@@ -1522,43 +1522,43 @@
     },
     {
         "id": "api.oauth.get_access_token.expired_code.app_error",
-        "translation": "(invalid_grant): Ongeldig of verlopen authorisatie code"
+        "translation": "(invalid_grant): Ongeldig of verlopen authorisatie code."
     },
     {
         "id": "api.oauth.get_access_token.internal.app_error",
-        "translation": "Server fout (server_error): Er een interne server fout opgetreden tijdens het benaderen van de database"
+        "translation": "Server fout (server_error): Er een interne server fout opgetreden tijdens het benaderen van de database."
     },
     {
         "id": "api.oauth.get_access_token.internal_saving.app_error",
-        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het opslaan van het toegangs-token in de database"
+        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het bewaren van het toegangstoken in de database."
     },
     {
         "id": "api.oauth.get_access_token.internal_session.app_error",
-        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het opslaan van de sessie in de database"
+        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het bewaren van de sessie in de database."
     },
     {
         "id": "api.oauth.get_access_token.internal_user.app_error",
-        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het ophalen van de gebruiker uit de database"
+        "translation": "Server fout (server_error): Er is een interne server fout opgetreden tijdens het ophalen van de gebruiker uit de database."
     },
     {
         "id": "api.oauth.get_access_token.missing_code.app_error",
-        "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende code"
+        "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende code."
     },
     {
         "id": "api.oauth.get_access_token.missing_refresh_token.app_error",
-        "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende refresh_token"
+        "translation": "Ongeldige aanvraag (invalid_request): Ontbrekende refresh_token."
     },
     {
         "id": "api.oauth.get_access_token.redirect_uri.app_error",
-        "translation": "Ongeldige aanvraag (invalid_request): De gegeven redirect_uri komt niet overeen met de autorisatie code redirect_uri"
+        "translation": "Ongeldige aanvraag (invalid_request): De gegeven redirect_uri komt niet overeen met de autorisatie code redirect_uri."
     },
     {
         "id": "api.oauth.get_access_token.refresh_token.app_error",
-        "translation": "invalid_grant: Verkeerd refresh token"
+        "translation": "invalid_grant: Foutief refresh token."
     },
     {
         "id": "api.oauth.invalid_state_token.app_error",
-        "translation": "Invalid state token"
+        "translation": "Invalid state token."
     },
     {
         "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1566,15 +1566,15 @@
     },
     {
         "id": "api.oauth.revoke_access_token.del_session.app_error",
-        "translation": "Er is een fout opgetreden tijdens het verwijderen van de sessie uit de database"
+        "translation": "Fout bij het verwijderen van de sessie uit de database."
     },
     {
         "id": "api.oauth.revoke_access_token.del_token.app_error",
-        "translation": "Er is een fout opgetreden tijdens het verwijderen van het access token uit de database"
+        "translation": "Fout bij het verwijderen van het access token uit de database."
     },
     {
         "id": "api.oauth.revoke_access_token.get.app_error",
-        "translation": "Er is een fout opgetreden tijdens het ophalen van het access token uit de database, voor het verwijderen"
+        "translation": "Fout bij het ophalen van het access token uit de database, voor het verwijderen."
     },
     {
         "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1582,11 +1582,11 @@
     },
     {
         "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-        "translation": "De aanmeld link is verlopen"
+        "translation": "De aanmeldlink is verlopen."
     },
     {
         "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-        "translation": "De aanmeld link is niet geldig"
+        "translation": "De aanmeldlink lijkt niet geldig te zijn."
     },
     {
         "id": "api.outgoing_webhook.disabled.app_error",
@@ -1602,15 +1602,15 @@
     },
     {
         "id": "api.plugin.upload.array.app_error",
-        "translation": "File array is empty in multipart/form request"
+        "translation": "File array is leeg in multipart/form request."
     },
     {
         "id": "api.plugin.upload.file.app_error",
-        "translation": "Unable to open file in multipart/form request"
+        "translation": "Kan file niet openen in multipart/form request."
     },
     {
         "id": "api.plugin.upload.no_file.app_error",
-        "translation": "Missing file in multipart/form request"
+        "translation": "Ontbrekende file in multipart/form request."
     },
     {
         "id": "api.plugin.verify_plugin.app_error",
@@ -1642,15 +1642,15 @@
     },
     {
         "id": "api.post.create_post.channel_root_id.app_error",
-        "translation": "Ongeldig ChannelId voor RootId parameter"
+        "translation": "Ongeldig ChannelId voor RootId parameter."
     },
     {
         "id": "api.post.create_post.parent_id.app_error",
-        "translation": "Ongeldig ParentId parameter"
+        "translation": "Ongeldig ParentId parameter."
     },
     {
         "id": "api.post.create_post.root_id.app_error",
-        "translation": "Ogeldig RootId parameter"
+        "translation": "Ongeldig RootId parameter."
     },
     {
         "id": "api.post.create_post.town_square_read_only",
@@ -1658,7 +1658,7 @@
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
-        "translation": "Fout bij het aanmaken van bericht"
+        "translation": "Fout bij het aanmaken van bericht."
     },
     {
         "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -1686,11 +1686,11 @@
     },
     {
         "id": "api.post.do_action.action_id.app_error",
-        "translation": "Ongeldig client id "
+        "translation": "Ongeldig actie-id ."
     },
     {
         "id": "api.post.do_action.action_integration.app_error",
-        "translation": "Action integration error"
+        "translation": "Action integration fout."
     },
     {
         "id": "api.post.get_message_for_notification.files_sent",
@@ -1708,7 +1708,7 @@
     },
     {
         "id": "api.post.link_preview_disabled.app_error",
-        "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
+        "translation": "Voorvertoning van links zijn uitgeschakeld door de systeembeheerder."
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1732,7 +1732,7 @@
     },
     {
         "id": "api.post.send_notifications_and_forget.push_explicit_mention",
-        "translation": " vermeld u in "
+        "translation": " vernoemt je."
     },
     {
         "id": "api.post.send_notifications_and_forget.push_general_message",
@@ -1756,7 +1756,7 @@
     },
     {
         "id": "api.post.update_post.permissions_details.app_error",
-        "translation": "Is reeds verwijderd id={{.PostId}}"
+        "translation": "Is reeds verwijderd id={{.PostId}}."
     },
     {
         "id": "api.post.update_post.permissions_time_limit.app_error",
@@ -1764,11 +1764,11 @@
     },
     {
         "id": "api.post.update_post.system_message.app_error",
-        "translation": "Het bijwerken van het systeem bericht is mislukt"
+        "translation": "Het bijwerken van het systeem bericht is mislukt."
     },
     {
         "id": "api.post_get_post_by_id.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Bericht kan niet opgehaald worden."
     },
     {
         "id": "api.preference.delete_preferences.delete.app_error",
@@ -2664,7 +2664,7 @@
     },
     {
         "id": "api.user.oauth_to_email.context.app_error",
-        "translation": "Het bijwerken van het wachtwoord is niet gelukt, want de de context user_id kwam niet overeen met de opgegeven user id"
+        "translation": "Het bijwerken van het wachtwoord is niet gelukt, want de de context user_id kwam niet overeen met de opgegeven user id."
     },
     {
         "id": "api.user.oauth_to_email.not_available.app_error",
@@ -2936,7 +2936,7 @@
     },
     {
         "id": "app.bot.get_disable_bot_sysadmin_message",
-        "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} werden uitgeschakeld. Ze beheerden volgende bot accouts die nu uitgeschakeld zijn.\n\n{{.BotNames}}{{else}}{{.UserName}} werden uitgeschakeld. Zij beheerden {{.NumBots}} volgende bot accouts die nu uitgeschakeld zijn :\n\n{{.BotNames}}{{end}} Je kan eigenaar worden van elke bot door deze in te schakelen bij **Integratie> Bot Accounts** en nieuwe tokens te generen voor de bot.\n\nVoor verdere informatie, bekijk onze [documentatie](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} werd uitgeschakeld. Ze beheerden volgende bot accounts die nog steeds actief zijn.\n\n{{.BotNames}}\n{{else}}{{.UserName}} werd uitgeschakeld. Ze beheerden {{.NumBots}} volgende bot accounts die nog steeds actief zijn:\n\n{{.BotNames}}{{end}} We raden ten stelligste aan dat je eigenaar wordt van elke bot door deze opnieuw in te schakelen bij **Integraties > Bot Accounts** en nieuwe tokens aan te maken voor de de bot.\n\nVoor verdere informatie, bekijk onze [documentatie](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nAls je automatisch bot accounts wil uitschakelen als je een gebruiker deactiveert, stel dan “Schakel bot accounts uit na gebruikersdeactivatie. in bij **Systeem console > Integratie's > Bot Accounts** .{{end}}"
+        "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} werden uitgeschakeld. Ze beheerden volgende bot accouts die nu uitgeschakeld zijn.\n\n{{.BotNames}}{{else}}{{.UserName}} werden uitgeschakeld. Zij beheerden {{.NumBots}} volgende bot accouts die nu uitgeschakeld zijn :\n\n{{.BotNames}}{{end}} Je kan eigenaar worden van elke bot door deze in te schakelen bij **Integratie> Bot Accounts** en nieuwe tokens te generen voor de bot.\n\nVoor verdere informatie, bekijk onze [documentatie](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} werd uitgeschakeld. Ze beheerden volgende bot accounts die nog steeds actief zijn.\n\n{{.BotNames}}\n{{else}}{{.UserName}} werd uitgeschakeld. Ze beheerden {{.NumBots}} volgende bot accounts die nog steeds actief zijn:\n\n{{.BotNames}}{{end}} We raden ten stelligste aan dat je eigenaar wordt van elke bot door deze opnieuw in te schakelen bij **Integraties > Bot Accounts** en nieuwe tokens aan te maken voor de bot.\n\nVoor verdere informatie, bekijk onze [documentatie](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nAls je automatisch bot accounts wil uitschakelen als je een gebruiker deactiveert, stel dan “Schakel bot accounts uit na gebruikersdeactivatie. in bij **Systeem console > Integratie's > Bot Accounts** .{{end}}"
     },
     {
         "id": "app.bot.getbot.internal_error",
@@ -7944,7 +7944,7 @@
     },
     {
         "id": "web.incoming_webhook.user.app_error",
-        "translation": "De gebruiker kan niet gevonden worden"
+        "translation": "De gebruiker kan niet worden gevonden."
     },
     {
         "id": "api.license.request_trial_license.app_error",
@@ -7969,5 +7969,9 @@
     {
         "id": "api.license.request_trial_license.no-site-url.app_error",
         "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Je moet de Mattermost Evaluation Agreement en Privacy Policy aanvaarden om een licentie te kunnen aanvragen."
     }
 ]
