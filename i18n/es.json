@@ -7965,5 +7965,9 @@
     {
         "id": "api.team.import_team.unknown_import_from.app_error",
         "translation": "Origen de importación desconocido."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
     }
 ]

@@ -7965,5 +7965,9 @@
     {
         "id": "api.team.import_team.unknown_import_from.app_error",
         "translation": "Onbekende importbron."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Fout bij het aanvragen van een proeflicentie. Configureer een Site URL in onderdeel Webserver van de Mattermost Systeemconsole."
     }
 ]
