@@ -7949,5 +7949,29 @@
     {
         "id": "model.group.name.invalid_length.app_error",
         "translation": "Nome deve ter de 1 a 64 caracteres alfanuméricos minusculos"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "É necessário o Identificador do Provedor de Serviços"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "Origem de importação desconhecida."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "Não foi possível solicitar uma licença de avaliação. Configure a URL do site na seção servidor da web do Mattermost Console do Sistema."
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "Não foi possível obter uma licença de avaliação, tente novamente ou entre em contato com support@mattermost.com."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Você deve aceitar o Contrato de Avaliação de Software e a Política de Privacidade para solicitar uma licença."
+    },
+    {
+        "id": "api.license.request-trial.bad-request",
+        "translation": "O número de usuários solicitados não está correto."
     }
 ]
