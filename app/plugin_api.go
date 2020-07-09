@@ -915,7 +915,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	return responseTransfer.GenerateResponse()
 }
 
-func (api *PluginAPI) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.CreatorId = ""
 	cmd.PluginId = api.id
 
@@ -924,24 +924,26 @@ func (api *PluginAPI) CreateSlashCommand(cmd *model.Command) (*model.Command, *m
 	return cmd, appErr
 }
 
-func (api *PluginAPI) ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (api *PluginAPI) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
 	var commands []*model.Command
 	var appErr *model.AppError
 
 	if customOnly {
-		commands, appErr = api.app.ListTeamCommands(teamID)
+		// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
+		return api.app.Srv().Store.Command().GetByTeam(teamID)
 	} else {
+		// If EnableCommands setting is false, this will not return custom team commands.
 		commands, appErr = api.app.ListAllCommands(teamID, api.app.T)
 	}
 	return commands, appErr
 }
 
-func (api *PluginAPI) GetSlashCommand(commandID string) (*model.Command, *model.AppError) {
+func (api *PluginAPI) GetCommand(commandID string) (*model.Command, *model.AppError) {
 	return api.app.GetCommand(commandID)
 }
 
-func (api *PluginAPI) UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
-	oldCmd, appErr := api.GetSlashCommand(commandID)
+func (api *PluginAPI) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+	oldCmd, appErr := api.GetCommand(commandID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -953,8 +955,8 @@ func (api *PluginAPI) UpdateSlashCommand(commandID string, cmd *model.Command) (
 	return api.app.UpdateCommand(oldCmd, cmd)
 }
 
-func (api *PluginAPI) MoveSlashCommand(commandID string, newTeamID string) *model.AppError {
-	cmd, appErr := api.GetSlashCommand(commandID)
+func (api *PluginAPI) MoveCommand(commandID string, newTeamID string) *model.AppError {
+	cmd, appErr := api.GetCommand(commandID)
 	if appErr != nil {
 		return appErr
 	}
@@ -967,6 +969,6 @@ func (api *PluginAPI) MoveSlashCommand(commandID string, newTeamID string) *mode
 	return api.app.MoveCommand(newTeam, cmd)
 }
 
-func (api *PluginAPI) DeleteSlashCommand(commandID string) *model.AppError {
+func (api *PluginAPI) DeleteCommand(commandID string) *model.AppError {
 	return api.app.DeleteCommand(commandID)
 }
