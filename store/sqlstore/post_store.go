@@ -1302,7 +1302,7 @@ func removeMysqlStopWordsFromTerms(terms string) (string, error) {
 	}
 
 	newTerms := make([]string, 0)
-	separatedTerms := strings.Split(terms, " ")
+	separatedTerms := strings.Fields(terms)
 	for _, term := range separatedTerms {
 		term = strings.TrimSpace(term)
 		if term = re.ReplaceAllString(term, ""); term != "" {
