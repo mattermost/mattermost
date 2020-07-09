@@ -3899,6 +3899,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			// Remove any old favorites that might have been in this category
 			sql, args, _ := s.getQueryBuilder().Delete("Preferences").Where(
 				sq.Eq{
+					"UserId":   userId,
 					"Name":     category.Channels,
 					"Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 				},
