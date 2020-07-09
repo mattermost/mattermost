@@ -461,23 +461,32 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string, isPostgreSQL bool) sq.SelectBuilder {
 	queryString := ""
 	if len(roles) > 0 && roles[0] != "" {
-		sanitizeString := "*"
-		escapeString := `' ESCAPE '*' `
-		if isPostgreSQL {
-			sanitizeString = "\\"
-			escapeString = `' `
-		}
+		schemeGuest := false
+		schemeAdmin := false
+		schemeUser := false
 
-		for i, role := range roles {
-			sanitizedRole := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, sanitizeString))
-			if i == 0 {
-				queryString += `u.Roles LIKE '` + sanitizedRole + escapeString
-			} else {
-				queryString += `OR u.Roles LIKE '` + sanitizedRole + escapeString
+		for _, role := range roles {
+			switch role {
+			case model.SYSTEM_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.SYSTEM_USER_ROLE_ID:
+				schemeUser = true
+			case model.SYSTEM_GUEST_ROLE_ID:
+				schemeGuest = true
 			}
 		}
 
-		queryString = "(" + queryString + ")"
+		if schemeAdmin || schemeUser || schemeGuest {
+			if schemeAdmin && schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' OR u.Roles LIKE '%system_admin%') `
+			} else if schemeAdmin {
+				queryString += `(u.Roles LIKE '%system_admin%') `
+			} else if schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
+			} else if schemeGuest {
+				queryString += `(u.Roles LIKE '%system_user%') `
+			}
+		}
 	}
 
 	if len(channelRoles) > 0 && channelRoles[0] != "" {
