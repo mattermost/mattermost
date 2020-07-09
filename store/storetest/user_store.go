@@ -3350,6 +3350,17 @@ func testCount(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{UserId: regularUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.Nil(t, err)
 
+	guestUser := &model.User{}
+	guestUser.Email = MakeEmail()
+	guestUser.Roles = model.SYSTEM_GUEST_ROLE_ID
+	_, err = ss.User().Save(guestUser)
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(guestUser.Id)) }()
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: guestUser.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
+	require.Nil(t, err)
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{UserId: guestUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.Nil(t, err)
+
 	teamAdmin := &model.User{}
 	teamAdmin.Email = MakeEmail()
 	teamAdmin.Roles = model.SYSTEM_USER_ROLE_ID
@@ -3407,7 +3418,7 @@ func testCount(t *testing.T, ss store.Store) {
 				IncludeDeleted:     false,
 				TeamId:             "",
 			},
-			3,
+			4,
 		},
 		{
 			"Include bot accounts no deleted accounts and no team id",
@@ -3416,7 +3427,7 @@ func testCount(t *testing.T, ss store.Store) {
 				IncludeDeleted:     false,
 				TeamId:             "",
 			},
-			4,
+			5,
 		},
 		{
 			"Include delete accounts no bots and no team id",
@@ -3425,7 +3436,7 @@ func testCount(t *testing.T, ss store.Store) {
 				IncludeDeleted:     true,
 				TeamId:             "",
 			},
-			4,
+			5,
 		},
 		{
 			"Include bot accounts and deleted accounts and no team id",
@@ -3434,7 +3445,7 @@ func testCount(t *testing.T, ss store.Store) {
 				IncludeDeleted:     true,
 				TeamId:             "",
 			},
-			5,
+			6,
 		},
 		{
 			"Include bot accounts, deleted accounts, exclude regular users with no team id",
@@ -3453,7 +3464,7 @@ func testCount(t *testing.T, ss store.Store) {
 				IncludeDeleted:     true,
 				TeamId:             teamId,
 			},
-			3,
+			4,
 		},
 		{
 			"Include bot accounts and deleted accounts with fake team id",
@@ -3472,7 +3483,7 @@ func testCount(t *testing.T, ss store.Store) {
 				TeamId:             teamId,
 				ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
 			},
-			3,
+			4,
 		},
 		{
 			"Include bot accounts and deleted accounts with existing team id and view restrictions not allowing current team",
@@ -3501,12 +3512,28 @@ func testCount(t *testing.T, ss store.Store) {
 			2,
 		},
 		{
+			"Filter by system guests only",
+			model.UserCountOptions{
+				TeamId: teamId,
+				Roles:  []string{model.SYSTEM_GUEST_ROLE_ID},
+			},
+			1,
+		},
+		{
 			"Filter by system admins and system users",
 			model.UserCountOptions{
 				TeamId: teamId,
 				Roles:  []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID},
 			},
 			3,
+		},
+		{
+			"Filter by system admins, system user and system guests",
+			model.UserCountOptions{
+				TeamId: teamId,
+				Roles:  []string{model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_ROLE_ID, model.SYSTEM_GUEST_ROLE_ID},
+			},
+			4,
 		},
 		{
 			"Filter by team admins",

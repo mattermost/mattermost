@@ -483,7 +483,12 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += `(u.Roles LIKE '%system_admin%') `
 			} else if schemeUser {
 				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
-			} else if schemeGuest {
+			}
+
+			if schemeGuest {
+				if queryString != "" {
+					queryString += "OR "
+				}
 				queryString += `(u.Roles LIKE '%system_guest%') `
 			}
 		}
@@ -1414,7 +1419,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")
