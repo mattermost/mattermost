@@ -89,6 +89,14 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
+func (a *App) SessionHasPermissionToCategory(session model.Session, userId, teamId, categoryId string) bool {
+	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+		return true
+	}
+	category, err := a.GetSidebarCategory(categoryId)
+	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userId && category.TeamId == teamId
+}
+
 func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
 	if userId == "" {
 		return false
@@ -138,23 +146,10 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 	if teamId == "" || askingUserId == "" {
 		return false
 	}
-
-	teamMember, err := a.GetTeamMember(teamId, askingUserId)
-	if err != nil {
-		return false
+	teamMember, _ := a.GetTeamMember(teamId, askingUserId)
+	if teamMember != nil && teamMember.DeleteAt == 0 {
+		return a.RolesGrantPermission(teamMember.GetRoles(), permission.Id)
 	}
-
-	// If the team member has been deleted, they don't have permission.
-	if teamMember.DeleteAt != 0 {
-		return false
-	}
-
-	roles := teamMember.GetRoles()
-
-	if a.RolesGrantPermission(roles, permission.Id) {
-		return true
-	}
-
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
