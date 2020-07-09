@@ -3983,6 +3983,14 @@
     "translation": "Unable to save reaction."
   },
   {
+    "id": "app.recover.delete.app_error",
+    "translation": "Unable to delete token."
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Unable to save the token."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -6965,22 +6973,6 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference."
-  },
-  {
-    "id": "store.sql_recover.delete.app_error",
-    "translation": "Unable to delete token."
-  },
-  {
-    "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code."
-  },
-  {
-    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type."
-  },
-  {
-    "id": "store.sql_recover.save.app_error",
-    "translation": "Unable to save the token."
   },
   {
     "id": "store.sql_role.delete.update.app_error",

@@ -7486,7 +7486,7 @@ func (s *OpenTracingLayerTokenStore) Cleanup() {
 
 }
 
-func (s *OpenTracingLayerTokenStore) Delete(token string) *model.AppError {
+func (s *OpenTracingLayerTokenStore) Delete(token string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -7504,7 +7504,7 @@ func (s *OpenTracingLayerTokenStore) Delete(token string) *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
+func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.GetByToken")
 	s.Root.Store.SetContext(newCtx)
@@ -7522,7 +7522,7 @@ func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.RemoveAllTokensByType")
 	s.Root.Store.SetContext(newCtx)
@@ -7540,7 +7540,7 @@ func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) *mo
 	return resultVar0
 }
 
-func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) *model.AppError {
+func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Save")
 	s.Root.Store.SetContext(newCtx)

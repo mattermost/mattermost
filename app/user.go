@@ -1361,7 +1361,13 @@ func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *
 	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, string(jsonData))
 
 	if err := a.Srv().Store.Token().Save(token); err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreatePasswordRecoveryToken", "app.recover.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return token, nil
@@ -1379,7 +1385,11 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
-	return a.Srv().Store.Token().Delete(token.Token)
+	err := a.Srv().Store.Token().Delete(token.Token)
+	if err != nil {
+		return model.NewAppError("DeleteToken", "app.recover.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {

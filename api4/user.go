@@ -107,10 +107,16 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		var token *model.Token
-		token, err = c.App.Srv().Store.Token().GetByToken(tokenId)
-		if err != nil {
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
+		if nErr != nil {
+			var status int
+			switch nErr.(type) {
+			case *store.ErrNotFound:
+				status = http.StatusNotFound
+			default:
+				status = http.StatusInternalServerError
+			}
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
