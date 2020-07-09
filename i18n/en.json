@@ -6483,30 +6483,6 @@
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete."
-  },
-  {
-    "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Failed to check if it exists."
-  },
-  {
-    "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows."
-  },
-  {
-    "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at."
-  },
-  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Unable to count the commands."
   },
