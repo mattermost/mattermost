@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -596,7 +597,13 @@ func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError
 	token := model.NewToken(model.TOKEN_TYPE_OAUTH, extra)
 
 	if err := a.Srv().Store.Token().Save(token); err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateOAuthStateToken", "app.recover.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return token, nil
