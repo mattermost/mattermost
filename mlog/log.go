@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 
 	_ "net/http/pprof"
 )

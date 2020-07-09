@@ -10,9 +10,9 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/wiggin77/logr"
-	logrFmt "github.com/wiggin77/logr/format"
-	"github.com/wiggin77/logr/target"
+	"github.com/mattermost/logr"
+	logrFmt "github.com/mattermost/logr/format"
+	"github.com/mattermost/logr/target"
 	"go.uber.org/zap/zapcore"
 )
 

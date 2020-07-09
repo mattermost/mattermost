@@ -3,7 +3,7 @@
 
 package mlog
 
-import "github.com/wiggin77/logr"
+import "github.com/mattermost/logr"
 
 // onLoggerError is called when the logging system encounters an error,
 // such as a target not able to write records. The targets will keep trying

@@ -6,7 +6,7 @@ package mlog
 import (
 	"context"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

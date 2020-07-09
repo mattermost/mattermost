@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 )
 
 // defaultLog manually encodes the log to STDERR, providing a basic, default logging implementation
