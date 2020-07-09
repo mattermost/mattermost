@@ -7445,6 +7445,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		favoritesCategory := categories.Categories[0]
 		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Create the other users' categories
 		userId2 := model.NewId()
@@ -7457,6 +7459,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		favoritesCategory2 := categories2.Categories[0]
 		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory2.Type)
+		channelsCategory2 := categories2.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory2.Type)
 
 		// Have both users join a channel
 		channel, nErr := ss.Channel().Save(&model.Channel{
@@ -7484,6 +7488,10 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
 			},
+			{
+				SidebarCategory: channelsCategory.SidebarCategory,
+				Channels:        []string{},
+			},
 		})
 		assert.Nil(t, err)
 
@@ -7502,6 +7510,10 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{channel.Id},
 			},
+			{
+				SidebarCategory: channelsCategory2.SidebarCategory,
+				Channels:        []string{},
+			},
 		})
 		assert.Nil(t, err)
 
@@ -7517,6 +7529,10 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		// And then user1 unfavorite it
 		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: channelsCategory.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
 			{
 				SidebarCategory: favoritesCategory.SidebarCategory,
 				Channels:        []string{},
@@ -7535,6 +7551,10 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		// And finally user2 favorite it
 		_, err = ss.Channel().UpdateSidebarCategories(userId2, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: channelsCategory2.SidebarCategory,
+				Channels:        []string{channel.Id},
+			},
 			{
 				SidebarCategory: favoritesCategory2.SidebarCategory,
 				Channels:        []string{},
