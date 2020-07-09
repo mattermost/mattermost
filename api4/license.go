@@ -5,7 +5,9 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -13,6 +15,7 @@ import (
 )
 
 func (api *API) InitLicense() {
+	api.BaseRoutes.ApiRoot.Handle("/trial-license", api.ApiSessionRequired(requestTrialLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
 	api.BaseRoutes.ApiRoot.Handle("/license/client", api.ApiHandler(getClientLicense)).Methods("GET")
@@ -34,9 +37,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = c.App.ClientLicense()
+		clientLicense = c.App.Srv().ClientLicense()
 	} else {
-		clientLicense = c.App.GetSanitizedClientLicense()
+		clientLicense = c.App.Srv().GetSanitizedClientLicense()
 	}
 
 	w.Write([]byte(model.MapToJson(clientLicense)))
@@ -89,7 +92,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	license, appErr := c.App.SaveLicense(buf.Bytes())
+	license, appErr := c.App.Srv().SaveLicense(buf.Bytes())
 	if appErr != nil {
 		if appErr.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
@@ -128,7 +131,76 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.RemoveLicense(); err != nil {
+	if err := c.App.Srv().RemoveLicense(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("success")
+
+	ReturnStatusOK(w)
+}
+
+func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("requestTrialLicense", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	var trialRequest struct {
+		Users                 int  `json:"users"`
+		TermsAccepted         bool `json:"terms_accepted"`
+		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
+	}
+
+	b, readErr := ioutil.ReadAll(r.Body)
+	if readErr != nil {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+		return
+	}
+	json.Unmarshal(b, &trialRequest)
+	if !trialRequest.TermsAccepted {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+		return
+	}
+	if trialRequest.Users == 0 {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	currentUser, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              c.App.DiagnosticId(),
+		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 currentUser.Email,
+		SiteName:              *c.App.Config().TeamSettings.SiteName,
+		SiteURL:               *c.App.Config().ServiceSettings.SiteURL,
+		Users:                 trialRequest.Users,
+		TermsAccepted:         trialRequest.TermsAccepted,
+		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		c.Err = model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
 		c.Err = err
 		return
 	}

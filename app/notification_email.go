@@ -57,7 +57,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		}
 
 		if sendBatched {
-			if err := a.AddNotificationEmailToBatch(user, post, team); err == nil {
+			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team); err == nil {
 				return nil
 			}
 		}
@@ -80,7 +80,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
@@ -99,7 +99,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv().Go(func() {
-		if err := a.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
@@ -166,13 +166,13 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = a.newEmailTemplate("post_body_full", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
-		bodyPage = a.newEmailTemplate("post_body_generic", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
 	bodyPage.Props["SiteURL"] = a.GetSiteURL()
@@ -312,13 +312,13 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 	return postMessage
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
+	infos, err := s.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
@@ -342,4 +342,8 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
 	}
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
+}
+
+func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().GetMessageForNotification(post, translateFunc)
 }

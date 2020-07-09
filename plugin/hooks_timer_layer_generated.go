@@ -31,28 +31,28 @@ func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, su
 func (hooks *hooksTimerLayer) OnActivate() error {
 	startTime := timePkg.Now()
 	_returnsA := hooks.hooksImpl.OnActivate()
-	hooks.recordTime(startTime, "OnActivate", true)
+	hooks.recordTime(startTime, "OnActivate", _returnsA == nil)
 	return _returnsA
 }
 
 func (hooks *hooksTimerLayer) Implemented() ([]string, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.Implemented()
-	hooks.recordTime(startTime, "Implemented", true)
+	hooks.recordTime(startTime, "Implemented", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
 func (hooks *hooksTimerLayer) OnDeactivate() error {
 	startTime := timePkg.Now()
 	_returnsA := hooks.hooksImpl.OnDeactivate()
-	hooks.recordTime(startTime, "OnDeactivate", true)
+	hooks.recordTime(startTime, "OnDeactivate", _returnsA == nil)
 	return _returnsA
 }
 
 func (hooks *hooksTimerLayer) OnConfigurationChange() error {
 	startTime := timePkg.Now()
 	_returnsA := hooks.hooksImpl.OnConfigurationChange()
-	hooks.recordTime(startTime, "OnConfigurationChange", true)
+	hooks.recordTime(startTime, "OnConfigurationChange", _returnsA == nil)
 	return _returnsA
 }
 
@@ -65,7 +65,7 @@ func (hooks *hooksTimerLayer) ServeHTTP(c *Context, w http.ResponseWriter, r *ht
 func (hooks *hooksTimerLayer) ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ExecuteCommand(c, args)
-	hooks.recordTime(startTime, "ExecuteCommand", true)
+	hooks.recordTime(startTime, "ExecuteCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
