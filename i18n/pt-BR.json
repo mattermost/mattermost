@@ -7905,5 +7905,9 @@
     {
         "id": "app.recover.delete.app_error",
         "translation": "Não é possível excluir o token"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": " "
     }
 ]
