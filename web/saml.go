@@ -137,7 +137,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 		c.App.Srv().Go(func() {
-			if err = c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
+			if err = c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
