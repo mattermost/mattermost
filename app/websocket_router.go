@@ -26,7 +26,6 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
-	wr.app = New(ServerConnector(wr.server))
 	wr.app.InitServer()
 
 	if r.Action == "" {
