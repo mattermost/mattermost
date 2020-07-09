@@ -5164,30 +5164,6 @@
         "translation": "Wystąpił błąd podczas aktualizowania użytkownika kanału"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Nie można zapisać wiersza ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Nie udało się usunąć"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Nie udało się sprawdzić czy istnieje"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Nie udało się uzyskać wszystkich wierszy wykrywania"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Nie można zapisać wiersza ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Nie udało się zaktualizować ostatniego polecenia ping w"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Nie można policzyć poleceń"
     },
@@ -5610,18 +5586,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Nie można zaktualizować preferencji"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Nie można usunąć tokenu"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Nie można uzyskać tokena z tym kodem"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Nie można zapisać tokena"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6602,10 +6566,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Nie udało się pobrać wszystkich ról"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Niemożna usunąć wszystkich tokenów tego typu"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7778,14 +7738,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nie można dokonać transakcji"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Wiadomości bezpośrednie"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanały"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

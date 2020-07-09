@@ -5154,30 +5154,6 @@
         "translation": "我们更新频道成员遇到了一个错误"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "保存 ClusterDiscovery 失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "删除失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "检查表是否存在失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "获取所有探索资料失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "保存 ClusterDiscovery 失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "更新最近 ping 失败于"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "无法获取命令"
     },
@@ -5600,18 +5576,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "无法更新偏好"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "无法删除令牌"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "无法用此代码获取令牌"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "无法保存令牌"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -7794,10 +7758,6 @@
         "translation": "无法获取所有角色。"
     },
     {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "无法移除所有此类型的令牌。"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "无法获取消息回复数"
     },
@@ -7872,14 +7832,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "无法提交事务"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "私信"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "频道"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
