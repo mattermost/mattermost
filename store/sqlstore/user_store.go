@@ -458,7 +458,7 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
 
-func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string, isPostgreSQL bool) sq.SelectBuilder {
+func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string) sq.SelectBuilder {
 	queryString := ""
 	if len(roles) > 0 && roles[0] != "" {
 		schemeGuest := false
@@ -484,7 +484,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 			} else if schemeUser {
 				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
 			} else if schemeGuest {
-				queryString += `(u.Roles LIKE '%system_user%') `
+				queryString += `(u.Roles LIKE '%system_guest%') `
 			}
 		}
 	}
@@ -625,7 +625,7 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -1205,7 +1205,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 		query = query.LeftJoin("ChannelMembers AS cm ON u.Id = cm.UserId").Where("cm.ChannelId = ?", options.ChannelId)
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
-	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if isPostgreSQL {
 		query = query.PlaceholderFormat(sq.Dollar)
