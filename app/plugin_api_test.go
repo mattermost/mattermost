@@ -1710,7 +1710,7 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	}
 }
 
-func TestPluginAPICreateSlashCommand(t *testing.T) {
+func TestPluginAPICreateCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1736,17 +1736,17 @@ func TestPluginAPICreateSlashCommand(t *testing.T) {
 		URL:     "http://test.com/testcmd",
 	}
 
-	cmd, appErr := api.CreateSlashCommand(cmd)
+	cmd, appErr := api.CreateCommand(cmd)
 	require.Nil(t, appErr)
 
-	newCmd, appErr := api.GetSlashCommand(cmd.Id)
+	newCmd, appErr := api.GetCommand(cmd.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
 	require.True(t, foundCommand())
 }
 
-func TestPluginAPIUpdateSlashCommand(t *testing.T) {
+func TestPluginAPIUpdateCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1758,29 +1758,29 @@ func TestPluginAPIUpdateSlashCommand(t *testing.T) {
 		URL:     "http://test.com/testcmd",
 	}
 
-	cmd, appErr := api.CreateSlashCommand(cmd)
+	cmd, appErr := api.CreateCommand(cmd)
 	require.Nil(t, appErr)
 
-	newCmd, appErr := api.GetSlashCommand(cmd.Id)
+	newCmd, appErr := api.GetCommand(cmd.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
 
 	newCmd.Trigger = "NewTrigger"
 	newCmd.PluginId = "CannotChangeMe"
-	newCmd2, appErr := api.UpdateSlashCommand(newCmd.Id, newCmd)
+	newCmd2, appErr := api.UpdateCommand(newCmd.Id, newCmd)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd2.PluginId)
 	require.Equal(t, "newtrigger", newCmd2.Trigger)
 
 	newCmd2.TeamId = "somethingelse"
 	newCmd2.Trigger = "doesn'tmatter"
-	_, appErr = api.UpdateSlashCommand(newCmd2.Id, newCmd2)
+	_, appErr = api.UpdateCommand(newCmd2.Id, newCmd2)
 	require.NotNil(t, appErr)
 	require.Equal(t, "api.command.team_mismatch.app_error", appErr.Id)
 }
 
-func TestPluginAPIMoveSlashCommand(t *testing.T) {
+func TestPluginAPIMoveCommand(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -1793,19 +1793,19 @@ func TestPluginAPIMoveSlashCommand(t *testing.T) {
 		URL:     "http://test.com/testcmd",
 	}
 
-	cmd, appErr := api.CreateSlashCommand(cmd)
+	cmd, appErr := api.CreateCommand(cmd)
 	require.Nil(t, appErr)
 
-	newCmd, appErr := api.GetSlashCommand(cmd.Id)
+	newCmd, appErr := api.GetCommand(cmd.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
 	require.Equal(t, th.BasicTeam.Id, newCmd.TeamId)
 
-	appErr = api.MoveSlashCommand(newCmd.Id, team1.Id)
+	appErr = api.MoveCommand(newCmd.Id, team1.Id)
 	require.Nil(t, appErr)
 
-	newCmd2, appErr := api.GetSlashCommand(newCmd.Id)
+	newCmd2, appErr := api.GetCommand(newCmd.Id)
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd2.PluginId)
 	require.Equal(t, "", newCmd2.CreatorId)
