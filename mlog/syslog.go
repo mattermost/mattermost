@@ -25,11 +25,12 @@ type Syslog struct {
 
 // SyslogParams provides parameters for dialing a syslog daemon.
 type SyslogParams struct {
-	Raddr    string
-	Tag      string
-	TLS      bool
-	Cert     string
-	Insecure bool
+	IP       string `json:"IP"`
+	Port     int    `json:"Port"`
+	Tag      string `json:"Tag"`
+	TLS      bool   `json:"TLS"`
+	Cert     string `json:"Cert"`
+	Insecure bool   `json:"Insecure"`
 }
 
 // NewSyslogTarget creates a target capable of outputting log records to remote or local syslog, with or without TLS.
@@ -48,8 +49,9 @@ func NewSyslogTarget(filter logr.Filter, formatter logr.Formatter, params *Syslo
 			config.RootCAs = pool
 		}
 	}
+	raddr := fmt.Sprintf("%s:%d", params.IP, params.Port)
 
-	writer, err := syslog.DialWithTLSConfig(network, params.Raddr, syslog.LOG_INFO, params.Tag, config)
+	writer, err := syslog.DialWithTLSConfig(network, raddr, syslog.LOG_INFO, params.Tag, config)
 	if err != nil {
 		return nil, err
 	}

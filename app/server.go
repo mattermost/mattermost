@@ -476,7 +476,12 @@ func NewServer(options ...Option) (*Server, error) {
 	if license == nil || !*license.Features.AdvancedLogging {
 		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelCtx()
+		mlog.Info("Shutting down advanced logging")
 		mlog.ShutdownAdvancedLogging(timeoutCtx)
+		if s.advancedLogListenerCleanup != nil {
+			s.advancedLogListenerCleanup()
+			s.advancedLogListenerCleanup = nil
+		}
 	}
 
 	// Enable developer settings if this is a "dev" build
@@ -592,7 +597,9 @@ func (s *Server) initLogging() error {
 
 		listenerId := cfg.AddListener(func(_, newCfg mlog.LogTargetCfg) {
 			if err := mlog.ConfigAdvancedLogging(newCfg); err != nil {
-				mlog.Error("error re-configuring advanced logging", mlog.Err(err))
+				mlog.Error("Error re-configuring advanced logging", mlog.Err(err))
+			} else {
+				mlog.Info("Re-configured advanced logging")
 			}
 		})
 
@@ -665,6 +672,7 @@ func (s *Server) Shutdown() error {
 
 	if s.advancedLogListenerCleanup != nil {
 		s.advancedLogListenerCleanup()
+		s.advancedLogListenerCleanup = nil
 	}
 
 	s.RemoveConfigListener(s.configListenerId)

@@ -117,14 +117,14 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		if port <= 0 {
 			port = 6514
 		}
-		raddr := fmt.Sprintf("%s:%d", IP, port)
 		maxQSize := *s.Config().ExperimentalAuditSettings.SysLogMaxQueueSize
 		if maxQSize <= 0 {
 			maxQSize = audit.DefMaxQueueSize
 		}
 
 		params := &mlog.SyslogParams{
-			Raddr:    raddr,
+			IP:       IP,
+			Port:     port,
 			Cert:     *s.Config().ExperimentalAuditSettings.SysLogCert,
 			Tag:      *s.Config().ExperimentalAuditSettings.SysLogTag,
 			Insecure: *s.Config().ExperimentalAuditSettings.SysLogInsecure,
@@ -136,7 +136,7 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		if err != nil {
 			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
 		} else {
-			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddr", raddr))
+			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("IP", IP), mlog.Int("Port", port))
 			adt.AddTarget(target)
 		}
 	}

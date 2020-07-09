@@ -252,12 +252,8 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 	}
 
 	logr, err := newLogr(targets)
-	if err != nil {
-		return err
-	}
-
 	l.logrLogger = logr
-	return nil
+	return err
 }
 
 // AddTarget adds a logr.Target to the advanced logger. This is the preferred method

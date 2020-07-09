@@ -4,11 +4,10 @@
 package mlog
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/wiggin77/logr"
@@ -32,7 +31,7 @@ type LogTarget struct {
 	Type         string // one of "console", "file", "tcp", "syslog".
 	Format       string // one of "json", "plain"
 	Levels       []LogLevel
-	Options      map[string]interface{}
+	Options      json.RawMessage
 	MaxQueueSize int
 }
 
@@ -77,11 +76,6 @@ func newLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 		t.MaxQueueSize = DefaultMaxTargetQueue
 	}
 
-	// Lowercase all the option keys so they can be compared case-insensitive later.
-	for k, v := range t.Options {
-		t.Options[strings.ToLower(k)] = v
-	}
-
 	switch t.Type {
 	case "console":
 		return newConsoleTarget(name, t, filter, formatter)
@@ -115,15 +109,22 @@ func newFormatter(name string, format string) (logr.Formatter, error) {
 }
 
 func newConsoleTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
+	type consoleOptions struct {
+		Out string `json:"Out"`
+	}
+	options := &consoleOptions{}
+	if err := json.Unmarshal(t.Options, options); err != nil {
+		return nil, err
+	}
+
 	var w io.Writer
-	out, _ := optionString("Out", t.Options)
-	switch out {
+	switch options.Out {
 	case "stdout", "":
 		w = os.Stdout
 	case "stderr":
 		w = os.Stderr
 	default:
-		return nil, fmt.Errorf("invalid out '%s' for target %s", out, name)
+		return nil, fmt.Errorf("invalid out '%s' for target %s", options.Out, name)
 	}
 
 	newTarget := target.NewWriterTarget(filter, formatter, w, t.MaxQueueSize)
@@ -131,100 +132,50 @@ func newConsoleTarget(name string, t *LogTarget, filter logr.Filter, formatter l
 }
 
 func newFileTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
-	filename, ok := optionString("Filename", t.Options)
-	if !ok {
+	options := &target.FileOptions{}
+	if err := json.Unmarshal(t.Options, options); err != nil {
+		return nil, err
+	}
+
+	if options.Filename == "" {
 		return nil, fmt.Errorf("missing 'Filename' option for target %s", name)
 	}
-	if err := checkFileWritable(filename); err != nil {
+	if err := checkFileWritable(options.Filename); err != nil {
 		return nil, fmt.Errorf("error writing to 'Filename' for target %s: %w", name, err)
 	}
 
-	opts := target.FileOptions{}
-	opts.Filename = filename
-	opts.MaxAge, _ = optionInt("MaxAgeDays", t.Options)
-	opts.MaxSize, _ = optionInt("MaxSizeMB", t.Options)
-	opts.MaxBackups, _ = optionInt("MaxBackups", t.Options)
-	opts.Compress, _ = optionBool("Compress", t.Options)
-
-	newTarget := target.NewFileTarget(filter, formatter, opts, t.MaxQueueSize)
+	newTarget := target.NewFileTarget(filter, formatter, *options, t.MaxQueueSize)
 	return newTarget, nil
 }
 
 func newSyslogTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
-	ip, ok := optionString("IP", t.Options)
-	if !ok {
+	options := &SyslogParams{}
+	if err := json.Unmarshal(t.Options, options); err != nil {
+		return nil, err
+	}
+
+	if options.IP == "" {
 		return nil, fmt.Errorf("missing 'IP' option for target %s", name)
 	}
-	port, _ := optionInt("Port", t.Options)
-	if port == 0 {
-		port = DefaultSysLogPort
+	if options.Port == 0 {
+		options.Port = DefaultSysLogPort
 	}
-
-	params := &SyslogParams{}
-	params.Raddr = fmt.Sprintf("%s:%d", ip, port)
-	params.Tag, _ = optionString("Tag", t.Options)
-	params.TLS, _ = optionBool("TLS", t.Options)
-	params.Cert, _ = optionString("Cert", t.Options)
-	params.Insecure, _ = optionBool("Insecure", t.Options)
-
-	return NewSyslogTarget(filter, formatter, params, t.MaxQueueSize)
+	return NewSyslogTarget(filter, formatter, options, t.MaxQueueSize)
 }
 
 func newTCPTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
-	ip, ok := optionString("IP", t.Options)
-	if !ok {
+	options := &TcpParams{}
+	if err := json.Unmarshal(t.Options, options); err != nil {
+		return nil, err
+	}
+
+	if options.IP == "" {
 		return nil, fmt.Errorf("missing 'IP' option for target %s", name)
 	}
-	port, ok := optionInt("Port", t.Options)
-	if !ok {
+	if options.Port == 0 {
 		return nil, fmt.Errorf("missing 'Port' option for target %s", name)
 	}
-
-	params := &TcpParams{}
-	params.IP = ip
-	params.Port = port
-	params.TLS, _ = optionBool("TLS", t.Options)
-	params.Cert, _ = optionString("Cert", t.Options)
-	params.Insecure, _ = optionBool("Insecure", t.Options)
-
-	return NewTcpTarget(filter, formatter, params, t.MaxQueueSize)
-}
-
-func optionString(key string, m map[string]interface{}) (string, bool) {
-	v, ok := m[strings.ToLower(key)]
-	if !ok {
-		return "", false
-	}
-	val, ok := v.(string)
-	if !ok {
-		return "", false
-	}
-	return val, true
-}
-
-func optionInt(key string, m map[string]interface{}) (int, bool) {
-	v, ok := m[strings.ToLower(key)]
-	if !ok {
-		return 0, false
-	}
-	s := fmt.Sprintf("%v", v)
-	val, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, false
-	}
-	return val, true
-}
-
-func optionBool(key string, m map[string]interface{}) (bool, bool) {
-	v, ok := m[strings.ToLower(key)]
-	if !ok {
-		return false, false
-	}
-	val, ok := v.(bool)
-	if !ok {
-		return false, false
-	}
-	return val, true
+	return NewTcpTarget(filter, formatter, options, t.MaxQueueSize)
 }
 
 func checkFileWritable(filename string) error {

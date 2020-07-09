@@ -14,6 +14,8 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/wiggin77/logr"
+
+	_ "net/http/pprof"
 )
 
 const (
@@ -38,11 +40,11 @@ type Tcp struct {
 
 // TcpParams provides parameters for dialing a socket server.
 type TcpParams struct {
-	IP       string
-	Port     int
-	TLS      bool
-	Cert     string
-	Insecure bool
+	IP       string `json:"IP"`
+	Port     int    `json:"Port"`
+	TLS      bool   `json:"TLS"`
+	Cert     string `json:"Cert"`
+	Insecure bool   `json:"Insecure"`
 }
 
 // NewTcpTarget creates a target capable of outputting log records to a raw socket, with or without TLS.
@@ -63,6 +65,9 @@ func NewTcpTarget(filter logr.Filter, formatter logr.Formatter, params *TcpParam
 func (tcp *Tcp) getConn() (net.Conn, error) {
 	tcp.mutex.Lock()
 	defer tcp.mutex.Unlock()
+
+	Log(LvlTcpLogTarget, "getConn enter", String("addy", tcp.addy))
+	defer Log(LvlTcpLogTarget, "getConn exit", String("addy", tcp.addy))
 
 	if tcp.conn != nil {
 		Log(LvlTcpLogTarget, "reusing existing conn", String("addy", tcp.addy)) // use "With" once Zap is removed
@@ -180,6 +185,12 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 	try := 1
 	backoff := RetryBackoffMillis
 	for {
+		select {
+		case <-tcp.shutdown:
+			return err
+		default:
+		}
+
 		conn, err := tcp.getConn()
 		if err != nil {
 			Log(LvlTcpLogTarget, "failed getting connection", String("addy", tcp.addy), Err(err))
@@ -201,11 +212,6 @@ func (tcp *Tcp) Write(rec *logr.LogRec) error {
 
 		_ = tcp.close()
 
-		select {
-		case <-tcp.shutdown:
-			return err
-		default:
-		}
 		backoff = tcp.sleep(backoff)
 		try++
 		Log(LvlTcpLogTarget, "retrying write", String("addy", tcp.addy), Int("try", try))

@@ -26,7 +26,7 @@ func TestNewTcpTarget(t *testing.T) {
 		Type:         "tcp",
 		Format:       "json",
 		Levels:       []LogLevel{LvlInfo},
-		Options:      map[string]interface{}{"IP": "localhost", "Port": testPort},
+		Options:      []byte(`{"IP": "localhost", "Port": testPort}`),
 		MaxQueueSize: 1000,
 	}
 	targets := map[string]*LogTarget{"tcp_test": &target}

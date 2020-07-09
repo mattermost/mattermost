@@ -147,14 +147,14 @@ func (src *fileSrc) Set(path string, fget FileGetter) error {
 
 	if src.watcher != nil {
 		if err = src.watcher.Close(); err != nil {
-			mlog.Error("failed to close watcher", mlog.Err(err))
+			mlog.Error("Failed to close watcher", mlog.Err(err))
 		}
 		src.watcher = nil
 	}
 
 	watcher, err := newWatcher(path, func() {
 		if serr := src.Set(path, fget); serr != nil {
-			mlog.Error("failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
+			mlog.Error("Failed to reload file on change", mlog.String("path", path), mlog.Err(serr))
 		}
 	})
 	if err != nil {
