@@ -3152,17 +3152,26 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 	require.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
 
-	ids, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
+	ids, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
+	require.Nil(t, err)
 	_, ok := ids[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids2, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	ids2, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	require.Nil(t, err)
 	_, ok = ids2[o1.Id]
 	require.True(t, ok, "missing channel")
 
-	ids3, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	ids3, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
+	require.Nil(t, err)
 	_, ok = ids3[o1.Id]
 	require.True(t, ok, "missing channel")
+
+	ids4, err := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, true)
+	require.Nil(t, err)
+	_, ok = ids4[o1.Id]
+	require.True(t, ok, "missing channel")
+
 	require.True(
 		t,
 		ss.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id),
