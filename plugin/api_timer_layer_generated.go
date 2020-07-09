@@ -1030,44 +1030,44 @@ func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) 
 	return _returnsA
 }
 
-func (api *apiTimerLayer) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateSlashCommand(cmd)
-	api.recordTime(startTime, "CreateSlashCommand", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.CreateCommand(cmd)
+	api.recordTime(startTime, "CreateCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (api *apiTimerLayer) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.ListSlashCommands(teamID, customOnly)
-	api.recordTime(startTime, "ListSlashCommands", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.ListCommands(teamID, customOnly)
+	api.recordTime(startTime, "ListCommands", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetSlashCommand(commandID string) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) GetCommand(commandID string) (*model.Command, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetSlashCommand(commandID)
-	api.recordTime(startTime, "GetSlashCommand", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.GetCommand(commandID)
+	api.recordTime(startTime, "GetCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateSlashCommand(commandID, cmd)
-	api.recordTime(startTime, "UpdateSlashCommand", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.UpdateCommand(commandID, cmd)
+	api.recordTime(startTime, "UpdateCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) MoveSlashCommand(commandID string, newTeamID string) *model.AppError {
+func (api *apiTimerLayer) MoveCommand(commandID string, newTeamID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.MoveSlashCommand(commandID, newTeamID)
-	api.recordTime(startTime, "MoveSlashCommand", _returnsA == nil)
+	_returnsA := api.apiImpl.MoveCommand(commandID, newTeamID)
+	api.recordTime(startTime, "MoveCommand", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) DeleteSlashCommand(commandID string) *model.AppError {
+func (api *apiTimerLayer) DeleteCommand(commandID string) *model.AppError {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.DeleteSlashCommand(commandID)
-	api.recordTime(startTime, "DeleteSlashCommand", _returnsA == nil)
+	_returnsA := api.apiImpl.DeleteCommand(commandID)
+	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
 	return _returnsA
 }

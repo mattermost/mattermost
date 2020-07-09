@@ -967,47 +967,47 @@ type API interface {
 	// Minimum server version: 5.26
 	PublishUserTyping(userId, channelId, parentId string) *model.AppError
 
-	// CreateSlashCommand creates a server-owned slash command that is not handled by the plugin
+	// CreateCommand creates a server-owned slash command that is not handled by the plugin
 	// itself, and which will persist past the life of the plugin. The command will have its
 	// CreatorId set to "" and its PluginId set to the id of the plugin that created it.
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError)
+	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
 
-	// ListSlashCommands returns the list of slash commands for teamID. If customOnly is true, it
+	// ListCommands returns the list of slash commands for teamID. If customOnly is true, it
 	// will return only the custom commands for teamID (e.g., those created through the integrations
 	// menu, the REST api, or the plugin api).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError)
+	ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError)
 
-	// GetSlashCommand returns the command definition based on a command id string.
+	// GetCommand returns the command definition based on a command id string.
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	GetSlashCommand(commandID string) (*model.Command, *model.AppError)
+	GetCommand(commandID string) (*model.Command, *model.AppError)
 
-	// UpdateSlashCommand updates a single command (commandID) with the information provided in the
+	// UpdateCommand updates a single command (commandID) with the information provided in the
 	// cmd model.Command struct. Some information in the command cannot be updated
 	// (e.g., Id, CreateAt, DeleteAt, CreatorId, etc.).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError)
+	UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError)
 
-	// MoveSlashCommand moves a slash command (commandID) to a team (newTeamID).
+	// MoveCommand moves a slash command (commandID) to a team (newTeamID).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	MoveSlashCommand(commandID string, newTeamID string) *model.AppError
+	MoveCommand(commandID string, newTeamID string) *model.AppError
 
-	// DeleteSlashCommand deletes a slash command (commandID).
+	// DeleteCommand deletes a slash command (commandID).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	DeleteSlashCommand(commandID string) *model.AppError
+	DeleteCommand(commandID string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

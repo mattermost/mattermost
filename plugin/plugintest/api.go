@@ -168,6 +168,31 @@ func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.App
 	return r0, r1
 }
 
+// CreateCommand provides a mock function with given fields: cmd
+func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+	ret := _m.Called(cmd)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
+		r0 = rf(cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+		r1 = rf(cmd)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CreatePost provides a mock function with given fields: post
 func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
@@ -184,31 +209,6 @@ func (_m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
 		r1 = rf(post)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// CreateSlashCommand provides a mock function with given fields: cmd
-func (_m *API) CreateSlashCommand(cmd *model.Command) (*model.Command, *model.AppError) {
-	ret := _m.Called(cmd)
-
-	var r0 *model.Command
-	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
-		r0 = rf(cmd)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Command)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
-		r1 = rf(cmd)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -391,6 +391,22 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 	return r0
 }
 
+// DeleteCommand provides a mock function with given fields: commandID
+func (_m *API) DeleteCommand(commandID string) *model.AppError {
+	ret := _m.Called(commandID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(commandID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // DeleteEphemeralPost provides a mock function with given fields: userId, postId
 func (_m *API) DeleteEphemeralPost(userId string, postId string) {
 	_m.Called(userId, postId)
@@ -419,22 +435,6 @@ func (_m *API) DeletePreferencesForUser(userId string, preferences []model.Prefe
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string, []model.Preference) *model.AppError); ok {
 		r0 = rf(userId, preferences)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
-// DeleteSlashCommand provides a mock function with given fields: commandID
-func (_m *API) DeleteSlashCommand(commandID string) *model.AppError {
-	ret := _m.Called(commandID)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(commandID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -836,6 +836,31 @@ func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDe
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string, bool) *model.AppError); ok {
 		r1 = rf(teamId, userId, includeDeleted)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetCommand provides a mock function with given fields: commandID
+func (_m *API) GetCommand(commandID string) (*model.Command, *model.AppError) {
+	ret := _m.Called(commandID)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(string) *model.Command); ok {
+		r0 = rf(commandID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(commandID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1592,31 +1617,6 @@ func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(sessionId)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
-// GetSlashCommand provides a mock function with given fields: commandID
-func (_m *API) GetSlashCommand(commandID string) (*model.Command, *model.AppError) {
-	ret := _m.Called(commandID)
-
-	var r0 *model.Command
-	if rf, ok := ret.Get(0).(func(string) *model.Command); ok {
-		r0 = rf(commandID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Command)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(commandID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2390,8 +2390,8 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
-// ListSlashCommands provides a mock function with given fields: teamID, customOnly
-func (_m *API) ListSlashCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+// ListCommands provides a mock function with given fields: teamID, customOnly
+func (_m *API) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
 	ret := _m.Called(teamID, customOnly)
 
 	var r0 []*model.Command
@@ -2461,8 +2461,8 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
-// MoveSlashCommand provides a mock function with given fields: commandID, newTeamID
-func (_m *API) MoveSlashCommand(commandID string, newTeamID string) *model.AppError {
+// MoveCommand provides a mock function with given fields: commandID, newTeamID
+func (_m *API) MoveCommand(commandID string, newTeamID string) *model.AppError {
 	ret := _m.Called(commandID, newTeamID)
 
 	var r0 *model.AppError
@@ -3009,6 +3009,31 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 	return r0, r1
 }
 
+// UpdateCommand provides a mock function with given fields: commandID, cmd
+func (_m *API) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+	ret := _m.Called(commandID, cmd)
+
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(string, *model.Command) *model.Command); ok {
+		r0 = rf(commandID, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Command)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, *model.Command) *model.AppError); ok {
+		r1 = rf(commandID, cmd)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // UpdateEphemeralPost provides a mock function with given fields: userId, post
 func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	ret := _m.Called(userId, post)
@@ -3064,31 +3089,6 @@ func (_m *API) UpdatePreferencesForUser(userId string, preferences []model.Prefe
 	}
 
 	return r0
-}
-
-// UpdateSlashCommand provides a mock function with given fields: commandID, cmd
-func (_m *API) UpdateSlashCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
-	ret := _m.Called(commandID, cmd)
-
-	var r0 *model.Command
-	if rf, ok := ret.Get(0).(func(string, *model.Command) *model.Command); ok {
-		r0 = rf(commandID, cmd)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Command)
-		}
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.Command) *model.AppError); ok {
-		r1 = rf(commandID, cmd)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
 }
 
 // UpdateTeam provides a mock function with given fields: team
