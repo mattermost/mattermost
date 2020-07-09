@@ -7893,5 +7893,17 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "O URL do site não pode ser limpo."
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": " "
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Não foi possível salvar o token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Não é possível excluir o token"
     }
 ]
