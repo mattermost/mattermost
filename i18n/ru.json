@@ -5164,30 +5164,6 @@
         "translation": "Возникла ошибка при обновлении участника канала"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Failed to delete"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Не удалось проверить существование"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Failed to get all discovery rows"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Failed to update last ping at"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Не удалось удалить плагин"
     },
@@ -5610,18 +5586,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Unable to update the preference"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Unable to get a token with this code"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Не удалось удалить плагин"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -7328,10 +7292,6 @@
         "translation": "Невозможно получить сообщение в течение определенного времени."
     },
     {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Не удалось удалить все токены указанного типа."
-    },
-    {
         "id": "store.sql_session.update_expired_notify.app_error",
         "translation": "Не удалось обновить expired_notify."
     },
@@ -7918,14 +7878,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Не удалось зафиксировать транзакцию"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Личные сообщения"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Каналы"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

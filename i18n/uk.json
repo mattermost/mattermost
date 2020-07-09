@@ -5164,30 +5164,6 @@
         "translation": "Виникла помилка при спробі прочитати файл"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Не вдалося видалити"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Не вдалося перевірити існування"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Не вдалося отримати всі рядки відкриття"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Не вдалося оновити останній ping у"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Не вдається отримати схему"
     },
@@ -5610,18 +5586,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Не вдається зберегти налаштування"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Неможливо видалити токен"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Неможливо отримати токен із цим кодом"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Неможливо зберегти токен"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6602,10 +6566,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Неможливо отримати всі канали"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Unable to remove all the tokens of a type."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7762,14 +7722,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Не вдається здійснити транзакцію"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Особисті повідомлення"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Канали"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
