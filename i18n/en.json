@@ -3967,6 +3967,30 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.preference.delete.app_error",
+    "translation": "We encountered an error while deleting preferences."
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error while deleteing preferences."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "We encountered an error while updating preferences."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -6913,58 +6937,6 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
-    "id": "app.preference.delete.app_error",
-    "translation": "We encountered an error while deleting preferences."
-  },
-  {
-    "id": "app.preference.get.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "app.preference.get_all.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "app.preference.get_category.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "A preference with that user id, category, and name already exists."
-  },
-  {
-    "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference."
-  },
-  {
-    "id": "app.preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleteing preferences."
-  },
-  {
-    "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Unable to commit transaction to save preferences."
-  },
-  {
-    "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Unable to open transaction to save preferences."
-  },
-  {
-    "id": "app.preference.save.updating.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference."
   },
   {
     "id": "store.sql_recover.delete.app_error",
