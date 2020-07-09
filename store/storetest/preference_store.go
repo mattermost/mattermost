@@ -356,15 +356,15 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err = ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, nErr)
 
-	_, err = ss.Preference().CleanupFlagsBatch(10000)
-	assert.Nil(t, err)
+	_, nErr = ss.Preference().CleanupFlagsBatch(10000)
+	assert.Nil(t, nErr)
 
-	_, err = ss.Preference().Get(userId, category, preference1.Name)
-	assert.Nil(t, err)
+	_, nErr = ss.Preference().Get(userId, category, preference1.Name)
+	assert.Nil(t, nErr)
 
-	_, err = ss.Preference().Get(userId, category, preference2.Name)
-	assert.NotNil(t, err)
+	_, nErr = ss.Preference().Get(userId, category, preference2.Name)
+	assert.NotNil(t, nErr)
 }

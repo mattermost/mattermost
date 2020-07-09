@@ -324,7 +324,7 @@ func (as SqlOAuthStore) deleteAppExtras(transaction *gorp.Transaction, clientId 
 		WHERE
 			Category = :Category
 			AND Name = :Name`, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, "Name": clientId}); err != nil {
-		return model.NewAppError("SqlOAuthStore.DeleteApp", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlOAuthStore.DeleteApp", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

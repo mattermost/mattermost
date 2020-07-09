@@ -1889,8 +1889,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.Nil(t, err)
@@ -1905,8 +1905,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
 	require.Nil(t, err)
@@ -1933,8 +1933,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.Nil(t, err)
@@ -1987,20 +1987,20 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
 	require.Nil(t, err)
 	require.Len(t, r.Order, 1, "should have 1 post")
 
 	preference.Name = o2.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	preference.Name = o3.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
 	require.Nil(t, err)
@@ -2019,8 +2019,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 2, "should have 2 posts")
 
 	preference.Name = o4.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
 	require.Nil(t, err)

@@ -6919,19 +6919,19 @@
     "translation": "We encountered an error cleaning up the batch of flags."
   },
   {
-    "id": "store.sql_preference.delete.app_error",
+    "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },
   {
-    "id": "store.sql_preference.get.app_error",
+    "id": "app.preference.get.app_error",
     "translation": "We encountered an error while finding preferences."
   },
   {
-    "id": "store.sql_preference.get_all.app_error",
+    "id": "app.preference.get_all.app_error",
     "translation": "We encountered an error while finding preferences."
   },
   {
-    "id": "store.sql_preference.get_category.app_error",
+    "id": "app.preference.get_category.app_error",
     "translation": "We encountered an error while finding preferences."
   },
   {
@@ -6943,7 +6943,7 @@
     "translation": "Unable to save the preference."
   },
   {
-    "id": "store.sql_preference.permanent_delete_by_user.app_error",
+    "id": "app.preference.permanent_delete_by_user.app_error",
     "translation": "We encountered an error while deleteing preferences."
   },
   {
@@ -6959,7 +6959,7 @@
     "translation": "Unable to open transaction to save preferences."
   },
   {
-    "id": "store.sql_preference.save.updating.app_error",
+    "id": "app.preference.save.updating.app_error",
     "translation": "We encountered an error while updating preferences."
   },
   {

@@ -7335,8 +7335,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Nil(t, err)
+		res, nErr := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
@@ -7352,9 +7352,9 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.NotNil(t, err)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.NotNil(t, nErr)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 	})
 
@@ -7400,8 +7400,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
-		assert.Nil(t, err)
+		res, nErr := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
@@ -7417,9 +7417,9 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
-		assert.NotNil(t, err)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.NotNil(t, nErr)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 	})
 
@@ -7478,13 +7478,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Nil(t, err)
+		res, nErr := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
-		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 
 		// And user2 favorite it
@@ -7496,13 +7496,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Nil(t, err)
+		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
-		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Nil(t, err)
+		res, nErr = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
@@ -7515,12 +7515,12 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 
-		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Nil(t, err)
+		res, nErr = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.Nil(t, nErr)
 		assert.NotNil(t, res)
 		assert.Equal(t, "true", res.Value)
 
@@ -7533,12 +7533,12 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		})
 		assert.Nil(t, err)
 
-		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 
-		res, err = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
-		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		res, nErr = ss.Preference().Get(userId2, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id)
+		assert.True(t, errors.Is(nErr, sql.ErrNoRows))
 		assert.Nil(t, res)
 	})
 
