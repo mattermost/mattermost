@@ -512,11 +512,11 @@ type LicenseStore interface {
 }
 
 type TokenStore interface {
-	Save(recovery *model.Token) *model.AppError
-	Delete(token string) *model.AppError
-	GetByToken(token string) (*model.Token, *model.AppError)
+	Save(recovery *model.Token) error
+	Delete(token string) error
+	GetByToken(token string) (*model.Token, error)
 	Cleanup()
-	RemoveAllTokensByType(tokenType string) *model.AppError
+	RemoveAllTokensByType(tokenType string) error
 }
 
 type EmojiStore interface {
