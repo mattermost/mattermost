@@ -630,7 +630,7 @@ func (s *OpenTracingLayerChannelStore) CreateDirectChannel(userId *model.User, o
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
+func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(userId string, teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.CreateInitialSidebarCategories")
 	s.Root.Store.SetContext(newCtx)
@@ -639,7 +639,7 @@ func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(user *mode
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(user, teamId)
+	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
@@ -2313,7 +2313,7 @@ func (s *OpenTracingLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) Cleanup() *model.AppError {
+func (s *OpenTracingLayerClusterDiscoveryStore) Cleanup() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.Cleanup")
 	s.Root.Store.SetContext(newCtx)
@@ -2331,7 +2331,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Cleanup() *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s *OpenTracingLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -2349,7 +2349,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Delete(discovery *model.ClusterD
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s *OpenTracingLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.Exists")
 	s.Root.Store.SetContext(newCtx)
@@ -2367,7 +2367,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Exists(discovery *model.ClusterD
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, *model.AppError) {
+func (s *OpenTracingLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -2385,7 +2385,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) GetAll(discoveryType string, clu
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) *model.AppError {
+func (s *OpenTracingLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -2403,7 +2403,7 @@ func (s *OpenTracingLayerClusterDiscoveryStore) Save(discovery *model.ClusterDis
 	return resultVar0
 }
 
-func (s *OpenTracingLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError {
+func (s *OpenTracingLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ClusterDiscoveryStore.SetLastPingAt")
 	s.Root.Store.SetContext(newCtx)
@@ -7486,7 +7486,7 @@ func (s *OpenTracingLayerTokenStore) Cleanup() {
 
 }
 
-func (s *OpenTracingLayerTokenStore) Delete(token string) *model.AppError {
+func (s *OpenTracingLayerTokenStore) Delete(token string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -7504,7 +7504,7 @@ func (s *OpenTracingLayerTokenStore) Delete(token string) *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
+func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.GetByToken")
 	s.Root.Store.SetContext(newCtx)
@@ -7522,7 +7522,7 @@ func (s *OpenTracingLayerTokenStore) GetByToken(token string) (*model.Token, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.RemoveAllTokensByType")
 	s.Root.Store.SetContext(newCtx)
@@ -7540,7 +7540,7 @@ func (s *OpenTracingLayerTokenStore) RemoveAllTokensByType(tokenType string) *mo
 	return resultVar0
 }
 
-func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) *model.AppError {
+func (s *OpenTracingLayerTokenStore) Save(recovery *model.Token) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Save")
 	s.Root.Store.SetContext(newCtx)
