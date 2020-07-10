@@ -394,12 +394,12 @@ type AuditStore interface {
 }
 
 type ClusterDiscoveryStore interface {
-	Save(discovery *model.ClusterDiscovery) *model.AppError
-	Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError)
-	Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError)
-	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError)
-	SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError
-	Cleanup() *model.AppError
+	Save(discovery *model.ClusterDiscovery) error
+	Delete(discovery *model.ClusterDiscovery) (bool, error)
+	Exists(discovery *model.ClusterDiscovery) (bool, error)
+	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, error)
+	SetLastPingAt(discovery *model.ClusterDiscovery) error
+	Cleanup() error
 }
 
 type ComplianceStore interface {
@@ -512,11 +512,11 @@ type LicenseStore interface {
 }
 
 type TokenStore interface {
-	Save(recovery *model.Token) *model.AppError
-	Delete(token string) *model.AppError
-	GetByToken(token string) (*model.Token, *model.AppError)
+	Save(recovery *model.Token) error
+	Delete(token string) error
+	GetByToken(token string) (*model.Token, error)
 	Cleanup()
-	RemoveAllTokensByType(tokenType string) *model.AppError
+	RemoveAllTokensByType(tokenType string) error
 }
 
 type EmojiStore interface {

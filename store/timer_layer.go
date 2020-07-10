@@ -2129,7 +2129,7 @@ func (s *TimerLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerClusterDiscoveryStore) Cleanup() *model.AppError {
+func (s *TimerLayerClusterDiscoveryStore) Cleanup() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ClusterDiscoveryStore.Cleanup()
@@ -2145,7 +2145,7 @@ func (s *TimerLayerClusterDiscoveryStore) Cleanup() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s *TimerLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscovery) (bool, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Delete(discovery)
@@ -2161,7 +2161,7 @@ func (s *TimerLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscove
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s *TimerLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscovery) (bool, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.Exists(discovery)
@@ -2177,7 +2177,7 @@ func (s *TimerLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscove
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, *model.AppError) {
+func (s *TimerLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterName string) ([]*model.ClusterDiscovery, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
@@ -2193,7 +2193,7 @@ func (s *TimerLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterNa
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) *model.AppError {
+func (s *TimerLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ClusterDiscoveryStore.Save(discovery)
@@ -2209,7 +2209,7 @@ func (s *TimerLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery
 	return resultVar0
 }
 
-func (s *TimerLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError {
+func (s *TimerLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.ClusterDiscovery) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ClusterDiscoveryStore.SetLastPingAt(discovery)
@@ -6760,7 +6760,7 @@ func (s *TimerLayerTokenStore) Cleanup() {
 	}
 }
 
-func (s *TimerLayerTokenStore) Delete(token string) *model.AppError {
+func (s *TimerLayerTokenStore) Delete(token string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.Delete(token)
@@ -6776,7 +6776,7 @@ func (s *TimerLayerTokenStore) Delete(token string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
+func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.TokenStore.GetByToken(token)
@@ -6792,7 +6792,7 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.RemoveAllTokensByType(tokenType)
@@ -6808,7 +6808,7 @@ func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) *model.Ap
 	return resultVar0
 }
 
-func (s *TimerLayerTokenStore) Save(recovery *model.Token) *model.AppError {
+func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.TokenStore.Save(recovery)
