@@ -7901,5 +7901,13 @@
     {
         "id": "api.invalid_channel",
         "translation": "İstekte listelenmiş kanal kullanıcıya ait değil"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Kod kaydedilemedi."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Kod silinemedi."
     }
 ]
