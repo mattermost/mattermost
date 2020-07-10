@@ -1804,4 +1804,12 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.Equal(t, "pluginid", newCmd3.PluginId)
 	require.Equal(t, "anothernewtrigger", newCmd3.Trigger)
 	require.Equal(t, team1.Id, newCmd3.TeamId)
+
+	newCmd3.Trigger = "anotherNewTriggerAgain"
+	newCmd3.TeamId = ""
+	newCmd4, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
+	require.Nil(t, appErr)
+	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
+	require.Equal(t, team1.Id, newCmd4.TeamId)
+
 }
