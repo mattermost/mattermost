@@ -519,7 +519,12 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += `(cm.SchemeAdmin = true AND u.Roles = 'system_user')`
 			} else if schemeUser {
 				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false AND u.Roles = 'system_user')`
-			} else if schemeGuest {
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
 				queryString += `(cm.SchemeGuest = true AND u.Roles = 'system_guest')`
 			}
 		}
@@ -550,7 +555,12 @@ func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []s
 				queryString += `(tm.SchemeAdmin = true AND u.Roles = 'system_user')`
 			} else if schemeUser {
 				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false AND u.Roles = 'system_user')`
-			} else if schemeGuest {
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
 				queryString += `(tm.SchemeGuest = true AND u.Roles = 'system_guest')`
 			}
 		}

@@ -2335,7 +2335,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u2.Id, SchemeAdmin: true, SchemeUser: true}, -1)
 	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u3.Id, SchemeAdmin: false, SchemeUser: true}, -1)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u3.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
 	require.Nil(t, err)
 
 	testCases := []struct {
@@ -2356,23 +2356,24 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			[]*model.User{u1, u3},
 		},
 		{
-			"search jimb, team 1 with team member filter",
+			"search jimb, team 1 with team guest and team admin filters without sys admin filter",
 			t1id,
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				TeamRoles:      []string{model.TEAM_USER_ROLE_ID},
+				TeamRoles:      []string{model.TEAM_GUEST_ROLE_ID, model.TEAM_ADMIN_ROLE_ID},
 			},
 			[]*model.User{u3},
 		},
 		{
-			"search jimb, team 1 with team admin filter",
+			"search jimb, team 1 with team admin filter and sys admin filter",
 			t1id,
 			"jimb",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
 				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
 			},
 			[]*model.User{u1},
@@ -2386,30 +2387,30 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
 			},
-			[]*model.User{u2, u1},
+			[]*model.User{u2},
 		},
 		{
-			"search jim, team 1 with team admin and team user filter",
+			"search jim, team 1 with team admin and team guest filter",
 			t1id,
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
-				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID},
+				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_GUEST_ROLE_ID},
 			},
-			[]*model.User{u2, u1, u3},
+			[]*model.User{u2, u3},
 		},
 		{
-			"search jim, team 1 with team user and system admin filters",
+			"search jim, team 1 with team admin and system admin filters",
 			t1id,
 			"jim",
 			&model.UserSearchOptions{
 				AllowFullNames: true,
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 				Roles:          []string{model.SYSTEM_ADMIN_ROLE_ID},
-				TeamRoles:      []string{model.TEAM_USER_ROLE_ID},
+				TeamRoles:      []string{model.TEAM_ADMIN_ROLE_ID},
 			},
-			[]*model.User{u1, u3},
+			[]*model.User{u2, u1},
 		},
 		{
 			"search jim, team 1 with system guest filter",
@@ -2869,7 +2870,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 				ChannelRoles:   []string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID},
 			},
-			[]*model.User{u1, u3},
+			[]*model.User{u3},
 		},
 		{
 			"search jim, allow inactive, channel 2 with channel user filter",
@@ -3552,6 +3553,23 @@ func testCount(t *testing.T, ss store.Store) {
 			1,
 		},
 		{
+			"Filter by team guests",
+			model.UserCountOptions{
+				TeamId:    teamId,
+				TeamRoles: []string{model.TEAM_GUEST_ROLE_ID},
+			},
+			1,
+		},
+		{
+			"Filter by team guests and any system role",
+			model.UserCountOptions{
+				TeamId:    teamId,
+				TeamRoles: []string{model.TEAM_GUEST_ROLE_ID},
+				Roles:     []string{model.SYSTEM_ADMIN_ROLE_ID},
+			},
+			2,
+		},
+		{
 			"Filter by channel members",
 			model.UserCountOptions{
 				ChannelId:    channelId,
@@ -3576,6 +3594,23 @@ func testCount(t *testing.T, ss store.Store) {
 				ChannelRoles: []string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID},
 			},
 			3,
+		},
+		{
+			"Filter by channel guests",
+			model.UserCountOptions{
+				ChannelId:    channelId,
+				ChannelRoles: []string{model.CHANNEL_GUEST_ROLE_ID},
+			},
+			1,
+		},
+		{
+			"Filter by channel guests and any system role",
+			model.UserCountOptions{
+				ChannelId:    channelId,
+				ChannelRoles: []string{model.CHANNEL_GUEST_ROLE_ID},
+				Roles:        []string{model.SYSTEM_ADMIN_ROLE_ID},
+			},
+			2,
 		},
 	}
 	for _, testCase := range testCases {
