@@ -5159,30 +5159,6 @@
         "translation": "Encontramos un error actualizando el miembro del canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Falla al guardar la fila ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Fallo al borrar"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Falla al revisar si existe"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Falló al obtener toda la información de descubrimiento del cluster"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Falló al guardar la información de descubrimiento de cluster."
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Falló al actualizar la última fecha de contacto"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "No se pudo contar los comandos"
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "No se puede actualizar la preferencia"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "No se puede eliminar el token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "No se puede obtener un token con el código suministrado"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "No se pudo guardar token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6605,10 +6569,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "No se pudo obtener todos los roles."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "No se pudo borrar todos los tokens del tipo."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7901,14 +7861,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "No se puede perpetrar la transacción"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Mensajes Directos"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canales"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

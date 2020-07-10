@@ -5164,30 +5164,6 @@
         "translation": "Am întâlnit o eroare la actualizarea membru canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Nu a reuşit să salveze ClusterDiscovery rând"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Nu se poate șterge"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Nu a reuşit să verifice dacă există"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Nu pentru a obţine toate rândurile de descoperire"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Nu a reuşit să salveze ClusterDiscovery rând"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Imposibil de actualizat ultima ping la"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Imposibil de numărare a comenzilor"
     },
@@ -5610,18 +5586,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Imposibil de actualizat preferința"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Imposibil de șters token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Imposibilitatea de a obţine un tichet cu acest cod"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Imposibil de salvat token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6602,10 +6566,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Imposibil de obținut toate rolurile."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Imposibil de eliminat toate jetoanele unui tip."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7922,14 +7882,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nu s-a putut efectua tranzacția"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Mesaje Directe"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canale"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

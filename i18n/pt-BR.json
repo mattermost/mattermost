@@ -5159,30 +5159,6 @@
         "translation": "Encontramos um erro ao atualizar o membro do canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Falha ao salvar a linha de ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Falha ao excluir"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Falha ao verificar se existe"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Falha ao obter todas as linhas de descoberta"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Falha ao salvar a linha ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Falha ao atualizar último ping em"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Não foi possível contar os comandos"
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Não foi possível atualizar a preferencia"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Não é possível excluir o token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Não foi possível pegar o token com este código"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Não foi possível salvar o token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6597,10 +6561,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Não é possível obter todos os papéis."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Não foi possível remover todos os tokens de um tipo."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7763,14 +7723,6 @@
         "translation": "Não é possível confirmar a transação"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Mensagens Diretas"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canais"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "A migração falhou devido a dados de progresso inválidos."
     },
@@ -7829,10 +7781,6 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Não foi possível obter canais privados."
-    },
-    {
-        "id": "sidebar.category.favorites",
-        "translation": "Favoritos"
     },
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
@@ -7945,5 +7893,21 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "O URL do site não pode ser limpo."
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": " "
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Não foi possível salvar o token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Não é possível excluir o token"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": " "
     }
 ]

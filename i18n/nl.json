@@ -5159,30 +5159,6 @@
         "translation": "Er is een probleem opgetreden tijdens het bijwerken van de kanaal leden"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Failed to delete"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Fout bij controle of de tabel bestaat"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Failed to get all discovery rows"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Failed to update last ping at"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Bericht kan niet opgehaald worden"
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Unable to update the preference"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Unable to get a token with this code"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6621,10 +6585,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Alle rollen kunnen niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Kan niet alle tokens van een type verwijderen."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7909,14 +7869,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "De transactie kan niet worden vastgelegt"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Privé bericht"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanalen"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

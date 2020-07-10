@@ -5154,30 +5154,6 @@
         "translation": "更新頻道成員時遇到錯誤"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "儲存 ClusterDiscovery 資料列失敗"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "刪除失敗"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "檢查資料表是否存在失敗"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "取得所有探索資料列失敗"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "儲存 ClusterDiscovery 資料列失敗"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "更新最後偵測時間失敗"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "無法計算指令數量"
     },
@@ -5600,18 +5576,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "無法更新偏好"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "無法刪除 Token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "無法根據此代碼取得 Token"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "無法儲存 Token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6592,10 +6556,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "無法取得角色"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "無法移除特定類型的全部 Token"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7752,14 +7712,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "無法提交交易"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "直接傳訊"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "頻道"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
