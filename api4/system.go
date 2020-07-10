@@ -574,7 +574,7 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.Srv().CanIUpgradeToE0(); err != nil {
-		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusTooManyRequests)
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
