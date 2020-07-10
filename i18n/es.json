@@ -7865,5 +7865,13 @@
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "La migración ha fallado porque hay datos erróneos de progreso."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "El canal listado en el requerimiento no pertenece al usuario."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "No se pudo eliminar token."
     }
 ]
