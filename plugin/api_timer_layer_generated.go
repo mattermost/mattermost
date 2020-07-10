@@ -49,6 +49,13 @@ func (api *apiTimerLayer) UnregisterCommand(teamId, trigger string) error {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteSlashCommand(commandArgs)
+	api.recordTime(startTime, "ExecuteSlashCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetSession(sessionId)
