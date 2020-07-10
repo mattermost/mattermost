@@ -82,6 +82,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
+	// We are able to pass 0 for content size due to the fact that Golang's serveContent (https://golang.org/src/net/http/fs.go)
+	// already sets that for us (Line 291)
 	err = writeFileResponse(fileInfo[job.Data["export_type"]]["fileName"], fileInfo[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 	if err != nil {
 		mlog.Error(err.Error())
