@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -66,6 +67,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
+		mlog.Error(err.Error())
 		c.Err = err
 		return
 	}
@@ -73,6 +75,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	filePath := fmt.Sprintf(FILE_PATH, job.Id, fileInfo[job.Data["export_type"]]["fileName"])
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
+		mlog.Error(err.Error())
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
@@ -81,6 +84,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err = writeFileResponse(fileInfo[job.Data["export_type"]]["fileName"], fileInfo[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 	if err != nil {
+		mlog.Error(err.Error())
 		c.Err = err
 		return
 	}
