@@ -1053,47 +1053,39 @@ func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
 	}
 
-	// knownPlugins maps plugin IDs to telemetry suffixes
-	var knownPlugins = map[string]string{
-		"antivirus":                                   "antivirus",
-		"mattermost-autolink":                         "autolink",
-		"com.mattermost.aws-sns":                      "aws_sns",
-		"com.mattermost.confluence":                   "confluence",
-		"com.mattermost.custom-attributes":            "custom_user_attributes",
-		"github":                                      "github",
-		"com.github.manland.mattermost-plugin-gitlab": "gitlab",
-		"jenkins":                                     "jenkins",
-		"jira":                                        "jira",
-		"jitsi":                                       "jitsi",
-		"com.mattermost.mscalendar":                   "mscalendar",
-		"com.mattermost.nps":                          "nps",
-		"skype4business":                              "skype4business",
-		"com.mattermost.plugin-todo":                  "todo",
-		"com.mattermost.webex":                        "webex",
-		"com.mattermost.welcomebot":                   "welcome_bot",
-		"zoom":                                        "zoom",
+	// knownPluginIDs lists all known plugin IDs in the Marketplace
+	knownPluginIDs := []string{
+		"antivirus",
+		"mattermost-autolink",
+		"com.mattermost.aws-sns",
+		"com.mattermost.confluence",
+		"com.mattermost.custom-attributes",
+		"github",
+		"com.github.manland.mattermost-plugin-gitlab",
+		"jenkins",
+		"jira",
+		"jitsi",
+		"com.mattermost.mscalendar",
+		"com.mattermost.nps",
+		"skype4business",
+		"com.mattermost.plugin-todo",
+		"com.mattermost.webex",
+		"com.mattermost.welcomebot",
+		"zoom",
 	}
 
 	marketplacePlugins, err := s.getAllMarketplaceplugins(marketplaceURL)
 	if err != nil {
 		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
 
-		for k, v := range knownPlugins {
-			pluginConfigData["enable_"+v] = pluginActivated(cfg.PluginSettings.PluginStates, k)
+		for _, id := range knownPluginIDs {
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
 		}
 	} else {
 		for _, p := range marketplacePlugins {
 			id := p.Manifest.Id
-			var key string
 
-			// Old old naming schema for to keep consistency with old telemetry data
-			if v, ok := knownPlugins[id]; ok {
-				key = "enable_" + v
-			} else {
-				key = "enable_" + id
-			}
-
-			pluginConfigData[key] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
 		}
 	}
 
@@ -1102,25 +1094,16 @@ func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
 			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
 		} else {
-
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
-				for k, v := range knownPlugins {
-					pluginConfigData["version_"+v] = pluginVersion(plugins, k)
+				for _, id := range knownPluginIDs {
+					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
 				}
 			} else {
 				for _, p := range marketplacePlugins {
 					id := p.Manifest.Id
-					var key string
 
-					// Old old naming schema for to keep consistency with old telemetry data
-					if v, ok := knownPlugins[id]; ok {
-						key = "version_" + v
-					} else {
-						key = "version_" + id
-					}
-
-					pluginConfigData[key] = pluginVersion(plugins, id)
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			}
 		}
