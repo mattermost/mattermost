@@ -6912,47 +6912,47 @@
     },
     {
         "id": "store.sql_recover.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het bewaren van het token."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het verwijderen van de rol."
     },
     {
         "id": "store.sql_role.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rol."
     },
     {
         "id": "store.sql_role.get_all.app_error",
-        "translation": "Alle rollen kunnen niet worden opgehaald."
+        "translation": "Fout bij het ophalen van alle rollen."
     },
     {
         "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rol."
     },
     {
         "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rollen."
     },
     {
         "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "We could not permanently delete all the roles"
+        "translation": "We konden niet alle rollen definitief verwijderen."
     },
     {
         "id": "store.sql_role.save.insert.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het opslaan van de nieuwe rol."
     },
     {
         "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "The role was not valid"
+        "translation": "Ongeldige rol."
     },
     {
         "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Failed to open the transaction to save the role"
+        "translation": "Fout bij het openen van de transactie om de rol op te slaan."
     },
     {
         "id": "store.sql_role.save.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het bijwerken van de rol."
     },
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
@@ -6960,7 +6960,7 @@
     },
     {
         "id": "store.sql_scheme.delete.role_update.app_error",
-        "translation": "De rollen van dit schema kunnen niet worden gewist."
+        "translation": "De rollen behorend tot dit schema kunnen niet worden verwijderd."
     },
     {
         "id": "store.sql_scheme.delete.update.app_error",
