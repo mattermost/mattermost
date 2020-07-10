@@ -671,6 +671,10 @@ func (s *Server) isUpgradedFromTE() bool {
 	return val.Value == "true"
 }
 
+func (s *Server) CanIUpgradeToE0() error {
+	return upgrader.CanIUpgradeToE0()
+}
+
 func (s *Server) UpgradeToE0() error {
 	if err := upgrader.UpgradeToE0(); err != nil {
 		return err

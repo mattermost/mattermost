@@ -2491,6 +2491,10 @@
     "translation": "There is an upgrade to enterprise already running, only one upgrade is possible at the same time."
   },
   {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "The system wasn't able to upgrade to enterprise, this feature is only available for linux-amd64 systems."
+  },
+  {
     "id": "api.upgrade_to_enterprise_status.app_error",
     "translation": "The system wasn't able to upgrade to enterprise, please try again."
   },

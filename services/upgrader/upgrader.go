@@ -52,7 +52,7 @@ func canIUpgrade() error {
 	return nil
 }
 
-func canIUpgradeToE0() error {
+func CanIUpgradeToE0() error {
 	if err := canIUpgrade(); err != nil {
 		return err
 	}
@@ -63,10 +63,6 @@ func canIUpgradeToE0() error {
 }
 
 func UpgradeToE0() error {
-	if err := canIUpgradeToE0(); err != nil {
-		return err
-	}
-
 	if !atomic.CompareAndSwapInt32(&upgrading, 0, 1) {
 		return errors.New("One upgrade is already running.")
 	}
