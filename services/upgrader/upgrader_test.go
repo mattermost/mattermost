@@ -18,7 +18,7 @@ func TestCanIUpgradeToE0(t *testing.T) {
 		defer func() {
 			model.BuildEnterpriseReady = buildEnterprise
 		}()
-		require.Error(t, canIUpgradeToE0())
+		require.Error(t, CanIUpgradeToE0())
 	})
 
 	t.Run("when you are not in an enterprise build", func(t *testing.T) {
@@ -27,7 +27,7 @@ func TestCanIUpgradeToE0(t *testing.T) {
 		defer func() {
 			model.BuildEnterpriseReady = buildEnterprise
 		}()
-		require.NoError(t, canIUpgradeToE0())
+		require.NoError(t, CanIUpgradeToE0())
 	})
 }
 
