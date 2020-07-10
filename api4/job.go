@@ -56,22 +56,14 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
-		c.Err = &model.AppError{
-			Id:         err.Id,
-			Message:    err.Message,
-			StatusCode: err.StatusCode,
-		}
+		c.Err = err
 		return
 	}
 
 	filePath := fmt.Sprintf(FILE_PATH, job.Id, model.FILE_INFO[job.Data["export_type"]]["fileName"])
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
-		c.Err = &model.AppError{
-			Id:         err.Id,
-			Message:    err.Message,
-			StatusCode: err.StatusCode,
-		}
+		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 		return
 	}
