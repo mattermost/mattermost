@@ -53,7 +53,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnConfigurationChange() error {
-				p.API.LogError("hello")
 				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
 					return err
 				}
@@ -62,7 +61,6 @@ func TestPluginCommand(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				p.API.LogError("team", "team", p.configuration.TeamId)
 				err := p.API.RegisterCommand(&model.Command{
 					TeamId: p.configuration.TeamId,
 					Trigger: "plugin",
@@ -73,7 +71,6 @@ func TestPluginCommand(t *testing.T) {
 				if err != nil {
 					p.API.LogError("error", "err", err)
 				}
-				p.API.LogDebug("team", "team", p.configuration.TeamId)
 
 				return err
 			}
@@ -216,5 +213,77 @@ func TestPluginCommand(t *testing.T) {
 	t.Run("error after plugin command unregistered", func(t *testing.T) {
 		_, err := th.App.ExecuteCommand(args)
 		require.NotNil(t, err)
+	})
+
+	t.Run("plugins can override built-in commands", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.Plugins["testloadpluginconfig"] = map[string]interface{}{
+				"TeamId": args.TeamId,
+			}
+		})
+
+		tearDown, pluginIds, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/v5/plugin"
+				"github.com/mattermost/mattermost-server/v5/model"
+			)
+
+			type configuration struct {
+				TeamId string
+			}
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+
+				configuration configuration
+			}
+
+			func (p *MyPlugin) OnConfigurationChange() error {
+				if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
+					return err
+				}
+
+				return nil
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				err := p.API.RegisterCommand(&model.Command{
+					TeamId: p.configuration.TeamId,
+					Trigger: "code",
+					DisplayName: "Plugin Command",
+					AutoComplete: true,
+					AutoCompleteDesc: "autocomplete",
+				})
+				if err != nil {
+					p.API.LogError("error", "err", err)
+				}
+
+				return err
+			}
+
+			func (p *MyPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+				return &model.CommandResponse{
+					ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+					Text: "text",
+				}, nil
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 1)
+		require.Nil(t, nil, activationErrors[0])
+
+		args.Command = "/code"
+		resp, err := th.App.ExecuteCommand(args)
+		require.Nil(t, err)
+		require.Equal(t, model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp.ResponseType)
+		require.Equal(t, "text", resp.Text)
+
+		th.App.RemovePlugin(pluginIds[0])
 	})
 }

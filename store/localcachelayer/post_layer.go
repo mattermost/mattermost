@@ -62,8 +62,9 @@ func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
 
 func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache bool) string {
 	if allowFromCache {
-		if lastTime := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId); lastTime != nil {
-			return fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime.(int64))
+		var lastTime int64
+		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, channelId, &lastTime); err == nil {
+			return fmt.Sprintf("%v.%v", model.CurrentVersion, lastTime)
 		}
 	}
 
@@ -82,7 +83,8 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
-		if lastTime := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, options.ChannelId); lastTime != nil && lastTime.(int64) <= options.Time {
+		var lastTime int64
+		if err := s.rootStore.doStandardReadCache(s.rootStore.lastPostTimeCache, options.ChannelId, &lastTime); err == nil && lastTime <= options.Time {
 			list := model.NewPostList()
 			return list, nil
 		}
@@ -111,8 +113,9 @@ func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCa
 	offset := options.PerPage * options.Page
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 	if offset == 0 && (options.PerPage == 60 || options.PerPage == 30) {
-		if cacheItem := s.rootStore.doStandardReadCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage)); cacheItem != nil {
-			return cacheItem.(*model.PostList), nil
+		var cacheItem *model.PostList
+		if err := s.rootStore.doStandardReadCache(s.rootStore.postLastPostsCache, fmt.Sprintf("%s%v", options.ChannelId, options.PerPage), &cacheItem); err == nil {
+			return cacheItem, nil
 		}
 	}
 

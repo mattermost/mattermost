@@ -1221,7 +1221,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}
 
 	foobarTeam, err := th.App.CreateTeam(&model.Team{
-		DisplayName: "FOOBAR",
+		DisplayName: "FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.TEAM_OPEN,
 		Email:       th.GenerateTestEmail(),
@@ -1236,19 +1236,19 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 	}{
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "oob", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "foo", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
 			Name:               "Get foobar channel",
-			Search:             &model.TeamSearch{Term: "bar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
+			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
@@ -1826,8 +1826,8 @@ func TestAddTeamMember(t *testing.T) {
 
 	require.Equal(t, tm.TeamId, team.Id, "team ids should have matched")
 
-	_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-	require.NotNil(t, err, "The token must be deleted after be used")
+	_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+	require.NotNil(t, nErr, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
