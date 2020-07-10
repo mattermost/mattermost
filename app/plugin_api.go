@@ -942,31 +942,25 @@ func (api *PluginAPI) GetCommand(commandID string) (*model.Command, *model.AppEr
 	return api.app.GetCommand(commandID)
 }
 
-func (api *PluginAPI) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
 	oldCmd, appErr := api.GetCommand(commandID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if cmd.TeamId != oldCmd.TeamId {
-		return nil, model.NewAppError("UpdateSlashCommand", "api.command.team_mismatch.app_error", nil, "plugin_id="+api.id, http.StatusBadRequest)
+	updatedCmd.Trigger = strings.ToLower(updatedCmd.Trigger)
+	updatedCmd.Id = oldCmd.Id
+	updatedCmd.Token = oldCmd.Token
+	updatedCmd.CreateAt = oldCmd.CreateAt
+	updatedCmd.UpdateAt = model.GetMillis()
+	updatedCmd.DeleteAt = oldCmd.DeleteAt
+	updatedCmd.CreatorId = oldCmd.CreatorId
+	updatedCmd.PluginId = oldCmd.PluginId
+	if updatedCmd.TeamId == "" {
+		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	return api.app.UpdateCommand(oldCmd, cmd)
-}
-
-func (api *PluginAPI) MoveCommand(commandID string, newTeamID string) *model.AppError {
-	cmd, appErr := api.GetCommand(commandID)
-	if appErr != nil {
-		return appErr
-	}
-
-	newTeam, appErr := api.app.GetTeam(newTeamID)
-	if appErr != nil {
-		return appErr
-	}
-
-	return api.app.MoveCommand(newTeam, cmd)
+	return api.app.Srv().Store.Command().Update(updatedCmd)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) *model.AppError {

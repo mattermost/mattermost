@@ -2461,22 +2461,6 @@ func (_m *API) LogWarn(msg string, keyValuePairs ...interface{}) {
 	_m.Called(_ca...)
 }
 
-// MoveCommand provides a mock function with given fields: commandID, newTeamID
-func (_m *API) MoveCommand(commandID string, newTeamID string) *model.AppError {
-	ret := _m.Called(commandID, newTeamID)
-
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
-		r0 = rf(commandID, newTeamID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
-	}
-
-	return r0
-}
-
 // OpenInteractiveDialog provides a mock function with given fields: dialog
 func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
 	ret := _m.Called(dialog)
@@ -3009,13 +2993,13 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 	return r0, r1
 }
 
-// UpdateCommand provides a mock function with given fields: commandID, cmd
-func (_m *API) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
-	ret := _m.Called(commandID, cmd)
+// UpdateCommand provides a mock function with given fields: commandID, updatedCmd
+func (_m *API) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+	ret := _m.Called(commandID, updatedCmd)
 
 	var r0 *model.Command
 	if rf, ok := ret.Get(0).(func(string, *model.Command) *model.Command); ok {
-		r0 = rf(commandID, cmd)
+		r0 = rf(commandID, updatedCmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Command)
@@ -3024,7 +3008,7 @@ func (_m *API) UpdateCommand(commandID string, cmd *model.Command) (*model.Comma
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, *model.Command) *model.AppError); ok {
-		r1 = rf(commandID, cmd)
+		r1 = rf(commandID, updatedCmd)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

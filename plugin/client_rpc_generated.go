@@ -4581,8 +4581,8 @@ type Z_UpdateCommandReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
-	_args := &Z_UpdateCommandArgs{commandID, cmd}
+func (g *apiRPCClient) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+	_args := &Z_UpdateCommandArgs{commandID, updatedCmd}
 	_returns := &Z_UpdateCommandReturns{}
 	if err := g.client.Call("Plugin.UpdateCommand", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateCommand API failed: %s", err.Error())
@@ -4592,40 +4592,11 @@ func (g *apiRPCClient) UpdateCommand(commandID string, cmd *model.Command) (*mod
 
 func (s *apiRPCServer) UpdateCommand(args *Z_UpdateCommandArgs, returns *Z_UpdateCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError)
+		UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateCommand(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateCommand called but not implemented."))
-	}
-	return nil
-}
-
-type Z_MoveCommandArgs struct {
-	A string
-	B string
-}
-
-type Z_MoveCommandReturns struct {
-	A *model.AppError
-}
-
-func (g *apiRPCClient) MoveCommand(commandID string, newTeamID string) *model.AppError {
-	_args := &Z_MoveCommandArgs{commandID, newTeamID}
-	_returns := &Z_MoveCommandReturns{}
-	if err := g.client.Call("Plugin.MoveCommand", _args, _returns); err != nil {
-		log.Printf("RPC call to MoveCommand API failed: %s", err.Error())
-	}
-	return _returns.A
-}
-
-func (s *apiRPCServer) MoveCommand(args *Z_MoveCommandArgs, returns *Z_MoveCommandReturns) error {
-	if hook, ok := s.impl.(interface {
-		MoveCommand(commandID string, newTeamID string) *model.AppError
-	}); ok {
-		returns.A = hook.MoveCommand(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API MoveCommand called but not implemented."))
 	}
 	return nil
 }

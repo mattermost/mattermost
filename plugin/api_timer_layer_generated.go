@@ -1051,18 +1051,11 @@ func (api *apiTimerLayer) GetCommand(commandID string) (*model.Command, *model.A
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.UpdateCommand(commandID, cmd)
+	_returnsA, _returnsB := api.apiImpl.UpdateCommand(commandID, updatedCmd)
 	api.recordTime(startTime, "UpdateCommand", _returnsB == nil)
 	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) MoveCommand(commandID string, newTeamID string) *model.AppError {
-	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.MoveCommand(commandID, newTeamID)
-	api.recordTime(startTime, "MoveCommand", _returnsA == nil)
-	return _returnsA
 }
 
 func (api *apiTimerLayer) DeleteCommand(commandID string) *model.AppError {

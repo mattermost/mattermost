@@ -990,18 +990,13 @@ type API interface {
 	GetCommand(commandID string) (*model.Command, *model.AppError)
 
 	// UpdateCommand updates a single command (commandID) with the information provided in the
-	// cmd model.Command struct. Some information in the command cannot be updated
-	// (e.g., Id, CreateAt, DeleteAt, CreatorId, etc.).
+	// updatedCmd model.Command struct. The following fields in the command cannot be updated:
+	// Id, Token, CreateAt, DeleteAt, CreatorId, and PluginId. If updatedCmd.TeamId is blank, it
+	// will be set to commandID's TeamId.
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	UpdateCommand(commandID string, cmd *model.Command) (*model.Command, *model.AppError)
-
-	// MoveCommand moves a slash command (commandID) to a team (newTeamID).
-	//
-	// @tag SlashCommand
-	// Minimum server version: 5.26
-	MoveCommand(commandID string, newTeamID string) *model.AppError
+	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError)
 
 	// DeleteCommand deletes a slash command (commandID).
 	//
