@@ -495,8 +495,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if appErr = s.Store.Status().ResetAll(); appErr != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(appErr))
+	if err = s.Store.Status().ResetAll(); err != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.startMetrics && s.Metrics != nil {
