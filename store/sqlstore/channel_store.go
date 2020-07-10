@@ -2854,6 +2854,30 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
 	}
 
+	if len(opts.TeamIds) > 0 {
+		query = query.Where(sq.Eq{"c.TeamId": opts.TeamIds})
+	}
+
+	if opts.GroupConstrained {
+		query = query.Where(sq.Eq{"c.GroupConstrained": true})
+	} else if opts.ExcludeGroupConstrained {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.GroupConstrained": true},
+			sq.Eq{"c.GroupConstrained": nil},
+		})
+	}
+
+	if opts.Public && opts.Private {
+		query = query.Where(sq.Or{
+			sq.Eq{"c.Type": model.CHANNEL_OPEN},
+			sq.Eq{"c.Type": model.CHANNEL_PRIVATE},
+		})
+	} else if opts.Private {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
+	} else if opts.Public {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
+	}
+
 	return query
 }
 
