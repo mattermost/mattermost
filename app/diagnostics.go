@@ -1062,6 +1062,7 @@ func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 		"com.mattermost.custom-attributes",
 		"github",
 		"com.github.manland.mattermost-plugin-gitlab",
+		"com.github.moussetc.mattermost.plugin.giphy",
 		"jenkins",
 		"jira",
 		"jitsi",
