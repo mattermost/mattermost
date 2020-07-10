@@ -12,8 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-const FILE_PATH = "export/%s/%s"
-
 func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
@@ -44,6 +42,18 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	const FILE_PATH = "export/%s/%s"
+	fileInfo := map[string]map[string]string{
+		"csv": {
+			"fileName": "csv_export.zip",
+			"fileMime": "application/zip",
+		},
+		"actiance": {
+			"fileName": "actiance_export.xml",
+			"fileMime": "application/xml",
+		},
+	}
+
 	c.RequireJobId()
 	if c.Err != nil {
 		return
@@ -60,7 +70,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := fmt.Sprintf(FILE_PATH, job.Id, model.FILE_INFO[job.Data["export_type"]]["fileName"])
+	filePath := fmt.Sprintf(FILE_PATH, job.Id, fileInfo[job.Data["export_type"]]["fileName"])
 	fileReader, err := c.App.FileReader(filePath)
 	if err != nil {
 		c.Err = err
@@ -69,7 +79,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(model.FILE_INFO[job.Data["export_type"]]["fileName"], model.FILE_INFO[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
+	err = writeFileResponse(fileInfo[job.Data["export_type"]]["fileName"], fileInfo[job.Data["export_type"]]["fileMime"], 0, time.Unix(0, job.LastActivityAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, true, w, r)
 	if err != nil {
 		c.Err = err
 		return

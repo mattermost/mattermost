@@ -30,17 +30,6 @@ const (
 	JOB_STATUS_WARNING          = "warning"
 )
 
-var FILE_INFO = map[string]map[string]string{
-	"csv": {
-		"fileName": "csv_export.zip",
-		"fileMime": "applicaiton/zip",
-	},
-	"actiance": {
-		"fileName": "actiance_export.xml",
-		"fileMime": "applicaiton/xml",
-	},
-}
-
 type Job struct {
 	Id             string            `json:"id"`
 	Type           string            `json:"type"`
