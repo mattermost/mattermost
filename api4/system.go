@@ -227,8 +227,8 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT) {
+		c.SetPermissionsError([]*model.Permission{model.PERMISSION_READ_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT})
 		return
 	}
 
