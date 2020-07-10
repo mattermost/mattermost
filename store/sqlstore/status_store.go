@@ -81,7 +81,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	}
 	rows, err := s.GetReplica().Db.Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to find States")
+		return nil, errors.Wrap(err, "failed to find Statuses")
 	}
 	var statuses []*model.Status
 	defer rows.Close()
@@ -101,7 +101,7 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 
 func (s SqlStatusStore) ResetAll() error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
-		return errors.Wrap(err, "failed to update States")
+		return errors.Wrap(err, "failed to update Statuses")
 	}
 	return nil
 }
