@@ -21,17 +21,17 @@ func (s *LocalCacheReactionStore) handleClusterInvalidateReaction(msg *model.Clu
 	}
 }
 
-func (s LocalCacheReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s LocalCacheReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
 	return s.ReactionStore.Save(reaction)
 }
 
-func (s LocalCacheReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (s LocalCacheReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
 	return s.ReactionStore.Delete(reaction)
 }
 
-func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	if !allowFromCache {
 		return s.ReactionStore.GetForPost(postId, false)
 	}
@@ -51,7 +51,7 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 	return reaction, nil
 }
 
-func (s LocalCacheReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (s LocalCacheReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	// This could be improved. Right now we just clear the whole
 	// cache because we don't have a way find what post Ids have this emoji name.
 	defer s.rootStore.doClearCacheCluster(s.rootStore.reactionCache)
