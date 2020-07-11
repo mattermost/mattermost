@@ -123,6 +123,7 @@ type ChannelSearchOpts struct {
 	NotAssociatedToGroup    string
 	ExcludeDefaultChannels  bool
 	IncludeDeleted          bool
+	Deleted                 bool
 	ExcludeChannelNames     []string
 	TeamIds                 []string
 	GroupConstrained        bool

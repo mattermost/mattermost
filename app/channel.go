@@ -2195,6 +2195,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		ExcludeChannelNames:     opts.ExcludeChannelNames,
 		NotAssociatedToGroup:    opts.NotAssociatedToGroup,
 		IncludeDeleted:          opts.IncludeDeleted,
+		Deleted:                 opts.Deleted,
 		TeamIds:                 opts.TeamIds,
 		GroupConstrained:        opts.GroupConstrained,
 		ExcludeGroupConstrained: opts.ExcludeGroupConstrained,

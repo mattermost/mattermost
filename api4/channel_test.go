@@ -1346,6 +1346,11 @@ func TestSearchAllChannels(t *testing.T) {
 			[]string{th.BasicDeletedChannel.Id},
 		},
 		{
+			"Search with deleted Deleted filter and empty term",
+			&model.ChannelSearch{Term: "", Deleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
 			"Search for group constrained",
 			&model.ChannelSearch{Term: "SearchAllChannels", GroupConstrained: true},
 			[]string{groupConstrainedChannel.Id},

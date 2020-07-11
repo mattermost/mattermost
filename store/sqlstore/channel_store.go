@@ -2825,8 +2825,9 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 			OrderBy("c.DisplayName, t.DisplayName").
 			Limit(uint64(limit))
 	}
-
-	if !opts.IncludeDeleted {
+	if opts.Deleted {
+		query = query.Where(sq.NotEq{"c.DeleteAt": int(0)})
+	} else if !opts.IncludeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 

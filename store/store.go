@@ -751,6 +751,7 @@ type LinkMetadataStore interface {
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup    string
 	IncludeDeleted          bool
+	Deleted                 bool
 	ExcludeChannelNames     []string
 	TeamIds                 []string
 	GroupConstrained        bool

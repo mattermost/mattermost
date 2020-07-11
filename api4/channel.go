@@ -1010,6 +1010,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		Public:                  props.Public,
 		Private:                 props.Private,
 		IncludeDeleted:          includeDeleted,
+		Deleted:                 props.Deleted,
 		Page:                    props.Page,
 		PerPage:                 props.PerPage,
 	}
