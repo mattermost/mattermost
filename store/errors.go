@@ -88,3 +88,17 @@ func NewErrNotFound(resource, id string) *ErrNotFound {
 func (e *ErrNotFound) Error() string {
 	return "resource: " + e.resource + " id: " + e.Id
 }
+
+// ErrOutOfBounds indicates that the requested total numbers of rows
+// was greater than the allowed limit.
+type ErrOutOfBounds struct {
+	value int
+}
+
+func (e *ErrOutOfBounds) Error() string {
+	return fmt.Sprintf("invalid limit parameter: %d", e.value)
+}
+
+func NewErrOutOfBounds(value int) *ErrOutOfBounds {
+	return &ErrOutOfBounds{value: value}
+}
