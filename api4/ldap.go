@@ -73,8 +73,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionsError([]*model.Permission{model.PERMISSION_READ_SETTINGS, model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS})
 		return
 	}
 
