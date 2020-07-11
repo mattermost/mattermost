@@ -251,8 +251,8 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	roles := model.MakeDefaultRoles()
 
 	allSucceeded := true
-	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_RESTRICTED_ADMIN_ROLE_ID); err != nil {
-		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_RESTRICTED_ADMIN_ROLE_ID]); err != nil {
+	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_MANAGER_ROLE_ID); err != nil {
+		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_MANAGER_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new Junior Admin role to database.", mlog.Err(err))
 			allSucceeded = false
 		}

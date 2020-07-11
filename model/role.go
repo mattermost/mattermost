@@ -21,7 +21,7 @@ func init() {
 		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
 		SYSTEM_USER_MANAGER_ROLE_ID,
 		SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
-		SYSTEM_RESTRICTED_ADMIN_ROLE_ID,
+		SYSTEM_MANAGER_ROLE_ID,
 
 		TEAM_GUEST_ROLE_ID,
 		TEAM_USER_ROLE_ID,
@@ -47,7 +47,7 @@ const (
 	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
 	SYSTEM_USER_MANAGER_ROLE_ID      = "system_user_manager"
 	SYSTEM_READ_ONLY_ADMIN_ROLE_ID   = "system_read_only_admin"
-	SYSTEM_RESTRICTED_ADMIN_ROLE_ID  = "system_restricted_admin"
+	SYSTEM_MANAGER_ROLE_ID           = "system_manager"
 
 	TEAM_GUEST_ROLE_ID           = "team_guest"
 	TEAM_USER_ROLE_ID            = "team_user"
@@ -570,8 +570,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[SYSTEM_USER_MANAGER_ROLE_ID] = &Role{
 		Name:        "system_user_manager",
-		DisplayName: "authentication.roles.system_user_access_token.name",
-		Description: "authentication.roles.system_user_access_token.description",
+		DisplayName: "authentication.roles.system_user_manager.name",
+		Description: "authentication.roles.system_user_manager.description",
 		Permissions: []string{
 			PERMISSION_READ_SETTINGS.Id,
 			PERMISSION_WRITE_SETTINGS.Id,
@@ -601,8 +601,8 @@ func MakeDefaultRoles() map[string]*Role {
 
 	roles[SYSTEM_READ_ONLY_ADMIN_ROLE_ID] = &Role{
 		Name:        "system_read_only_admin",
-		DisplayName: "authentication.roles.system_user_access_token.name",
-		Description: "authentication.roles.system_user_access_token.description",
+		DisplayName: "authentication.roles.system_read_only_admin.name",
+		Description: "authentication.roles.system_read_only_admin.description",
 		Permissions: []string{
 			PERMISSION_READ_SETTINGS.Id,
 			PERMISSION_LIST_PRIVATE_TEAMS.Id,
@@ -621,10 +621,10 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	roles[SYSTEM_RESTRICTED_ADMIN_ROLE_ID] = &Role{
-		Name:        "system_restricted_admin",
-		DisplayName: "authentication.roles.system_user_access_token.name",
-		Description: "authentication.roles.system_user_access_token.description",
+	roles[SYSTEM_MANAGER_ROLE_ID] = &Role{
+		Name:        "system_manager",
+		DisplayName: "authentication.roles.system_manager.name",
+		Description: "authentication.roles.system_manager.description",
 		Permissions: []string{
 			PERMISSION_READ_SETTINGS.Id,
 			PERMISSION_WRITE_SETTINGS.Id,
