@@ -186,16 +186,16 @@ func TestDownloadJob(t *testing.T) {
 		},
 	}
 
-	// Normal user cannot download the results of these job
+	// Normal user cannot download the results of these job (Doesn't have permission)
 	_, resp := th.Client.DownloadJob(job.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// System admin trying to download restults that are non-existent
+	// System admin trying to download the results of a non-existant job
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckNotFoundStatus(t, resp)
 
-	// Here we have a job that exist in our database but the results do not exist, when we try to download as a
-	// system admin we should get a not found status.
+	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
+	// as a system admin, we should get a not found status.
 	_, err := th.App.Srv().Store.Job().Save(job)
 	require.Nil(t, err)
 	defer th.App.Srv().Store.Job().Delete(job.Id)
