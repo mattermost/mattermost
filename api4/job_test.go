@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -170,6 +172,51 @@ func TestGetJobsByType(t *testing.T) {
 
 	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestDownloadJob(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	jobName := model.NewId()
+	job := &model.Job{
+		Id:   jobName,
+		Type: model.JOB_TYPE_MESSAGE_EXPORT,
+		Data: map[string]string{
+			"export_type": "csv",
+		},
+	}
+
+	// Normal user cannot download the results of these job
+	_, resp := th.Client.DownloadJob(job.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// System admin trying to download restults that are non-existent
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckNotFoundStatus(t, resp)
+
+	// Here we have a job that exist in our database but the results do not exist, when we try to download as a
+	// system admin we should get a not found status.
+	_, err := th.App.Srv().Store.Job().Save(job)
+	require.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(job.Id)
+
+	filePath := "./data/export/" + job.Id + "/testdat.txt"
+	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.Nil(t, mkdirAllErr)
+	os.Create(filePath)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckNotFoundStatus(t, resp)
+
+	// Now we stub the results of the job into the same directory and try to download it again
+	// This time we should successfully retrieve the results without any error
+	filePath = "./data/export/" + job.Id + "/csv_export.zip"
+	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.Nil(t, mkdirAllErr)
+	os.Create(filePath)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Nil(t, resp.Error)
 }
 
 func TestCancelJob(t *testing.T) {
