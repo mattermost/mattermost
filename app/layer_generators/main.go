@@ -27,7 +27,7 @@ var (
 	inputFile          string
 	outputFileTemplate string
 	basicTypes         = map[string]bool{"int": true, "string": true, "float": true, "bool": true, "byte": true, "int64": true, "error": true}
-	textRegexp         = regexp.MustCompile("\\w+$")
+	textRegexp         = regexp.MustCompile(`\w+$`)
 )
 
 const (
