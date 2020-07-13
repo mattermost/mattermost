@@ -585,13 +585,13 @@ func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userId string, te
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError) {
@@ -639,13 +639,13 @@ func (s *OpenTracingLayerChannelStore) CreateInitialSidebarCategories(userId str
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
@@ -657,13 +657,13 @@ func (s *OpenTracingLayerChannelStore) CreateSidebarCategory(userId string, team
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.CreateSidebarCategory(userId, teamId, newCategory)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.CreateSidebarCategory(userId, teamId, newCategory)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) Delete(channelId string, time int64) error {
@@ -693,13 +693,13 @@ func (s *OpenTracingLayerChannelStore) DeleteSidebarCategory(categoryId string) 
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.DeleteSidebarCategory(categoryId)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.DeleteSidebarCategory(categoryId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
@@ -1354,13 +1354,13 @@ func (s *OpenTracingLayerChannelStore) GetPrivateChannelsForTeam(teamId string, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
@@ -1408,13 +1408,13 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategories(userId string, teamI
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetSidebarCategories(userId, teamId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.GetSidebarCategories(userId, teamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
@@ -1426,13 +1426,13 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategory(categoryId string) (*m
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetSidebarCategory(categoryId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.GetSidebarCategory(categoryId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) GetSidebarCategoryOrder(userId string, teamId string) ([]string, *model.AppError) {
@@ -1444,13 +1444,13 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategoryOrder(userId string, te
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetSidebarCategoryOrder(userId, teamId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.GetSidebarCategoryOrder(userId, teamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
@@ -1638,13 +1638,13 @@ func (s *OpenTracingLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUse
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId, runningOrder)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId, runningOrder)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
@@ -1674,13 +1674,13 @@ func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId strin
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) error {
@@ -2160,13 +2160,13 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarCategories(userId string, te
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.UpdateSidebarCategories(userId, teamId, categories)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.ChannelStore.UpdateSidebarCategories(userId, teamId, categories)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) *model.AppError {
@@ -2178,13 +2178,13 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarCategoryOrder(userId string,
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
@@ -2196,13 +2196,13 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channe
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
@@ -2214,13 +2214,13 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(prefer
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
