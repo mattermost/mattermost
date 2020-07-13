@@ -8,6 +8,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
+	"hash/maphash"
 	"net"
 	"net/http"
 	"net/url"
@@ -25,7 +26,6 @@ import (
 	"github.com/rs/cors"
 	rudder "github.com/rudderlabs/analytics-go"
 
-	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -89,11 +89,10 @@ type Server struct {
 	PluginConfigListenerId string
 	PluginsLock            sync.RWMutex
 
-	EmailBatching    *EmailBatchingJob
-	EmailRateLimiter *throttled.GCRARateLimiter
+	EmailService *EmailService
 
-	hubsLock sync.RWMutex
 	hubs     []*Hub
+	hashSeed maphash.Seed
 
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
@@ -178,8 +177,10 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:          rootRouter,
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
+		hashSeed:            maphash.MakeSeed(),
 	}
 
+	mlog.Info("Server is initializing...")
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -210,6 +211,11 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
+
+	// It is important to initialize the hub only after the global logger is set
+	// to avoid race conditions while logging from inside the hub.
+	fakeApp := New(ServerConnector(s))
+	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
 		if strings.Contains(SENTRY_DSN, "placeholder") {
@@ -305,12 +311,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	})
 
-	if err := s.setupInviteEmailRateLimiting(); err != nil {
-		return nil, err
-	}
-
-	mlog.Info("Server is initializing...")
-
 	s.initEnterprise()
 
 	if s.newStore == nil {
@@ -351,6 +351,12 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.Store = s.newStore()
 
+	emailService, err := NewEmailService(s)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to initialize email service")
+	}
+	s.EmailService = emailService
+
 	if model.BuildEnterpriseReady == "true" {
 		s.LoadLicense()
 	}
@@ -361,19 +367,19 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if err := s.ensureAsymmetricSigningKey(); err != nil {
+	if err = s.ensureAsymmetricSigningKey(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := s.ensurePostActionCookieSecret(); err != nil {
+	if err = s.ensurePostActionCookieSecret(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure PostAction cookie secret")
 	}
 
-	if err := s.ensureInstallationDate(); err != nil {
+	if err = s.ensureInstallationDate(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure installation date")
 	}
 
-	if err := s.ensureFirstServerRunTimestamp(); err != nil {
+	if err = s.ensureFirstServerRunTimestamp(); err != nil {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
@@ -394,7 +400,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.Router = s.RootRouter.PathPrefix(subpath).Subrouter()
 
 	// FakeApp: remove this when we have the ServePluginRequest and ServePluginPublicRequest migrated in the server
-	fakeApp := New(ServerConnector(s))
 	pluginsRoute := s.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	pluginsRoute.HandleFunc("", fakeApp.ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", fakeApp.ServePluginPublicRequest)
@@ -413,11 +418,11 @@ func NewServer(options ...Option) (*Server, error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	if err := mailservice.TestConnection(s.Config()); err != nil {
-		mlog.Error("Mail server connection test is failed: " + err.Message)
+	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
+		mlog.Error("Mail server connection test is failed: " + appErr.Message)
 	}
 
-	if _, err := url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
+	if _, err = url.ParseRequestURI(*s.Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
 	}
 
@@ -433,9 +438,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.timezones = timezones.New()
 	// Start email batching because it's not like the other jobs
-	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {
-		s.InitEmailBatching()
+		s.EmailService.InitEmailBatching()
 	})
 
 	// Start plugin health check job
@@ -492,8 +496,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if err := s.Store.Status().ResetAll(); err != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(err))
+	if appErr = s.Store.Status().ResetAll(); appErr != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(appErr))
 	}
 
 	if s.startMetrics && s.Metrics != nil {
@@ -1069,7 +1073,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1190,53 +1194,16 @@ func (s *Server) shutdownDiagnostics() error {
 	return nil
 }
 
-// GetHubs returns the list of hubs. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) GetHubs() []*Hub {
-	s.hubsLock.RLock()
-	defer s.hubsLock.RUnlock()
-	return s.hubs
-}
-
-// getHub gets the element at the given index in the hubs list. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) GetHub(index int) (*Hub, error) {
-	s.hubsLock.RLock()
-	defer s.hubsLock.RUnlock()
-	if index >= len(s.hubs) {
-		return nil, errors.New("Hub element doesn't exist")
-	}
-	return s.hubs[index], nil
-}
-
-// SetHubs sets a new list of hubs. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) SetHubs(hubs []*Hub) {
-	s.hubsLock.Lock()
-	defer s.hubsLock.Unlock()
-	s.hubs = hubs
-}
-
-// SetHub sets the element at the given index in the hubs list. This method is safe
-// for concurrent use by multiple goroutines.
-func (s *Server) SetHub(index int, hub *Hub) error {
-	s.hubsLock.Lock()
-	defer s.hubsLock.Unlock()
-	if index >= len(s.hubs) {
-		return errors.New("Index is greater than the size of the hubs list")
-	}
-	s.hubs[index] = hub
-	return nil
-}
-
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
 	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
 }
 
 func (s *Server) TotalWebsocketConnections() int {
+	// This method is only called after the hub is initialized.
+	// Therefore, no mutex is needed to protect s.hubs.
 	count := int64(0)
-	for _, hub := range s.GetHubs() {
+	for _, hub := range s.hubs {
 		count = count + atomic.LoadInt64(&hub.connectionCount)
 	}
 
