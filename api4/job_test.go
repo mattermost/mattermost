@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/enterprise/message_export"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
@@ -184,6 +185,7 @@ func TestDownloadJob(t *testing.T) {
 		Data: map[string]string{
 			"export_type": "csv",
 		},
+		Status: model.JOB_STATUS_SUCCESS,
 	}
 
 	// Normal user cannot download the results of these job (Doesn't have permission)
@@ -204,6 +206,14 @@ func TestDownloadJob(t *testing.T) {
 	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
 	require.Nil(t, mkdirAllErr)
 	os.Create(filePath)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckBadRequestStatus(t, resp)
+
+	job.Data[message_export.JOB_DATA_IS_DOWNLOADABLE] = "true"
+	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
+	require.True(t, updateStatus)
+	require.Nil(t, err)
 
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckNotFoundStatus(t, resp)

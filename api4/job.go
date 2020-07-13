@@ -6,9 +6,11 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/enterprise/message_export"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -69,6 +71,12 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		mlog.Error(err.Error())
 		c.Err = err
+		return
+	}
+
+	isDownloadable, _ := strconv.ParseBool(job.Data[message_export.JOB_DATA_IS_DOWNLOADABLE])
+	if !isDownloadable {
+		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil, "", http.StatusBadRequest)
 		return
 	}
 
