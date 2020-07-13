@@ -50,7 +50,6 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &appErr):
-			appErr.StatusCode = http.StatusBadRequest
 			return appErr
 		default:
 			return model.NewAppError("UpdatePreferences", "app.preference.save.updating.app_error", nil, err.Error(), http.StatusBadRequest)
