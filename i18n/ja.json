@@ -7868,5 +7868,33 @@
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "不正な進捗データのため移行に失敗しました。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "既定のカテゴリを削除できませんでした。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "データベースへレコードを挿入できませんでした。"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "データベースエラーによりマイグレーションできませんでした。"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "トークンを保存できませんでした。"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "トークンを削除できませんでした。"
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "初期サイドバーカテゴリを作成できませんでした。"
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "リクエスト内のチャンネルにユーザーが所属していません"
     }
 ]
