@@ -404,6 +404,7 @@ func TestS3TestConnection(t *testing.T) {
 			AmazonS3Bucket:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
 			AmazonS3Region:          model.NewString(""),
+			AmazonS3PathPrefix:      model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -420,6 +421,7 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+		config.FileSettings.AmazonS3PathPrefix = model.NewString("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		_, resp = th.SystemAdminClient.TestS3Connection(&config)
 		CheckOKStatus(t, resp)

@@ -2058,7 +2058,7 @@ func (sc *serverConn) newWriterAndRequestNoBody(st *stream, rp requestParam) (*r
 	var trailer http.Header
 	for _, v := range rp.header["Trailer"] {
 		for _, key := range strings.Split(v, ",") {
-			key = http.CanonicalHeaderKey(strings.TrimSpace(key))
+			key = http.CanonicalHeaderKey(textproto.TrimString(key))
 			switch key {
 			case "Transfer-Encoding", "Trailer", "Content-Length":
 				// Bogus. (copy of http1 rules)

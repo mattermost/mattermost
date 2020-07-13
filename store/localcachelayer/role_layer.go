@@ -41,8 +41,9 @@ func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, *model.AppErro
 }
 
 func (s LocalCacheRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
-	if role := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name); role != nil {
-		return role.(*model.Role), nil
+	var role *model.Role
+	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
+		return role, nil
 	}
 
 	role, err := s.RoleStore.GetByName(name)
@@ -58,8 +59,9 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, *model.A
 	var rolesToQuery []string
 
 	for _, roleName := range names {
-		if role := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName); role != nil {
-			foundRoles = append(foundRoles, role.(*model.Role))
+		var role *model.Role
+		if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName, &role); err == nil {
+			foundRoles = append(foundRoles, role)
 		} else {
 			rolesToQuery = append(rolesToQuery, roleName)
 		}
@@ -95,8 +97,9 @@ func (s LocalCacheRoleStore) PermanentDeleteAll() *model.AppError {
 func (s LocalCacheRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
 	sort.Strings(roleNames)
 	cacheKey := strings.Join(roleNames, "/")
-	if rolePermissionsMap := s.rootStore.doStandardReadCache(s.rootStore.rolePermissionsCache, cacheKey); rolePermissionsMap != nil {
-		return rolePermissionsMap.(map[string]*model.RolePermissions), nil
+	var rolePermissionsMap map[string]*model.RolePermissions
+	if err := s.rootStore.doStandardReadCache(s.rootStore.rolePermissionsCache, cacheKey, &rolePermissionsMap); err == nil {
+		return rolePermissionsMap, nil
 	}
 
 	rolePermissionsMap, err := s.RoleStore.ChannelHigherScopedPermissions(roleNames)

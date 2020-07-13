@@ -348,7 +348,7 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 	var days int
 	if session.IsMobileApp() {
 		days = *a.Config().ServiceSettings.SessionLengthMobileInDays
-	} else if session.IsOAuth {
+	} else if session.IsSSOLogin() {
 		days = *a.Config().ServiceSettings.SessionLengthSSOInDays
 	} else {
 		days = *a.Config().ServiceSettings.SessionLengthWebInDays
@@ -376,7 +376,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
-		if err := a.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.sendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			a.Log().Error("Unable to send user access token added email", mlog.Err(err), mlog.String("user_id", user.Id))
 		}
 	}
