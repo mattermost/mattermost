@@ -44,6 +44,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
+	config := c.App.Config()
 	const FILE_PATH = "export/%s/%s"
 	fileInfo := map[string]map[string]string{
 		"csv": {
@@ -58,6 +59,11 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.RequireJobId()
 	if c.Err != nil {
+		return
+	}
+
+	if !*config.MessageExportSettings.DownloadExportResults {
+		c.Err = model.NewAppError("downloadExportResultsNotEnabled", "app.job.download_export_results_not_enabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 

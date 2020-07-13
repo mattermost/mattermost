@@ -187,8 +187,16 @@ func TestDownloadJob(t *testing.T) {
 		Status: model.JOB_STATUS_SUCCESS,
 	}
 
-	// Normal user cannot download the results of these job (Doesn't have permission)
+	// DownloadExportResults is not set to true so we should get a not implemented error status
 	_, resp := th.Client.DownloadJob(job.Id)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.DownloadExportResults = true
+	})
+
+	// Normal user cannot download the results of these job (Doesn't have permission)
+	_, resp = th.Client.DownloadJob(job.Id)
 	CheckForbiddenStatus(t, resp)
 
 	// System admin trying to download the results of a non-existant job
