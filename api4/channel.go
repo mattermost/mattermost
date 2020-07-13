@@ -690,8 +690,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS) {
+		c.SetPermissionsError([]*model.Permission{model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS, model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS})
 		return
 	}
 
@@ -1721,8 +1721,8 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS)
 		return
 	}
 
