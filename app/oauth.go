@@ -160,7 +160,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 	}
 
 	if nErr := a.Srv().Store.Preference().Save(&model.Preferences{authorizedApp}); nErr != nil {
-		mlog.Error("error saving store prefrence", mlog.Err(nErr))
+		mlog.Error("error saving store preference", mlog.Err(nErr))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 

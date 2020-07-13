@@ -13,7 +13,7 @@ import (
 func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store.Preference().GetAll(userId)
 	if err != nil {
-		return nil, model.NewAppError("GetAlGetPreferencesForUser", "app.preference.get_all.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("GetPreferencesForUser", "app.preference.get_all.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return preferences, nil
 }
