@@ -128,8 +128,8 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT})
 		return
 	}
 
