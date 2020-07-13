@@ -28,6 +28,14 @@ services:
     extends:
         file: docker-compose.common.yml
         service: elasticsearch
+  dejavu:
+    extends:
+        file: docker-compose.common.yml
+        service: dejavu
+  keycloak:
+    extends:
+        file: docker-compose.common.yml
+        service: keycloak
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
