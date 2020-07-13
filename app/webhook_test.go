@@ -724,7 +724,7 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

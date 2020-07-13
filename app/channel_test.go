@@ -345,7 +345,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -371,7 +371,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
