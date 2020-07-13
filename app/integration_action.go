@@ -20,6 +20,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -101,7 +102,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
 		if err != nil {
-			return "", err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		upstreamRequest.ChannelId = cookie.ChannelId
@@ -346,9 +353,23 @@ func (a *App) doPluginRequest(method, rawURL string, values url.Values, body []b
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
+
+	// merge the rawQuery params (if any) with the function's provided values
+	rawValues := inURL.Query()
+	if len(rawValues) != 0 {
+		if values == nil {
+			values = make(url.Values)
+		}
+		for k, vs := range rawValues {
+			for _, v := range vs {
+				values.Add(k, v)
+			}
+		}
+	}
 	if values != nil {
 		base.RawQuery = values.Encode()
 	}
+
 	w := &LocalResponseWriter{}
 	r, err := http.NewRequest(method, base.String(), bytes.NewReader(body))
 	if err != nil {

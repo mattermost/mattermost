@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -28,21 +29,24 @@ func TestCache(t *testing.T) {
 		UserId: model.NewId(),
 	}
 
-	th.App.Srv().sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
-	th.App.Srv().sessionCache.AddWithExpiresInSecs(session2.Token, session2, 5*60)
+	th.App.Srv().sessionCache.SetWithExpiry(session.Token, session, 5*time.Minute)
+	th.App.Srv().sessionCache.SetWithExpiry(session2.Token, session2, 5*time.Minute)
 
-	keys := th.App.Srv().sessionCache.Keys()
+	keys, err := th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.NotEmpty(t, keys)
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
-	rkeys := th.App.Srv().sessionCache.Keys()
+	rkeys, err := th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.Lenf(t, rkeys, len(keys)-1, "should have one less: %d - %d != 1", len(keys), len(rkeys))
 	require.NotEmpty(t, rkeys)
 
 	th.App.ClearSessionCacheForAllUsers()
 
-	rkeys = th.App.Srv().sessionCache.Keys()
+	rkeys, err = th.App.Srv().sessionCache.Keys()
+	require.Nil(t, err)
 	require.Empty(t, rkeys)
 }
 
@@ -56,7 +60,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = false })
 
@@ -106,7 +110,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
 
 	// Test regular session with timeout set to 0, should not timeout
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0 })
@@ -129,7 +133,7 @@ func TestUpdateSessionOnPromoteDemote(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Promote Guest to User updates the session", func(t *testing.T) {
 		guest := th.CreateGuest()
@@ -202,11 +206,53 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		require.Equal(t, dayMillis*3, sessionLength)
 	})
 
+	t.Run("get session length mobile when isMobile in props is set", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length mobile when isMobile in props is set and takes priority over saml", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.USER_AUTH_SERVICE_IS_SAML:   "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
 	t.Run("get session length SSO", func(t *testing.T) {
 		session := &model.Session{
 			UserId:  model.NewId(),
 			IsOAuth: true,
 		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*2, sessionLength)
+	})
+
+	t.Run("get session length SSO using props", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_SAML: "true",
+			}}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
 
@@ -291,9 +337,9 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.False(t, session.IsExpired())
 
 			// check cache was updated
-			ts, ok := th.App.Srv().sessionCache.Get(session.Token)
-			require.True(t, ok)
-			cachedSession := ts.(*model.Session)
+			var cachedSession *model.Session
+			errGet := th.App.Srv().sessionCache.Get(session.Token, &cachedSession)
+			require.Nil(t, errGet)
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.

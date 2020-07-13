@@ -47,10 +47,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 	// Adds the cache layer to the test store
-	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
 
 	th := &TestHelper{
-		App:    s.FakeApp(),
+		App:    app.New(app.ServerConnector(s)),
 		Server: s,
 	}
 
@@ -73,9 +73,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	return th
@@ -206,7 +206,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = me.App.CreatePost(post, channel, false); err != nil {
+	if post, err = me.App.CreatePost(post, channel, false, true); err != nil {
 		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
@@ -248,7 +248,7 @@ func (me *TestHelper) AddUserToChannel(user *model.User, channel *model.Channel)
 
 func (me *TestHelper) TearDown() {
 	// Clean all the caches
-	me.App.InvalidateAllCaches()
+	me.App.Srv().InvalidateAllCaches()
 	me.Server.Shutdown()
 	if me.tempWorkspace != "" {
 		os.RemoveAll(me.tempWorkspace)
