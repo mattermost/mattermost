@@ -23,14 +23,20 @@ func (c *ConfigurationService) LoadPluginConfiguration(dest interface{}) error {
 //
 // Minimum server version: 5.2
 func (c *ConfigurationService) GetConfig() *model.Config {
-	return c.api.GetConfig()
+	cfg := c.api.GetConfig()
+	cfg.SetDefaults()
+
+	return cfg
 }
 
 // GetUnsanitizedConfig fetches the currently persisted config without removing secrets.
 //
 // Minimum server version: 5.16
 func (c *ConfigurationService) GetUnsanitizedConfig() *model.Config {
-	return c.api.GetUnsanitizedConfig()
+	cfg := c.api.GetUnsanitizedConfig()
+	cfg.SetDefaults()
+
+	return cfg
 }
 
 // SaveConfig sets the given config and persists the changes
