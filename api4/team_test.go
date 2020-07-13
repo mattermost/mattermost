@@ -1259,7 +1259,7 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 			ExpectedTotalCount: 1,
 		},
 		{
-			Name:               "Retrieve foorbar team using partial term search on the name property of team #2",
+			Name:               "Retrieve foobar team using partial term search on the name property of team #2",
 			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
