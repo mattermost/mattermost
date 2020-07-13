@@ -287,10 +287,10 @@ func (s *SqlSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 		if _, err := s.GetMaster().Exec("UPDATE Channels SET SchemeId = '' WHERE SchemeId = :SchemeId", map[string]interface{}{"SchemeId": schemeId}); err != nil {
 			return nil, errors.Wrapf(err, "failed to update Channels with schemeId=%s", schemeId)
 		}
-
-		// Blow away the channel caches.
-		s.Channel().ClearCaches()
 	}
+
+	// Blow away the channel caches.
+	s.Channel().ClearCaches()
 
 	// Delete the roles belonging to the scheme.
 	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
