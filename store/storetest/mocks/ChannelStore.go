@@ -194,13 +194,13 @@ func (_m *ChannelStore) CreateDirectChannel(userId *model.User, otherUserId *mod
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: user, teamId
-func (_m *ChannelStore) CreateInitialSidebarCategories(user *model.User, teamId string) error {
-	ret := _m.Called(user, teamId)
+// CreateInitialSidebarCategories provides a mock function with given fields: userId, teamId
+func (_m *ChannelStore) CreateInitialSidebarCategories(userId string, teamId string) error {
+	ret := _m.Called(userId, teamId)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.User, string) error); ok {
-		r0 = rf(user, teamId)
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(userId, teamId)
 	} else {
 		r0 = ret.Error(0)
 	}

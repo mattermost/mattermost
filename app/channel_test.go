@@ -345,7 +345,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -371,7 +371,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -1856,5 +1856,44 @@ func TestSidebarCategory(t *testing.T) {
 		require.Nil(t, err, "Expected no error")
 		require.Len(t, catOrder, 4)
 		require.Equal(t, catOrder[1], createdCategory.Id, "the newly created category should be after favorites")
+	})
+}
+
+func TestGetSidebarCategories(t *testing.T) {
+	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "new category",
+			},
+		})
+		require.Nil(t, err)
+
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, categories.Categories, 4)
+	})
+
+	t.Run("should create the initial categories even if migration hasn't ran yet", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
+		// relationship that hasn't been migrated yet
+		team := th.CreateTeam()
+		_, err := th.App.Srv().Store.Team().SaveMember(&model.TeamMember{
+			TeamId:     team.Id,
+			UserId:     th.BasicUser.Id,
+			SchemeUser: true,
+		}, 100)
+		require.Nil(t, err)
+
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
+		assert.Nil(t, err)
+		assert.Len(t, categories.Categories, 3)
 	})
 }
