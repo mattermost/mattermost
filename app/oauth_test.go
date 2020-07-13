@@ -90,8 +90,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, err = th.App.Srv().Store.OAuth().SaveAccessData(accessData)
-	require.Nil(t, err)
+	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, nErr)
 
 	err = th.App.RevokeAccessToken(accessData.Token)
 	require.Nil(t, err)
@@ -130,8 +130,8 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	_, err = th.App.Srv().Store.OAuth().SaveAccessData(accessData)
-	require.Nil(t, err)
+	_, nErr := th.App.Srv().Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, nErr)
 
 	err = th.App.DeleteOAuthApp(a1.Id)
 	require.Nil(t, err)

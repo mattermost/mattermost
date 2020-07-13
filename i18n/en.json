@@ -6659,7 +6659,7 @@
     "translation": "Unable to open transaction to delete the OAuth2 app."
   },
   {
-    "id": "store.sql_oauth.delete_app.app_error",
+    "id": "app.oauth.delete_app.app_error",
     "translation": "An error occurred while deleting the OAuth2 App."
   },
   {
@@ -6667,31 +6667,31 @@
     "translation": "We encountered an error finding the access token."
   },
   {
-    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
     "translation": "We encountered an error finding all the access tokens."
   },
   {
-    "id": "store.sql_oauth.get_app.find.app_error",
+    "id": "app.oauth.get_app.find.app_error",
     "translation": "Unable to find the requested app."
   },
   {
-    "id": "store.sql_oauth.get_app.finding.app_error",
+    "id": "app.oauth.get_app.finding.app_error",
     "translation": "We encountered an error finding the app."
   },
   {
-    "id": "store.sql_oauth.get_app_by_user.find.app_error",
+    "id": "app.oauth.get_app_by_user.find.app_error",
     "translation": "Unable to find any existing apps."
   },
   {
-    "id": "store.sql_oauth.get_apps.find.app_error",
+    "id": "app.oauth.get_apps.find.app_error",
     "translation": "An error occurred while finding the OAuth2 Apps."
   },
   {
-    "id": "store.sql_oauth.get_auth_data.find.app_error",
+    "id": "app.oauth.get_auth_data.find.app_error",
     "translation": "Unable to find the existing authorization code."
   },
   {
-    "id": "store.sql_oauth.get_auth_data.finding.app_error",
+    "id": "app.oauth.get_auth_data.finding.app_error",
     "translation": "We encountered an error finding the authorization code."
   },
   {
@@ -6699,11 +6699,11 @@
     "translation": "We encountered an error finding the access token."
   },
   {
-    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
     "translation": "Unable to remove the authorization code."
   },
   {
-    "id": "store.sql_oauth.remove_access_data.app_error",
+    "id": "app.oauth.remove_access_data.app_error",
     "translation": "Unable to remove the access token."
   },
   {
@@ -6715,11 +6715,11 @@
     "translation": "Unable to save the access token."
   },
   {
-    "id": "store.sql_oauth.save_app.existing.app_error",
+    "id": "app.oauth.save_app.existing.app_error",
     "translation": "Must call update for existing app."
   },
   {
-    "id": "store.sql_oauth.save_app.save.app_error",
+    "id": "app.oauth.save_app.save.app_error",
     "translation": "Unable to save the app."
   },
   {
@@ -6731,7 +6731,7 @@
     "translation": "We encountered an error updating the access token."
   },
   {
-    "id": "store.sql_oauth.update_app.find.app_error",
+    "id": "app.oauth.update_app.find.app_error",
     "translation": "Unable to find the existing app to update."
   },
   {
@@ -6743,7 +6743,7 @@
     "translation": "Unable to update the app."
   },
   {
-    "id": "store.sql_oauth.update_app.updating.app_error",
+    "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
   },
   {
