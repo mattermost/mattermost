@@ -56,24 +56,18 @@ func (s *SqlReactionStore) Save(reaction *model.Reaction) (*model.Reaction, erro
 }
 
 func (s *SqlReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
-	err := store.WithDeadlockRetry(func() error {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			return errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransaction(transaction)
-
-		if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
-			return errors.Wrap(err, "deleteReactionAndUpdatePost")
-		}
-
-		if err := transaction.Commit(); err != nil {
-			return errors.Wrap(err, "commit_transaction")
-		}
-		return nil
-	})
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to delete reaction")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	if err := deleteReactionAndUpdatePost(transaction, reaction); err != nil {
+		return nil, errors.Wrap(err, "deleteReactionAndUpdatePost")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return reaction, nil
@@ -127,28 +121,22 @@ func (s *SqlReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 		return errors.Wrapf(err, "failed to get Reactions with emojiName=%s", emojiName)
 	}
 
-	err := store.WithDeadlockRetry(func() error {
-		_, err := s.GetMaster().Exec(
-			`DELETE FROM
-				Reactions
-			WHERE
-				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName})
-		return err
-	})
+	_, err := s.GetMaster().Exec(
+		`DELETE FROM
+			Reactions
+		WHERE
+			EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName})
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Reactions with emojiName=%s", emojiName)
 	}
 
 	for _, reaction := range reactions {
 		reaction := reaction
-		err := store.WithDeadlockRetry(func() error {
-			_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
-				map[string]interface{}{
-					"PostId":   reaction.PostId,
-					"UpdateAt": model.GetMillis(),
-				})
-			return err
-		})
+		_, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY,
+			map[string]interface{}{
+				"PostId":   reaction.PostId,
+				"UpdateAt": model.GetMillis(),
+			})
 		if err != nil {
 			mlog.Warn("Unable to update Post.HasReactions while removing reactions",
 				mlog.String("post_id", reaction.PostId),

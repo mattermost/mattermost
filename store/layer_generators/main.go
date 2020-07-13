@@ -54,7 +54,7 @@ func buildRetryLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("retry_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -287,6 +287,19 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			paramsWithType := []string{}
 			for _, param := range params {
 				paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+			}
+			return strings.Join(paramsWithType, ", ")
+		},
+		"joinParamsWithTypeOutsideStore": func(params []methodParam) string {
+			paramsWithType := []string{}
+			for _, param := range params {
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
+				} else if param.Type == "*UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				} else {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				}
 			}
 			return strings.Join(paramsWithType, ", ")
 		},
