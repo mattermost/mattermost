@@ -1381,6 +1381,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			if r.URL.Path != "/api/v2/test" {
 				return
 			}
+
+			if r.URL.Query().Get("abc") != "xyz" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()
@@ -1410,7 +1415,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 			buf := bytes.Buffer{}
 			buf.WriteString("This is the request")
-			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test?abc=xyz", &buf)
 			if err != nil {
 				return nil, err.Error()
 			}
@@ -1656,6 +1661,27 @@ func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
 		require.Equal(t, "custom_action", resp.Data["action"])
 		require.Equal(t, float64(i), resp.Data["value"])
 	}
+}
+
+func TestPluginExecuteSlashCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	newUser := th.CreateUser()
+	th.LinkUserToTeam(newUser, th.BasicTeam)
+
+	t.Run("run invite command", func(t *testing.T) {
+		_, err := api.ExecuteSlashCommand(&model.CommandArgs{
+			Command:   "/invite @" + newUser.Username,
+			TeamId:    th.BasicTeam.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		_, err2 := th.App.GetChannelMember(th.BasicChannel.Id, newUser.Id)
+		require.Nil(t, err2)
+	})
 }
 
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {

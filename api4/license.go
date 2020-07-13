@@ -153,22 +153,28 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("removeLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
-	var usersNumber struct {
-		Users int `json:"users"`
+	var trialRequest struct {
+		Users                 int  `json:"users"`
+		TermsAccepted         bool `json:"terms_accepted"`
+		ReceiveEmailsAccepted bool `json:"receive_emails_accepted"`
 	}
 
 	b, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
-		c.Err = model.NewAppError("removeLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
 	}
-	json.Unmarshal(b, &usersNumber)
-	if usersNumber.Users == 0 {
-		c.Err = model.NewAppError("removeLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
+	json.Unmarshal(b, &trialRequest)
+	if !trialRequest.TermsAccepted {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
+		return
+	}
+	if trialRequest.Users == 0 {
+		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -179,12 +185,19 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID: c.App.DiagnosticId(),
-		Name:     currentUser.GetDisplayName(model.SHOW_FULLNAME),
-		Email:    currentUser.Email,
-		SiteName: *c.App.Config().TeamSettings.SiteName,
-		SiteURL:  *c.App.Config().ServiceSettings.SiteURL,
-		Users:    usersNumber.Users,
+		ServerID:              c.App.DiagnosticId(),
+		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 currentUser.Email,
+		SiteName:              *c.App.Config().TeamSettings.SiteName,
+		SiteURL:               *c.App.Config().ServiceSettings.SiteURL,
+		Users:                 trialRequest.Users,
+		TermsAccepted:         trialRequest.TermsAccepted,
+		ReceiveEmailsAccepted: trialRequest.ReceiveEmailsAccepted,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		c.Err = model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if err := c.App.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {

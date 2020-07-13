@@ -521,6 +521,9 @@ func (o *Post) DisableMentionHighlights() string {
 
 // DisableMentionHighlights disables mention highlighting for a post patch if required.
 func (o *PostPatch) DisableMentionHighlights() {
+	if o.Message == nil {
+		return
+	}
 	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
 		if o.Props == nil {
 			o.Props = &StringInterface{}
