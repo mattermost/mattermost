@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/enterprise/message_export"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -74,7 +73,7 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isDownloadable, _ := strconv.ParseBool(job.Data[message_export.JOB_DATA_IS_DOWNLOADABLE])
+	isDownloadable, _ := strconv.ParseBool(job.Data["is_downloadable"])
 	if !isDownloadable {
 		c.Err = model.NewAppError("unableToDownloadJob", "api.job.unable_to_download_job", nil, "", http.StatusBadRequest)
 		return

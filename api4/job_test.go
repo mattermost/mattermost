@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v5/enterprise/message_export"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
@@ -210,7 +209,7 @@ func TestDownloadJob(t *testing.T) {
 	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
 	CheckBadRequestStatus(t, resp)
 
-	job.Data[message_export.JOB_DATA_IS_DOWNLOADABLE] = "true"
+	job.Data["is_downloadable"] = "true"
 	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
 	require.True(t, updateStatus)
 	require.Nil(t, err)
