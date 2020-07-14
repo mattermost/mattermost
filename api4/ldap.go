@@ -22,6 +22,7 @@ type mixedUnlinkedGroup struct {
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.ApiSessionRequired(migrateIdLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
 	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
@@ -254,6 +255,36 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			return
 		}
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	toAttribute, ok := props["toAttribute"].(string)
+	if !ok || len(toAttribute) == 0 {
+		c.SetInvalidParam("toAttribute")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
+		c.Err = err
+		return
 	}
 
 	auditRec.Success()
