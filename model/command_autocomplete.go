@@ -85,12 +85,6 @@ type AutocompleteDynamicListArg struct {
 	FetchURL string
 }
 
-// AutocompleteBoolArg is used to input one of the arguments like t,f,true or false
-type AutocompleteBoolArg struct {
-	Hint      string
-	BoolValue string
-}
-
 // AutocompleteSuggestion describes a single suggestion item sent to the front-end
 // Example: for user input `/jira cre` -
 // Complete might be `/jira create`
@@ -190,7 +184,7 @@ func (ad *AutocompleteData) AddNamedBoolArgument(name, helpText, hint, BoolValue
 		HelpText: helpText,
 		Type:     AutocompleteArgTypeBool,
 		Required: required,
-		Data:     &AutocompleteBoolArg{Hint: hint, BoolValue: BoolValue},
+		Data:     &AutocompleteTextArg{Hint: hint},
 	}
 	ad.Arguments = append(ad.Arguments, &argument)
 }
