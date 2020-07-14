@@ -6955,31 +6955,31 @@
     "translation": "Unable to delete the role."
   },
   {
-    "id": "store.sql_role.get.app_error",
+    "id": "app.role.get.app_error",
     "translation": "Unable to get role."
   },
   {
-    "id": "store.sql_role.get_all.app_error",
+    "id": "app.role.get_all.app_error",
     "translation": "Unable to get all the roles."
   },
   {
-    "id": "store.sql_role.get_by_name.app_error",
+    "id": "app.role.get_by_name.app_error",
     "translation": "Unable to get role."
   },
   {
-    "id": "store.sql_role.get_by_names.app_error",
+    "id": "app.role.get_by_names.app_error",
     "translation": "Unable to get roles."
   },
   {
-    "id": "store.sql_role.permanent_delete_all.app_error",
+    "id": "app.role.permanent_delete_all.app_error",
     "translation": "We could not permanently delete all the roles."
   },
   {
-    "id": "store.sql_role.save.insert.app_error",
+    "id": "app.role.save.insert.app_error",
     "translation": "Unable to save new role."
   },
   {
-    "id": "store.sql_role.save.invalid_role.app_error",
+    "id": "app.role.save.invalid_role.app_error",
     "translation": "The role was not valid."
   },
   {

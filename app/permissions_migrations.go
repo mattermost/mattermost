@@ -4,7 +4,11 @@
 package app
 
 import (
+	"errors"
+	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -162,7 +166,13 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
 		if _, err := a.Srv().Store.Role().Save(role); err != nil {
-			return err
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("doPermissionsMigration", "app.role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 

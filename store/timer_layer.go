@@ -5100,7 +5100,7 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.AllChannelSchemeRoles()
@@ -5116,7 +5116,7 @@ func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.App
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
@@ -5132,7 +5132,7 @@ func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string)
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
@@ -5148,7 +5148,7 @@ func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*mod
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.Delete(roleId)
@@ -5164,7 +5164,7 @@ func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppErro
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.Get(roleId)
@@ -5180,7 +5180,7 @@ func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.GetAll()
@@ -5196,7 +5196,7 @@ func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.GetByName(name)
@@ -5212,7 +5212,7 @@ func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.GetByNames(names)
@@ -5228,7 +5228,7 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerRoleStore) PermanentDeleteAll() *model.AppError {
+func (s *TimerLayerRoleStore) PermanentDeleteAll() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.RoleStore.PermanentDeleteAll()
@@ -5244,7 +5244,7 @@ func (s *TimerLayerRoleStore) PermanentDeleteAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.RoleStore.Save(role)

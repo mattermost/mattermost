@@ -5634,7 +5634,7 @@ func (s *OpenTracingLayerReactionStore) Save(reaction *model.Reaction) (*model.R
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.AllChannelSchemeRoles")
 	s.Root.Store.SetContext(newCtx)
@@ -5652,7 +5652,7 @@ func (s *OpenTracingLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *mod
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.ChannelHigherScopedPermissions")
 	s.Root.Store.SetContext(newCtx)
@@ -5670,7 +5670,7 @@ func (s *OpenTracingLayerRoleStore) ChannelHigherScopedPermissions(roleNames []s
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.ChannelRolesUnderTeamRole")
 	s.Root.Store.SetContext(newCtx)
@@ -5688,7 +5688,7 @@ func (s *OpenTracingLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) (
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) Delete(roleId string) (*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -5706,7 +5706,7 @@ func (s *OpenTracingLayerRoleStore) Delete(roleId string) (*model.Role, *model.A
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) Get(roleId string) (*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -5724,7 +5724,7 @@ func (s *OpenTracingLayerRoleStore) Get(roleId string) (*model.Role, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) GetAll() ([]*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -5742,7 +5742,7 @@ func (s *OpenTracingLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -5760,7 +5760,7 @@ func (s *OpenTracingLayerRoleStore) GetByName(name string) (*model.Role, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.GetByNames")
 	s.Root.Store.SetContext(newCtx)
@@ -5778,7 +5778,7 @@ func (s *OpenTracingLayerRoleStore) GetByNames(names []string) ([]*model.Role, *
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerRoleStore) PermanentDeleteAll() *model.AppError {
+func (s *OpenTracingLayerRoleStore) PermanentDeleteAll() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.PermanentDeleteAll")
 	s.Root.Store.SetContext(newCtx)
@@ -5796,7 +5796,7 @@ func (s *OpenTracingLayerRoleStore) PermanentDeleteAll() *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (s *OpenTracingLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RoleStore.Save")
 	s.Root.Store.SetContext(newCtx)

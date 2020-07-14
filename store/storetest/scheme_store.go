@@ -537,7 +537,7 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 	}
 
 	getRoles := func(scheme *model.Scheme) (channelUser, channelGuest *model.Role) {
-		var err *model.AppError
+		var err error
 		channelUser, err = ss.Role().GetByName(scheme.DefaultChannelUserRole)
 		require.Nil(t, err)
 		require.NotNil(t, channelUser)
