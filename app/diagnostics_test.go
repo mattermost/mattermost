@@ -106,7 +106,7 @@ func TestRudderDiagnostics(t *testing.T) {
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initDiagnostics(server.URL)
+	th.Server.initDiagnostics(server.URL, RUDDER_KEY)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
@@ -267,5 +267,17 @@ func TestRudderDiagnostics(t *testing.T) {
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
+	})
+
+	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.LogSettings.RudderDataplaneUrl = "arudderstackplace"
+			*cfg.LogSettings.RudderKey = "abc123"
+		})
+
+		config := th.App.Srv().getRudderConfig()
+
+		assert.Equal(t, "arudderstackplace", config.DataplaneUrl)
+		assert.Equal(t, "abc123", config.RudderKey)
 	})
 }
