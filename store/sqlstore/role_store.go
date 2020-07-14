@@ -97,7 +97,7 @@ func newSqlRoleStore(sqlStore SqlStore) store.RoleStore {
 	return s
 }
 
-func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
 		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
@@ -149,7 +149,7 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transactio
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) Get(roleId string) (*model.Role, error) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
@@ -162,7 +162,7 @@ func (s *SqlRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) GetAll() ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	var dbRoles []Role
 
 	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles", map[string]interface{}{}); err != nil {
@@ -179,7 +179,7 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
-func (s *SqlRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetByName(name string) (*model.Role, error) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
@@ -192,12 +192,12 @@ func (s *SqlRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	if len(names) == 0 {
 		return []*model.Role{}, nil
 	}
 
-	failure := func(e error) ([]*model.Role, *model.AppError) {
+	failure := func(e error) ([]*model.Role, error) {
 		return nil, model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, e.Error(), http.StatusInternalServerError)
 	}
 
@@ -236,7 +236,7 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppErro
 	return roles, nil
 }
 
-func (s *SqlRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) Delete(roleId string) (*model.Role, error) {
 	// Get the role.
 	var role *Role
 	if err := s.GetReplica().SelectOne(&role, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
@@ -258,7 +258,7 @@ func (s *SqlRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
 	return role.ToModel(), nil
 }
 
-func (s *SqlRoleStore) PermanentDeleteAll() *model.AppError {
+func (s *SqlRoleStore) PermanentDeleteAll() error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
 		return model.NewAppError("SqlRoleStore.PermanentDeleteAll", "store.sql_role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -340,7 +340,7 @@ func (s *SqlRoleStore) channelHigherScopedPermissionsQuery(roleNames []string) s
 	)
 }
 
-func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 	sql := s.channelHigherScopedPermissionsQuery(roleNames)
 
 	var rolesPermissions []*channelRolesPermissions
@@ -359,7 +359,7 @@ func (s *SqlRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[s
 	return roleNameHigherScopedPermissions, nil
 }
 
-func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	query := s.getQueryBuilder().
 		Select("Roles.*").
 		From("Schemes").
@@ -387,7 +387,7 @@ func (s *SqlRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) 
 }
 
 // ChannelRolesUnderTeamRole finds all of the channel-scheme roles under the team of the given team-scheme role.
-func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+func (s *SqlRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 	query := s.getQueryBuilder().
 		Select("ChannelSchemeRoles.*").
 		From("Roles AS HigherScopedRoles").
