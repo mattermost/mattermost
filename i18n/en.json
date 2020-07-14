@@ -3183,6 +3183,26 @@
     "translation": "An error occurred marshalling the JSON data for export."
   },
   {
+    "id": "app.file_info.get.app_error",
+    "translation": "Unable to get the file info."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Unable to get the file info with options"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Unable to save the file info."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -6553,50 +6573,6 @@
   {
     "id": "store.sql_compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report."
-  },
-  {
-    "id": "app.file_info.permanent_delete_by_user.app_error",
-    "translation": "Unable to delete attachments of the user."
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Unable to attach the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Unable to delete the file info to the post."
-  },
-  {
-    "id": "app.file_info.get.app_error",
-    "translation": "Unable to get the file info."
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Unable to get the file info by path."
-  },
-  {
-    "id": "app.file_info.get_for_post.app_error",
-    "translation": "Unable to get the file info for the post."
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Unable to get the file info for the user."
-  },
-  {
-    "id": "app.file_info.get_with_options.app_error",
-    "translation": "Unable to get the file info with options"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "app.file_info.save.app_error",
-    "translation": "Unable to save the file info."
   },
   {
     "id": "store.sql_group.app_error",
