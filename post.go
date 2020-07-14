@@ -27,6 +27,19 @@ func (p *PostService) CreatePost(post *model.Post) error {
 	return nil
 }
 
+// DM sends a post as a direct message
+//
+// Minimum server version: 5.2
+func (p *PostService) DM(senderUserID, receiverUserID string, post *model.Post) error {
+	channel, appErr := p.api.GetDirectChannel(senderUserID, receiverUserID)
+	if appErr != nil {
+		return normalizeAppErr(appErr)
+	}
+	post.ChannelId = channel.Id
+	post.UserId = senderUserID
+	return p.CreatePost(post)
+}
+
 // GetPost gets a post.
 //
 // Minimum server version: 5.2
