@@ -24,8 +24,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
@@ -35,6 +33,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
