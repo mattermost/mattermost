@@ -747,11 +747,11 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
-	if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
+	if err = s.upsertPublicChannelT(transaction, newChannel); err != nil {
 		return nil, errors.Wrap(err, "upsert_public_channel")
 	}
 
-	if err := transaction.Commit(); err != nil {
+	if err = transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
 	}
 	// There are cases when in case of conflict, the original channel value is returned.
