@@ -343,7 +343,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -847,7 +847,7 @@ func TestInstallPlugin(t *testing.T) {
 		}, pluginDir
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// start an http server to serve plugin's tarball to the test.
@@ -1070,7 +1070,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1166,7 +1166,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1274,7 +1274,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1311,7 +1311,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1360,7 +1360,7 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginApiTest(t,
@@ -1460,7 +1460,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestApiMetrics(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
@@ -1584,7 +1584,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 }
 
 func TestPluginHTTPConnHijack(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
@@ -1619,7 +1619,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 }
 
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
