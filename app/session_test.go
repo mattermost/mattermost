@@ -14,7 +14,7 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -51,7 +51,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -187,7 +187,7 @@ const hourMillis int64 = 60 * 60 * 1000
 const dayMillis int64 = 24 * hourMillis
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
@@ -198,6 +198,35 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		session := &model.Session{
 			UserId:   model.NewId(),
 			DeviceId: model.NewId(),
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length mobile when isMobile in props is set", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+			},
+		}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*3, sessionLength)
+	})
+
+	t.Run("get session length mobile when isMobile in props is set and takes priority over saml", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_MOBILE: "true",
+				model.USER_AUTH_SERVICE_IS_SAML:   "true",
+			},
 		}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
@@ -218,6 +247,19 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 		require.Equal(t, dayMillis*2, sessionLength)
 	})
 
+	t.Run("get session length SSO using props", func(t *testing.T) {
+		session := &model.Session{
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_SAML: "true",
+			}}
+		session, err := th.App.CreateSession(session)
+		require.Nil(t, err)
+
+		sessionLength := th.App.GetSessionLengthInMillis(session)
+		require.Equal(t, dayMillis*2, sessionLength)
+	})
+
 	t.Run("get session length web/LDAP", func(t *testing.T) {
 		session := &model.Session{
 			UserId: model.NewId(),
@@ -231,7 +273,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })

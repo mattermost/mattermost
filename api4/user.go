@@ -49,6 +49,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
+	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiSessionRequired(verifyUserEmailWithoutToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(saveUserTermsOfService)).Methods("POST")
 	api.BaseRoutes.User.Handle("/terms_of_service", api.ApiSessionRequired(getUserTermsOfService)).Methods("GET")
 
@@ -106,10 +107,16 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		var token *model.Token
-		token, err = c.App.Srv().Store.Token().GetByToken(tokenId)
-		if err != nil {
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
+		if nErr != nil {
+			var status int
+			switch nErr.(type) {
+			case *store.ErrNotFound:
+				status = http.StatusNotFound
+			default:
+				status = http.StatusInternalServerError
+			}
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
@@ -532,6 +539,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
 	inactive := r.URL.Query().Get("inactive")
+	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
@@ -559,6 +567,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
 	inactiveBool, _ := strconv.ParseBool(inactive)
+	activeBool, _ := strconv.ParseBool(active)
+
+	if inactiveBool && activeBool {
+		c.SetInvalidUrlParam("inactive")
+	}
 
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
@@ -575,6 +588,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
+		Active:           activeBool,
 		Role:             role,
 		Sort:             sort,
 		Page:             c.Params.Page,
@@ -884,9 +898,18 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		// Applying the provided teamId here is useful for DMs and GMs which don't belong
-		// to a team. Applying it when the channel does belong to a team makes less sense,
-		// but the permissions are checked above regardless.
+		// We're using the channelId to search for users inside that channel and the team
+		// to get the not in channel list. Also we want to include the DM and GM users for
+		// that team which could only be obtained having the team id.
+		if len(teamId) == 0 {
+			c.Err = model.NewAppError("autocompleteUser",
+				"api.user.autocomplete_users.missing_team_id.app_error",
+				nil,
+				"channelId="+channelId,
+				http.StatusInternalServerError,
+			)
+			return
+		}
 		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
@@ -1168,7 +1191,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
-			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
@@ -1547,7 +1570,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	err = c.App.DoLogin(w, r, user, deviceId)
+	err = c.App.DoLogin(w, r, user, deviceId, false, false, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -2331,4 +2354,36 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("verifyUserEmailWithoutToken", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user_id", user.Id)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.VerifyUserEmail(user.Id, user.Email); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("user verified")
+
+	w.Write([]byte(user.ToJson()))
 }

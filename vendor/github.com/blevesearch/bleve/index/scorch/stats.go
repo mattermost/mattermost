@@ -82,6 +82,9 @@ type Stats struct {
 	TotFileMergeLoopErr uint64
 	TotFileMergeLoopEnd uint64
 
+	TotFileMergeForceOpsStarted   uint64
+	TotFileMergeForceOpsCompleted uint64
+
 	TotFileMergePlan     uint64
 	TotFileMergePlanErr  uint64
 	TotFileMergePlanNone uint64
