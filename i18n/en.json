@@ -4639,6 +4639,10 @@
     "translation": "error retrieving groups for user"
   },
   {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "unable to migrate."
+  },
+  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "Unable to add attachment to the Global Relay export."
   },
