@@ -75,7 +75,7 @@ func TestRetry(t *testing.T) {
 		layer.Bot().Get("test", false)
 		mockBotStore.AssertExpectations(t)
 	})
-	t.Run("on mysql not repeatable error should retry", func(t *testing.T) {
+	t.Run("on mysql not repeatable error should not retry", func(t *testing.T) {
 		mock := genStore()
 		mockBotStore := mock.Bot().(*mocks.BotStore)
 		mysqlErr := mysql.MySQLError{Number: uint16(1000), Message: "Not repeatable error"}
@@ -101,7 +101,7 @@ func TestRetry(t *testing.T) {
 		}
 	})
 
-	t.Run("on postgres not repeatable error should retry", func(t *testing.T) {
+	t.Run("on postgres not repeatable error should not retry", func(t *testing.T) {
 		mock := genStore()
 		mockBotStore := mock.Bot().(*mocks.BotStore)
 		pqErr := pq.Error{Code: "20000"}

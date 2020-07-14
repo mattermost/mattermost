@@ -743,7 +743,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 
 	newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
 	if err != nil {
-		return nil, err
+		return newChannel, err
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
