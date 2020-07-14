@@ -2884,7 +2884,7 @@ func (s *OpenTracingLayerEmojiStore) Search(name string, prefixOnly bool, limit 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
+func (s *OpenTracingLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.AttachToPost")
 	s.Root.Store.SetContext(newCtx)
@@ -2915,7 +2915,7 @@ func (s *OpenTracingLayerFileInfoStore) ClearCaches() {
 
 }
 
-func (s *OpenTracingLayerFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) DeleteForPost(postId string) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.DeleteForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -2933,7 +2933,7 @@ func (s *OpenTracingLayerFileInfoStore) DeleteForPost(postId string) (string, *m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -2951,7 +2951,7 @@ func (s *OpenTracingLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetByPath")
 	s.Root.Store.SetContext(newCtx)
@@ -2969,7 +2969,7 @@ func (s *OpenTracingLayerFileInfoStore) GetByPath(path string) (*model.FileInfo,
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -2987,7 +2987,7 @@ func (s *OpenTracingLayerFileInfoStore) GetForPost(postId string, readFromMaster
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetForUser")
 	s.Root.Store.SetContext(newCtx)
@@ -3005,7 +3005,7 @@ func (s *OpenTracingLayerFileInfoStore) GetForUser(userId string) ([]*model.File
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.GetWithOptions")
 	s.Root.Store.SetContext(newCtx)
@@ -3036,7 +3036,7 @@ func (s *OpenTracingLayerFileInfoStore) InvalidateFileInfosForPostCache(postId s
 
 }
 
-func (s *OpenTracingLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (s *OpenTracingLayerFileInfoStore) PermanentDelete(fileId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -3054,7 +3054,7 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDelete(fileId string) *model.Ap
 	return resultVar0
 }
 
-func (s *OpenTracingLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.PermanentDeleteBatch")
 	s.Root.Store.SetContext(newCtx)
@@ -3072,7 +3072,7 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limi
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.PermanentDeleteByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -3090,7 +3090,7 @@ func (s *OpenTracingLayerFileInfoStore) PermanentDeleteByUser(userId string) (in
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (s *OpenTracingLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "FileInfoStore.Save")
 	s.Root.Store.SetContext(newCtx)
