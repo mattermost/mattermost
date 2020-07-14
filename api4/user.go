@@ -526,16 +526,29 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
 
 	roles := []string{}
+	var rolesValid bool
 	if rolesString != "" {
-		roles = strings.Split(rolesString, ",")
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
 	}
 	channelRoles := []string{}
 	if channelRolesString != "" && len(channelID) != 0 {
-		channelRoles = strings.Split(channelRolesString, ",")
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
 	}
 	teamRoles := []string{}
 	if teamRolesString != "" && len(teamID) != 0 {
-		teamRoles = strings.Split(teamRolesString, ",")
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
 	}
 
 	options := &model.UserCountOptions{
@@ -627,16 +640,29 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	roles := []string{}
+	var rolesValid bool
 	if rolesString != "" {
-		roles = strings.Split(rolesString, ",")
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
 	}
 	channelRoles := []string{}
 	if channelRolesString != "" && len(inChannelId) != 0 {
-		channelRoles = strings.Split(rolesString, ",")
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
 	}
 	teamRoles := []string{}
 	if teamRolesString != "" && len(inTeamId) != 0 {
-		teamRoles = strings.Split(teamRolesString, ",")
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
 	}
 
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
