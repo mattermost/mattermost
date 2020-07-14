@@ -4375,6 +4375,10 @@
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
+    "id": "ent.data_retention.flags_batch.internal_error",
+    "translation": "We encountered an error cleaning up the batch of flags."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
