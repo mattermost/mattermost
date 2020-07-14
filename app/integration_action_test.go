@@ -956,7 +956,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 }
 
 func TestDoPluginRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
