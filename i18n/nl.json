@@ -808,11 +808,11 @@
     },
     {
         "id": "api.command_mute.no_channel.error",
-        "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het specifieke kanaal niet vinden. Gebruik de [kanaal handle] (https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_mute.not_member.error",
-        "translation": "Could not mute channel {{.Channel}} as you are not a member."
+        "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
     },
     {
         "id": "api.command_mute.success_mute",
