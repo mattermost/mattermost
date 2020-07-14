@@ -108,13 +108,7 @@ func TestMigrateIdLdap(t *testing.T) {
 		_, resp = client.MigrateIdLdap("")
 		CheckBadRequestStatus(t, resp)
 
-		if *th.App.Config().LdapSettings.Enable {
-			// will fail due to no ldap users
-			_, resp = client.MigrateIdLdap("objectGUID")
-			CheckInternalErrorStatus(t, resp)
-		} else {
-			_, resp = client.MigrateIdLdap("objectGUID")
-			CheckNotImplementedStatus(t, resp)
-		}
+		_, resp = client.MigrateIdLdap("objectGUID")
+		CheckNotImplementedStatus(t, resp)
 	})
 }

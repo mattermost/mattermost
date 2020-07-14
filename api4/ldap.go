@@ -277,6 +277,11 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
 		c.Err = err
 		return
