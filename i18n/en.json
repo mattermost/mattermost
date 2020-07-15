@@ -4340,7 +4340,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": ""
+    "translation": "Failed to purge records."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4532,7 +4532,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": ""
+    "translation": "Failed to get users in channel during specified time period."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
