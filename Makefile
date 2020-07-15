@@ -36,3 +36,4 @@ mock:
 	mockgen -destination experimental/freetextfetcher/mocks/mock_manager.go -package mock_freetext_fetcher github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher Manager
 	mockgen -destination experimental/freetextfetcher/mocks/mock_store.go -package mock_freetext_fetcher github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher FreetextStore
 	mockgen -destination experimental/oauther/mocks/mock_oauther.go -package mock_oauther github.com/mattermost/mattermost-plugin-api/experimental/oauther OAuther
+	mockgen -destination experimental/bot/poster/mock_import/mock_postapi.go -package mock_import github.com/mattermost/mattermost-plugin-api/experimental/bot/poster PostAPI

@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
+// Poster defines an entity that can post DMs and Ephemerals and update and delete those posts
 type Poster interface {
 	DMer
 
@@ -30,6 +31,7 @@ type Poster interface {
 	UpdatePosterID(id string)
 }
 
+// DMer defines an entity that can send Direct Messages
 type DMer interface {
 	// DM posts a simple Direct Message to the specified user
 	DM(mattermostUserID, format string, args ...interface{}) (string, error)
