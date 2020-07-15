@@ -52,8 +52,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 			"fileMime": "application/zip",
 		},
 		"actiance": {
-			"fileName": "actiance_export.xml",
-			"fileMime": "application/xml",
+			"fileName": "actiance_export.zip",
+			"fileMime": "application/zip",
 		},
 	}
 
