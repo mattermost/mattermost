@@ -283,6 +283,11 @@ github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 ## explicit
 github.com/mattermost/ldap
+# github.com/mattermost/logr v1.0.5
+## explicit
+github.com/mattermost/logr
+github.com/mattermost/logr/format
+github.com/mattermost/logr/target
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
@@ -496,11 +501,6 @@ github.com/vmihailenco/tagparser/internal/parser
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.4
-## explicit
-github.com/wiggin77/logr
-github.com/wiggin77/logr/format
-github.com/wiggin77/logr/target
 # github.com/wiggin77/merror v1.0.2
 ## explicit
 github.com/wiggin77/merror

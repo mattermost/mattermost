@@ -1062,6 +1062,7 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
+	AdvancedLoggingConfig  *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1103,6 +1104,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
