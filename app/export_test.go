@@ -155,7 +155,7 @@ func TestCopyEmojiImages(t *testing.T) {
 }
 
 func TestExportCustomEmoji(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	filePath := "../demo.json"
@@ -173,7 +173,7 @@ func TestExportCustomEmoji(t *testing.T) {
 }
 
 func TestExportAllUsers(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t)
 	defer th1.TearDown()
 
 	// Adding a user and deactivating it to check whether it gets included in bulk export

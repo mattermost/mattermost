@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql:5.7"
+    image: "mysql:5.6"
     restart: always
     networks:
       - mm-test
@@ -60,3 +60,19 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  dejavu:
+    image: "appbaseio/dejavu:3.4.2"
+    networks:
+      - mm-test
+  keycloak:
+    image: "jboss/keycloak:10.0.2"
+    restart: always
+    environment:
+      KEYCLOAK_USER: mmuser
+      KEYCLOAK_PASSWORD: mostest
+      DB_VENDOR: h2
+      KEYCLOAK_IMPORT: /setup/realm.json
+    networks:
+      - mm-test
+    volumes:
+     - "./docker/keycloak:/setup"
