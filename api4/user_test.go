@@ -1932,7 +1932,6 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 		ok, resp = c.PermanentDeleteUser("junk")
 		CheckBadRequestStatus(t, resp)
-
 		require.False(t, ok, "should have returned false")
 	}, "Permanent deletion with EnableAPIUserDeletion set")
 }

@@ -1227,7 +1227,6 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 }
 
 // PermanentDeleteUser deletes a user in the system based on the provided user id string.
-// If the EnableAPIUserDeletion config option is not set this falls back to user deactivation.
 func (c *Client4) PermanentDeleteUser(userId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetUserRoute(userId) + "?permanent=" + c.boolString(true))
 	if err != nil {
