@@ -277,8 +277,9 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		}
 
 		if authData.IsExpired() {
-			// review: missing error handling, is it worth adding at least a warn log ?
-			a.Srv().Store.OAuth().RemoveAuthData(authData.Code)
+			if nErr = a.Srv().Store.OAuth().RemoveAuthData(authData.Code); nErr != nil {
+				mlog.Warn("unable to remove auth data", mlog.Err(nErr))
+			}
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 		}
 
@@ -336,8 +337,9 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			}
 		}
 
-		// review: missing error handling, is it worth adding at least a warn log ?
-		a.Srv().Store.OAuth().RemoveAuthData(authData.Code)
+		if nErr = a.Srv().Store.OAuth().RemoveAuthData(authData.Code); nErr != nil {
+			mlog.Warn("unable to remove auth data", mlog.Err(nErr))
+		}
 	} else {
 		// When grantType is refresh_token
 		accessData, nErr = a.Srv().Store.OAuth().GetAccessDataByRefreshToken(refreshToken)

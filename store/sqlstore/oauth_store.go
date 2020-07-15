@@ -216,8 +216,8 @@ func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) (*model.A
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		// review: I will keep the notFound status but I think we should return 500 here
-		return nil, store.NewErrNotFound("OAuthAccessData", fmt.Sprintf("<clientId, userId>=<%s, %s>", userId, clientId))
+
+		return nil, errors.Wrapf(err, "failed to get AccessData with clientId=%s and userId=%s", clientId, userId)
 	}
 	return &accessData, nil
 }
