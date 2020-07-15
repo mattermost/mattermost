@@ -904,10 +904,10 @@ func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
+func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -996,22 +996,6 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDeletedByName", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
-func (s *TimerLayerChannelStore) GetDeletedByTeamByUser(teamId string, userId string, lastDeleteAt int) (*model.ChannelList, error) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByTeamByUser(teamId, userId, lastDeleteAt)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDeletedByTeamByUser", success, elapsed)
 	}
 	return resultVar0, resultVar1
 }

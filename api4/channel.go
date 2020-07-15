@@ -34,7 +34,6 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.ApiSessionRequired(autocompleteChannelsForTeamForSearch)).Methods("GET")
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
-	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels/deleted", api.ApiSessionRequired(getDeletedChannelsForTeamForUser)).Methods("GET")
 
 	api.BaseRoutes.ChannelCategories.Handle("", api.ApiSessionRequired(getCategoriesForTeamForUser)).Methods("GET")
 	api.BaseRoutes.ChannelCategories.Handle("", api.ApiSessionRequired(createCategoryForTeamForUser)).Methods("POST")
@@ -855,7 +854,17 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted)
+	query := r.URL.Query()
+	lastDeleteAt, nErr := strconv.Atoi(query.Get("last_delete_at"))
+	if nErr != nil {
+		lastDeleteAt = 0
+	}
+	if lastDeleteAt < 0 {
+		c.SetInvalidUrlParam("last_delete_at")
+		return
+	}
+
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
 	if err != nil {
 		c.Err = err
 		return
@@ -872,49 +881,6 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
-	w.Write([]byte(channels.ToJson()))
-}
-
-func getDeletedChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId().RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_VIEW_TEAM) {
-		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-		return
-	}
-
-	query := r.URL.Query()
-	lastDeleteAt, nErr := strconv.Atoi(query.Get("last_delete_at"))
-	if nErr != nil {
-		lastDeleteAt = 0
-	}
-	// We explicitly reject requests for active channels because there are other
-	// endpoints for that.
-	if lastDeleteAt <= 0 {
-		c.SetInvalidUrlParam("last_delete_at")
-		return
-	}
-
-	channels, err := c.App.GetDeletedChannelsForUser(c.Params.TeamId, c.Params.UserId, lastDeleteAt)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	err = c.App.FillInChannelsProps(channels)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	w.Write([]byte(channels.ToJson()))
 }
 
@@ -2071,7 +2037,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 }
 
 func validateUserChannels(operationName string, c *Context, teamId, userId string, channelIDs []string) *model.AppError {
-	channels, err := c.App.GetChannelsForUser(teamId, userId, false)
+	channels, err := c.App.GetChannelsForUser(teamId, userId, false, 0)
 	if err != nil {
 		return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}

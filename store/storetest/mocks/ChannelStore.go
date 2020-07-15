@@ -624,13 +624,13 @@ func (_m *ChannelStore) GetChannelUnread(channelId string, userId string) (*mode
 	return r0, r1
 }
 
-// GetChannels provides a mock function with given fields: teamId, userId, includeDeleted
-func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
-	ret := _m.Called(teamId, userId, includeDeleted)
+// GetChannels provides a mock function with given fields: teamId, userId, includeDeleted, lastDeleteAt
+func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
+	ret := _m.Called(teamId, userId, includeDeleted, lastDeleteAt)
 
 	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, bool) *model.ChannelList); ok {
-		r0 = rf(teamId, userId, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, string, bool, int) *model.ChannelList); ok {
+		r0 = rf(teamId, userId, includeDeleted, lastDeleteAt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelList)
@@ -638,8 +638,8 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
-		r1 = rf(teamId, userId, includeDeleted)
+	if rf, ok := ret.Get(1).(func(string, string, bool, int) error); ok {
+		r1 = rf(teamId, userId, includeDeleted, lastDeleteAt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -761,29 +761,6 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(team_id, name)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetDeletedByTeamByUser provides a mock function with given fields: teamId, userId, lastDeleteAt
-func (_m *ChannelStore) GetDeletedByTeamByUser(teamId string, userId string, lastDeleteAt int) (*model.ChannelList, error) {
-	ret := _m.Called(teamId, userId, lastDeleteAt)
-
-	var r0 *model.ChannelList
-	if rf, ok := ret.Get(0).(func(string, string, int) *model.ChannelList); ok {
-		r0 = rf(teamId, userId, lastDeleteAt)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelList)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
-		r1 = rf(teamId, userId, lastDeleteAt)
 	} else {
 		r1 = ret.Error(1)
 	}

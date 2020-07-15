@@ -947,37 +947,11 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 5, len(channels))
-	})
-}
 
-func TestGetDeletedChannelsForTeamForUser(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	client := th.Client
-
-	t.Run("Basic", func(t *testing.T) {
-		// Should return 1. Only BasicDeletedChannel.Id
-		channels, resp := client.GetDeletedChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, 1000)
+		// Should return all channels including basicDeleted.
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, "")
 		CheckNoError(t, resp)
-		require.Len(t, channels, 1, "unexpected number of channels")
-		assert.Equal(t, channels[0].Id, th.BasicDeletedChannel.Id)
-
-		now := time.Now().Unix() * 1000
-		ok, resp := client.DeleteChannel(th.BasicChannel.Id)
-		assert.True(t, ok)
-		CheckNoError(t, resp)
-
-		// Should return 2 channels now
-		channels, resp = client.GetDeletedChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, int(now))
-		CheckNoError(t, resp)
-		require.Len(t, channels, 2, "unexpected number of channels")
-	})
-
-	t.Run("InvalidDeleteAt", func(t *testing.T) {
-		// Should return error
-		_, resp := client.GetDeletedChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, 0)
-		CheckBadRequestStatus(t, resp)
+		assert.Equal(t, 7, len(channels))
 	})
 }
 

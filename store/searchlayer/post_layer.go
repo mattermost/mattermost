@@ -133,7 +133,7 @@ func (s SearchPostStore) PermanentDeleteByChannel(channelID string) *model.AppEr
 
 func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	// We only allow the user to search in channels they are a member of.
-	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels)
+	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels, 0)
 	if nErr != nil {
 		mlog.Error("error getting channel for user", mlog.Err(nErr))
 		var nfErr *store.ErrNotFound

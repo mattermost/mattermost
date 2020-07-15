@@ -1554,8 +1554,8 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1566,20 +1566,6 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 		}
 	}
 
-	return list, nil
-}
-
-func (a *App) GetDeletedChannelsForUser(teamId string, userId string, lastDeleted int) (*model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetDeletedByTeamByUser(teamId, userId, lastDeleted)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_deleted_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
-		default:
-			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_deleted_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	}
 	return list, nil
 }
 
