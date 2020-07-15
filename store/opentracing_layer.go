@@ -1080,6 +1080,24 @@ func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name str
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerChannelStore) GetDeletedByTeamByUser(teamId string, userId string, lastDeleteAt int) (*model.ChannelList, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetDeletedByTeamByUser")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.ChannelStore.GetDeletedByTeamByUser(teamId, userId, lastDeleteAt)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetForPost")
