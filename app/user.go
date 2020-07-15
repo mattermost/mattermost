@@ -979,8 +979,18 @@ func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError 
 	return nil
 }
 
+func (a *App) updateDirectChannelForUser(channel *model.Channel, updatedTime int64) error {
+	err := a.Srv().Store.Channel().Delete(channel.Id, updatedTime)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
-	user.UpdateAt = model.GetMillis()
+	updateTime := model.GetMillis()
+	user.UpdateAt = updateTime
 	if active {
 		user.DeleteAt = 0
 	} else {
@@ -997,6 +1007,18 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		if err := a.userDeactivated(ruser.Id); err != nil {
 			return nil, err
 		}
+	}
+
+	directChannels, e := a.Srv().Store.Channel().GetDirectChannelsForUser(user.Id)
+	if e != nil {
+		return nil, e
+	}
+
+	for _, channel := range directChannels {
+		if active {
+			updateTime = 0
+		}
+		a.updateDirectChannelForUser(channel, updateTime)
 	}
 
 	a.invalidateUserChannelMembersCaches(user.Id)

@@ -3442,6 +3442,39 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 	return c > 0, nil
 }
 
+func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError) {
+	queryFormat := `
+			SELECT
+				C.*,
+				OtherUsers.Username as DisplayName
+			FROM
+				Channels AS C
+			JOIN
+				ChannelMembers AS CM ON CM.ChannelId = C.Id
+			INNER JOIN (
+				SELECT
+					ICM.ChannelId AS ChannelId, IU.Username AS Username
+				FROM
+					Users as IU
+				JOIN
+					ChannelMembers AS ICM ON ICM.UserId = IU.Id
+				WHERE
+					IU.Id != :UserId
+					%v
+				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
+			WHERE
+			    C.Type = 'D'
+				AND CM.UserId = :UserId`
+
+	var channels model.ChannelList
+
+	if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId}); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetDirectChannelsForUser", "store.sql_channel.direct_channels_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
+}
+
 func (s SqlChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
 	sql := fmt.Sprintf(`
 		UPDATE
