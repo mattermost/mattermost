@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"testing"
 
 	"time"
@@ -257,7 +258,9 @@ func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, jobs[0].Id, received.Id)
 
 	received, err = ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
-	assert.Nil(t, err)
+	assert.NotNil(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
 	assert.Nil(t, received)
 }
 
