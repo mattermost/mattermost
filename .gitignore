@@ -102,7 +102,7 @@ webapp/coverage
 
 .agignore
 .ctags
-tags
+/tags
 .idea
 
 debug
@@ -110,3 +110,4 @@ client
 __debug_bin
 report.xml
 go.*.orig
+config.override.mk

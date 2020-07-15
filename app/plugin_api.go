@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PluginAPI struct {
@@ -68,6 +69,20 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	api.app.UnregisterPluginCommand(api.id, teamId, trigger)
 	return nil
+}
+
+func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	user, appErr := api.app.GetUser(commandArgs.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.SiteURL = api.app.GetSiteURL()
+	response, appErr := api.app.ExecuteCommand(commandArgs)
+	if appErr != nil {
+		return response, appErr
+	}
+	return response, nil
 }
 
 func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
@@ -415,6 +430,40 @@ func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.Searc
 	return postList.ToSlice(), nil
 }
 
+func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	var terms string
+	if searchParams.Terms != nil {
+		terms = *searchParams.Terms
+	}
+
+	timeZoneOffset := 0
+	if searchParams.TimeZoneOffset != nil {
+		timeZoneOffset = *searchParams.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if searchParams.IsOrSearch != nil {
+		isOrSearch = *searchParams.IsOrSearch
+	}
+
+	page := 0
+	if searchParams.Page != nil {
+		page = *searchParams.Page
+	}
+
+	perPage := 100
+	if searchParams.PerPage != nil {
+		perPage = *searchParams.PerPage
+	}
+
+	includeDeletedChannels := false
+	if searchParams.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *searchParams.IncludeDeletedChannels
+	}
+
+	return api.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+}
+
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
@@ -670,7 +719,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.sendNotificationMail(to, subject, htmlBody)
+	return api.app.Srv().EmailService.sendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
@@ -864,6 +913,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}
 	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
+	newURL.RawQuery = request.URL.Query().Encode()
 	request.URL = newURL
 	if destinationPluginId == "" || err != nil {
 		message := "No plugin specified. Form of URL should be /<pluginid>/*"

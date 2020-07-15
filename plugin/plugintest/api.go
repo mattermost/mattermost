@@ -483,6 +483,29 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	return r0
 }
 
+// ExecuteSlashCommand provides a mock function with given fields: commandArgs
+func (_m *API) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	ret := _m.Called(commandArgs)
+
+	var r0 *model.CommandResponse
+	if rf, ok := ret.Get(0).(func(*model.CommandArgs) *model.CommandResponse); ok {
+		r0 = rf(commandArgs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.CommandResponse)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.CommandArgs) error); ok {
+		r1 = rf(commandArgs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetBot provides a mock function with given fields: botUserId, includeDeleted
 func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
 	ret := _m.Called(botUserId, includeDeleted)
@@ -2624,6 +2647,31 @@ func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
 		r1 = rf(teamId, paramsList)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchPostsInTeamForUser provides a mock function with given fields: teamId, userId, searchParams
+func (_m *API) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	ret := _m.Called(teamId, userId, searchParams)
+
+	var r0 *model.PostSearchResults
+	if rf, ok := ret.Get(0).(func(string, string, model.SearchParameter) *model.PostSearchResults); ok {
+		r0 = rf(teamId, userId, searchParams)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostSearchResults)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.SearchParameter) *model.AppError); ok {
+		r1 = rf(teamId, userId, searchParams)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

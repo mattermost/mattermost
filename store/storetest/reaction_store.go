@@ -4,10 +4,12 @@
 package storetest
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -19,6 +21,7 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
 	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
+	t.Run("ReactionDeadlock", func(t *testing.T) { testReactionDeadlock(t, ss) })
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
@@ -34,8 +37,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    post.Id,
 		EmojiName: model.NewId(),
 	}
-	reaction, err := ss.Reaction().Save(reaction1)
-	require.Nil(t, err)
+	reaction, nErr := ss.Reaction().Save(reaction1)
+	require.Nil(t, nErr)
 
 	saved := reaction
 	assert.Equal(t, saved.UserId, reaction1.UserId, "should've saved reaction user_id and returned it")
@@ -53,8 +56,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		secondUpdateAt = postList.Posts[post.Id].UpdateAt
 	}
 
-	_, err = ss.Reaction().Save(reaction1)
-	assert.Nil(t, err, "should've allowed saving a duplicate reaction")
+	_, nErr = ss.Reaction().Save(reaction1)
+	assert.Nil(t, nErr, "should've allowed saving a duplicate reaction")
 
 	// different user
 	reaction2 := &model.Reaction{
@@ -62,8 +65,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    reaction1.PostId,
 		EmojiName: reaction1.EmojiName,
 	}
-	_, err = ss.Reaction().Save(reaction2)
-	require.Nil(t, err)
+	_, nErr = ss.Reaction().Save(reaction2)
+	require.Nil(t, nErr)
 
 	postList, err = ss.Post().Get(reaction2.PostId, false)
 	require.Nil(t, err)
@@ -76,8 +79,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    model.NewId(),
 		EmojiName: reaction1.EmojiName,
 	}
-	_, err = ss.Reaction().Save(reaction3)
-	require.Nil(t, err)
+	_, nErr = ss.Reaction().Save(reaction3)
+	require.Nil(t, nErr)
 
 	// different emoji
 	reaction4 := &model.Reaction{
@@ -85,16 +88,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    reaction1.PostId,
 		EmojiName: model.NewId(),
 	}
-	_, err = ss.Reaction().Save(reaction4)
-	require.Nil(t, err)
+	_, nErr = ss.Reaction().Save(reaction4)
+	require.Nil(t, nErr)
 
 	// invalid reaction
 	reaction5 := &model.Reaction{
 		UserId: reaction1.UserId,
 		PostId: reaction1.PostId,
 	}
-	_, err = ss.Reaction().Save(reaction5)
-	require.NotNil(t, err, "should've failed for invalid reaction")
+	_, nErr = ss.Reaction().Save(reaction5)
+	require.NotNil(t, nErr, "should've failed for invalid reaction")
 
 }
 
@@ -111,16 +114,16 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		EmojiName: model.NewId(),
 	}
 
-	_, err = ss.Reaction().Save(reaction)
-	require.Nil(t, err)
+	_, nErr := ss.Reaction().Save(reaction)
+	require.Nil(t, nErr)
 
 	result, err := ss.Post().Get(reaction.PostId, false)
 	require.Nil(t, err)
 
 	firstUpdateAt := result.Posts[post.Id].UpdateAt
 
-	_, err = ss.Reaction().Delete(reaction)
-	require.Nil(t, err)
+	_, nErr = ss.Reaction().Delete(reaction)
+	require.Nil(t, nErr)
 
 	reactions, rErr := ss.Reaction().GetForPost(post.Id, false)
 	require.Nil(t, rErr)
@@ -339,9 +342,9 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
 	var lastReaction *model.Reaction
 	for _, reaction := range reactions {
-		var err *model.AppError
-		lastReaction, err = ss.Reaction().Save(reaction)
-		require.Nil(t, err)
+		var nErr error
+		lastReaction, nErr = ss.Reaction().Save(reaction)
+		require.Nil(t, nErr)
 	}
 
 	returned, err := ss.Reaction().GetForPost(post.Id, false)
@@ -421,4 +424,66 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 
 	require.False(t, post4IdFound, "Wrong reaction returned")
 
+}
+
+// testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
+// It at least deadlocks 2 times out of 5.
+func testReactionDeadlock(t *testing.T, ss store.Store) {
+	post, err := ss.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})
+	require.Nil(t, err)
+
+	reaction1 := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    post.Id,
+		EmojiName: model.NewId(),
+	}
+	_, nErr := ss.Reaction().Save(reaction1)
+	require.Nil(t, nErr)
+
+	// different user
+	reaction2 := &model.Reaction{
+		UserId:    model.NewId(),
+		PostId:    reaction1.PostId,
+		EmojiName: reaction1.EmojiName,
+	}
+	_, nErr = ss.Reaction().Save(reaction2)
+	require.Nil(t, nErr)
+
+	// different post
+	reaction3 := &model.Reaction{
+		UserId:    reaction1.UserId,
+		PostId:    model.NewId(),
+		EmojiName: reaction1.EmojiName,
+	}
+	_, nErr = ss.Reaction().Save(reaction3)
+	require.Nil(t, nErr)
+
+	// different emoji
+	reaction4 := &model.Reaction{
+		UserId:    reaction1.UserId,
+		PostId:    reaction1.PostId,
+		EmojiName: model.NewId(),
+	}
+	_, nErr = ss.Reaction().Save(reaction4)
+	require.Nil(t, nErr)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	// 1st tx
+	go func() {
+		defer wg.Done()
+		err := ss.Reaction().DeleteAllWithEmojiName(reaction1.EmojiName)
+		require.Nil(t, err)
+	}()
+
+	// 2nd tx
+	go func() {
+		defer wg.Done()
+		_, err := ss.Reaction().Delete(reaction2)
+		require.Nil(t, err)
+	}()
+	wg.Wait()
 }

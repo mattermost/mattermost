@@ -49,6 +49,13 @@ func (api *apiTimerLayer) UnregisterCommand(teamId, trigger string) error {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ExecuteSlashCommand(commandArgs)
+	api.recordTime(startTime, "ExecuteSlashCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetSession(sessionId)
@@ -487,6 +494,13 @@ func (api *apiTimerLayer) SearchPostsInTeam(teamId string, paramsList []*model.S
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeam(teamId, paramsList)
 	api.recordTime(startTime, "SearchPostsInTeam", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SearchPostsInTeamForUser(teamId, userId, searchParams)
+	api.recordTime(startTime, "SearchPostsInTeamForUser", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

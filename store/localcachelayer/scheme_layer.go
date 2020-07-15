@@ -21,16 +21,17 @@ func (s *LocalCacheSchemeStore) handleClusterInvalidateScheme(msg *model.Cluster
 	}
 }
 
-func (s LocalCacheSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (s LocalCacheSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	if len(scheme.Id) != 0 {
 		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.schemeCache, scheme.Id)
 	}
 	return s.SchemeStore.Save(scheme)
 }
 
-func (s LocalCacheSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
-	if scheme := s.rootStore.doStandardReadCache(s.rootStore.schemeCache, schemeId); scheme != nil {
-		return scheme.(*model.Scheme), nil
+func (s LocalCacheSchemeStore) Get(schemeId string) (*model.Scheme, error) {
+	var scheme *model.Scheme
+	if err := s.rootStore.doStandardReadCache(s.rootStore.schemeCache, schemeId, &scheme); err == nil {
+		return scheme, nil
 	}
 
 	scheme, err := s.SchemeStore.Get(schemeId)
@@ -43,14 +44,14 @@ func (s LocalCacheSchemeStore) Get(schemeId string) (*model.Scheme, *model.AppEr
 	return scheme, nil
 }
 
-func (s LocalCacheSchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (s LocalCacheSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.schemeCache, schemeId)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
 	return s.SchemeStore.Delete(schemeId)
 }
 
-func (s LocalCacheSchemeStore) PermanentDeleteAll() *model.AppError {
+func (s LocalCacheSchemeStore) PermanentDeleteAll() error {
 	defer s.rootStore.doClearCacheCluster(s.rootStore.schemeCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
 	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
