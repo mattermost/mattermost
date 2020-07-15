@@ -1569,6 +1569,20 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 	return list, nil
 }
 
+func (a *App) GetDeletedChannelsForUser(teamId string, userId string, lastDeleted int) (*model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetDeletedByTeamByUser(teamId, userId, lastDeleted)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_deleted_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelsForUser", "app.channel.get_deleted_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return list, nil
+}
+
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
 	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {

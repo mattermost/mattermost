@@ -768,6 +768,29 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) (*model.Ch
 	return r0, r1
 }
 
+// GetDeletedByTeamByUser provides a mock function with given fields: teamId, userId, lastDeleteAt
+func (_m *ChannelStore) GetDeletedByTeamByUser(teamId string, userId string, lastDeleteAt int) (*model.ChannelList, error) {
+	ret := _m.Called(teamId, userId, lastDeleteAt)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string, int) *model.ChannelList); ok {
+		r0 = rf(teamId, userId, lastDeleteAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
+		r1 = rf(teamId, userId, lastDeleteAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForPost provides a mock function with given fields: postId
 func (_m *ChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(postId)

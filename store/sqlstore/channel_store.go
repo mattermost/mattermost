@@ -1152,6 +1152,32 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
+func (s SqlChannelStore) GetDeletedByTeamByUser(teamId, userId string, lastDeleteAt int) (*model.ChannelList, error) {
+	query := `SELECT Channels.* FROM Channels, ChannelMembers
+	WHERE Id = ChannelId
+		AND UserId = :UserId
+		AND DeleteAt >= :LastDeleteAt
+		AND (TeamId = :TeamId OR TeamId = '')
+	ORDER BY DisplayName`
+	channels := &model.ChannelList{}
+	_, err := s.GetReplica().Select(channels, query, map[string]interface{}{
+		"TeamId":       teamId,
+		"UserId":       userId,
+		"LastDeleteAt": lastDeleteAt,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get channels with TeamId=%s and UserId=%s and LastDeleteAt=%d", teamId, userId, lastDeleteAt)
+	}
+
+	if len(*channels) == 0 {
+		return nil, store.NewErrNotFound("Channel", "userId="+userId+
+			" teamId="+teamId+
+			" lastDeleteAt="+strconv.Itoa(lastDeleteAt))
+	}
+
+	return channels, nil
+}
+
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, error) {
 	query := s.getAllChannelsQuery(opts, false)
 

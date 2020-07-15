@@ -61,6 +61,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, ss) })
+	t.Run("GetDeletedByTeamByUser", func(t *testing.T) { testChannelStoreGetDeletedByTeamByUser(t, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, ss, s) })
 	t.Run("GetMoreChannels", func(t *testing.T) { testChannelStoreGetMoreChannels(t, ss) })
 	t.Run("GetPrivateChannelsForTeam", func(t *testing.T) { testChannelStoreGetPrivateChannelsForTeam(t, ss) })
@@ -3193,6 +3194,86 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 		"missing channel")
 
 	ss.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
+}
+
+func testChannelStoreGetDeletedByTeamByUser(t *testing.T, ss store.Store) {
+	team1 := model.NewId()
+	team2 := model.NewId()
+	user := model.NewId()
+
+	o1 := model.Channel{}
+	o1.TeamId = team1
+	o1.DisplayName = "Channel1"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	_, nErr := ss.Channel().Save(&o1, -1)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().Delete(o1.Id, 10)
+	require.Nil(t, nErr)
+
+	o2 := model.Channel{}
+	o2.TeamId = team1
+	o2.DisplayName = "Channel2"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	_, nErr = ss.Channel().Save(&o2, -1)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().Delete(o2.Id, 20)
+	require.Nil(t, nErr)
+
+	o3 := model.Channel{}
+	o3.TeamId = team2
+	o3.DisplayName = "Channel3"
+	o3.Name = "zz" + model.NewId() + "b"
+	o3.Type = model.CHANNEL_OPEN
+	_, nErr = ss.Channel().Save(&o3, -1)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().Delete(o3.Id, 10)
+	require.Nil(t, nErr)
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = user
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	_, err := ss.Channel().SaveMember(&m1)
+	require.Nil(t, err)
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = user
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	_, err = ss.Channel().SaveMember(&m2)
+	require.Nil(t, err)
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = o3.Id
+	m3.UserId = user
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	_, err = ss.Channel().SaveMember(&m3)
+	require.Nil(t, err)
+
+	// should return 2
+	list, nErr := ss.Channel().GetDeletedByTeamByUser(team1, user, 10)
+	require.Nil(t, nErr)
+	require.Len(t, *list, 2, "unexpected number of channels returned")
+	assert.Equal(t, o1.Id, (*list)[0].Id, "missing channel")
+	assert.Equal(t, o2.Id, (*list)[1].Id, "missing channel")
+
+	// should return 1
+	list, nErr = ss.Channel().GetDeletedByTeamByUser(team1, user, 20)
+	require.Nil(t, nErr)
+	require.Len(t, *list, 1, "unexpected number of channels returned")
+	assert.Equal(t, o2.Id, (*list)[0].Id, "missing channel")
+
+	// should return 1
+	list, nErr = ss.Channel().GetDeletedByTeamByUser(team2, user, 10)
+	require.Nil(t, nErr)
+	assert.Equal(t, o3.Id, (*list)[0].Id, "missing channel")
+
+	// should return 0
+	list, nErr = ss.Channel().GetDeletedByTeamByUser(team2, user, 100)
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(nErr, &nfErr))
 }
 
 func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier) {

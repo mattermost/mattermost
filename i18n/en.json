@@ -3075,6 +3075,14 @@
     "translation": "No channels were found."
   },
   {
+    "id": "app.channel.get_deleted_channels.get.app_error",
+    "translation": "Unable to get the archived channels."
+  },
+  {
+    "id": "app.channel.get_deleted_channels.not_found.app_error",
+    "translation": "No archived channels were found."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },

@@ -2442,6 +2442,16 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
+// GetDeletedChannelsForTeamForUser returns a list of archived channels, archived greater or equal to a given timestamp, for a team and for a user.
+func (c *Client4) GetDeletedChannelsForTeamForUser(teamId, userId string, lastDeleteAt int) ([]*Channel, *Response) {
+	r, err := c.DoApiGet(c.GetChannelsForTeamForUserRoute(teamId, userId, false)+"/deleted?last_delete_at="+strconv.Itoa(lastDeleteAt), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
