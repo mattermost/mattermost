@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/http"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
@@ -219,16 +221,37 @@ func (ps SqlPluginStore) SetWithOptions(pluginId string, key string, value []byt
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError) {
-	var kv *model.PluginKeyValue
 	currentTime := model.GetMillis()
-	if err := ps.GetReplica().SelectOne(&kv, "SELECT * FROM PluginKeyValueStore WHERE PluginId = :PluginId AND PKey = :Key AND (ExpireAt = 0 OR ExpireAt > :CurrentTime)", map[string]interface{}{"PluginId": pluginId, "Key": key, "CurrentTime": currentTime}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlPluginStore.Get", "store.sql_plugin_store.get.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusNotFound)
-		}
-		return nil, model.NewAppError("SqlPluginStore.Get", "store.sql_plugin_store.get.app_error", nil, fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()), http.StatusInternalServerError)
+
+	failure := func(err error, statusCode int) *model.AppError {
+		return model.NewAppError(
+			"SqlPluginStore.Get",
+			"store.sql_plugin_store.get.app_error",
+			nil,
+			fmt.Sprintf("plugin_id=%v, key=%v, err=%v", pluginId, key, err.Error()),
+			statusCode,
+		)
 	}
 
-	return kv, nil
+	query := ps.getQueryBuilder().Select("PluginId, PKey, PValue, ExpireAt").
+		From("PluginKeyValueStore").
+		Where(sq.Eq{"PluginId": pluginId}).
+		Where(sq.Eq{"PKey": key}).
+		Where(sq.Or{sq.Eq{"ExpireAt": 0}, sq.Gt{"ExpireAt": currentTime}})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, failure(err, http.StatusInternalServerError)
+	}
+	row := ps.GetReplica().Db.QueryRow(queryString, args...)
+	var kv model.PluginKeyValue
+	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, failure(err, http.StatusNotFound)
+		}
+		return nil, failure(err, http.StatusInternalServerError)
+	}
+
+	return &kv, nil
 }
 
 func (ps SqlPluginStore) Delete(pluginId, key string) *model.AppError {
