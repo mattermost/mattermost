@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -26,7 +28,7 @@ func (a *App) NotifySessionsExpired() *model.AppError {
 	// Get all mobile sessions that expired within the last hour.
 	sessions, err := a.srv.Store.Session().GetSessionsExpired(OneHourMillis, true, true)
 	if err != nil {
-		return err
+		return model.NewAppError("NotifySessionsExpired", "app.session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	msg := &model.PushNotification{

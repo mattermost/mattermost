@@ -4023,6 +4023,42 @@
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
   {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "Unable to count the sessions."
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "We encountered an error finding the session."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "We encountered an error while finding user sessions."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Unable to remove all the sessions for the user."
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "Unable to remove the session."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Unable to remove all the sessions."
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "Unable to save the session."
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "Unable to update existing session."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Unable to update the device id."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -6997,62 +7033,6 @@
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Unable to count the sessions."
-  },
-  {
-    "id": "store.sql_session.get.app_error",
-    "translation": "We encountered an error finding the session."
-  },
-  {
-    "id": "store.sql_session.get_sessions.app_error",
-    "translation": "We encountered an error while finding user sessions."
-  },
-  {
-    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Unable to remove all the sessions for the user."
-  },
-  {
-    "id": "store.sql_session.remove.app_error",
-    "translation": "Unable to remove the session."
-  },
-  {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Unable to remove all the sessions."
-  },
-  {
-    "id": "store.sql_session.save.app_error",
-    "translation": "Unable to save the session."
-  },
-  {
-    "id": "store.sql_session.save.existing.app_error",
-    "translation": "Unable to update existing session."
-  },
-  {
-    "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Unable to update the device id."
-  },
-  {
-    "id": "store.sql_session.update_expired_notify.app_error",
-    "translation": "Unable to update expired_notify."
-  },
-  {
-    "id": "store.sql_session.update_expires_at.app_error",
-    "translation": "Unable to update expires_at."
-  },
-  {
-    "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at."
-  },
-  {
-    "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props."
-  },
-  {
-    "id": "store.sql_session.update_roles.app_error",
-    "translation": "Unable to update the roles."
   },
   {
     "id": "store.sql_status.get.app_error",
