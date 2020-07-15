@@ -3271,7 +3271,7 @@ func testChannelStoreGetDeletedByTeamByUser(t *testing.T, ss store.Store) {
 	assert.Equal(t, o3.Id, (*list)[0].Id, "missing channel")
 
 	// should return 0
-	list, nErr = ss.Channel().GetDeletedByTeamByUser(team2, user, 100)
+	_, nErr = ss.Channel().GetDeletedByTeamByUser(team2, user, 100)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(nErr, &nfErr))
 }
