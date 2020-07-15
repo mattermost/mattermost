@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/francoispqt/gojay"
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 )
 
 // ContextField is a name/value pair within the context fields.
