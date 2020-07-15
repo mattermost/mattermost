@@ -7,6 +7,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/mock"
@@ -94,8 +95,8 @@ func (s *Store) TotalMasterDbConnections() int         { return 1 }
 func (s *Store) TotalReadDbConnections() int           { return 1 }
 func (s *Store) TotalSearchDbConnections() int         { return 1 }
 func (s *Store) GetCurrentSchemaVersion() string       { return "" }
-func (s *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	return make(chan store.IntegrityCheckResult)
+func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	return make(chan model.IntegrityCheckResult)
 }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
