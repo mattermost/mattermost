@@ -170,28 +170,6 @@ func (a *OpenTracingAppLayer) AddDirectChannels(teamId string, user *model.User)
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddNotificationEmailToBatch")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.AddNotificationEmailToBatch(user, post, team)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
@@ -2025,6 +2003,28 @@ func (a *OpenTracingAppLayer) CreateSession(session *model.Session) (*model.Sess
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSidebarCategory")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateSidebarCategory(userId, teamId, newCategory)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateTeam")
@@ -2214,28 +2214,6 @@ func (a *OpenTracingAppLayer) CreateUserWithToken(user *model.User, token *model
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.CreateUserWithToken(user, token)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateVerifyEmailToken")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateVerifyEmailToken(userId, newEmail)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2855,6 +2833,28 @@ func (a *OpenTracingAppLayer) DeleteScheme(schemeId string) (*model.Scheme, *mod
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) DeleteSidebarCategory(userId string, teamId string, categoryId string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DeleteSidebarCategory")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.DeleteSidebarCategory(userId, teamId, categoryId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) DeleteToken(token *model.Token) *model.AppError {
@@ -6987,6 +6987,28 @@ func (a *OpenTracingAppLayer) GetPrevPostIdFromPostList(postList *model.PostList
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetPrivateChannelsForTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetPrivateChannelsForTeam(teamId, offset, limit)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProfileImage")
@@ -7517,6 +7539,72 @@ func (a *OpenTracingAppLayer) GetSessions(userId string) ([]*model.Session, *mod
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategories")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSidebarCategories(userId, teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategory")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSidebarCategory(categoryId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetSidebarCategoryOrder(userId string, teamId string) ([]string, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSidebarCategoryOrder")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSidebarCategoryOrder(userId, teamId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSinglePost")
@@ -7617,7 +7705,7 @@ func (a *OpenTracingAppLayer) GetStatusesByIds(userIds []string) (map[string]int
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInput string, roleID string) []model.AutocompleteSuggestion {
+func (a *OpenTracingAppLayer) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.Command, roleID string) []model.AutocompleteSuggestion {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSuggestions")
 
@@ -7629,7 +7717,7 @@ func (a *OpenTracingAppLayer) GetSuggestions(commands []*model.Command, userInpu
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetSuggestions(commands, userInput, roleID)
+	resultVar0 := a.app.GetSuggestions(commandArgs, commands, roleID)
 
 	return resultVar0
 }
@@ -9962,6 +10050,28 @@ func (a *OpenTracingAppLayer) MigrateFilenamesToFileInfos(post *model.Post) []*m
 
 	defer span.Finish()
 	resultVar0 := a.app.MigrateFilenamesToFileInfos(post)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) MigrateIdLDAP(toAttribute string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MigrateIdLDAP")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MigrateIdLDAP(toAttribute)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }
@@ -12340,28 +12450,6 @@ func (a *OpenTracingAppLayer) SendAutoResponseIfNecessary(channel *model.Channel
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) SendDeactivateAccountEmail(email string, locale string, siteURL string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendDeactivateAccountEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendDeactivateAccountEmail(email, locale, siteURL)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendEmailVerification")
@@ -12399,21 +12487,6 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(userId string, post *model.Post)
 	resultVar0 := a.app.SendEphemeralPost(userId, post)
 
 	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendInviteEmails")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SendInviteEmails(team, senderName, senderUserId, invites, siteURL)
 }
 
 func (a *OpenTracingAppLayer) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
@@ -12458,72 +12531,6 @@ func (a *OpenTracingAppLayer) SendPasswordReset(email string, siteURL string) (b
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SendPasswordResetEmail(email string, token *model.Token, locale string, siteURL string) (bool, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendPasswordResetEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SendPasswordResetEmail(email, token, locale, siteURL)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SendRemoveExpiredLicenseEmail(email string, locale string, siteURL string, licenseId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendRemoveExpiredLicenseEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendRemoveExpiredLicenseEmail(email, locale, siteURL, licenseId)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SendSignInChangeEmail(email string, method string, locale string, siteURL string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendSignInChangeEmail")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SendSignInChangeEmail(email, method, locale, siteURL)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId string, destinationPluginId string) {
@@ -12616,6 +12623,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionTo(session model.Session, perm
 
 	defer span.Finish()
 	resultVar0 := a.app.SessionHasPermissionTo(session, permission)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SessionHasPermissionToCategory(session model.Session, userId string, teamId string, categoryId string) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToCategory")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToCategory(session, userId, teamId, categoryId)
 
 	return resultVar0
 }
@@ -14460,6 +14484,50 @@ func (a *OpenTracingAppLayer) UpdateSessionsIsGuest(userId string, isGuest bool)
 
 	defer span.Finish()
 	a.app.UpdateSessionsIsGuest(userId, isGuest)
+}
+
+func (a *OpenTracingAppLayer) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSidebarCategories")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.UpdateSidebarCategories(userId, teamId, categories)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateSidebarCategoryOrder")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {

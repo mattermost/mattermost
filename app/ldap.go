@@ -107,7 +107,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword
 	}
 
 	a.Srv().Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	})
@@ -153,10 +153,25 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 	T := utils.GetUserTranslations(user.Locale)
 
 	a.Srv().Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
+		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	})
 
 	return "/login?extra=signin_change", nil
+}
+
+func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
+	if ldapI := a.Ldap(); ldapI != nil {
+		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
+			switch err := err.(type) {
+			case *model.AppError:
+				return err
+			default:
+				return model.NewAppError("IdMigrateLDAP", "ent.ldap_id_migrate.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		return nil
+	}
+	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 }

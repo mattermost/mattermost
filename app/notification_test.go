@@ -2220,7 +2220,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {

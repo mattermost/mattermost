@@ -14,7 +14,7 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -51,7 +51,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -187,7 +187,7 @@ const hourMillis int64 = 60 * 60 * 1000
 const dayMillis int64 = 24 * hourMillis
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
@@ -273,7 +273,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })

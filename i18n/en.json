@@ -1429,6 +1429,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.invalid_channel",
+    "translation": "Channel listed in the request doesn't belong to the user"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
@@ -1499,6 +1503,10 @@
   {
     "id": "api.license.request-trial.bad-request",
     "translation": "The number of users requested is not correct."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -3027,6 +3035,10 @@
     "translation": "Unable to save direct channel."
   },
   {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Unable to create initial sidebar categories for user."
+  },
+  {
     "id": "app.channel.delete.app_error",
     "translation": "Unable to delete the channel."
   },
@@ -3971,6 +3983,14 @@
     "translation": "Unable to save reaction."
   },
   {
+    "id": "app.recover.delete.app_error",
+    "translation": "Unable to delete token."
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Unable to save the token."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -4320,7 +4340,7 @@
   },
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
-    "translation": ""
+    "translation": "Failed to purge records."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -4512,7 +4532,7 @@
   },
   {
     "id": "ent.get_users_in_channel_during",
-    "translation": ""
+    "translation": "Failed to get users in channel during specified time period."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -4617,6 +4637,10 @@
   {
     "id": "ent.ldap_groups.reachable_groups_error",
     "translation": "error retrieving groups for user"
+  },
+  {
+    "id": "ent.ldap_id_migrate.app_error",
+    "translation": "unable to migrate."
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -4857,6 +4881,14 @@
   {
     "id": "migrations.worker.run_migration.unknown_key",
     "translation": "Unable to run migration job due to unknown migration key."
+  },
+  {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+    "translation": "Migration failed due to database error."
+  },
+  {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -6319,6 +6351,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
   },
@@ -6419,6 +6455,22 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
+    "id": "store.sql_channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+    "translation": "Unable to commit transaction."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+    "translation": "Unable to delete non-custom category."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
+  },
+  {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -6433,30 +6485,6 @@
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
-  },
-  {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete."
-  },
-  {
-    "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Failed to check if it exists."
-  },
-  {
-    "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows."
-  },
-  {
-    "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at."
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
@@ -6929,22 +6957,6 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference."
-  },
-  {
-    "id": "store.sql_recover.delete.app_error",
-    "translation": "Unable to delete token."
-  },
-  {
-    "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code."
-  },
-  {
-    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type."
-  },
-  {
-    "id": "store.sql_recover.save.app_error",
-    "translation": "Unable to save the token."
   },
   {
     "id": "store.sql_role.delete.update.app_error",
