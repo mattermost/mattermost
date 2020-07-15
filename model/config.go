@@ -1062,8 +1062,6 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
-	RudderKey              *string `restricted:"true"`
-	RudderDataplaneUrl     *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1093,14 +1091,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
-	}
-
-	if s.RudderKey == nil {
-		s.RudderKey = NewString("")
-	}
-
-	if s.RudderDataplaneUrl == nil {
-		s.RudderDataplaneUrl = NewString("")
 	}
 
 	if s.EnableSentry == nil {

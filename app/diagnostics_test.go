@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -270,10 +271,10 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 
 	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.LogSettings.RudderDataplaneUrl = "arudderstackplace"
-			*cfg.LogSettings.RudderKey = "abc123"
-		})
+		os.Setenv("RUDDER_KEY", "abc123")
+		os.Setenv("RUDDER_DATAPLANE_URL", "arudderstackplace")
+		defer os.Unsetenv("RUDDER_KEY")
+		defer os.Unsetenv("RUDDER_DATAPLANE_URL")
 
 		config := th.App.Srv().getRudderConfig()
 

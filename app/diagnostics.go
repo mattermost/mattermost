@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -79,8 +80,8 @@ func (s *Server) SendDailyDiagnostics() {
 func (s *Server) getRudderConfig() RudderConfig {
 	if !strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") {
 		return RudderConfig{RUDDER_KEY, RUDDER_DATAPLANE_URL}
-	} else if *s.Config().LogSettings.RudderKey != "" && *s.Config().LogSettings.RudderDataplaneUrl != "" {
-		return RudderConfig{*s.Config().LogSettings.RudderKey, *s.Config().LogSettings.RudderDataplaneUrl}
+	} else if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
+		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
 	} else {
 		return RudderConfig{}
 	}
