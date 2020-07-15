@@ -909,17 +909,12 @@ func getDeletedChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
-		return
-	}
-
 	err = c.App.FillInChannelsProps(channels)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
 	w.Write([]byte(channels.ToJson()))
 }
 
