@@ -1905,35 +1905,36 @@ func TestPermanentDeleteUser(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIUserDeletion = &enableAPIUserDeletion })
 	}()
 
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
+
+	userToDelete := th.CreateUser()
+
+	t.Run("Permanent deletion not available through API if EnableAPIUserDeletion is not set", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.PermanentDeleteUser(userToDelete.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPIUserDeletion is not set", func(t *testing.T) {
+		ok, resp := th.LocalClient.PermanentDeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		userToDelete := th.CreateUser()
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
-
-		// Does not error when deletion is disabled, just soft deletes
+		userToDelete = th.CreateUser()
 		ok, resp := c.PermanentDeleteUser(userToDelete.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 
-		u, err := th.App.GetUser(userToDelete.Id)
-		assert.Nil(t, err)
-		assert.True(t, u.DeleteAt > 0)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
-
-		ok, resp = c.PermanentDeleteUser(userToDelete.Id)
-		CheckNoError(t, resp)
-		assert.True(t, ok)
-
-		_, err = th.App.GetTeam(userToDelete.Id)
+		_, err := th.App.GetTeam(userToDelete.Id)
 		assert.NotNil(t, err)
 
 		ok, resp = c.PermanentDeleteUser("junk")
 		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
-	})
-
+	}, "Permanent deletion with EnableAPIUserDeletion set")
 }
 
 func TestPermanentDeleteAllUsers(t *testing.T) {

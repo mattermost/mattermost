@@ -1087,8 +1087,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
-		err = c.App.PermanentDeleteUser(user)
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+			err = c.App.PermanentDeleteUser(user)
+		} else {
+			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		}
 	} else {
 		_, err = c.App.UpdateActive(user, false)
 	}
