@@ -132,7 +132,14 @@ func newConsoleTarget(name string, t *LogTarget, filter logr.Filter, formatter l
 }
 
 func newFileTarget(name string, t *LogTarget, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
-	options := &target.FileOptions{}
+	type fileOptions struct {
+		Filename   string `json:"Filename"`
+		MaxSize    int    `json:"MaxSizeMB"`
+		MaxAge     int    `json:"MaxAgeDays"`
+		MaxBackups int    `json:"MaxBackups"`
+		Compress   bool   `json:"Compress"`
+	}
+	options := &fileOptions{}
 	if err := json.Unmarshal(t.Options, options); err != nil {
 		return nil, err
 	}
@@ -144,7 +151,7 @@ func newFileTarget(name string, t *LogTarget, filter logr.Filter, formatter logr
 		return nil, fmt.Errorf("error writing to 'Filename' for target %s: %w", name, err)
 	}
 
-	newTarget := target.NewFileTarget(filter, formatter, *options, t.MaxQueueSize)
+	newTarget := target.NewFileTarget(filter, formatter, target.FileOptions(*options), t.MaxQueueSize)
 	return newTarget, nil
 }
 
