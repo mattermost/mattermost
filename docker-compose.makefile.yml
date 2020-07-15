@@ -1,0 +1,79 @@
+version: '2.4'
+services:
+  mysql:
+    restart: 'no'
+    container_name: mattermost-mysql
+    ports:
+      - "3306:3306"
+    extends:
+        file: build/docker-compose.common.yml
+        service: mysql
+  postgres:
+    restart: 'no'
+    container_name: mattermost-postgres
+    ports:
+      - "5432:5432"
+    extends:
+        file: build/docker-compose.common.yml
+        service: postgres
+  minio:
+    restart: 'no'
+    container_name: mattermost-minio
+    ports:
+      - "9000:9000"
+    extends:
+        file: build/docker-compose.common.yml
+        service: minio
+  inbucket:
+    restart: 'no'
+    container_name: mattermost-inbucket
+    ports:
+      - "10025:10025"
+      - "10080:10080"
+      - "10110:10110"
+    extends:
+        file: build/docker-compose.common.yml
+        service: inbucket
+  openldap:
+    restart: 'no'
+    container_name: mattermost-openldap
+    ports:
+      - "389:389"
+      - "636:636"
+    extends:
+        file: build/docker-compose.common.yml
+        service: openldap
+  elasticsearch:
+    restart: 'no'
+    container_name: mattermost-elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    extends:
+        file: build/docker-compose.common.yml
+        service: elasticsearch
+  dejavu:
+    restart: 'no'
+    container_name: mattermost-dejavu
+    ports:
+      - "1358:1358"
+    extends:
+        file: build/docker-compose.common.yml
+        service: dejavu
+  keycloak:
+    restart: 'no'
+    container_name: mattermost-saml
+    ports:
+      - "8484:8080"
+    extends:
+        file: build/docker-compose.common.yml
+        service: keycloak
+
+networks:
+  mm-test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.254.0/24
+          ip_range: 192.168.254.0/24

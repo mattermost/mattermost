@@ -256,7 +256,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		_, resp := th.Client.CreateUserWithToken(&user, "wrong")
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
 
@@ -3107,7 +3107,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
+	token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(ruser.Id, email)
 	require.Nil(t, err, "Unable to create email verify token")
 
 	_, resp := th.Client.VerifyUserEmail(token.Token)

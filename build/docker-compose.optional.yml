@@ -1,6 +1,0 @@
-version: '2.4'
-services:
-  dejavu:
-    image: "appbaseio/dejavu:3.4.2"
-    networks:
-      - mm-test
