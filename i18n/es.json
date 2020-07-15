@@ -7885,5 +7885,21 @@
     {
         "id": "api.license.request-trial.bad-request.terms-not-accepted",
         "translation": "Debes aceptar el Acuerdo de Evaluación del Software Mattermost y las Políticas de Privacidad para solicitar una licencia."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "No se puede eliminar la categoría no personalizada."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Ocurrió un error al insertar el registro en la base de datos."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "No se pudo obtener los canales privados."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "La Migración falló debido a un error de la base de datos."
     }
 ]
