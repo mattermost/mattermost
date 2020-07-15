@@ -7873,5 +7873,17 @@
     {
         "id": "app.recover.delete.app_error",
         "translation": "No se pudo eliminar token."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "No se pudo guardar el token."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "No se pudieron crear las categorías iniciales en la barra lateral para el usuario."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Debes aceptar el Acuerdo de Evaluación del Software Mattermost y las Políticas de Privacidad para solicitar una licencia."
     }
 ]
