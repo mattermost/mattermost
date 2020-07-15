@@ -3820,6 +3820,18 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
+// MigrateIdLdap migrates the LDAP enabled users to given attribute
+func (c *Client4) MigrateIdLdap(toAttribute string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetLdapRoute()+"/migrateid", MapToJson(map[string]string{
+		"toAttribute": toAttribute,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
