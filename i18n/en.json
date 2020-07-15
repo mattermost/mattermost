@@ -3139,6 +3139,34 @@
     "translation": "Cluster API endpoint not found."
   },
   {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "You cannot update an existing CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Unable to save the CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Unable to find the webhook."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Unable to use the webhook."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Invalid webhook."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -6523,30 +6551,6 @@
     "translation": "Unable to update the command."
   },
   {
-    "id": "app.command_webhook.get.internal_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "app.command_webhook.get.missing",
-    "translation": "Unable to find the webhook."
-  },
-  {
-    "id": "app.command_webhook.create_command_webhook.internal_error",
-    "translation": "Unable to save the CommandWebhook."
-  },
-  {
-    "id": "app.command_webhook.create_command_webhook.existing",
-    "translation": "You cannot update an existing CommandWebhook."
-  },
-  {
-    "id": "app.command_webhook.try_use.internal_error",
-    "translation": "Unable to use the webhook."
-  },
-  {
-    "id": "app.command_webhook.try_use.invalid",
-    "translation": "Invalid webhook."
-  },
-  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports."
   },
@@ -7775,11 +7779,7 @@
     "translation": "Couldn't find the command."
   },
   {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook."
-  },
-  {
-    "id": "app.command_webhook.handle_command_webhook.parse",
+    "id": "web.command_webhook.parse.app_error",
     "translation": "Unable to parse incoming data."
   },
   {
