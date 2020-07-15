@@ -250,7 +250,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 			assert.Equal(t, "0", pref.Value)
 		} else {
 			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
-			assert.Equal(t, string(newTheme), preferences[0].Value)
+			assert.Equal(t, string(newTheme), pref.Value)
 		}
 	}
 }
