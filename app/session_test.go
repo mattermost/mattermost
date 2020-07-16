@@ -14,7 +14,7 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -51,7 +51,7 @@ func TestCache(t *testing.T) {
 }
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	session := &model.Session{
@@ -70,8 +70,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
@@ -88,8 +88,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -103,8 +103,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -121,8 +121,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -187,7 +187,7 @@ const hourMillis int64 = 60 * 60 * 1000
 const dayMillis int64 = 24 * hourMillis
 
 func TestApp_GetSessionLengthInMillis(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionLengthMobileInDays = 3 })
@@ -273,7 +273,7 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 }
 
 func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExtendSessionLengthWithActivity = true })
@@ -343,8 +343,8 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, err := th.App.Srv().Store.Session().Get(session.Token)
-			require.Nil(t, err)
+			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
+			require.Nil(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}
