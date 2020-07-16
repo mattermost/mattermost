@@ -1235,31 +1235,31 @@ func TestSearchAllTeamsPaged(t *testing.T) {
 		ExpectedTotalCount int64
 	}{
 		{
-			Name:               "Get foobar channel",
+			Name:               "Retrieve foobar team using partial term search",
 			Search:             &model.TeamSearch{Term: "oobardisplay", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
-			Name:               "Get foobar channel",
+			Name:               "Retrieve foobar team using the beginning of the display name as search text",
 			Search:             &model.TeamSearch{Term: "foobar", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
-			Name:               "Get foobar channel",
+			Name:               "Retrieve foobar team using the ending of the term of the display name",
 			Search:             &model.TeamSearch{Term: "bardisplayname", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
-			Name:               "Get foobar channel",
+			Name:               "Retrieve foobar team using partial term search on the name property of team",
 			Search:             &model.TeamSearch{Term: "what", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
 		},
 		{
-			Name:               "Get foobar channel",
+			Name:               "Retrieve foobar team using partial term search on the name property of team #2",
 			Search:             &model.TeamSearch{Term: "ever", Page: model.NewInt(0), PerPage: model.NewInt(100)},
 			ExpectedTeams:      []string{foobarTeam.Id},
 			ExpectedTotalCount: 1,
