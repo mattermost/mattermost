@@ -1810,6 +1810,12 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	force, ok := props["force"].(bool)
+	if !ok {
+		c.SetInvalidParam("force")
+		return
+	}
+
 	team, err := c.App.GetTeam(teamId)
 	if err != nil {
 		c.Err = err
@@ -1843,6 +1849,14 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if force {
+		err = c.App.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team)
+		if err != nil {
+			c.Err = err
+			return
+		}
 	}
 
 	err = c.App.MoveChannel(team, channel, user)

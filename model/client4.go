@@ -2503,11 +2503,12 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 }
 
 // MoveChannel moves the channel to the destination team.
-func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
-	requestBody := map[string]string{
+func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response) {
+	requestBody := map[string]interface{}{
 		"team_id": teamId,
+		"force":   force,
 	}
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
