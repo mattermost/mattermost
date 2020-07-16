@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/syslog"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 	"github.com/wiggin77/merror"
 )
 

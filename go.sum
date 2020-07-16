@@ -427,6 +427,8 @@ github.com/mattermost/gosaml2 v0.3.2 h1:kq2dY5qUe6fPPHra171GVlgo+ycBsEog0gZMetxL
 github.com/mattermost/gosaml2 v0.3.2/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d h1:2DV7VIlEv6J5R5o6tUcb3ZMKJYeeZuWZL7Rv1m23TgQ=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
+github.com/mattermost/logr v1.0.5 h1:TST38xROPguNh8o90BfDHpp1bz6HfTdFYX5Btw/oLwM=
+github.com/mattermost/logr v1.0.5/go.mod h1:YzldchiJXgF789YNDFGXVoCHTQOTrCKwWft9Fwev1iI=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4 h1:cMYOz4PhguscGSPxrSokUtib5HrG4gCpiUh27wyA3d0=
@@ -742,8 +744,6 @@ github.com/vmihailenco/tagparser v0.1.1 h1:quXMXlA39OCbd2wAdTsGDlK9RkOk6Wuw+x37w
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=
 github.com/wiggin77/cfg v1.0.2 h1:NBUX+iJRr+RTncTqTNvajHwzduqbhCQjEqxLHr6Fk7A=
 github.com/wiggin77/cfg v1.0.2/go.mod h1:b3gotba2e5bXTqTW48DwIFoLc+4lWKP7WPi/CdvZ4aE=
-github.com/wiggin77/logr v1.0.4 h1:g8YO5AU9hhKvLQnXceP8/y3JJtw3wPKL4kTzMTUdN5k=
-github.com/wiggin77/logr v1.0.4/go.mod h1:h98FF6GPfThhDrHCg063hZA1sIyOEzQ/P85wgqI0IqE=
 github.com/wiggin77/merror v1.0.2 h1:V0nH9eFp64ASyaXC+pB5WpvBoCg7NUwvaCSKdzlcHqw=
 github.com/wiggin77/merror v1.0.2/go.mod h1:uQTcIU0Z6jRK4OwqganPYerzQxSFJ4GSHM3aurxxQpg=
 github.com/wiggin77/srslog v1.0.1 h1:gA2XjSMy3DrRdX9UqLuDtuVAAshb8bE1NhX1YK0Qe+8=

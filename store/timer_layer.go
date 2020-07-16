@@ -2225,7 +2225,7 @@ func (s *TimerLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.AnalyticsCommandCount(teamId)
@@ -2241,7 +2241,7 @@ func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.AppError {
+func (s *TimerLayerCommandStore) Delete(commandId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.Delete(commandId, time)
@@ -2257,7 +2257,7 @@ func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Get(id string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Get(id)
@@ -2273,7 +2273,7 @@ func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.GetByTeam(teamId)
@@ -2289,7 +2289,7 @@ func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.GetByTrigger(teamId, trigger)
@@ -2305,7 +2305,7 @@ func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.PermanentDeleteByTeam(teamId)
@@ -2321,7 +2321,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.PermanentDeleteByUser(userId)
@@ -2337,7 +2337,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Save(webhook)
@@ -2353,7 +2353,7 @@ func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Update(hook)
@@ -5388,7 +5388,7 @@ func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
+func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.AnalyticsSessionCount()
@@ -5419,7 +5419,7 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	}
 }
 
-func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.Get(sessionIdOrToken)
@@ -5435,7 +5435,7 @@ func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.GetSessions(userId)
@@ -5451,7 +5451,7 @@ func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
@@ -5467,7 +5467,7 @@ func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
@@ -5483,7 +5483,7 @@ func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) (
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *model.AppError {
+func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.PermanentDeleteSessionsByUser(teamId)
@@ -5499,7 +5499,7 @@ func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *m
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError {
+func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.Remove(sessionIdOrToken)
@@ -5515,7 +5515,7 @@ func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) RemoveAllSessions() *model.AppError {
+func (s *TimerLayerSessionStore) RemoveAllSessions() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.RemoveAllSessions()
@@ -5531,7 +5531,7 @@ func (s *TimerLayerSessionStore) RemoveAllSessions() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.Save(session)
@@ -5547,7 +5547,7 @@ func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
@@ -5563,7 +5563,7 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
@@ -5579,7 +5579,7 @@ func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.UpdateExpiresAt(sessionId, time)
@@ -5595,7 +5595,7 @@ func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.UpdateLastActivityAt(sessionId, time)
@@ -5611,7 +5611,7 @@ func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.SessionStore.UpdateProps(session)
@@ -5627,7 +5627,7 @@ func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) *model.AppE
 	return resultVar0
 }
 
-func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (string, *model.AppError) {
+func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (string, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.SessionStore.UpdateRoles(userId, roles)

@@ -2503,11 +2503,12 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 }
 
 // MoveChannel moves the channel to the destination team.
-func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
-	requestBody := map[string]string{
+func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response) {
+	requestBody := map[string]interface{}{
 		"team_id": teamId,
+		"force":   force,
 	}
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -3818,6 +3819,18 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	defer closeBody(r)
 
 	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// MigrateIdLdap migrates the LDAP enabled users to given attribute
+func (c *Client4) MigrateIdLdap(toAttribute string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetLdapRoute()+"/migrateid", MapToJson(map[string]string{
+		"toAttribute": toAttribute,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel

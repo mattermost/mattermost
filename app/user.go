@@ -1414,7 +1414,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 	schan := make(chan store.StoreResult, 1)
 	go func() {
 		id, err := a.Srv().Store.Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.StoreResult{Data: id, Err: err}
+		schan <- store.StoreResult{Data: id, NErr: err}
 		close(schan)
 	}()
 
@@ -1424,9 +1424,9 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 	}
 	ruser := result.Data.(*model.UserUpdate).New
 
-	if result := <-schan; result.Err != nil {
+	if result := <-schan; result.NErr != nil {
 		// soft error since the user roles were still updated
-		mlog.Error("Failed during updating user roles", mlog.Err(result.Err))
+		mlog.Error("Failed during updating user roles", mlog.Err(result.NErr))
 	}
 
 	a.InvalidateCacheForUser(userId)
@@ -1453,7 +1453,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.session.permanent_delete_sessions_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.UserAccessToken().DeleteAllForUser(user.Id); err != nil {
@@ -1473,7 +1473,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Command().PermanentDeleteByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.user.permanentdeleteuser.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Preference().PermanentDeleteByUser(user.Id); err != nil {
@@ -1640,6 +1640,18 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 		IncludeBotAccounts: true,
 		ViewRestrictions:   viewRestrictions,
 	})
+	if err != nil {
+		return nil, err
+	}
+	stats := &model.UsersStats{
+		TotalUsersCount: count,
+	}
+	return stats, nil
+}
+
+// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
+func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError) {
+	count, err := a.Srv().Store.User().Count(*options)
 	if err != nil {
 		return nil, err
 	}

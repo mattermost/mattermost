@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/format"
+	"github.com/mattermost/logr"
+	"github.com/mattermost/logr/format"
 )
 
 type Level logr.Level

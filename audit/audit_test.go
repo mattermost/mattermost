@@ -6,9 +6,9 @@ package audit
 import (
 	"testing"
 
+	"github.com/mattermost/logr"
+	"github.com/mattermost/logr/format"
 	"github.com/stretchr/testify/require"
-	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/format"
 )
 
 func Test_sortAuditFields(t *testing.T) {

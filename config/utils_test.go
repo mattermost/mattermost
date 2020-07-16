@@ -6,10 +6,9 @@ package config
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDesanitize(t *testing.T) {
@@ -203,4 +202,35 @@ func sToP(s string) *string {
 
 func bToP(b bool) *bool {
 	return &b
+}
+
+func TestIsJsonMap(t *testing.T) {
+	tests := []struct {
+		name string
+		data string
+		want bool
+	}{
+		{name: "good json", data: `{"local_tcp": {
+			"Type": "tcp","Format": "json","Levels": [
+				{"ID": 5,"Name": "debug","Stacktrace": false}
+			],
+			"Options": {"ip": "localhost","port": 18065},
+			"MaxQueueSize": 1000}}
+			`, want: true,
+		},
+		{name: "empty json", data: "{}", want: true},
+		{name: "string json", data: `"test"`, want: false},
+		{name: "array json", data: `["test1", "test2"]`, want: false},
+		{name: "bad json", data: `{huh?}`, want: false},
+		{name: "filename", data: "/tmp/logger.conf", want: false},
+		{name: "mysql dsn", data: "mysql://mmuser:@tcp(localhost:3306)/mattermost?charset=utf8mb4,utf8&readTimeout=30s", want: false},
+		{name: "postgres dsn", data: "postgres://mmuser:passwordlocalhost:5432/mattermost?sslmode=disable&connect_timeout=10", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsJsonMap(tt.data); got != tt.want {
+				t.Errorf("IsJsonMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
