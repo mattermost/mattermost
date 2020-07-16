@@ -3961,26 +3961,14 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
 			continue
 		}
-		params := map[string]interface{}{
-			"UserId":       preference.UserId,
-			"ChannelId":    preference.Name,
-			"CategoryType": model.SidebarCategoryFavorites,
-		}
+
 		// if new preference is false - remove the channel from the appropriate sidebar category
 		if preference.Value == "false" {
-			var deleteQuery string
-			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId"
-			} else {
-				deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.Type=:CategoryType AND cat.UserId = :UserId AND chan.UserId = :UserId AND   cat.TeamId = :TeamId AND chan.ChannelId=:ChannelId"
-			}
-
-			if _, err := transaction.Exec(deleteQuery, params); err != nil {
+			if err := s.removeSidebarEntriesForPreferenceT(transaction, &preference); err != nil {
 				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		} else {
-			// otherwise - insert new channel into the apropriate category. ignore duplicate error
-			if _, err := transaction.Exec("INSERT INTO SidebarChannels (ChannelId, UserId, CategoryId, SortOrder) SELECT Id AS CategoryId, :UserId AS UserId, :ChannelId AS ChannelId, MAX(SidebarChannels.SortOrder)+10 FROM SidebarCategories INNER JOIN SidebarChannels ON SidebarChannels.CategoryId = SidebarCategories.Id WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId GROUP BY SidebarChannels.CategoryId, SidebarCategories.Id", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
+			if err := s.addChannelToFavoritesCategory(transaction, &preference); err != nil {
 				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -3990,6 +3978,118 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
+}
+
+func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Transaction, preference *model.Preference) error {
+	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		return nil
+	}
+
+	// Delete any corresponding SidebarChannels entries in a Favorites category corresponding to this preference. This
+	// can't use the query builder because it uses DB-specific syntax
+	params := map[string]interface{}{
+		"UserId":       preference.UserId,
+		"ChannelId":    preference.Name,
+		"CategoryType": model.SidebarCategoryFavorites,
+	}
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = `
+			DELETE
+				SidebarChannels
+			FROM
+				SidebarChannels
+			JOIN
+				SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
+			WHERE
+				UserId = :UserId
+				AND ChannelId = :ChannelId
+				AND Type = :CategoryType`
+	} else {
+		query = `
+			DELETE FROM
+				SidebarChannels
+			USING
+				SidebarCategories
+			WHERE
+				SidebarChannels.CategoryId = SidebarCategories.Id
+				AND SidebarChannels.UserId = :UserId
+				AND SidebarChannels.ChannelId = :ChannelId
+				AND SidebarCategories.Type = :CategoryType`
+	}
+
+	_, err := transaction.Exec(query, params)
+	return err
+}
+
+func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transaction, preference *model.Preference) error {
+	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		return nil
+	}
+
+	var channel *model.Channel
+	if obj, err := transaction.Get(&model.Channel{}, preference.Name); err != nil {
+		return err
+	} else {
+		channel = obj.(*model.Channel)
+	}
+
+	var teamIdFilter sq.Sqlizer
+	if channel.TeamId == "" {
+		// Accept the Favorites category on any team
+		teamIdFilter = sq.Expr("(1=1)")
+	} else {
+		teamIdFilter = sq.Eq{"TeamId": channel.TeamId}
+	}
+
+	// Get the IDs of the Favorites category/categories that the channel needs to be added to
+	idsQuery, idsParams, _ := s.getQueryBuilder().
+		Select("Id").
+		From("SidebarCategories").
+		Where(sq.And{
+			teamIdFilter,
+			sq.Eq{
+				"UserId": preference.UserId,
+				"Type":   model.SidebarCategoryFavorites,
+			},
+			sq.Expr("Id NOT IN (select CategoryId from SidebarChannels where ChannelId = ?)", channel.Id),
+		}).ToSql()
+
+	var categoryIds []string
+	if _, err := transaction.Select(&categoryIds, idsQuery, idsParams...); err != nil {
+		return err
+	}
+
+	if len(categoryIds) == 0 {
+		// The channel is already in the Favorites category/categories
+		return nil
+	}
+
+	// For each category ID, insert a row into SidebarChannels with the given channel ID and a SortOrder that's less than
+	// all existing SortOrders in the category so that the newly favorited channel comes first
+	query, params, _ := s.getQueryBuilder().
+		Insert("SidebarChannels").
+		Columns(
+			"ChannelId",
+			"CategoryId",
+			"UserId",
+			"SortOrder",
+		).
+		Select(
+			sq.Select().
+				Column(sq.Expr("? as ChannelId", preference.Name)).
+				Column("SidebarCategories.Id as CategoryId").
+				Column(sq.Expr("? as UserId", preference.UserId)).
+				Column(sq.Expr("COALESCE(MIN(SidebarChannels.SortOrder) - 10, 0) as SortOrder")).
+				From("SidebarCategories").
+				LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId").
+				Where(sq.Eq{
+					"SidebarCategories.UserId": preference.UserId,
+					"SidebarCategories.Id":     categoryIds,
+				}).
+				GroupBy("SidebarCategories.Id")).ToSql()
+	_, err := transaction.Exec(query, params...)
+	return err
 }
 
 func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
