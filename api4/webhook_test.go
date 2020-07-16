@@ -628,7 +628,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 	nonExistentHook.Id = model.NewId()
 	_, resp = th.SystemAdminClient.GetOutgoingWebhook(nonExistentHook.Id)
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
@@ -940,7 +940,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 		nonExistentHook.Id = model.NewId()
 		_, resp = th.SystemAdminClient.UpdateOutgoingWebhook(nonExistentHook)
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("UserIsNotAdminOfTeam", func(t *testing.T) {
@@ -1075,7 +1075,7 @@ func TestDeleteOutgoingHook(t *testing.T) {
 
 	t.Run("WhenHookDoesNotExist", func(t *testing.T) {
 		status, resp = Client.DeleteOutgoingWebhook(model.NewId())
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("WhenHookExists", func(t *testing.T) {
