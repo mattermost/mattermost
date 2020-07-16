@@ -116,17 +116,17 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		incomingResult := make(chan store.StoreResult, 1)
 		go func() {
 			incomingHooks, err := app.Srv().Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
+			incomingResult <- store.StoreResult{Data: incomingHooks, NErr: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan store.StoreResult, 1)
 		go func() {
 			outgoingHooks, err := app.Srv().Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
-			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, NErr: err}
 			close(outgoingResult)
 		}()
 
-		if result := <-incomingResult; result.Err == nil {
+		if result := <-incomingResult; result.NErr == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
@@ -136,7 +136,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
 		}
 
-		if result := <-outgoingResult; result.Err == nil {
+		if result := <-outgoingResult; result.NErr == nil {
 			hooks := result.Data.([]*model.OutgoingWebhook)
 			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range hooks {
