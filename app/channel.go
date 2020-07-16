@@ -2373,6 +2373,15 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 
 		if len(teamMembers) != len(*channelMembers) {
+			teamMembersMap := make(map[string]*model.TeamMember, len(teamMembers))
+			for _, teamMember := range teamMembers {
+				teamMembersMap[teamMember.UserId] = teamMember
+			}
+			for _, channelMember := range *channelMembers {
+				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
+					mlog.Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+				}
+			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
 		}
 	}
@@ -2427,7 +2436,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 	}
 
-	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
+	if err := a.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
@@ -2457,7 +2466,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 	return nil
 }
 
-func (a *App) removeUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {
 		return err

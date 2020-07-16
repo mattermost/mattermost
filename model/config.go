@@ -2609,10 +2609,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType *string // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername *string
-	SmtpPassword *string
-	EmailAddress *string // the address to send messages to
+	CustomerType      *string // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername      *string
+	SmtpPassword      *string
+	EmailAddress      *string // the address to send messages to
+	SMTPServerTimeout *int
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -2627,6 +2628,9 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.EmailAddress == nil {
 		s.EmailAddress = NewString("")
+	}
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(1800)
 	}
 }
 

@@ -476,15 +476,15 @@ type WebhookStore interface {
 }
 
 type CommandStore interface {
-	Save(webhook *model.Command) (*model.Command, *model.AppError)
-	GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError)
-	Get(id string) (*model.Command, *model.AppError)
-	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
-	Delete(commandId string, time int64) *model.AppError
-	PermanentDeleteByTeam(teamId string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	Update(hook *model.Command) (*model.Command, *model.AppError)
-	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
+	Save(webhook *model.Command) (*model.Command, error)
+	GetByTrigger(teamId string, trigger string) (*model.Command, error)
+	Get(id string) (*model.Command, error)
+	GetByTeam(teamId string) ([]*model.Command, error)
+	Delete(commandId string, time int64) error
+	PermanentDeleteByTeam(teamId string) error
+	PermanentDeleteByUser(userId string) error
+	Update(hook *model.Command) (*model.Command, error)
+	AnalyticsCommandCount(teamId string) (int64, error)
 }
 
 type CommandWebhookStore interface {
