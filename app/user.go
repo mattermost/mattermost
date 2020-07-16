@@ -1649,6 +1649,18 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 	return stats, nil
 }
 
+// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
+func (a *App) GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError) {
+	count, err := a.Srv().Store.User().Count(*options)
+	if err != nil {
+		return nil, err
+	}
+	stats := &model.UsersStats{
+		TotalUsersCount: count,
+	}
+	return stats, nil
+}
+
 func (a *App) VerifyUserEmail(userId, email string) *model.AppError {
 	if _, err := a.Srv().Store.User().VerifyEmail(userId, email); err != nil {
 		return err
