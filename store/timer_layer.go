@@ -2225,7 +2225,7 @@ func (s *TimerLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.AnalyticsCommandCount(teamId)
@@ -2241,7 +2241,7 @@ func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.AppError {
+func (s *TimerLayerCommandStore) Delete(commandId string, time int64) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.Delete(commandId, time)
@@ -2257,7 +2257,7 @@ func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Get(id string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Get(id)
@@ -2273,7 +2273,7 @@ func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.GetByTeam(teamId)
@@ -2289,7 +2289,7 @@ func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.GetByTrigger(teamId, trigger)
@@ -2305,7 +2305,7 @@ func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.PermanentDeleteByTeam(teamId)
@@ -2321,7 +2321,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandStore.PermanentDeleteByUser(userId)
@@ -2337,7 +2337,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.App
 	return resultVar0
 }
 
-func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Save(webhook)
@@ -2353,7 +2353,7 @@ func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandStore.Update(hook)
