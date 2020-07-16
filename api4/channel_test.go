@@ -3890,32 +3890,14 @@ func TestMoveChannel(t *testing.T) {
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
 	})
-}
-
-func TestUpdateCategoryForTeamForUser(t *testing.T) {
-	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
-		require.Nil(t, resp.Error)
-		require.Len(t, categories.Categories, 3)
-		require.Len(t, categories.Order, 3)
-
-		channelsCategory := categories.Categories[1]
-		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
-		require.Len(t, channelsCategory.Channels, 5) // Town Square, Off Topic, and the 3 channels created by InitBasic
 
 	t.Run("Should be able to (force) move channel by a member that is not member of target team", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
 		user := th.BasicUser
-
 		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
 		CheckNoError(t, resp)
-
 		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
-
 		newChannel, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, true)
 		require.Nil(t, resp.Error)
 		require.Equal(t, team2.Id, newChannel.TeamId)
