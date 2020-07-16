@@ -718,6 +718,7 @@ func (s *Server) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
+		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
