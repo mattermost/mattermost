@@ -710,7 +710,7 @@ func TestSanitizeTeams(t *testing.T) {
 }
 
 func TestJoinUserToTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -1094,7 +1094,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t1 := model.Token{

@@ -30,6 +30,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
@@ -512,6 +513,68 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(stats.ToJson()))
 }
 
+func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("in_team")
+	channelID := r.URL.Query().Get("in_channel")
+	includeDeleted := r.URL.Query().Get("include_deleted")
+	includeBotAccounts := r.URL.Query().Get("include_bots")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
+
+	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
+	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(channelID) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(teamID) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
+	options := &model.UserCountOptions{
+		IncludeDeleted:     includeDeletedBool,
+		IncludeBotAccounts: includeBotAccountsBool,
+		TeamId:             teamID,
+		ChannelId:          channelID,
+		Roles:              roles,
+		ChannelRoles:       channelRoles,
+		TeamRoles:          teamRoles,
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	stats, err := c.App.GetFilteredUsersStats(options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(stats.ToJson()))
+}
+
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelIds := model.ArrayFromJson(r.Body)
 
@@ -542,6 +605,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidUrlParam("team_id")
@@ -573,6 +639,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidUrlParam("inactive")
 	}
 
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(inChannelId) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(inTeamId) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -590,6 +682,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Inactive:         inactiveBool,
 		Active:           activeBool,
 		Role:             role,
+		Roles:            roles,
+		ChannelRoles:     channelRoles,
+		TeamRoles:        teamRoles,
 		Sort:             sort,
 		Page:             c.Params.Page,
 		PerPage:          c.Params.PerPage,
@@ -824,6 +919,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: props.GroupConstrained,
 		Limit:            props.Limit,
 		Role:             props.Role,
+		Roles:            props.Roles,
+		ChannelRoles:     props.ChannelRoles,
+		TeamRoles:        props.TeamRoles,
 	}
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {

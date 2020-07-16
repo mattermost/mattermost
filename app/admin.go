@@ -221,7 +221,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 
 	T := utils.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
-	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance, ""); err != nil {
+	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 

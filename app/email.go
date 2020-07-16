@@ -540,23 +540,19 @@ func (es *EmailService) sendNotificationMail(to, subject, htmlBody string) *mode
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications {
 		return nil
 	}
-	return es.sendMailInternal(to, subject, htmlBody, "")
+	return es.sendMail(to, subject, htmlBody)
 }
 
 func (es *EmailService) sendMail(to, subject, htmlBody string) *model.AppError {
-	return es.sendMailInternal(to, subject, htmlBody, "")
-}
-
-func (es *EmailService) sendMailInternal(to, subject, htmlBody string, ccMail string) *model.AppError {
 	license := es.srv.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance, ccMail)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance)
 }
 
 func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
 	license := es.srv.License()
 	config := es.srv.Config()
 
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
 }
 
 func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {

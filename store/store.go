@@ -369,21 +369,21 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(sessionIdOrToken string) (*model.Session, *model.AppError)
-	Save(session *model.Session) (*model.Session, *model.AppError)
-	GetSessions(userId string) ([]*model.Session, *model.AppError)
-	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
-	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError)
-	UpdateExpiredNotify(sessionid string, notified bool) *model.AppError
-	Remove(sessionIdOrToken string) *model.AppError
-	RemoveAllSessions() *model.AppError
-	PermanentDeleteSessionsByUser(teamId string) *model.AppError
-	UpdateExpiresAt(sessionId string, time int64) *model.AppError
-	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
-	UpdateRoles(userId string, roles string) (string, *model.AppError)
-	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
-	UpdateProps(session *model.Session) *model.AppError
-	AnalyticsSessionCount() (int64, *model.AppError)
+	Get(sessionIdOrToken string) (*model.Session, error)
+	Save(session *model.Session) (*model.Session, error)
+	GetSessions(userId string) ([]*model.Session, error)
+	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error)
+	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
+	UpdateExpiredNotify(sessionid string, notified bool) error
+	Remove(sessionIdOrToken string) error
+	RemoveAllSessions() error
+	PermanentDeleteSessionsByUser(teamId string) error
+	UpdateExpiresAt(sessionId string, time int64) error
+	UpdateLastActivityAt(sessionId string, time int64) error
+	UpdateRoles(userId string, roles string) (string, error)
+	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error)
+	UpdateProps(session *model.Session) error
+	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64)
 }
 
@@ -476,15 +476,15 @@ type WebhookStore interface {
 }
 
 type CommandStore interface {
-	Save(webhook *model.Command) (*model.Command, *model.AppError)
-	GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError)
-	Get(id string) (*model.Command, *model.AppError)
-	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
-	Delete(commandId string, time int64) *model.AppError
-	PermanentDeleteByTeam(teamId string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	Update(hook *model.Command) (*model.Command, *model.AppError)
-	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
+	Save(webhook *model.Command) (*model.Command, error)
+	GetByTrigger(teamId string, trigger string) (*model.Command, error)
+	Get(id string) (*model.Command, error)
+	GetByTeam(teamId string) ([]*model.Command, error)
+	Delete(commandId string, time int64) error
+	PermanentDeleteByTeam(teamId string) error
+	PermanentDeleteByUser(userId string) error
+	Update(hook *model.Command) (*model.Command, error)
+	AnalyticsCommandCount(teamId string) (int64, error)
 }
 
 type CommandWebhookStore interface {

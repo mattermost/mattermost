@@ -198,7 +198,7 @@ func TestParseNamedArguments(t *testing.T) {
 }
 
 func TestSuggestions(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jira := createJiraAutocompleteData()
@@ -324,7 +324,7 @@ func TestSuggestions(t *testing.T) {
 }
 
 func TestCommandWithOptionalArgs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	command := createCommandWithOptionalArgs()

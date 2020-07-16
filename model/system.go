@@ -84,13 +84,13 @@ type WarnMetric struct {
 var WarnMetricsTable = map[string]WarnMetric{
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25,
-		Limit:     25
+		Limit:     25,
 		AaeId:     "AAE-010-1010",
 		IsBotOnly: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50,
-		Limit:     50
+		Limit:     50,
 		AaeId:     "AAE-010-1010",
 		IsBotOnly: true,
 	},
