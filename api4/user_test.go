@@ -256,7 +256,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		_, resp := th.Client.CreateUserWithToken(&user, "wrong")
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
 
@@ -2245,6 +2245,35 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetActiveUsersInTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	teamId := th.BasicTeam.Id
+
+	th.SystemAdminClient.UpdateUserActive(th.BasicUser2.Id, false)
+	rusers, resp := th.Client.GetActiveUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	require.NotZero(t, len(rusers))
+	for _, u := range rusers {
+		require.Zero(t, u.DeleteAt, "should not be deleted")
+		require.NotEqual(t, th.BasicUser2.Id, "should not include deactivated user")
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	require.Len(t, rusers, 1, "should be 1 per page")
+
+	// Check case where we have supplied both active and inactive flags
+	_, err := th.Client.DoApiGet("/users?inactive=true&active=true", "")
+	require.NotNil(t, err)
+
+	th.Client.Logout()
+	_, resp = th.Client.GetActiveUsersInTeam(teamId, 0, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetUsersWithoutTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -3039,7 +3068,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
+	token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(ruser.Id, email)
 	require.Nil(t, err, "Unable to create email verify token")
 
 	_, resp := th.Client.VerifyUserEmail(token.Token)

@@ -16,7 +16,7 @@ const (
 	BOT_DISPLAY_NAME_MAX_RUNES   = USER_FIRST_NAME_MAX_RUNES
 	BOT_DESCRIPTION_MAX_RUNES    = 1024
 	BOT_CREATOR_ID_MAX_RUNES     = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
-	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-system-alerts"
+	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-advisor"
 )
 
 // Bot is a special type of User meant for programmatic interactions.

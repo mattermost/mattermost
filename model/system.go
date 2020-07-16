@@ -20,10 +20,10 @@ const (
 	SYSTEM_INSTALLATION_DATE_KEY                  = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25  = "warn_metric_number_of_active_users_25"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50  = "warn_metric_number_of_active_users_50"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 )
-
-const NUMBER_OF_ACTIVE_USERS_WARN_METRIC_LIMIT_500 = 500
 
 type System struct {
 	Name  string `json:"name"`
@@ -74,16 +74,46 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 	return sbs
 }
 
+type WarnMetric struct {
+	Id        string
+	Limit     int64
+	AaeId     string
+	IsBotOnly bool
+}
+
+var WarnMetricsTable = map[string]WarnMetric{
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25,
+		Limit:     25
+		AaeId:     "AAE-010-1010",
+		IsBotOnly: true,
+	},
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50,
+		Limit:     50
+		AaeId:     "AAE-010-1010",
+		IsBotOnly: true,
+	},
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
+		Limit:     500,
+		AaeId:     "AAE-010-1010",
+		IsBotOnly: false,
+	},
+}
+
 type WarnMetricStatus struct {
 	Id    string `json:"id"`
 	AaeId string `json:"aae_id"`
-	Limit int64  `json:"limit,omitempty"`
+	Limit int64  `json:"limit"`
+	Acked bool   `json:"acked"`
 }
 
 type WarnMetricMessages struct {
-	Bot           string
-	BotMailToBody string
-	EmailBody     string
+	BotTitle       string
+	BotMessageBody string
+	BotMailToBody  string
+	EmailBody      string
 }
 
 func (wms *WarnMetricStatus) ToJson() string {

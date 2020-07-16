@@ -56,7 +56,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
 
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -563,30 +563,18 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
 }
 
-func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
+func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("requestTrialLicenseAndAckWarnMetric", audit.Fail)
 	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	user, appErr := c.App.GetUser(c.App.Session().UserId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ack := model.SendWarnMetricAckFromJson(r.Body)
-	if ack == nil {
-		c.SetInvalidParam("ack")
-		return
-	}
-
-	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck)
-	if appErr != nil {
-		c.Err = appErr
+	if err := c.App.RequestLicenseAndAckWarnMetric(c.Params.WarnMetricId, false); err != nil {
+		c.Err = err
 		return
 	}
 

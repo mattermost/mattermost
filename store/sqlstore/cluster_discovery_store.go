@@ -5,7 +5,7 @@ package sqlstore
 
 import (
 	sq "github.com/Masterminds/squirrel"
-	"net/http"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -29,19 +29,19 @@ func newSqlClusterDiscoveryStore(sqlStore SqlStore) store.ClusterDiscoveryStore 
 	return s
 }
 
-func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) *model.AppError {
+func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) error {
 	ClusterDiscovery.PreSave()
 	if err := ClusterDiscovery.IsValid(); err != nil {
 		return err
 	}
 
 	if err := s.GetMaster().Insert(ClusterDiscovery); err != nil {
-		return model.NewAppError("SqlClusterDiscoveryStore.Save", "store.sql_cluster_discovery.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to save ClusterDiscovery")
 	}
 	return nil
 }
 
-func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscovery) (bool, error) {
 	query := s.getQueryBuilder().
 		Delete("ClusterDiscovery").
 		Where(sq.Eq{"Type": ClusterDiscovery.Type}).
@@ -50,12 +50,12 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return false, model.NewAppError("SqlClusterDiscoveryStore.Delete", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
 	count, err := s.GetMaster().SelectInt(queryString, args...)
 	if err != nil {
-		return false, model.NewAppError("SqlClusterDiscoveryStore.Delete", "store.sql_cluster_discovery.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "failed to delete ClusterDiscovery")
 	}
 	if count == 0 {
 		return false, nil
@@ -63,7 +63,7 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 	return true, nil
 }
 
-func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) (bool, *model.AppError) {
+func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) (bool, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("ClusterDiscovery").
@@ -73,12 +73,12 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return false, model.NewAppError("SqlClusterDiscoveryStore.Exists", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
 	count, err := s.GetMaster().SelectInt(queryString, args...)
 	if err != nil {
-		return false, model.NewAppError("SqlClusterDiscoveryStore.Exists", "store.sql_cluster_discovery.exists.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "failed to count ClusterDiscovery")
 	}
 	if count == 0 {
 		return false, nil
@@ -86,7 +86,7 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 	return true, nil
 }
 
-func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError) {
+func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) ([]*model.ClusterDiscovery, error) {
 	query := s.getQueryBuilder().
 		Select("*").
 		From("ClusterDiscovery").
@@ -96,17 +96,17 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlClusterDiscoveryStore.GetAllForType", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
 	var list []*model.ClusterDiscovery
 	if _, err := s.GetMaster().Select(&list, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlClusterDiscoveryStore.GetAllForType", "store.sql_cluster_discovery.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find ClusterDiscovery")
 	}
 	return list, nil
 }
 
-func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterDiscovery) *model.AppError {
+func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterDiscovery) error {
 	query := s.getQueryBuilder().
 		Update("ClusterDiscovery").
 		Set("LastPingAt", model.GetMillis()).
@@ -116,27 +116,27 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return model.NewAppError("SqlClusterDiscoveryStore.SetLastPingAt", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return model.NewAppError("SqlClusterDiscoveryStore.SetLastPingAt", "store.sql_cluster_discovery.set_last_ping.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to update ClusterDiscovery")
 	}
 	return nil
 }
 
-func (s sqlClusterDiscoveryStore) Cleanup() *model.AppError {
+func (s sqlClusterDiscoveryStore) Cleanup() error {
 	query := s.getQueryBuilder().
 		Delete("ClusterDiscovery").
 		Where(sq.Lt{"LastPingAt": model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return model.NewAppError("SqlClusterDiscoveryStore.Cleanup", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "cluster_discovery_tosql")
 	}
 
 	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
-		return model.NewAppError("SqlClusterDiscoveryStore.Cleanup", "store.sql_cluster_discovery.cleanup.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to delete ClusterDiscoveries")
 	}
 	return nil
 }

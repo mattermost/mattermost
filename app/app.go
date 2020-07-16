@@ -133,9 +133,6 @@ func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
-	if jobsMigrationsInterface != nil {
-		a.srv.Jobs.Migrations = jobsMigrationsInterface(a)
-	}
 	if jobsPluginsInterface != nil {
 		a.srv.Jobs.Plugins = jobsPluginsInterface(a)
 	}
@@ -212,7 +209,9 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, WarnMetricPrefix) {
 			if value == "true" {
-				result[key], _ = a.getWarnMetricStatusForId(key, nil)
+				if warnMetric, ok := model.WarnMetricsTable[key]; ok && !warnMetric.IsBotOnly {
+					result[key], _ = a.getWarnMetricStatusForId(key, nil)
+				}
 			}
 		}
 	}
@@ -220,41 +219,81 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricMessages) {
-	var warnMetricStatus *model.WarnMetricStatus
-	var warnMetricMessages *model.WarnMetricMessages
-
-	switch warnMetricId {
-	case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-		warnMetricStatus = &model.WarnMetricStatus{
-			Id:    warnMetricId,
-			AaeId: "AAE-010-1010",
-			Limit: 500,
-		}
-		if T != nil {
-			warnMetricMessages = &model.WarnMetricMessages{
-				Bot:           T("api.server.warn_metric.number_of_active_users.notification", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId}),
-				BotMailToBody: T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"AaeId": warnMetricStatus.AaeId, "Limit": warnMetricStatus.Limit}),
-				EmailBody:     T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetricStatus.Limit, "AaeId": warnMetricStatus.AaeId}),
-			}
-		}
-	default:
-		mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
-		return nil, nil
+func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
-	return warnMetricStatus, warnMetricMessages
+
+	currentUser, appErr := a.GetUser(a.Session().UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              a.DiagnosticId(),
+		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 currentUser.Email,
+		SiteName:              *a.Config().TeamSettings.SiteName,
+		SiteURL:               *a.Config().ServiceSettings.SiteURL,
+		Users:                 30,
+		TermsAccepted:         true,
+		ReceiveEmailsAccepted: true,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+		return err
+	}
+
+	appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, isBot)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
-func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
-	mlog.Info("Storing user acknowledgement for warn metric", mlog.String("metric", warnMetricId))
-	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
-		Name:  warnMetricId,
-		Value: "ack",
-	}); err != nil {
-		mlog.Error("Unable to write to database.", mlog.Err(err))
-		return model.NewAppError("SetWarnMetricStatus", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError)
+func (a *App) getWarnMetricStatusForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricMessages) {
+	var warnMetricStatus *model.WarnMetricStatus
+	var warnMetricMessages = &model.WarnMetricMessages{}
+
+	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
+		warnMetricStatus = &model.WarnMetricStatus{
+			Id:    warnMetric.Id,
+			Limit: warnMetric.Limit,
+			AaeId: warnMetric.AaeId,
+			Acked: false,
+		}
+
+		if T == nil {
+			mlog.Debug("No translation function")
+			return warnMetricStatus, nil
+		}
+
+		warnMetricMessages.BotMailToBody = T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"Limit": warnMetric.Limit, "AaeId": warnMetric.AaeId})
+		warnMetricMessages.EmailBody = T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetric.Limit, "AaeId": warnMetric.AaeId})
+
+		switch warnMetricId {
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25:
+			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_25.notification_title")
+			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50:
+			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_50.notification_title")
+			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_50.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
+			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
+			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
+		default:
+			mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
+			return nil, nil
+		}
+
+		return warnMetricStatus, warnMetricMessages
 	}
-	return nil
+	return nil, nil
 }
 
 func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
@@ -280,7 +319,7 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		sysAdmins = append(sysAdmins, sysAdminsList...)
 
 		if len(sysAdminsList) < perPage {
-			mlog.Debug("Number of system admins is less than limit", mlog.Int("admin count", len(sysAdminsList)))
+			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
 			break
 		}
 	}
@@ -289,16 +328,16 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 	warnMetricsBot := &model.Bot{
 		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
 		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: T("app.system.warn_metric.bot_description"),
+		Description: "",
 		OwnerId:     sysAdmins[0].Id,
 	}
 
-	for _, sysAdmin := range sysAdmins {
-		bot, err := a.GetOrCreateWarnMetricsBot(warnMetricsBot)
-		if err != nil {
-			return err
-		}
+	bot, err := a.GetOrCreateWarnMetricsBot(warnMetricsBot)
+	if err != nil {
+		return err
+	}
 
+	for _, sysAdmin := range sysAdmins {
 		T := utils.GetUserTranslations(sysAdmin.Locale)
 		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
 		bot.Description = T("app.system.warn_metric.bot_description")
@@ -310,53 +349,87 @@ func (a *App) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		}
 
 		warnMetricStatus, warnMetricMessages := a.getWarnMetricStatusForId(warnMetricId, T)
+		if warnMetricStatus == nil {
+			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
+		}
+
 		botPost := &model.Post{
 			UserId:    bot.UserId,
 			ChannelId: channel.Id,
-			Message:   "",
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
-		}
-
-		if warnMetricStatus == nil {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
+			Message:   "",
 		}
 
 		actions := []*model.PostAction{}
 		actions = append(actions,
 			&model.PostAction{
-				Id:   "contactSupport",
-				Name: T("api.server.warn_metric.contact_support"),
+				Id:   "startTrial",
+				Name: T("api.server.warn_metric.start_trial"),
 				Type: model.POST_ACTION_TYPE_BUTTON,
 				Options: []*model.PostActionOptions{
 					{
 						Text:  "ActionExecutingMessage",
-						Value: T("api.server.warn_metric.contacting_support"),
+						Value: T("api.server.warn_metric.starting_trial"),
 					},
 				},
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
 						"bot_user_id": bot.UserId,
-						"force_ack":   false,
 					},
-					URL: fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId),
+					URL: fmt.Sprintf("/warn_metrics/trial-license-ack/%s", warnMetricId),
 				},
 			},
 		)
 
 		attachments := []*model.SlackAttachment{{
-			AuthorName: bot.DisplayName,
-			Title:      "",
-			Text:       warnMetricMessages.Bot,
+			AuthorName: "",
+			Title:      warnMetricMessages.BotTitle,
+			Text:       warnMetricMessages.BotMessageBody,
 			Actions:    actions,
 		}}
 		model.ParseSlackAttachment(botPost, attachments)
 
-		mlog.Debug("Send post warning for metric", mlog.String("user id", botPost.UserId))
+		mlog.Debug("Send admin advisory for metric", mlog.String("userid", botPost.UserId))
 		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 			return err
 		}
 	}
 
+	return nil
+}
+
+func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, isBot bool) *model.AppError {
+	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
+		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if err == nil && data != nil && data.Value == "ack" {
+			mlog.Debug("This metric warning has already been acknowledged")
+			return nil
+		}
+
+		mlog.Debug("Disable the monitoring of warn metric", mlog.String("metric", warnMetric.Id))
+		err = a.SetWarnMetricStatus(warnMetric.Id)
+		if err != nil {
+			return err
+		}
+
+		if !warnMetric.IsBotOnly && !isBot {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
+			message.Add("warnMetricId", warnMetric.Id)
+			a.Publish(message)
+		}
+	}
+	return nil
+}
+
+func (a *App) SetWarnMetricStatus(warnMetricId string) *model.AppError {
+	mlog.Info("Storing user acknowledgement for warn metric", mlog.String("metric", warnMetricId))
+	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
+		Name:  warnMetricId,
+		Value: "ack",
+	}); err != nil {
+		mlog.Error("Unable to write to database.", mlog.Err(err))
+		return model.NewAppError("SetWarnMetricStatus", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError)
+	}
 	return nil
 }
 

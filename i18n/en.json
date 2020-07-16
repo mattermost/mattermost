@@ -1175,18 +1175,6 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Failure to send admin acknowledgment email"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Could not find warn metric."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP Server is required"
-  },
-  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
   },
@@ -1441,6 +1429,10 @@
     "translation": "Invalid username."
   },
   {
+    "id": "api.invalid_channel",
+    "translation": "Channel listed in the request doesn't belong to the user"
+  },
+  {
     "id": "api.io_error",
     "translation": "input/output error"
   },
@@ -1513,8 +1505,16 @@
     "translation": "The number of users requested is not correct."
   },
   {
+    "id": "api.license.request-trial.bad-request.terms-not-accepted",
+    "translation": "You must accept the Mattermost Software Evaluation Agreement and Privacy Policy to request a license."
+  },
+  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
+  },
+  {
+    "id": "api.license.request_trial_license.no-site-url.app_error",
+    "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
   {
     "id": "api.marshal_error",
@@ -1915,60 +1915,56 @@
     "translation": "Error starting server, err:%v"
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Contact: {{.Contact}}"
+    "id": "api.server.warn_metric.bot_response.notification_failure.body",
+    "translation": "Please try again or visit https://mattermost.com/trial/ to request a license."
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Diagnostic Id: {{.DiagnosticId}}"
+    "id": "api.server.warn_metric.bot_response.notification_failure.message",
+    "translation": "The license could not be retrieved."
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
+    "id": "api.server.warn_metric.bot_response.notification_success.body",
+    "translation": "Go to the [System Console](/admin_console/) to activate enterprise features."
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Total Active Users: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Site URL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost support request: {{.AaeId}}."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure",
-    "translation": "We were unable to reach support. Email us instead to contact support."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success",
-    "translation": "Mattermost support contacted."
+    "id": "api.server.warn_metric.bot_response.notification_success.message",
+    "translation": "Your Mattermost Enterprise trial has now started!"
   },
   {
     "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
     "translation": "Mattermost support request for {{.AaeId}}: Team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance.\r\n"
   },
   {
-    "id": "api.server.warn_metric.contact_support",
-    "translation": "Contact Support"
+    "id": "api.server.warn_metric.number_of_active_users_25.notification_body",
+    "translation": "Your Mattermost system now has 25 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise E10 and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\n[Learn more](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
   },
   {
-    "id": "api.server.warn_metric.contacting_support",
-    "translation": "Contacting Support"
+    "id": "api.server.warn_metric.number_of_active_users_25.notification_title",
+    "translation": "Integrate AD/LDAP"
   },
   {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Email us"
+    "id": "api.server.warn_metric.number_of_active_users_50.notification_body",
+    "translation": "Your Mattermost system now has 50 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise E20.\n[Learn more](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users.notification",
-    "translation": "Warning: Your team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance. {{.AaeId}}\r\n*Contacting support sends your contact information to Mattermost, Inc. [Learn More](https://mattermost.com/pl/default-aae-faq).*"
+    "id": "api.server.warn_metric.number_of_active_users_50.notification_title",
+    "translation": "Integrate SAML 2.0"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise E20, which offers features such as user management, server clustering, and performance monitoring."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Upgrade to Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial",
+    "translation": "Start Trial"
+  },
+  {
+    "id": "api.server.warn_metric.starting_trial",
+    "translation": "Getting Trial"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -2507,36 +2503,8 @@
     "translation": "[{{ .SiteName }}] Email Verification"
   },
   {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Contact: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnostic Id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Total Active Users: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Site URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
-  },
-  {
     "id": "api.templates.warn_metric_ack.number_of_active_users.body",
     "translation": "Mattermost support request for {{ .AaeId }}: Team exceeds {{ .Limit }} users. Consider activating user management access controls to ensure compliance."
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost support request: {{ .AaeId }}"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -3121,6 +3089,10 @@
   {
     "id": "app.channel.create_direct_channel.internal_error",
     "translation": "Unable to save direct channel."
+  },
+  {
+    "id": "app.channel.create_initial_sidebar_categories.internal_error",
+    "translation": "Unable to create initial sidebar categories for user."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -4051,6 +4023,30 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post."
+  },
+  {
+    "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
+    "translation": "Unable to get all reactions with this emoji name."
+  },
+  {
+    "id": "app.reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post."
+  },
+  {
+    "id": "app.reaction.save.save.app_error",
+    "translation": "Unable to save reaction."
+  },
+  {
+    "id": "app.recover.delete.app_error",
+    "translation": "Unable to delete token."
+  },
+  {
+    "id": "app.recover.save.app_error",
+    "translation": "Unable to save the token."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -4088,11 +4084,11 @@
   },
   {
     "id": "app.system.warn_metric.bot_description",
-    "translation": "Sends key alerts to System Admins about their Mattermost system"
+    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
   {
     "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost System Alerts"
+    "translation": "Mattermost Advisor"
   },
   {
     "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
@@ -4105,18 +4101,6 @@
   {
     "id": "app.system.warn_metric.store.app_error",
     "translation": "Failed to store value for {{.WarnMetricName}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
-    "translation": "Mattermost support request for {{.AaeId}}: Team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance.\r\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users.notification",
-    "translation": "Warning: Your team exceeds {{.Limit}} users. Consider activating user management access controls to ensure compliance. {{.AaeId}}\r\n*Contacting support sends your contact information to Mattermost, Inc. [Learn More](https://mattermost.com/pl/default-aae-faq).*"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost support request for {{ .AaeId }}: Team exceeds {{ .Limit }} users. Consider activating user management access controls to ensure compliance."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -4437,6 +4421,10 @@
   {
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
+  },
+  {
+    "id": "ent.data_retention.reactions_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -4965,6 +4953,14 @@
   {
     "id": "migrations.worker.run_migration.unknown_key",
     "translation": "Unable to run migration job due to unknown migration key."
+  },
+  {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+    "translation": "Migration failed due to database error."
+  },
+  {
+    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
+    "translation": "Migration failed due to invalid progress data."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -6427,6 +6423,10 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
+    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
     "id": "store.sql_channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
   },
@@ -6527,6 +6527,22 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
+    "id": "store.sql_channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
+    "translation": "Unable to commit transaction."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+    "translation": "Unable to delete non-custom category."
+  },
+  {
+    "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
+    "translation": "Failed to open the database transaction."
+  },
+  {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
     "translation": "Unable to update the last viewed at time."
   },
@@ -6541,30 +6557,6 @@
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
-  },
-  {
-    "id": "store.sql_cluster_discovery.cleanup.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.delete.app_error",
-    "translation": "Failed to delete."
-  },
-  {
-    "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Failed to check if it exists."
-  },
-  {
-    "id": "store.sql_cluster_discovery.get_all.app_error",
-    "translation": "Failed to get all discovery rows."
-  },
-  {
-    "id": "store.sql_cluster_discovery.save.app_error",
-    "translation": "Failed to save ClusterDiscovery row."
-  },
-  {
-    "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-    "translation": "Failed to update last ping at."
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
@@ -7033,58 +7025,6 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference."
-  },
-  {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post."
-  },
-  {
-    "id": "store.sql_reaction.delete.app_error",
-    "translation": "Unable to delete reaction."
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
-    "translation": "Unable to delete all reactions with this emoji name."
-  },
-  {
-    "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-    "translation": "Unable to get all reactions with this emoji name."
-  },
-  {
-    "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "Unable to get reactions for post."
-  },
-  {
-    "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions."
-  },
-  {
-    "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Unable to open transaction while saving reaction."
-  },
-  {
-    "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Unable to commit transaction while saving reaction."
-  },
-  {
-    "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Unable to save reaction."
-  },
-  {
-    "id": "store.sql_recover.delete.app_error",
-    "translation": "Unable to delete token."
-  },
-  {
-    "id": "store.sql_recover.get_by_code.app_error",
-    "translation": "Unable to get a token with this code."
-  },
-  {
-    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type."
-  },
-  {
-    "id": "store.sql_recover.save.app_error",
-    "translation": "Unable to save the token."
   },
   {
     "id": "store.sql_role.delete.update.app_error",
