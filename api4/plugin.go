@@ -166,8 +166,8 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_PLUGINS)
 		return
 	}
 

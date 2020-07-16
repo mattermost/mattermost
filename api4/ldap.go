@@ -43,8 +43,8 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION)
 		return
 	}
 
@@ -60,8 +60,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION)
 		return
 	}
 
@@ -74,8 +74,12 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_READ_SETTINGS, model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
@@ -131,8 +135,13 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	permissions := []*model.Permission{
+		model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
@@ -232,8 +241,13 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) || !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionsError([]*model.Permission{model.PERMISSION_WRITE_SETTINGS, model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS})
+	permissions := []*model.Permission{
+		model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 

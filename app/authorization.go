@@ -31,6 +31,15 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
+func (a *App) SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool {
+	for _, perm := range permissions {
+		if a.SessionHasPermissionTo(session, perm) {
+			return true
+		}
+	}
+	return false
+}
+
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
 	if teamId == "" {
 		return false

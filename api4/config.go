@@ -24,8 +24,8 @@ func (api *API) InitConfig() {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
+		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
 		return
 	}
 
@@ -44,8 +44,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
+		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
 		return
 	}
 
@@ -328,8 +328,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_WRITE_SETTINGS)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
+		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
 		return
 	}
 
@@ -436,8 +436,8 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT)
 		return
 	}
 
@@ -457,8 +457,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_WRITE_SETTINGS)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
+		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
 		return
 	}
 

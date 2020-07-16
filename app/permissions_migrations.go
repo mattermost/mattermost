@@ -69,8 +69,6 @@ const (
 	PERMISSION_CREATE_DIRECT_CHANNEL                       = "create_direct_channel"
 	PERMISSION_CREATE_GROUP_CHANNEL                        = "create_group_channel"
 	PERMISSION_CREATE_TEAM                                 = "create_team"
-	PERMISSION_READ_SETTINGS                               = "read_settings"
-	PERMISSION_WRITE_SETTINGS                              = "write_settings"
 	PERMISSION_READ_SYSCONSOLE_ABOUT                       = "read_sysconsole_about"
 	PERMISSION_WRITE_SYSCONSOLE_ABOUT                      = "write_sysconsole_about"
 	PERMISSION_READ_SYSCONSOLE_REPORTING                   = "read_sysconsole_reporting"
@@ -475,8 +473,6 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 		permissionTransformation{
 			On: isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: []string{
-				PERMISSION_READ_SETTINGS,
-				PERMISSION_WRITE_SETTINGS,
 				PERMISSION_READ_SYSCONSOLE_ABOUT,
 				PERMISSION_WRITE_SYSCONSOLE_ABOUT,
 				PERMISSION_READ_SYSCONSOLE_REPORTING,

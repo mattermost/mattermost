@@ -60,8 +60,12 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
@@ -75,8 +79,12 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
@@ -101,8 +109,12 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_READ_SETTINGS)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
@@ -132,8 +144,12 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SETTINGS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
