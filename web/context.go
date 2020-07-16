@@ -65,7 +65,8 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogError(appErr)
 	}
 }
 
@@ -77,7 +78,8 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogError(appErr)
 	}
 }
 
@@ -287,6 +289,17 @@ func (c *Context) RequireTeamId() *Context {
 
 	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidUrlParam("team_id")
+	}
+	return c
+}
+
+func (c *Context) RequireCategoryId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.CategoryId) != 26 {
+		c.SetInvalidUrlParam("category_id")
 	}
 	return c
 }

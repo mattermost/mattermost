@@ -253,7 +253,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		sessionChan := make(chan store.StoreResult, 1)
 		go func() {
 			count, err2 := a.Srv().Store.Session().AnalyticsSessionCount()
-			sessionChan <- store.StoreResult{Data: count, Err: err2}
+			sessionChan <- store.StoreResult{Data: count, NErr: err2}
 			close(sessionChan)
 		}()
 
@@ -315,8 +315,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[4].Value = float64(r.Data.(int64))
 
 		r = <-sessionChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.session.analytics_session_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[5].Value = float64(r.Data.(int64))
 

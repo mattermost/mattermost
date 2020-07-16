@@ -1062,6 +1062,7 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
+	AdvancedLoggingConfig  *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1103,6 +1104,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
@@ -1265,6 +1270,7 @@ type FileSettings struct {
 	AmazonS3AccessKeyId     *string `restricted:"true"`
 	AmazonS3SecretAccessKey *string `restricted:"true"`
 	AmazonS3Bucket          *string `restricted:"true"`
+	AmazonS3PathPrefix      *string `restricted:"true"`
 	AmazonS3Region          *string `restricted:"true"`
 	AmazonS3Endpoint        *string `restricted:"true"`
 	AmazonS3SSL             *bool   `restricted:"true"`
@@ -1327,6 +1333,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3Bucket == nil {
 		s.AmazonS3Bucket = NewString("")
+	}
+
+	if s.AmazonS3PathPrefix == nil {
+		s.AmazonS3PathPrefix = NewString("")
 	}
 
 	if s.AmazonS3Region == nil {
@@ -1591,6 +1601,7 @@ type SupportSettings struct {
 	SupportEmail                           *string
 	CustomTermsOfServiceEnabled            *bool
 	CustomTermsOfServiceReAcceptancePeriod *int
+	EnableAskCommunityLink                 *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1644,6 +1655,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
 		s.CustomTermsOfServiceReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
+	}
+
+	if s.EnableAskCommunityLink == nil {
+		s.EnableAskCommunityLink = NewBool(true)
 	}
 }
 
@@ -2135,6 +2150,7 @@ type SamlSettings struct {
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
 	IdpMetadataUrl              *string
+	ServiceProviderIdentifier   *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -2210,6 +2226,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.ServiceProviderIdentifier == nil {
+		if s.IdpDescriptorUrl != nil {
+			s.ServiceProviderIdentifier = NewString(*s.IdpDescriptorUrl)
+		} else {
+			s.ServiceProviderIdentifier = NewString("")
+		}
 	}
 
 	if s.IdpMetadataUrl == nil {
@@ -3124,6 +3148,10 @@ func (s *SamlSettings) isValid() *AppError {
 
 		if len(*s.UsernameAttribute) == 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if len(*s.ServiceProviderIdentifier) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if *s.Verify {

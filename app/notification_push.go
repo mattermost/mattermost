@@ -4,6 +4,8 @@
 package app
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 	"runtime"
 	"strings"
@@ -253,14 +255,13 @@ func (s *Server) createPushNotificationsHub() {
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
+		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
 	}
 	go hub.start()
 	s.PushNotificationsHub = hub
 }
 
 func (hub *PushNotificationsHub) start() {
-	hub.sema = make(chan struct{}, runtime.NumCPU()*8) // numCPU * 8 is a good amount of concurrency.
-
 	for notification := range hub.notificationsChan {
 		// Adding to the waitgroup first.
 		hub.wg.Add(1)
@@ -370,18 +371,27 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return err
 	}
 
-	resp, err := a.HTTPService().MakeClient(true).Do(request)
+	resp, err := a.Srv().pushNotificationClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	// Reading the body to completion.
+	_, err = io.Copy(ioutil.Discard, resp.Body)
 	if err != nil {
 		return err
 	}
 
-	resp.Body.Close()
 	return nil
-
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	return a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	sessions, err := a.Srv().Store.Session().GetSessionsWithActiveDeviceIds(userId)
+	if err != nil {
+		return nil, model.NewAppError("getMobileAppSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return sessions, nil
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {

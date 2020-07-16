@@ -8,16 +8,13 @@ import (
 	"runtime"
 	"strings"
 
-	rudder "github.com/rudderlabs/analytics-go"
-	"github.com/segmentio/analytics-go"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	rudder "github.com/rudderlabs/analytics-go"
 )
 
 const (
-	SEGMENT_KEY          = "placeholder_segment_key"
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
@@ -75,21 +72,8 @@ func (s *Server) SendDailyDiagnostics() {
 }
 
 func (s *Server) sendDailyDiagnostics(override bool) {
-	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		s.initDiagnostics("")
-		s.trackActivity()
-		s.trackConfig()
-		s.trackLicense()
-		s.trackPlugins()
-		s.trackServer()
-		s.trackPermissions()
-		s.trackElasticsearch()
-		s.trackGroups()
-		s.trackChannelModeration()
-	}
-
 	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		s.initRudder(RUDDER_DATAPLANE_URL)
+		s.initDiagnostics(RUDDER_DATAPLANE_URL)
 		s.trackActivity()
 		s.trackConfig()
 		s.trackLicense()
@@ -103,14 +87,6 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 }
 
 func (s *Server) SendDiagnostic(event string, properties map[string]interface{}) {
-	if s.diagnosticClient != nil {
-		s.diagnosticClient.Enqueue(analytics.Track{
-			Event:      event,
-			UserId:     s.diagnosticId,
-			Properties: properties,
-		})
-	}
-
 	if s.rudderClient != nil {
 		s.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
@@ -425,6 +401,7 @@ func (s *Server) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
+		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
@@ -536,6 +513,7 @@ func (s *Server) trackConfig() {
 		"isdefault_support_email":                      isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
+		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{

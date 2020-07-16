@@ -4,12 +4,15 @@
 package app
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"os/user"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -27,11 +30,31 @@ var (
 )
 
 func (a *App) GetAudits(userId string, limit int) (model.Audits, *model.AppError) {
-	return a.Srv().Store.Audit().Get(userId, 0, limit)
+	audits, err := a.Srv().Store.Audit().Get(userId, 0, limit)
+	if err != nil {
+		var outErr *store.ErrOutOfBounds
+		switch {
+		case errors.As(err, &outErr):
+			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return audits, nil
 }
 
 func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits, *model.AppError) {
-	return a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+	audits, err := a.Srv().Store.Audit().Get(userId, page*perPage, perPage)
+	if err != nil {
+		var outErr *store.ErrOutOfBounds
+		switch {
+		case errors.As(err, &outErr):
+			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.limit.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+	return audits, nil
 }
 
 // LogAuditRec logs an audit record using default CLILevel.
@@ -94,14 +117,14 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 		if port <= 0 {
 			port = 6514
 		}
-		raddr := fmt.Sprintf("%s:%d", IP, port)
 		maxQSize := *s.Config().ExperimentalAuditSettings.SysLogMaxQueueSize
 		if maxQSize <= 0 {
 			maxQSize = audit.DefMaxQueueSize
 		}
 
-		params := &audit.SyslogParams{
-			Raddr:    raddr,
+		params := &mlog.SyslogParams{
+			IP:       IP,
+			Port:     port,
 			Cert:     *s.Config().ExperimentalAuditSettings.SysLogCert,
 			Tag:      *s.Config().ExperimentalAuditSettings.SysLogTag,
 			Insecure: *s.Config().ExperimentalAuditSettings.SysLogInsecure,
@@ -109,11 +132,11 @@ func (s *Server) configureAudit(adt *audit.Audit) {
 
 		filter := adt.MakeFilter(RestLevel, RestContentLevel, RestPermsLevel, CLILevel)
 		formatter := adt.MakeJSONFormatter()
-		target, err := audit.NewSyslogTLSTarget(filter, formatter, params, maxQSize)
+		target, err := mlog.NewSyslogTarget(filter, formatter, params, maxQSize)
 		if err != nil {
 			mlog.Error("cannot configure SysLogTLS audit target", mlog.Err(err))
 		} else {
-			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("raddr", raddr))
+			mlog.Debug("SysLogTLS audit target connected successfully", mlog.String("IP", IP), mlog.Int("Port", port))
 			adt.AddTarget(target)
 		}
 	}

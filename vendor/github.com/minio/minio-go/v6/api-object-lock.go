@@ -33,7 +33,7 @@ import (
 type RetentionMode string
 
 const (
-	// Governance - goverance mode.
+	// Governance - governance mode.
 	Governance RetentionMode = "GOVERNANCE"
 
 	// Compliance - compliance mode.
