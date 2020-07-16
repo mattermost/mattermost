@@ -3901,19 +3901,17 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 
 			// And then add the new ones
-			var preferences []interface{}
-
 			for _, channelID := range category.Channels {
-				preferences = append(preferences, &model.Preference{
+				// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
+				// store in this package.
+				if err := s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
 					Name:     channelID,
 					UserId:   userId,
 					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 					Value:    "true",
-				})
-			}
-
-			if err = transaction.Insert(preferences...); err != nil {
-				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}); err != nil {
+					return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		} else {
 			// Remove any old favorites that might have been in this category
