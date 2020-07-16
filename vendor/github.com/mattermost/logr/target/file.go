@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 	"github.com/wiggin77/merror"
 	"gopkg.in/natefinch/lumberjack.v2"
 )

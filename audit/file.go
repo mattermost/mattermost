@@ -6,8 +6,8 @@ package audit
 import (
 	"os"
 
-	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/target"
+	"github.com/mattermost/logr"
+	"github.com/mattermost/logr/target"
 )
 
 type FileOptions target.FileOptions

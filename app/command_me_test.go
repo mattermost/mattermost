@@ -12,7 +12,7 @@ import (
 )
 
 func TestMeProviderDoCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	mp := MeProvider{}

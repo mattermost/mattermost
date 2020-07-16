@@ -4,9 +4,13 @@
 package mlog
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+
+	"github.com/mattermost/logr"
 )
 
 // defaultLog manually encodes the log to STDERR, providing a basic, default logging implementation
@@ -48,4 +52,32 @@ func defaultErrorLog(msg string, fields ...Field) {
 func defaultCriticalLog(msg string, fields ...Field) {
 	// We map critical to error in zap, so be consistent.
 	defaultLog("error", msg, fields...)
+}
+
+func defaultCustomLog(lvl LogLevel, msg string, fields ...Field) {
+	// custom log levels are only output once log targets are configured.
+}
+
+func defaultCustomMultiLog(lvl []LogLevel, msg string, fields ...Field) {
+	// custom log levels are only output once log targets are configured.
+}
+
+func defaultFlush(ctx context.Context) error {
+	return nil
+}
+
+func defaultAdvancedConfig(cfg LogTargetCfg) error {
+	// mlog.ConfigAdvancedConfig should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot config advanced logging on default logger")
+}
+
+func defaultAdvancedShutdown(ctx context.Context) error {
+	return nil
+}
+
+func defaultAddTarget(target logr.Target) error {
+	// mlog.AddTarget should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot AddTarget on default logger")
 }

@@ -177,6 +177,44 @@ func TestMoveChannel(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+	team2 := th.CreateTeam()
+	channel1 := th.CreateChannel(team)
+	defer func() {
+		th.App.PermanentDeleteChannel(channel1)
+		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(team2)
+	}()
+
+	_, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	_, err = th.App.AddUserToTeam(team2.Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	_, err = th.App.AddUserToTeam(team.Id, th.BasicUser2.Id, "")
+	require.Nil(t, err)
+
+	_, err = th.App.AddUserToChannel(th.BasicUser, channel1)
+	require.Nil(t, err)
+	_, err = th.App.AddUserToChannel(th.BasicUser2, channel1)
+	require.Nil(t, err)
+
+	err = th.App.RemoveUsersFromChannelNotMemberOfTeam(th.SystemAdminUser, channel1, team2)
+	require.Nil(t, err)
+
+	channelMembers, err := th.App.GetChannelMembersPage(channel1.Id, 0, 10000000)
+	require.Nil(t, err)
+	require.Len(t, *channelMembers, 1)
+	members := make([]model.ChannelMember, len(*channelMembers))
+	for i, m := range *channelMembers {
+		members[i] = m
+	}
+	require.Equal(t, members[0].UserId, th.BasicUser.Id)
+}
+
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -345,7 +383,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -371,7 +409,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()

@@ -748,6 +748,7 @@ type AppIface interface {
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
+	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
@@ -806,6 +807,7 @@ type AppIface interface {
 	RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError
 	RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
+	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestId() string
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
