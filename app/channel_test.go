@@ -133,7 +133,7 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
-		require.NotNil(t, err, "Should have failed due to mismatched members.")
+		require.Error(t, err, "Should have failed due to mismatched members.")
 
 		_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
 		require.Nil(t, err)
@@ -159,7 +159,7 @@ func TestMoveChannel(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser)
-		require.NotNil(t, err, "Should have failed due to mismatched deacivated member.")
+		require.Error(t, err, "Should have failed due to mismatched deacivated member.")
 
 		// Test moving a channel with no members.
 		channel3 := &model.Channel{
