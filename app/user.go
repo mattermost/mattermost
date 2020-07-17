@@ -1461,7 +1461,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
@@ -2139,4 +2139,41 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 // direct and group channels.
 func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 	return a.Srv().Store.User().GetKnownUsers(userID)
+}
+
+// ConvertBotToUser converts a bot to user.
+func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
+	user, err := a.Srv().Store.User().Get(bot.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	if sysadmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+		_, err = a.UpdateUserRoles(
+			user.Id,
+			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			false)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	user.Patch(userPatch)
+
+	user, err = a.UpdateUser(user, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.UpdatePassword(user, *userPatch.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
+	if appErr != nil {
+		return nil, model.NewAppError("ConvertBotToUser", "", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return user, nil
 }
