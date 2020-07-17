@@ -5159,30 +5159,6 @@
         "translation": "Kanal üyesi güncellenirken bir sorun çıktı."
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Küme Keşfi satırı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Silinemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Var olup olmadığı denetlenemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Tüm keşif satırları alınamadı."
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Küme Keşfi satırı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Son ping zamanı güncellenemedi."
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Komutlar sayılamadı."
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Ayar güncellenemedi."
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Kod silinemedi."
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Bu koda uyan bir kod alınamadı."
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Kod kaydedilemedi."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -7179,10 +7143,6 @@
         "translation": "İleti yanıtları sayısı alınamadı"
     },
     {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Bir türdeki tüm kodlar silinemez."
-    },
-    {
         "id": "store.sql_session.update_expires_at.app_error",
         "translation": "Sona erme süresi güncellenemedi."
     },
@@ -7919,14 +7879,6 @@
         "translation": "İşlem tamamlanamadı."
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Doğrudan İletiler"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanallar"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
     },
@@ -7939,10 +7891,6 @@
         "translation": "Kayıt veritabanına eklenemedi."
     },
     {
-        "id": "sidebar.category.favorites",
-        "translation": "Sık kullanılanlar"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
         "translation": "Veritabanı sorunu nedeniyle aktarılamadı."
     },
@@ -7953,5 +7901,13 @@
     {
         "id": "api.invalid_channel",
         "translation": "İstekte listelenmiş kanal kullanıcıya ait değil"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Kod kaydedilemedi."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Kod silinemedi."
     }
 ]
