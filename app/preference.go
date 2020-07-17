@@ -54,9 +54,11 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 	}
 
 	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(&preferences); err != nil {
-		return err
+		return model.NewAppError("DeletePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userId, nil)
+	// TODO this needs to be updated to include information on which categories changed
 	a.Publish(message)
 
 	message = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)
@@ -69,7 +71,7 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 func (a *App) DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userId != preference.UserId {
-			err := model.NewAppError("deletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
+			err := model.NewAppError("DeletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
 				"userId="+userId+", preference.UserId="+preference.UserId, http.StatusForbidden)
 			return err
 		}
@@ -82,7 +84,15 @@ func (a *App) DeletePreferences(userId string, preferences model.Preferences) *m
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_DELETED, "", "", userId, nil)
+	if err := a.Srv().Store.Channel().DeleteSidebarChannelsByPreferences(&preferences); err != nil {
+		return model.NewAppError("DeletePreferences", "api.preference.delete_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userId, nil)
+	// TODO this needs to be updated to include information on which categories changed
+	a.Publish(message)
+
+	message = model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_DELETED, "", "", userId, nil)
 	message.Add("preferences", preferences.ToJson())
 	a.Publish(message)
 

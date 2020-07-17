@@ -528,3 +528,132 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteSidebarPreferences(t *testing.T) {
+	t.Run("when removing a favorited channel preference, should remove it from the Favorites sidebar category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user := th.BasicUser
+
+		team1 := th.CreateTeam()
+		th.LinkUserToTeam(user, team1)
+
+		_, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+
+		channel := th.CreateChannelWithClientAndTeam(th.Client, model.CHANNEL_OPEN, team1.Id)
+		th.AddUserToChannel(user, channel)
+
+		// Confirm that the sidebar is populated correctly to begin with
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
+		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		require.Contains(t, categories.Categories[1].Channels, channel.Id)
+
+		// Favorite the channel
+		_, resp = th.Client.UpdatePreferences(user.Id, &model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, resp.Error)
+
+		// Confirm that the channel was added to the Favorites
+		categories, resp = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Contains(t, categories.Categories[0].Channels, channel.Id)
+		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		assert.NotContains(t, categories.Categories[1].Channels, channel.Id)
+
+		// And unfavorite the channel by deleting the preference
+		_, resp = th.Client.DeletePreferences(user.Id, &model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel.Id,
+			},
+		})
+		require.Nil(t, resp.Error)
+
+		// The channel should've been removed from the Favorites
+		categories, resp = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		require.NotContains(t, categories.Categories[0].Channels, channel.Id)
+		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		assert.Contains(t, categories.Categories[1].Channels, channel.Id)
+	})
+
+	t.Run("when removing a favorited DM preference, should remove it from the Favorites sidebar category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user := th.BasicUser
+		user2 := th.BasicUser2
+
+		team1 := th.CreateTeam()
+		th.LinkUserToTeam(user, team1)
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(user, team2)
+
+		dmChannel := th.CreateDmChannel(user2)
+
+		// Favorite the channel
+		_, resp := th.Client.UpdatePreferences(user.Id, &model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     dmChannel.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, resp.Error)
+
+		// Confirm that the channel was added to the Favorites on all teams
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
+		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
+
+		categories, resp = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Contains(t, categories.Categories[0].Channels, dmChannel.Id)
+		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+		assert.NotContains(t, categories.Categories[2].Channels, dmChannel.Id)
+
+		// And unfavorite the channel by deleting the preference
+		_, resp = th.Client.DeletePreferences(user.Id, &model.Preferences{
+			{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     dmChannel.Id,
+			},
+		})
+		require.Nil(t, resp.Error)
+
+		// The channel should've been removed from the Favorites on all teams
+		categories, resp = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team1.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
+		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+		assert.Contains(t, categories.Categories[2].Channels, dmChannel.Id)
+
+		categories, resp = th.Client.GetSidebarCategoriesForTeamForUser(user.Id, team2.Id, "")
+		require.Nil(t, resp.Error)
+		require.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		require.NotContains(t, categories.Categories[0].Channels, dmChannel.Id)
+		require.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+		assert.Contains(t, categories.Categories[2].Channels, dmChannel.Id)
+	})
+}
