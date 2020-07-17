@@ -12,7 +12,7 @@ import (
 )
 
 func TestHealthCheckJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
