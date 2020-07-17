@@ -20,6 +20,7 @@ func TestOAuthStore(t *testing.T, ss store.Store) {
 	t.Run("OAuthUpdateAccessData", func(t *testing.T) { testOAuthUpdateAccessData(t, ss) })
 	t.Run("GetAccessData", func(t *testing.T) { testOAuthStoreGetAccessData(t, ss) })
 	t.Run("RemoveAccessData", func(t *testing.T) { testOAuthStoreRemoveAccessData(t, ss) })
+	t.Run("RemoveAllAccessData", func(t *testing.T) { testOAuthStoreRemoveAllAccessData(t, ss) })
 	t.Run("SaveAuthData", func(t *testing.T) { testOAuthStoreSaveAuthData(t, ss) })
 	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, ss) })
 	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, ss) })
@@ -213,7 +214,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func TestOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
