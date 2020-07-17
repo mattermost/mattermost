@@ -3806,7 +3806,7 @@ func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) DeleteApp(id string) *model.AppError {
+func (s *TimerLayerOAuthStore) DeleteApp(id string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.OAuthStore.DeleteApp(id)
@@ -3822,7 +3822,7 @@ func (s *TimerLayerOAuthStore) DeleteApp(id string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessData(token)
@@ -3838,7 +3838,7 @@ func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByRefreshToken(token)
@@ -3854,7 +3854,7 @@ func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
@@ -3870,7 +3870,7 @@ func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetApp(id)
@@ -3886,7 +3886,7 @@ func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAppByUser(userId, offset, limit)
@@ -3902,7 +3902,7 @@ func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetApps(offset, limit)
@@ -3918,7 +3918,7 @@ func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAuthData(code)
@@ -3934,7 +3934,7 @@ func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
@@ -3950,7 +3950,7 @@ func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limi
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.GetPreviousAccessData(userId, clientId)
@@ -3966,7 +3966,7 @@ func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId str
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *model.AppError {
+func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
@@ -3982,7 +3982,7 @@ func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *mod
 	return resultVar0
 }
 
-func (s *TimerLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAccessData(token string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.OAuthStore.RemoveAccessData(token)
@@ -3998,7 +3998,7 @@ func (s *TimerLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerOAuthStore) RemoveAllAccessData() *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAllAccessData() error {
 	start := timemodule.Now()
 
 	resultVar0 := s.OAuthStore.RemoveAllAccessData()
@@ -4014,7 +4014,7 @@ func (s *TimerLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAuthData(code string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.OAuthStore.RemoveAuthData(code)
@@ -4030,7 +4030,7 @@ func (s *TimerLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
 	return resultVar0
 }
 
-func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.SaveAccessData(accessData)
@@ -4046,7 +4046,7 @@ func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.SaveApp(app)
@@ -4062,7 +4062,7 @@ func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.SaveAuthData(authData)
@@ -4078,7 +4078,7 @@ func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.Au
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.UpdateAccessData(accessData)
@@ -4094,7 +4094,7 @@ func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.OAuthStore.UpdateApp(app)
