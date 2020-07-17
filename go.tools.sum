@@ -15,6 +15,7 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/mattermost/mattermost-utilities v0.0.0-20200521071950-1be063e1b2fe h1:J3mFBH2bVwqNAdg2OFVP68wJ6jYyNu9FBHH+xBSTV5k=
 github.com/mattermost/mattermost-utilities v0.0.0-20200521071950-1be063e1b2fe/go.mod h1:B4cClV5qPUzy0eAaEDkfb/bq5I+5dyTgqTlnLPQdkcg=
+github.com/mattermost/mattermost-utilities v0.0.0-20200716230156-a8c8869d5dd2/go.mod h1:B4cClV5qPUzy0eAaEDkfb/bq5I+5dyTgqTlnLPQdkcg=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
