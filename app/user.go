@@ -2140,3 +2140,40 @@ func (a *App) invalidateUserCacheAndPublish(userId string) {
 func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 	return a.Srv().Store.User().GetKnownUsers(userID)
 }
+
+// ConvertBotToUser converts a bot to user.
+func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
+	user, err := a.Srv().Store.User().Get(bot.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	if sysadmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
+		_, err = a.UpdateUserRoles(
+			user.Id,
+			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
+			false)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	user.Patch(userPatch)
+
+	user, err = a.UpdateUser(user, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.UpdatePassword(user, *userPatch.Password)
+	if err != nil {
+		return nil, err
+	}
+
+	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
+	if appErr != nil {
+		return nil, model.NewAppError("ConvertBotToUser", "", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return user, nil
+}
