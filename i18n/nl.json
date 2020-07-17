@@ -613,7 +613,7 @@
     },
     {
         "id": "api.command_channel_purpose.permission.app_error",
-        "translation": "You don't have the appropriate permissions to edit the channel purpose."
+        "translation": "Je hebt niet voldoende rechten om het kanaaldoel te bewerken."
     },
     {
         "id": "api.command_channel_purpose.update_channel.app_error",
@@ -629,7 +629,7 @@
     },
     {
         "id": "api.command_channel_rename.desc",
-        "translation": "Rename the channel"
+        "translation": "Hernoem het kanaal"
     },
     {
         "id": "api.command_channel_rename.direct_group.app_error",
@@ -645,11 +645,11 @@
     },
     {
         "id": "api.command_channel_rename.name",
-        "translation": "rename"
+        "translation": "hernoemen"
     },
     {
         "id": "api.command_channel_rename.permission.app_error",
-        "translation": "You don't have the appropriate permissions to rename the channel."
+        "translation": "Je hebt niet voldoende rechten om het kanaal te hernoemen."
     },
     {
         "id": "api.command_channel_rename.too_long.app_error",
@@ -661,11 +661,11 @@
     },
     {
         "id": "api.command_channel_rename.update_channel.app_error",
-        "translation": "Error to update the current channel."
+        "translation": "Fout bij het bijwerken van het huidige kanaal."
     },
     {
         "id": "api.command_code.desc",
-        "translation": "Display text as a code block"
+        "translation": "Geeft tekst weer als een codeblok"
     },
     {
         "id": "api.command_code.hint",
@@ -693,15 +693,15 @@
     },
     {
         "id": "api.command_dnd.desc",
-        "translation": "Do not disturb disables desktop and mobile push notifications."
+        "translation": "Niet storen schakelt desktop en mobiele push notificaties (meldingen) uit."
     },
     {
         "id": "api.command_dnd.disabled",
-        "translation": "Do Not Disturb is disabled."
+        "translation": "Niet storen is uitgeschakeld."
     },
     {
         "id": "api.command_dnd.error",
-        "translation": "Error to retrieve the user status."
+        "translation": "Fout bij het ophalen van de status van de gebruiker."
     },
     {
         "id": "api.command_dnd.name",
@@ -709,7 +709,7 @@
     },
     {
         "id": "api.command_dnd.success",
-        "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+        "translation": "Niet storen is ingeschakeld. Je zal geen desktop of mobiele push notificaties (meldingen) ontvangen tot 'Niet Storen' is uitgeschakeld."
     },
     {
         "id": "api.command_echo.delay.app_error",
@@ -753,7 +753,7 @@
     },
     {
         "id": "api.command_groupmsg.desc",
-        "translation": "Sends a Group Message to the specified users"
+        "translation": "Stuurt een groepsbericht naar de opgegeven gebruikers"
     },
     {
         "id": "api.command_groupmsg.fail.app_error",
@@ -765,22 +765,22 @@
     },
     {
         "id": "api.command_groupmsg.hint",
-        "translation": "@[username1],@[username2] 'message'"
+        "translation": "@[username1],@[username2] 'bericht'"
     },
     {
         "id": "api.command_groupmsg.invalid_user.app_error",
         "translation": {
-            "one": "Unable to find the user: {{.Users}}",
-            "other": "Unable to find the users: {{.Users}}"
+            "one": "Kan de gebruiker niet vinden: {{.Users}}",
+            "other": "Kan de gebruikers niet vinden: {{.Users}}"
         }
     },
     {
         "id": "api.command_groupmsg.max_users.app_error",
-        "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+        "translation": "Groepsberichten zijn beperkt tot maximum {{.MaxUsers}} gebruikers."
     },
     {
         "id": "api.command_groupmsg.min_users.app_error",
-        "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+        "translation": "Groepsberichten moeten aan minstens {{.MinUsers} gebruikers gericht zijn."
     },
     {
         "id": "api.command_groupmsg.name",
@@ -788,11 +788,11 @@
     },
     {
         "id": "api.command_groupmsg.permission.app_error",
-        "translation": "You don't have the appropriate permissions to create a new group message."
+        "translation": "Je hebt niet voldoende rechten om een nieuw groepsbericht aan te maken."
     },
     {
         "id": "api.command_help.desc",
-        "translation": "Open the Mattermost help page"
+        "translation": "Open de Mattermost help pagina"
     },
     {
         "id": "api.command_help.name",
@@ -800,19 +800,19 @@
     },
     {
         "id": "api.command_invite.channel.app_error",
-        "translation": "Error to retrieve the current channel."
+        "translation": "Fout bij het ophalen van het huidige kanaal."
     },
     {
         "id": "api.command_invite.channel.error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik  de [kanaal-handle](https://about.mattermost.com/default-channel-handle-documentation) om kanalen te identificeren."
     },
     {
         "id": "api.command_invite.desc",
-        "translation": "Invite a user to a channel"
+        "translation": "Nodig een gebruik uit tot een kanaal"
     },
     {
         "id": "api.command_invite.directchannel.app_error",
-        "translation": "You can't add someone to a direct message channel."
+        "translation": "Je kan niet iemand toevoegen aan een direct-berichtenkanaal."
     },
     {
         "id": "api.command_invite.fail.app_error",
@@ -828,31 +828,31 @@
     },
     {
         "id": "api.command_invite.missing_message.app_error",
-        "translation": "Missing Username and Channel."
+        "translation": "Ontbrekende gebruikersnaam en kanaal."
     },
     {
         "id": "api.command_invite.missing_user.app_error",
-        "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+        "translation": "We konden de gebruiker niet vinden. Mogelijks is deze gedeactiveerd door de systeembeheerder."
     },
     {
         "id": "api.command_invite.name",
-        "translation": "invite"
+        "translation": "uitnodigen"
     },
     {
         "id": "api.command_invite.permission.app_error",
-        "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+        "translation": "Je hebt niet voldoende rechten om {{.User}} toe te voegen aan het kanaal {{.Channel}}."
     },
     {
         "id": "api.command_invite.private_channel.app_error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de kanaalhandle om kanalen aan te duiden."
     },
     {
         "id": "api.command_invite.success",
-        "translation": "{{.User}} added to {{.Channel}} channel."
+        "translation": "{{.User}} is toegevoegd aan kanaal {{.Channel}}."
     },
     {
         "id": "api.command_invite.user_already_in_channel.app_error",
-        "translation": "{{.User}} is already in the channel."
+        "translation": "{{.User}} is reeds in het kanaal."
     },
     {
         "id": "api.command_invite.user_not_in_team.app_error",
@@ -860,7 +860,7 @@
     },
     {
         "id": "api.command_invite_people.permission.app_error",
-        "translation": "You don't have permission to invite new users to this server."
+        "translation": "Je hebt niet voldoende rechten om nieuwe gebruikers uit te nodigen op deze server."
     },
     {
         "id": "api.command_join.desc",
@@ -872,7 +872,7 @@
     },
     {
         "id": "api.command_join.hint",
-        "translation": "~[channel]"
+        "translation": "~[kanaal]"
     },
     {
         "id": "api.command_join.list.app_error",
@@ -892,7 +892,7 @@
     },
     {
         "id": "api.command_leave.desc",
-        "translation": "Leave the current channel"
+        "translation": "Verlaat het huidige kanaal"
     },
     {
         "id": "api.command_leave.fail.app_error",
@@ -900,7 +900,7 @@
     },
     {
         "id": "api.command_leave.name",
-        "translation": "leave"
+        "translation": "Verlaten"
     },
     {
         "id": "api.command_logout.desc",
@@ -952,31 +952,31 @@
     },
     {
         "id": "api.command_msg.permission.app_error",
-        "translation": "You don't have the appropriate permissions to direct message this user."
+        "translation": "Je hebt niet voldoende rechten om een direct bericht te sturen naar deze gebruiker."
     },
     {
         "id": "api.command_mute.desc",
-        "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+        "translation": "Schakel desktop, e-mail en push notificaties uit voor het huidige kanaal of het gespecificeerde [kanaal]."
     },
     {
         "id": "api.command_mute.error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalhandle](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_mute.hint",
-        "translation": "~[channel]"
+        "translation": "~[kanaal]"
     },
     {
         "id": "api.command_mute.name",
-        "translation": "mute"
+        "translation": "dempen"
     },
     {
         "id": "api.command_mute.no_channel.error",
-        "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het specifieke kanaal niet vinden. Gebruik de [kanaal handle] (https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_mute.not_member.error",
-        "translation": "Could not mute channel {{.Channel}} as you are not a member."
+        "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
     },
     {
         "id": "api.command_mute.success_mute",
@@ -1768,7 +1768,7 @@
     },
     {
         "id": "api.post_get_post_by_id.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden."
+        "translation": "Bericht kan niet worden opgehaald."
     },
     {
         "id": "api.preference.delete_preferences.delete.app_error",
@@ -6956,7 +6956,7 @@
     },
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Failed to commit the transaction to save the role"
+        "translation": "Failed to commit the transaction to save the role."
     },
     {
         "id": "store.sql_scheme.delete.role_update.app_error",
