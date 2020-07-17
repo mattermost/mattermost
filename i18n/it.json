@@ -7969,5 +7969,9 @@
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "L'identificativo del fornitore del servizio è richiesto"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Devi accettare l'Accordo di Valutazione del Software Mattermost e la Politica sulla Privacy per richiedere la licenza."
     }
 ]
