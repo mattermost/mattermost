@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -130,9 +131,11 @@ func canIUpgrade() error {
 
 func CanIUpgradeToE0() error {
 	if err := canIUpgrade(); err != nil {
+		mlog.Error("Unable to upgrade from TE to E0", mlog.Err(err))
 		return err
 	}
 	if model.BuildEnterpriseReady == "true" {
+		mlog.Warn("Unable to upgrade from TE to E0 because the server is already in E0")
 		return errors.New("You can't upgrade your code to enterprise because you are already in enterprise code")
 	}
 	return nil
@@ -140,6 +143,7 @@ func CanIUpgradeToE0() error {
 
 func UpgradeToE0() error {
 	if !atomic.CompareAndSwapInt32(&upgrading, 0, 1) {
+		mlog.Warn("Trying to upgrade while other upgrade is running")
 		return errors.New("One upgrade is already running.")
 	}
 	defer atomic.CompareAndSwapInt32(&upgrading, 1, 0)
@@ -151,6 +155,7 @@ func UpgradeToE0() error {
 	if err != nil {
 		upgradePercentage = 0
 		upgradeError = errors.New("error getting the executable path")
+		mlog.Error("Unable to get the mattermost executable path", mlog.Err(err))
 		return err
 	}
 
@@ -160,6 +165,7 @@ func UpgradeToE0() error {
 			os.Remove(filename)
 		}
 		upgradeError = fmt.Errorf("error downloading the new version (percentage: %d)", upgradePercentage)
+		mlog.Error("Unable to download the mattermost server version", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzUrl()), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
@@ -169,6 +175,7 @@ func UpgradeToE0() error {
 	if err != nil {
 		upgradePercentage = 0
 		upgradeError = err
+		mlog.Error("Unable to extract the binary from the downloaded file", mlog.Err(err))
 		return err
 	}
 	upgradePercentage = 100
