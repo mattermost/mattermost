@@ -1098,20 +1098,16 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
-func runStoreAndCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
-	doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25])
+func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
+	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
 
-	doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50])
-
-	doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
-
-	model.CreateRecurringTask("Store and Check Number Of Active Users Warn Metric Status", func() {
-		doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25])
-
-		doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50])
-
-		doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
-	}, time.Minute*24)
+	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
+		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+	}, time.Minute*2) //Hour*24CITOMAI
 }
 
 func doSecurity(s *Server) {
@@ -1141,7 +1137,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model.WarnMetric) {
+func doCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model.WarnMetric) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip this check")
@@ -1149,8 +1145,8 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model
 	}
 
 	data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-	if err == nil && data != nil && data.Value == "ack" {
-		mlog.Debug("This metric warning has already been acknowledged")
+	if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+		mlog.Debug("This metric warning has already been acked or should only run once")
 		return
 	}
 
@@ -1164,7 +1160,7 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model
 			mlog.Error("Unable to write to database.", mlog.Err(err))
 			return
 		}
-		warnMetricStatus, _ := a.getWarnMetricStatusForId(warnMetric.Id, nil)
+		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
 
 		if !warnMetric.IsBotOnly {
 			mlog.Info("Number of active users is greater than limit")
@@ -1173,8 +1169,12 @@ func doStoreAndCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model
 			a.Publish(message)
 		}
 
-		if err = a.NotifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
+		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		}
+
+		if warnMetric.IsRunOnce {
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
 		}
 	}
 }

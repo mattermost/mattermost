@@ -3894,10 +3894,13 @@ func TestMoveChannel(t *testing.T) {
 	t.Run("Should be able to (force) move channel by a member that is not member of target team", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
 		user := th.BasicUser
+
 		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
 		CheckNoError(t, resp)
+
 		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
+
 		newChannel, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, true)
 		require.Nil(t, resp.Error)
 		require.Equal(t, team2.Id, newChannel.TeamId)

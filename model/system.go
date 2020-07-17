@@ -20,9 +20,14 @@ const (
 	SYSTEM_INSTALLATION_DATE_KEY                  = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25  = "warn_metric_number_of_active_users_25"
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50  = "warn_metric_number_of_active_users_50"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200 = "warn_metric_number_of_active_users_200"
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400 = "warn_metric_number_of_active_users_400"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
+)
+
+const (
+	WARN_METRIC_STATUS_RUNONCE = "runonce"
+	WARN_METRIC_STATUS_ACK     = "ack"
 )
 
 type System struct {
@@ -77,34 +82,33 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 type WarnMetric struct {
 	Id        string
 	Limit     int64
-	AaeId     string
 	IsBotOnly bool
+	IsRunOnce bool
 }
 
 var WarnMetricsTable = map[string]WarnMetric{
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25: {
-		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25,
-		Limit:     25,
-		AaeId:     "AAE-010-1010",
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200,
+		Limit:     1, //25 CITOMAI
 		IsBotOnly: true,
+		IsRunOnce: true,
 	},
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50: {
-		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_50,
-		Limit:     50,
-		AaeId:     "AAE-010-1010",
+	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400,
+		Limit:     1, //50 CITOMAI
 		IsBotOnly: true,
+		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
-		Limit:     500,
-		AaeId:     "AAE-010-1010",
+		Limit:     1, //500 CITOMAI
 		IsBotOnly: false,
+		IsRunOnce: false,
 	},
 }
 
 type WarnMetricStatus struct {
 	Id    string `json:"id"`
-	AaeId string `json:"aae_id"`
 	Limit int64  `json:"limit"`
 	Acked bool   `json:"acked"`
 }

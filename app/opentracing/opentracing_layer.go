@@ -10277,29 +10277,7 @@ func (a *OpenTracingAppLayer) NewWebHub() *app.Hub {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAdminsOfWarnMetricStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NotifyAdminsOfWarnMetricStatus(warnMetricId)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, isBot bool) *model.AppError {
+func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAndSetWarnMetricAck")
 
@@ -10311,7 +10289,7 @@ func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(warnMetricId string, sen
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, isBot)
+	resultVar0 := a.app.NotifyAndSetWarnMetricAck(warnMetricId, sender, forceAck, isBot)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -11564,28 +11542,6 @@ func (a *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, n
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RequestLicenseAndAckWarnMetric")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RequestLicenseAndAckWarnMetric(warnMetricId, isBot)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) ResetPasswordFromToken(userSuppliedTokenString string, newPassword string) *model.AppError {
@@ -13409,28 +13365,6 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file m
 
 	defer span.Finish()
 	resultVar0 := a.app.SetTeamIconFromMultiPartFile(teamId, file)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SetWarnMetricStatus(warnMetricId string) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetWarnMetricStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SetWarnMetricStatus(warnMetricId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

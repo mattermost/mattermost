@@ -251,7 +251,7 @@ func TestConnection(config *model.Config) *model.AppError {
 	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
 	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
@@ -259,6 +259,7 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		mimeTo:        to,
 		smtpTo:        to,
 		from:          fromMail,
+		cc:            ccMail,
 		replyTo:       replyTo,
 		subject:       subject,
 		htmlBody:      htmlBody,
@@ -268,8 +269,8 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures)
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients

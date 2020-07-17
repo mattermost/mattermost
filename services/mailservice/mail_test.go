@@ -178,6 +178,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
 	var emailCC = "test@example.com"
+
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 

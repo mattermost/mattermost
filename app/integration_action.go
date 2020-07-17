@@ -31,6 +31,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -419,28 +420,57 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	botPost := &model.Post{
-		UserId:    upstreamRequest.Context["bot_user_id"].(string),
-		ChannelId: upstreamRequest.ChannelId,
+	user, appErr := a.GetUser(a.Session().UserId)
+	if appErr != nil {
+		return appErr
 	}
 
-	var attachements []*model.SlackAttachment
-	if appErr := a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-		botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_failure.message")
-		attachements = []*model.SlackAttachment{{
+	botPost := &model.Post{
+		UserId:       upstreamRequest.Context["bot_user_id"].(string),
+		ChannelId:    upstreamRequest.ChannelId,
+		HasReactions: true,
+	}
+
+	forceAck := upstreamRequest.Context["force_ack"].(bool)
+
+	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if forceAck {
+			return appErr
+		}
+		mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
+		botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.notification_failure.message")
+		actions := []*model.PostAction{}
+		actions = append(actions,
+			&model.PostAction{
+				Id:   "emailSupport",
+				Name: utils.T("api.server.warn_metric.email_us"),
+				Type: model.POST_ACTION_TYPE_BUTTON,
+				Options: []*model.PostActionOptions{
+					{
+						Text:  "ExternalUrl",
+						Value: mailtoLinkText,
+					},
+				},
+				Integration: &model.PostActionIntegration{
+					Context: model.StringInterface{
+						"bot_user_id": botPost.UserId,
+						"force_ack":   true,
+					},
+					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+				},
+			},
+		)
+		attachements := []*model.SlackAttachment{{
 			AuthorName: "",
 			Title:      "",
+			Actions:    actions,
 			Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
 		}}
+		model.ParseSlackAttachment(botPost, attachements)
 	} else {
-		botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_success.message")
-		attachements = []*model.SlackAttachment{{
-			AuthorName: "",
-			Title:      "",
-			Text:       utils.T("api.server.warn_metric.bot_response.notification_success.body"),
-		}}
+		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
 	}
-	model.ParseSlackAttachment(botPost, attachements)
+
 	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 		return err
 	}
@@ -458,6 +488,42 @@ type MailToLinkContent struct {
 func (mlc *MailToLinkContent) ToJson() string {
 	b, _ := json.Marshal(mlc)
 	return string(b)
+}
+
+func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+	T := utils.GetUserTranslations(user.Locale)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
+
+	mailBody := warnMetricDisplayTexts.BotMailToBody
+	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
+	mailBody += "\r\n"
+	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})
+	mailBody += "\r\n"
+
+	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+	} else {
+		mailBody += utils.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]interface{}{"NoRegisteredUsers": registeredUsersCount})
+		mailBody += "\r\n"
+	}
+
+	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
+	mailBody += "\r\n"
+
+	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.DiagnosticId()})
+	mailBody += "\r\n"
+
+	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
+
+	mailToLinkContent := &MailToLinkContent{
+		MailRecipient: "support@mattermost.com",
+		MailCC:        user.Email,
+		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
+		MailBody:      mailBody,
+	}
+
+	return mailToLinkContent.ToJson()
 }
 
 func (a *App) DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {

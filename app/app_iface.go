@@ -757,8 +757,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	NotifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError
-	NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, isBot bool) *model.AppError
+	NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
@@ -813,7 +812,6 @@ type AppIface interface {
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestId() string
-	RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
@@ -906,7 +904,6 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SetWarnMetricStatus(warnMetricId string) *model.AppError
 	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
 	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
 	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
