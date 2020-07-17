@@ -4076,10 +4076,10 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 		).
 		Select(
 			sq.Select().
-				Column(sq.Expr("? as ChannelId", preference.Name)).
+				Column("? as ChannelId", preference.Name).
 				Column("SidebarCategories.Id as CategoryId").
-				Column(sq.Expr("? as UserId", preference.UserId)).
-				Column(sq.Expr("COALESCE(MIN(SidebarChannels.SortOrder) - 10, 0) as SortOrder")).
+				Column("? as UserId", preference.UserId).
+				Column("COALESCE(MIN(SidebarChannels.SortOrder) - 10, 0) as SortOrder").
 				From("SidebarCategories").
 				LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId").
 				Where(sq.Eq{
