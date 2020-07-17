@@ -1531,8 +1531,12 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		groupIDs = append(groupIDs, gid)
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
