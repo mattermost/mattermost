@@ -2816,8 +2816,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("Channels AS c").
-		Join("Teams AS t ON t.Id = c.TeamId").
-		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
+		Join("Teams AS t ON t.Id = c.TeamId")
 
 	// don't bother ordering or limiting if we're just getting the count
 	if !countQuery {
@@ -2868,15 +2867,15 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 		})
 	}
 
-	if opts.Public && opts.Private {
+	if opts.Public && !opts.Private {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
+	} else if opts.Private && !opts.Public {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
+	} else {
 		query = query.Where(sq.Or{
 			sq.Eq{"c.Type": model.CHANNEL_OPEN},
 			sq.Eq{"c.Type": model.CHANNEL_PRIVATE},
 		})
-	} else if opts.Private {
-		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
-	} else if opts.Public {
-		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
 	}
 
 	return query
