@@ -4084,8 +4084,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 				From("SidebarCategories").
 				LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId").
 				Where(sq.Eq{
-					"SidebarCategories.UserId": preference.UserId,
-					"SidebarCategories.Id":     categoryIds,
+					"SidebarCategories.Id": categoryIds,
 				}).
 				GroupBy("SidebarCategories.Id")).ToSql()
 
