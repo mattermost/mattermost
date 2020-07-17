@@ -4038,26 +4038,21 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 		channel = obj.(*model.Channel)
 	}
 
-	var teamIdFilter sq.Sqlizer
-	if channel.TeamId == "" {
-		// Accept the Favorites category on any team
-		teamIdFilter = sq.Expr("(1=1)")
-	} else {
-		teamIdFilter = sq.Eq{"TeamId": channel.TeamId}
-	}
-
 	// Get the IDs of the Favorites category/categories that the channel needs to be added to
-	idsQuery, idsParams, _ := s.getQueryBuilder().
+	builder := s.getQueryBuilder().
 		Select("Id").
 		From("SidebarCategories").
-		Where(sq.And{
-			teamIdFilter,
-			sq.Eq{
-				"UserId": preference.UserId,
-				"Type":   model.SidebarCategoryFavorites,
-			},
-			sq.Expr("Id NOT IN (select CategoryId from SidebarChannels where ChannelId = ?)", channel.Id),
-		}).ToSql()
+		Where(sq.Eq{
+			"UserId": preference.UserId,
+			"Type":   model.SidebarCategoryFavorites,
+		}).
+		Where(sq.Expr("Id NOT IN (select CategoryId from SidebarChannels where ChannelId = ?)", channel.Id))
+
+	if channel.TeamId != "" {
+		builder = builder.Where(sq.Eq{"TeamId": channel.TeamId})
+	}
+
+	idsQuery, idsParams, _ := builder.ToSql()
 
 	var categoryIds []string
 	if _, err := transaction.Select(&categoryIds, idsQuery, idsParams...); err != nil {
@@ -4071,7 +4066,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 
 	// For each category ID, insert a row into SidebarChannels with the given channel ID and a SortOrder that's less than
 	// all existing SortOrders in the category so that the newly favorited channel comes first
-	query, params, _ := s.getQueryBuilder().
+	insertQuery, insertParams, _ := s.getQueryBuilder().
 		Insert("SidebarChannels").
 		Columns(
 			"ChannelId",
@@ -4093,7 +4088,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 				}).
 				GroupBy("SidebarCategories.Id")).ToSql()
 
-	if _, err := transaction.Exec(query, params...); err != nil {
+	if _, err := transaction.Exec(insertQuery, insertParams...); err != nil {
 		return errors.Wrap(err, "Failed to add sidebar entries for favorited channel")
 	}
 
