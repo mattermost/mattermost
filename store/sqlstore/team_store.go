@@ -372,20 +372,96 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
+func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
+	var selectStr string
+	if countQuery {
+		selectStr = "count(*)"
+	} else {
+		selectStr = "*"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("Teams as t")
+
+	// Don't order or limit if getting count
+	if !countQuery {
+		query = query.OrderBy("t.DisplayName")
+
+		if opts.IsPaginated() {
+			query = query.Limit(uint64(*opts.PerPage)).Offset(uint64(*opts.Page * *opts.PerPage))
+		}
+	}
+
+	if len(term) > 0 {
+		term = sanitizeSearchTerm(term, "\\")
+		term = wildcardSearchTerm(term)
+
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
+		}
+
+		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
+	}
+
+	var teamFilters sq.Sqlizer
+	var openInviteFilter sq.Sqlizer
+	if opts.AllowOpenInvite || opts.ExcludeAllowOpenInvite {
+		if opts.AllowOpenInvite {
+			openInviteFilter = sq.Eq{"AllowOpenInvite": true}
+		} else if opts.ExcludeAllowOpenInvite {
+			openInviteFilter = sq.Or{
+				sq.NotEq{"AllowOpenInvite": true},
+				sq.Eq{"AllowOpenInvite": nil},
+			}
+		}
+
+		teamFilters = openInviteFilter
+	}
+
+	var groupConstrainedFilter sq.Sqlizer
+	if opts.GroupConstrained || opts.ExcludeGroupConstrained {
+		if opts.GroupConstrained {
+			groupConstrainedFilter = sq.Eq{"GroupConstrained": true}
+		} else if opts.ExcludeGroupConstrained {
+			groupConstrainedFilter = sq.Or{
+				sq.NotEq{"GroupConstrained": true},
+				sq.Eq{"GroupConstrained": nil},
+			}
+		}
+
+		if teamFilters == nil {
+			teamFilters = groupConstrainedFilter
+		} else {
+			teamFilters = sq.And{teamFilters, groupConstrainedFilter}
+		}
+	}
+
+	if opts.IncludeGroupConstrained {
+		if teamFilters == nil {
+			teamFilters = sq.Eq{"GroupConstrained": true}
+		} else {
+			teamFilters = sq.Or{teamFilters, sq.Eq{"GroupConstrained": true}}
+		}
+	}
+
+	query = query.Where(teamFilters)
+
+	return query
+}
+
 // SearchAll returns from the database a list of teams that match the Name or DisplayName
 // passed as the term search parameter.
-func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+func (s SqlTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
-	term = sanitizeSearchTerm(term, "\\")
-	term = wildcardSearchTerm(term)
-
-	operatorKeyword := "ILIKE"
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		operatorKeyword = "LIKE"
+	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
-	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term}); err != nil {
+
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -393,24 +469,23 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 }
 
 // SearchAllPaged returns a teams list and the total count of teams that matched the search.
-func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+func (s SqlTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	var teams []*model.Team
 	var totalCount int64
-	offset := page * perPage
 
-	term = sanitizeSearchTerm(term, "\\")
-	term = wildcardSearchTerm(term)
-	operatorKeyword := "ILIKE"
-	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		operatorKeyword = "LIKE"
+	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
+	if err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	queryString := fmt.Sprintf("SELECT * FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term ORDER BY DisplayName, Name LIMIT :Limit  OFFSET :Offset", operatorKeyword)
-	if _, err := s.GetReplica().Select(&teams, queryString, map[string]interface{}{"Term": term, "Limit": perPage, "Offset": offset}); err != nil {
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	queryString = fmt.Sprintf("SELECT COUNT(*) FROM Teams WHERE Name %[1]s :Term OR DisplayName %[1]s :Term", operatorKeyword)
-	totalCount, err := s.GetReplica().SelectInt(queryString, map[string]interface{}{"Term": term})
+	queryString, args, err = s.teamSearchQuery(term, opts, true).ToSql()
+	if err != nil {
+		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	totalCount, err = s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}

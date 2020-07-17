@@ -6522,10 +6522,10 @@ func (s *TimerLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.TeamStore.SearchAll(term)
+	resultVar0, resultVar1 := s.TeamStore.SearchAll(term, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -6538,10 +6538,10 @@ func (s *TimerLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppE
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, page, perPage)
+	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, opts)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
