@@ -4206,7 +4206,7 @@ func (s *OpenTracingLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadat
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) *model.AppError {
+func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.DeleteApp")
 	s.Root.Store.SetContext(newCtx)
@@ -4224,7 +4224,7 @@ func (s *OpenTracingLayerOAuthStore) DeleteApp(id string) *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4242,7 +4242,7 @@ func (s *OpenTracingLayerOAuthStore) GetAccessData(token string) (*model.AccessD
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAccessDataByRefreshToken")
 	s.Root.Store.SetContext(newCtx)
@@ -4260,7 +4260,7 @@ func (s *OpenTracingLayerOAuthStore) GetAccessDataByRefreshToken(token string) (
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAccessDataByUserForApp")
 	s.Root.Store.SetContext(newCtx)
@@ -4278,7 +4278,7 @@ func (s *OpenTracingLayerOAuthStore) GetAccessDataByUserForApp(userId string, cl
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetApp")
 	s.Root.Store.SetContext(newCtx)
@@ -4296,7 +4296,7 @@ func (s *OpenTracingLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAppByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -4314,7 +4314,7 @@ func (s *OpenTracingLayerOAuthStore) GetAppByUser(userId string, offset int, lim
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetApps")
 	s.Root.Store.SetContext(newCtx)
@@ -4332,7 +4332,7 @@ func (s *OpenTracingLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OA
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAuthData")
 	s.Root.Store.SetContext(newCtx)
@@ -4350,7 +4350,7 @@ func (s *OpenTracingLayerOAuthStore) GetAuthData(code string) (*model.AuthData, 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetAuthorizedApps")
 	s.Root.Store.SetContext(newCtx)
@@ -4368,7 +4368,7 @@ func (s *OpenTracingLayerOAuthStore) GetAuthorizedApps(userId string, offset int
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.GetPreviousAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4386,7 +4386,7 @@ func (s *OpenTracingLayerOAuthStore) GetPreviousAccessData(userId string, client
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.PermanentDeleteAuthDataByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -4404,7 +4404,7 @@ func (s *OpenTracingLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string
 	return resultVar0
 }
 
-func (s *OpenTracingLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
+func (s *OpenTracingLayerOAuthStore) RemoveAccessData(token string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.RemoveAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4422,7 +4422,7 @@ func (s *OpenTracingLayerOAuthStore) RemoveAccessData(token string) *model.AppEr
 	return resultVar0
 }
 
-func (s *OpenTracingLayerOAuthStore) RemoveAllAccessData() *model.AppError {
+func (s *OpenTracingLayerOAuthStore) RemoveAllAccessData() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.RemoveAllAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4440,7 +4440,7 @@ func (s *OpenTracingLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 	return resultVar0
 }
 
-func (s *OpenTracingLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
+func (s *OpenTracingLayerOAuthStore) RemoveAuthData(code string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.RemoveAuthData")
 	s.Root.Store.SetContext(newCtx)
@@ -4458,7 +4458,7 @@ func (s *OpenTracingLayerOAuthStore) RemoveAuthData(code string) *model.AppError
 	return resultVar0
 }
 
-func (s *OpenTracingLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.SaveAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4476,7 +4476,7 @@ func (s *OpenTracingLayerOAuthStore) SaveAccessData(accessData *model.AccessData
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.SaveApp")
 	s.Root.Store.SetContext(newCtx)
@@ -4494,7 +4494,7 @@ func (s *OpenTracingLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthA
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.SaveAuthData")
 	s.Root.Store.SetContext(newCtx)
@@ -4512,7 +4512,7 @@ func (s *OpenTracingLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.UpdateAccessData")
 	s.Root.Store.SetContext(newCtx)
@@ -4530,7 +4530,7 @@ func (s *OpenTracingLayerOAuthStore) UpdateAccessData(accessData *model.AccessDa
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *OpenTracingLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OAuthStore.UpdateApp")
 	s.Root.Store.SetContext(newCtx)
