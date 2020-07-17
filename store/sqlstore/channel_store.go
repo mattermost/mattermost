@@ -4040,13 +4040,14 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 
 	// Get the IDs of the Favorites category/categories that the channel needs to be added to
 	builder := s.getQueryBuilder().
-		Select("Id").
+		Select("SidebarCategories.Id").
 		From("SidebarCategories").
+		LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId and SidebarChannels.ChannelId = ?", preference.Name).
 		Where(sq.Eq{
-			"UserId": preference.UserId,
-			"Type":   model.SidebarCategoryFavorites,
+			"SidebarCategories.UserId": preference.UserId,
+			"Type":                     model.SidebarCategoryFavorites,
 		}).
-		Where(sq.Expr("Id NOT IN (select CategoryId from SidebarChannels where ChannelId = ?)", channel.Id))
+		Where("SidebarChannels.ChannelId is null")
 
 	if channel.TeamId != "" {
 		builder = builder.Where(sq.Eq{"TeamId": channel.TeamId})
