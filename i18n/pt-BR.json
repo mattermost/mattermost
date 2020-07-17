@@ -57,7 +57,7 @@
     },
     {
         "id": "api.admin.add_certificate.no_file.app_error",
-        "translation": "Nenhum arquivo sob o 'certificado' na requisição."
+        "translation": "Nenhum arquivo sob o 'certificate' na requisição."
     },
     {
         "id": "api.admin.add_certificate.open.app_error",
@@ -77,7 +77,7 @@
     },
     {
         "id": "api.admin.remove_certificate.delete.app_error",
-        "translation": "Ocorreu um erro ao deletar o App OAuth2"
+        "translation": "Ocorreu um erro ao excluir o certificado."
     },
     {
         "id": "api.admin.saml.metadata.app_error",
@@ -109,15 +109,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -133,7 +133,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Não foi possível adicionar o usuário no canal"
+        "translation": "Não foi possível adicionar o usuário no canal."
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -141,7 +141,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Não foi possível adicionar usuário para este tipo de canal"
+        "translation": "Não foi possível adicionar usuário para este tipo de canal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -153,7 +153,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "O canal padrão não pode ser convertido em um canal privado."
+        "translation": "Este canal padrão não pode ser convertido em um canal privado."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -1828,7 +1828,7 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' na requisição"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
@@ -2400,11 +2400,11 @@
     },
     {
         "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.user.upload_profile_user.decode.app_error",
-        "translation": "Não foi possível decodificar a imagem do perfil"
+        "translation": "Não foi possível decodificar a imagem do perfil."
     },
     {
         "id": "api.user.upload_profile_user.decode_config.app_error",
@@ -5159,30 +5159,6 @@
         "translation": "Encontramos um erro ao atualizar o membro do canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Falha ao salvar a linha de ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Falha ao excluir"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Falha ao verificar se existe"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Falha ao obter todas as linhas de descoberta"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Falha ao salvar a linha ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Falha ao atualizar último ping em"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Não foi possível contar os comandos"
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Não foi possível atualizar a preferencia"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Não é possível excluir o token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Não foi possível pegar o token com este código"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Não foi possível salvar o token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6597,10 +6561,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Não é possível obter todos os papéis."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Não foi possível remover todos os tokens de um tipo."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7680,19 +7640,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Não foi possível abrir arquivo de imagem"
+        "translation": "Não foi possível abrir arquivo de imagem."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.bot.set_bot_icon_image.app_error",
@@ -7740,11 +7700,11 @@
     },
     {
         "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado"
+        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado."
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-        "translation": "Falha ao obter metadados da URL do Provedor de Identidade"
+        "translation": "Falha ao obter metadados da URL do Provedor de Identidade."
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
@@ -7761,14 +7721,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Não é possível confirmar a transação"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Mensagens Diretas"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canais"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
@@ -7829,10 +7781,6 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Não foi possível obter canais privados."
-    },
-    {
-        "id": "sidebar.category.favorites",
-        "translation": "Favoritos"
     },
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
@@ -7945,5 +7893,21 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "O URL do site não pode ser limpo."
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": " "
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Não foi possível salvar o token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Não é possível excluir o token"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": " "
     }
 ]

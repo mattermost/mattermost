@@ -5154,30 +5154,6 @@
         "translation": "チャンネルのメンバーを更新する際にエラーが発生しました"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "ClusterDiscovery 行の保存に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "削除に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "存在確認に失敗ました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "すべての discovery 行の取得に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "ClusterDiscovery 行の保存に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "最終確認日時の更新に失敗しました"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "コマンドをカウントできませんでした"
     },
@@ -5600,18 +5576,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "設定を更新できませんでした"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "トークンを削除できません"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "このコードのトークンを取得できません"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "トークンを保存できません"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6592,10 +6556,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "全役割を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "そのタイプのすべてのトークンを削除できませんでした。"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7906,15 +7866,35 @@
         "translation": "トランザクションをコミットできませんでした"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "ダイレクトメッセージ"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "チャンネル"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "不正な進捗データのため移行に失敗しました。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "既定のカテゴリを削除できませんでした。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "データベースへレコードを挿入できませんでした。"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "データベースエラーによりマイグレーションできませんでした。"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "トークンを保存できませんでした。"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "トークンを削除できませんでした。"
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "初期サイドバーカテゴリを作成できませんでした。"
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "リクエスト内のチャンネルにユーザーが所属していません"
     }
 ]

@@ -1210,15 +1210,15 @@
     },
     {
         "id": "api.file.write_file.s3.app_error",
-        "translation": "Se encontró un error al escribir al S3"
+        "translation": "Se encontró un error al escribir al S3."
     },
     {
         "id": "api.file.write_file_locally.create_dir.app_error",
-        "translation": "Se encontró un error al crear el directorio para el nuevo archivo"
+        "translation": "Se encontró un error al crear el directorio para el nuevo archivo."
     },
     {
         "id": "api.file.write_file_locally.writing.app_error",
-        "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+        "translation": "Se encontró un error al escribir en el almacenamiento del servidor local."
     },
     {
         "id": "api.incoming_webhook.disabled.app_error",
@@ -3420,19 +3420,19 @@
     },
     {
         "id": "ent.elasticsearch.start.already_started.app_error",
-        "translation": "Elasticsearch ya fue iniciado"
+        "translation": "Elasticsearch ya fue iniciado."
     },
     {
         "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-        "translation": "No se pudo crear el procesador a granel de Elasticsearch"
+        "translation": "No se pudo crear el procesador a granel de Elasticsearch."
     },
     {
         "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-        "translation": "No se pudo iniciar procesador a granel de Elasticsearch"
+        "translation": "No se pudo iniciar procesador a granel de Elasticsearch."
     },
     {
         "id": "ent.elasticsearch.stop.already_stopped.app_error",
-        "translation": "Elasticsearch ya fue detenido"
+        "translation": "Elasticsearch ya fue detenido."
     },
     {
         "id": "ent.elasticsearch.test_config.connect_failed",
@@ -3452,7 +3452,7 @@
     },
     {
         "id": "ent.ldap.app_error",
-        "translation": "la interface de ldap es nula"
+        "translation": "La interfaz de ldap es nula."
     },
     {
         "id": "ent.ldap.create_fail",
@@ -3468,7 +3468,7 @@
     },
     {
         "id": "ent.ldap.do_login.invalid_password.app_error",
-        "translation": "Contraseña inválida"
+        "translation": "Contraseña inválida."
     },
     {
         "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -3476,7 +3476,7 @@
     },
     {
         "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-        "translation": "Nombre de usuario dado coincide con varios usuarios"
+        "translation": "Nombre de usuario dado coincide con varios usuarios."
     },
     {
         "id": "ent.ldap.do_login.search_ldap_server.app_error",
@@ -3484,7 +3484,7 @@
     },
     {
         "id": "ent.ldap.do_login.unable_to_connect.app_error",
-        "translation": "No se pudo conectar con el servidor AD/LDAP"
+        "translation": "No se pudo conectar con el servidor AD/LDAP."
     },
     {
         "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -3492,15 +3492,15 @@
     },
     {
         "id": "ent.ldap.do_login.user_not_registered.app_error",
-        "translation": "Usuario no registrado en el servidor AD/LDAP"
+        "translation": "Usuario no registrado en el servidor AD/LDAP."
     },
     {
         "id": "ent.ldap.syncronize.get_all.app_error",
-        "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP"
+        "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP."
     },
     {
         "id": "ent.ldap.syncronize.get_all_groups.app_error",
-        "translation": "error obteniendo los grupos"
+        "translation": "Error al obtener los grupos."
     },
     {
         "id": "ent.ldap.syncronize.populate_syncables",
@@ -3512,7 +3512,7 @@
     },
     {
         "id": "ent.ldap.validate_filter.app_error",
-        "translation": "Filtro de AD/LDAP inválido"
+        "translation": "Filtro de AD/LDAP inválido."
     },
     {
         "id": "ent.ldap_groups.group_search_error",
@@ -5159,30 +5159,6 @@
         "translation": "Encontramos un error actualizando el miembro del canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Falla al guardar la fila ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Fallo al borrar"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Falla al revisar si existe"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Falló al obtener toda la información de descubrimiento del cluster"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Falló al guardar la información de descubrimiento de cluster."
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Falló al actualizar la última fecha de contacto"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "No se pudo contar los comandos"
     },
@@ -5605,18 +5581,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "No se puede actualizar la preferencia"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "No se puede eliminar el token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "No se puede obtener un token con el código suministrado"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "No se pudo guardar token"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6605,10 +6569,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "No se pudo obtener todos los roles."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "No se pudo borrar todos los tokens del tipo."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7903,15 +7863,43 @@
         "translation": "No se puede perpetrar la transacción"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Mensajes Directos"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canales"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "La migración ha fallado porque hay datos erróneos de progreso."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "El canal listado en el requerimiento no pertenece al usuario."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "No se pudo eliminar el token."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "No se pudo guardar el token."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "No se pudieron crear las categorías iniciales en la barra lateral para el usuario."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Debes aceptar el Acuerdo de Evaluación del Software Mattermost y las Políticas de Privacidad para solicitar una licencia."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "No se puede eliminar la categoría no personalizada."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Ocurrió un error al insertar el registro en la base de datos."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "No se pudo obtener los canales privados."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "La Migración falló debido a un error de la base de datos."
     }
 ]

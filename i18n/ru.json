@@ -109,11 +109,11 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
@@ -1023,8 +1023,8 @@
         "id": "api.email_batching.send_batched_email_notification.body_text",
         "translation": {
             "one": "У вас есть новое уведомление.",
-            "few": "У вас {{.Count}} новых уведомления.",
-            "many": "У вас {{.Count}} новых уведомлений."
+            "few": "У вас есть {{.Count}} уведомления.",
+            "many": "У вас есть {{.Count}} уведомлений."
         }
     },
     {
@@ -1205,7 +1205,7 @@
     },
     {
         "id": "api.file.upload_file.storage.app_error",
-        "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+        "translation": "Невозможно загрузить файл. Хранилище изображений не настроено."
     },
     {
         "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1225,7 +1225,7 @@
     },
     {
         "id": "api.incoming_webhook.disabled.app_error",
-        "translation": "Входящие вебхуки отключены системным администратором."
+        "translation": "Входящие вебхуки были отключены системным администратором."
     },
     {
         "id": "api.incoming_webhook.invalid_username.app_error",
@@ -1361,7 +1361,7 @@
     },
     {
         "id": "api.oauth.register_oauth_app.turn_off.app_error",
-        "translation": "Системный администратор отключил авторизацию через OAuth2."
+        "translation": "Системный администратор отключил поставщика услуг OAuth2."
     },
     {
         "id": "api.oauth.revoke_access_token.del_session.app_error",
@@ -1429,7 +1429,7 @@
     },
     {
         "id": "api.post.create_post.town_square_read_only",
-        "translation": "Этот канал доступен только для чтения. Недостаточно прав для отправки сообщений здесь."
+        "translation": "Этот канал только для чтения. Только участники с разрешениями могут писать сюда сообщения."
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
@@ -1813,7 +1813,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -1833,7 +1833,7 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
@@ -1853,11 +1853,11 @@
     },
     {
         "id": "api.team.set_team_icon.write_file.app_error",
-        "translation": "Не удалось установить значок"
+        "translation": "Не удалось сохранить значок команды."
     },
     {
         "id": "api.team.team_icon.update.app_error",
-        "translation": "Во время создания метки произошла ошибка:"
+        "translation": "Произошла ошибка при обновлении значка команды."
     },
     {
         "id": "api.team.update_member_roles.not_a_member",
@@ -1869,7 +1869,7 @@
     },
     {
         "id": "api.team.update_team_scheme.license.error",
-        "translation": "Ваша лицензия не поддерживает изменение схемы команды."
+        "translation": "Ваша лицензия не поддерживает изменение схемы команды"
     },
     {
         "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -1937,7 +1937,7 @@
     },
     {
         "id": "api.templates.email_organization",
-        "translation": "Прислал"
+        "translation": "Прислал "
     },
     {
         "id": "api.templates.email_warning",
@@ -1965,7 +1965,7 @@
     },
     {
         "id": "api.templates.mfa_activated_body.info",
-        "translation": "Многофакторная аутентификация была добавлена ​​в вашу учетную запись на {{.SiteURL}}."
+        "translation": "Многофакторная аутентификация была добавлена в вашу учетную запись на {{.SiteURL}}."
     },
     {
         "id": "api.templates.mfa_activated_body.title",
@@ -2105,7 +2105,7 @@
     },
     {
         "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-        "translation": "MFA недоступен для данного типа аккаунта"
+        "translation": "МФА недоступна для данного типа аккаунта."
     },
     {
         "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2113,11 +2113,11 @@
     },
     {
         "id": "api.user.authorize_oauth_user.bad_response.app_error",
-        "translation": "Плохой ответ от запроса"
+        "translation": "Плохой ответ от запроса токена."
     },
     {
         "id": "api.user.authorize_oauth_user.bad_token.app_error",
-        "translation": "Плохой тип токена"
+        "translation": "Плохой тип токена."
     },
     {
         "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2125,23 +2125,23 @@
     },
     {
         "id": "api.user.authorize_oauth_user.missing.app_error",
-        "translation": "Отсутствует маркер доступа"
+        "translation": "Отсутствует токен доступа."
     },
     {
         "id": "api.user.authorize_oauth_user.response.app_error",
-        "translation": "Received invalid response from OAuth service provider"
+        "translation": "Получен неверный ответ от поставщика услуг OAuth."
     },
     {
         "id": "api.user.authorize_oauth_user.service.app_error",
-        "translation": "Маркер запроса для {{.Service}} ошибочный"
+        "translation": "Запрос токена для {{.Service}} не удался."
     },
     {
         "id": "api.user.authorize_oauth_user.token_failed.app_error",
-        "translation": "Сбой маркера запроса"
+        "translation": "Сбой запроса токена."
     },
     {
         "id": "api.user.authorize_oauth_user.unsupported.app_error",
-        "translation": "Неподдерживаемый провайдер OAuth"
+        "translation": "Неподдерживаемый провайдер услуг OAuth."
     },
     {
         "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2149,27 +2149,27 @@
     },
     {
         "id": "api.user.check_user_mfa.bad_code.app_error",
-        "translation": "Неверный MFA маркер."
+        "translation": "Неверный токен МФА."
     },
     {
         "id": "api.user.check_user_password.invalid.app_error",
-        "translation": "Ошибка входа, неверно введен пароль"
+        "translation": "Ошибка входа, неверно введен пароль."
     },
     {
         "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Пустой email"
+        "translation": "Пустой адрес электронной почты."
     },
     {
         "id": "api.user.complete_switch_with_oauth.parse.app_error",
-        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя"
+        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.create_email_token.error",
-        "translation": "Failed to create token data for email verification"
+        "translation": "Не удалось создать данные токена для проверки электронной почты"
     },
     {
         "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2177,27 +2177,27 @@
     },
     {
         "id": "api.user.create_oauth_user.create.app_error",
-        "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя"
+        "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.create_oauth_user.not_available.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.create_profile_image.default_font.app_error",
-        "translation": "Невозможно создать шрифт изображения профиля по умолчанию"
+        "translation": "Невозможно создать шрифт изображения профиля по умолчанию."
     },
     {
         "id": "api.user.create_profile_image.encode.app_error",
-        "translation": "Невозможно закодировать изображение профиля по умолчанию"
+        "translation": "Невозможно закодировать изображение профиля по умолчанию."
     },
     {
         "id": "api.user.create_profile_image.initial.app_error",
-        "translation": "Невозможно добавить инициалы пользователя к изображению профиля по умолчанию"
+        "translation": "Невозможно добавить инициалы пользователя к изображению профиля по умолчанию."
     },
     {
         "id": "api.user.create_user.accepted_domain.app_error",
-        "translation": "Предоставленный вами адрес электронной почты не относится к признанному домену. Пожалуйста, свяжитесь с администратором или зарегистрируйтесь с другим адресом электронной почты."
+        "translation": "Указанный вами адрес электронной почты не принадлежит признанному домену. Пожалуйста, свяжитесь с вашим администратором или зарегистрируйтесь с другим адресом электронной почты."
     },
     {
         "id": "api.user.create_user.disabled.app_error",
@@ -2205,7 +2205,7 @@
     },
     {
         "id": "api.user.create_user.no_open_server",
-        "translation": "Этот сервер не разрешает открытую регистрацию. Пожалуйста, поговорите с администратором для получения приглашения."
+        "translation": "Этот сервер не разрешает открытую регистрацию.  Пожалуйста, поговорите с Администратором для получения приглашения."
     },
     {
         "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2213,15 +2213,15 @@
     },
     {
         "id": "api.user.create_user.signup_link_expired.app_error",
-        "translation": "Ссылка для регистрации устарела"
+        "translation": "Ссылка для регистрации устарела."
     },
     {
         "id": "api.user.create_user.signup_link_invalid.app_error",
-        "translation": "Ссылка для регистрации, похоже, неверна."
+        "translation": "Неправильная ссылка на регистрацию."
     },
     {
         "id": "api.user.email_to_ldap.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.email_to_oauth.not_available.app_error",
@@ -2229,19 +2229,19 @@
     },
     {
         "id": "api.user.get_authorization_code.unsupported.app_error",
-        "translation": "Неподдерживаемый провайдер OAuth"
+        "translation": "Неподдерживаемый провайдер услуг OAuth."
     },
     {
         "id": "api.user.get_user_by_email.permissions.app_error",
-        "translation": "Невозможно определить пользователя по электронной почте"
+        "translation": "Невозможно определить пользователя по электронной почте."
     },
     {
         "id": "api.user.ldap_to_email.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-        "translation": "Учетная запись пользователя не использует AD/LDAP"
+        "translation": "Учетная запись пользователя не использует AD/LDAP."
     },
     {
         "id": "api.user.login.blank_pwd.app_error",
@@ -2249,15 +2249,15 @@
     },
     {
         "id": "api.user.login.bot_login_forbidden.app_error",
-        "translation": "Bot login is forbidden"
+        "translation": "Логин бота запрещен."
     },
     {
         "id": "api.user.login.client_side_cert.certificate.app_error",
-        "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата"
+        "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
     },
     {
         "id": "api.user.login.client_side_cert.license.app_error",
-        "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной enterprise-лицензии"
+        "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
     },
     {
         "id": "api.user.login.inactive.app_error",
@@ -2265,27 +2265,27 @@
     },
     {
         "id": "api.user.login.not_verified.app_error",
-        "translation": "Вход не удался, поскольку адрес электронной почты не был проверен"
+        "translation": "Вход не удался, поскольку адрес электронной почты не был проверен."
     },
     {
         "id": "api.user.login.use_auth_service.app_error",
-        "translation": "Пожалуйста войдите при помощи {{.AuthService}}"
+        "translation": "Пожалуйста войдите при помощи {{.AuthService}}."
     },
     {
         "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-        "translation": "Bot login is forbidden"
+        "translation": "Логин бота запрещен."
     },
     {
         "id": "api.user.login_by_oauth.not_available.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.login_by_oauth.parse.app_error",
-        "translation": "Невозможно разобрать данные авторизации из {{.Service}} объекта пользователя"
+        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.login_ldap.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.oauth_to_email.context.app_error",
@@ -5164,30 +5164,6 @@
         "translation": "Возникла ошибка при обновлении участника канала"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Failed to delete"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Не удалось проверить существование"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Failed to get all discovery rows"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Failed to update last ping at"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Не удалось удалить плагин"
     },
@@ -5610,18 +5586,6 @@
     {
         "id": "store.sql_preference.update.app_error",
         "translation": "Unable to update the preference"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Unable to get a token with this code"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Не удалось удалить плагин"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -6381,11 +6345,11 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -7328,10 +7292,6 @@
         "translation": "Невозможно получить сообщение в течение определенного времени."
     },
     {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Не удалось удалить все токены указанного типа."
-    },
-    {
         "id": "store.sql_session.update_expired_notify.app_error",
         "translation": "Не удалось обновить expired_notify."
     },
@@ -7920,15 +7880,39 @@
         "translation": "Не удалось зафиксировать транзакцию"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Личные сообщения"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Каналы"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "Migration failed due to invalid progress data."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "Невозможно удалить ненастраиваемую категорию."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Не удалось вставить запись в базу данных."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Невозможно получить приватные каналы."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "Миграция не удалась из-за ошибки базы данных."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Не получилось сохранить токен."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Не получилось удалить токен."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "Невозможно создать начальные категории боковой панели для пользователя."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "Канал, указанный в запросе, не принадлежит пользователю"
     }
 ]
