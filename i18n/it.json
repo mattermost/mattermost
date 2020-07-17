@@ -7865,5 +7865,41 @@
     {
         "id": "app.reaction.bulk_get_for_post_ids.app_error",
         "translation": "Impossibile ottenere le reazioni per la pubblicazione"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "Impossibile eliminare una categoria non personalizzata."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Impossibile inserire la riga nel database."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Impossibile ottenere i canali privati."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "Migrazione fallita a causa di un errore sul database."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Impossibile salvare il token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Impossibile cancellare il token."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "Impossibile creare le categorie iniziali della barra di stato per l'utente."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "Il canale elencato nella richiesta non appartiene all'utente"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Devi accettare l'Accordo di Valutazione del Software Mattermost e la Politica sulla Privacy per richiedere la licenza."
     }
 ]
