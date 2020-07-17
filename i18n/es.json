@@ -1394,15 +1394,15 @@
     },
     {
         "id": "api.file.write_file.s3.app_error",
-        "translation": "Se encontró un error al escribir al S3"
+        "translation": "Se encontró un error al escribir al S3."
     },
     {
         "id": "api.file.write_file_locally.create_dir.app_error",
-        "translation": "Se encontró un error al crear el directorio para el nuevo archivo"
+        "translation": "Se encontró un error al crear el directorio para el nuevo archivo."
     },
     {
         "id": "api.file.write_file_locally.writing.app_error",
-        "translation": "Se encontró un error al escribir en el almacenamiento del servidor local"
+        "translation": "Se encontró un error al escribir en el almacenamiento del servidor local."
     },
     {
         "id": "api.image.get.app_error",
@@ -4212,11 +4212,11 @@
     },
     {
         "id": "ent.elasticsearch.start.already_started.app_error",
-        "translation": "Elasticsearch ya fue iniciado"
+        "translation": "Elasticsearch ya fue iniciado."
     },
     {
         "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-        "translation": "No se pudo crear el procesador a granel de Elasticsearch"
+        "translation": "No se pudo crear el procesador a granel de Elasticsearch."
     },
     {
         "id": "ent.elasticsearch.start.get_server_version.app_error",
@@ -4228,11 +4228,11 @@
     },
     {
         "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-        "translation": "No se pudo iniciar procesador a granel de Elasticsearch"
+        "translation": "No se pudo iniciar procesador a granel de Elasticsearch."
     },
     {
         "id": "ent.elasticsearch.stop.already_stopped.app_error",
-        "translation": "Elasticsearch ya fue detenido"
+        "translation": "Elasticsearch ya fue detenido."
     },
     {
         "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4256,7 +4256,7 @@
     },
     {
         "id": "ent.ldap.app_error",
-        "translation": "la interface de ldap es nula"
+        "translation": "La interfaz de ldap es nula."
     },
     {
         "id": "ent.ldap.create_fail",
@@ -4272,7 +4272,7 @@
     },
     {
         "id": "ent.ldap.do_login.invalid_password.app_error",
-        "translation": "Contraseña inválida"
+        "translation": "Contraseña inválida."
     },
     {
         "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -4280,7 +4280,7 @@
     },
     {
         "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-        "translation": "Nombre de usuario dado coincide con varios usuarios"
+        "translation": "Nombre de usuario dado coincide con varios usuarios."
     },
     {
         "id": "ent.ldap.do_login.search_ldap_server.app_error",
@@ -4288,7 +4288,7 @@
     },
     {
         "id": "ent.ldap.do_login.unable_to_connect.app_error",
-        "translation": "No se pudo conectar con el servidor AD/LDAP"
+        "translation": "No se pudo conectar con el servidor AD/LDAP."
     },
     {
         "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -4296,7 +4296,7 @@
     },
     {
         "id": "ent.ldap.do_login.user_not_registered.app_error",
-        "translation": "Usuario no registrado en el servidor AD/LDAP"
+        "translation": "Usuario no registrado en el servidor AD/LDAP."
     },
     {
         "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -4304,11 +4304,11 @@
     },
     {
         "id": "ent.ldap.syncronize.get_all.app_error",
-        "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP"
+        "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP."
     },
     {
         "id": "ent.ldap.syncronize.get_all_groups.app_error",
-        "translation": "error obteniendo los grupos"
+        "translation": "Error al obtener los grupos."
     },
     {
         "id": "ent.ldap.syncronize.populate_syncables",
@@ -4328,7 +4328,7 @@
     },
     {
         "id": "ent.ldap.validate_filter.app_error",
-        "translation": "Filtro de AD/LDAP inválido"
+        "translation": "Filtro de AD/LDAP inválido."
     },
     {
         "id": "ent.ldap.validate_guest_filter.app_error",
@@ -7969,5 +7969,9 @@
     {
         "id": "api.license.request_trial_license.no-site-url.app_error",
         "translation": "No se puede solicitar una licencia de prueba. Configure una URL del sitio en la sección del servidor web de la consola del sistema de Mattermost."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Debes aceptar el Acuerdo de Evaluación del Software Mattermost y las Políticas de Privacidad para solicitar una licencia."
     }
 ]
