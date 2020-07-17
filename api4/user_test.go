@@ -256,7 +256,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		_, resp := th.Client.CreateUserWithToken(&user, "wrong")
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
 
@@ -5073,5 +5073,31 @@ func TestPublishUserTyping(t *testing.T) {
 		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
 		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
 		CheckServiceUnavailableStatus(t, resp)
+	})
+}
+
+func TestConvertUserToBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, resp := th.Client.ConvertUserToBot(th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, bot)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Username: GenerateTestUsername(), Password: "password"}
+
+		ruser, resp := client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		bot, resp = client.ConvertUserToBot(ruser.Id)
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
+		require.Equal(t, bot.UserId, ruser.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
 	})
 }

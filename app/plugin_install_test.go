@@ -65,7 +65,7 @@ func (b byBundleInfoId) Less(i, j int) bool { return b[i].Manifest.Id < b[j].Man
 
 func TestInstallPluginLocally(t *testing.T) {
 	t.Run("invalid tar", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		actualManifest, appErr := th.App.installPluginLocally(&nilReadSeeker{}, nil, installPluginLocallyOnlyIfNew)
@@ -75,7 +75,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	})
 
 	t.Run("missing manifest", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		reader := makeInMemoryGzipTarFile(t, []testFile{
@@ -108,7 +108,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	}
 
 	t.Run("invalid plugin id", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		actualManifest, appErr := installPlugin(t, th, "invalid#plugin#id", "version", installPluginLocallyOnlyIfNew)
@@ -149,7 +149,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	}
 
 	t.Run("no plugins already installed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
@@ -161,7 +161,7 @@ func TestInstallPluginLocally(t *testing.T) {
 	})
 
 	t.Run("different plugin already installed", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		cleanExistingBundles(t, th)
 
@@ -178,7 +178,7 @@ func TestInstallPluginLocally(t *testing.T) {
 
 	t.Run("same plugin already installed", func(t *testing.T) {
 		t.Run("install only if new", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -195,7 +195,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, but older", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -211,7 +211,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, but same version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -227,7 +227,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install if upgrade, newer version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 
@@ -243,7 +243,7 @@ func TestInstallPluginLocally(t *testing.T) {
 		})
 
 		t.Run("install always, old version", func(t *testing.T) {
-			th := Setup(t).InitBasic()
+			th := Setup(t)
 			defer th.TearDown()
 			cleanExistingBundles(t, th)
 

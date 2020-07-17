@@ -2373,6 +2373,15 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 
 		if len(teamMembers) != len(*channelMembers) {
+			teamMembersMap := make(map[string]*model.TeamMember, len(teamMembers))
+			for _, teamMember := range teamMembers {
+				teamMembersMap[teamMember.UserId] = teamMember
+			}
+			for _, channelMember := range *channelMembers {
+				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
+					mlog.Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+				}
+			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
 		}
 	}
@@ -2427,7 +2436,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 	}
 
-	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
+	if err := a.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
@@ -2457,7 +2466,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 	return nil
 }
 
-func (a *App) removeUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {
 		return err
@@ -2603,8 +2612,8 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	}
 }
 
-func (a *App) createInitialSidebarCategories(user *model.User, team *model.Team) *model.AppError {
-	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(user, team.Id)
+func (a *App) createInitialSidebarCategories(userId, teamId string) *model.AppError {
+	nErr := a.Srv().Store.Channel().CreateInitialSidebarCategories(userId, teamId)
 
 	if nErr != nil {
 		return model.NewAppError("createInitialSidebarCategories", "app.channel.create_initial_sidebar_categories.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
@@ -2614,7 +2623,45 @@ func (a *App) createInitialSidebarCategories(user *model.User, team *model.Team)
 }
 
 func (a *App) GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
-	return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+	categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+
+	if len(categories.Categories) == 0 && err == nil {
+		// A user must always have categories, so migration must not have happened yet, and we should run it ourselves
+		nErr := a.createInitialSidebarCategories(userId, teamId)
+		if nErr != nil {
+			return nil, nErr
+		}
+
+		categories, err = a.waitForSidebarCategories(userId, teamId)
+	}
+
+	return categories, err
+}
+
+// waitForSidebarCategories is used to get a user's sidebar categories after they've been created since there may be
+// replication lag if any database replicas exist. It will wait until results are available to return them.
+func (a *App) waitForSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+	if len(a.Config().SqlSettings.DataSourceReplicas) == 0 {
+		// The categories should be available immediately on a single database
+		return a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+	}
+
+	now := model.GetMillis()
+
+	for model.GetMillis()-now < 12000 {
+		time.Sleep(100 * time.Millisecond)
+
+		categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
+
+		if err != nil || len(categories.Categories) > 0 {
+			// We've found something, so return
+			return categories, err
+		}
+	}
+
+	mlog.Error("waitForSidebarCategories giving up", mlog.String("user_id", userId), mlog.String("team_id", teamId))
+
+	return &model.OrderedSidebarCategories{}, nil
 }
 
 func (a *App) GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError) {

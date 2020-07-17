@@ -653,7 +653,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return err
 	}
 
-	if err := a.createInitialSidebarCategories(user, team); err != nil {
+	if err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
 		mlog.Error(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -1384,7 +1384,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteTeam", "app.team.permanentdeleteteam.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Team().PermanentDelete(team.Id); err != nil {

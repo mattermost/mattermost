@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -26,7 +26,7 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -40,7 +40,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 }
 
 func TestGetGroupsByType(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	th.CreateGroup()
 	th.CreateGroup()
@@ -56,7 +56,7 @@ func TestGetGroupsByType(t *testing.T) {
 }
 
 func TestCreateGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -77,7 +77,7 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestUpdateGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
@@ -88,7 +88,7 @@ func TestUpdateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -338,7 +338,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
