@@ -479,16 +479,16 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	if err := s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 	}
 
 	return nil
@@ -507,7 +507,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	var existingTypes []model.SidebarCategoryType
 	_, err := transaction.Select(&existingTypes, selectQuery, selectParams...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to select existing categories")
 	}
 
 	hasCategoryOfType := func(categoryType model.SidebarCategoryType) bool {
@@ -530,7 +530,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderFavorites,
 			Type:        model.SidebarCategoryFavorites,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert favorites category")
 		}
 	}
 
@@ -544,7 +544,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderChannels,
 			Type:        model.SidebarCategoryChannels,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert channels category")
 		}
 	}
 
@@ -558,7 +558,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderDMs,
 			Type:        model.SidebarCategoryDirectMessages,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert direct messages category")
 		}
 	}
 
@@ -3953,7 +3953,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -3965,16 +3965,20 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 		// if new preference is false - remove the channel from the appropriate sidebar category
 		if preference.Value == "false" {
 			if err := s.removeSidebarEntriesForPreferenceT(transaction, &preference); err != nil {
-				return err
+				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: removeSidebarEntriesForPreferenceT")
 			}
 		} else {
 			if err := s.addChannelToFavoritesCategory(transaction, &preference); err != nil {
-				return err
+				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: addChannelToFavoritesCategory")
 			}
 		}
 	}
 
-	return transaction.Commit()
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: commit_transaction")
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Transaction, preference *model.Preference) error {
@@ -3999,9 +4003,9 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Tr
 			JOIN
 				SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
 			WHERE
-				UserId = :UserId
-				AND ChannelId = :ChannelId
-				AND Type = :CategoryType`
+				SidebarChannels.UserId = :UserId
+				AND SidebarChannels.ChannelId = :ChannelId
+				AND SidebarCategories.Type = :CategoryType`
 	} else {
 		query = `
 			DELETE FROM
@@ -4101,7 +4105,7 @@ func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transac
 func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
@@ -4111,13 +4115,14 @@ func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.P
 		}
 
 		if err := s.removeSidebarEntriesForPreferenceT(transaction, &preference); err != nil {
-			return err
+			return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: removeSidebarEntriesForPreferenceT")
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return err
+		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: commit_transaction")
 	}
+
 	return nil
 }
 

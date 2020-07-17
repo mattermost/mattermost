@@ -54,7 +54,7 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 	}
 
 	if err := a.Srv().Store.Channel().UpdateSidebarChannelsByPreferences(&preferences); err != nil {
-		return model.NewAppError("DeletePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("UpdatePreferences", "api.preference.update_preferences.update_sidebar.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, "", "", userId, nil)
