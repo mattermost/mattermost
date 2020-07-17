@@ -149,15 +149,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Пустой массив 'изображения' в запросе"
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Нет файла 'изображения' в запросе"
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Невозможно обработать форму из нескольких частей"
+        "translation": "Не удалось разобрать составную форму."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -185,19 +185,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Пустой массив 'изображения' в запросе"
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Нет файла 'изображения' в запросе"
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Не могу открыть файл изображения"
+        "translation": "Не удалось открыть файл изображения."
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Невозможно обработать форму из нескольких частей"
+        "translation": "Не удалось разобрать составную форму."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -309,7 +309,7 @@
     },
     {
         "id": "api.channel.join_channel.permissions.app_error",
-        "translation": "У вас нет соответствующих прав"
+        "translation": "У вас нет соответствующих прав."
     },
     {
         "id": "api.channel.join_channel.post_and_forget",
@@ -945,7 +945,7 @@
     },
     {
         "id": "api.command_msg.missing.app_error",
-        "translation": "Не удалось удалить плагин"
+        "translation": "Пользователь не найден."
     },
     {
         "id": "api.command_msg.name",
@@ -1129,7 +1129,7 @@
     },
     {
         "id": "api.context.invalid_param.app_error",
-        "translation": "Недопустимый параметр {{.Name}}"
+        "translation": "Неверный параметр {{.Name}}."
     },
     {
         "id": "api.context.invalid_token.error",
@@ -1149,7 +1149,7 @@
     },
     {
         "id": "api.context.permissions.app_error",
-        "translation": "У вас нет соответствующих прав"
+        "translation": "У вас нет соответствующих прав."
     },
     {
         "id": "api.context.server_busy.app_error",
@@ -1221,7 +1221,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "Неверный идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя."
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -1301,7 +1301,7 @@
     },
     {
         "id": "api.file.get_public_link.disabled.app_error",
-        "translation": "Публичные ссылки отключены"
+        "translation": "Публичные ссылки отключены."
     },
     {
         "id": "api.file.get_public_link.no_post.app_error",
@@ -1417,7 +1417,7 @@
     },
     {
         "id": "api.incoming_webhook.invalid_username.app_error",
-        "translation": "Неверное имя пользователя"
+        "translation": "Неверное имя пользователя."
     },
     {
         "id": "api.io_error",
@@ -2037,7 +2037,7 @@
     },
     {
         "id": "api.team.import_team.parse.app_error",
-        "translation": "Невозможно обработать форму из нескольких частей"
+        "translation": "Не удалось разобрать составную форму."
     },
     {
         "id": "api.team.import_team.unavailable.app_error",
@@ -2125,7 +2125,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "Пустой массив 'изображения' в запросе"
+        "translation": "Пустой массив 'изображения' в запросе."
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -2145,15 +2145,15 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Нет файла 'изображения' в запросе"
+        "translation": "Нет файла 'изображения' в запросе."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
-        "translation": "Не могу открыть файл изображения"
+        "translation": "Не удалось открыть файл изображения."
     },
     {
         "id": "api.team.set_team_icon.parse.app_error",
-        "translation": "Невозможно обработать форму из нескольких частей"
+        "translation": "Не удалось разобрать составную форму."
     },
     {
         "id": "api.team.set_team_icon.storage.app_error",
@@ -2525,15 +2525,15 @@
     },
     {
         "id": "api.user.create_profile_image.default_font.app_error",
-        "translation": "Невозможно создать шрифт изображения профиля по умолчанию"
+        "translation": "Невозможно создать шрифт изображения профиля по умолчанию."
     },
     {
         "id": "api.user.create_profile_image.encode.app_error",
-        "translation": "Невозможно закодировать изображение профиля по умолчанию"
+        "translation": "Невозможно закодировать изображение профиля по умолчанию."
     },
     {
         "id": "api.user.create_profile_image.initial.app_error",
-        "translation": "Невозможно добавить инициалы пользователя к изображению профиля по умолчанию"
+        "translation": "Невозможно добавить инициалы пользователя к изображению профиля по умолчанию."
     },
     {
         "id": "api.user.create_user.accepted_domain.app_error",
@@ -2577,7 +2577,7 @@
     },
     {
         "id": "api.user.email_to_ldap.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.email_to_oauth.not_available.app_error",
@@ -2589,15 +2589,15 @@
     },
     {
         "id": "api.user.get_user_by_email.permissions.app_error",
-        "translation": "Невозможно определить пользователя по электронной почте"
+        "translation": "Невозможно определить пользователя по электронной почте."
     },
     {
         "id": "api.user.ldap_to_email.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-        "translation": "Учетная запись пользователя не использует AD/LDAP"
+        "translation": "Учетная запись пользователя не использует AD/LDAP."
     },
     {
         "id": "api.user.login.blank_pwd.app_error",
@@ -2605,15 +2605,15 @@
     },
     {
         "id": "api.user.login.bot_login_forbidden.app_error",
-        "translation": "Bot login is forbidden"
+        "translation": "Логин бота запрещен."
     },
     {
         "id": "api.user.login.client_side_cert.certificate.app_error",
-        "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата"
+        "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
     },
     {
         "id": "api.user.login.client_side_cert.license.app_error",
-        "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной enterprise-лицензии"
+        "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
     },
     {
         "id": "api.user.login.guest_accounts.disabled.error",
@@ -2645,15 +2645,15 @@
     },
     {
         "id": "api.user.login.not_verified.app_error",
-        "translation": "Вход не удался, поскольку адрес электронной почты не был проверен"
+        "translation": "Вход не удался, поскольку адрес электронной почты не был проверен."
     },
     {
         "id": "api.user.login.use_auth_service.app_error",
-        "translation": "Пожалуйста войдите при помощи {{.AuthService}}"
+        "translation": "Пожалуйста войдите при помощи {{.AuthService}}."
     },
     {
         "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-        "translation": "Bot login is forbidden"
+        "translation": "Логин бота запрещен."
     },
     {
         "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2665,7 +2665,7 @@
     },
     {
         "id": "api.user.login_ldap.not_available.app_error",
-        "translation": "AD/LDAP недоступен на этом сервере"
+        "translation": "AD/LDAP недоступен на этом сервере."
     },
     {
         "id": "api.user.oauth_to_email.context.app_error",
