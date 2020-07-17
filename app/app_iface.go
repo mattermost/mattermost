@@ -61,6 +61,8 @@ type AppIface interface {
 	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError)
 	// ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	ClientConfigWithComputed() map[string]string
+	// ConvertBotToUser converts a bot to user.
+	ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError)
 	// ConvertUserToBot converts a user to bot.
 	ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError)
 	// CreateBot creates the given bot and corresponding user.
@@ -157,6 +159,8 @@ type AppIface interface {
 	GetEmojiStaticUrl(emojiName string) (string, *model.AppError)
 	// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
 	GetEnvironmentConfig() map[string]interface{}
+	// GetFilteredUsersStats is used to get a count of users based on the set of filters supported by UserCountOptions.
+	GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError)
 	// GetGroupsByTeam returns the paged list and the total count of group associated to the given team.
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.AppError)
 	// GetKnownUsers returns the list of user ids of users with any direct
@@ -746,6 +750,7 @@ type AppIface interface {
 	MaxPostSize() int
 	MessageExport() einterfaces.MessageExportInterface
 	Metrics() einterfaces.MetricsInterface
+	MigrateIdLDAP(toAttribute string) *model.AppError
 	MoveCommand(team *model.Team, command *model.Command) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	NewClusterDiscoveryService() *ClusterDiscoveryService
@@ -804,6 +809,7 @@ type AppIface interface {
 	RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError
 	RemoveUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
+	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestId() string
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
