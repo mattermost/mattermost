@@ -89,19 +89,19 @@ type WarnMetric struct {
 var WarnMetricsTable = map[string]WarnMetric{
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200,
-		Limit:     1, //25 CITOMAI
+		Limit:     200,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400,
-		Limit:     1, //50 CITOMAI
+		Limit:     400,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
-		Limit:     1, //500 CITOMAI
+		Limit:     500,
 		IsBotOnly: false,
 		IsRunOnce: false,
 	},

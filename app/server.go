@@ -1107,7 +1107,7 @@ func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
 		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
 		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
-	}, time.Minute*2) //Hour*24CITOMAI
+	}, time.Hour*24)
 }
 
 func doSecurity(s *Server) {
