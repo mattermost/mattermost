@@ -81,15 +81,15 @@
     },
     {
         "id": "api.admin.remove_certificate.delete.app_error",
-        "translation": "Ocorreu um erro ao deletar o App OAuth2"
+        "translation": "Ocorreu um erro ao excluir o certificado."
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-        "translation": "Falha ao obter metadados da URL do Provedor de Identidade"
+        "translation": "Falha ao obter metadados da URL do Provedor de Identidade."
     },
     {
         "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado"
+        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado."
     },
     {
         "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -149,15 +149,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -185,19 +185,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Não foi possível abrir arquivo de imagem"
+        "translation": "Não foi possível abrir arquivo de imagem."
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -225,7 +225,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Não foi possível adicionar o usuário no canal"
+        "translation": "Não foi possível adicionar o usuário no canal."
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -233,7 +233,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Não foi possível adicionar usuário para este tipo de canal"
+        "translation": "Não foi possível adicionar usuário para este tipo de canal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -249,7 +249,7 @@
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
-        "translation": "Esse canal padrão não pode ser convertido em um canal privado."
+        "translation": "Este canal padrão não pode ser convertido em um canal privado."
     },
     {
         "id": "api.channel.convert_channel_to_private.private_channel_error",
@@ -2140,7 +2140,7 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
@@ -2800,11 +2800,11 @@
     },
     {
         "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.user.upload_profile_user.decode.app_error",
-        "translation": "Não foi possível decodificar a imagem do perfil"
+        "translation": "Não foi possível decodificar a imagem do perfil."
     },
     {
         "id": "api.user.upload_profile_user.decode_config.app_error",
