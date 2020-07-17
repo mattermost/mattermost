@@ -773,45 +773,52 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
-		team, _ = client.CreateTeam(team)
+	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
 
-		enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
+	t.Run("Permanent deletion not available through API if EnableAPITeamDeletion is not set", func(t *testing.T) {
+		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+		team, _ = th.Client.CreateTeam(team)
+
+		_, resp := th.Client.PermanentDeleteTeam(team.Id)
+		CheckUnauthorizedStatus(t, resp)
+
+		_, resp = th.SystemAdminClient.PermanentDeleteTeam(team.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPITeamDeletion is not set", func(t *testing.T) {
+		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+		team, _ = th.Client.CreateTeam(team)
+
+		ok, resp := th.LocalClient.PermanentDeleteTeam(team.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		defer func() {
 			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPITeamDeletion = &enableAPITeamDeletion })
 		}()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
 
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = false })
-
-		// Does not error when deletion is disabled, just soft deletes
+		team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+		team, _ = client.CreateTeam(team)
 		ok, resp := client.PermanentDeleteTeam(team.Id)
 		CheckNoError(t, resp)
 		assert.True(t, ok)
 
-		rteam, err := th.App.GetTeam(team.Id)
-		assert.Nil(t, err)
-		assert.True(t, rteam.DeleteAt > 0)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITeamDeletion = true })
-
-		ok, resp = client.PermanentDeleteTeam(team.Id)
-		CheckNoError(t, resp)
-		assert.True(t, ok)
-
-		_, err = th.App.GetTeam(team.Id)
+		_, err := th.App.GetTeam(team.Id)
 		assert.NotNil(t, err)
 
 		ok, resp = client.PermanentDeleteTeam("junk")
 		CheckBadRequestStatus(t, resp)
 
 		require.False(t, ok, "should have returned false")
-	})
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.PermanentDeleteTeam(th.BasicTeam.Id)
-		CheckNoError(t, resp)
-	})
+	}, "Permanent deletion with EnableAPITeamDeletion set")
 }
 
 func TestGetAllTeams(t *testing.T) {
