@@ -9,8 +9,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/user"
 	"runtime"
+	"strconv"
 	"sync/atomic"
+	"syscall"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -22,6 +25,38 @@ var upgrading int32
 type writeCounter struct {
 	total  int64
 	readed int64
+}
+
+// ErrNotFound indicates that a resource was not found
+type InvalidPermissions struct {
+	ErrType            string
+	Path               string
+	FileUsername       string
+	MattermostUsername string
+}
+
+func NewInvalidPermissions(errType string, path string, mattermostUsername string, fileUsername string) *InvalidPermissions {
+	return &InvalidPermissions{
+		ErrType:            errType,
+		Path:               path,
+		FileUsername:       fileUsername,
+		MattermostUsername: mattermostUsername,
+	}
+}
+
+func (e *InvalidPermissions) Error() string {
+	return fmt.Sprintf("the user %s is unable to update the %s file", e.MattermostUsername, e.Path)
+}
+
+// ErrNotFound indicates that a resource was not found
+type InvalidArch struct{}
+
+func NewInvalidArch() *InvalidArch {
+	return &InvalidArch{}
+}
+
+func (e *InvalidArch) Error() string {
+	return fmt.Sprintf("invalid operating system or processor architecture")
 }
 
 func (wc *writeCounter) Write(p []byte) (int, error) {
@@ -42,14 +77,55 @@ func getCurrentVersionTgzUrl() string {
 	return "https://releases.mattermost.com/" + model.CurrentVersion + "/mattermost-" + model.CurrentVersion + "-linux-amd64.tar.gz"
 }
 
-func canIUpgrade() error {
-	if runtime.GOARCH != "amd64" {
-		return errors.New("Upgrades only supported for amd64 architectures.")
+func canIWriteTheExecutable() error {
+	executablePath, err := os.Executable()
+	if err != nil {
+		return errors.New("error getting the executable path")
 	}
-	if runtime.GOOS != "linux" {
-		return errors.New("Upgrades only supported for linux operating systems.")
+	fmt.Println(executablePath)
+	executableInfo, err := os.Stat(executablePath)
+	if err != nil {
+		return errors.New("error getting the executable info")
+	}
+	stat, ok := executableInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return errors.New("error getting the executable info")
+	}
+	fileUID := int(stat.Uid)
+	fileUser, err := user.LookupId(strconv.Itoa(fileUID))
+	if err != nil {
+		return errors.New("error getting the executable info")
+	}
+
+	mattermostUID := os.Getuid()
+	mattermostUser, err := user.LookupId(strconv.Itoa(mattermostUID))
+	if err != nil {
+		return errors.New("error getting the executable info")
+	}
+
+	mode := executableInfo.Mode()
+	if fileUID != mattermostUID && mode&(1<<1) == 0 && mode&(1<<7) == 0 {
+		return NewInvalidPermissions("invalid-user-and-permission", executablePath, mattermostUser.Username, fileUser.Username)
+	}
+
+	if fileUID != mattermostUID && mode&(1<<1) == 0 && mode&(1<<7) != 0 {
+		return NewInvalidPermissions("invalid-user", executablePath, mattermostUser.Username, fileUser.Username)
+	}
+
+	if fileUID == mattermostUID && mode&(1<<7) == 0 {
+		return NewInvalidPermissions("invalid-permission", executablePath, mattermostUser.Username, fileUser.Username)
 	}
 	return nil
+}
+
+func canIUpgrade() error {
+	if runtime.GOARCH != "amd64" {
+		return NewInvalidArch()
+	}
+	if runtime.GOOS != "linux" {
+		return NewInvalidArch()
+	}
+	return canIWriteTheExecutable()
 }
 
 func CanIUpgradeToE0() error {

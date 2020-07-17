@@ -2495,6 +2495,22 @@
     "translation": "There is an upgrade to enterprise already running, only one upgrade is possible at the same time."
   },
   {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "The system wasn't able to upgrade to enterprise."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Unable to write the executable file.\n\nPlease give permissions to the {{.MattermostUsername}} user to write the file {{.Path}}. To do that, you can execute the commands:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n Remember to restore your previous existing permissions after the upgrade is complete executing:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Unable to write the executable file.\n\nPlease give permissions to the {{.MattermostUsername}} user to write the file {{.Path}}. To do that, you can execute the commands:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\n Remember to restore your previous existing permissions after the upgrade is complete executing:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Unable to write the executable file.\n\nPlease give permissions to the {{.MattermostUsername}} user to write the file {{.Path}}. To do that, you can execute the commands:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\n Remember to restore your previous existing permissions after the upgrade is complete executing:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
     "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
     "translation": "The system wasn't able to upgrade to enterprise, this feature is only available for linux-amd64 systems."
   },

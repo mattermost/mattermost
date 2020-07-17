@@ -13,11 +13,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 )
 
 const (
@@ -574,7 +577,27 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.Srv().CanIUpgradeToE0(); err != nil {
-		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusNotImplemented)
+		var ipErr *upgrader.InvalidPermissions
+		var iaErr *upgrader.InvalidArch
+		switch {
+		case errors.As(err, &ipErr):
+			params := map[string]interface{}{
+				"MattermostUsername": ipErr.MattermostUsername,
+				"FileUsername":       ipErr.FileUsername,
+				"Path":               ipErr.Path,
+			}
+			if ipErr.ErrType == "invalid-user-and-permission" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user-and-permission.app_error", params, err.Error(), http.StatusNotImplemented)
+			} else if ipErr.ErrType == "invalid-user" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user.app_error", params, err.Error(), http.StatusNotImplemented)
+			} else if ipErr.ErrType == "invalid-permission" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-permission.app_error", params, err.Error(), http.StatusNotImplemented)
+			}
+		case errors.As(err, &iaErr):
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusNotImplemented)
+		default:
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.generic_error.app_error", nil, err.Error(), http.StatusNotImplemented)
+		}
 		return
 	}
 
