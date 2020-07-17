@@ -149,15 +149,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе"
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе"
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Не удалось разобрать составную форму."
+        "translation": "Невозможно обработать форму из нескольких частей"
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -185,19 +185,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе"
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе"
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Не удалось открыть файл изображения."
+        "translation": "Не могу открыть файл изображения"
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Не удалось разобрать составную форму."
+        "translation": "Невозможно обработать форму из нескольких частей"
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -309,7 +309,7 @@
     },
     {
         "id": "api.channel.join_channel.permissions.app_error",
-        "translation": "У вас нет соответствующих прав."
+        "translation": "У вас нет соответствующих прав"
     },
     {
         "id": "api.channel.join_channel.post_and_forget",
@@ -1129,7 +1129,7 @@
     },
     {
         "id": "api.context.invalid_param.app_error",
-        "translation": "Неверный параметр {{.Name}}."
+        "translation": "Недопустимый параметр {{.Name}}"
     },
     {
         "id": "api.context.invalid_token.error",
@@ -1149,7 +1149,7 @@
     },
     {
         "id": "api.context.permissions.app_error",
-        "translation": "У вас нет соответствующих прав."
+        "translation": "У вас нет соответствующих прав"
     },
     {
         "id": "api.context.server_busy.app_error",
@@ -1221,7 +1221,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -1389,7 +1389,7 @@
     },
     {
         "id": "api.file.upload_file.storage.app_error",
-        "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+        "translation": "Невозможно загрузить файл. Хранилище изображений не настроено."
     },
     {
         "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -2037,7 +2037,7 @@
     },
     {
         "id": "api.team.import_team.parse.app_error",
-        "translation": "Не удалось разобрать составную форму."
+        "translation": "Невозможно обработать форму из нескольких частей"
     },
     {
         "id": "api.team.import_team.unavailable.app_error",
@@ -2125,7 +2125,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе"
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -2145,15 +2145,15 @@
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе"
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
-        "translation": "Не удалось открыть файл изображения."
+        "translation": "Не могу открыть файл изображения"
     },
     {
         "id": "api.team.set_team_icon.parse.app_error",
-        "translation": "Не удалось разобрать составную форму."
+        "translation": "Невозможно обработать форму из нескольких частей"
     },
     {
         "id": "api.team.set_team_icon.storage.app_error",
@@ -2165,11 +2165,11 @@
     },
     {
         "id": "api.team.set_team_icon.write_file.app_error",
-        "translation": "Не удалось установить значок"
+        "translation": "Не удалось сохранить значок команды."
     },
     {
         "id": "api.team.team_icon.update.app_error",
-        "translation": "Во время создания метки произошла ошибка:"
+        "translation": "Произошла ошибка при обновлении значка команды."
     },
     {
         "id": "api.team.update_member_roles.not_a_member",
@@ -2185,7 +2185,7 @@
     },
     {
         "id": "api.team.update_team_scheme.license.error",
-        "translation": "Ваша лицензия не поддерживает изменение схемы команды."
+        "translation": "Ваша лицензия не поддерживает изменение схемы команды"
     },
     {
         "id": "api.team.update_team_scheme.scheme_scope.error",
@@ -2253,7 +2253,7 @@
     },
     {
         "id": "api.templates.email_organization",
-        "translation": "Прислал"
+        "translation": "Прислал "
     },
     {
         "id": "api.templates.email_warning",
@@ -2289,7 +2289,7 @@
     },
     {
         "id": "api.templates.mfa_activated_body.info",
-        "translation": "Многофакторная аутентификация была добавлена ​​в вашу учетную запись на {{.SiteURL}}."
+        "translation": "Многофакторная аутентификация была добавлена в вашу учетную запись на {{.SiteURL}}."
     },
     {
         "id": "api.templates.mfa_activated_body.title",
@@ -2441,7 +2441,7 @@
     },
     {
         "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-        "translation": "MFA недоступен для данного типа аккаунта"
+        "translation": "МФА недоступна для данного типа аккаунта."
     },
     {
         "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2449,11 +2449,11 @@
     },
     {
         "id": "api.user.authorize_oauth_user.bad_response.app_error",
-        "translation": "Плохой ответ от запроса"
+        "translation": "Плохой ответ от запроса токена."
     },
     {
         "id": "api.user.authorize_oauth_user.bad_token.app_error",
-        "translation": "Плохой тип токена"
+        "translation": "Плохой тип токена."
     },
     {
         "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2461,23 +2461,23 @@
     },
     {
         "id": "api.user.authorize_oauth_user.missing.app_error",
-        "translation": "Отсутствует маркер доступа"
+        "translation": "Отсутствует токен доступа."
     },
     {
         "id": "api.user.authorize_oauth_user.response.app_error",
-        "translation": "Received invalid response from OAuth service provider"
+        "translation": "Получен неверный ответ от поставщика услуг OAuth."
     },
     {
         "id": "api.user.authorize_oauth_user.service.app_error",
-        "translation": "Маркер запроса для {{.Service}} ошибочный"
+        "translation": "Запрос токена для {{.Service}} не удался."
     },
     {
         "id": "api.user.authorize_oauth_user.token_failed.app_error",
-        "translation": "Сбой маркера запроса"
+        "translation": "Сбой запроса токена."
     },
     {
         "id": "api.user.authorize_oauth_user.unsupported.app_error",
-        "translation": "Неподдерживаемый провайдер OAuth"
+        "translation": "Неподдерживаемый провайдер услуг OAuth."
     },
     {
         "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2485,27 +2485,27 @@
     },
     {
         "id": "api.user.check_user_mfa.bad_code.app_error",
-        "translation": "Неверный токен МФА"
+        "translation": "Неверный токен МФА."
     },
     {
         "id": "api.user.check_user_password.invalid.app_error",
-        "translation": "Ошибка входа, неверно введен пароль"
+        "translation": "Ошибка входа, неверно введен пароль."
     },
     {
         "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Пустой email"
+        "translation": "Пустой адрес электронной почты."
     },
     {
         "id": "api.user.complete_switch_with_oauth.parse.app_error",
-        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя"
+        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.create_email_token.error",
-        "translation": "Failed to create token data for email verification"
+        "translation": "Не удалось создать данные токена для проверки электронной почты"
     },
     {
         "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2513,11 +2513,11 @@
     },
     {
         "id": "api.user.create_oauth_user.create.app_error",
-        "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя"
+        "translation": "Невозможно создать пользователя из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.create_oauth_user.not_available.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.create_password_token.error",
@@ -2585,7 +2585,7 @@
     },
     {
         "id": "api.user.get_authorization_code.unsupported.app_error",
-        "translation": "Неподдерживаемый провайдер OAuth"
+        "translation": "Неподдерживаемый провайдер услуг OAuth."
     },
     {
         "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2657,11 +2657,11 @@
     },
     {
         "id": "api.user.login_by_oauth.not_available.app_error",
-        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере"
+        "translation": "{{.Service}} SSO через OAuth 2.0 не поддерживается на этом сервере."
     },
     {
         "id": "api.user.login_by_oauth.parse.app_error",
-        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя"
+        "translation": "Невозможно распарсить данные авторизации из {{.Service}} объекта пользователя."
     },
     {
         "id": "api.user.login_ldap.not_available.app_error",
@@ -2765,7 +2765,7 @@
     },
     {
         "id": "api.user.update_active.permissions.app_error",
-        "translation": "У вас нет соответствующих прав."
+        "translation": "У вас нет соответствующих прав"
     },
     {
         "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2805,7 +2805,7 @@
     },
     {
         "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "Пустой массив 'image' в запросе."
+        "translation": "Пустой массив 'изображения' в запросе"
     },
     {
         "id": "api.user.upload_profile_user.decode.app_error",
@@ -2821,19 +2821,19 @@
     },
     {
         "id": "api.user.upload_profile_user.no_file.app_error",
-        "translation": "Нет файла 'image' в запросе."
+        "translation": "Нет файла 'изображения' в запросе"
     },
     {
         "id": "api.user.upload_profile_user.open.app_error",
-        "translation": "Не удалось открыть файл изображения."
+        "translation": "Не могу открыть файл изображения"
     },
     {
         "id": "api.user.upload_profile_user.parse.app_error",
-        "translation": "Не удалось разобрать составную форму."
+        "translation": "Невозможно обработать форму из нескольких частей"
     },
     {
         "id": "api.user.upload_profile_user.storage.app_error",
-        "translation": "Не удалось загрузить файл. Хранилище изображений не настроено."
+        "translation": "Невозможно загрузить файл. Хранилище изображений не настроено."
     },
     {
         "id": "api.user.upload_profile_user.too_large.app_error",
@@ -2909,7 +2909,7 @@
     },
     {
         "id": "api.websocket_handler.invalid_param.app_error",
-        "translation": "Неверный параметр {{.Name}}."
+        "translation": "Недопустимый параметр {{.Name}}"
     },
     {
         "id": "api.websocket_handler.server_busy.app_error",
@@ -4181,7 +4181,7 @@
     },
     {
         "id": "ent.elasticsearch.search_channels.disabled",
-        "translation": "Поиск Elasticsearch отключен на этом сервере"
+        "translation": "Elasticsearch searching is disabled on this server"
     },
     {
         "id": "ent.elasticsearch.search_channels.search_failed",
@@ -4189,11 +4189,11 @@
     },
     {
         "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-        "translation": "Не удалось получить результаты поиска"
+        "translation": "Не удалось декодировать результаты поиска"
     },
     {
         "id": "ent.elasticsearch.search_posts.disabled",
-        "translation": "Поиск Elasticsearch отключен на этом сервере"
+        "translation": "Elasticsearch searching is disabled on this server"
     },
     {
         "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -4205,7 +4205,7 @@
     },
     {
         "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-        "translation": "Не удалось получить результаты поиска"
+        "translation": "Не удалось декодировать результаты поиска"
     },
     {
         "id": "ent.elasticsearch.search_users.search_failed",
@@ -4213,7 +4213,7 @@
     },
     {
         "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-        "translation": "Не удалось получить результаты поиска"
+        "translation": "Не удалось декодировать результаты поиска"
     },
     {
         "id": "ent.elasticsearch.start.already_started.app_error",
@@ -4561,7 +4561,7 @@
     },
     {
         "id": "mfa.activate.bad_token.app_error",
-        "translation": "Неверный токен МФА"
+        "translation": "Неверный токен МФА."
     },
     {
         "id": "mfa.activate.save_active.app_error",
@@ -4589,7 +4589,7 @@
     },
     {
         "id": "mfa.validate_token.authenticate.app_error",
-        "translation": "Неверный токен МФА"
+        "translation": "Неверный токен МФА."
     },
     {
         "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -4601,7 +4601,7 @@
     },
     {
         "id": "model.access.is_valid.access_token.app_error",
-        "translation": "Недопустимый маркер доступа"
+        "translation": "Неверный токен доступа"
     },
     {
         "id": "model.access.is_valid.client_id.app_error",
@@ -4609,7 +4609,7 @@
     },
     {
         "id": "model.access.is_valid.redirect_uri.app_error",
-        "translation": "Неверный uri для перенаправления"
+        "translation": "Недопустимый адрес редиректа"
     },
     {
         "id": "model.access.is_valid.refresh_token.app_error",
@@ -4617,7 +4617,7 @@
     },
     {
         "id": "model.access.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.authorize.is_valid.auth_code.app_error",
@@ -4629,7 +4629,7 @@
     },
     {
         "id": "model.authorize.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.authorize.is_valid.expires.app_error",
@@ -4637,7 +4637,7 @@
     },
     {
         "id": "model.authorize.is_valid.redirect_uri.app_error",
-        "translation": "Неверный uri для перенаправления"
+        "translation": "Недопустимый адрес редиректа"
     },
     {
         "id": "model.authorize.is_valid.response_type.app_error",
@@ -4653,7 +4653,7 @@
     },
     {
         "id": "model.authorize.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.bot.is_valid.create_at.app_error",
@@ -4661,11 +4661,11 @@
     },
     {
         "id": "model.bot.is_valid.creator_id.app_error",
-        "translation": "Недопустимый идентификатор автора"
+        "translation": "Некорректный идентификатор автора"
     },
     {
         "id": "model.bot.is_valid.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.bot.is_valid.update_at.app_error",
@@ -4673,7 +4673,7 @@
     },
     {
         "id": "model.bot.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.bot.is_valid.username.app_error",
@@ -4685,11 +4685,11 @@
     },
     {
         "id": "model.channel.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.channel.is_valid.creator_id.app_error",
-        "translation": "Недопустимый идентификатор автора"
+        "translation": "Некорректный идентификатор автора"
     },
     {
         "id": "model.channel.is_valid.display_name.app_error",
@@ -4701,7 +4701,7 @@
     },
     {
         "id": "model.channel.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.channel.is_valid.name.app_error",
@@ -4713,15 +4713,15 @@
     },
     {
         "id": "model.channel.is_valid.type.app_error",
-        "translation": "Недопустимый тип"
+        "translation": "Неверный тип"
     },
     {
         "id": "model.channel.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.channel_member.is_valid.channel_id.app_error",
-        "translation": "Недопустимый идентификатор канала"
+        "translation": "Некорректный идентификатор канала"
     },
     {
         "id": "model.channel_member.is_valid.email_value.app_error",
@@ -4745,7 +4745,7 @@
     },
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.client.connecting.app_error",
@@ -4761,7 +4761,7 @@
     },
     {
         "id": "model.cluster.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.cluster.is_valid.last_ping_at.app_error",
@@ -4781,11 +4781,11 @@
     },
     {
         "id": "model.command.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.command.is_valid.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.command.is_valid.display_name.app_error",
@@ -4793,7 +4793,7 @@
     },
     {
         "id": "model.command.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.command.is_valid.method.app_error",
@@ -4805,7 +4805,7 @@
     },
     {
         "id": "model.command.is_valid.token.app_error",
-        "translation": "Недопустимый маркер"
+        "translation": "Некорректный маркер"
     },
     {
         "id": "model.command.is_valid.trigger.app_error",
@@ -4813,7 +4813,7 @@
     },
     {
         "id": "model.command.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.command.is_valid.url.app_error",
@@ -4825,11 +4825,11 @@
     },
     {
         "id": "model.command.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.command_hook.channel_id.app_error",
-        "translation": "Недопустимый идентификатор канала"
+        "translation": "Некорректный идентификатор канала"
     },
     {
         "id": "model.command_hook.command_id.app_error",
@@ -4837,7 +4837,7 @@
     },
     {
         "id": "model.command_hook.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.command_hook.id.app_error",
@@ -4845,23 +4845,23 @@
     },
     {
         "id": "model.command_hook.parent_id.app_error",
-        "translation": "Некорректный parent id"
+        "translation": "Некорректный родительский идентификатор"
     },
     {
         "id": "model.command_hook.root_id.app_error",
-        "translation": "Некорректный root id"
+        "translation": "Некорректный идентификатор root"
     },
     {
         "id": "model.command_hook.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.compliance.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.compliance.is_valid.desc.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.compliance.is_valid.end_at.app_error",
@@ -4869,7 +4869,7 @@
     },
     {
         "id": "model.compliance.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.compliance.is_valid.start_at.app_error",
@@ -5241,7 +5241,7 @@
     },
     {
         "id": "model.emoji.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.emoji.id.app_error",
@@ -5253,11 +5253,11 @@
     },
     {
         "id": "model.emoji.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.emoji.user_id.app_error",
-        "translation": "Недопустимый идентификатор автора"
+        "translation": "Некорректный идентификатор автора"
     },
     {
         "id": "model.file_info.get.gif.app_error",
@@ -5357,7 +5357,7 @@
     },
     {
         "id": "model.guest.is_valid.email.app_error",
-        "translation": "Некорректный адрес эл.почты"
+        "translation": "Недопустимый адрес эл.почты."
     },
     {
         "id": "model.guest.is_valid.emails.app_error",
@@ -5365,15 +5365,15 @@
     },
     {
         "id": "model.incoming_hook.channel_id.app_error",
-        "translation": "Недопустимый идентификатор канала"
+        "translation": "Некорректный идентификатор канала"
     },
     {
         "id": "model.incoming_hook.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.incoming_hook.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.incoming_hook.display_name.app_error",
@@ -5385,7 +5385,7 @@
     },
     {
         "id": "model.incoming_hook.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.incoming_hook.parse_data.app_error",
@@ -5397,11 +5397,11 @@
     },
     {
         "id": "model.incoming_hook.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.incoming_hook.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.incoming_hook.username.app_error",
@@ -5409,7 +5409,7 @@
     },
     {
         "id": "model.job.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.job.is_valid.id.app_error",
@@ -5465,15 +5465,15 @@
     },
     {
         "id": "model.oauth.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.oauth.is_valid.creator_id.app_error",
-        "translation": "Недопустимый идентификатор автора"
+        "translation": "Некорректный идентификатор автора"
     },
     {
         "id": "model.oauth.is_valid.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.oauth.is_valid.homepage.app_error",
@@ -5489,7 +5489,7 @@
     },
     {
         "id": "model.oauth.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.outgoing_hook.icon_url.app_error",
@@ -5501,7 +5501,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.channel_id.app_error",
-        "translation": "Недопустимый идентификатор канала"
+        "translation": "Некорректный идентификатор канала"
     },
     {
         "id": "model.outgoing_hook.is_valid.content_type.app_error",
@@ -5509,11 +5509,11 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.outgoing_hook.is_valid.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.outgoing_hook.is_valid.display_name.app_error",
@@ -5521,7 +5521,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.outgoing_hook.is_valid.team_id.app_error",
@@ -5529,7 +5529,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.token.app_error",
-        "translation": "Недопустимый маркер"
+        "translation": "Некорректный маркер"
     },
     {
         "id": "model.outgoing_hook.is_valid.trigger_words.app_error",
@@ -5537,7 +5537,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.outgoing_hook.is_valid.url.app_error",
@@ -5545,7 +5545,7 @@
     },
     {
         "id": "model.outgoing_hook.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.outgoing_hook.is_valid.words.app_error",
@@ -5577,11 +5577,11 @@
     },
     {
         "id": "model.post.is_valid.channel_id.app_error",
-        "translation": "Недопустимый идентификатор канала"
+        "translation": "Некорректный идентификатор канала"
     },
     {
         "id": "model.post.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.post.is_valid.file_ids.app_error",
@@ -5597,7 +5597,7 @@
     },
     {
         "id": "model.post.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.post.is_valid.msg.app_error",
@@ -5609,7 +5609,7 @@
     },
     {
         "id": "model.post.is_valid.parent_id.app_error",
-        "translation": "Некорректный parent id"
+        "translation": "Некорректный родительский идентификатор"
     },
     {
         "id": "model.post.is_valid.props.app_error",
@@ -5617,7 +5617,7 @@
     },
     {
         "id": "model.post.is_valid.root_id.app_error",
-        "translation": "Некорректный root id"
+        "translation": "Некорректный идентификатор root"
     },
     {
         "id": "model.post.is_valid.root_parent.app_error",
@@ -5625,15 +5625,15 @@
     },
     {
         "id": "model.post.is_valid.type.app_error",
-        "translation": "Недопустимый тип"
+        "translation": "Неверный тип"
     },
     {
         "id": "model.post.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.post.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.preference.is_valid.category.app_error",
@@ -5641,7 +5641,7 @@
     },
     {
         "id": "model.preference.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.preference.is_valid.name.app_error",
@@ -5657,7 +5657,7 @@
     },
     {
         "id": "model.reaction.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.reaction.is_valid.emoji_name.app_error",
@@ -5669,7 +5669,7 @@
     },
     {
         "id": "model.reaction.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.team.is_valid.characters.app_error",
@@ -5681,11 +5681,11 @@
     },
     {
         "id": "model.team.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.team.is_valid.description.app_error",
-        "translation": "Неверное описание"
+        "translation": "Некорректное описание"
     },
     {
         "id": "model.team.is_valid.domains.app_error",
@@ -5693,11 +5693,11 @@
     },
     {
         "id": "model.team.is_valid.email.app_error",
-        "translation": "Некорректный адрес эл.почты"
+        "translation": "Недопустимый адрес эл.почты."
     },
     {
         "id": "model.team.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор"
+        "translation": "Некорректный идентификатор"
     },
     {
         "id": "model.team.is_valid.invite_id.app_error",
@@ -5713,11 +5713,11 @@
     },
     {
         "id": "model.team.is_valid.type.app_error",
-        "translation": "Недопустимый тип"
+        "translation": "Неверный тип"
     },
     {
         "id": "model.team.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.team.is_valid.url.app_error",
@@ -5729,7 +5729,7 @@
     },
     {
         "id": "model.team_member.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.token.is_valid.expiry",
@@ -5737,7 +5737,7 @@
     },
     {
         "id": "model.token.is_valid.size",
-        "translation": "Недопустимый маркер"
+        "translation": "Некорректный маркер"
     },
     {
         "id": "model.user.is_valid.auth_data.app_error",
@@ -5753,11 +5753,11 @@
     },
     {
         "id": "model.user.is_valid.create_at.app_error",
-        "translation": "\"Создать в\" должно быть корректным временем"
+        "translation": "\"Создано в\" должно быть корректным временем"
     },
     {
         "id": "model.user.is_valid.email.app_error",
-        "translation": "Некорректный адрес эл.почты"
+        "translation": "Недопустимый адрес эл.почты."
     },
     {
         "id": "model.user.is_valid.first_name.app_error",
@@ -5765,7 +5765,7 @@
     },
     {
         "id": "model.user.is_valid.id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.user.is_valid.last_name.app_error",
@@ -5853,7 +5853,7 @@
     },
     {
         "id": "model.user.is_valid.update_at.app_error",
-        "translation": "\"Обновить в\" должно быть корректным временем"
+        "translation": "\"Обновлено в\" должно быть корректным временем"
     },
     {
         "id": "model.user.is_valid.username.app_error",
@@ -5869,11 +5869,11 @@
     },
     {
         "id": "model.user_access_token.is_valid.token.app_error",
-        "translation": "Недопустимый маркер доступа"
+        "translation": "Неверный токен доступа"
     },
     {
         "id": "model.user_access_token.is_valid.user_id.app_error",
-        "translation": "Недопустимый идентификатор пользователя"
+        "translation": "Неверный идентификатор пользователя"
     },
     {
         "id": "model.utils.decode_json.app_error",
@@ -5953,11 +5953,11 @@
     },
     {
         "id": "store.sql_audit.app_error",
-        "translation": "Не удалось построить запрос."
+        "translation": "Failed to build query"
     },
     {
         "id": "store.sql_audit.get.finding.app_error",
-        "translation": "Обнаружены проблемы с поиском аудитов"
+        "translation": "Мы обнаружили ошибку при поиске аудитов."
     },
     {
         "id": "store.sql_audit.get.limit.app_error",
@@ -5965,11 +5965,11 @@
     },
     {
         "id": "store.sql_audit.permanent_delete_by_user.app_error",
-        "translation": "Обнаружены проблемы с удалением аудитов"
+        "translation": "Мы столкнулись с ошибкой при удалении аудитов."
     },
     {
         "id": "store.sql_audit.save.saving.app_error",
-        "translation": "Обнаружены проблемы с сохранением аудита"
+        "translation": "Мы столкнулись с ошибкой при сохранении аудитов."
     },
     {
         "id": "store.sql_bot.get.missing.app_error",
@@ -5985,11 +5985,11 @@
     },
     {
         "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_channel.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
+        "translation": "Не удалось начать транзакцию базы данных."
     },
     {
         "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
@@ -6133,7 +6133,7 @@
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
@@ -6161,7 +6161,7 @@
     },
     {
         "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.permanent_delete_by_team.app_error",
@@ -6177,7 +6177,7 @@
     },
     {
         "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
@@ -6205,7 +6205,7 @@
     },
     {
         "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.save.archived_channel.app_error",
@@ -6241,7 +6241,7 @@
     },
     {
         "id": "store.sql_channel.save_member.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.search.app_error",
@@ -6257,7 +6257,7 @@
     },
     {
         "id": "store.sql_channel.set_delete_at.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
@@ -6281,7 +6281,7 @@
     },
     {
         "id": "store.sql_channel.update.open_transaction.app_error",
-        "translation": "Невозможно открыть транзакцию"
+        "translation": "Невозможно начать транзакцию"
     },
     {
         "id": "store.sql_channel.update.previously.app_error",
@@ -6577,7 +6577,7 @@
     },
     {
         "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Возникла ошибка с обнаружением токена доступа"
+        "translation": "Возникла ошибка при поиске токена доступа"
     },
     {
         "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
@@ -6589,7 +6589,7 @@
     },
     {
         "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Возникла ошибка с обнаружением приложения"
+        "translation": "Возникла ошибка при поиске приложения"
     },
     {
         "id": "store.sql_oauth.get_app_by_user.find.app_error",
@@ -6609,7 +6609,7 @@
     },
     {
         "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Возникла ошибка с обнаружением токена доступа"
+        "translation": "Возникла ошибка при поиске токена доступа"
     },
     {
         "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
@@ -6649,7 +6649,7 @@
     },
     {
         "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Возникла ошибка с обнаружением приложения"
+        "translation": "Возникла ошибка при поиске приложения"
     },
     {
         "id": "store.sql_oauth.update_app.update.app_error",
@@ -6861,7 +6861,7 @@
     },
     {
         "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-        "translation": "Не удалось получить реакции для данного сообщения"
+        "translation": "Не удалось получить реакции для данного сообщения."
     },
     {
         "id": "store.sql_reaction.delete.app_error",
@@ -6881,15 +6881,15 @@
     },
     {
         "id": "store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Не удалось получить реакцию с данным именем эмодзи"
+        "translation": "Не удалось получить все реакции с данным именем эмодзи."
     },
     {
         "id": "store.sql_reaction.get_for_post.app_error",
-        "translation": "Не удалось получить реакции для данного сообщения"
+        "translation": "Не удалось получить реакции для данного сообщения."
     },
     {
         "id": "store.sql_reaction.permanent_delete_batch.app_error",
-        "translation": "We encountered an error permanently deleting the batch of reactions"
+        "translation": "Мы столкнулись с ошибкой окончательного удаления пакета реакций."
     },
     {
         "id": "store.sql_reaction.save.begin.app_error",
@@ -6901,11 +6901,11 @@
     },
     {
         "id": "store.sql_reaction.save.save.app_error",
-        "translation": "Не удалось сохранить реакцию"
+        "translation": "Не удалось сохранить реакцию."
     },
     {
         "id": "store.sql_recover.delete.app_error",
-        "translation": "Не удалось удалить плагин"
+        "translation": "Не получилось удалить токен."
     },
     {
         "id": "store.sql_recover.get_by_code.app_error",
@@ -6917,7 +6917,7 @@
     },
     {
         "id": "store.sql_recover.save.app_error",
-        "translation": "Не удалось удалить плагин"
+        "translation": "Не получилось сохранить токен."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -7129,11 +7129,11 @@
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
+        "translation": "Не удалось начать транзакцию базы данных."
     },
     {
         "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
@@ -7153,7 +7153,7 @@
     },
     {
         "id": "store.sql_team.get_active_member_count.app_error",
-        "translation": "Не удалось подсчитать участников команды."
+        "translation": "Не удалось обновить заголовок канала"
     },
     {
         "id": "store.sql_team.get_all.app_error",
@@ -7205,7 +7205,7 @@
     },
     {
         "id": "store.sql_team.get_member_count.app_error",
-        "translation": "Не удалось подсчитать участников команды."
+        "translation": "Не удалось обновить заголовок канала"
     },
     {
         "id": "store.sql_team.get_members.app_error",
@@ -7225,7 +7225,7 @@
     },
     {
         "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
@@ -7337,15 +7337,15 @@
     },
     {
         "id": "store.sql_user.app_error",
-        "translation": "Не удалось построить запрос."
+        "translation": "Failed to build query"
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
+        "translation": "Не удалось начать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
@@ -7353,7 +7353,7 @@
     },
     {
         "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
-        "translation": "Не удалось обновить заголовок канала"
+        "translation": "Не удалось обновить пользователя."
     },
     {
         "id": "store.sql_user.count.app_error",
@@ -7365,11 +7365,11 @@
     },
     {
         "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
+        "translation": "Не удалось начать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
@@ -7377,7 +7377,7 @@
     },
     {
         "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-        "translation": "Не удалось обновить заголовок канала"
+        "translation": "Не удалось обновить пользователя."
     },
     {
         "id": "store.sql_user.get.app_error",
@@ -7413,11 +7413,11 @@
     },
     {
         "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-        "translation": "Возникла ошибка при поиске пользовательских профилей."
+        "translation": "Возникла ошибка при поиске пользовательских профилей"
     },
     {
         "id": "store.sql_user.get_profiles.app_error",
-        "translation": "Возникла ошибка при поиске пользовательских профилей."
+        "translation": "Возникла ошибка при поиске пользовательских профилей"
     },
     {
         "id": "store.sql_user.get_recently_active_users.app_error",
@@ -7425,7 +7425,7 @@
     },
     {
         "id": "store.sql_user.get_sysadmin_profiles.app_error",
-        "translation": "Возникла ошибка при поиске пользовательских профилей."
+        "translation": "Возникла ошибка при поиске пользовательских профилей"
     },
     {
         "id": "store.sql_user.get_system_install_date.app_error",
@@ -7469,11 +7469,11 @@
     },
     {
         "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
+        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.promote_guest.open_transaction.app_error",
-        "translation": "Failed to begin the database transaction"
+        "translation": "Не удалось начать транзакцию базы данных."
     },
     {
         "id": "store.sql_user.promote_guest.team_members_update.app_error",
@@ -7481,7 +7481,7 @@
     },
     {
         "id": "store.sql_user.promote_guest.user_update.app_error",
-        "translation": "Не удалось обновить заголовок канала"
+        "translation": "Не удалось обновить пользователя."
     },
     {
         "id": "store.sql_user.save.app_error",
