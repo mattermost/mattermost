@@ -2700,7 +2700,14 @@ func (a *App) UpdateSidebarCategories(userId, teamId string, categories []*model
 		return nil, err
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED, teamId, "", userId, nil)
+
+	var categoryIds = []string
+	for _, category := range categories {
+		categoryIds = append(categoryIds, category.id)
+	}
+	message.Add("category_ids", model.ArrayToJson(categoryIds))
 	a.Publish(message)
+
 	return result, nil
 }
 
