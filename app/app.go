@@ -295,7 +295,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		OwnerId:     sysAdmins[0].Id,
 	}
 
-	bot, err := a.GetOrCreateWarnMetricsBot(warnMetricsBot)
+	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
 	if err != nil {
 		return err
 	}

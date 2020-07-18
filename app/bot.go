@@ -65,7 +65,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
-func (a *App) GetOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -90,14 +90,14 @@ func (a *App) GetOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.A
 			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
 				return nil, nAppErr
 			default: // last fallback in case it doesn't map to an existing app error.
-				return nil, model.NewAppError("GetOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 		}
 		return savedBot, nil
 	}
 
 	if botUser == nil {
-		return nil, model.NewAppError("GetOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
 	}
 
 	//return the bot for this user
