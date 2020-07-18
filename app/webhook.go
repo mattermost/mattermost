@@ -744,9 +744,15 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		}
 	}
 
-	cmd, err := a.Srv().Store.Command().Get(hook.CommandId)
-	if err != nil {
-		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+err.Message, http.StatusBadRequest)
+	cmd, cmdErr := a.Srv().Store.Command().Get(hook.CommandId)
+	if cmdErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(cmdErr, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+cmdErr.Error(), http.StatusBadRequest)
+		}
 	}
 
 	args := &model.CommandArgs{
@@ -767,6 +773,6 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		}
 	}
 
-	_, err = a.HandleCommandResponse(cmd, args, response, false)
+	_, err := a.HandleCommandResponse(cmd, args, response, false)
 	return err
 }
