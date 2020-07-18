@@ -6727,12 +6727,12 @@
     "translation": "group syncable was already deleted"
   },
   {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "id": "store.sql_group.more_than_one_row_changed",
+    "translation": "More than one row changed."
   },
   {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
