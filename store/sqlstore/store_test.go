@@ -84,7 +84,7 @@ func initStores() {
 	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
 	// So we just run the tests for the current database set.
 	if os.Getenv("IS_CI") == "true" {
-		switch os.Getenv("IS_CI") {
+		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
 		case "mysql":
 			storeTypes = append(storeTypes, &storeType{
 				Name:        "MySQL",
