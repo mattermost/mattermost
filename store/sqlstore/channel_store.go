@@ -3562,6 +3562,25 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 }
 
 func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.completePopulatingCategoryChannels", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	result, appErr := s.completePopulatingCategoryChannelsT(transaction, category)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.completePopulatingCategoryChannels", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return result, nil
+}
+
+func (s SqlChannelStore) completePopulatingCategoryChannelsT(transation *gorp.Transaction, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
 	if category.Type == model.SidebarCategoryCustom || category.Type == model.SidebarCategoryFavorites {
 		return category, nil
 	}
@@ -3603,9 +3622,10 @@ func (s SqlChannelStore) completePopulatingCategoryChannels(category *model.Side
 		}).
 		OrderBy("DisplayName ASC").ToSql()
 
-	if _, err := s.GetReplica().Select(&channels, sql, args...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.completePopulatingCategoryChannels", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
+	if _, err := transation.Select(&channels, sql, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.completePopulatingCategoryChannelsT", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
 	}
+
 	category.Channels = append(channels, category.Channels...)
 	return category, nil
 }
@@ -3650,7 +3670,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		}).
 		OrderBy("SidebarCategories.SortOrder ASC, SidebarChannels.SortOrder ASC").ToSql()
 
-	if _, err := s.GetReplica().Select(&categories, sql, args...); err != nil {
+	if _, err := transaction.Select(&categories, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetSidebarCategories", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
 	}
 	for _, category := range categories {
@@ -3674,7 +3694,7 @@ func (s SqlChannelStore) getSidebarCategoriesT(transaction *gorp.Transaction, us
 		}
 	}
 	for _, category := range oc.Categories {
-		if _, err := s.completePopulatingCategoryChannels(category); err != nil {
+		if _, err := s.completePopulatingCategoryChannelsT(transaction, category); err != nil {
 			return nil, err
 		}
 	}
@@ -3913,18 +3933,18 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		updatedCategories = append(updatedCategories, updatedCategory)
 	}
 
-	if err = transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
 	// Ensure Channels are populated for Channels/Direct Messages category if they change
 	for i, updatedCategory := range updatedCategories {
-		populated, err := s.completePopulatingCategoryChannels(updatedCategory)
+		populated, err := s.completePopulatingCategoryChannelsT(transaction, updatedCategory)
 		if err != nil {
 			return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		updatedCategories[i] = populated
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return updatedCategories, nil

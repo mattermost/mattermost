@@ -381,12 +381,14 @@ func testUpdateExpiredNotify(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.False(t, session.ExpiredNotify)
 
-	ss.Session().UpdateExpiredNotify(session.Id, true)
+	err = ss.Session().UpdateExpiredNotify(session.Id, true)
+	require.Nil(t, err)
 	session, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err)
 	require.True(t, session.ExpiredNotify)
 
-	ss.Session().UpdateExpiredNotify(session.Id, false)
+	err = ss.Session().UpdateExpiredNotify(session.Id, false)
+	require.Nil(t, err)
 	session, err = ss.Session().Get(s1.Id)
 	require.Nil(t, err)
 	require.False(t, session.ExpiredNotify)
