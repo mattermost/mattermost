@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PluginAPI struct {
@@ -68,6 +69,20 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	api.app.UnregisterPluginCommand(api.id, teamId, trigger)
 	return nil
+}
+
+func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	user, appErr := api.app.GetUser(commandArgs.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.SiteURL = api.app.GetSiteURL()
+	response, appErr := api.app.ExecuteCommand(commandArgs)
+	if appErr != nil {
+		return response, appErr
+	}
+	return response, nil
 }
 
 func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
@@ -704,7 +719,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.sendNotificationMail(to, subject, htmlBody)
+	return api.app.Srv().EmailService.sendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
@@ -898,6 +913,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}
 	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
+	newURL.RawQuery = request.URL.Query().Encode()
 	request.URL = newURL
 	if destinationPluginId == "" || err != nil {
 		message := "No plugin specified. Form of URL should be /<pluginid>/*"

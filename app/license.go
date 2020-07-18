@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -14,9 +15,21 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
+const (
+	requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
+	LicenseEnv      = "MM_LICENSE"
+)
 
 func (s *Server) LoadLicense() {
+	// ENV var overrides all other sources of license.
+	licenseStr := os.Getenv(LicenseEnv)
+	if licenseStr != "" {
+		if s.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
+			mlog.Info("License key from ENV is valid, unlocking enterprise features.")
+		}
+		return
+	}
+
 	licenseId := ""
 	props, err := s.Store.System().Get()
 	if err == nil {
@@ -137,14 +150,15 @@ func (s *Server) SetLicense(license *model.License) bool {
 	return false
 }
 
-func (s *Server) ValidateAndSetLicenseBytes(b []byte) {
+func (s *Server) ValidateAndSetLicenseBytes(b []byte) bool {
 	if success, licenseStr := utils.ValidateLicense(b); success {
 		license := model.LicenseFromJson(strings.NewReader(licenseStr))
 		s.SetLicense(license)
-		return
+		return true
 	}
 
 	mlog.Warn("No valid enterprise license found")
+	return false
 }
 
 func (s *Server) SetClientLicense(m map[string]string) {
@@ -217,6 +231,10 @@ func (s *Server) RequestTrialLicense(trialRequest *model.TrialLicenseRequest) *m
 	}
 	defer resp.Body.Close()
 	licenseResponse := model.MapFromJson(resp.Body)
+
+	if _, ok := licenseResponse["license"]; !ok {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.app_error", nil, licenseResponse["message"], http.StatusBadRequest)
+	}
 
 	if _, err := s.SaveLicense([]byte(licenseResponse["license"])); err != nil {
 		return err

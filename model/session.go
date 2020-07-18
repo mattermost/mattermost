@@ -6,7 +6,10 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strconv"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -140,7 +143,37 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (me *Session) IsMobileApp() bool {
-	return len(me.DeviceId) > 0
+	return len(me.DeviceId) > 0 || me.IsMobile()
+}
+
+func (me *Session) IsMobile() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_MOBILE]
+	if !ok {
+		return false
+	}
+	isMobile, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isMobile
+}
+
+func (me *Session) IsSaml() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_SAML]
+	if !ok {
+		return false
+	}
+	isSaml, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isSaml
+}
+
+func (me *Session) IsSSOLogin() bool {
+	return me.IsOAuth || me.IsSaml()
 }
 
 func (me *Session) GetUserRoles() []string {

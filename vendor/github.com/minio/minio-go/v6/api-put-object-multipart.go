@@ -28,7 +28,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -98,7 +97,6 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 
 	// Create a buffer.
 	buf := make([]byte, partSize)
-	defer debug.FreeOSMemory()
 
 	for partNumber <= totalPartsCount {
 		// Choose hash algorithms to be calculated by hashCopyN,
@@ -118,6 +116,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		for k, v := range hashAlgos {
 			v.Write(buf[:length])
 			hashSums[k] = v.Sum(nil)
+			v.Close()
 		}
 
 		// Update progress reader appropriately to the latest offset

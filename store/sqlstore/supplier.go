@@ -786,7 +786,8 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 	var currentPrimaryKey string
 	var err error
 	// get the current primary key as a comma separated list of columns
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	switch ss.DriverName() {
+	case model.DATABASE_DRIVER_MYSQL:
 		query := `
 			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
 		FROM
@@ -798,13 +799,13 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		GROUP BY
 			index_name`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	case model.DATABASE_DRIVER_POSTGRES:
 		query := `
 			SELECT string_agg(a.attname, ',') AS pk
 		FROM
 			pg_constraint AS c
-		CROSS JOIN LATERAL
-			UNNEST(c.conkey) AS cols(colnum)
+		CROSS JOIN
+			(SELECT unnest(conkey) FROM pg_constraint WHERE conrelid='` + strings.ToLower(tableName) + `'::REGCLASS AND contype='p') AS cols(colnum)
 		INNER JOIN
 			pg_attribute AS a ON a.attrelid = c.conrelid
 		AND cols.colnum = a.attnum
@@ -812,7 +813,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+	case model.DATABASE_DRIVER_SQLITE:
 		// SQLite doesn't support altering primary key
 		return true
 	}
@@ -852,6 +853,10 @@ func (ss *SqlSupplier) CreateIndexIfNotExists(indexName string, tableName string
 
 func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
+}
+
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
 }
 
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {

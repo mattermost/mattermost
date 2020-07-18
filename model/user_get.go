@@ -20,8 +20,16 @@ type UserGetOptions struct {
 	WithoutTeam bool
 	// Filters the inactive users
 	Inactive bool
+	// Filters the active users
+	Active bool
 	// Filters for the given role
 	Role string
+	// Filters for users matching any of the given system wide roles
+	Roles []string
+	// Filters for users matching any of the given channel roles, must be used with InChannelId
+	ChannelRoles []string
+	// Filters for users matching any of the given team roles, must be used with InTeamId
+	TeamRoles []string
 	// Sorting option
 	Sort string
 	// Restrict to search in a list of teams and channels

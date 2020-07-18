@@ -138,6 +138,8 @@ type ChannelStore interface {
 	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, error)
+	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError
+	ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
@@ -156,6 +158,7 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
+	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
@@ -213,6 +216,17 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
+	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error)
+	CreateInitialSidebarCategories(userId, teamId string) error
+	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error)
+	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
+	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
+	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
+	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
+	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
+	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError
+	DeleteSidebarCategory(categoryId string) *model.AppError
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
@@ -355,21 +369,21 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Get(sessionIdOrToken string) (*model.Session, *model.AppError)
-	Save(session *model.Session) (*model.Session, *model.AppError)
-	GetSessions(userId string) ([]*model.Session, *model.AppError)
-	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
-	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError)
-	UpdateExpiredNotify(sessionid string, notified bool) *model.AppError
-	Remove(sessionIdOrToken string) *model.AppError
-	RemoveAllSessions() *model.AppError
-	PermanentDeleteSessionsByUser(teamId string) *model.AppError
-	UpdateExpiresAt(sessionId string, time int64) *model.AppError
-	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
-	UpdateRoles(userId string, roles string) (string, *model.AppError)
-	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
-	UpdateProps(session *model.Session) *model.AppError
-	AnalyticsSessionCount() (int64, *model.AppError)
+	Get(sessionIdOrToken string) (*model.Session, error)
+	Save(session *model.Session) (*model.Session, error)
+	GetSessions(userId string) ([]*model.Session, error)
+	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error)
+	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
+	UpdateExpiredNotify(sessionid string, notified bool) error
+	Remove(sessionIdOrToken string) error
+	RemoveAllSessions() error
+	PermanentDeleteSessionsByUser(teamId string) error
+	UpdateExpiresAt(sessionId string, time int64) error
+	UpdateLastActivityAt(sessionId string, time int64) error
+	UpdateRoles(userId string, roles string) (string, error)
+	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error)
+	UpdateProps(session *model.Session) error
+	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64)
 }
 
@@ -380,12 +394,12 @@ type AuditStore interface {
 }
 
 type ClusterDiscoveryStore interface {
-	Save(discovery *model.ClusterDiscovery) *model.AppError
-	Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError)
-	Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError)
-	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError)
-	SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError
-	Cleanup() *model.AppError
+	Save(discovery *model.ClusterDiscovery) error
+	Delete(discovery *model.ClusterDiscovery) (bool, error)
+	Exists(discovery *model.ClusterDiscovery) (bool, error)
+	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, error)
+	SetLastPingAt(discovery *model.ClusterDiscovery) error
+	Cleanup() error
 }
 
 type ComplianceStore interface {
@@ -398,25 +412,25 @@ type ComplianceStore interface {
 }
 
 type OAuthStore interface {
-	SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	GetApp(id string) (*model.OAuthApp, *model.AppError)
-	GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, *model.AppError)
-	GetApps(offset, limit int) ([]*model.OAuthApp, *model.AppError)
-	GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, *model.AppError)
-	DeleteApp(id string) *model.AppError
-	SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError)
-	GetAuthData(code string) (*model.AuthData, *model.AppError)
-	RemoveAuthData(code string) *model.AppError
-	PermanentDeleteAuthDataByUser(userId string) *model.AppError
-	SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError)
-	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError)
-	GetAccessData(token string) (*model.AccessData, *model.AppError)
-	GetAccessDataByUserForApp(userId, clientId string) ([]*model.AccessData, *model.AppError)
-	GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError)
-	GetPreviousAccessData(userId, clientId string) (*model.AccessData, *model.AppError)
-	RemoveAccessData(token string) *model.AppError
-	RemoveAllAccessData() *model.AppError
+	SaveApp(app *model.OAuthApp) (*model.OAuthApp, error)
+	UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error)
+	GetApp(id string) (*model.OAuthApp, error)
+	GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, error)
+	GetApps(offset, limit int) ([]*model.OAuthApp, error)
+	GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, error)
+	DeleteApp(id string) error
+	SaveAuthData(authData *model.AuthData) (*model.AuthData, error)
+	GetAuthData(code string) (*model.AuthData, error)
+	RemoveAuthData(code string) error
+	PermanentDeleteAuthDataByUser(userId string) error
+	SaveAccessData(accessData *model.AccessData) (*model.AccessData, error)
+	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error)
+	GetAccessData(token string) (*model.AccessData, error)
+	GetAccessDataByUserForApp(userId, clientId string) ([]*model.AccessData, error)
+	GetAccessDataByRefreshToken(token string) (*model.AccessData, error)
+	GetPreviousAccessData(userId, clientId string) (*model.AccessData, error)
+	RemoveAccessData(token string) error
+	RemoveAllAccessData() error
 }
 
 type SystemStore interface {
@@ -462,15 +476,15 @@ type WebhookStore interface {
 }
 
 type CommandStore interface {
-	Save(webhook *model.Command) (*model.Command, *model.AppError)
-	GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError)
-	Get(id string) (*model.Command, *model.AppError)
-	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
-	Delete(commandId string, time int64) *model.AppError
-	PermanentDeleteByTeam(teamId string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	Update(hook *model.Command) (*model.Command, *model.AppError)
-	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
+	Save(webhook *model.Command) (*model.Command, error)
+	GetByTrigger(teamId string, trigger string) (*model.Command, error)
+	Get(id string) (*model.Command, error)
+	GetByTeam(teamId string) ([]*model.Command, error)
+	Delete(commandId string, time int64) error
+	PermanentDeleteByTeam(teamId string) error
+	PermanentDeleteByUser(userId string) error
+	Update(hook *model.Command) (*model.Command, error)
+	AnalyticsCommandCount(teamId string) (int64, error)
 }
 
 type CommandWebhookStore interface {
@@ -498,11 +512,11 @@ type LicenseStore interface {
 }
 
 type TokenStore interface {
-	Save(recovery *model.Token) *model.AppError
-	Delete(token string) *model.AppError
-	GetByToken(token string) (*model.Token, *model.AppError)
+	Save(recovery *model.Token) error
+	Delete(token string) error
+	GetByToken(token string) (*model.Token, error)
 	Cleanup()
-	RemoveAllTokensByType(tokenType string) *model.AppError
+	RemoveAllTokensByType(tokenType string) error
 }
 
 type EmojiStore interface {
@@ -541,12 +555,12 @@ type FileInfoStore interface {
 }
 
 type ReactionStore interface {
-	Save(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError)
-	DeleteAllWithEmojiName(emojiName string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
+	Save(reaction *model.Reaction) (*model.Reaction, error)
+	Delete(reaction *model.Reaction) (*model.Reaction, error)
+	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error)
+	DeleteAllWithEmojiName(emojiName string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 }
 
 type JobStore interface {

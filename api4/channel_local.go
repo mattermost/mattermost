@@ -16,6 +16,7 @@ func (api *API) InitChannelLocal() {
 	api.BaseRoutes.Channel.Handle("", api.ApiLocal(getChannel)).Methods("GET")
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
 	api.BaseRoutes.Channel.Handle("", api.ApiLocal(deleteChannel)).Methods("DELETE")
+	api.BaseRoutes.Channel.Handle("/patch", api.ApiLocal(localPatchChannel)).Methods("PUT")
 
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(localRemoveChannelMember)).Methods("DELETE")
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(getChannelMember)).Methods("GET")
@@ -24,6 +25,7 @@ func (api *API) InitChannelLocal() {
 
 	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiLocal(getPublicChannelsForTeam)).Methods("GET")
 	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiLocal(getDeletedChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/private", api.ApiLocal(getPrivateChannelsForTeam)).Methods("GET")
 
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
 	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.ApiLocal(getChannelByNameForTeamName)).Methods("GET")
@@ -160,4 +162,47 @@ func localRemoveChannelMember(c *Context, w http.ResponseWriter, r *http.Request
 	c.LogAudit("name=" + channel.Name + " user_id=" + c.Params.UserId)
 
 	ReturnStatusOK(w)
+}
+
+func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	patch := model.ChannelPatchFromJson(r.Body)
+	if patch == nil {
+		c.SetInvalidParam("channel")
+		return
+	}
+
+	originalOldChannel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	channel := originalOldChannel.DeepCopy()
+
+	auditRec := c.MakeAuditRecord("localPatchChannel", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channel", channel)
+
+	channel.Patch(patch)
+	rchannel, err := c.App.UpdateChannel(channel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.FillInChannelProps(rchannel)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("")
+	auditRec.AddMeta("patch", rchannel)
+
+	w.Write([]byte(rchannel.ToJson()))
 }

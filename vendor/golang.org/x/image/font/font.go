@@ -51,9 +51,11 @@ type Face interface {
 	//
 	// It returns !ok if the face does not contain a glyph for r.
 	//
-	// The glyph's ascent and descent equal -bounds.Min.Y and +bounds.Max.Y. A
-	// visual depiction of what these metrics are is at
-	// https://developer.apple.com/library/mac/documentation/TextFonts/Conceptual/CocoaTextArchitecture/Art/glyph_metrics_2x.png
+	// The glyph's ascent and descent are equal to -bounds.Min.Y and
+	// +bounds.Max.Y. The glyph's left-side and right-side bearings are equal
+	// to bounds.Min.X and advance-bounds.Max.X. A visual depiction of what
+	// these metrics are is at
+	// https://developer.apple.com/library/archive/documentation/TextFonts/Conceptual/CocoaTextArchitecture/Art/glyphterms_2x.png
 	GlyphBounds(r rune) (bounds fixed.Rectangle26_6, advance fixed.Int26_6, ok bool)
 
 	// GlyphAdvance returns the advance width of r's glyph.

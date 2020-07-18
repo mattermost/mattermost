@@ -250,7 +250,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 			assert.Equal(t, "0", pref.Value)
 		} else {
 			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
-			assert.Equal(t, string(newTheme), preferences[0].Value)
+			assert.Equal(t, string(newTheme), pref.Value)
 		}
 	}
 }
@@ -343,7 +343,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -847,7 +847,7 @@ func TestInstallPlugin(t *testing.T) {
 		}, pluginDir
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// start an http server to serve plugin's tarball to the test.
@@ -1070,7 +1070,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1166,7 +1166,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1274,7 +1274,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1311,7 +1311,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1360,7 +1360,7 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginApiTest(t,
@@ -1381,6 +1381,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			if r.URL.Path != "/api/v2/test" {
 				return
 			}
+
+			if r.URL.Query().Get("abc") != "xyz" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()
@@ -1410,7 +1415,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 			buf := bytes.Buffer{}
 			buf.WriteString("This is the request")
-			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test?abc=xyz", &buf)
 			if err != nil {
 				return nil, err.Error()
 			}
@@ -1455,7 +1460,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestApiMetrics(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
@@ -1576,6 +1581,107 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts+1)
 	require.Nil(err)
 	require.Equal(expectedPosts, postList.ToSlice())
+}
+
+func TestPluginHTTPConnHijack(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "OK", string(body))
+}
+
+func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("ws://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	wsc, err := model.NewWebSocketClient(reqURL, "")
+	require.Nil(t, err)
+	require.NotNil(t, wsc)
+
+	wsc.Listen()
+	defer wsc.Close()
+
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK)
+
+	for i := 0; i < 10; i++ {
+		wsc.SendMessage("custom_action", map[string]interface{}{"value": i})
+		var resp *model.WebSocketResponse
+		select {
+		case resp = <-wsc.ResponseChannel:
+		case <-time.After(1 * time.Second):
+		}
+		require.NotNil(t, resp)
+		require.Equal(t, resp.Status, model.STATUS_OK)
+		require.Equal(t, "custom_action", resp.Data["action"])
+		require.Equal(t, float64(i), resp.Data["value"])
+	}
+}
+
+func TestPluginExecuteSlashCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	newUser := th.CreateUser()
+	th.LinkUserToTeam(newUser, th.BasicTeam)
+
+	t.Run("run invite command", func(t *testing.T) {
+		_, err := api.ExecuteSlashCommand(&model.CommandArgs{
+			Command:   "/invite @" + newUser.Username,
+			TeamId:    th.BasicTeam.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		_, err2 := th.App.GetChannelMember(th.BasicChannel.Id, newUser.Id)
+		require.Nil(t, err2)
+	})
 }
 
 func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {

@@ -62,6 +62,10 @@ const (
 	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM    = "received_group_not_associated_to_team"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL     = "received_group_associated_to_channel"
 	WEBSOCKET_EVENT_RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL = "received_group_not_associated_to_channel"
+	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_CREATED                 = "sidebar_category_created"
+	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED                 = "sidebar_category_updated"
+	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED                 = "sidebar_category_deleted"
+	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED           = "sidebar_category_order_updated"
 )
 
 type WebSocketMessage interface {

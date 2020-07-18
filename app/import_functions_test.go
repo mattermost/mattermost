@@ -2278,8 +2278,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	postBool = post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || !post.HasReactions
 	require.False(t, postBool, "Post properties not as expected")
 
-	reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
-	require.Nil(t, err, "Can't get reaction")
+	reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+	require.Nil(t, nErr, "Can't get reaction")
 
 	require.Len(t, reactions, 1, "Invalid number of reactions")
 
@@ -2768,8 +2768,8 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id || !post.HasReactions
 		require.False(t, postBool, "Post properties not as expected")
 
-		reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err, "Can't get reaction")
+		reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, nErr, "Can't get reaction")
 
 		require.Len(t, reactions, 1, "Invalid number of reactions")
 	})
@@ -3635,8 +3635,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		postBool := post.Message != *data.DirectPost.Message || post.CreateAt != *data.DirectPost.CreateAt || post.UserId != th.BasicUser.Id || !post.HasReactions
 		require.False(t, postBool, "Post properties not as expected")
 
-		reactions, err := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
-		require.Nil(t, err, "Can't get reaction")
+		reactions, nErr := th.App.Srv().Store.Reaction().GetForPost(post.Id, false)
+		require.Nil(t, nErr, "Can't get reaction")
 
 		require.Len(t, reactions, 1, "Invalid number of reactions")
 	})
