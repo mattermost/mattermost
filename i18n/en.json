@@ -2572,11 +2572,11 @@
   },
   {
     "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-    "translation": "Mattermost support request. My team has now {{ .Limit }} users and I am considering Mattermost Enterprise Edition."
+    "translation": "Mattermost Contact Us request. My team has now {{ .Limit }} users and I am considering Mattermost Enterprise Edition."
   },
   {
     "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost support request"
+    "translation": "Mattermost Contact Us request"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
