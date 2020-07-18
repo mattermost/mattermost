@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/store"
 
 	sq "github.com/Masterminds/squirrel"
@@ -335,13 +335,13 @@ type publicChannel struct {
 	Purpose     string `json:"purpose"`
 }
 
-var allChannelMembersForUserCache = cache2.NewLRU(&cache2.LRUOptions{
+var allChannelMembersForUserCache = cache.NewLRU(&cache.LRUOptions{
 	Size: ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SIZE,
 })
-var allChannelMembersNotifyPropsForChannelCache = cache2.NewLRU(&cache2.LRUOptions{
+var allChannelMembersNotifyPropsForChannelCache = cache.NewLRU(&cache.LRUOptions{
 	Size: ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE,
 })
-var channelByNameCache = cache2.NewLRU(&cache2.LRUOptions{
+var channelByNameCache = cache.NewLRU(&cache.LRUOptions{
 	Size: model.CHANNEL_CACHE_SIZE,
 })
 
