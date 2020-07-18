@@ -21,7 +21,7 @@ import (
 )
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	sourceTeam := th.CreateTeam()
@@ -90,10 +90,15 @@ func TestExecuteCommand(t *testing.T) {
 
 		for TestCase, result := range TestCases {
 			args := &model.CommandArgs{
-				Command: TestCase,
-				T:       func(s string, args ...interface{}) string { return s },
+				Command:   TestCase,
+				TeamId:    th.BasicTeam.Id,
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				T:         func(s string, args ...interface{}) string { return s },
 			}
-			resp, _ := th.App.ExecuteCommand(args)
+			resp, err := th.App.ExecuteCommand(args)
+			require.Nil(t, err)
+			require.NotNil(t, resp)
 
 			assert.Equal(t, resp.Text, result)
 		}
@@ -333,7 +338,7 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

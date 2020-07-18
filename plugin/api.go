@@ -37,6 +37,12 @@ type API interface {
 	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
 
+	// ExecuteSlashCommand executes a slash command with the given parameters.
+	//
+	// @tag Command
+	// Minimum server version: 5.26
+	ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error)
+
 	// GetSession returns the session object for the Session ID
 	//
 	// Minimum server version: 5.2

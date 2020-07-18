@@ -293,6 +293,17 @@ func (c *Context) RequireTeamId() *Context {
 	return c
 }
 
+func (c *Context) RequireCategoryId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.CategoryId) != 26 {
+		c.SetInvalidUrlParam("category_id")
+	}
+	return c
+}
+
 func (c *Context) RequireInviteId() *Context {
 	if c.Err != nil {
 		return c
