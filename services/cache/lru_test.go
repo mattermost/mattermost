@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package cache2
+package cache
 
 import (
 	"fmt"
@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -212,14 +210,6 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 func BenchmarkLRU(b *testing.B) {
 
 	value1 := "simplestring"
-	b.Run("simple=old", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			l := lru.New(1)
-			l.Add("test", value1)
-			_, ok := l.Get("test")
-			require.True(b, ok)
-		}
-	})
 
 	b.Run("simple=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -270,14 +260,7 @@ func BenchmarkLRU(b *testing.B) {
 			"key9": "value value value value value value value value value value9",
 		},
 	}
-	b.Run("complex=old", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			l := lru.New(1)
-			l.Add("test", value2)
-			_, ok := l.Get("test")
-			require.True(b, ok)
-		}
-	})
+
 	b.Run("complex=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			l2 := NewLRU(&LRUOptions{
@@ -361,14 +344,6 @@ func BenchmarkLRU(b *testing.B) {
 		TermsOfServiceCreateAt: 111111,
 	}
 
-	b.Run("User=old", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			l := lru.New(1)
-			l.Add("test", user)
-			_, ok := l.Get("test")
-			require.True(b, ok)
-		}
-	})
 	b.Run("User=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			l2 := NewLRU(&LRUOptions{
@@ -449,14 +424,6 @@ func BenchmarkLRU(b *testing.B) {
 		},
 	}
 
-	b.Run("Post=old", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			l := lru.New(1)
-			l.Add("test", post)
-			_, ok := l.Get("test")
-			require.True(b, ok)
-		}
-	})
 	b.Run("Post=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			l2 := NewLRU(&LRUOptions{
@@ -480,14 +447,7 @@ func BenchmarkLRU(b *testing.B) {
 		LastActivityAt: 111111,
 		ActiveChannel:  "ActiveChannel",
 	}
-	b.Run("Status=old", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			l := lru.New(1)
-			l.Add("test", status)
-			_, ok := l.Get("test")
-			require.True(b, ok)
-		}
-	})
+
 	b.Run("Status=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			l2 := NewLRU(&LRUOptions{
