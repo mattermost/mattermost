@@ -571,8 +571,14 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 
 	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
 
-	if err := es.srv.Store.Token().Save(token); err != nil {
-		return nil, err
+	if err = es.srv.Store.Token().Save(token); err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateVerifyEmailToken", "app.recover.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return token, nil
