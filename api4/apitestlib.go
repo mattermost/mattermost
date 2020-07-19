@@ -172,6 +172,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	th.App.InitServer()
 
+	th.InitLogin()
+
 	return th
 }
 
@@ -283,7 +285,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) InitLogin() *TestHelper {
 	me.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
@@ -318,9 +320,21 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser.Password = "Pa$$word11"
 	me.BasicUser2.Password = "Pa$$word11"
 
-	me.LoginSystemAdmin()
-	me.LoginTeamAdmin()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		me.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		me.LoginTeamAdmin()
+		wg.Done()
+	}()
+	wg.Wait()
+	return me
+}
 
+func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
