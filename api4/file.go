@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"crypto/subtle"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -465,6 +466,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
+	pdf, _ := strconv.ParseBool(r.URL.Query().Get("pdf"))
 
 	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -482,6 +484,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var finalFileReader io.ReadSeeker
 	fileReader, err := c.App.FileReader(info.Path)
 	if err != nil {
 		c.Err = err
@@ -490,9 +493,29 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
+	if pdf {
+		req, err := http.NewRequest("POST", "http://127.0.0.1:4000/convert/format/pdf", fileReader)
+		req.Header.Add("Content-Type", info.MimeType)
+		req.Header.Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", info.Name))
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file.pdf.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer resp.Body.Close()
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file.pdf.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+		finalFileReader = bytes.NewReader(bodyBytes)
+	} else {
+		finalFileReader = fileReader
+	}
+
 	auditRec.Success()
 
-	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	err = writeFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, finalFileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
