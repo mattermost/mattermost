@@ -153,9 +153,9 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	// revoke tokens before sessions so they can't be used to relogin
-	tErr := a.Srv().Store.OAuth().RemoveAllAccessData()
-	if tErr != nil {
-		return tErr
+	nErr := a.Srv().Store.OAuth().RemoveAllAccessData()
+	if nErr != nil {
+		return model.NewAppError("RevokeSessionsFromAllUsers", "app.oauth.remove_access_data.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	err := a.Srv().Store.Session().RemoveAllSessions()
 	if err != nil {
