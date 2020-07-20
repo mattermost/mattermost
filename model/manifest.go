@@ -202,7 +202,7 @@ type ManifestServer struct {
 
 	// Executables is a legacy field populated with a subset of supported platform executables.
 	// When unmarshalling, Executables is authoritative for the platform executable paths it
-	// contains, overriding any values in All Executables. When marshalling, AllExecutables
+	// contains, overriding any values in AllExecutables. When marshalling, AllExecutables
 	// is authoritative.
 	//
 	// Code duplication is avoided when (un)marshalling by leveraging type aliases in the
