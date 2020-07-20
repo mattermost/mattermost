@@ -1000,6 +1000,22 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	return resultVar0, resultVar1
 }
 
+func (s *TimerLayerChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError) {
+	start := timemodule.Now()
+
+	resultVar0, resultVar1 := s.ChannelStore.GetDirectChannelsForUser(userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar1 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDirectChannelsForUser", success, elapsed)
+	}
+	return resultVar0, resultVar1
+}
+
 func (s *TimerLayerChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
 	start := timemodule.Now()
 
