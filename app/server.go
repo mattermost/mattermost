@@ -645,7 +645,6 @@ func (s *Server) Shutdown() error {
 	defer sentry.Flush(2 * time.Second)
 
 	s.HubStop()
-	s.StopPushNotificationsHubWorkers()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
@@ -663,6 +662,8 @@ func (s *Server) Shutdown() error {
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
+	// Push notification hub needs to be shutdown after HTTP server
+	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
 
