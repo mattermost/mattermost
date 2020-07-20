@@ -32,6 +32,7 @@ type PushNotificationsHub struct {
 	notificationsChan chan PushNotification
 	app               *App // XXX: This will go away once push notifications move to their own package.
 	sema              chan struct{}
+	stopChan          chan struct{}
 	wg                *sync.WaitGroup
 	buffer            int
 }
@@ -258,6 +259,7 @@ func (s *Server) createPushNotificationsHub() {
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
+		stopChan:          make(chan struct{}),
 		buffer:            buffer,
 	}
 	go hub.start()
@@ -265,46 +267,51 @@ func (s *Server) createPushNotificationsHub() {
 }
 
 func (hub *PushNotificationsHub) start() {
-	for notification := range hub.notificationsChan {
-		// Adding to the waitgroup first.
-		hub.wg.Add(1)
-		// Get token.
-		hub.sema <- struct{}{}
-		go func(notification PushNotification) {
-			defer func() {
-				// Release token.
-				<-hub.sema
-				// Now marking waitgroup as done.
-				hub.wg.Done()
-			}()
+	for {
+		select {
+		case notification := <-hub.notificationsChan:
+			// Adding to the waitgroup first.
+			hub.wg.Add(1)
+			// Get token.
+			hub.sema <- struct{}{}
+			go func(notification PushNotification) {
+				defer func() {
+					// Release token.
+					<-hub.sema
+					// Now marking waitgroup as done.
+					hub.wg.Done()
+				}()
 
-			var err *model.AppError
-			switch notification.notificationType {
-			case notificationTypeClear:
-				err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
-			case notificationTypeMessage:
-				err = hub.app.sendPushNotificationSync(
-					notification.post,
-					notification.user,
-					notification.channel,
-					notification.channelName,
-					notification.senderName,
-					notification.explicitMention,
-					notification.channelWideMention,
-					notification.replyToThreadType,
-				)
-			case notificationTypeUpdateBadge:
-				err = hub.app.updateMobileAppBadgeSync(notification.userId)
-			case notificationTypeDummy:
-				return
-			default:
-				mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
-			}
+				var err *model.AppError
+				switch notification.notificationType {
+				case notificationTypeClear:
+					err = hub.app.clearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
+				case notificationTypeMessage:
+					err = hub.app.sendPushNotificationSync(
+						notification.post,
+						notification.user,
+						notification.channel,
+						notification.channelName,
+						notification.senderName,
+						notification.explicitMention,
+						notification.channelWideMention,
+						notification.replyToThreadType,
+					)
+				case notificationTypeUpdateBadge:
+					err = hub.app.updateMobileAppBadgeSync(notification.userId)
+				case notificationTypeDummy:
+					return
+				default:
+					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+				}
 
-			if err != nil {
-				mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
-			}
-		}(notification)
+				if err != nil {
+					mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+				}
+			}(notification)
+		case <-hub.stopChan:
+			return
+		}
 	}
 }
 
@@ -315,6 +322,7 @@ func (hub *PushNotificationsHub) stop() {
 			notificationType: notificationTypeDummy,
 		}
 	}
+	hub.stopChan <- struct{}{}
 	close(hub.notificationsChan)
 	hub.wg.Wait()
 }
