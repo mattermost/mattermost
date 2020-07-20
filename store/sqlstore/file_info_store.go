@@ -84,8 +84,10 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 }
 
 func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
-	if perPage < 0 || page < 0 {
-		return nil, store.NewErrInvalidInput("FileInfo", "<perPage, page>", fmt.Sprintf("<%d, %d>", perPage, page))
+	if perPage < 0 {
+		return nil, store.NewErrLimitExceeded("perPage", perPage, "value used in pagination while getting FileInfos")
+	} else if page < 0 {
+		return nil, store.NewErrLimitExceeded("page", page, "value used in pagination while getting FileInfos")
 	}
 	if perPage == 0 {
 		return nil, nil
@@ -244,7 +246,7 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error 
 	count, err := sqlResult.RowsAffected()
 	if err != nil {
 		// RowsAffected should never fail with the MySQL or Postgres drivers
-		return errors.Wrap(err, "unable to retrive rows affected")
+		return errors.Wrap(err, "unable to retrieve rows affected")
 	} else if count == 0 {
 		// Could not attach the file to the post
 		return store.NewErrInvalidInput("FileInfo", "<id, postId, creatorId>", fmt.Sprintf("<%s, %s, %s>", fileId, postId, creatorId))
@@ -291,7 +293,7 @@ func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to retrive rows affected")
+		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
 	}
 
 	return rowsAffected, nil
@@ -307,7 +309,7 @@ func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, errors.Wrapf(err, "unable to retrive rows affected")
+		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
 	}
 
 	return rowsAffected, nil
