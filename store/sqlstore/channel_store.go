@@ -3970,8 +3970,8 @@ func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.P
 				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: removeSidebarEntriesForPreferenceT")
 			}
 		} else {
-			if err := s.addChannelToFavoritesCategory(transaction, &preference); err != nil {
-				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: addChannelToFavoritesCategory")
+			if err := s.addChannelToFavoritesCategoryT(transaction, &preference); err != nil {
+				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: addChannelToFavoritesCategoryT")
 			}
 		}
 	}
@@ -4028,7 +4028,7 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Tr
 	return nil
 }
 
-func (s SqlChannelStore) addChannelToFavoritesCategory(transaction *gorp.Transaction, preference *model.Preference) error {
+func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transaction, preference *model.Preference) error {
 	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
 		return nil
 	}
