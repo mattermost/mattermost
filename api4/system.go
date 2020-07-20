@@ -159,8 +159,8 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT)
 		return
 	}
 
@@ -319,8 +319,13 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		name = "standard"
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_REPORTING) {
-		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_REPORTING)
+	permissions := []*model.Permission{
+		model.PERMISSION_READ_SYSCONSOLE_REPORTING,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionsError(permissions)
 		return
 	}
 
