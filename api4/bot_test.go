@@ -1403,6 +1403,68 @@ func TestDeleteBotIconImage(t *testing.T) {
 	require.False(t, exists, "icon.svg should not for the user")
 }
 
+func TestConvertBotToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "bot",
+	}
+	bot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	_, resp = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+	CheckBadRequestStatus(t, resp)
+
+	user, resp := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, user)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+
+		user, resp := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		CheckBadRequestStatus(t, resp)
+
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+
+		bot = &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "systemAdminBot",
+		}
+		bot, resp = th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
+		require.Contains(t, user.GetRoles(), model.SYSTEM_ADMIN_ROLE_ID)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+	})
+}
+
 func sToP(s string) *string {
 	return &s
 }
