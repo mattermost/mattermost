@@ -280,10 +280,16 @@ func TestManifestUnmarshal(t *testing.T) {
 		MinServerVersion: "5.6.0",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
-			Executables: map[string]string{
+			Executables: &ManifestExecutables{
+				LinuxAmd64:   "theexecutable-linux-amd64",
+				DarwinAmd64:  "theexecutable-darwin-amd64",
+				WindowsAmd64: "theexecutable-windows-amd64",
+			},
+			AllExecutables: map[string]string{
 				"linux-amd64":   "theexecutable-linux-amd64",
 				"darwin-amd64":  "theexecutable-darwin-amd64",
 				"windows-amd64": "theexecutable-windows-amd64",
+				"linux-arm64":   "theexecutable-linux-arm64",
 			},
 		},
 		Webapp: &ManifestWebapp{
@@ -312,8 +318,9 @@ func TestManifestUnmarshal(t *testing.T) {
 		},
 	}
 
-	var yamlResult Manifest
-	require.NoError(t, yaml.Unmarshal([]byte(`
+	t.Run("yaml", func(t *testing.T) {
+		var yamlResult Manifest
+		require.NoError(t, yaml.Unmarshal([]byte(`
 id: theid
 homepage_url: https://example.com
 support_url: https://example.com/support
@@ -325,6 +332,7 @@ server:
           linux-amd64: theexecutable-linux-amd64
           darwin-amd64: theexecutable-darwin-amd64
           windows-amd64: theexecutable-windows-amd64
+          linux-arm64: theexecutable-linux-arm64
 webapp:
     bundle_path: thebundlepath
 settings_schema:
@@ -342,10 +350,12 @@ settings_schema:
                 value: thevalue
           default: thedefault
 `), &yamlResult))
-	assert.Equal(t, expected, yamlResult)
+		assert.Equal(t, expected, yamlResult)
+	})
 
-	var jsonResult Manifest
-	require.NoError(t, json.Unmarshal([]byte(`{
+	t.Run("json", func(t *testing.T) {
+		var jsonResult Manifest
+		require.NoError(t, json.Unmarshal([]byte(`{
 	"id": "theid",
 	"homepage_url": "https://example.com",
 	"support_url": "https://example.com/support",
@@ -356,7 +366,8 @@ settings_schema:
 		"executables": {
 			"linux-amd64": "theexecutable-linux-amd64",
 			"darwin-amd64": "theexecutable-darwin-amd64",
-			"windows-amd64": "theexecutable-windows-amd64"
+			"windows-amd64": "theexecutable-windows-amd64",
+			"linux-arm64": "theexecutable-linux-arm64"
 		}
 	},
 	"webapp": {
@@ -384,7 +395,8 @@ settings_schema:
 		]
     }
 	}`), &jsonResult))
-	assert.Equal(t, expected, jsonResult)
+		assert.Equal(t, expected, jsonResult)
+	})
 }
 
 func TestFindManifest_FileErrors(t *testing.T) {
@@ -434,6 +446,17 @@ func TestManifestJson(t *testing.T) {
 		Id: "theid",
 		Server: &ManifestServer{
 			Executable: "theexecutable",
+			Executables: &ManifestExecutables{
+				LinuxAmd64:   "linux-amd64/path/to/executable",
+				DarwinAmd64:  "darwin-amd64/path/to/executable",
+				WindowsAmd64: "windows-amd64/path/to/executable",
+			},
+			AllExecutables: map[string]string{
+				"linux-amd64":   "linux-amd64/path/to/executable",
+				"darwin-amd64":  "darwin-amd64/path/to/executable",
+				"windows-amd64": "windows-amd64/path/to/executable",
+				"linux-arm64":   "linux-arm64/path/to/executable",
+			},
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
@@ -597,13 +620,29 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"path/to/executable",
 		},
 		{
+			"multiple legacy executables ignored",
+			&Manifest{
+				Server: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"",
+		},
+		{
 			"multiple executables, no match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -615,10 +654,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, linux-amd64 match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -630,10 +670,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, linux-amd64 match, single executable ignored",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 					Executable: "path/to/executable",
 				},
@@ -646,10 +687,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, darwin-amd64 match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -661,10 +703,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, windows-amd64 match",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 			},
@@ -676,10 +719,11 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"multiple executables, no match, single executable fallback",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 					Executable: "path/to/executable",
 				},
@@ -692,17 +736,18 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"deprecated backend field, ignored since server present",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
+					AllExecutables: map[string]string{
 						"linux-amd64":   "linux-amd64/path/to/executable",
 						"darwin-amd64":  "darwin-amd64/path/to/executable",
 						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
 					},
 				},
 				Backend: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable/backend",
-						"darwin-amd64":  "darwin-amd64/path/to/executable/backend",
-						"windows-amd64": "windows-amd64/path/to/executable/backend",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
 					},
 				},
 			},
@@ -714,16 +759,58 @@ func TestManifestGetExecutableForRuntime(t *testing.T) {
 			"deprecated backend field used, since no server present",
 			&Manifest{
 				Backend: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable/backend",
-						"darwin-amd64":  "darwin-amd64/path/to/executable/backend",
-						"windows-amd64": "windows-amd64/path/to/executable/backend",
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
 					},
 				},
 			},
 			"linux",
 			"amd64",
-			"linux-amd64/path/to/executable/backend",
+			"linux-amd64/path/to/executable",
+		},
+		{
+			"all executables, linux-arm64",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
+					},
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"arm64",
+			"linux-arm64/path/to/executable",
+		},
+		{
+			"all executables, linux-amd64, legacy executables ignored",
+			&Manifest{
+				Backend: &ManifestServer{
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/ignored/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/ignored/path/to/executable",
+						WindowsAmd64: "windows-amd64/ignored/path/to/executable",
+					},
+					AllExecutables: map[string]string{
+						"linux-amd64":   "linux-amd64/path/to/executable",
+						"darwin-amd64":  "darwin-amd64/path/to/executable",
+						"windows-amd64": "windows-amd64/path/to/executable",
+						"linux-arm64":   "linux-arm64/path/to/executable",
+					},
+				},
+			},
+			"linux",
+			"amd64",
+			"linux-amd64/path/to/executable",
 		},
 	}
 
@@ -769,10 +856,10 @@ func TestManifestHasServer(t *testing.T) {
 			"multiple executables",
 			&Manifest{
 				Server: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
 					},
 				},
 			},
@@ -791,10 +878,10 @@ func TestManifestHasServer(t *testing.T) {
 			"multiple executables defined via deprecated backend",
 			&Manifest{
 				Backend: &ManifestServer{
-					Executables: map[string]string{
-						"linux-amd64":   "linux-amd64/path/to/executable",
-						"darwin-amd64":  "darwin-amd64/path/to/executable",
-						"windows-amd64": "windows-amd64/path/to/executable",
+					Executables: &ManifestExecutables{
+						LinuxAmd64:   "linux-amd64/path/to/executable",
+						DarwinAmd64:  "darwin-amd64/path/to/executable",
+						WindowsAmd64: "windows-amd64/path/to/executable",
 					},
 				},
 			},
