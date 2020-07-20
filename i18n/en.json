@@ -1,5 +1,9 @@
 [
   {
+    "id": "",
+    "translation": ""
+  },
+  {
     "id": "April",
     "translation": "April"
   },
@@ -2619,6 +2623,10 @@
     "translation": "The signup link does not appear to be valid."
   },
   {
+    "id": "api.user.delete_team.not_enabled.app_error",
+    "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
     "translation": "Unable to convert the user to guest because is already a guest."
   },
@@ -2983,6 +2991,10 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.analytics.getanalytics.internal_error",
+    "translation": "Unable to get the analytics."
+  },
+  {
     "id": "app.audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits."
   },
@@ -3141,6 +3153,74 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "Unable to save the command."
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "Unable to delete the command."
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "Unable to get the command."
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "Unable to list the commands."
+  },
+  {
+    "id": "app.command.listautocompletecommands.internal_error",
+    "translation": "Unable to list the autocomplete commands."
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "Unable to list the team commands."
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "Unable to move the command."
+  },
+  {
+    "id": "app.command.regencommandtoken.internal_error",
+    "translation": "Unable to regenerate the command token."
+  },
+  {
+    "id": "app.command.tryexecutecustomcommand.internal_error",
+    "translation": "Unable to execute the custom command."
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "Unable to update the command."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "You cannot update an existing CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Unable to save the CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Unable to find the webhook."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Unable to use the webhook."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Invalid webhook."
   },
   {
     "id": "app.emoji.create.internal_error",
@@ -3811,6 +3891,54 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.oauth.delete_app.app_error",
+    "translation": "An error occurred while deleting the OAuth2 App."
+  },
+  {
+    "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+    "translation": "We encountered an error finding all the access tokens."
+  },
+  {
+    "id": "app.oauth.get_app.find.app_error",
+    "translation": "Unable to find the requested app."
+  },
+  {
+    "id": "app.oauth.get_app.finding.app_error",
+    "translation": "We encountered an error finding the app."
+  },
+  {
+    "id": "app.oauth.get_app_by_user.find.app_error",
+    "translation": "Unable to find any existing apps."
+  },
+  {
+    "id": "app.oauth.get_apps.find.app_error",
+    "translation": "An error occurred while finding the OAuth2 Apps."
+  },
+  {
+    "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+    "translation": "Unable to remove the authorization code."
+  },
+  {
+    "id": "app.oauth.remove_access_data.app_error",
+    "translation": "Unable to remove the access token."
+  },
+  {
+    "id": "app.oauth.save_app.existing.app_error",
+    "translation": "Must call update for existing app."
+  },
+  {
+    "id": "app.oauth.save_app.save.app_error",
+    "translation": "Unable to save the app."
+  },
+  {
+    "id": "app.oauth.update_app.find.app_error",
+    "translation": "Unable to find the existing app to update."
+  },
+  {
+    "id": "app.oauth.update_app.updating.app_error",
+    "translation": "We encountered an error updating the app."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -4031,6 +4159,42 @@
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
   {
+    "id": "app.session.analytics_session_count.app_error",
+    "translation": "Unable to count the sessions."
+  },
+  {
+    "id": "app.session.get.app_error",
+    "translation": "We encountered an error finding the session."
+  },
+  {
+    "id": "app.session.get_sessions.app_error",
+    "translation": "We encountered an error while finding user sessions."
+  },
+  {
+    "id": "app.session.permanent_delete_sessions_by_user.app_error",
+    "translation": "Unable to remove all the sessions for the user."
+  },
+  {
+    "id": "app.session.remove.app_error",
+    "translation": "Unable to remove the session."
+  },
+  {
+    "id": "app.session.remove_all_sessions_for_team.app_error",
+    "translation": "Unable to remove all the sessions."
+  },
+  {
+    "id": "app.session.save.app_error",
+    "translation": "Unable to save the session."
+  },
+  {
+    "id": "app.session.save.existing.app_error",
+    "translation": "Unable to update existing session."
+  },
+  {
+    "id": "app.session.update_device_id.app_error",
+    "translation": "Unable to update the device id."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -4049,6 +4213,10 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
+  },
+  {
+    "id": "app.team.permanentdeleteteam.internal_error",
+    "translation": "Unable to delete team."
   },
   {
     "id": "app.team.rename_team.name_occupied",
@@ -4073,6 +4241,10 @@
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "app.user.permanentdeleteuser.internal_error",
+    "translation": "Unable to delete user."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -6515,60 +6687,16 @@
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
-    "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Unable to count the commands."
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "Unable to get the command."
-  },
-  {
-    "id": "store.sql_command.save.delete.app_error",
-    "translation": "Unable to delete the command."
-  },
-  {
-    "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Unable to delete the command."
+    "id": "store.sql_command.get.missing.app_error",
+    "translation": "Command does not exist."
   },
   {
     "id": "store.sql_command.save.get.app_error",
     "translation": "Unable to get the command."
   },
   {
-    "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Unable to get the commands."
-  },
-  {
-    "id": "store.sql_command.save.saving.app_error",
-    "translation": "Unable to save the Command."
-  },
-  {
-    "id": "store.sql_command.save.saving_overwrite.app_error",
-    "translation": "You cannot overwrite an existing Command."
-  },
-  {
-    "id": "store.sql_command.save.update.app_error",
-    "translation": "Unable to update the command."
-  },
-  {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Unable to save the CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Invalid webhook."
+    "id": "store.sql_command.update.missing.app_error",
+    "translation": "Command does not exist."
   },
   {
     "id": "store.sql_compliance.get.finding.app_error",
@@ -6635,12 +6763,12 @@
     "translation": "group syncable was already deleted"
   },
   {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "id": "store.sql_group.more_than_one_row_changed",
+    "translation": "More than one row changed."
   },
   {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
@@ -6681,102 +6809,6 @@
   {
     "id": "store.sql_job.update.app_error",
     "translation": "Unable to update the job."
-  },
-  {
-    "id": "store.sql_oauth.delete.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_oauth.delete.open_transaction.app_error",
-    "translation": "Unable to open transaction to delete the OAuth2 app."
-  },
-  {
-    "id": "store.sql_oauth.delete_app.app_error",
-    "translation": "An error occurred while deleting the OAuth2 App."
-  },
-  {
-    "id": "store.sql_oauth.get_access_data.app_error",
-    "translation": "We encountered an error finding the access token."
-  },
-  {
-    "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-    "translation": "We encountered an error finding all the access tokens."
-  },
-  {
-    "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Unable to find the requested app."
-  },
-  {
-    "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "We encountered an error finding the app."
-  },
-  {
-    "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "Unable to find any existing apps."
-  },
-  {
-    "id": "store.sql_oauth.get_apps.find.app_error",
-    "translation": "An error occurred while finding the OAuth2 Apps."
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "Unable to find the existing authorization code."
-  },
-  {
-    "id": "store.sql_oauth.get_auth_data.finding.app_error",
-    "translation": "We encountered an error finding the authorization code."
-  },
-  {
-    "id": "store.sql_oauth.get_previous_access_data.app_error",
-    "translation": "We encountered an error finding the access token."
-  },
-  {
-    "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Unable to remove the authorization code."
-  },
-  {
-    "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Unable to remove the access token."
-  },
-  {
-    "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "Unable to remove the authorization code."
-  },
-  {
-    "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Unable to save the access token."
-  },
-  {
-    "id": "store.sql_oauth.save_app.existing.app_error",
-    "translation": "Must call update for existing app."
-  },
-  {
-    "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Unable to save the app."
-  },
-  {
-    "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "Unable to save the authorization code."
-  },
-  {
-    "id": "store.sql_oauth.update_access_data.app_error",
-    "translation": "We encountered an error updating the access token."
-  },
-  {
-    "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Unable to find the existing app to update."
-  },
-  {
-    "id": "store.sql_oauth.update_app.finding.app_error",
-    "translation": "We encountered an error finding the app."
-  },
-  {
-    "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Unable to update the app."
-  },
-  {
-    "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "We encountered an error updating the app."
   },
   {
     "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
@@ -7025,62 +7057,6 @@
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
     "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Unable to count the sessions."
-  },
-  {
-    "id": "store.sql_session.get.app_error",
-    "translation": "We encountered an error finding the session."
-  },
-  {
-    "id": "store.sql_session.get_sessions.app_error",
-    "translation": "We encountered an error while finding user sessions."
-  },
-  {
-    "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Unable to remove all the sessions for the user."
-  },
-  {
-    "id": "store.sql_session.remove.app_error",
-    "translation": "Unable to remove the session."
-  },
-  {
-    "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Unable to remove all the sessions."
-  },
-  {
-    "id": "store.sql_session.save.app_error",
-    "translation": "Unable to save the session."
-  },
-  {
-    "id": "store.sql_session.save.existing.app_error",
-    "translation": "Unable to update existing session."
-  },
-  {
-    "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Unable to update the device id."
-  },
-  {
-    "id": "store.sql_session.update_expired_notify.app_error",
-    "translation": "Unable to update expired_notify."
-  },
-  {
-    "id": "store.sql_session.update_expires_at.app_error",
-    "translation": "Unable to update expires_at."
-  },
-  {
-    "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at."
-  },
-  {
-    "id": "store.sql_session.update_props.app_error",
-    "translation": "Unable to update session props."
-  },
-  {
-    "id": "store.sql_session.update_roles.app_error",
-    "translation": "Unable to update the roles."
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -7797,10 +7773,6 @@
   {
     "id": "web.command_webhook.command.app_error",
     "translation": "Couldn't find the command."
-  },
-  {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook."
   },
   {
     "id": "web.command_webhook.parse.app_error",

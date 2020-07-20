@@ -1362,6 +1362,28 @@ func (a *OpenTracingAppLayer) Config() *model.Config {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertBotToUser")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.ConvertBotToUser(bot, userPatch, sysadmin)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConvertUserToBot")
@@ -5149,6 +5171,28 @@ func (a *OpenTracingAppLayer) GetFileInfosForPostWithMigration(postId string) ([
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetFileInfosForPostWithMigration(postId)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) GetFilteredUsersStats(options *model.UserCountOptions) (*model.UsersStats, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetFilteredUsersStats")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetFilteredUsersStats(options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11381,6 +11425,28 @@ func (a *OpenTracingAppLayer) RemoveUserFromTeam(teamId string, userId string, r
 
 	defer span.Finish()
 	resultVar0 := a.app.RemoveUserFromTeam(teamId, userId, requestorId)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveUsersFromChannelNotMemberOfTeam")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveUsersFromChannelNotMemberOfTeam(remover, channel, team)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
