@@ -195,7 +195,7 @@ func (logr *Logr) IsLevelEnabled(lvl Level) LevelStatus {
 
 	// Cache and return the result.
 	if err := logr.lvlCache.put(lvl.ID, status); err != nil {
-		logr.OnLoggerError(err)
+		logr.ReportError(err)
 		return LevelStatus{}
 	}
 	return status
