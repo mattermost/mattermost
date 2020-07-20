@@ -17,7 +17,7 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/utils/imgutils"
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
@@ -31,7 +31,7 @@ const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = cache2.NewLRU(&cache2.LRUOptions{
+var linkCache = cache.NewLRU(&cache.LRUOptions{
 	Size: LINK_CACHE_SIZE,
 })
 
