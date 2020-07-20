@@ -2400,7 +2400,7 @@ func (s *TimerLayerCommandWebhookStore) Cleanup() {
 	}
 }
 
-func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandWebhookStore.Get(id)
@@ -2416,7 +2416,7 @@ func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandWebhookStore.Save(webhook)
@@ -2432,7 +2432,7 @@ func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandWebhookStore.TryUse(id, limit)

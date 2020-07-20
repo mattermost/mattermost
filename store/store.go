@@ -489,9 +489,9 @@ type CommandStore interface {
 }
 
 type CommandWebhookStore interface {
-	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError)
-	Get(id string) (*model.CommandWebhook, *model.AppError)
-	TryUse(id string, limit int) *model.AppError
+	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error)
+	Get(id string) (*model.CommandWebhook, error)
+	TryUse(id string, limit int) error
 	Cleanup()
 }
 
