@@ -4875,6 +4875,10 @@
     "translation": "Unable to open the export temporary file."
   },
   {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Failed to select message export data."
+  },
+  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
   },
