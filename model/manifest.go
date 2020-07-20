@@ -261,9 +261,16 @@ func (ms *ManifestServer) UnmarshalJSON(data []byte) error {
 func (ms *ManifestServer) MarshalYAML() ([]byte, error) {
 	type auxManifestServer ManifestServer
 
-	ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
-	ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
-	ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	// Populate AllExecutables from Executables, if it exists.
+	if ms.Executables != nil {
+		if ms.AllExecutables == nil {
+			ms.AllExecutables = make(map[string]string)
+		}
+
+		ms.AllExecutables["linux-amd64"] = ms.Executables.LinuxAmd64
+		ms.AllExecutables["darwin-amd64"] = ms.Executables.DarwinAmd64
+		ms.AllExecutables["windows-amd64"] = ms.Executables.WindowsAmd64
+	}
 
 	return yaml.Marshal((*auxManifestServer)(ms))
 }
@@ -276,10 +283,12 @@ func (ms *ManifestServer) UnmarshalYAML(unmarshal func(interface{}) error) error
 		return err
 	}
 
-	ms.Executables = &ManifestExecutables{
-		LinuxAmd64:   aux.AllExecutables["linux-amd64"],
-		DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
-		WindowsAmd64: aux.AllExecutables["windows-amd64"],
+	if len(aux.AllExecutables) > 0 {
+		ms.Executables = &ManifestExecutables{
+			LinuxAmd64:   aux.AllExecutables["linux-amd64"],
+			DarwinAmd64:  aux.AllExecutables["darwin-amd64"],
+			WindowsAmd64: aux.AllExecutables["windows-amd64"],
+		}
 	}
 
 	return nil
