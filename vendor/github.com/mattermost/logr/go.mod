@@ -1,4 +1,4 @@
-module github.com/wiggin77/logr
+module github.com/mattermost/logr
 
 go 1.12
 
