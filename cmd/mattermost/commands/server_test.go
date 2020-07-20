@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	UnitTestListeningPort = ":38066"
+	UnitTestListeningPort = ":0"
 )
 
 type ServerTestHelper struct {
