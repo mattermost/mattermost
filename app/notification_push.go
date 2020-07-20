@@ -25,6 +25,7 @@ const (
 	notificationTypeClear       notificationType = "clear"
 	notificationTypeMessage     notificationType = "message"
 	notificationTypeUpdateBadge notificationType = "update_badge"
+	notificationTypeDummy       notificationType = "dummy"
 )
 
 type PushNotificationsHub struct {
@@ -32,6 +33,7 @@ type PushNotificationsHub struct {
 	app               *App // XXX: This will go away once push notifications move to their own package.
 	sema              chan struct{}
 	wg                *sync.WaitGroup
+	buffer            int
 }
 
 type PushNotification struct {
@@ -256,6 +258,7 @@ func (s *Server) createPushNotificationsHub() {
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
+		buffer:            buffer,
 	}
 	go hub.start()
 	s.PushNotificationsHub = hub
@@ -292,6 +295,8 @@ func (hub *PushNotificationsHub) start() {
 				)
 			case notificationTypeUpdateBadge:
 				err = hub.app.updateMobileAppBadgeSync(notification.userId)
+			case notificationTypeDummy:
+				return
 			default:
 				mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 			}
@@ -304,6 +309,12 @@ func (hub *PushNotificationsHub) start() {
 }
 
 func (hub *PushNotificationsHub) stop() {
+	// Drain the channel.
+	for i := 0; i < hub.buffer+1; i++ {
+		hub.notificationsChan <- PushNotification{
+			notificationType: notificationTypeDummy,
+		}
+	}
 	close(hub.notificationsChan)
 	hub.wg.Wait()
 }
