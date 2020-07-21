@@ -249,6 +249,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
 
 	props["DiagnosticId"] = telemetryID
+	props["TelemetryId"] = telemetryID
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
