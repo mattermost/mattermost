@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/store"
-
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -386,9 +384,10 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token, nErr := a.Srv().Store.UserAccessToken().Save(token)
 	if nErr != nil {
+		var appErr *model.AppError
 		switch {
-		case errors.As(nErr, &err):
-			return nil, err
+		case errors.As(nErr, &appErr):
+			return nil, appErr
 		default:
 			return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
