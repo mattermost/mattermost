@@ -446,7 +446,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
-	session, nErr := a.Srv().Store.Session().Save(session)
+	session, nErr = a.Srv().Store.Session().Save(session)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
