@@ -2484,19 +2484,19 @@
   },
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
-    "translation": "You already upgraded your system, please restart the server run with enterprise code."
+    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
   },
   {
     "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
-    "translation": "You can't upgrade because your system is already enterprise."
+    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.app_error",
-    "translation": "There is an upgrade to enterprise already running, only one upgrade is possible at the same time."
+    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
   },
   {
     "id": "api.upgrade_to_enterprise.generic_error.app_error",
-    "translation": "The system wasn't able to upgrade to enterprise."
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
@@ -2516,7 +2516,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.app_error",
-    "translation": "The system wasn't able to upgrade to enterprise, please try again."
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
