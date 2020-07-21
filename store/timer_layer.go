@@ -2225,7 +2225,7 @@ func (s *TimerLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 	return err
 }
 
-func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.AnalyticsCommandCount(teamId)
@@ -2241,7 +2241,7 @@ func (s *TimerLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, *m
 	return result, err
 }
 
-func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.AppError {
+func (s *TimerLayerCommandStore) Delete(commandId string, time int64) error {
 	start := timemodule.Now()
 
 	err := s.CommandStore.Delete(commandId, time)
@@ -2257,7 +2257,7 @@ func (s *TimerLayerCommandStore) Delete(commandId string, time int64) *model.App
 	return err
 }
 
-func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Get(id string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.Get(id)
@@ -2273,7 +2273,7 @@ func (s *TimerLayerCommandStore) Get(id string) (*model.Command, *model.AppError
 	return result, err
 }
 
-func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.GetByTeam(teamId)
@@ -2289,7 +2289,7 @@ func (s *TimerLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, *mo
 	return result, err
 }
 
-func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.GetByTrigger(teamId, trigger)
@@ -2305,7 +2305,7 @@ func (s *TimerLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 	return result, err
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	err := s.CommandStore.PermanentDeleteByTeam(teamId)
@@ -2321,7 +2321,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByTeam(teamId string) *model.App
 	return err
 }
 
-func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	err := s.CommandStore.PermanentDeleteByUser(userId)
@@ -2337,7 +2337,7 @@ func (s *TimerLayerCommandStore) PermanentDeleteByUser(userId string) *model.App
 	return err
 }
 
-func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.Save(webhook)
@@ -2353,7 +2353,7 @@ func (s *TimerLayerCommandStore) Save(webhook *model.Command) (*model.Command, *
 	return result, err
 }
 
-func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
+func (s *TimerLayerCommandStore) Update(hook *model.Command) (*model.Command, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandStore.Update(hook)
@@ -2384,7 +2384,7 @@ func (s *TimerLayerCommandWebhookStore) Cleanup() {
 	}
 }
 
-func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandWebhookStore.Get(id)
@@ -2400,7 +2400,7 @@ func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *
 	return result, err
 }
 
-func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.CommandWebhookStore.Save(webhook)
@@ -2416,7 +2416,7 @@ func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 	return result, err
 }
 
-func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	start := timemodule.Now()
 
 	err := s.CommandWebhookStore.TryUse(id, limit)
@@ -3806,7 +3806,7 @@ func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) DeleteApp(id string) *model.AppError {
+func (s *TimerLayerOAuthStore) DeleteApp(id string) error {
 	start := timemodule.Now()
 
 	err := s.OAuthStore.DeleteApp(id)
@@ -3822,7 +3822,7 @@ func (s *TimerLayerOAuthStore) DeleteApp(id string) *model.AppError {
 	return err
 }
 
-func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAccessData(token)
@@ -3838,7 +3838,7 @@ func (s *TimerLayerOAuthStore) GetAccessData(token string) (*model.AccessData, *
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAccessDataByRefreshToken(token)
@@ -3854,7 +3854,7 @@ func (s *TimerLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId string) ([]*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
@@ -3870,7 +3870,7 @@ func (s *TimerLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetApp(id)
@@ -3886,7 +3886,7 @@ func (s *TimerLayerOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAppByUser(userId, offset, limit)
@@ -3902,7 +3902,7 @@ func (s *TimerLayerOAuthStore) GetAppByUser(userId string, offset int, limit int
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetApps(offset, limit)
@@ -3918,7 +3918,7 @@ func (s *TimerLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAuthData(code)
@@ -3934,7 +3934,7 @@ func (s *TimerLayerOAuthStore) GetAuthData(code string) (*model.AuthData, *model
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limit int) ([]*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
@@ -3950,7 +3950,7 @@ func (s *TimerLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limi
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId string) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.GetPreviousAccessData(userId, clientId)
@@ -3966,7 +3966,7 @@ func (s *TimerLayerOAuthStore) GetPreviousAccessData(userId string, clientId str
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *model.AppError {
+func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) error {
 	start := timemodule.Now()
 
 	err := s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
@@ -3982,7 +3982,7 @@ func (s *TimerLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) *mod
 	return err
 }
 
-func (s *TimerLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAccessData(token string) error {
 	start := timemodule.Now()
 
 	err := s.OAuthStore.RemoveAccessData(token)
@@ -3998,7 +3998,7 @@ func (s *TimerLayerOAuthStore) RemoveAccessData(token string) *model.AppError {
 	return err
 }
 
-func (s *TimerLayerOAuthStore) RemoveAllAccessData() *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAllAccessData() error {
 	start := timemodule.Now()
 
 	err := s.OAuthStore.RemoveAllAccessData()
@@ -4014,7 +4014,7 @@ func (s *TimerLayerOAuthStore) RemoveAllAccessData() *model.AppError {
 	return err
 }
 
-func (s *TimerLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
+func (s *TimerLayerOAuthStore) RemoveAuthData(code string) error {
 	start := timemodule.Now()
 
 	err := s.OAuthStore.RemoveAuthData(code)
@@ -4030,7 +4030,7 @@ func (s *TimerLayerOAuthStore) RemoveAuthData(code string) *model.AppError {
 	return err
 }
 
-func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.SaveAccessData(accessData)
@@ -4046,7 +4046,7 @@ func (s *TimerLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*mo
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.SaveApp(app)
@@ -4062,7 +4062,7 @@ func (s *TimerLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *m
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError) {
+func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.AuthData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.SaveAuthData(authData)
@@ -4078,7 +4078,7 @@ func (s *TimerLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.Au
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError) {
+func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.AccessData, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.UpdateAccessData(accessData)
@@ -4094,7 +4094,7 @@ func (s *TimerLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*
 	return result, err
 }
 
-func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) {
 	start := timemodule.Now()
 
 	result, err := s.OAuthStore.UpdateApp(app)
@@ -5388,7 +5388,7 @@ func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
+func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.AnalyticsSessionCount()
@@ -5419,7 +5419,7 @@ func (s *TimerLayerSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	}
 }
 
-func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.Get(sessionIdOrToken)
@@ -5435,7 +5435,7 @@ func (s *TimerLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, *
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.GetSessions(userId)
@@ -5451,7 +5451,7 @@ func (s *TimerLayerSessionStore) GetSessions(userId string) ([]*model.Session, *
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
@@ -5467,7 +5467,7 @@ func (s *TimerLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
@@ -5483,7 +5483,7 @@ func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) (
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *model.AppError {
+func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.PermanentDeleteSessionsByUser(teamId)
@@ -5499,7 +5499,7 @@ func (s *TimerLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) *m
 	return err
 }
 
-func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError {
+func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.Remove(sessionIdOrToken)
@@ -5515,7 +5515,7 @@ func (s *TimerLayerSessionStore) Remove(sessionIdOrToken string) *model.AppError
 	return err
 }
 
-func (s *TimerLayerSessionStore) RemoveAllSessions() *model.AppError {
+func (s *TimerLayerSessionStore) RemoveAllSessions() error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.RemoveAllSessions()
@@ -5531,7 +5531,7 @@ func (s *TimerLayerSessionStore) RemoveAllSessions() *model.AppError {
 	return err
 }
 
-func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.Save(session)
@@ -5547,7 +5547,7 @@ func (s *TimerLayerSessionStore) Save(session *model.Session) (*model.Session, *
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
@@ -5563,7 +5563,7 @@ func (s *TimerLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified bool) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
@@ -5579,7 +5579,7 @@ func (s *TimerLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 	return err
 }
 
-func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.UpdateExpiresAt(sessionId, time)
@@ -5595,7 +5595,7 @@ func (s *TimerLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) *
 	return err
 }
 
-func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int64) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.UpdateLastActivityAt(sessionId, time)
@@ -5611,7 +5611,7 @@ func (s *TimerLayerSessionStore) UpdateLastActivityAt(sessionId string, time int
 	return err
 }
 
-func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) *model.AppError {
+func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) error {
 	start := timemodule.Now()
 
 	err := s.SessionStore.UpdateProps(session)
@@ -5627,7 +5627,7 @@ func (s *TimerLayerSessionStore) UpdateProps(session *model.Session) *model.AppE
 	return err
 }
 
-func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (string, *model.AppError) {
+func (s *TimerLayerSessionStore) UpdateRoles(userId string, roles string) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.SessionStore.UpdateRoles(userId, roles)

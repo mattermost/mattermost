@@ -46,7 +46,7 @@ func getCommandFromCommandArg(a *app.App, commandArg string) *model.Command {
 		if team == nil {
 			return nil
 		}
-		var err *model.AppError
+		var err error
 		command, err = a.Srv().Store.Command().GetByTrigger(team.Id, commandPart)
 		if err != nil {
 			fmt.Println(err.Error())
