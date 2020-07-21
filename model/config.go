@@ -1112,52 +1112,17 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	SysLogEnabled      *bool   `restricted:"true"`
-	SysLogIP           *string `restricted:"true"`
-	SysLogPort         *int    `restricted:"true"`
-	SysLogTag          *string `restricted:"true"`
-	SysLogCert         *string `restricted:"true"`
-	SysLogInsecure     *bool   `restricted:"true"`
-	SysLogMaxQueueSize *int    `restricted:"true"`
-
-	FileEnabled      *bool   `restricted:"true"`
-	FileName         *string `restricted:"true"`
-	FileMaxSizeMB    *int    `restricted:"true"`
-	FileMaxAgeDays   *int    `restricted:"true"`
-	FileMaxBackups   *int    `restricted:"true"`
-	FileCompress     *bool   `restricted:"true"`
-	FileMaxQueueSize *int    `restricted:"true"`
+	FileEnabled           *bool   `restricted:"true"`
+	FileName              *string `restricted:"true"`
+	FileMaxSizeMB         *int    `restricted:"true"`
+	FileMaxAgeDays        *int    `restricted:"true"`
+	FileMaxBackups        *int    `restricted:"true"`
+	FileCompress          *bool   `restricted:"true"`
+	FileMaxQueueSize      *int    `restricted:"true"`
+	AdvancedLoggingConfig *string `restricted:"true"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
-	if s.SysLogEnabled == nil {
-		s.SysLogEnabled = NewBool(false)
-	}
-
-	if s.SysLogIP == nil {
-		s.SysLogIP = NewString("localhost")
-	}
-
-	if s.SysLogPort == nil {
-		s.SysLogPort = NewInt(6514)
-	}
-
-	if s.SysLogTag == nil {
-		s.SysLogTag = NewString("")
-	}
-
-	if s.SysLogCert == nil {
-		s.SysLogCert = NewString("")
-	}
-
-	if s.SysLogInsecure == nil {
-		s.SysLogInsecure = NewBool(false)
-	}
-
-	if s.SysLogMaxQueueSize == nil {
-		s.SysLogMaxQueueSize = NewInt(1000)
-	}
-
 	if s.FileEnabled == nil {
 		s.FileEnabled = NewBool(false)
 	}
@@ -1185,16 +1150,21 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	if s.FileMaxQueueSize == nil {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 type NotificationLogSettings struct {
-	EnableConsole *bool   `restricted:"true"`
-	ConsoleLevel  *string `restricted:"true"`
-	ConsoleJson   *bool   `restricted:"true"`
-	EnableFile    *bool   `restricted:"true"`
-	FileLevel     *string `restricted:"true"`
-	FileJson      *bool   `restricted:"true"`
-	FileLocation  *string `restricted:"true"`
+	EnableConsole         *bool   `restricted:"true"`
+	ConsoleLevel          *string `restricted:"true"`
+	ConsoleJson           *bool   `restricted:"true"`
+	EnableFile            *bool   `restricted:"true"`
+	FileLevel             *string `restricted:"true"`
+	FileJson              *bool   `restricted:"true"`
+	FileLocation          *string `restricted:"true"`
+	AdvancedLoggingConfig *string `restricted:"true"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1224,6 +1194,10 @@ func (s *NotificationLogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
