@@ -8118,5 +8118,9 @@
     {
         "id": "app.team.permanentdeleteteam.internal_error",
         "translation": "Невозможно удалить команду."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Функция удаления команды навсегда не включена. Пожалуйста, обратитесь к системному администратору."
     }
 ]
