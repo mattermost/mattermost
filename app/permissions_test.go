@@ -23,7 +23,7 @@ func (tw testWriter) Write(p []byte) (int, error) {
 }
 
 func TestExportPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	var scheme *model.Scheme
@@ -91,7 +91,7 @@ func TestExportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	name := model.NewId()
@@ -171,7 +171,7 @@ func TestImportPermissions(t *testing.T) {
 }
 
 func TestImportPermissions_idempotentScheme(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	name := model.NewId()
@@ -214,7 +214,7 @@ func TestImportPermissions_idempotentScheme(t *testing.T) {
 }
 
 func TestImportPermissions_schemeDeletedOnRoleFailure(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	name := model.NewId()
