@@ -600,13 +600,13 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
 	t.Run("should create a user", func(t *testing.T) {
-		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.Nil(t, err)
 		require.Equal(t, u.Id, user.Id)
 	})
 
 	t.Run("invalid invite id", func(t *testing.T) {
-		_, err := th.App.CreateUserWithInviteId(&user, "")
+		_, err := th.App.CreateUserWithInviteId(&user, "", "")
 		require.NotNil(t, err)
 		require.Contains(t, err.Id, "store.sql_team.get_by_invite_id")
 	})
@@ -615,7 +615,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
 		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
 		require.Nil(t, err)
-		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
 	})
@@ -678,8 +678,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.False(t, newUser.IsGuest())
 		require.Equal(t, invitationEmail, newUser.Email, "The user email must be the invitation one")
 
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
@@ -699,8 +699,8 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -744,8 +744,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
 		require.Equal(t, grantedInvitationEmail, newGuest.Email)
-		_, err = th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
-		require.NotNil(t, err)
+		_, nErr := th.App.Srv().Store.Token().GetByToken(grantedDomainToken.Token)
+		require.NotNil(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
@@ -781,8 +781,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Nil(t, err)
 		assert.True(t, newGuest.IsGuest())
 		assert.Equal(t, invitationEmail, newGuest.Email, "The user email must be the invitation one")
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err)
+		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, nErr)
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)

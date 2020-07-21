@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 )
 
 // Plain is the simplest formatter, outputting only text with

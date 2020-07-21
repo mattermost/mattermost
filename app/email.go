@@ -141,10 +141,13 @@ func (es *EmailService) sendEmailChangeEmail(oldEmail, newEmail, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
+func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redirect string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
+	if redirect != "" {
+		link += fmt.Sprintf("&redirect_to=%s", redirect)
+	}
 
 	serverURL := condenseSiteURL(siteURL)
 
@@ -185,7 +188,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -218,6 +221,9 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 			return err
 		}
 		link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token.Token, url.QueryEscape(email))
+		if redirect != "" {
+			link += fmt.Sprintf("&redirect_to=%s", redirect)
+		}
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
@@ -571,8 +577,14 @@ func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (
 
 	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
 
-	if err := es.srv.Store.Token().Save(token); err != nil {
-		return nil, err
+	if err = es.srv.Store.Token().Save(token); err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateVerifyEmailToken", "app.recover.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return token, nil
