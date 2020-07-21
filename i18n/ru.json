@@ -7897,7 +7897,7 @@
     },
     {
         "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "Не удалось получить все реакции с данным именем смайла"
+        "translation": "Не удалось получить все реакции с данным именем смайла."
     },
     {
         "id": "app.reaction.bulk_get_for_post_ids.app_error",
