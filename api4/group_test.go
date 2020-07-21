@@ -457,7 +457,7 @@ func TestGetGroupTeams(t *testing.T) {
 }
 
 func TestGetGroupChannels(t *testing.T) {
-	th := Setup(t)
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
