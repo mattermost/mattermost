@@ -137,7 +137,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1, nErr := ss.Session().Save(s1)
 	require.Nil(t, nErr)
 
-	_, nErr := ss.UserAccessToken().Save(uat)
+	_, nErr = ss.UserAccessToken().Save(uat)
 	require.Nil(t, nErr)
 
 	received, nErr := ss.UserAccessToken().Search(uat.Id)
