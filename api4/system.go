@@ -554,6 +554,12 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	license := c.App.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip.")
+		return
+	}
+
 	status, err := c.App.GetWarnMetricsStatus()
 	if err != nil {
 		c.Err = err
@@ -570,6 +576,12 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	license := c.App.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip.")
 		return
 	}
 

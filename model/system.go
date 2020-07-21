@@ -26,8 +26,9 @@ const (
 )
 
 const (
-	WARN_METRIC_STATUS_RUNONCE = "runonce"
-	WARN_METRIC_STATUS_ACK     = "ack"
+	WARN_METRIC_STATUS_RUNONCE      = "runonce"
+	WARN_METRIC_STATUS_ACK          = "ack"
+	WARN_METRIC_STATUS_STORE_PREFIX = "warn_metric_"
 )
 
 type System struct {
@@ -108,9 +109,10 @@ var WarnMetricsTable = map[string]WarnMetric{
 }
 
 type WarnMetricStatus struct {
-	Id    string `json:"id"`
-	Limit int64  `json:"limit"`
-	Acked bool   `json:"acked"`
+	Id          string `json:"id"`
+	Limit       int64  `json:"limit"`
+	Acked       bool   `json:"acked"`
+	StoreStatus string `json:"store_status,omitempty"`
 }
 
 type WarnMetricMessages struct {

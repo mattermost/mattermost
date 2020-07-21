@@ -1087,14 +1087,14 @@ func runLicenseExpirationCheckJob(a *App) {
 }
 
 func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
-	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
 	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 
 	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
-		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
 		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 	}, time.Hour*24)
 }
 

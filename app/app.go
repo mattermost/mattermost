@@ -197,9 +197,6 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
-// WarnMetricPrefix represent the prefix used for any warn metric type
-const WarnMetricPrefix = "warn_metric_"
-
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, appErr := a.Srv().Store.System().Get()
 	if appErr != nil {
@@ -208,9 +205,9 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 
 	result := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
-		if strings.HasPrefix(key, WarnMetricPrefix) {
-			if value == "true" {
-				if warnMetric, ok := model.WarnMetricsTable[key]; ok && !warnMetric.IsBotOnly {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
+				if !warnMetric.IsBotOnly && value == "true" {
 					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil)
 				}
 			}
@@ -326,10 +323,14 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		actions := []*model.PostAction{}
 		actions = append(actions,
 			&model.PostAction{
-				Id:   "contactSupport",
+				Id:   "contactUs",
 				Name: T("api.server.warn_metric.contact_us"),
 				Type: model.POST_ACTION_TYPE_BUTTON,
 				Options: []*model.PostActionOptions{
+					{
+						Text:  "TrackEventId",
+						Value: warnMetricId,
+					},
 					{
 						Text:  "ActionExecutingMessage",
 						Value: T("api.server.warn_metric.contacting_us"),

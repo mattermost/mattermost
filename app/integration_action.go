@@ -442,13 +442,17 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		actions := []*model.PostAction{}
 		actions = append(actions,
 			&model.PostAction{
-				Id:   "emailSupport",
+				Id:   "emailUs",
 				Name: utils.T("api.server.warn_metric.email_us"),
 				Type: model.POST_ACTION_TYPE_BUTTON,
 				Options: []*model.PostActionOptions{
 					{
-						Text:  "ExternalUrl",
+						Text:  "WarnMetricMailtoUrl",
 						Value: mailtoLinkText,
+					},
+					{
+						Text:  "TrackEventId",
+						Value: warnMetricId,
 					},
 				},
 				Integration: &model.PostActionIntegration{
@@ -479,6 +483,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 }
 
 type MailToLinkContent struct {
+	MetricId      string `json:"metric_id"`
 	MailRecipient string `json:"mail_recipient"`
 	MailCC        string `json:"mail_cc"`
 	MailSubject   string `json:"mail_subject"`
@@ -517,6 +522,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")
 
 	mailToLinkContent := &MailToLinkContent{
+		MetricId:      warnMetricId,
 		MailRecipient: "support@mattermost.com",
 		MailCC:        user.Email,
 		MailSubject:   T("api.server.warn_metric.bot_response.mailto_subject"),
