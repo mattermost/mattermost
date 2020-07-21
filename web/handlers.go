@@ -15,16 +15,16 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
-
 	"github.com/mattermost/mattermost-server/v5/app"
+	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -140,7 +140,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		tmpSrv = *c.App.Srv()
 		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
 		c.App.SetServer(&tmpSrv)
-		c.App = app.NewOpenTracingAppLayer(c.App, ctx)
+		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
 	// Set the max request body size to be equal to MaxFileSize.
