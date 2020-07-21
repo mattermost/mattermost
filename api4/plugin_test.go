@@ -384,12 +384,11 @@ func TestDisableOnRemove(t *testing.T) {
 		},
 	}
 
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			// TODO: check by moving out of the loop?
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
-
 			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.PluginSettings.Enable = true

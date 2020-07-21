@@ -172,8 +172,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	th.App.InitServer()
 
-	th.InitLogin()
-
 	return th
 }
 
@@ -190,7 +188,9 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -206,7 +206,9 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
