@@ -18,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 )
@@ -29,7 +29,7 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = cache2.NewLRU(&cache2.LRUOptions{
+var redirectLocationDataCache = cache.NewLRU(&cache.LRUOptions{
 	Size: REDIRECT_LOCATION_CACHE_SIZE,
 })
 
