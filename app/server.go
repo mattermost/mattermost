@@ -1087,14 +1087,9 @@ func runLicenseExpirationCheckJob(a *App) {
 }
 
 func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
-	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
-	doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
-
+	doCheckNumberOfActiveUsersWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
-		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
-		doCheckNumberOfActiveUsersWarnMetricStatus(a, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+		doCheckNumberOfActiveUsersWarnMetricStatus(a)
 	}, time.Hour*24)
 }
 
@@ -1125,16 +1120,10 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model.WarnMetric) {
+func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip this check")
-		return
-	}
-
-	data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-	if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
-		mlog.Debug("This metric warning has already been acked or should only run once")
 		return
 	}
 
@@ -1143,10 +1132,27 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App, warnMetric model.WarnMet
 		mlog.Error("Error to get active registered users.", mlog.Err(err))
 	}
 
-	if numberOfActiveUsers >= warnMetric.Limit {
+	warnMetrics := []model.WarnMetric{}
+	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit {
+		return
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+	} else {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+	}
+
+	for _, warnMetric := range warnMetrics {
+		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+			mlog.Debug("This metric warning has already been acked or should only run once")
+			continue
+		}
+
 		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: "true"}); err != nil {
-			mlog.Error("Unable to write to database.", mlog.Err(err))
-			return
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+			continue
 		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
 
