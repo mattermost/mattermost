@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -21,7 +22,13 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 
 	session, err := a.Srv().Store.Session().Save(session)
 	if err != nil {
-		return nil, err
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("CreateSession", "app.session.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	a.AddSessionToCache(session)
@@ -45,7 +52,8 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	}
 
 	if session == nil {
-		if session, err = a.Srv().Store.Session().Get(token); err == nil {
+		var nErr error
+		if session, nErr = a.Srv().Store.Session().Get(token); nErr == nil {
 			if session != nil {
 				if session.Token != token {
 					return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token, "Error": ""}, "", http.StatusUnauthorized)
@@ -55,8 +63,8 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 					a.AddSessionToCache(session)
 				}
 			}
-		} else if err.StatusCode == http.StatusInternalServerError {
-			return nil, err
+		} else if nfErr := new(store.ErrNotFound); !errors.As(nErr, &nfErr) {
+			return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -94,7 +102,12 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 
 func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 
-	return a.Srv().Store.Session().GetSessions(userId)
+	sessions, err := a.Srv().Store.Session().GetSessions(userId)
+	if err != nil {
+		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return sessions, nil
 }
 
 func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
@@ -121,14 +134,14 @@ func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv().Store.Session().GetSessions(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("RevokeAllSessions", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, session := range sessions {
 		if session.IsOAuth {
 			a.RevokeAccessToken(session.Token)
 		} else {
 			if err := a.Srv().Store.Session().Remove(session.Id); err != nil {
-				return err
+				return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	}
@@ -142,13 +155,13 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 	// revoke tokens before sessions so they can't be used to relogin
-	tErr := a.Srv().Store.OAuth().RemoveAllAccessData()
-	if tErr != nil {
-		return tErr
+	nErr := a.Srv().Store.OAuth().RemoveAllAccessData()
+	if nErr != nil {
+		return model.NewAppError("RevokeSessionsFromAllUsers", "app.oauth.remove_access_data.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	err := a.Srv().Store.Session().RemoveAllSessions()
 	if err != nil {
-		return err
+		return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	a.ClearSessionCacheForAllUsers()
 
@@ -217,7 +230,7 @@ func (a *App) SessionCacheLength() int {
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
 	sessions, err := a.Srv().Store.Session().GetSessions(userId)
 	if err != nil {
-		return err
+		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	for _, session := range sessions {
 		if session.DeviceId == deviceId && session.Id != currentSessionId {
@@ -235,17 +248,16 @@ func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentS
 func (a *App) GetSessionById(sessionId string) (*model.Session, *model.AppError) {
 	session, err := a.Srv().Store.Session().Get(sessionId)
 	if err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return nil, err
+		return nil, model.NewAppError("GetSessionById", "app.session.get.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+
 	return session, nil
 }
 
 func (a *App) RevokeSessionById(sessionId string) *model.AppError {
 	session, err := a.Srv().Store.Session().Get(sessionId)
 	if err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return err
+		return model.NewAppError("RevokeSessionById", "app.session.get.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	return a.RevokeSession(session)
 
@@ -258,7 +270,7 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 		}
 	} else {
 		if err := a.Srv().Store.Session().Remove(session.Id); err != nil {
-			return err
+			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -270,7 +282,7 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 func (a *App) AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
 	_, err := a.Srv().Store.Session().UpdateDeviceId(sessionId, deviceId, expiresAt)
 	if err != nil {
-		return err
+		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -435,9 +447,15 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
-	session, err = a.Srv().Store.Session().Save(session)
-	if err != nil {
-		return nil, err
+	session, nErr := a.Srv().Store.Session().Save(session)
+	if nErr != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(nErr, &invErr):
+			return nil, model.NewAppError("CreateSession", "app.session.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	a.AddSessionToCache(session)
