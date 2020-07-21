@@ -724,7 +724,7 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -797,5 +797,15 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.NotNil(t, err)
 		require.IsType(t, &url.Error{}, err)
+	})
+
+	t.Run("without response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		}))
+		defer server.Close()
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.Nil(t, err)
+		require.Nil(t, resp)
 	})
 }

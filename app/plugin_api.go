@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PluginAPI struct {
@@ -68,6 +69,20 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	api.app.UnregisterPluginCommand(api.id, teamId, trigger)
 	return nil
+}
+
+func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	user, appErr := api.app.GetUser(commandArgs.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.SiteURL = api.app.GetSiteURL()
+	response, appErr := api.app.ExecuteCommand(commandArgs)
+	if appErr != nil {
+		return response, appErr
+	}
+	return response, nil
 }
 
 func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {

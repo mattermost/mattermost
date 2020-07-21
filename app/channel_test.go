@@ -103,78 +103,159 @@ func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 }
 
 func TestMoveChannel(t *testing.T) {
+	t.Run("should move channels between teams", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		var err *model.AppError
+
+		sourceTeam := th.CreateTeam()
+		targetTeam := th.CreateTeam()
+		channel1 := th.CreateChannel(sourceTeam)
+		defer func() {
+			th.App.PermanentDeleteChannel(channel1)
+			th.App.PermanentDeleteTeam(sourceTeam)
+			th.App.PermanentDeleteTeam(targetTeam)
+		}()
+
+		_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser2.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(th.BasicUser, channel1)
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(th.BasicUser2, channel1)
+		require.Nil(t, err)
+
+		err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
+		require.Error(t, err, "Should have failed due to mismatched members.")
+
+		_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
+		require.Nil(t, err)
+
+		err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
+		require.Nil(t, err)
+
+		// Test moving a channel with a deactivated user who isn't in the destination team.
+		// It should fail, unless removeDeactivatedMembers is true.
+		deacivatedUser := th.CreateUser()
+		channel2 := th.CreateChannel(sourceTeam)
+		defer th.App.PermanentDeleteChannel(channel2)
+
+		_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.BasicUser, channel2)
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(deacivatedUser, channel2)
+		require.Nil(t, err)
+
+		_, err = th.App.UpdateActive(deacivatedUser, false)
+		require.Nil(t, err)
+
+		err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser)
+		require.Error(t, err, "Should have failed due to mismatched deacivated member.")
+
+		// Test moving a channel with no members.
+		channel3 := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        "name_" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      sourceTeam.Id,
+			CreatorId:   th.BasicUser.Id,
+		}
+
+		channel3, err = th.App.CreateChannel(channel3, false)
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteChannel(channel3)
+
+		err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should remove sidebar entries when moving channels from one team to another", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		sourceTeam := th.CreateTeam()
+		targetTeam := th.CreateTeam()
+		channel := th.CreateChannel(sourceTeam)
+
+		th.LinkUserToTeam(th.BasicUser, sourceTeam)
+		th.LinkUserToTeam(th.BasicUser, targetTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+
+		// Put the channel in a custom category so that it explicitly exists in SidebarChannels
+		category, err := th.App.CreateSidebarCategory(th.BasicUser.Id, sourceTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				DisplayName: "new category",
+			},
+			Channels: []string{channel.Id},
+		})
+		require.Nil(t, err)
+		require.Equal(t, []string{channel.Id}, category.Channels)
+
+		err = th.App.MoveChannel(targetTeam, channel, th.BasicUser)
+		require.Nil(t, err)
+
+		moved, err := th.App.GetChannel(channel.Id)
+		require.Nil(t, err)
+		require.Equal(t, targetTeam.Id, moved.TeamId)
+
+		// The channel should no longer be on the old team
+		updatedCategory, err := th.App.GetSidebarCategory(category.Id)
+		require.Nil(t, err)
+		assert.Equal(t, []string{}, updatedCategory.Channels)
+
+		// And it should be on the new team instead
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, targetTeam.Id)
+		require.Nil(t, err)
+		require.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		assert.Contains(t, categories.Categories[1].Channels, channel.Id)
+	})
+}
+
+func TestRemoveUsersFromChannelNotMemberOfTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	var err *model.AppError
 
-	sourceTeam := th.CreateTeam()
-	targetTeam := th.CreateTeam()
-	channel1 := th.CreateChannel(sourceTeam)
+	team := th.CreateTeam()
+	team2 := th.CreateTeam()
+	channel1 := th.CreateChannel(team)
 	defer func() {
 		th.App.PermanentDeleteChannel(channel1)
-		th.App.PermanentDeleteTeam(sourceTeam)
-		th.App.PermanentDeleteTeam(targetTeam)
+		th.App.PermanentDeleteTeam(team)
+		th.App.PermanentDeleteTeam(team2)
 	}()
 
-	_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser.Id, "")
+	_, err := th.App.AddUserToTeam(team.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
-
-	_, err = th.App.AddUserToTeam(sourceTeam.Id, th.BasicUser2.Id, "")
+	_, err = th.App.AddUserToTeam(team2.Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
-
-	_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser.Id, "")
+	_, err = th.App.AddUserToTeam(team.Id, th.BasicUser2.Id, "")
 	require.Nil(t, err)
 
 	_, err = th.App.AddUserToChannel(th.BasicUser, channel1)
 	require.Nil(t, err)
-
 	_, err = th.App.AddUserToChannel(th.BasicUser2, channel1)
 	require.Nil(t, err)
 
-	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
-	require.NotNil(t, err, "Should have failed due to mismatched members.")
-
-	_, err = th.App.AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, "")
+	err = th.App.RemoveUsersFromChannelNotMemberOfTeam(th.SystemAdminUser, channel1, team2)
 	require.Nil(t, err)
 
-	err = th.App.MoveChannel(targetTeam, channel1, th.BasicUser)
+	channelMembers, err := th.App.GetChannelMembersPage(channel1.Id, 0, 10000000)
 	require.Nil(t, err)
-
-	// Test moving a channel with a deactivated user who isn't in the destination team.
-	// It should fail, unless removeDeactivatedMembers is true.
-	deacivatedUser := th.CreateUser()
-	channel2 := th.CreateChannel(sourceTeam)
-	defer th.App.PermanentDeleteChannel(channel2)
-
-	_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
-	require.Nil(t, err)
-	_, err = th.App.AddUserToChannel(th.BasicUser, channel2)
-	require.Nil(t, err)
-
-	_, err = th.App.AddUserToChannel(deacivatedUser, channel2)
-	require.Nil(t, err)
-
-	_, err = th.App.UpdateActive(deacivatedUser, false)
-	require.Nil(t, err)
-
-	err = th.App.MoveChannel(targetTeam, channel2, th.BasicUser)
-	require.NotNil(t, err, "Should have failed due to mismatched deacivated member.")
-
-	// Test moving a channel with no members.
-	channel3 := &model.Channel{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        "name_" + model.NewId(),
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      sourceTeam.Id,
-		CreatorId:   th.BasicUser.Id,
+	require.Len(t, *channelMembers, 1)
+	members := make([]model.ChannelMember, len(*channelMembers))
+	for i, m := range *channelMembers {
+		members[i] = m
 	}
-
-	channel3, err = th.App.CreateChannel(channel3, false)
-	require.Nil(t, err)
-	defer th.App.PermanentDeleteChannel(channel3)
-
-	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser)
-	assert.Nil(t, err)
+	require.Equal(t, members[0].UserId, th.BasicUser.Id)
 }
 
 func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
@@ -345,7 +426,7 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -371,7 +452,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user1 := th.CreateUser()
@@ -1856,5 +1937,44 @@ func TestSidebarCategory(t *testing.T) {
 		require.Nil(t, err, "Expected no error")
 		require.Len(t, catOrder, 4)
 		require.Equal(t, catOrder[1], createdCategory.Id, "the newly created category should be after favorites")
+	})
+}
+
+func TestGetSidebarCategories(t *testing.T) {
+	t.Run("should return the sidebar categories for the given user/team", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_, err := th.App.CreateSidebarCategory(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "new category",
+			},
+		})
+		require.Nil(t, err)
+
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		assert.Nil(t, err)
+		assert.Len(t, categories.Categories, 4)
+	})
+
+	t.Run("should create the initial categories even if migration hasn't ran yet", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Manually add the user to the team without going through the app layer to simulate a pre-existing user/team
+		// relationship that hasn't been migrated yet
+		team := th.CreateTeam()
+		_, err := th.App.Srv().Store.Team().SaveMember(&model.TeamMember{
+			TeamId:     team.Id,
+			UserId:     th.BasicUser.Id,
+			SchemeUser: true,
+		}, 100)
+		require.Nil(t, err)
+
+		categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, team.Id)
+		assert.Nil(t, err)
+		assert.Len(t, categories.Categories, 3)
 	})
 }

@@ -4,6 +4,9 @@
 package mlog
 
 import (
+	"context"
+
+	"github.com/mattermost/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -11,6 +14,10 @@ import (
 var globalLogger *Logger
 
 func InitGlobalLogger(logger *Logger) {
+	// Clean up previous instance.
+	if globalLogger != nil && globalLogger.logrLogger != nil {
+		globalLogger.logrLogger.Logr().Shutdown()
+	}
 	glob := *logger
 	glob.zap = glob.zap.WithOptions(zap.AddCallerSkip(1))
 	globalLogger = &glob
@@ -19,6 +26,12 @@ func InitGlobalLogger(logger *Logger) {
 	Warn = globalLogger.Warn
 	Error = globalLogger.Error
 	Critical = globalLogger.Critical
+	Log = globalLogger.Log
+	LogM = globalLogger.LogM
+	Flush = globalLogger.Flush
+	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
+	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
+	AddTarget = globalLogger.AddTarget
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -26,6 +39,12 @@ func RedirectStdLog(logger *Logger) {
 }
 
 type LogFunc func(string, ...Field)
+type LogFuncCustom func(LogLevel, string, ...Field)
+type LogFuncCustomMulti func([]LogLevel, string, ...Field)
+type FlushFunc func(context.Context) error
+type ConfigFunc func(cfg LogTargetCfg) error
+type ShutdownFunc func(context.Context) error
+type AddTargetFunc func(logr.Target) error
 
 // DON'T USE THIS Modify the level on the app logger
 func GloballyDisableDebugLogForTest() {
@@ -42,3 +61,10 @@ var Info LogFunc = defaultInfoLog
 var Warn LogFunc = defaultWarnLog
 var Error LogFunc = defaultErrorLog
 var Critical LogFunc = defaultCriticalLog
+var Log LogFuncCustom = defaultCustomLog
+var LogM LogFuncCustomMulti = defaultCustomMultiLog
+var Flush FlushFunc = defaultFlush
+
+var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
+var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
+var AddTarget AddTargetFunc = defaultAddTarget

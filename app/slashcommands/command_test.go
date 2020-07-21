@@ -33,7 +33,7 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestMoveCommand(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t)
 	defer th.tearDown()
 
 	sourceTeam := th.createTeam()
@@ -350,7 +350,7 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := setup(t).initBasic()
+	th := setup(t)
 	defer th.tearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
