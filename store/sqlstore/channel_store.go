@@ -521,9 +521,16 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	}
 
 	if !hasCategoryOfType(model.SidebarCategoryFavorites) {
+		favoritesCategoryId := model.NewId()
+
+		// Create the SidebarChannels first since there's more opportunity for something to fail heree
+		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId); err != nil {
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to migrate favorites to sidebar")
+		}
+
 		if err := transaction.Insert(&model.SidebarCategory{
 			DisplayName: "Favorites", // This will be retranslated by the client into the user's locale
-			Id:          model.NewId(),
+			Id:          favoritesCategoryId,
 			UserId:      userId,
 			TeamId:      teamId,
 			Sorting:     model.SidebarCategorySortDefault,
@@ -593,6 +600,45 @@ func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transactio
 		return nil, err
 	}
 	return memberships, nil
+}
+
+func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *gorp.Transaction, userId, teamId, favoritesCategoryId string) error {
+	favoritesQuery, favoritesParams, _ := s.getQueryBuilder().
+		Select("Preferences.Name").
+		From("Preferences").
+		Join("Channels on Preferences.Name = Channels.Id").
+		Join("ChannelMembers on Preferences.Name = ChannelMembers.ChannelId and Preferences.UserId = ChannelMembers.UserId").
+		Where(sq.Eq{
+			"Preferences.UserId":   userId,
+			"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+			"Preferences.Value":    "true",
+		}).
+		Where(sq.Or{
+			sq.Eq{"Channels.TeamId": teamId},
+			sq.Eq{"Channels.TeamId": ""},
+		}).
+		OrderBy(
+			"Channels.DisplayName",
+			"Channels.Name ASC",
+		).ToSql()
+
+	var favoriteChannelIds []string
+	if _, err := transaction.Select(&favoriteChannelIds, favoritesQuery, favoritesParams...); err != nil {
+		return errors.Wrap(err, "migrateFavoritesToSidebarT: unable to get favorite channel IDs")
+	}
+
+	for i, channelId := range favoriteChannelIds {
+		if err := transaction.Insert(&model.SidebarChannel{
+			ChannelId:  channelId,
+			CategoryId: favoritesCategoryId,
+			UserId:     userId,
+			SortOrder:  int64(i * model.MinimalSidebarSortDistance),
+		}); err != nil {
+			return errors.Wrap(err, "migrateFavoritesToSidebarT: unable to insert SidebarChannel")
+		}
+	}
+
+	return nil
 }
 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
