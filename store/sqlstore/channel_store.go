@@ -436,46 +436,6 @@ func (s SqlChannelStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
 }
 
-// MigrateSidebarCategories creates 3 initial categories for all existing user/team pairs
-// **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
-func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error) {
-	var userTeamMap []struct {
-		UserId string
-		TeamId string
-	}
-
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, err
-	}
-
-	defer finalizeTransaction(transaction)
-
-	if _, err := transaction.Select(&userTeamMap, "SELECT TeamId, UserId FROM TeamMembers LEFT JOIN Users ON Users.Id=UserId WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
-		return nil, err
-	}
-
-	if len(userTeamMap) == 0 {
-		// No more team members in query result means that the migration has finished.
-		return nil, nil
-	}
-
-	for _, u := range userTeamMap {
-		if err := s.createInitialSidebarCategoriesT(transaction, u.UserId, u.TeamId); err != nil {
-			return nil, err
-		}
-	}
-	if err := transaction.Commit(); err != nil {
-		return nil, err
-	}
-
-	data := make(map[string]interface{})
-	data["TeamId"] = userTeamMap[len(userTeamMap)-1].TeamId
-	data["UserId"] = userTeamMap[len(userTeamMap)-1].UserId
-
-	return data, nil
-}
-
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
