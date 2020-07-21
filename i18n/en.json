@@ -5055,14 +5055,6 @@
     "translation": "Unable to run migration job due to unknown migration key."
   },
   {
-    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-    "translation": "Migration failed due to database error."
-  },
-  {
-    "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-    "translation": "Migration failed due to invalid progress data."
-  },
-  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token."
   },
