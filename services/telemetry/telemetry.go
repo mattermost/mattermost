@@ -453,6 +453,7 @@ func (ds *TelemetryService) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
+		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ds.sendTelemetry(TRACK_CONFIG_AUDIT, map[string]interface{}{
@@ -769,6 +770,7 @@ func (ds *TelemetryService) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
+		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
 	ds.sendTelemetry(TRACK_CONFIG_DISPLAY, map[string]interface{}{
