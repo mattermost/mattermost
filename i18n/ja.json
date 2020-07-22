@@ -7916,5 +7916,161 @@
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "不正な進捗データのため移行に失敗しました。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "既定のカテゴリを削除できませんでした。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "データベースへレコードを挿入できませんでした。"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "データベースエラーによりマイグレーションできませんでした。"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "指定日時内のチャンネル内ユーザーを取得できませんでした。"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "記録を破棄できませんでした。"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "トークンを削除できませんでした。"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "トークンを削除できませんでした。"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "デバイスIDを更新できませんでした。"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "既存のセッションを更新できませんでした。"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "セッションを保存できませんでした。"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "全てのセッションを削除できませんでした。"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "セッションを削除できませんでした。"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "ユーザーの全てのセッションを削除できませんでした。"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "ユーザーセッションを探す際にエラーが発生しました。"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "セッションを探す際にエラーが発生しました。"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "セッションをカウントできませんでした。"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "トークンを保存できませんでした。"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "トークンを削除できませんでした。"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "アプリケーションを更新する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "更新すべき既存のアプリが見付かりませんでした。"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "アプリを保存できませんでした。"
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "既存のアプリケーションの更新をしなくてはいけません。"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "アクセストークンを削除できませんでした。"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "認証コードを削除できませんでした。"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "OAuth2アプリケーションを検索中にエラーが発生しました。"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "既存のアプリが見付かりませんでした。"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "アプリケーションを探す際にエラーが発生しました。"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "要求されたアプリが見付かりませんでした。"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "全てのアクセストークンを探す際にエラーが発生しました。"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "OAuth2アプリケーションを削除中にエラーが発生しました。"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "コマンドを更新できませんでした。"
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "コマンドを保存できませんでした。"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "コマンドを取得できませんでした。"
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "コマンドを取得できませんでした。"
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "コマンドを取得できませんでした。"
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "コマンドを削除できませんでした。"
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "コマンドを保存できませんでした。"
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "初期サイドバーカテゴリを作成できませんでした。"
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "リクエスト内のチャンネルにユーザーが所属していません"
     }
 ]
