@@ -4886,7 +4886,7 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	}, "Should verify a new user")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken("randomId")
+		vuser, resp := client.VerifyUserEmailWithoutToken("randomId")
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
 		require.Nil(t, vuser)
