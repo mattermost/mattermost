@@ -8109,5 +8109,9 @@
     {
         "id": "api.invalid_channel",
         "translation": "El canal listado en la petición no pertenece al usuario"
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Equipo permanente deletion la característica no es habilitada. Complacer contactar vuestro Administrador de Sistema."
     }
 ]
