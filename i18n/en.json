@@ -1815,12 +1815,20 @@
     "translation": "Unable to delete user preferences."
   },
   {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match deleted preferences"
+  },
+  {
     "id": "api.preference.preferences_category.get.app_error",
     "translation": "Unable to get user preferences."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Unable to set user preferences."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match updated preferences"
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -2621,6 +2629,10 @@
   {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
