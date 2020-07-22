@@ -138,10 +138,10 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 	}
 
 	// Advanced logging for audit requires license.
-	if !bAllowAdvancedLogging || *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig == "" {
+	dsn := *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
+	if !bAllowAdvancedLogging || dsn == "" {
 		return errs
 	}
-	dsn := *s.Config().ExperimentalAuditSettings.AdvancedLoggingConfig
 	isJson := config.IsJsonMap(dsn)
 	cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
 	if err != nil {
