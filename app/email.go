@@ -344,7 +344,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
-			bodyPage := es.newEmailTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
@@ -405,7 +405,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
-			bodyPage := es.newEmailTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
