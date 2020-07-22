@@ -4875,22 +4875,22 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("Should verify a new user", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		email := th.GenerateTestEmail()
 		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
 		ruser, _ := th.Client.CreateUser(&user)
 
-		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken(ruser.Id)
+		vuser, resp := client.VerifyUserEmailWithoutToken(ruser.Id)
 		require.Nil(t, resp.Error)
 		require.Equal(t, ruser.Id, vuser.Id)
-	})
+	}, "Should verify a new user")
 
-	t.Run("Should not be able to find user", func(t *testing.T) {
-		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken("randomId")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		vuser, resp := client.VerifyUserEmailWithoutToken("randomId")
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
 		require.Nil(t, vuser)
-	})
+	}, "Should not be able to find user")
 
 	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
 		user := th.CreateUser()
