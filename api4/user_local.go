@@ -19,6 +19,7 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.User.Handle("", api.ApiLocal(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiLocal(updateUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("", api.ApiLocal(localDeleteUser)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("/roles", api.ApiLocal(updateUserRoles)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiLocal(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/active", api.ApiLocal(updateUserActive)).Methods("PUT")
@@ -30,6 +31,38 @@ func (api *API) InitUserLocal() {
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiLocal(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(getUserAccessTokensForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiLocal(createUserAccessToken)).Methods("POST")
+}
+
+func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userId := c.Params.UserId
+
+	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	user, err := c.App.GetUser(userId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	if c.Params.Permanent {
+		err = c.App.PermanentDeleteUser(user)
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
