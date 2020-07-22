@@ -1230,16 +1230,16 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 	var inviteListWithErrors []*model.EmailInviteWithError
 	var goodEmails []string
 	for _, email := range guestsInvite.Emails {
-		invite := &model.EmailInviteWithError{
-			Email: email,
-			Error: nil,
-		}
 		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
+			invite := &model.EmailInviteWithError{
+				Email: email,
+				Error: nil,
+			}
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+			inviteListWithErrors = append(inviteListWithErrors, invite)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
-		inviteListWithErrors = append(inviteListWithErrors, invite)
 	}
 
 	if len(goodEmails) > 0 {
@@ -1261,6 +1261,14 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 					Email: email,
 					Error: err,
 				})
+			}
+		} else {
+			for _, email := range goodEmails {
+				invite := &model.EmailInviteWithError{
+					Email: email,
+					Error: nil,
+				}
+				inviteListWithErrors = append(inviteListWithErrors, invite)
 			}
 		}
 	}
