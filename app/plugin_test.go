@@ -35,7 +35,7 @@ func getHashedKey(key string) string {
 }
 
 func TestPluginKeyValueStore(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	pluginId := "testpluginid"
@@ -135,7 +135,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 }
 
 func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	pluginId := "testpluginid"
@@ -195,7 +195,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	pluginId := "testpluginid"
 
 	t.Run("storing a value without providing options works", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{})
@@ -209,7 +209,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test that setting it atomic when it doesn't match doesn't change anything", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		err := th.App.SetPluginKey(pluginId, "key", []byte("value-1"))
@@ -229,7 +229,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test the atomic change with the proper old value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		err := th.App.SetPluginKey(pluginId, "key", []byte("value-2"))
@@ -249,7 +249,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("when new value is nil and old value matches with the current, it should delete the currently set value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		// first set a value.
@@ -271,7 +271,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("when new value is nil and there is a value set for the key already, it should delete the currently set value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		// first set a value.
@@ -296,7 +296,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("when old value is nil and there is no value set for the key before, it should set the new value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "nil-test-key-4", []byte("value-1"), model.PluginKVSetOptions{
@@ -312,7 +312,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 	})
 
 	t.Run("test that value is set and unset with ExpireInSeconds", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		result, err := th.App.SetPluginKeyWithOptions(pluginId, "key", []byte("value-1"), model.PluginKVSetOptions{
@@ -336,7 +336,7 @@ func TestPluginKeyValueStoreSetWithOptionsJSON(t *testing.T) {
 }
 
 func TestServePluginRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
@@ -348,7 +348,7 @@ func TestServePluginRequest(t *testing.T) {
 }
 
 func TestPrivateServePluginRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testCases := []struct {
@@ -441,7 +441,7 @@ func TestHandlePluginRequest(t *testing.T) {
 }
 
 func TestGetPluginStatusesDisabled(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -454,7 +454,7 @@ func TestGetPluginStatusesDisabled(t *testing.T) {
 }
 
 func TestGetPluginStatuses(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -467,7 +467,7 @@ func TestGetPluginStatuses(t *testing.T) {
 }
 
 func TestPluginSync(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testCases := []struct {
@@ -498,6 +498,7 @@ func TestPluginSync(t *testing.T) {
 				cfg.FileSettings.AmazonS3AccessKeyId = model.NewString(model.MINIO_ACCESS_KEY)
 				cfg.FileSettings.AmazonS3SecretAccessKey = model.NewString(model.MINIO_SECRET_KEY)
 				cfg.FileSettings.AmazonS3Bucket = model.NewString(model.MINIO_BUCKET)
+				cfg.FileSettings.AmazonS3PathPrefix = model.NewString("")
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")
 				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
@@ -671,7 +672,7 @@ func TestPluginPanicLogs(t *testing.T) {
 }
 
 func TestProcessPrepackagedPlugins(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testsPath, _ := fileutils.FindDir("tests")

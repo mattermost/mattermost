@@ -239,6 +239,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticID string, license *
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
+	props["EnableAskCommunityLink"] = strconv.FormatBool(*c.SupportSettings.EnableAskCommunityLink)
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 
