@@ -3191,6 +3191,34 @@
     "translation": "Unable to update the command."
   },
   {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "You cannot update an existing CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Unable to save the CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Unable to find the webhook."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Unable to use the webhook."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Invalid webhook."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -6643,26 +6671,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Unable to save the CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Invalid webhook."
-  },
-  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports."
   },
@@ -6727,12 +6735,12 @@
     "translation": "group syncable was already deleted"
   },
   {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "id": "store.sql_group.more_than_one_row_changed",
+    "translation": "More than one row changed."
   },
   {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
   },
   {
     "id": "store.sql_group.permanent_delete_members_by_user.app_error",
@@ -7737,10 +7745,6 @@
   {
     "id": "web.command_webhook.command.app_error",
     "translation": "Couldn't find the command."
-  },
-  {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook."
   },
   {
     "id": "web.command_webhook.parse.app_error",
