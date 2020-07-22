@@ -1232,7 +1232,20 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		err = a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		if err != nil {
+			emailErrors := goodEmails
+			if err.StatusCode != http.StatusUnprocessableEntity {
+				// some failed to be sent, might not be all
+				emailErrors = strings.Split(err.DetailedError, ",")
+			}
+			for _, email := range emailErrors {
+				inviteListWithErrors = append(inviteListWithErrors, &model.EmailInviteWithError{
+					Email: email,
+					Error: err,
+				})
+			}
+		}
 	}
 
 	return inviteListWithErrors, nil
@@ -1268,9 +1281,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	err = a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
-
-	return err
+	return a.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
 }
 
 func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsInvite, senderId string) *model.AppError {
@@ -1297,9 +1308,7 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
-
-	return nil
+	return a.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
 }
 
 func (a *App) FindTeamByName(name string) bool {

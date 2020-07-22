@@ -369,21 +369,21 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 	return nil
 }
 
-func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string) {
+func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, invites []string, siteURL string, message string) *model.AppError {
 	if a.Srv().EmailRateLimiter == nil {
 		a.Log().Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
-		return
+		return model.NewAppError("RateLimitSetupError", "api.user.invite.error", nil, "", http.StatusInternalServerError)
 	}
 	rateLimited, result, err := a.Srv().EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		a.Log().Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
-		return
+		return model.NewAppError("RateLimitError", "api.user.invite.error", nil, err.Error(), http.StatusTooManyRequests)
 	}
 
 	sender, appErr := a.GetUser(senderUserId)
 	if appErr != nil {
 		a.Log().Error("Email invite not sent, unable to find the sender user.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(appErr))
-		return
+		return appErr
 	}
 
 	senderProfileImage, _, appErr := a.GetProfileImage(sender)
@@ -397,9 +397,10 @@ func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
 			mlog.Err(err))
-		return
+		return model.NewAppError("RateLimitError", "api.user.invite.error", nil, err.Error(), http.StatusTooManyRequests)
 	}
 
+	errorMails := make([]string, 0)
 	for _, invite := range invites {
 		if len(invite) > 0 {
 			subject := utils.T("api.templates.invite_guest_subject",
@@ -446,6 +447,7 @@ func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 
 			if err := a.Srv().Store.Token().Save(token); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
+				errorMails = append(errorMails, invite)
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
@@ -465,9 +467,14 @@ func (a *App) sendGuestInviteEmails(team *model.Team, channels []*model.Channel,
 
 			if err := a.sendMailWithEmbeddedFiles(invite, subject, bodyPage.Render(), embeddedFiles); err != nil {
 				mlog.Error("Failed to send invite email successfully", mlog.Err(err))
+				errorMails = append(errorMails, invite)
 			}
 		}
 	}
+	if len(errorMails) > 0 {
+		return model.NewAppError("emailSentFailed", "api.user.invite.error", nil, strings.Join(errorMails, ", "), http.StatusUnprocessableEntity)
+	}
+	return nil
 }
 
 func (s *Server) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
