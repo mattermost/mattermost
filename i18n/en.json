@@ -1815,12 +1815,20 @@
     "translation": "Unable to delete user preferences."
   },
   {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match deleted preferences"
+  },
+  {
     "id": "api.preference.preferences_category.get.app_error",
     "translation": "Unable to get user preferences."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Unable to set user preferences."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match updated preferences"
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -2623,6 +2631,10 @@
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
     "translation": "Unable to convert the user to guest because is already a guest."
   },
@@ -3189,6 +3201,34 @@
   {
     "id": "app.command.updatecommand.internal_error",
     "translation": "Unable to update the command."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "You cannot update an existing CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Unable to save the CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Unable to find the webhook."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Unable to parse incoming data."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Unable to use the webhook."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Invalid webhook."
   },
   {
     "id": "app.emoji.create.internal_error",
@@ -6643,26 +6683,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "Unable to save the CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook."
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Invalid webhook."
-  },
-  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports."
   },
@@ -7737,10 +7757,6 @@
   {
     "id": "web.command_webhook.command.app_error",
     "translation": "Couldn't find the command."
-  },
-  {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook."
   },
   {
     "id": "web.command_webhook.parse.app_error",

@@ -702,6 +702,24 @@ func (s *OpenTracingLayerChannelStore) DeleteSidebarCategory(categoryId string) 
 	return resultVar0
 }
 
+func (s *OpenTracingLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.DeleteSidebarChannelsByPreferences")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Get")
@@ -2205,7 +2223,7 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channe
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarChannelsByPreferences")
 	s.Root.Store.SetContext(newCtx)
@@ -2596,7 +2614,7 @@ func (s *OpenTracingLayerCommandWebhookStore) Cleanup() {
 
 }
 
-func (s *OpenTracingLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s *OpenTracingLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandWebhookStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -2614,7 +2632,7 @@ func (s *OpenTracingLayerCommandWebhookStore) Get(id string) (*model.CommandWebh
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s *OpenTracingLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandWebhookStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -2632,7 +2650,7 @@ func (s *OpenTracingLayerCommandWebhookStore) Save(webhook *model.CommandWebhook
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "CommandWebhookStore.TryUse")
 	s.Root.Store.SetContext(newCtx)
