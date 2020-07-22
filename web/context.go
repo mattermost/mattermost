@@ -24,7 +24,7 @@ type Context struct {
 	siteURLHeader string
 }
 
-// LogAuditRec logs an audit record using default RestLevel.
+// LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
