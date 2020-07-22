@@ -483,7 +483,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	if !hasCategoryOfType(model.SidebarCategoryFavorites) {
 		favoritesCategoryId := model.NewId()
 
-		// Create the SidebarChannels first since there's more opportunity for something to fail heree
+		// Create the SidebarChannels first since there's more opportunity for something to fail here
 		if err := s.migrateFavoritesToSidebarT(transaction, userId, teamId, favoritesCategoryId); err != nil {
 			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to migrate favorites to sidebar")
 		}
