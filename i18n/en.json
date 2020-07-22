@@ -2623,6 +2623,10 @@
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
     "translation": "Unable to convert the user to guest because is already a guest."
   },
