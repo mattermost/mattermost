@@ -141,10 +141,13 @@ func (es *EmailService) sendEmailChangeEmail(oldEmail, newEmail, locale, siteURL
 	return nil
 }
 
-func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
+func (es *EmailService) sendVerifyEmail(userEmail, locale, siteURL, token, redirect string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
+	if redirect != "" {
+		link += fmt.Sprintf("&redirect_to=%s", redirect)
+	}
 
 	serverURL := condenseSiteURL(siteURL)
 
@@ -185,7 +188,7 @@ func (es *EmailService) SendSignInChangeEmail(email, method, locale, siteURL str
 	return nil
 }
 
-func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+func (es *EmailService) sendWelcomeEmail(userId string, email string, verified bool, locale, siteURL, redirect string) *model.AppError {
 	if !*es.srv.Config().EmailSettings.SendEmailNotifications && !*es.srv.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, "Send Email Notifications and Require Email Verification is disabled in the system console", http.StatusInternalServerError)
 	}
@@ -218,6 +221,9 @@ func (es *EmailService) sendWelcomeEmail(userId string, email string, verified b
 			return err
 		}
 		link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token.Token, url.QueryEscape(email))
+		if redirect != "" {
+			link += fmt.Sprintf("&redirect_to=%s", redirect)
+		}
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
@@ -344,7 +350,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
-			bodyPage := es.newEmailTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
@@ -405,7 +411,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 					"TeamDisplayName": team.DisplayName,
 					"SiteName":        es.srv.Config().TeamSettings.SiteName})
 
-			bodyPage := es.newEmailTemplate("invite_body", model.DEFAULT_LOCALE)
+			bodyPage := es.newEmailTemplate("invite_body", "")
 			bodyPage.Props["SiteURL"] = siteURL
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body_guest.info",
