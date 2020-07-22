@@ -470,17 +470,12 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 		return err
 	}
 
-	hasCategoryOfType := func(categoryType model.SidebarCategoryType) bool {
-		for _, existingType := range existingTypes {
-			if categoryType == existingType {
-				return true
-			}
-		}
-
-		return false
+	hasCategoryOfType := make(map[model.SidebarCategoryType]bool, len(existingTypes))
+	for _, existingType := range existingTypes {
+		hasCategoryOfType[existingType] = true
 	}
 
-	if !hasCategoryOfType(model.SidebarCategoryFavorites) {
+	if !hasCategoryOfType[model.SidebarCategoryFavorites] {
 		favoritesCategoryId := model.NewId()
 
 		// Create the SidebarChannels first since there's more opportunity for something to fail here
@@ -501,7 +496,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 		}
 	}
 
-	if !hasCategoryOfType(model.SidebarCategoryChannels) {
+	if !hasCategoryOfType[model.SidebarCategoryChannels] {
 		if err := transaction.Insert(&model.SidebarCategory{
 			DisplayName: "Channels", // This will be retranslateed by the client into the user's locale
 			Id:          model.NewId(),
@@ -515,7 +510,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 		}
 	}
 
-	if !hasCategoryOfType(model.SidebarCategoryDirectMessages) {
+	if !hasCategoryOfType[model.SidebarCategoryDirectMessages] {
 		if err := transaction.Insert(&model.SidebarCategory{
 			DisplayName: "Direct Messages", // This will be retranslateed by the client into the user's locale
 			Id:          model.NewId(),
@@ -563,49 +558,6 @@ func (s SqlChannelStore) migrateMembershipToSidebar(transaction *gorp.Transactio
 }
 
 func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *gorp.Transaction, userId, teamId, favoritesCategoryId string) error {
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// On Postgres (and eventually newer versions of MySQL), we can use ROW_NUMBER to calculate SortOrder within
-		// the SELECT statement instead of having to work it out ourselves.
-		insertQuery, insertParams, _ := s.getQueryBuilder().
-			Insert("SidebarChannels").
-			Columns(
-				"ChannelId",
-				"CategoryId",
-				"UserId",
-				"SortOrder",
-			).
-			Select(
-				sq.Select().
-					Column("Preferences.Name as ChannelId").
-					Column("? as CategoryId", favoritesCategoryId).
-					Column("? as UserId", userId).
-					Column("ROW_NUMBER() OVER (ORDER BY Channels.DisplayName, Channels.Name ASC) * ? as SortOrder", model.MinimalSidebarSortDistance).
-					From("Preferences").
-					Join("Channels on Preferences.Name = Channels.Id").
-					Join("ChannelMembers on Preferences.Name = ChannelMembers.ChannelId and Preferences.UserId = ChannelMembers.UserId").
-					Where(sq.Eq{
-						"Preferences.UserId":   userId,
-						"Preferences.Category": model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
-						"Preferences.Value":    "true",
-					}).
-					Where(sq.Or{
-						sq.Eq{"Channels.TeamId": teamId},
-						sq.Eq{"Channels.TeamId": ""},
-					}).
-					OrderBy(
-						"Channels.DisplayName",
-						"Channels.Name ASC",
-					)).ToSql()
-
-		_, err := transaction.Exec(insertQuery, insertParams...)
-
-		if err != nil {
-			return errors.Wrap(err, "migrateFavoritesToSidebarT: unable to bulk insert SidebarChannels")
-		}
-
-		return nil
-	}
-
 	favoritesQuery, favoritesParams, _ := s.getQueryBuilder().
 		Select("Preferences.Name").
 		From("Preferences").
