@@ -217,9 +217,9 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricMessages) {
+func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
 	var warnMetricStatus *model.WarnMetricStatus
-	var warnMetricMessages = &model.WarnMetricMessages{}
+	var warnMetricDisplayTexts = &model.WarnMetricDisplayTexts{}
 
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
 		warnMetricStatus = &model.WarnMetricStatus{
@@ -233,25 +233,25 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 			return warnMetricStatus, nil
 		}
 
-		warnMetricMessages.BotMailToBody = T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"Limit": warnMetric.Limit})
-		warnMetricMessages.EmailBody = T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetric.Limit})
+		warnMetricDisplayTexts.BotMailToBody = T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"Limit": warnMetric.Limit})
+		warnMetricDisplayTexts.EmailBody = T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetric.Limit})
 
 		switch warnMetricId {
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200:
-			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
-			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400:
-			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_400.notification_title")
-			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_400.notification_body")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_400.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_400.notification_body")
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			warnMetricMessages.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
-			warnMetricMessages.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
 		default:
-			mlog.Error("Invalid metric id", mlog.String("Metric Id", warnMetricId))
+			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
 		}
 
-		return warnMetricStatus, warnMetricMessages
+		return warnMetricStatus, warnMetricDisplayTexts
 	}
 	return nil, nil
 }

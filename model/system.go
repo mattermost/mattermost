@@ -80,13 +80,6 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 	return sbs
 }
 
-type WarnMetric struct {
-	Id        string
-	Limit     int64
-	IsBotOnly bool
-	IsRunOnce bool
-}
-
 var WarnMetricsTable = map[string]WarnMetric{
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200,
@@ -108,18 +101,24 @@ var WarnMetricsTable = map[string]WarnMetric{
 	},
 }
 
+type WarnMetric struct {
+	Id        string
+	Limit     int64
+	IsBotOnly bool
+	IsRunOnce bool
+}
+
+type WarnMetricDisplayTexts struct {
+	BotTitle       string
+	BotMessageBody string
+	BotMailToBody  string
+	EmailBody      string
+}
 type WarnMetricStatus struct {
 	Id          string `json:"id"`
 	Limit       int64  `json:"limit"`
 	Acked       bool   `json:"acked"`
 	StoreStatus string `json:"store_status,omitempty"`
-}
-
-type WarnMetricMessages struct {
-	BotTitle       string
-	BotMessageBody string
-	BotMailToBody  string
-	EmailBody      string
 }
 
 func (wms *WarnMetricStatus) ToJson() string {
