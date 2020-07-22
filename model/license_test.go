@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -78,6 +78,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.DataRetention = true
 	*f.MessageExport = true
 	*f.CustomPermissionsSchemes = true
+	*f.GuestAccounts = true
 	*f.GuestAccountsPermissions = true
 	*f.EmailNotificationContents = true
 	*f.IDLoadedPushNotifications = true
@@ -100,6 +101,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.MessageExport)
 	CheckTrue(t, *f.CustomPermissionsSchemes)
+	CheckTrue(t, *f.GuestAccounts)
 	CheckTrue(t, *f.GuestAccountsPermissions)
 	CheckTrue(t, *f.IDLoadedPushNotifications)
 	CheckFalse(t, *f.FutureFeatures)
@@ -112,6 +114,15 @@ func TestLicenseIsExpired(t *testing.T) {
 
 	l1.ExpiresAt = GetMillis() + 10000
 	assert.False(t, l1.IsExpired())
+}
+
+func TestLicenseIsPastGracePeriod(t *testing.T) {
+	l1 := License{}
+	l1.ExpiresAt = GetMillis() - LICENSE_GRACE_PERIOD - 1000
+	assert.True(t, l1.IsPastGracePeriod())
+
+	l1.ExpiresAt = GetMillis() + 1000
+	assert.False(t, l1.IsPastGracePeriod())
 }
 
 func TestLicenseIsStarted(t *testing.T) {
@@ -134,11 +145,10 @@ func TestLicenseToFromJson(t *testing.T) {
 		StartsAt:  GetMillis(),
 		ExpiresAt: GetMillis(),
 		Customer: &Customer{
-			Id:          NewId(),
-			Name:        NewId(),
-			Email:       NewId(),
-			Company:     NewId(),
-			PhoneNumber: NewId(),
+			Id:      NewId(),
+			Name:    NewId(),
+			Email:   NewId(),
+			Company: NewId(),
 		},
 		Features: &f,
 	}
@@ -157,7 +167,6 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckString(t, l1.Customer.Name, l.Customer.Name)
 	CheckString(t, l1.Customer.Email, l.Customer.Email)
 	CheckString(t, l1.Customer.Company, l.Customer.Company)
-	CheckString(t, l1.Customer.PhoneNumber, l.Customer.PhoneNumber)
 
 	f1 := l1.Features
 
@@ -176,6 +185,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.DataRetention, *f.DataRetention)
 	CheckBool(t, *f1.MessageExport, *f.MessageExport)
 	CheckBool(t, *f1.CustomPermissionsSchemes, *f.CustomPermissionsSchemes)
+	CheckBool(t, *f1.GuestAccounts, *f.GuestAccounts)
 	CheckBool(t, *f1.GuestAccountsPermissions, *f.GuestAccountsPermissions)
 	CheckBool(t, *f1.IDLoadedPushNotifications, *f.IDLoadedPushNotifications)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)

@@ -11,10 +11,9 @@
 package ldap
 
 import (
-	"errors"
 	"log"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // ModifyDNRequest holds the request to modify a DN
@@ -46,48 +45,32 @@ func NewModifyDNRequest(dn string, rdn string, delOld bool, newSup string) *Modi
 	}
 }
 
-func (m ModifyDNRequest) encode() *ber.Packet {
-	request := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationModifyDNRequest, nil, "Modify DN Request")
-	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.DN, "DN"))
-	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.NewRDN, "New RDN"))
-	request.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, m.DeleteOldRDN, "Delete old RDN"))
-	if m.NewSuperior != "" {
-		request.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, m.NewSuperior, "New Superior"))
+func (req *ModifyDNRequest) appendTo(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationModifyDNRequest, nil, "Modify DN Request")
+	pkt.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, req.DN, "DN"))
+	pkt.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, req.NewRDN, "New RDN"))
+	pkt.AppendChild(ber.NewBoolean(ber.ClassUniversal, ber.TypePrimitive, ber.TagBoolean, req.DeleteOldRDN, "Delete old RDN"))
+	if req.NewSuperior != "" {
+		pkt.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, req.NewSuperior, "New Superior"))
 	}
-	return request
+
+	envelope.AppendChild(pkt)
+
+	return nil
 }
 
 // ModifyDN renames the given DN and optionally move to another base (when the "newSup" argument
 // to NewModifyDNRequest() is not "").
 func (l *Conn) ModifyDN(m *ModifyDNRequest) error {
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
-	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, l.nextMessageID(), "MessageID"))
-	packet.AppendChild(m.encode())
-
-	l.Debug.PrintPacket(packet)
-
-	msgCtx, err := l.sendMessage(packet)
+	msgCtx, err := l.doRequest(m)
 	if err != nil {
 		return err
 	}
 	defer l.finishMessage(msgCtx)
 
-	l.Debug.Printf("%d: waiting for response", msgCtx.id)
-	packetResponse, ok := <-msgCtx.responses
-	if !ok {
-		return NewError(ErrorNetwork, errors.New("ldap: channel closed"))
-	}
-	packet, err = packetResponse.ReadPacket()
-	l.Debug.Printf("%d: got response %p", msgCtx.id, packet)
+	packet, err := l.readPacket(msgCtx)
 	if err != nil {
 		return err
-	}
-
-	if l.Debug {
-		if err := addLDAPDescriptions(packet); err != nil {
-			return err
-		}
-		ber.PrintPacket(packet)
 	}
 
 	if packet.Children[1].Tag == ApplicationModifyDNResponse {
@@ -98,7 +81,5 @@ func (l *Conn) ModifyDN(m *ModifyDNRequest) error {
 	} else {
 		log.Printf("Unexpected Response: %d", packet.Children[1].Tag)
 	}
-
-	l.Debug.Printf("%d: returning", msgCtx.id)
 	return nil
 }

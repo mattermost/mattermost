@@ -1,60 +1,136 @@
-package config
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package config_test
 
 import (
-	"fmt"
-	"github.com/mattermost/mattermost-server/testlib"
+	"io/ioutil"
+	"os"
+	"path"
+	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
-func TestMigrateDatabaseToFile(t *testing.T) {
-	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
-	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
-	fileDSN := "config.json"
-	files := []string{"IdpCertificateFile", "PublicCertificateFile", "PrivateKeyFile"}
-	data := make([]byte, 5)
-	ds, err := NewDatabaseStore(sqlDSN)
-	defer ds.Close()
-	require.NoError(t, err)
-	config := ds.Get()
-	config.SamlSettings.IdpCertificateFile = &files[0]
-	config.SamlSettings.PublicCertificateFile = &files[1]
-	config.SamlSettings.PrivateKeyFile = &files[2]
-	_, err = ds.Set(config)
-	require.NoError(t, err)
-
-	for _, file := range files {
-		err = ds.SetFile(file, data)
-		require.NoError(t, err)
+func TestMigrate(t *testing.T) {
+	files := []string{
+		"IdpCertificateFile",
+		"PublicCertificateFile",
+		"PrivateKeyFile",
+		"internal.crt",
+		"internal2.crt",
 	}
-	err = Migrate(sqlDSN, fileDSN)
-	require.NoError(t, err)
-
-	fs, err := NewFileStore(fileDSN, false)
-	require.NoError(t, err)
-	defer fs.Close()
-
-	for _, file := range files {
-		hasFile, err := fs.HasFile(file)
-		require.NoError(t, err)
-		defer fs.RemoveFile(file)
-		assert.True(t, hasFile)
+	filesData := make([]string, len(files))
+	for i := range files {
+		// Generate random data for each file, ensuring that stale data from a past test
+		// won't generate a false positive.
+		filesData[i] = model.NewId()
 	}
 
-	assert.Equal(t, ds.Get(), fs.Get())
-}
+	setup := func(t *testing.T) {
+		os.Clearenv()
+		t.Helper()
 
-func TestMigrateFileToDatabaseWhenFilePathIsNotSpecified(t *testing.T) {
-	helper := testlib.NewMainHelper()
-	sqlSettings := helper.GetSqlSettings()
-	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
-	fileDSN := "config.json"
+		tempDir, err := ioutil.TempDir("", "TestMigrate")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(tempDir)
+		})
 
-	_, err := NewFileStore(fileDSN, true)
-	require.NoError(t, err)
+		err = os.Chdir(tempDir)
+		require.NoError(t, err)
 
-	err = Migrate(fileDSN, sqlDSN)
-	require.NoError(t, err)
+		truncateTables(t)
+	}
+
+	setupSource := func(t *testing.T, source config.Store) {
+		t.Helper()
+
+		cfg := source.Get()
+		cfg.ServiceSettings.SiteURL = sToP("http://example.com")
+		cfg.SamlSettings.IdpCertificateFile = &files[0]
+		cfg.SamlSettings.PublicCertificateFile = &files[1]
+		cfg.SamlSettings.PrivateKeyFile = &files[2]
+		cfg.PluginSettings.SignaturePublicKeyFiles = []string{
+			files[3],
+			files[4],
+		}
+
+		_, err := source.Set(cfg)
+		require.NoError(t, err)
+
+		for i, file := range files {
+			err = source.SetFile(file, []byte(filesData[i]))
+			require.NoError(t, err)
+		}
+	}
+
+	assertDestination := func(t *testing.T, destination config.Store, source config.Store) {
+		t.Helper()
+
+		for i, file := range files {
+			hasFile, err := destination.HasFile(file)
+			require.NoError(t, err)
+			require.Truef(t, hasFile, "destination missing file %s", file)
+
+			actualData, err := destination.GetFile(file)
+			require.NoError(t, err)
+			assert.Equalf(t, []byte(filesData[i]), actualData, "destination has wrong contents for file %s", file)
+		}
+
+		assert.Equal(t, source.Get(), destination.Get())
+	}
+
+	t.Run("database to file", func(t *testing.T) {
+		setup(t)
+
+		pwd, err := os.Getwd()
+		require.NoError(t, err)
+
+		sqlSettings := mainHelper.GetSQLSettings()
+		destinationDSN := path.Join(pwd, "config-custom.json")
+		sourceDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
+
+		source, err := config.NewDatabaseStore(sourceDSN)
+		require.NoError(t, err)
+		defer source.Close()
+
+		setupSource(t, source)
+		err = config.Migrate(sourceDSN, destinationDSN)
+		require.NoError(t, err)
+
+		destination, err := config.NewFileStore(destinationDSN, false)
+		require.NoError(t, err)
+		defer destination.Close()
+
+		assertDestination(t, destination, source)
+	})
+
+	t.Run("file to database", func(t *testing.T) {
+		setup(t)
+
+		pwd, err := os.Getwd()
+		require.NoError(t, err)
+
+		sqlSettings := mainHelper.GetSQLSettings()
+		sourceDSN := path.Join(pwd, "config-custom.json")
+		destinationDSN := getDsn(*sqlSettings.DriverName, *sqlSettings.DataSource)
+
+		source, err := config.NewFileStore(sourceDSN, false)
+		require.NoError(t, err)
+		defer source.Close()
+
+		setupSource(t, source)
+		err = config.Migrate(sourceDSN, destinationDSN)
+		require.NoError(t, err)
+
+		destination, err := config.NewDatabaseStore(destinationDSN)
+		require.NoError(t, err)
+		defer destination.Close()
+
+		assertDestination(t, destination, source)
+	})
 }

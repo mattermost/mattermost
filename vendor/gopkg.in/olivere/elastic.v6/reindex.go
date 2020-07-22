@@ -10,13 +10,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // ReindexService is a method to copy documents from one index to another.
 // It is documented at https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docs-reindex.html.
 type ReindexService struct {
-	client              *Client
-	pretty              bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	refresh             string
 	timeout             string
 	waitForActiveShards string
@@ -29,7 +36,6 @@ type ReindexService struct {
 	conflicts           string
 	size                *int
 	script              *Script
-	headers             http.Header
 }
 
 // NewReindexService creates a new ReindexService.
@@ -37,6 +43,46 @@ func NewReindexService(client *Client) *ReindexService {
 	return &ReindexService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *ReindexService) Pretty(pretty bool) *ReindexService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *ReindexService) Human(human bool) *ReindexService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *ReindexService) ErrorTrace(errorTrace bool) *ReindexService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *ReindexService) FilterPath(filterPath ...string) *ReindexService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *ReindexService) Header(name string, value string) *ReindexService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *ReindexService) Headers(headers http.Header) *ReindexService {
+	s.headers = headers
+	return s
 }
 
 // WaitForActiveShards sets the number of shard copies that must be active before
@@ -86,21 +132,6 @@ func (s *ReindexService) Timeout(timeout string) *ReindexService {
 // reindex is complete.
 func (s *ReindexService) WaitForCompletion(waitForCompletion bool) *ReindexService {
 	s.waitForCompletion = &waitForCompletion
-	return s
-}
-
-// Header sets headers on the request
-func (s *ReindexService) Header(name string, value string) *ReindexService {
-	if s.headers == nil {
-		s.headers = http.Header{}
-	}
-	s.headers.Add(name, value)
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *ReindexService) Pretty(pretty bool) *ReindexService {
-	s.pretty = pretty
 	return s
 }
 
@@ -193,8 +224,17 @@ func (s *ReindexService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.refresh != "" {
 		params.Set("refresh", s.refresh)
@@ -369,20 +409,7 @@ func (s *ReindexService) DoAsync(ctx context.Context) (*StartTaskResult, error) 
 
 // ReindexSource specifies the source of a Reindex process.
 type ReindexSource struct {
-	searchType string // default in ES is "query_then_fetch"
 	request    *SearchRequest
-	/*
-		indices      []string
-		types        []string
-		routing      *string
-		preference   *string
-		requestCache *bool
-		scroll       string
-		query        Query
-		sorts        []SortInfo
-		sorters      []Sorter
-		searchSource *SearchSource
-	*/
 	remoteInfo *ReindexRemoteInfo
 }
 

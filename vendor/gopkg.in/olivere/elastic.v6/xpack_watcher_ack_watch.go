@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,8 +18,14 @@ import (
 // XPackWatcherAckWatchService enables you to manually throttle execution of the watch’s actions.
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/watcher-api-ack-watch.html.
 type XPackWatcherAckWatchService struct {
-	client        *Client
-	pretty        bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	watchId       string
 	actionId      []string
 	masterTimeout string
@@ -29,6 +36,46 @@ func NewXPackWatcherAckWatchService(client *Client) *XPackWatcherAckWatchService
 	return &XPackWatcherAckWatchService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackWatcherAckWatchService) Pretty(pretty bool) *XPackWatcherAckWatchService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackWatcherAckWatchService) Human(human bool) *XPackWatcherAckWatchService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackWatcherAckWatchService) ErrorTrace(errorTrace bool) *XPackWatcherAckWatchService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackWatcherAckWatchService) FilterPath(filterPath ...string) *XPackWatcherAckWatchService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackWatcherAckWatchService) Header(name string, value string) *XPackWatcherAckWatchService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackWatcherAckWatchService) Headers(headers http.Header) *XPackWatcherAckWatchService {
+	s.headers = headers
+	return s
 }
 
 // WatchId is the unique ID of the watch.
@@ -47,12 +94,6 @@ func (s *XPackWatcherAckWatchService) ActionId(actionId ...string) *XPackWatcher
 // connection to master node.
 func (s *XPackWatcherAckWatchService) MasterTimeout(masterTimeout string) *XPackWatcherAckWatchService {
 	s.masterTimeout = masterTimeout
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackWatcherAckWatchService) Pretty(pretty bool) *XPackWatcherAckWatchService {
-	s.pretty = pretty
 	return s
 }
 
@@ -79,8 +120,17 @@ func (s *XPackWatcherAckWatchService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.masterTimeout != "" {
 		params.Set("master_timeout", s.masterTimeout)
@@ -115,9 +165,10 @@ func (s *XPackWatcherAckWatchService) Do(ctx context.Context) (*XPackWatcherAckW
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
+		Method:  "PUT",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

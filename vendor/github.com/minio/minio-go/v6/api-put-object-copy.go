@@ -22,8 +22,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/minio/minio-go/v6/pkg/encrypt"
+	"github.com/minio/minio-go/v6/pkg/s3utils"
 )
 
 // CopyObject - copy a source object into a new object
@@ -37,6 +39,20 @@ func (c Client) CopyObjectWithProgress(dst DestinationInfo, src SourceInfo, prog
 	header := make(http.Header)
 	for k, v := range src.Headers {
 		header[k] = v
+	}
+
+	if dst.opts.ReplaceTags && len(dst.opts.UserTags) != 0 {
+		header.Set(amzTaggingHeaderDirective, "REPLACE")
+		header.Set(amzTaggingHeader, s3utils.TagEncode(dst.opts.UserTags))
+	}
+
+	if dst.opts.LegalHold != LegalHoldStatus("") {
+		header.Set(amzLegalHoldHeader, dst.opts.LegalHold.String())
+	}
+
+	if dst.opts.Mode != RetentionMode("") && !dst.opts.RetainUntilDate.IsZero() {
+		header.Set(amzLockMode, dst.opts.Mode.String())
+		header.Set(amzLockRetainUntil, dst.opts.RetainUntilDate.Format(time.RFC3339))
 	}
 
 	var err error
@@ -53,8 +69,8 @@ func (c Client) CopyObjectWithProgress(dst DestinationInfo, src SourceInfo, prog
 		encrypt.SSECopy(src.encryption).Marshal(header)
 	}
 
-	if dst.encryption != nil {
-		dst.encryption.Marshal(header)
+	if dst.opts.Encryption != nil {
+		dst.opts.Encryption.Marshal(header)
 	}
 	for k, v := range dst.getUserMetaHeadersMap(true) {
 		header.Set(k, v)

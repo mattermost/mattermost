@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 MinIO, Inc.
+ * Copyright 2015-2020 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,22 +78,28 @@ func IsVirtualHostSupported(endpointURL url.URL, bucketName string) bool {
 		return false
 	}
 	// Return true for all other cases
-	return IsAmazonEndpoint(endpointURL) || IsGoogleEndpoint(endpointURL)
+	return IsAmazonEndpoint(endpointURL) || IsGoogleEndpoint(endpointURL) || IsAliyunOSSEndpoint(endpointURL)
 }
 
 // Refer for region styles - https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
 
 // amazonS3HostHyphen - regular expression used to determine if an arg is s3 host in hyphenated style.
-var amazonS3HostHyphen = regexp.MustCompile(`^s3-(.*?)\.amazonaws\.com$`)
+var amazonS3HostHyphen = regexp.MustCompile(`^s3-(.*?).amazonaws.com$`)
 
 // amazonS3HostDualStack - regular expression used to determine if an arg is s3 host dualstack.
-var amazonS3HostDualStack = regexp.MustCompile(`^s3\.dualstack\.(.*?)\.amazonaws\.com$`)
+var amazonS3HostDualStack = regexp.MustCompile(`^s3.dualstack.(.*?).amazonaws.com$`)
 
 // amazonS3HostDot - regular expression used to determine if an arg is s3 host in . style.
-var amazonS3HostDot = regexp.MustCompile(`^s3\.(.*?)\.amazonaws\.com$`)
+var amazonS3HostDot = regexp.MustCompile(`^s3.(.*?).amazonaws.com$`)
 
 // amazonS3ChinaHost - regular expression used to determine if the arg is s3 china host.
-var amazonS3ChinaHost = regexp.MustCompile(`^s3\.(cn.*?)\.amazonaws\.com\.cn$`)
+var amazonS3ChinaHost = regexp.MustCompile(`^s3.(cn.*?).amazonaws.com.cn$`)
+
+// Regular expression used to determine if the arg is elb host.
+var elbAmazonRegex = regexp.MustCompile(`elb(.*?).amazonaws.com$`)
+
+// Regular expression used to determine if the arg is elb host in china.
+var elbAmazonCnRegex = regexp.MustCompile(`elb(.*?).amazonaws.com.cn$`)
 
 // GetRegionFromURL - returns a region from url host.
 func GetRegionFromURL(endpointURL url.URL) string {
@@ -105,6 +111,10 @@ func GetRegionFromURL(endpointURL url.URL) string {
 	}
 	if IsAmazonGovCloudEndpoint(endpointURL) {
 		return "us-gov-west-1"
+	}
+	// if elb's are used we cannot calculate which region it may be, just return empty.
+	if elbAmazonRegex.MatchString(endpointURL.Host) || elbAmazonCnRegex.MatchString(endpointURL.Host) {
+		return ""
 	}
 	parts := amazonS3HostDualStack.FindStringSubmatch(endpointURL.Host)
 	if len(parts) > 1 {
@@ -123,6 +133,11 @@ func GetRegionFromURL(endpointURL url.URL) string {
 		return parts[1]
 	}
 	return ""
+}
+
+// IsAliyunOSSEndpoint - Match if it is exactly Aliyun OSS endpoint.
+func IsAliyunOSSEndpoint(endpointURL url.URL) bool {
+	return strings.HasSuffix(endpointURL.Host, "aliyuncs.com")
 }
 
 // IsAmazonEndpoint - Match if it is exactly Amazon S3 endpoint.
@@ -219,6 +234,41 @@ func QueryEncode(v url.Values) string {
 	return buf.String()
 }
 
+// TagDecode - decodes canonical tag into map of key and value.
+func TagDecode(ctag string) map[string]string {
+	if ctag == "" {
+		return map[string]string{}
+	}
+	tags := strings.Split(ctag, "&")
+	tagMap := make(map[string]string, len(tags))
+	var err error
+	for _, tag := range tags {
+		kvs := strings.SplitN(tag, "=", 2)
+		if len(kvs) == 0 {
+			return map[string]string{}
+		}
+		if len(kvs) == 1 {
+			return map[string]string{}
+		}
+		tagMap[kvs[0]], err = url.PathUnescape(kvs[1])
+		if err != nil {
+			continue
+		}
+	}
+	return tagMap
+}
+
+// TagEncode - encodes tag values in their URL encoded form. In
+// addition to the percent encoding performed by urlEncodePath() used
+// here, it also percent encodes '/' (forward slash)
+func TagEncode(tags map[string]string) string {
+	values := url.Values{}
+	for k, v := range tags {
+		values[k] = []string{v}
+	}
+	return QueryEncode(values)
+}
+
 // if object matches reserved string, no need to encode them
 var reservedObjectNames = regexp.MustCompile("^[a-zA-Z0-9-_.~/]+$")
 
@@ -274,10 +324,10 @@ func checkBucketNameCommon(bucketName string, strict bool) (err error) {
 		return errors.New("Bucket name cannot be empty")
 	}
 	if len(bucketName) < 3 {
-		return errors.New("Bucket name cannot be smaller than 3 characters")
+		return errors.New("Bucket name cannot be shorter than 3 characters")
 	}
 	if len(bucketName) > 63 {
-		return errors.New("Bucket name cannot be greater than 63 characters")
+		return errors.New("Bucket name cannot be longer than 63 characters")
 	}
 	if ipAddress.MatchString(bucketName) {
 		return errors.New("Bucket name cannot be an ip address")
@@ -313,7 +363,7 @@ func CheckValidBucketNameStrict(bucketName string) (err error) {
 //   - http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
 func CheckValidObjectNamePrefix(objectName string) error {
 	if len(objectName) > 1024 {
-		return errors.New("Object name cannot be greater than 1024 characters")
+		return errors.New("Object name cannot be longer than 1024 characters")
 	}
 	if !utf8.ValidString(objectName) {
 		return errors.New("Object name with non UTF-8 strings are not supported")

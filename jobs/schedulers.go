@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type Schedulers struct {
@@ -60,6 +60,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 
 	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, pluginsInterface.MakeScheduler())
+	}
+
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, expiryNotifyInterface.MakeScheduler())
 	}
 
 	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))

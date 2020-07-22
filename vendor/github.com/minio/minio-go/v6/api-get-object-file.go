@@ -87,6 +87,17 @@ func (c Client) fGetObjectWithContext(ctx context.Context, bucketName, objectNam
 		return err
 	}
 
+	// If we return early with an error, be sure to close and delete
+	// filePart.  If we have an error along the way there is a chance
+	// that filePart is somehow damaged, and we should discard it.
+	closeAndRemove := true
+	defer func() {
+		if closeAndRemove {
+			_ = filePart.Close()
+			_ = os.Remove(filePartPath)
+		}
+	}()
+
 	// Issue Stat to get the current offset.
 	st, err = filePart.Stat()
 	if err != nil {
@@ -111,6 +122,7 @@ func (c Client) fGetObjectWithContext(ctx context.Context, bucketName, objectNam
 	}
 
 	// Close the file before rename, this is specifically needed for Windows users.
+	closeAndRemove = false
 	if err = filePart.Close(); err != nil {
 		return err
 	}

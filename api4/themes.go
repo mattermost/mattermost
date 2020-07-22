@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // TODO add permissions
@@ -21,7 +21,7 @@ func (api *API) InitThemes() {
 }
 
 func getAllThemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	themes, appErr := c.App.Srv.Store.Theme().GetAll()
+	themes, appErr := c.App.Srv().Store.Theme().GetAll()
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -47,7 +47,7 @@ func getTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	theme, appErr := c.App.Srv.Store.Theme().Get(c.Params.ThemeId)
+	theme, appErr := c.App.Srv().Store.Theme().Get(c.Params.ThemeId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -70,7 +70,7 @@ func saveTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	theme, appErr := c.App.Srv.Store.Theme().Save(theme)
+	theme, appErr := c.App.Srv().Store.Theme().Save(theme)
 	if err != nil {
 		c.Err = appErr
 		return
@@ -91,7 +91,7 @@ func deleteTheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Srv.Store.Theme().Delete(c.Params.ThemeId)
+	err := c.App.Srv().Store.Theme().Delete(c.Params.ThemeId)
 	if err != nil {
 		c.Err = err
 		return

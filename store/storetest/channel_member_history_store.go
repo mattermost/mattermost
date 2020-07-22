@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
@@ -8,8 +8,8 @@ import (
 
 	"math"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -117,7 +117,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	// case 1: user joins and leaves the channel before the export period begins
 	channelMembers, err := ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)
 	require.Nil(t, err)
-	assert.Len(t, channelMembers, 0)
+	assert.Empty(t, channelMembers)
 
 	// case 2: user joins the channel after the export period begins, but has not yet left the channel when the export period ends
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+500, channel.Id)
@@ -170,7 +170,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	// case 6: user has joined and left the channel long before the export period begins
 	channelMembers, err = ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)
 	require.Nil(t, err)
-	assert.Len(t, channelMembers, 0)
+	assert.Empty(t, channelMembers)
 }
 
 func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {

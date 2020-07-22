@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -23,7 +23,7 @@ func TestStringArrayIntersection(t *testing.T) {
 		"def",
 	}
 
-	assert.Len(t, StringArrayIntersection(a, b), 0)
+	assert.Empty(t, StringArrayIntersection(a, b))
 	assert.Len(t, StringArrayIntersection(a, c), 1)
 }
 

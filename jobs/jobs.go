@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
@@ -9,8 +9,8 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -50,6 +50,13 @@ func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppE
 	job.Progress = progress
 
 	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (srv *JobServer) SetJobWarning(job *model.Job) *model.AppError {
+	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_WARNING); err != nil {
 		return err
 	}
 	return nil

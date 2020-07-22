@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package main
 
@@ -17,12 +17,12 @@ func TestCheckHelpersVersionComments(t *testing.T) {
 	}{
 		{
 			name:     "valid versions",
-			pkgPath:  "github.com/mattermost/mattermost-server/plugin/checker/internal/test/valid",
+			pkgPath:  "github.com/mattermost/mattermost-server/v5/plugin/checker/internal/test/valid",
 			expected: result{},
 		},
 		{
 			name:    "invalid versions",
-			pkgPath: "github.com/mattermost/mattermost-server/plugin/checker/internal/test/invalid",
+			pkgPath: "github.com/mattermost/mattermost-server/v5/plugin/checker/internal/test/invalid",
 			expected: result{
 				Errors:   []string{"internal/test/invalid/invalid.go:20:2: documented minimum server version too low on method LowerVersionMethod"},
 				Warnings: []string{"internal/test/invalid/invalid.go:23:2: documented minimum server version too high on method HigherVersionMethod"},

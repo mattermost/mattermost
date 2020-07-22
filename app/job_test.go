@@ -1,12 +1,12 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,10 +18,10 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	_, err := th.App.Srv.Store.Job().Save(status)
+	_, err := th.App.Srv().Store.Job().Save(status)
 	require.Nil(t, err)
 
-	defer th.App.Srv.Store.Job().Delete(status.Id)
+	defer th.App.Srv().Store.Job().Delete(status.Id)
 
 	received, err := th.App.GetJob(status.Id)
 	require.Nil(t, err)
@@ -53,9 +53,9 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		_, err := th.App.Srv.Store.Job().Save(status)
+		_, err := th.App.Srv().Store.Job().Save(status)
 		require.Nil(t, err)
-		defer th.App.Srv.Store.Job().Delete(status.Id)
+		defer th.App.Srv().Store.Job().Delete(status.Id)
 	}
 
 	received, err := th.App.GetJobsByType(jobType, 0, 2)

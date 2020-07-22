@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestPluginSetting(t *testing.T) {
@@ -43,12 +43,34 @@ func TestPluginActivated(t *testing.T) {
 	assert.False(t, pluginActivated(states, "none"))
 }
 
-func TestDiagnostics(t *testing.T) {
+func TestPluginVersion(t *testing.T) {
+	plugins := []*model.BundleInfo{
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin",
+				Version: "1.2.3",
+			},
+		},
+		{
+			Manifest: &model.Manifest{
+				Id:      "test.plugin2",
+				Version: "4.5.6",
+			},
+		},
+	}
+	assert.Equal(t, "1.2.3", pluginVersion(plugins, "test.plugin"))
+	assert.Equal(t, "4.5.6", pluginVersion(plugins, "test.plugin2"))
+	assert.Empty(t, pluginVersion(plugins, "unknown.plugin"))
+}
+
+func TestRudderDiagnostics(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
 
-	th := Setup(t).InitBasic()
+	th := SetupWithCustomConfig(t, func(config *model.Config) {
+		*config.PluginSettings.Enable = false
+	})
 	defer th.TearDown()
 
 	type payload struct {
@@ -87,6 +109,7 @@ func TestDiagnostics(t *testing.T) {
 	th.Server.initDiagnostics(server.URL)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
+		t.Helper()
 		assert.NotEmpty(t, actual.MessageId)
 		assert.False(t, actual.SentAt.IsZero())
 		if assert.Len(t, actual.Batch, 1) {
@@ -104,6 +127,19 @@ func TestDiagnostics(t *testing.T) {
 		assert.Equal(t, "3.0.0", actual.Context.Library.Version)
 	}
 
+	collectInfo := func(info *[]string) {
+		t.Helper()
+		for {
+			select {
+			case result := <-data:
+				assertPayload(t, result, "", nil)
+				*info = append(*info, result.Batch[0].Event)
+			case <-time.After(time.Second * 1):
+				return
+			}
+		}
+	}
+
 	// Should send a client identify message
 	select {
 	case identifyMessage := <-data:
@@ -114,7 +150,7 @@ func TestDiagnostics(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		testValue := "test-send-value-6789"
-		th.App.SendDiagnostic("Testing Diagnostic", map[string]interface{}{
+		th.App.Srv().SendDiagnostic("Testing Diagnostic", map[string]interface{}{
 			"hey": testValue,
 		})
 		select {
@@ -127,21 +163,13 @@ func TestDiagnostics(t *testing.T) {
 		}
 	})
 
-	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.sendDailyDiagnostics(true)
+	// Plugins remain disabled at this point
+	t.Run("SendDailyDiagnosticsPluginsDisabled", func(t *testing.T) {
+		th.App.Srv().sendDailyDiagnostics(true)
 
 		var info []string
 		// Collect the info sent.
-	Loop:
-		for {
-			select {
-			case result := <-data:
-				assertPayload(t, result, "", nil)
-				info = append(info, result.Batch[0].Event)
-			case <-time.After(time.Second * 1):
-				break Loop
-			}
-		}
+		collectInfo(&info)
 
 		for _, item := range []string{
 			TRACK_CONFIG_SERVICE,
@@ -163,6 +191,49 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_METRICS,
 			TRACK_CONFIG_SUPPORT,
 			TRACK_CONFIG_NATIVEAPP,
+			TRACK_CONFIG_EXPERIMENTAL,
+			TRACK_CONFIG_ANALYTICS,
+			TRACK_CONFIG_PLUGIN,
+			TRACK_ACTIVITY,
+			TRACK_SERVER,
+			TRACK_CONFIG_MESSAGE_EXPORT,
+			// TRACK_PLUGINS,
+		} {
+			require.Contains(t, info, item)
+		}
+	})
+
+	// Enable plugins for the remainder of the tests.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+	t.Run("SendDailyDiagnostics", func(t *testing.T) {
+		th.App.Srv().sendDailyDiagnostics(true)
+
+		var info []string
+		// Collect the info sent.
+		collectInfo(&info)
+
+		for _, item := range []string{
+			TRACK_CONFIG_SERVICE,
+			TRACK_CONFIG_TEAM,
+			TRACK_CONFIG_SQL,
+			TRACK_CONFIG_LOG,
+			TRACK_CONFIG_NOTIFICATION_LOG,
+			TRACK_CONFIG_FILE,
+			TRACK_CONFIG_RATE,
+			TRACK_CONFIG_EMAIL,
+			TRACK_CONFIG_PRIVACY,
+			TRACK_CONFIG_OAUTH,
+			TRACK_CONFIG_LDAP,
+			TRACK_CONFIG_COMPLIANCE,
+			TRACK_CONFIG_LOCALIZATION,
+			TRACK_CONFIG_SAML,
+			TRACK_CONFIG_PASSWORD,
+			TRACK_CONFIG_CLUSTER,
+			TRACK_CONFIG_METRICS,
+			TRACK_CONFIG_SUPPORT,
+			TRACK_CONFIG_NATIVEAPP,
+			TRACK_CONFIG_EXPERIMENTAL,
 			TRACK_CONFIG_ANALYTICS,
 			TRACK_CONFIG_PLUGIN,
 			TRACK_ACTIVITY,
@@ -174,12 +245,12 @@ func TestDiagnostics(t *testing.T) {
 		}
 	})
 
-	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
-		th.App.SendDailyDiagnostics()
+	t.Run("SendDailyDiagnosticsNoRudderKey", func(t *testing.T) {
+		th.App.Srv().SendDailyDiagnostics()
 
 		select {
 		case <-data:
-			require.Fail(t, "Should not send diagnostics when the segment key is not set")
+			require.Fail(t, "Should not send diagnostics when the rudder key is not set")
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
@@ -188,7 +259,7 @@ func TestDiagnostics(t *testing.T) {
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
 
-		th.App.sendDailyDiagnostics(true)
+		th.App.Srv().sendDailyDiagnostics(true)
 
 		select {
 		case <-data:

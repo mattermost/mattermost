@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -13,6 +13,16 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"5.28.0",
+	"5.27.0",
+	"5.26.0",
+	"5.25.0",
+	"5.24.0",
+	"5.23.0",
+	"5.22.0",
+	"5.21.0",
+	"5.20.0",
+	"5.19.0",
 	"5.18.0",
 	"5.17.0",
 	"5.16.0",

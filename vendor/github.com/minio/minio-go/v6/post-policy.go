@@ -131,6 +131,27 @@ func (p *PostPolicy) SetBucket(bucketName string) error {
 	return nil
 }
 
+// SetCondition - Sets condition for credentials, date and algorithm
+func (p *PostPolicy) SetCondition(matchType, condition, value string) error {
+	if strings.TrimSpace(value) == "" || value == "" {
+		return ErrInvalidArgument("No value specified for condition")
+	}
+
+	policyCond := policyCondition{
+		matchType: matchType,
+		condition: "$" + condition,
+		value:     value,
+	}
+	if condition == "X-Amz-Credential" || condition == "X-Amz-Date" || condition == "X-Amz-Algorithm" {
+		if err := p.addNewPolicy(policyCond); err != nil {
+			return err
+		}
+		p.formData[condition] = value
+		return nil
+	}
+	return ErrInvalidArgument("Invalid condition in policy")
+}
+
 // SetContentType - Sets content-type of the object for this policy
 // based upload.
 func (p *PostPolicy) SetContentType(contentType string) error {
@@ -237,12 +258,12 @@ func (p *PostPolicy) addNewPolicy(policyCond policyCondition) error {
 	return nil
 }
 
-// Stringer interface for printing policy in json formatted string.
+// String function for printing policy in json formatted string.
 func (p PostPolicy) String() string {
 	return string(p.marshalJSON())
 }
 
-// marshalJSON - Provides Marshalled JSON in bytes.
+// marshalJSON - Provides Marshaled JSON in bytes.
 func (p PostPolicy) marshalJSON() []byte {
 	expirationStr := `"expiration":"` + p.expiration.Format(expirationDateFormat) + `"`
 	var conditionsStr string
@@ -264,7 +285,7 @@ func (p PostPolicy) marshalJSON() []byte {
 	return []byte(retStr)
 }
 
-// base64 - Produces base64 of PostPolicy's Marshalled json.
+// base64 - Produces base64 of PostPolicy's Marshaled json.
 func (p PostPolicy) base64() string {
 	return base64.StdEncoding.EncodeToString(p.marshalJSON())
 }

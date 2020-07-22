@@ -18,10 +18,8 @@
 package minio
 
 import (
-	"net"
+	"context"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -44,7 +42,7 @@ const DefaultRetryCap = time.Second * 30
 
 // newRetryTimer creates a timer with exponentially increasing
 // delays until the maximum retry attempts are reached.
-func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duration, jitter float64, doneCh chan struct{}) <-chan int {
+func (c Client) newRetryTimer(ctx context.Context, maxRetry int, unit time.Duration, cap time.Duration, jitter float64) <-chan int {
 	attemptCh := make(chan int)
 
 	// computes the exponential backoff duration according to
@@ -73,50 +71,19 @@ func (c Client) newRetryTimer(maxRetry int, unit time.Duration, cap time.Duratio
 		defer close(attemptCh)
 		for i := 0; i < maxRetry; i++ {
 			select {
-			// Attempts start from 1.
 			case attemptCh <- i + 1:
-			case <-doneCh:
-				// Stop the routine.
+			case <-ctx.Done():
 				return
 			}
-			time.Sleep(exponentialBackoffWait(i))
+
+			select {
+			case <-time.After(exponentialBackoffWait(i)):
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 	return attemptCh
-}
-
-// isHTTPReqErrorRetryable - is http requests error retryable, such
-// as i/o timeout, connection broken etc..
-func isHTTPReqErrorRetryable(err error) bool {
-	if err == nil {
-		return false
-	}
-	switch e := err.(type) {
-	case *url.Error:
-		switch e.Err.(type) {
-		case *net.DNSError, *net.OpError, net.UnknownNetworkError:
-			return true
-		}
-		if strings.Contains(err.Error(), "Connection closed by foreign host") {
-			return true
-		} else if strings.Contains(err.Error(), "net/http: TLS handshake timeout") {
-			// If error is - tlsHandshakeTimeoutError, retry.
-			return true
-		} else if strings.Contains(err.Error(), "i/o timeout") {
-			// If error is - tcp timeoutError, retry.
-			return true
-		} else if strings.Contains(err.Error(), "connection timed out") {
-			// If err is a net.Dial timeout, retry.
-			return true
-		} else if strings.Contains(err.Error(), "net/http: HTTP/1.x transport connection broken") {
-			// If error is transport connection broken, retry.
-			return true
-		} else if strings.Contains(err.Error(), "net/http: timeout awaiting response headers") {
-			// Retry errors due to server not sending the response before timeout
-			return true
-		}
-	}
-	return false
 }
 
 // List of AWS S3 error codes which are retryable.

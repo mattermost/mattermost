@@ -37,15 +37,22 @@ import (
 
 // PickerBuilder creates balancer.Picker.
 type PickerBuilder interface {
-	// Build takes a slice of ready SubConns, and returns a picker that will be
-	// used by gRPC to pick a SubConn.
-	Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker
+	// Build returns a picker that will be used by gRPC to pick a SubConn.
+	Build(info PickerBuildInfo) balancer.Picker
 }
 
-// NewBalancerBuilder returns a balancer builder. The balancers
-// built by this builder will use the picker builder to build pickers.
-func NewBalancerBuilder(name string, pb PickerBuilder) balancer.Builder {
-	return NewBalancerBuilderWithConfig(name, pb, Config{})
+// PickerBuildInfo contains information needed by the picker builder to
+// construct a picker.
+type PickerBuildInfo struct {
+	// ReadySCs is a map from all ready SubConns to the Addresses used to
+	// create them.
+	ReadySCs map[balancer.SubConn]SubConnInfo
+}
+
+// SubConnInfo contains information about a SubConn created by the base
+// balancer.
+type SubConnInfo struct {
+	Address resolver.Address // the address used to create this SubConn
 }
 
 // Config contains the config info about the base balancer builder.
@@ -54,11 +61,22 @@ type Config struct {
 	HealthCheck bool
 }
 
-// NewBalancerBuilderWithConfig returns a base balancer builder configured by the provided config.
-func NewBalancerBuilderWithConfig(name string, pb PickerBuilder, config Config) balancer.Builder {
+// NewBalancerBuilder returns a base balancer builder configured by the provided config.
+func NewBalancerBuilder(name string, pb PickerBuilder, config Config) balancer.Builder {
 	return &baseBuilder{
 		name:          name,
 		pickerBuilder: pb,
 		config:        config,
 	}
 }
+
+// NewBalancerBuilderV2 is temporarily defined for backward compatibility
+// reasons.
+//
+// Deprecated: use NewBalancerBuilder instead.
+var NewBalancerBuilderV2 = NewBalancerBuilder
+
+// V2PickerBuilder is temporarily defined for backward compatibility reasons.
+//
+// Deprecated: use PickerBuilder instead.
+type V2PickerBuilder = PickerBuilder

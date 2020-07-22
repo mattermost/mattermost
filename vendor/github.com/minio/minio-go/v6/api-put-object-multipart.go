@@ -28,7 +28,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,7 +49,7 @@ func (c Client) putObjectMultipart(ctx context.Context, bucketName, objectName s
 				return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
 			}
 			// Fall back to uploading as single PutObject operation.
-			return c.putObjectNoChecksum(ctx, bucketName, objectName, reader, size, opts)
+			return c.putObject(ctx, bucketName, objectName, reader, size, opts)
 		}
 	}
 	return n, err
@@ -98,13 +97,12 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 
 	// Create a buffer.
 	buf := make([]byte, partSize)
-	defer debug.FreeOSMemory()
 
 	for partNumber <= totalPartsCount {
 		// Choose hash algorithms to be calculated by hashCopyN,
 		// avoid sha256 with non-v4 signature request or
 		// HTTPS connection.
-		hashAlgos, hashSums := c.hashMaterials()
+		hashAlgos, hashSums := c.hashMaterials(opts.SendContentMd5)
 
 		length, rErr := io.ReadFull(reader, buf)
 		if rErr == io.EOF {
@@ -118,6 +116,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		for k, v := range hashAlgos {
 			v.Write(buf[:length])
 			hashSums[k] = v.Sum(nil)
+			v.Close()
 		}
 
 		// Update progress reader appropriately to the latest offset
@@ -137,11 +136,10 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		}
 
 		// Proceed to upload the part.
-		var objPart ObjectPart
-		objPart, err = c.uploadPart(ctx, bucketName, objectName, uploadID, rd, partNumber,
+		objPart, uerr := c.uploadPart(ctx, bucketName, objectName, uploadID, rd, partNumber,
 			md5Base64, sha256Hex, int64(length), opts.ServerSideEncryption)
-		if err != nil {
-			return totalUploadedSize, err
+		if uerr != nil {
+			return totalUploadedSize, uerr
 		}
 
 		// Save successfully uploaded part metadata.
@@ -294,8 +292,7 @@ func (c Client) uploadPart(ctx context.Context, bucketName, objectName, uploadID
 	objPart.Size = size
 	objPart.PartNumber = partNumber
 	// Trim off the odd double quotes from ETag in the beginning and end.
-	objPart.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	objPart.ETag = strings.TrimSuffix(objPart.ETag, "\"")
+	objPart.ETag = trimEtag(resp.Header.Get("ETag"))
 	return objPart, nil
 }
 

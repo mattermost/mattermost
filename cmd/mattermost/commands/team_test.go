@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -27,7 +27,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestJoinTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "team", "add", th.BasicTeam.Name, th.BasicUser.Email)
@@ -47,7 +47,7 @@ func TestJoinTeam(t *testing.T) {
 }
 
 func TestLeaveTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "team", "remove", th.BasicTeam.Name, th.BasicUser.Email)
@@ -65,13 +65,13 @@ func TestLeaveTeam(t *testing.T) {
 
 	require.False(t, found, "profile should not be on team")
 
-	teams, err := th.App.Srv.Store.Team().GetTeamsByUserId(th.BasicUser.Id)
+	teams, err := th.App.Srv().Store.Team().GetTeamsByUserId(th.BasicUser.Id)
 	require.Nil(t, err)
 	require.Equal(t, 0, len(teams), "Shouldn't be in team")
 }
 
 func TestListTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -86,7 +86,7 @@ func TestListTeams(t *testing.T) {
 }
 
 func TestListArchivedTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -103,7 +103,7 @@ func TestListArchivedTeams(t *testing.T) {
 }
 
 func TestSearchTeamsByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -118,7 +118,7 @@ func TestSearchTeamsByName(t *testing.T) {
 }
 
 func TestSearchTeamsByDisplayName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -133,7 +133,7 @@ func TestSearchTeamsByDisplayName(t *testing.T) {
 }
 
 func TestSearchArchivedTeamsByName(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -150,7 +150,7 @@ func TestSearchArchivedTeamsByName(t *testing.T) {
 }
 
 func TestArchiveTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -167,7 +167,7 @@ func TestArchiveTeams(t *testing.T) {
 }
 
 func TestRestoreTeams(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -186,7 +186,7 @@ func TestRestoreTeams(t *testing.T) {
 }
 
 func TestRenameTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeam()
@@ -209,7 +209,7 @@ func TestRenameTeam(t *testing.T) {
 
 	th.CheckCommand(t, "team", "rename", team2.Name, newTeamName, "--display_name", newDisplayName)
 
-	// No renaming should have occured
+	// No renaming should have occurred
 	require.Equal(t, team2.Name, n, "team was renamed when it should have not been")
 	require.Equal(t, team2.DisplayName, dn, "team display name was changed when it should have not been")
 
@@ -235,7 +235,7 @@ func TestRenameTeam(t *testing.T) {
 }
 
 func TestModifyTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeam()

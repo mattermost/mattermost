@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,8 +8,8 @@ import (
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type RemoveProvider struct {
@@ -75,14 +75,14 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 
 	switch channel.Type {
 	case model.CHANNEL_OPEN:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	case model.CHANNEL_PRIVATE:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_remove.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
@@ -107,7 +107,7 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	userProfile, err := a.Srv.Store.User().GetByUsername(targetUsername)
+	userProfile, err := a.Srv().Store.User().GetByUsername(targetUsername)
 	if err != nil {
 		mlog.Error(err.Error())
 		return &model.CommandResponse{

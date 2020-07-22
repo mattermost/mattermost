@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/plugin/plugintest"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,8 +48,8 @@ func TestEnsureBot(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			botId, err := p.EnsureBot(nil)
-			assert.Equal(t, "", botId)
+			botID, err := p.EnsureBot(nil)
+			assert.Equal(t, "", botID)
 			assert.NotNil(t, err)
 		})
 		t.Run("bad username", func(t *testing.T) {
@@ -58,29 +58,34 @@ func TestEnsureBot(t *testing.T) {
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
-			botId, err := p.EnsureBot(&model.Bot{
+			botID, err := p.EnsureBot(&model.Bot{
 				Username: "",
 			})
-			assert.Equal(t, "", botId)
+			assert.Equal(t, "", botID)
 			assert.NotNil(t, err)
 		})
 	})
 
 	t.Run("if bot already exists", func(t *testing.T) {
 		t.Run("should find and return the existing bot ID", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, expectedBotId, botId)
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
@@ -93,24 +98,29 @@ func TestEnsureBot(t *testing.T) {
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, "", botId)
+			assert.Equal(t, "", botID)
 			assert.NotNil(t, err)
 		})
 
 		t.Run("should set the bot profile image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
 			testImage := filepath.Join(testsDir, "test.png")
 			imageBytes, err := ioutil.ReadFile(testImage)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -118,13 +128,13 @@ func TestEnsureBot(t *testing.T) {
 
 			assert.Nil(t, err)
 
-			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should set the bot icon image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
@@ -132,22 +142,27 @@ func TestEnsureBot(t *testing.T) {
 			imageBytes, err := ioutil.ReadFile(testImage)
 			assert.Nil(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should set both the profile image and bot icon image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
@@ -155,74 +170,118 @@ func TestEnsureBot(t *testing.T) {
 			imageBytes, err := ioutil.ReadFile(testImage)
 			assert.Nil(t, err)
 
-			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
-			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &testbot.Username,
+				DisplayName: &testbot.DisplayName,
+				Description: &testbot.Description,
+			}).Return(nil, nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should find and update the bot with new bot details", func(t *testing.T) {
+			expectedBotID := model.NewId()
+
+			expectedBotUsername := "updated_testbot"
+			expectedBotDisplayName := "Updated Test Bot"
+			expectedBotDescription := "updated testbotdescription"
+
+			testsDir, _ := fileutils.FindDir("tests")
+			testImage := filepath.Join(testsDir, "test.png")
+			imageBytes, err := ioutil.ReadFile(testImage)
+			assert.Nil(t, err)
+
+			api := setupAPI()
+			api.On("GetServerVersion").Return("5.10.0")
+			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+			api.On("GetBundlePath").Return("", nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
+			api.On("PatchBot", expectedBotID, &model.BotPatch{
+				Username:    &expectedBotUsername,
+				DisplayName: &expectedBotDisplayName,
+				Description: &expectedBotDescription,
+			}).Return(nil, nil)
+			defer api.AssertExpectations(t)
+
+			p := &plugin.HelpersImpl{}
+			p.API = api
+
+			updatedTestbot := &model.Bot{
+				Username:    "updated_testbot",
+				DisplayName: "Updated Test Bot",
+				Description: "updated testbotdescription",
+			}
+			botID, err := p.EnsureBot(updatedTestbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
+
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 	})
 
 	t.Run("if bot doesn't exist", func(t *testing.T) {
 		t.Run("should create the bot and return the ID", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
+				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, expectedBotId, botId)
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should claim existing bot and return the ID", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
-				Id:    expectedBotId,
+				Id:    expectedBotID,
 				IsBot: true,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, expectedBotId, botId)
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should return the non-bot account but log a message if user exists with the same name and is not a bot", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 			api.On("GetServerVersion").Return("5.10.0")
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
-				Id:    expectedBotId,
+				Id:    expectedBotID,
 				IsBot: false,
 			}, nil)
 			api.On("LogError", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
@@ -231,9 +290,9 @@ func TestEnsureBot(t *testing.T) {
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, expectedBotId, botId)
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
@@ -248,14 +307,14 @@ func TestEnsureBot(t *testing.T) {
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot)
+			botID, err := p.EnsureBot(testbot)
 
-			assert.Equal(t, "", botId)
+			assert.Equal(t, "", botID)
 			assert.NotNil(t, err)
 		})
 
 		t.Run("should create bot and set the bot profile image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
@@ -266,24 +325,24 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
+				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should create bot and set the bot icon image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
@@ -294,24 +353,24 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
+				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.IconImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 
 		t.Run("should create bot and set both the profile image and bot icon image when specified", func(t *testing.T) {
-			expectedBotId := model.NewId()
+			expectedBotID := model.NewId()
 			api := setupAPI()
 
 			testsDir, _ := fileutils.FindDir("tests")
@@ -322,20 +381,20 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(nil, nil)
 			api.On("CreateBot", testbot).Return(&model.Bot{
-				UserId: expectedBotId,
+				UserId: expectedBotID,
 			}, nil)
-			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
+			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotID)).Return(nil)
 			api.On("GetBundlePath").Return("", nil)
-			api.On("SetProfileImage", expectedBotId, imageBytes).Return(nil)
-			api.On("SetBotIconImage", expectedBotId, imageBytes).Return(nil)
+			api.On("SetProfileImage", expectedBotID, imageBytes).Return(nil)
+			api.On("SetBotIconImage", expectedBotID, imageBytes).Return(nil)
 			api.On("GetServerVersion").Return("5.10.0")
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
 			p.API = api
 
-			botId, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
-			assert.Equal(t, expectedBotId, botId)
+			botID, err := p.EnsureBot(testbot, plugin.ProfileImagePath(testImage), plugin.IconImagePath(testImage))
+			assert.Equal(t, expectedBotID, botID)
 			assert.Nil(t, err)
 		})
 	})
@@ -343,7 +402,7 @@ func TestEnsureBot(t *testing.T) {
 
 func TestShouldProcessMessage(t *testing.T) {
 	p := &plugin.HelpersImpl{}
-	expectedBotId := model.NewId()
+	expectedBotID := model.NewId()
 
 	setupAPI := func() *plugintest.API {
 		return &plugintest.API{}
@@ -351,9 +410,9 @@ func TestShouldProcessMessage(t *testing.T) {
 
 	t.Run("should not respond to itself", func(t *testing.T) {
 		api := setupAPI()
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 		p.API = api
-		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{Type: model.POST_HEADER_CHANGE, UserId: expectedBotId}, plugin.AllowSystemMessages(), plugin.AllowBots())
+		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{Type: model.POST_HEADER_CHANGE, UserId: expectedBotID}, plugin.AllowSystemMessages(), plugin.AllowBots())
 
 		assert.False(t, shouldProcessMessage)
 	})
@@ -369,7 +428,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
 		p.API = api
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowSystemMessages(), plugin.AllowBots(), plugin.FilterChannelIDs([]string{"another-channel-id"}))
 
@@ -382,7 +441,7 @@ func TestShouldProcessMessage(t *testing.T) {
 		api := setupAPI()
 		p.API = api
 		api.On("GetUser", userID).Return(&model.User{IsBot: true}, nil)
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: userID, ChannelId: channelID},
 			plugin.AllowSystemMessages(), plugin.FilterUserIDs([]string{"another-user-id"}))
@@ -394,12 +453,12 @@ func TestShouldProcessMessage(t *testing.T) {
 		userID := "user-id"
 		channelID := "1"
 		channel := model.Channel{
-			Name: "user1__" + expectedBotId,
+			Name: "user1__" + expectedBotID,
 			Type: model.CHANNEL_OPEN,
 		}
 		api := setupAPI()
 		api.On("GetChannel", channelID).Return(&channel, nil)
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 		p.API = api
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: userID, ChannelId: channelID}, plugin.AllowSystemMessages(), plugin.AllowBots(), plugin.OnlyBotDMs())
@@ -410,7 +469,7 @@ func TestShouldProcessMessage(t *testing.T) {
 	t.Run("should process the message", func(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 		p.API = api
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
@@ -435,11 +494,11 @@ func TestShouldProcessMessage(t *testing.T) {
 		channelID := "1"
 		api := setupAPI()
 		channel := model.Channel{
-			Name: "user1__" + expectedBotId,
+			Name: "user1__" + expectedBotID,
 			Type: model.CHANNEL_DIRECT,
 		}
 		api.On("GetChannel", channelID).Return(&channel, nil)
-		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
 		p.API = api
 
 		shouldProcessMessage, _ := p.ShouldProcessMessage(&model.Post{UserId: "1", Type: model.POST_HEADER_CHANGE, ChannelId: channelID},
@@ -447,4 +506,57 @@ func TestShouldProcessMessage(t *testing.T) {
 
 		assert.True(t, shouldProcessMessage)
 	})
+
+	t.Run("should not process the message which have from_webhook", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots())
+
+		assert.False(t, shouldProcessMessage)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should process the message which have from_webhook with allow webhook plugin", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "true"}}, plugin.AllowBots(), plugin.AllowWebhook())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
+	t.Run("should process the message where from_webhook is not set", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID}, plugin.AllowBots())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
+	t.Run("should process the message which have from_webhook false", func(t *testing.T) {
+		channelID := "1"
+		api := setupAPI()
+		api.On("GetChannel", channelID).Return(&model.Channel{Id: channelID, Type: model.CHANNEL_GROUP}, nil)
+		p.API = api
+		api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotID), nil)
+
+		shouldProcessMessage, err := p.ShouldProcessMessage(&model.Post{ChannelId: channelID, Props: model.StringInterface{"from_webhook": "false"}}, plugin.AllowBots())
+		assert.Nil(t, err)
+
+		assert.True(t, shouldProcessMessage)
+	})
+
 }

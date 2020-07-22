@@ -8,7 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -17,8 +19,14 @@ import (
 // or update an existing one.
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/watcher-api-put-watch.html.
 type XPackWatcherPutWatchService struct {
-	client        *Client
-	pretty        bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	id            string
 	active        *bool
 	masterTimeout string
@@ -32,6 +40,46 @@ func NewXPackWatcherPutWatchService(client *Client) *XPackWatcherPutWatchService
 	return &XPackWatcherPutWatchService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackWatcherPutWatchService) Pretty(pretty bool) *XPackWatcherPutWatchService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackWatcherPutWatchService) Human(human bool) *XPackWatcherPutWatchService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackWatcherPutWatchService) ErrorTrace(errorTrace bool) *XPackWatcherPutWatchService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackWatcherPutWatchService) FilterPath(filterPath ...string) *XPackWatcherPutWatchService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackWatcherPutWatchService) Header(name string, value string) *XPackWatcherPutWatchService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackWatcherPutWatchService) Headers(headers http.Header) *XPackWatcherPutWatchService {
+	s.headers = headers
+	return s
 }
 
 // Id of the watch to upsert.
@@ -49,12 +97,6 @@ func (s *XPackWatcherPutWatchService) Active(active bool) *XPackWatcherPutWatchS
 // MasterTimeout is an explicit operation timeout for connection to master node.
 func (s *XPackWatcherPutWatchService) MasterTimeout(masterTimeout string) *XPackWatcherPutWatchService {
 	s.masterTimeout = masterTimeout
-	return s
-}
-
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackWatcherPutWatchService) Pretty(pretty bool) *XPackWatcherPutWatchService {
-	s.pretty = pretty
 	return s
 }
 
@@ -90,8 +132,17 @@ func (s *XPackWatcherPutWatchService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.active != nil {
 		params.Set("active", fmt.Sprintf("%v", *s.active))
@@ -138,10 +189,11 @@ func (s *XPackWatcherPutWatchService) Do(ctx context.Context) (*XPackWatcherPutW
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "PUT",
-		Path:   path,
-		Params: params,
-		Body:   s.body,
+		Method:  "PUT",
+		Path:    path,
+		Params:  params,
+		Body:    s.body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

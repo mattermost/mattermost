@@ -11,14 +11,12 @@ package dns
 //go:generate go run msg_generate.go
 
 import (
-	crand "crypto/rand"
+	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 const (
@@ -73,53 +71,23 @@ var (
 	ErrTime          error = &Error{err: "bad time"}      // ErrTime indicates a timing error in TSIG authentication.
 )
 
-// Id by default, returns a 16 bits random number to be used as a
-// message id. The random provided should be good enough. This being a
-// variable the function can be reassigned to a custom function.
-// For instance, to make it return a static value:
+// Id by default returns a 16-bit random number to be used as a message id. The
+// number is drawn from a cryptographically secure random number generator.
+// This being a variable the function can be reassigned to a custom function.
+// For instance, to make it return a static value for testing:
 //
 //	dns.Id = func() uint16 { return 3 }
 var Id = id
 
-var (
-	idLock sync.Mutex
-	idRand *rand.Rand
-)
-
 // id returns a 16 bits random number to be used as a
 // message id. The random provided should be good enough.
 func id() uint16 {
-	idLock.Lock()
-
-	if idRand == nil {
-		// This (partially) works around
-		// https://github.com/golang/go/issues/11833 by only
-		// seeding idRand upon the first call to id.
-
-		var seed int64
-		var buf [8]byte
-
-		if _, err := crand.Read(buf[:]); err == nil {
-			seed = int64(binary.LittleEndian.Uint64(buf[:]))
-		} else {
-			seed = rand.Int63()
-		}
-
-		idRand = rand.New(rand.NewSource(seed))
+	var output uint16
+	err := binary.Read(rand.Reader, binary.BigEndian, &output)
+	if err != nil {
+		panic("dns: reading random id failed: " + err.Error())
 	}
-
-	// The call to idRand.Uint32 must be within the
-	// mutex lock because *rand.Rand is not safe for
-	// concurrent use.
-	//
-	// There is no added performance overhead to calling
-	// idRand.Uint32 inside a mutex lock over just
-	// calling rand.Uint32 as the global math/rand rng
-	// is internally protected by a sync.Mutex.
-	id := uint16(idRand.Uint32())
-
-	idLock.Unlock()
-	return id
+	return output
 }
 
 // MsgHdr is a a manually-unpacked version of (id, bits).
@@ -693,7 +661,6 @@ func unpackRRslice(l int, msg []byte, off int) (dst1 []RR, off1 int, err error) 
 		}
 		// If offset does not increase anymore, l is a lie
 		if off1 == off {
-			l = i
 			break
 		}
 		dst = append(dst, r)
@@ -754,24 +721,13 @@ func (dns *Msg) Pack() (msg []byte, err error) {
 	return dns.PackBuffer(nil)
 }
 
-var compressionPackPool = sync.Pool{
-	New: func() interface{} {
-		return make(map[string]uint16)
-	},
-}
-
 // PackBuffer packs a Msg, using the given buffer buf. If buf is too small a new buffer is allocated.
 func (dns *Msg) PackBuffer(buf []byte) (msg []byte, err error) {
 	// If this message can't be compressed, avoid filling the
 	// compression map and creating garbage.
 	if dns.Compress && dns.isCompressible() {
-		compression := compressionPackPool.Get().(map[string]uint16)
-		msg, err := dns.packBufferWithCompressionMap(buf, compressionMap{int: compression}, true)
-		for k := range compression {
-			delete(compression, k)
-		}
-		compressionPackPool.Put(compression)
-		return msg, err
+		compression := make(map[string]uint16) // Compression pointer mappings.
+		return dns.packBufferWithCompressionMap(buf, compressionMap{int: compression}, true)
 	}
 
 	return dns.packBufferWithCompressionMap(buf, compressionMap{}, false)
@@ -983,12 +939,6 @@ func (dns *Msg) isCompressible() bool {
 		len(dns.Ns) > 0 || len(dns.Extra) > 0
 }
 
-var compressionPool = sync.Pool{
-	New: func() interface{} {
-		return make(map[string]struct{})
-	},
-}
-
 // Len returns the message length when in (un)compressed wire format.
 // If dns.Compress is true compression it is taken into account. Len()
 // is provided to be a faster way to get the size of the resulting packet,
@@ -997,13 +947,8 @@ func (dns *Msg) Len() int {
 	// If this message can't be compressed, avoid filling the
 	// compression map and creating garbage.
 	if dns.Compress && dns.isCompressible() {
-		compression := compressionPool.Get().(map[string]struct{})
-		n := msgLenWithCompressionMap(dns, compression)
-		for k := range compression {
-			delete(compression, k)
-		}
-		compressionPool.Put(compression)
-		return n
+		compression := make(map[string]struct{})
+		return msgLenWithCompressionMap(dns, compression)
 	}
 
 	return msgLenWithCompressionMap(dns, nil)

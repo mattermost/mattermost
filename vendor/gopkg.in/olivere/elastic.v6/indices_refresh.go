@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -17,8 +18,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-refresh.html.
 type RefreshService struct {
 	client *Client
-	index  []string
-	pretty bool
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
+	index []string
 }
 
 // NewRefreshService creates a new instance of RefreshService.
@@ -29,15 +36,49 @@ func NewRefreshService(client *Client) *RefreshService {
 	return builder
 }
 
-// Index specifies the indices to refresh.
-func (s *RefreshService) Index(index ...string) *RefreshService {
-	s.index = append(s.index, index...)
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *RefreshService) Pretty(pretty bool) *RefreshService {
+	s.pretty = &pretty
 	return s
 }
 
-// Pretty asks Elasticsearch to return indented JSON.
-func (s *RefreshService) Pretty(pretty bool) *RefreshService {
-	s.pretty = pretty
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *RefreshService) Human(human bool) *RefreshService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *RefreshService) ErrorTrace(errorTrace bool) *RefreshService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *RefreshService) FilterPath(filterPath ...string) *RefreshService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *RefreshService) Header(name string, value string) *RefreshService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *RefreshService) Headers(headers http.Header) *RefreshService {
+	s.headers = headers
+	return s
+}
+
+// Index specifies the indices to refresh.
+func (s *RefreshService) Index(index ...string) *RefreshService {
+	s.index = append(s.index, index...)
 	return s
 }
 
@@ -59,8 +100,17 @@ func (s *RefreshService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", fmt.Sprintf("%v", s.pretty))
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	return path, params, nil
 }
@@ -74,9 +124,10 @@ func (s *RefreshService) Do(ctx context.Context) (*RefreshResult, error) {
 
 	// Get response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

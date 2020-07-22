@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package manualtesting
 
@@ -11,24 +11,26 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/web"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/web"
 )
 
+// TestEnvironment is a helper struct used for tests in manualtesting.
 type TestEnvironment struct {
 	Params        map[string][]string
 	Client        *model.Client4
-	CreatedTeamId string
-	CreatedUserId string
+	CreatedTeamID string
+	CreatedUserID string
 	Context       *web.Context
 	Writer        http.ResponseWriter
 	Request       *http.Request
 }
 
+// Init adds manualtest endpoint to the API.
 func Init(api4 *api4.API) {
 	api4.BaseRoutes.Root.Handle("/manualtest", api4.ApiHandler(manualTest)).Methods("GET")
 }
@@ -68,23 +70,24 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		// Create team for testing
 		team := &model.Team{
 			DisplayName: teamDisplayName[0],
-			Name:        utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
+			Name:        "zz" + utils.RandomName(utils.Range{Begin: 20, End: 20}, utils.LOWERCASE),
 			Email:       "success+" + model.NewId() + "simulator.amazonses.com",
 			Type:        model.TEAM_OPEN,
 		}
 
-		if createdTeam, err := c.App.Srv.Store.Team().Save(team); err != nil {
+		createdTeam, err := c.App.Srv().Store.Team().Save(team)
+		if err != nil {
 			c.Err = err
 			return
-		} else {
-			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
-			if _, err := c.App.CreateChannel(channel, false); err != nil {
-				c.Err = err
-				return
-			}
-
-			teamID = createdTeam.Id
 		}
+
+		channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
+		if _, err := c.App.CreateChannel(channel, false); err != nil {
+			c.Err = err
+			return
+		}
+
+		teamID = createdTeam.Id
 
 		// Create user for testing
 		user := &model.User{
@@ -98,8 +101,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
-		c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
+		c.App.Srv().Store.User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv().Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
 
@@ -126,8 +129,8 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	env := TestEnvironment{
 		Params:        params,
 		Client:        client,
-		CreatedTeamId: teamID,
-		CreatedUserId: userID,
+		CreatedTeamID: teamID,
+		CreatedUserID: userID,
 		Context:       c,
 		Writer:        w,
 		Request:       r,
@@ -148,9 +151,9 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(a *app.App, channelname string, teamid string, userid string) (string, bool) {
+func getChannelID(a app.AppIface, channelname string, teamid string, userid string) (string, bool) {
 	// Grab all the channels
-	channels, err := a.Srv.Store.Channel().GetChannels(teamid, userid, false)
+	channels, err := a.Srv().Store.Channel().GetChannels(teamid, userid, false)
 	if err != nil {
 		mlog.Debug("Unable to get channels")
 		return "", false

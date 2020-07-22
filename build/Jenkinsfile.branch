@@ -9,7 +9,7 @@ def platformStages = new org.mattermost.PlatformStages()
 
 def rndEE = UUID.randomUUID().toString()
 def rndTE = UUID.randomUUID().toString()
-def mmBuilderServer = 'mattermost/mattermost-build-server:oct-18-2019'
+def mmBuilderServer = 'mattermost/mattermost-build-server:20200322_golang-1.14.1'
 def mmBuilderWebapp = 'mattermost/mattermost-build-webapp:oct-2-2018'
 
 pipeline {
@@ -18,7 +18,7 @@ pipeline {
   }
 
   options {
-    buildDiscarder(logRotator(numToKeepStr: '3'))
+    buildDiscarder(logRotator(daysToKeepStr: '15'))
     timeout(time: 2, unit: 'HOURS')
   }
 
@@ -51,7 +51,7 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
                 platformStages.platformCleanDockerCompose(rndEE)
@@ -71,7 +71,7 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
                 platformStages.platformCleanDockerCompose(rndTE)
@@ -115,11 +115,15 @@ pipeline {
       }
     }
 
-    stage ('Build Docker mattermost-enterprise-edition') {
+    stage ('Build Docker Images') {
       agent {
         label 'default-mm-builder'
       }
       steps {
+        script {
+          forcefullyCleanWorkspace(mmBuilderServer)
+          platformStages.platformCheckoutTE(env.BRANCH_NAME)
+        }
         dir('src/github.com/mattermost/mattermost-server') {
           withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
@@ -127,21 +131,7 @@ pipeline {
             export TAG='${env.BRANCH_NAME}'
             docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} build
             docker push mattermost/mattermost-enterprise-edition:\${TAG}
-            docker logout
             """
-          }
-        }
-      }
-    }
-
-    stage ('Build Docker mattermost-team-edition') {
-      agent {
-        label 'default-mm-builder'
-      }
-      steps {
-        dir('src/github.com/mattermost/mattermost-server') {
-          withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-            sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
             sh """
             export TAG='${env.BRANCH_NAME}'
             docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-team-linux-amd64.tar.gz -t mattermost/mattermost-team-edition:\${TAG} build

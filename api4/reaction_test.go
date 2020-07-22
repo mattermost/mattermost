@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSaveReaction(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -161,7 +161,7 @@ func TestSaveReaction(t *testing.T) {
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 
 		reaction := &model.Reaction{
@@ -177,7 +177,7 @@ func TestSaveReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 0, len(reactions), "should have not created a reaction")
 
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
@@ -206,7 +206,7 @@ func TestSaveReaction(t *testing.T) {
 }
 
 func TestGetReactions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -244,7 +244,7 @@ func TestGetReactions(t *testing.T) {
 	var reactions []*model.Reaction
 
 	for _, userReaction := range userReactions {
-		reaction, err := th.App.Srv.Store.Reaction().Save(userReaction)
+		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
 		require.Nil(t, err)
 		reactions = append(reactions, reaction)
 	}
@@ -285,7 +285,7 @@ func TestGetReactions(t *testing.T) {
 }
 
 func TestDeleteReaction(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -486,7 +486,7 @@ func TestDeleteReaction(t *testing.T) {
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 
 		reaction := &model.Reaction{
 			UserId:    userId,
@@ -510,7 +510,7 @@ func TestDeleteReaction(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reaction")
 
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
 
@@ -546,7 +546,7 @@ func TestDeleteReaction(t *testing.T) {
 }
 
 func TestGetBulkReactions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -595,7 +595,7 @@ func TestGetBulkReactions(t *testing.T) {
 
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
-		reaction, err := th.App.Srv.Store.Reaction().Save(userReaction)
+		reaction, err := th.App.Srv().Store.Reaction().Save(userReaction)
 		require.Nil(t, err)
 		reactions = append(reactions, reaction)
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions

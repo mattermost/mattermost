@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -12,13 +12,23 @@ import (
 	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_17_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	VERSION_5_27_0           = "5.27.0"
+	VERSION_5_26_0           = "5.26.0"
+	VERSION_5_25_0           = "5.25.0"
+	VERSION_5_24_0           = "5.24.0"
+	VERSION_5_23_0           = "5.23.0"
+	VERSION_5_22_0           = "5.22.0"
+	VERSION_5_21_0           = "5.21.0"
+	VERSION_5_20_0           = "5.20.0"
+	VERSION_5_19_0           = "5.19.0"
+	VERSION_5_18_0           = "5.18.0"
 	VERSION_5_17_0           = "5.17.0"
 	VERSION_5_16_0           = "5.16.0"
 	VERSION_5_15_0           = "5.15.0"
@@ -165,6 +175,16 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion515(sqlStore)
 	upgradeDatabaseToVersion516(sqlStore)
 	upgradeDatabaseToVersion517(sqlStore)
+	upgradeDatabaseToVersion518(sqlStore)
+	upgradeDatabaseToVersion519(sqlStore)
+	upgradeDatabaseToVersion520(sqlStore)
+	upgradeDatabaseToVersion521(sqlStore)
+	upgradeDatabaseToVersion522(sqlStore)
+	upgradeDatabaseToVersion523(sqlStore)
+	upgradeDatabaseToVersion524(sqlStore)
+	upgradeDatabaseToVersion525(sqlStore)
+	upgradeDatabaseToVersion526(sqlStore)
+	upgradeDatabaseToVersion527(sqlStore)
 
 	return nil
 }
@@ -728,4 +748,87 @@ func upgradeDatabaseToVersion517(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_16_0, VERSION_5_17_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_17_0)
 	}
+}
+
+func upgradeDatabaseToVersion518(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_17_0, VERSION_5_18_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_18_0)
+	}
+}
+
+func upgradeDatabaseToVersion519(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_18_0, VERSION_5_19_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_19_0)
+	}
+}
+
+func upgradeDatabaseToVersion520(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_19_0, VERSION_5_20_0) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("Bots", "LastIconUpdate", "bigint", "bigint")
+
+		sqlStore.CreateColumnIfNotExists("GroupTeams", "SchemeAdmin", "boolean", "boolean", "0")
+		sqlStore.CreateIndexIfNotExists("idx_groupteams_schemeadmin", "GroupTeams", "SchemeAdmin")
+
+		sqlStore.CreateColumnIfNotExists("GroupChannels", "SchemeAdmin", "boolean", "boolean", "0")
+		sqlStore.CreateIndexIfNotExists("idx_groupchannels_schemeadmin", "GroupChannels", "SchemeAdmin")
+
+		saveSchemaVersion(sqlStore, VERSION_5_20_0)
+	}
+}
+
+func upgradeDatabaseToVersion521(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_20_0, VERSION_5_21_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_21_0)
+	}
+}
+
+func upgradeDatabaseToVersion522(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_21_0, VERSION_5_22_0) {
+		sqlStore.CreateIndexIfNotExists("idx_teams_scheme_id", "Teams", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_channels_scheme_id", "Channels", "SchemeId")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_guest_role", "Schemes", "DefaultChannelGuestRole")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_user_role", "Schemes", "DefaultChannelUserRole")
+		sqlStore.CreateIndexIfNotExists("idx_schemes_channel_admin_role", "Schemes", "DefaultChannelAdminRole")
+
+		saveSchemaVersion(sqlStore, VERSION_5_22_0)
+	}
+}
+
+func upgradeDatabaseToVersion523(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_22_0, VERSION_5_23_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_23_0)
+	}
+}
+
+func upgradeDatabaseToVersion524(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_23_0, VERSION_5_24_0) {
+		sqlStore.CreateColumnIfNotExists("UserGroups", "AllowReference", "boolean", "boolean", "0")
+		sqlStore.GetMaster().Exec("UPDATE UserGroups SET Name = null, AllowReference = false")
+		sqlStore.AlterPrimaryKey("Reactions", []string{"PostId", "UserId", "EmojiName"})
+
+		saveSchemaVersion(sqlStore, VERSION_5_24_0)
+	}
+}
+
+func upgradeDatabaseToVersion525(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_25_0)
+	}
+}
+
+func upgradeDatabaseToVersion526(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	}
+}
+
+func upgradeDatabaseToVersion527(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	// }
 }

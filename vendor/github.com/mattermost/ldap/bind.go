@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // SimpleBindRequest represents a username/password bind operation
@@ -35,13 +35,18 @@ func NewSimpleBindRequest(username string, password string, controls []Control) 
 	}
 }
 
-func (bindRequest *SimpleBindRequest) encode() *ber.Packet {
-	request := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationBindRequest, nil, "Bind Request")
-	request.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 3, "Version"))
-	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, bindRequest.Username, "User Name"))
-	request.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, bindRequest.Password, "Password"))
+func (req *SimpleBindRequest) appendTo(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationBindRequest, nil, "Bind Request")
+	pkt.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 3, "Version"))
+	pkt.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, req.Username, "User Name"))
+	pkt.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, req.Password, "Password"))
 
-	return request
+	envelope.AppendChild(pkt)
+	if len(req.Controls) > 0 {
+		envelope.AppendChild(encodeControls(req.Controls))
+	}
+
+	return nil
 }
 
 // SimpleBind performs the simple bind operation defined in the given request
@@ -50,39 +55,15 @@ func (l *Conn) SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResu
 		return nil, NewError(ErrorEmptyPassword, errors.New("ldap: empty password not allowed by the client"))
 	}
 
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
-	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, l.nextMessageID(), "MessageID"))
-	encodedBindRequest := simpleBindRequest.encode()
-	packet.AppendChild(encodedBindRequest)
-	if len(simpleBindRequest.Controls) > 0 {
-		packet.AppendChild(encodeControls(simpleBindRequest.Controls))
-	}
-
-	if l.Debug {
-		ber.PrintPacket(packet)
-	}
-
-	msgCtx, err := l.sendMessage(packet)
+	msgCtx, err := l.doRequest(simpleBindRequest)
 	if err != nil {
 		return nil, err
 	}
 	defer l.finishMessage(msgCtx)
 
-	packetResponse, ok := <-msgCtx.responses
-	if !ok {
-		return nil, NewError(ErrorNetwork, errors.New("ldap: response channel closed"))
-	}
-	packet, err = packetResponse.ReadPacket()
-	l.Debug.Printf("%d: got response %p", msgCtx.id, packet)
+	packet, err := l.readPacket(msgCtx)
 	if err != nil {
 		return nil, err
-	}
-
-	if l.Debug {
-		if err = addLDAPDescriptions(packet); err != nil {
-			return nil, err
-		}
-		ber.PrintPacket(packet)
 	}
 
 	result := &SimpleBindResult{
@@ -132,4 +113,40 @@ func (l *Conn) UnauthenticatedBind(username string) error {
 	}
 	_, err := l.SimpleBind(req)
 	return err
+}
+
+var externalBindRequest = requestFunc(func(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationBindRequest, nil, "Bind Request")
+	pkt.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, 3, "Version"))
+	pkt.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, "", "User Name"))
+
+	saslAuth := ber.Encode(ber.ClassContext, ber.TypeConstructed, 3, "", "authentication")
+	saslAuth.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, "EXTERNAL", "SASL Mech"))
+	saslAuth.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, "", "SASL Cred"))
+
+	pkt.AppendChild(saslAuth)
+
+	envelope.AppendChild(pkt)
+
+	return nil
+})
+
+// ExternalBind performs SASL/EXTERNAL authentication.
+//
+// Use ldap.DialURL("ldapi://") to connect to the Unix socket before ExternalBind.
+//
+// See https://tools.ietf.org/html/rfc4422#appendix-A
+func (l *Conn) ExternalBind() error {
+	msgCtx, err := l.doRequest(externalBindRequest)
+	if err != nil {
+		return err
+	}
+	defer l.finishMessage(msgCtx)
+
+	packet, err := l.readPacket(msgCtx)
+	if err != nil {
+		return err
+	}
+
+	return GetLDAPError(packet)
 }

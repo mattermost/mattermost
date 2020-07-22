@@ -25,8 +25,8 @@ import (
 	"sync"
 
 	"github.com/minio/minio-go/v6/pkg/credentials"
-	"github.com/minio/minio-go/v6/pkg/s3signer"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
+	"github.com/minio/minio-go/v6/pkg/signer"
 )
 
 // bucketLocationCache - Provides simple mechanism to hold bucket
@@ -125,6 +125,10 @@ func processBucketLocationResponse(resp *http.Response, bucketName string) (buck
 			// request. Move forward and let the top level callers
 			// succeed if possible based on their policy.
 			switch errResp.Code {
+			case "NotImplemented":
+				if errResp.Server == "AmazonSnowball" {
+					return "snowball", nil
+				}
 			case "AuthorizationHeaderMalformed":
 				fallthrough
 			case "InvalidRegion":
@@ -179,11 +183,21 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 		}
 	}
 
-	targetURL.Path = path.Join(bucketName, "") + "/"
-	targetURL.RawQuery = urlValues.Encode()
+	isVirtualHost := s3utils.IsVirtualHostSupported(targetURL, bucketName)
+
+	var urlStr string
+
+	//only support Aliyun OSS for virtual hosted path,  compatible  Amazon & Google Endpoint
+	if isVirtualHost && s3utils.IsAliyunOSSEndpoint(targetURL) {
+		urlStr = c.endpointURL.Scheme + "://" + bucketName + "." + targetURL.Host + "/?location"
+	} else {
+		targetURL.Path = path.Join(bucketName, "") + "/"
+		targetURL.RawQuery = urlValues.Encode()
+		urlStr = targetURL.String()
+	}
 
 	// Get a new HTTP request for the method.
-	req, err := http.NewRequest("GET", targetURL.String(), nil)
+	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +236,7 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 	if signerType.IsV2() {
 		// Get Bucket Location calls should be always path style
 		isVirtualHost := false
-		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
+		req = signer.SignV2(*req, accessKeyID, secretAccessKey, isVirtualHost)
 		return req, nil
 	}
 
@@ -233,6 +247,6 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 	}
 
 	req.Header.Set("X-Amz-Content-Sha256", contentSha256)
-	req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, "us-east-1")
+	req = signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, "us-east-1")
 	return req, nil
 }

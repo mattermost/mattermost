@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -17,7 +17,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/services/timezones"
+	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/language"
 )
@@ -25,6 +25,7 @@ import (
 const (
 	ME                                 = "me"
 	USER_NOTIFY_ALL                    = "all"
+	USER_NOTIFY_HERE                   = "here"
 	USER_NOTIFY_MENTION                = "mention"
 	USER_NOTIFY_NONE                   = "none"
 	DESKTOP_NOTIFY_PROP                = "desktop"
@@ -87,6 +88,7 @@ type User struct {
 	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
 	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
 	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
 	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
@@ -122,6 +124,7 @@ type UserForIndexing struct {
 	Nickname    string   `json:"nickname"`
 	FirstName   string   `json:"first_name"`
 	LastName    string   `json:"last_name"`
+	Roles       string   `json:"roles"`
 	CreateAt    int64    `json:"create_at"`
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`
@@ -236,7 +239,7 @@ func (u *User) DeepCopy() *User {
 // correctly.
 func (u *User) IsValid() *AppError {
 
-	if len(u.Id) != 26 {
+	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
 
@@ -328,6 +331,11 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 
@@ -361,9 +369,20 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
+	u.Username = SanitizeUnicode(u.Username)
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
+
 	u.Username = NormalizeUsername(u.Username)
 	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
+
+	u.FirstName = SanitizeUnicode(u.FirstName)
+	u.LastName = SanitizeUnicode(u.LastName)
+	u.Nickname = SanitizeUnicode(u.Nickname)
+	u.BotDescription = SanitizeUnicode(u.BotDescription)
 
 	if u.AuthData != nil && *u.AuthData == "" {
 		u.AuthData = nil
@@ -390,31 +409,31 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
 	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
-	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
 	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
 	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
 	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
 }
 
-func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
+func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	for _, key := range user.GetMentionKeys() {
+	for _, key := range u.GetMentionKeys() {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
 	}
 
-	user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = user.Username + ",@" + user.Username
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = ""
 	if len(nonUsernameKeys) > 0 {
-		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
+		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
-func (user *User) GetMentionKeys() []string {
+func (u *User) GetMentionKeys() []string {
 	var keys []string
 
-	for _, key := range strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
+	for _, key := range strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",") {
 		trimmedKey := strings.TrimSpace(key)
 
 		if trimmedKey == "" {
@@ -487,7 +506,7 @@ func (u *UserAuth) ToJson() string {
 
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
-	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail)
+	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
 }
 
 // Remove any private data from the user object
@@ -630,6 +649,10 @@ func IsValidUserRoles(userRoles string) bool {
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
+}
+
+func (u *User) IsSystemAdmin() bool {
+	return IsInRole(u.Roles, SYSTEM_ADMIN_ROLE_ID)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

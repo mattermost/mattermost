@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	goi18n "github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type groupmsgProvider struct {
@@ -47,7 +47,7 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	for _, username := range users {
 		username = strings.TrimSpace(username)
 		username = strings.TrimPrefix(username, "@")
-		targetUser, err := a.Srv.Store.User().GetByUsername(username)
+		targetUser, err := a.Srv().Store.User().GetByUsername(username)
 		if err != nil {
 			invalidUsernames = append(invalidUsernames, username)
 			continue
@@ -107,7 +107,7 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 	var groupChannel *model.Channel
 	var channelErr *model.AppError
 
-	if a.SessionHasPermissionTo(args.Session, model.PERMISSION_CREATE_GROUP_CHANNEL) {
+	if a.HasPermissionTo(args.UserId, model.PERMISSION_CREATE_GROUP_CHANNEL) {
 		groupChannel, channelErr = a.CreateGroupChannel(targetUsersSlice, args.UserId)
 		if channelErr != nil {
 			mlog.Error(channelErr.Error())

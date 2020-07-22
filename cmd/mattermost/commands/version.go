@@ -1,11 +1,11 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -36,5 +36,5 @@ func printVersion(a *app.App) {
 	CommandPrintln("Build Date: " + model.BuildDate)
 	CommandPrintln("Build Hash: " + model.BuildHash)
 	CommandPrintln("Build Enterprise Ready: " + model.BuildEnterpriseReady)
-	CommandPrintln("DB Version: " + a.Srv.Store.GetCurrentSchemaVersion())
+	CommandPrintln("DB Version: " + a.Srv().Store.GetCurrentSchemaVersion())
 }

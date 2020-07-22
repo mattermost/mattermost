@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetAndSaveTheme(t *testing.T) {
 	t.Run("should return a default theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		theme, resp := th.Client.GetTheme("default")
@@ -24,7 +24,7 @@ func TestGetAndSaveTheme(t *testing.T) {
 	})
 
 	t.Run("should return a custom system theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		theme, resp := th.Client.SaveTheme(&model.Theme{
@@ -42,7 +42,7 @@ func TestGetAndSaveTheme(t *testing.T) {
 	})
 
 	t.Run("should return not found for a non-existant theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		theme, resp := th.Client.GetTheme("not found")
@@ -55,7 +55,7 @@ func TestGetAndSaveTheme(t *testing.T) {
 
 func TestDeleteTheme(t *testing.T) {
 	t.Run("should delete a default theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		deleted, resp := th.Client.DeleteTheme("default")
@@ -71,7 +71,7 @@ func TestDeleteTheme(t *testing.T) {
 	})
 
 	t.Run("should delete a custom system theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		theme, resp := th.Client.SaveTheme(&model.Theme{
@@ -95,7 +95,7 @@ func TestDeleteTheme(t *testing.T) {
 	})
 
 	t.Run("should return not found for a non-existant theme", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		deleted, resp := th.Client.DeleteTheme("not found")

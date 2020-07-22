@@ -1,6 +1,6 @@
 /*
  * MinIO Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 MinIO, Inc.
+ * Copyright 2015-2020 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 )
@@ -43,6 +41,14 @@ func (c Client) getObjectWithContext(ctx context.Context, bucketName, objectName
 	}
 	if err := s3utils.CheckValidObjectName(objectName); err != nil {
 		return nil, err
+	}
+
+	// Detect if snowball is server location we are talking to.
+	var snowball bool
+	if location, ok := c.bucketLocCache.Get(bucketName); ok {
+		if location == "snowball" {
+			snowball = true
+		}
 	}
 
 	var httpReader io.ReadCloser
@@ -136,7 +142,10 @@ func (c Client) getObjectWithContext(ctx context.Context, bucketName, objectName
 				} else if req.settingObjectInfo { // Request is just to get objectInfo.
 					// Remove range header if already set, for stat Operations to get original file size.
 					delete(opts.headers, "Range")
-					if etag != "" {
+					// Check whether this is snowball
+					// if yes do not use If-Match feature
+					// it doesn't work.
+					if etag != "" && !snowball {
 						opts.SetMatchETag(etag)
 					}
 					objectInfo, err := c.statObject(ctx, bucketName, objectName, StatObjectOptions{opts})
@@ -159,7 +168,10 @@ func (c Client) getObjectWithContext(ctx context.Context, bucketName, objectName
 					// new ones when they haven't been already.
 					// All readAt requests are new requests.
 					if req.DidOffsetChange || !req.beenRead {
-						if etag != "" {
+						// Check whether this is snowball
+						// if yes do not use If-Match feature
+						// it doesn't work.
+						if etag != "" && !snowball {
 							opts.SetMatchETag(etag)
 						}
 						if httpReader != nil {
@@ -621,39 +633,10 @@ func (c Client) getObject(ctx context.Context, bucketName, objectName string, op
 		}
 	}
 
-	// Trim off the odd double quotes from ETag in the beginning and end.
-	md5sum := strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	md5sum = strings.TrimSuffix(md5sum, "\"")
-
-	// Parse the date.
-	date, err := time.Parse(http.TimeFormat, resp.Header.Get("Last-Modified"))
+	objectStat, err := ToObjectInfo(bucketName, objectName, resp.Header)
 	if err != nil {
-		msg := "Last-Modified time format not recognized. " + reportIssue
-		return nil, ObjectInfo{}, nil, ErrorResponse{
-			Code:      "InternalError",
-			Message:   msg,
-			RequestID: resp.Header.Get("x-amz-request-id"),
-			HostID:    resp.Header.Get("x-amz-id-2"),
-			Region:    resp.Header.Get("x-amz-bucket-region"),
-		}
-	}
-
-	// Get content-type.
-	contentType := strings.TrimSpace(resp.Header.Get("Content-Type"))
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-
-	objectStat := ObjectInfo{
-		ETag:         md5sum,
-		Key:          objectName,
-		Size:         resp.ContentLength,
-		LastModified: date,
-		ContentType:  contentType,
-		// Extract only the relevant header keys describing the object.
-		// following function filters out a list of standard set of keys
-		// which are not part of object metadata.
-		Metadata: extractObjMetadata(resp.Header),
+		closeResponse(resp)
+		return nil, objectStat, resp.Header, nil
 	}
 
 	// do not close body here, caller will close

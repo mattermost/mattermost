@@ -4,18 +4,27 @@
 package plugin
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/rpc"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
+
+type hijackedResponse struct {
+	conn    net.Conn
+	bufrw   *bufio.ReadWriter
+	readBuf []byte
+}
 
 type httpResponseWriterRPCServer struct {
 	w   http.ResponseWriter
 	log *mlog.Logger
+	hjr *hijackedResponse
 }
 
 func (w *httpResponseWriterRPCServer) Header(args struct{}, reply *http.Header) error {
@@ -83,8 +92,8 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
-func (h *httpResponseWriterRPCClient) Close() error {
-	return h.client.Close()
+func (w *httpResponseWriterRPCClient) Close() error {
+	return w.client.Close()
 }
 
 func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCClient {

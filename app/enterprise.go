@@ -1,19 +1,20 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/einterfaces"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 )
 
-var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
+var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
 
-func RegisterAccountMigrationInterface(f func(*Server) einterfaces.AccountMigrationInterface) {
+func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
 }
 
@@ -23,45 +24,45 @@ func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
 	clusterInterface = f
 }
 
-var complianceInterface func(*App) einterfaces.ComplianceInterface
+var complianceInterface func(*Server) einterfaces.ComplianceInterface
 
-func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
+func RegisterComplianceInterface(f func(*Server) einterfaces.ComplianceInterface) {
 	complianceInterface = f
 }
 
-var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
+var dataRetentionInterface func(*Server) einterfaces.DataRetentionInterface
 
-func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
+func RegisterDataRetentionInterface(f func(*Server) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
 }
 
-var elasticsearchInterface func(*App) einterfaces.ElasticsearchInterface
+var elasticsearchInterface func(*Server) searchengine.SearchEngineInterface
 
-func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterface) {
+func RegisterElasticsearchInterface(f func(*Server) searchengine.SearchEngineInterface) {
 	elasticsearchInterface = f
 }
 
-var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
+var jobsDataRetentionJobInterface func(*Server) ejobs.DataRetentionJobInterface
 
-func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
+func RegisterJobsDataRetentionJobInterface(f func(*Server) ejobs.DataRetentionJobInterface) {
 	jobsDataRetentionJobInterface = f
 }
 
-var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
+var jobsMessageExportJobInterface func(*Server) ejobs.MessageExportJobInterface
 
-func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
+func RegisterJobsMessageExportJobInterface(f func(*Server) ejobs.MessageExportJobInterface) {
 	jobsMessageExportJobInterface = f
 }
 
-var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
+var jobsElasticsearchAggregatorInterface func(*Server) ejobs.ElasticsearchAggregatorInterface
 
-func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
+func RegisterJobsElasticsearchAggregatorInterface(f func(*Server) ejobs.ElasticsearchAggregatorInterface) {
 	jobsElasticsearchAggregatorInterface = f
 }
 
-var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
+var jobsElasticsearchIndexerInterface func(*Server) tjobs.IndexerJobInterface
 
-func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
+func RegisterJobsElasticsearchIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
 	jobsElasticsearchIndexerInterface = f
 }
 
@@ -71,9 +72,9 @@ func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsMigrationsInterface func(*App) tjobs.MigrationsJobInterface
+var jobsMigrationsInterface func(*Server) tjobs.MigrationsJobInterface
 
-func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterface) {
+func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInterface) {
 	jobsMigrationsInterface = f
 }
 
@@ -83,21 +84,33 @@ func RegisterJobsPluginsJobInterface(f func(*App) tjobs.PluginsJobInterface) {
 	jobsPluginsInterface = f
 }
 
+var jobsBleveIndexerInterface func(*Server) tjobs.IndexerJobInterface
+
+func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
+	jobsBleveIndexerInterface = f
+}
+
+var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
+
+func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
+	jobsExpiryNotifyInterface = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
-var messageExportInterface func(*App) einterfaces.MessageExportInterface
+var messageExportInterface func(*Server) einterfaces.MessageExportInterface
 
-func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
+func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInterface) {
 	messageExportInterface = f
 }
 
-var metricsInterface func(*App) einterfaces.MetricsInterface
+var metricsInterface func(*Server) einterfaces.MetricsInterface
 
-func RegisterMetricsInterface(f func(*App) einterfaces.MetricsInterface) {
+func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
@@ -107,6 +120,12 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 	samlInterface = f
 }
 
+var samlInterfaceNew func(*App) einterfaces.SamlInterface
+
+func RegisterNewSamlInterface(f func(*App) einterfaces.SamlInterface) {
+	samlInterfaceNew = f
+}
+
 var notificationInterface func(*App) einterfaces.NotificationInterface
 
 func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterface) {
@@ -114,39 +133,51 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 }
 
 func (s *Server) initEnterprise() {
-	if accountMigrationInterface != nil {
-		s.AccountMigration = accountMigrationInterface(s)
+	if metricsInterface != nil {
+		s.Metrics = metricsInterface(s)
 	}
 	if complianceInterface != nil {
-		s.Compliance = complianceInterface(s.FakeApp())
-	}
-	if elasticsearchInterface != nil {
-		s.Elasticsearch = elasticsearchInterface(s.FakeApp())
-	}
-	if ldapInterface != nil {
-		s.Ldap = ldapInterface(s.FakeApp())
+		s.Compliance = complianceInterface(s)
 	}
 	if messageExportInterface != nil {
-		s.MessageExport = messageExportInterface(s.FakeApp())
-	}
-	if metricsInterface != nil {
-		s.Metrics = metricsInterface(s.FakeApp())
-	}
-	if notificationInterface != nil {
-		s.Notification = notificationInterface(s.FakeApp())
-	}
-	if samlInterface != nil {
-		s.Saml = samlInterface(s.FakeApp())
-		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := s.Saml.ConfigureSP(); err != nil {
-				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-			}
-		})
+		s.MessageExport = messageExportInterface(s)
 	}
 	if dataRetentionInterface != nil {
-		s.DataRetention = dataRetentionInterface(s.FakeApp())
+		s.DataRetention = dataRetentionInterface(s)
 	}
 	if clusterInterface != nil {
 		s.Cluster = clusterInterface(s)
+	}
+	if elasticsearchInterface != nil {
+		s.SearchEngine.RegisterElasticsearchEngine(elasticsearchInterface(s))
+	}
+}
+
+func (a *App) initEnterprise() {
+	if accountMigrationInterface != nil {
+		a.srv.AccountMigration = accountMigrationInterface(a)
+	}
+	if ldapInterface != nil {
+		a.srv.Ldap = ldapInterface(a)
+	}
+	if notificationInterface != nil {
+		a.srv.Notification = notificationInterface(a)
+	}
+	if samlInterface != nil {
+		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
+			mlog.Debug("Loading new SAML2 library")
+			a.srv.Saml = samlInterfaceNew(a)
+		} else {
+			mlog.Debug("Loading original SAML library")
+			a.srv.Saml = samlInterface(a)
+		}
+		if err := a.srv.Saml.ConfigureSP(); err != nil {
+			mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+		}
+		a.AddConfigListener(func(_, cfg *model.Config) {
+			if err := a.srv.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
+		})
 	}
 }

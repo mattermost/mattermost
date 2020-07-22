@@ -20,8 +20,8 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var hookNameToId map[string]int = make(map[string]int)
@@ -99,6 +99,9 @@ func init() {
 	gob.Register(&model.AppError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&opengraph.OpenGraph{})
+	gob.Register(&model.AutocompleteDynamicListArg{})
+	gob.Register(&model.AutocompleteStaticListArg{})
+	gob.Register(&model.AutocompleteTextArg{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -108,7 +111,7 @@ var _ plugin.Plugin = &hooksPlugin{}
 var _ Hooks = &hooksRPCClient{}
 
 //
-// Below are specal cases for hooks or APIs that can not be auto generated
+// Below are special cases for hooks or APIs that can not be auto generated
 //
 
 func (g *hooksRPCClient) Implemented() (impl []string, err error) {
@@ -718,5 +721,57 @@ func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns
 	} else {
 		return encodableError(fmt.Errorf("API LogError called but not implemented."))
 	}
+	return nil
+}
+
+type Z_InstallPluginArgs struct {
+	PluginStreamID uint32
+	B              bool
+}
+
+type Z_InstallPluginReturns struct {
+	A *model.Manifest
+	B *model.AppError
+}
+
+func (g *apiRPCClient) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	pluginStreamID := g.muxBroker.NextId()
+
+	go func() {
+		uploadPluginConnection, err := g.muxBroker.Accept(pluginStreamID)
+		if err != nil {
+			log.Print("Plugin failed to upload plugin. MuxBroker could not Accept connection", mlog.Err(err))
+			return
+		}
+		defer uploadPluginConnection.Close()
+		serveIOReader(file, uploadPluginConnection)
+	}()
+
+	_args := &Z_InstallPluginArgs{pluginStreamID, replace}
+	_returns := &Z_InstallPluginReturns{}
+	if err := g.client.Call("Plugin.InstallPlugin", _args, _returns); err != nil {
+		log.Print("RPC call InstallPlugin to plugin failed.", mlog.Err(err))
+	}
+
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) InstallPlugin(args *Z_InstallPluginArgs, returns *Z_InstallPluginReturns) error {
+	hook, ok := s.impl.(interface {
+		InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+	})
+	if !ok {
+		return encodableError(fmt.Errorf("API InstallPlugin called but not implemented."))
+	}
+
+	receivePluginConnection, err := s.muxBroker.Dial(args.PluginStreamID)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote plugin stream, error: %v", err.Error())
+		return err
+	}
+	pluginReader := connectIOReader(receivePluginConnection)
+	defer pluginReader.Close()
+
+	returns.A, returns.B = hook.InstallPlugin(pluginReader, args.B)
 	return nil
 }

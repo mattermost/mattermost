@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package filesstore
 
@@ -11,9 +11,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -71,7 +71,7 @@ func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 }
 
 func (b *LocalFileBackend) MoveFile(oldPath, newPath string) *model.AppError {
-	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0774); err != nil {
+	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0750); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -87,11 +87,11 @@ func (b *LocalFileBackend) WriteFile(fr io.Reader, path string) (int64, *model.A
 }
 
 func writeFileLocally(fr io.Reader, path string) (int64, *model.AppError) {
-	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
 	}
-	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	fw, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return 0, model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

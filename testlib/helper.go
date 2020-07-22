@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package testlib
 
@@ -10,18 +10,21 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type MainHelper struct {
 	Settings         *model.SqlSettings
 	Store            store.Store
-	SqlSupplier      *sqlstore.SqlSupplier
+	SearchEngine     *searchengine.Broker
+	SQLSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
 	status           int
@@ -45,7 +48,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	flag.Parse()
 
 	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing.
+	// The global logger will be stomped by apps initializing but that's fine for testing.
 	// Ideally this won't happen.
 	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
@@ -57,7 +60,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	utils.TranslationsPreInit()
 
 	if options != nil {
-		if options.EnableStore {
+		if options.EnableStore && !testing.Short() {
 			mainHelper.setupStore()
 		}
 
@@ -95,16 +98,20 @@ func (h *MainHelper) Main(m *testing.M) {
 func (h *MainHelper) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_MYSQL
+		driverName = model.DATABASE_DRIVER_POSTGRES
 	}
 
 	h.Settings = storetest.MakeSqlSettings(driverName)
 
+	config := &model.Config{}
+	config.SetDefaults()
+
+	h.SearchEngine = searchengine.NewBroker(config, nil)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SqlSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
-	h.Store = &TestStore{
-		h.SqlSupplier,
-	}
+	h.SQLSupplier = sqlstore.NewSqlSupplier(*h.Settings, nil)
+	h.Store = searchlayer.NewSearchLayer(&TestStore{
+		h.SQLSupplier,
+	}, h.SearchEngine, config)
 }
 
 func (h *MainHelper) setupResources() {
@@ -116,6 +123,9 @@ func (h *MainHelper) setupResources() {
 }
 
 func (h *MainHelper) Close() error {
+	if h.SQLSupplier != nil {
+		h.SQLSupplier.Close()
+	}
 	if h.Settings != nil {
 		storetest.CleanupSqlSettings(h.Settings)
 	}
@@ -132,7 +142,7 @@ func (h *MainHelper) Close() error {
 	return nil
 }
 
-func (h *MainHelper) GetSqlSettings() *model.SqlSettings {
+func (h *MainHelper) GetSQLSettings() *model.SqlSettings {
 	if h.Settings == nil {
 		panic("MainHelper not initialized with database access.")
 	}
@@ -148,18 +158,26 @@ func (h *MainHelper) GetStore() store.Store {
 	return h.Store
 }
 
-func (h *MainHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
-	if h.SqlSupplier == nil {
+func (h *MainHelper) GetSQLSupplier() *sqlstore.SqlSupplier {
+	if h.SQLSupplier == nil {
 		panic("MainHelper not initialized with sql supplier.")
 	}
 
-	return h.SqlSupplier
+	return h.SQLSupplier
 }
 
 func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
 	if h.ClusterInterface == nil {
-		panic("MainHelper not initialized with sql supplier.")
+		panic("MainHelper not initialized with cluster interface.")
 	}
 
 	return h.ClusterInterface
+}
+
+func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
+	if h.SearchEngine == nil {
+		panic("MainHelper not initialized with search engine")
+	}
+
+	return h.SearchEngine
 }

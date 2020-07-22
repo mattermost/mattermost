@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -8,8 +8,8 @@ import (
 
 	"github.com/avct/uasurfer"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // MattermostApp describes downloads for the Mattermost App
@@ -44,9 +44,9 @@ type SystemBrowser struct {
 	MakeDefaultString      string
 }
 
-func renderUnsupportedBrowser(app *app.App, w http.ResponseWriter, r *http.Request) {
+func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
-	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
+	page := utils.NewHTMLTemplate(app.Srv().HTMLTemplates(), "unsupported_browser")
 
 	// User Agent info
 	ua := uasurfer.Parse(r.UserAgent())
@@ -88,7 +88,7 @@ func renderUnsupportedBrowser(app *app.App, w http.ResponseWriter, r *http.Reque
 	page.RenderToWriter(w)
 }
 
-func renderMattermostAppMac(app *app.App) MattermostApp {
+func renderMattermostAppMac(app app.AppIface) MattermostApp {
 	return MattermostApp{
 		"/static/images/browser-icons/mac.png",
 		app.T("web.error.unsupported_browser.download_the_app"),
@@ -100,7 +100,7 @@ func renderMattermostAppMac(app *app.App) MattermostApp {
 	}
 }
 
-func renderMattermostAppWindows(app *app.App) MattermostApp {
+func renderMattermostAppWindows(app app.AppIface) MattermostApp {
 	return MattermostApp{
 		"/static/images/browser-icons/windows.svg",
 		app.T("web.error.unsupported_browser.download_the_app"),
@@ -112,7 +112,7 @@ func renderMattermostAppWindows(app *app.App) MattermostApp {
 	}
 }
 
-func renderBrowserChrome(app *app.App) Browser {
+func renderBrowserChrome(app app.AppIface) Browser {
 	return Browser{
 		"/static/images/browser-icons/chrome.svg",
 		app.T("web.error.unsupported_browser.browser_title.chrome"),
@@ -122,7 +122,7 @@ func renderBrowserChrome(app *app.App) Browser {
 	}
 }
 
-func renderBrowserFirefox(app *app.App) Browser {
+func renderBrowserFirefox(app app.AppIface) Browser {
 	return Browser{
 		"/static/images/browser-icons/firefox.svg",
 		app.T("web.error.unsupported_browser.browser_title.firefox"),
@@ -132,7 +132,7 @@ func renderBrowserFirefox(app *app.App) Browser {
 	}
 }
 
-func renderBrowserSafari(app *app.App) Browser {
+func renderBrowserSafari(app app.AppIface) Browser {
 	return Browser{
 		"/static/images/browser-icons/safari.svg",
 		app.T("web.error.unsupported_browser.browser_title.safari"),
@@ -142,7 +142,7 @@ func renderBrowserSafari(app *app.App) Browser {
 	}
 }
 
-func renderSystemBrowserEdge(app *app.App, r *http.Request) SystemBrowser {
+func renderSystemBrowserEdge(app app.AppIface, r *http.Request) SystemBrowser {
 	return SystemBrowser{
 		"/static/images/browser-icons/edge.svg",
 		app.T("web.error.unsupported_browser.browser_title.edge"),

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,16 +8,16 @@ import (
 
 	"github.com/mattermost/gorp"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlPreferenceStore struct {
 	SqlStore
 }
 
-func NewSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
+func newSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -31,13 +31,13 @@ func NewSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
 	return s
 }
 
-func (s SqlPreferenceStore) CreateIndexesIfNotExists() {
+func (s SqlPreferenceStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_preferences_user_id", "Preferences", "UserId")
 	s.CreateIndexIfNotExists("idx_preferences_category", "Preferences", "Category")
 	s.CreateIndexIfNotExists("idx_preferences_name", "Preferences", "Name")
 }
 
-func (s SqlPreferenceStore) DeleteUnusedFeatures() {
+func (s SqlPreferenceStore) deleteUnusedFeatures() {
 	mlog.Debug("Deleting any unused pre-release features")
 
 	sql := `DELETE
@@ -63,6 +63,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError
 
 	defer finalizeTransaction(transaction)
 	for _, preference := range *preferences {
+		preference := preference
 		if upsertErr := s.save(transaction, &preference); upsertErr != nil {
 			return upsertErr
 		}

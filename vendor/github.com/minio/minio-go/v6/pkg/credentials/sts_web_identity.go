@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -75,6 +76,13 @@ type STSWebIdentity struct {
 	// this token.
 	// This is a customer provided function and is mandatory.
 	getWebIDTokenExpiry func() (*WebIdentityToken, error)
+
+	// roleARN is the Amazon Resource Name (ARN) of the role that the caller is
+	// assuming.
+	roleARN string
+
+	// roleSessionName is the identifier for the assumed role session.
+	roleSessionName string
 }
 
 // NewSTSWebIdentity returns a pointer to a new
@@ -95,7 +103,7 @@ func NewSTSWebIdentity(stsEndpoint string, getWebIDTokenExpiry func() (*WebIdent
 	}), nil
 }
 
-func getWebIdentityCredentials(clnt *http.Client, endpoint string,
+func getWebIdentityCredentials(clnt *http.Client, endpoint, roleARN, roleSessionName string,
 	getWebIDTokenExpiry func() (*WebIdentityToken, error)) (AssumeRoleWithWebIdentityResponse, error) {
 	idToken, err := getWebIDTokenExpiry()
 	if err != nil {
@@ -104,8 +112,18 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint string,
 
 	v := url.Values{}
 	v.Set("Action", "AssumeRoleWithWebIdentity")
+	if len(roleARN) > 0 {
+		v.Set("RoleArn", roleARN)
+
+		if len(roleSessionName) == 0 {
+			roleSessionName = strconv.FormatInt(time.Now().UnixNano(), 10)
+		}
+		v.Set("RoleSessionName", roleSessionName)
+	}
 	v.Set("WebIdentityToken", idToken.Token)
-	v.Set("DurationSeconds", fmt.Sprintf("%d", idToken.Expiry))
+	if idToken.Expiry > 0 {
+		v.Set("DurationSeconds", fmt.Sprintf("%d", idToken.Expiry))
+	}
 	v.Set("Version", "2011-06-15")
 
 	u, err := url.Parse(endpoint)
@@ -141,7 +159,7 @@ func getWebIdentityCredentials(clnt *http.Client, endpoint string,
 // Retrieve retrieves credentials from the MinIO service.
 // Error will be returned if the request fails.
 func (m *STSWebIdentity) Retrieve() (Value, error) {
-	a, err := getWebIdentityCredentials(m.Client, m.stsEndpoint, m.getWebIDTokenExpiry)
+	a, err := getWebIdentityCredentials(m.Client, m.stsEndpoint, m.roleARN, m.roleSessionName, m.getWebIDTokenExpiry)
 	if err != nil {
 		return Value{}, err
 	}

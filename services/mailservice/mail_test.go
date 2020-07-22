@@ -1,24 +1,27 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package mailservice
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"net/mail"
 	"net/smtp"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +34,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
-	_, err = NewSMTPClient(conn, cfg)
+	_, err = NewSMTPClient(context.Background(), conn, cfg)
 
 	require.Nil(t, err, "Should get new SMTP client")
 
@@ -58,10 +61,11 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             *cfg.EmailSettings.SMTPPort,
 		},
 	)
-
 	require.Nil(t, err, "Should connect to the SMTP Server")
+	defer conn.Close()
 
 	_, err2 := NewSMTPClientAdvanced(
+		context.Background(),
 		conn,
 		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
@@ -73,12 +77,45 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
 			SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+			SmtpServerTimeout:    1,
 		},
 	)
-
 	require.Nil(t, err2, "Should get new SMTP client")
 
-	_, err3 := ConnectToSMTPServerAdvanced(
+	l, err := net.Listen("tcp", "localhost:") // emulate nc -l <random-port>
+	require.Nil(t, err, "Should've open a network socket and listen")
+	defer l.Close()
+
+	connInfo := &SmtpConnectionInfo{
+		ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
+		SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
+		SmtpServerName:       *cfg.EmailSettings.SMTPServer,
+		SmtpServerHost:       strings.Split(l.Addr().String(), ":")[0],
+		SmtpPort:             strings.Split(l.Addr().String(), ":")[1],
+		Auth:                 *cfg.EmailSettings.EnableSMTPAuth,
+		SmtpUsername:         *cfg.EmailSettings.SMTPUsername,
+		SmtpPassword:         *cfg.EmailSettings.SMTPPassword,
+		SmtpServerTimeout:    1,
+	}
+
+	conn2, err := ConnectToSMTPServerAdvanced(connInfo)
+	require.Nil(t, err, "Should connect to the SMTP Server")
+	defer conn2.Close()
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	_, err3 := NewSMTPClientAdvanced(
+		ctx,
+		conn2,
+		utils.GetHostnameFromSiteURL(*cfg.ServiceSettings.SiteURL),
+		connInfo,
+	)
+	require.NotNil(t, err3, "Should get a timeout get while creating a new SMTP client")
+	assert.Equal(t, err3.Id, "utils.mail.connect_smtp.open_tls.app_error")
+
+	_, err4 := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
 			ConnectionSecurity:   *cfg.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *cfg.EmailSettings.SkipServerCertificateVerification,
@@ -87,7 +124,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 			SmtpPort:             "553",
 		},
 	)
-	require.NotNil(t, err3, "Should not connect to the SMTP Server")
+	require.NotNil(t, err4, "Should not connect to the SMTP Server")
 }
 
 func TestSendMailUsingConfig(t *testing.T) {

@@ -22,7 +22,7 @@ type SignificantTextAggregation struct {
 
 func NewSignificantTextAggregation() *SignificantTextAggregation {
 	return &SignificantTextAggregation{
-		subAggregations: make(map[string]Aggregation, 0),
+		subAggregations: make(map[string]Aggregation),
 	}
 }
 
@@ -139,6 +139,11 @@ func (a *SignificantTextAggregation) NumPartitions(n int) *SignificantTextAggreg
 		a.includeExclude = &TermsAggregationIncludeExclude{}
 	}
 	a.includeExclude.NumPartitions = n
+	return a
+}
+
+func (a *SignificantTextAggregation) IncludeExclude(includeExclude *TermsAggregationIncludeExclude) *SignificantTextAggregation {
+	a.includeExclude = includeExclude
 	return a
 }
 

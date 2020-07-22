@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -10,11 +10,11 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// memoryStore implements the Store interface. It is meant primarily for testing.
-type memoryStore struct {
+// MemoryStore implements the Store interface. It is meant primarily for testing.
+type MemoryStore struct {
 	commonStore
 
 	allowEnvironmentOverrides bool
@@ -31,13 +31,13 @@ type MemoryStoreOptions struct {
 	InitialFiles               map[string][]byte
 }
 
-// NewMemoryStore creates a new memoryStore instance with default options.
-func NewMemoryStore() (*memoryStore, error) {
+// NewMemoryStore creates a new MemoryStore instance with default options.
+func NewMemoryStore() (*MemoryStore, error) {
 	return NewMemoryStoreWithOptions(&MemoryStoreOptions{})
 }
 
-// NewMemoryStoreWithOptions creates a new memoryStore instance.
-func NewMemoryStoreWithOptions(options *MemoryStoreOptions) (*memoryStore, error) {
+// NewMemoryStoreWithOptions creates a new MemoryStore instance.
+func NewMemoryStoreWithOptions(options *MemoryStoreOptions) (*MemoryStore, error) {
 	savedConfig := options.InitialConfig
 	if savedConfig == nil {
 		savedConfig = &model.Config{}
@@ -49,7 +49,7 @@ func NewMemoryStoreWithOptions(options *MemoryStoreOptions) (*memoryStore, error
 		initialFiles = make(map[string][]byte)
 	}
 
-	ms := &memoryStore{
+	ms := &MemoryStore{
 		allowEnvironmentOverrides: !options.IgnoreEnvironmentOverrides,
 		validate:                  !options.SkipValidation,
 		files:                     initialFiles,
@@ -67,7 +67,7 @@ func NewMemoryStoreWithOptions(options *MemoryStoreOptions) (*memoryStore, error
 }
 
 // Set replaces the current configuration in its entirety.
-func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
+func (ms *MemoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 	validate := ms.commonStore.validate
 	if !ms.validate {
 		validate = nil
@@ -77,14 +77,14 @@ func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 }
 
 // persist copies the active config to the saved config.
-func (ms *memoryStore) persist(cfg *model.Config) error {
+func (ms *MemoryStore) persist(cfg *model.Config) error {
 	ms.savedConfig = cfg.Clone()
 
 	return nil
 }
 
 // Load applies environment overrides to the default config as if a re-load had occurred.
-func (ms *memoryStore) Load() (err error) {
+func (ms *MemoryStore) Load() (err error) {
 	var cfgBytes []byte
 	cfgBytes, err = marshalConfig(ms.savedConfig)
 	if err != nil {
@@ -102,7 +102,7 @@ func (ms *memoryStore) Load() (err error) {
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.
-func (ms *memoryStore) GetFile(name string) ([]byte, error) {
+func (ms *MemoryStore) GetFile(name string) ([]byte, error) {
 	ms.configLock.RLock()
 	defer ms.configLock.RUnlock()
 
@@ -115,7 +115,7 @@ func (ms *memoryStore) GetFile(name string) ([]byte, error) {
 }
 
 // SetFile sets or replaces the contents of a configuration file.
-func (ms *memoryStore) SetFile(name string, data []byte) error {
+func (ms *MemoryStore) SetFile(name string, data []byte) error {
 	ms.configLock.Lock()
 	defer ms.configLock.Unlock()
 
@@ -125,7 +125,7 @@ func (ms *memoryStore) SetFile(name string, data []byte) error {
 }
 
 // HasFile returns true if the given file was previously persisted.
-func (ms *memoryStore) HasFile(name string) (bool, error) {
+func (ms *MemoryStore) HasFile(name string) (bool, error) {
 	ms.configLock.RLock()
 	defer ms.configLock.RUnlock()
 
@@ -134,7 +134,7 @@ func (ms *memoryStore) HasFile(name string) (bool, error) {
 }
 
 // RemoveFile removes a previously persisted configuration file.
-func (ms *memoryStore) RemoveFile(name string) error {
+func (ms *MemoryStore) RemoveFile(name string) error {
 	ms.configLock.Lock()
 	defer ms.configLock.Unlock()
 
@@ -144,11 +144,11 @@ func (ms *memoryStore) RemoveFile(name string) error {
 }
 
 // String returns a hard-coded description, as there is no backing store.
-func (ms *memoryStore) String() string {
+func (ms *MemoryStore) String() string {
 	return "memory://"
 }
 
 // Close does nothing for a memory store.
-func (ms *memoryStore) Close() error {
+func (ms *MemoryStore) Close() error {
 	return nil
 }

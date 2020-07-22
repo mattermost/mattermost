@@ -1,5 +1,5 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 // prettyPrintStruct will return a prettyPrint version of a given struct
@@ -47,7 +47,7 @@ func structToMap(t interface{}) map[string]interface{} {
 
 			if indirectType.Kind() == reflect.Struct {
 				value = structToMap(indirectType.Interface())
-			} else {
+			} else if indirectType.Kind() != reflect.Invalid {
 				value = indirectType.Interface()
 			}
 		default:

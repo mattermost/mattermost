@@ -3,32 +3,49 @@ package durafmt
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
 var (
-	units = []string{"years", "weeks", "days", "hours", "minutes", "seconds", "milliseconds"}
+	units      = []string{"years", "weeks", "days", "hours", "minutes", "seconds", "milliseconds", "microseconds"}
+	unitsShort = []string{"y", "w", "d", "h", "m", "s", "ms", "µs"}
 )
 
 // Durafmt holds the parsed duration and the original input duration.
 type Durafmt struct {
 	duration time.Duration
 	input    string // Used as reference.
-	short    bool
+	limitN   int    // Non-zero to limit only first N elements to output.
+	limitUnit string // Non-empty to limit max unit
+}
+
+// LimitToUnit sets the output format, you will not have unit bigger than the UNIT specified. UNIT = "" means no restriction.
+func (d *Durafmt) LimitToUnit(unit string) *Durafmt {
+	d.limitUnit = unit
+	return d
+}
+
+// LimitFirstN sets the output format, outputing only first N elements. n == 0 means no limit.
+func (d *Durafmt) LimitFirstN(n int) *Durafmt {
+	d.limitN = n
+	return d
 }
 
 // Parse creates a new *Durafmt struct, returns error if input is invalid.
 func Parse(dinput time.Duration) *Durafmt {
 	input := dinput.String()
-	return &Durafmt{dinput, input, false}
+	return &Durafmt{dinput, input, 0, ""}
 }
 
 // ParseShort creates a new *Durafmt struct, short form, returns error if input is invalid.
+// It's shortcut for `Parse(dur).LimitFirstN(1)`
 func ParseShort(dinput time.Duration) *Durafmt {
 	input := dinput.String()
-	return &Durafmt{dinput, input, true}
+	return &Durafmt{dinput, input, 1, ""}
 }
 
 // ParseString creates a new *Durafmt struct from a string.
@@ -41,11 +58,12 @@ func ParseString(input string) (*Durafmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Durafmt{duration, input, false}, nil
+	return &Durafmt{duration, input, 0, ""}, nil
 }
 
 // ParseStringShort creates a new *Durafmt struct from a string, short form
 // returns an error if input is invalid.
+// It's shortcut for `ParseString(durStr)` and then calling `LimitFirstN(1)`
 func ParseStringShort(input string) (*Durafmt, error) {
 	if input == "0" || input == "-0" {
 		return nil, errors.New("durafmt: missing unit in duration " + input)
@@ -54,7 +72,7 @@ func ParseStringShort(input string) (*Durafmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Durafmt{duration, input, true}, nil
+	return &Durafmt{duration, input, 1, ""}, nil
 }
 
 // String parses d *Durafmt into a human readable duration.
@@ -67,27 +85,69 @@ func (d *Durafmt) String() string {
 		d.duration = -d.duration
 	}
 
-	// Convert duration.
-	seconds := int64(d.duration.Seconds()) % 60
-	minutes := int64(d.duration.Minutes()) % 60
-	hours := int64(d.duration.Hours()) % 24
-	days := int64(d.duration/(24*time.Hour)) % 365 % 7
+	var microseconds int64
+	var milliseconds int64
+	var seconds int64
+	var minutes int64
+	var hours int64
+	var days int64
+	var weeks int64
+	var years int64
+	var shouldConvert = false
 
-	// Edge case between 364 and 365 days.
-	// We need to calculate weeks from what is left from years
-	leftYearDays := int64(d.duration/(24*time.Hour)) % 365
-	weeks := leftYearDays / 7
-	if leftYearDays >= 364 && leftYearDays < 365 {
-		weeks = 52
+	remainingSecondsToConvert := int64(d.duration/time.Microsecond)
+
+	// Convert duration.
+	if d.limitUnit == "" {
+		shouldConvert = true
 	}
 
-	years := int64(d.duration/(24*time.Hour)) / 365
-	milliseconds := int64(d.duration/time.Millisecond) -
-		(seconds * 1000) - (minutes * 60000) - (hours * 3600000) -
-		(days * 86400000) - (weeks * 604800000) - (years * 31536000000)
+	if d.limitUnit == "years" || shouldConvert {
+		years = remainingSecondsToConvert / (365 * 24 * 3600 * 1000000)
+		remainingSecondsToConvert -= years * 365 * 24 * 3600 * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "weeks" || shouldConvert {
+		weeks = remainingSecondsToConvert / (7 * 24 * 3600 * 1000000)
+		remainingSecondsToConvert -= weeks * 7 * 24 * 3600 * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "days" || shouldConvert {
+		days = remainingSecondsToConvert / (24 * 3600 * 1000000)
+		remainingSecondsToConvert -= days * 24 * 3600 * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "hours" || shouldConvert {
+		hours = remainingSecondsToConvert / (3600 * 1000000)
+		remainingSecondsToConvert -= hours * 3600 * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "minutes" || shouldConvert {
+		minutes = remainingSecondsToConvert / (60 * 1000000)
+		remainingSecondsToConvert -= minutes * 60 * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "seconds" || shouldConvert {
+		seconds = remainingSecondsToConvert / 1000000
+		remainingSecondsToConvert -= seconds * 1000000
+		shouldConvert = true
+	}
+
+	if d.limitUnit == "milliseconds" || shouldConvert {
+		milliseconds = remainingSecondsToConvert / 1000
+		remainingSecondsToConvert -= milliseconds * 1000
+	}
+
+	microseconds = remainingSecondsToConvert
 
 	// Create a map of the converted duration time.
 	durationMap := map[string]int64{
+		"microseconds": microseconds,
 		"milliseconds": milliseconds,
 		"seconds":      seconds,
 		"minutes":      minutes,
@@ -98,7 +158,8 @@ func (d *Durafmt) String() string {
 	}
 
 	// Construct duration string.
-	for _, u := range units {
+	for i := range units {
+		u := units[i]
 		v := durationMap[u]
 		strval := strconv.FormatInt(v, 10)
 		switch {
@@ -110,25 +171,15 @@ func (d *Durafmt) String() string {
 			duration += strval + " " + strings.TrimRight(u, "s") + " "
 		// omit any value with 0s or 0.
 		case d.duration.String() == "0" || d.duration.String() == "0s":
-			// note: milliseconds and minutes have the same suffix (m)
-			// so we have to check if the units match with the suffix.
-
-			// check for a suffix that is NOT the milliseconds suffix.
-			if strings.HasSuffix(d.input, string(u[0])) && !strings.Contains(d.input, "ms") {
-				// if it happens that the units are milliseconds, skip.
-				if u == "milliseconds" {
-					continue
-				}
+			pattern := fmt.Sprintf("^-?0%s$", unitsShort[i])
+			isMatch, err := regexp.MatchString(pattern, d.input)
+			if err != nil {
+				return ""
+			}
+			if isMatch {
 				duration += strval + " " + u
 			}
-			// process milliseconds here.
-			if u == "milliseconds" {
-				if strings.Contains(d.input, "ms") {
-					duration += strval + " " + u
-					break
-				}
-			}
-			break
+
 		// omit any value with 0.
 		case v == 0:
 			continue
@@ -139,8 +190,11 @@ func (d *Durafmt) String() string {
 
 	// if more than 2 spaces present return the first 2 strings
 	// if short version is requested
-	if d.short {
-		duration = strings.Join(strings.Split(duration, " ")[:2], " ")
+	if d.limitN > 0 {
+		parts := strings.Split(duration, " ")
+		if len(parts) > d.limitN*2 {
+			duration = strings.Join(parts[:d.limitN*2], " ")
+		}
 	}
 
 	return duration

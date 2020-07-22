@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package migrations
 
@@ -9,10 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetMigrationState(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	th := Setup()
 	defer th.TearDown()
 
@@ -21,7 +24,7 @@ func TestGetMigrationState(t *testing.T) {
 	th.DeleteAllJobsByTypeAndMigrationKey(model.JOB_TYPE_MIGRATIONS, migrationKey)
 
 	// Test with no job yet.
-	state, job, err := GetMigrationState(migrationKey, th.App.Srv.Store)
+	state, job, err := GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "unscheduled", state)
@@ -31,15 +34,15 @@ func TestGetMigrationState(t *testing.T) {
 		Name:  migrationKey,
 		Value: "true",
 	}
-	err = th.App.Srv.Store.System().Save(&system)
+	err = th.App.Srv().Store.System().Save(&system)
 	assert.Nil(t, err)
 
-	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "completed", state)
 
-	_, err = th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
+	_, err = th.App.Srv().Store.System().PermanentDeleteByName(migrationKey)
 	assert.Nil(t, err)
 
 	// Test with a job scheduled in "pending" state.
@@ -53,10 +56,10 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1, err = th.App.Srv.Store.Job().Save(j1)
+	j1, err = th.App.Srv().Store.Job().Save(j1)
 	require.Nil(t, err)
 
-	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
 	assert.Equal(t, j1.Id, job.Id)
 	assert.Equal(t, "in_progress", state)
@@ -72,10 +75,10 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j2, err = th.App.Srv.Store.Job().Save(j2)
+	j2, err = th.App.Srv().Store.Job().Save(j2)
 	require.Nil(t, err)
 
-	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
 	assert.Equal(t, j2.Id, job.Id)
 	assert.Equal(t, "in_progress", state)
@@ -91,10 +94,10 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j3, err = th.App.Srv.Store.Job().Save(j3)
+	j3, err = th.App.Srv().Store.Job().Save(j3)
 	require.Nil(t, err)
 
-	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
+	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
 	assert.Equal(t, j3.Id, job.Id)
 	assert.Equal(t, "unscheduled", state)

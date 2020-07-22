@@ -44,7 +44,7 @@ import (
 
 const (
 	// LetsEncryptURL is the Directory endpoint of Let's Encrypt CA.
-	LetsEncryptURL = "https://acme-v01.api.letsencrypt.org/directory"
+	LetsEncryptURL = "https://acme-v02.api.letsencrypt.org/directory"
 
 	// ALPNProto is the ALPN protocol name used by a CA server when validating
 	// tls-alpn-01 challenges.
@@ -55,8 +55,9 @@ const (
 	ALPNProto = "acme-tls/1"
 )
 
-// idPeACMEIdentifierV1 is the OID for the ACME extension for the TLS-ALPN challenge.
-var idPeACMEIdentifierV1 = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 30, 1}
+// idPeACMEIdentifier is the OID for the ACME extension for the TLS-ALPN challenge.
+// https://tools.ietf.org/html/draft-ietf-acme-tls-alpn-05#section-5.1
+var idPeACMEIdentifier = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 31}
 
 const (
 	maxChainLen = 5       // max depth and breadth of a certificate chain
@@ -778,7 +779,7 @@ func (c *Client) TLSALPN01ChallengeCert(token, domain string, opt ...CertOption)
 		return tls.Certificate{}, err
 	}
 	acmeExtension := pkix.Extension{
-		Id:       idPeACMEIdentifierV1,
+		Id:       idPeACMEIdentifier,
 		Critical: true,
 		Value:    extValue,
 	}

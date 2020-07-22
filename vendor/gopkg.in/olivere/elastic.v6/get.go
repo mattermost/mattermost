@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -20,8 +21,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/docs-get.html
 // for details.
 type GetService struct {
-	client                        *Client
-	pretty                        bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index                         string
 	typ                           string
 	id                            string
@@ -43,6 +50,46 @@ func NewGetService(client *Client) *GetService {
 		client: client,
 		typ:    "_all",
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *GetService) Pretty(pretty bool) *GetService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *GetService) Human(human bool) *GetService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *GetService) ErrorTrace(errorTrace bool) *GetService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *GetService) FilterPath(filterPath ...string) *GetService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *GetService) Header(name string, value string) *GetService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *GetService) Headers(headers http.Header) *GetService {
+	s.headers = headers
+	return s
 }
 
 // Index is the name of the index.
@@ -136,12 +183,6 @@ func (s *GetService) IgnoreErrorsOnGeneratedFields(ignore bool) *GetService {
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *GetService) Pretty(pretty bool) *GetService {
-	s.pretty = pretty
-	return s
-}
-
 // Validate checks if the operation is valid.
 func (s *GetService) Validate() error {
 	var invalid []string
@@ -174,8 +215,17 @@ func (s *GetService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.routing != "" {
 		params.Set("routing", s.routing)
@@ -227,9 +277,10 @@ func (s *GetService) Do(ctx context.Context) (*GetResult, error) {
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

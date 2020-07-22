@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -16,9 +17,15 @@ import (
 // See the documentation at
 // https://www.elastic.co/guide/en/elasticsearch/reference/6.8/ilm-get-lifecycle.html.
 type XPackIlmGetLifecycleService struct {
-	client        *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	policy        []string
-	pretty        bool
 	timeout       string
 	masterTimeout string
 	flatSettings  *bool
@@ -30,6 +37,46 @@ func NewXPackIlmGetLifecycleService(client *Client) *XPackIlmGetLifecycleService
 	return &XPackIlmGetLifecycleService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *XPackIlmGetLifecycleService) Pretty(pretty bool) *XPackIlmGetLifecycleService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *XPackIlmGetLifecycleService) Human(human bool) *XPackIlmGetLifecycleService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *XPackIlmGetLifecycleService) ErrorTrace(errorTrace bool) *XPackIlmGetLifecycleService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *XPackIlmGetLifecycleService) FilterPath(filterPath ...string) *XPackIlmGetLifecycleService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *XPackIlmGetLifecycleService) Header(name string, value string) *XPackIlmGetLifecycleService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *XPackIlmGetLifecycleService) Headers(headers http.Header) *XPackIlmGetLifecycleService {
+	s.headers = headers
+	return s
 }
 
 // Policy is the name of the index lifecycle policy.
@@ -56,12 +103,6 @@ func (s *XPackIlmGetLifecycleService) FlatSettings(flatSettings bool) *XPackIlmG
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *XPackIlmGetLifecycleService) Pretty(pretty bool) *XPackIlmGetLifecycleService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *XPackIlmGetLifecycleService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -80,8 +121,17 @@ func (s *XPackIlmGetLifecycleService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.flatSettings != nil {
 		params.Set("flat_settings", fmt.Sprintf("%v", *s.flatSettings))
@@ -118,9 +168,10 @@ func (s *XPackIlmGetLifecycleService) Do(ctx context.Context) (map[string]*XPack
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -137,6 +188,6 @@ func (s *XPackIlmGetLifecycleService) Do(ctx context.Context) (map[string]*XPack
 // XPackIlmGetLifecycleResponse is the response of XPackIlmGetLifecycleService.Do.
 type XPackIlmGetLifecycleResponse struct {
 	Version      int                    `json:"version,omitempty"`
-	ModifiedDate int                    `json:"modified,omitempty"`
+	ModifiedDate string                 `json:"modified_date,omitempty"` // e.g. "2019-10-03T17:43:42.720Z"
 	Policy       map[string]interface{} `json:"policy,omitempty"`
 }

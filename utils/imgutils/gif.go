@@ -1,6 +1,8 @@
-// Copyright (c) 2011 The Go Authors.
-// Modified work: Copyright (c) 2019 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// This is a modified version, the original copyright was: Copyright (c) 2011
+// The Go Authors.
 
 package imgutils
 

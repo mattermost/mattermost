@@ -1,14 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
 import (
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
-	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/store"
+	ejobs "github.com/mattermost/mattermost-server/v5/einterfaces/jobs"
+	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type JobServer struct {
@@ -20,10 +20,12 @@ type JobServer struct {
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
-	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
+	ElasticsearchIndexer    tjobs.IndexerJobInterface
 	LdapSync                ejobs.LdapSyncInterface
 	Migrations              tjobs.MigrationsJobInterface
 	Plugins                 tjobs.PluginsJobInterface
+	BleveIndexer            tjobs.IndexerJobInterface
+	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

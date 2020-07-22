@@ -69,7 +69,9 @@ func isReadAt(reader io.Reader) (ok bool) {
 //
 func optimalPartInfo(objectSize int64, configuredPartSize uint64) (totalPartsCount int, partSize int64, lastPartSize int64, err error) {
 	// object size is '-1' set it to 5TiB.
+	var unknownSize bool
 	if objectSize == -1 {
+		unknownSize = true
 		objectSize = maxMultipartPutObjectSize
 	}
 
@@ -86,9 +88,11 @@ func optimalPartInfo(objectSize int64, configuredPartSize uint64) (totalPartsCou
 			return
 		}
 
-		if objectSize > (int64(configuredPartSize) * maxPartsCount) {
-			err = ErrInvalidArgument("Part size * max_parts(10000) is lesser than input objectSize.")
-			return
+		if !unknownSize {
+			if objectSize > (int64(configuredPartSize) * maxPartsCount) {
+				err = ErrInvalidArgument("Part size * max_parts(10000) is lesser than input objectSize.")
+				return
+			}
 		}
 
 		if configuredPartSize < absMinPartSize {
@@ -100,7 +104,13 @@ func optimalPartInfo(objectSize int64, configuredPartSize uint64) (totalPartsCou
 			err = ErrInvalidArgument("Input part size is bigger than allowed maximum of 5GiB.")
 			return
 		}
+
 		partSizeFlt = float64(configuredPartSize)
+		if unknownSize {
+			// If input has unknown size and part size is configured
+			// keep it to maximum allowed as per 10000 parts.
+			objectSize = int64(configuredPartSize) * maxPartsCount
+		}
 	} else {
 		configuredPartSize = minPartSize
 		// Use floats for part size for all calculations to avoid

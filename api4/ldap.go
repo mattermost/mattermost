@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type mixedUnlinkedGroup struct {
@@ -21,6 +22,7 @@ type mixedUnlinkedGroup struct {
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.ApiSessionRequired(migrateIdLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
 	api.BaseRoutes.LDAP.Handle("/groups", api.ApiSessionRequired(getLdapGroups)).Methods("GET")
@@ -33,28 +35,32 @@ func (api *API) InitLdap() {
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.syncLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
 	c.App.SyncLdap()
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.License() == nil || !*c.App.License().Features.LDAP {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
 		c.Err = model.NewAppError("Api4.testLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -68,12 +74,12 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -125,12 +131,16 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	auditRec := c.MakeAuditRecord("linkLdapGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -140,6 +150,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("ldap_group", ldapGroup)
 
 	if ldapGroup == nil {
 		c.Err = model.NewAppError("Api4.linkLdapGroup", "api.ldap_group.not_found", nil, "", http.StatusNotFound)
@@ -150,6 +161,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
 		c.Err = err
 		return
+	}
+	if group != nil {
+		auditRec.AddMeta("group", group)
 	}
 
 	var status int
@@ -181,11 +195,9 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Group has never been linked
 		//
-		// TODO: In a future phase of LDAP groups sync `Name` will be used for at-mentions and will be editable on
-		// the front-end so it will not have an initial value of `model.NewId()` but rather a slugified version of
-		// the LDAP group name with an appended duplicate-breaker.
+		// For group mentions implementation, the Name column will no longer be set by default.
+		// Instead it will be set and saved in the web app when Group Mentions is enabled.
 		newGroup := &model.Group{
-			Name:        model.NewId(),
 			DisplayName: displayName,
 			RemoteId:    ldapGroup.RemoteId,
 			Source:      model.GroupSourceLdap,
@@ -204,6 +216,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	w.WriteHeader(status)
 	w.Write(b)
 }
@@ -214,12 +228,16 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	auditRec := c.MakeAuditRecord("unlinkLdapGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("remote_id", c.Params.RemoteId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkLdapGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -229,6 +247,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("group", group)
 
 	if group.DeleteAt == 0 {
 		_, err = c.App.DeleteGroup(group.Id)
@@ -238,5 +257,36 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	toAttribute, ok := props["toAttribute"].(string)
+	if !ok || len(toAttribute) == 0 {
+		c.SetInvalidParam("toAttribute")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("idMigrateLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("Api4.idMigrateLdap", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if err := c.App.MigrateIdLDAP(toAttribute); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
 	ReturnStatusOK(w)
 }

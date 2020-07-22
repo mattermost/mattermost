@@ -1,16 +1,17 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
 import (
 	"database/sql"
 	"net/http"
-	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	sq "github.com/Masterminds/squirrel"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 const (
@@ -21,7 +22,7 @@ type SqlStatusStore struct {
 	SqlStore
 }
 
-func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
+func newSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	s := &SqlStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -34,7 +35,7 @@ func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	return s
 }
 
-func (s SqlStatusStore) CreateIndexesIfNotExists() {
+func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_user_id", "Status", "UserId")
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
@@ -73,22 +74,42 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
 }
 
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
-	props := make(map[string]interface{})
-	idQuery := ""
 
-	for index, userId := range userIds {
-		if len(idQuery) > 0 {
-			idQuery += ", "
-		}
-
-		props["userId"+strconv.Itoa(index)] = userId
-		idQuery += ":userId" + strconv.Itoa(index)
+	failure := func(err error) *model.AppError {
+		return model.NewAppError(
+			"SqlStatusStore.GetByIds",
+			"store.sql_status.get.app_error",
+			nil,
+			err.Error(),
+			http.StatusInternalServerError,
+		)
 	}
 
+	query := s.getQueryBuilder().
+		Select("UserId, Status, Manual, LastActivityAt").
+		From("Status").
+		Where(sq.Eq{"UserId": userIds})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, failure(err)
+	}
+	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return nil, failure(err)
+	}
 	var statuses []*model.Status
-	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE UserId IN ("+idQuery+")", props); err != nil {
-		return nil, model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	defer rows.Close()
+	for rows.Next() {
+		var status model.Status
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
+			return nil, failure(err)
+		}
+		statuses = append(statuses, &status)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, failure(err)
+	}
+
 	return statuses, nil
 }
 

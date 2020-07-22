@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -7,18 +7,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestCreateCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
+	LocalClient := th.LocalClient
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
@@ -46,6 +48,13 @@ func TestCreateCommand(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.command.duplicate_trigger.app_error")
 
+	newCmd.Trigger = "Local"
+	localCreatedCmd, resp := LocalClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+	require.Equal(t, th.BasicUser.Id, localCreatedCmd.CreatorId, "local client: user ids didn't match")
+	require.Equal(t, th.BasicTeam.Id, localCreatedCmd.TeamId, "local client: team ids didn't match")
+
 	newCmd.Method = "Wrong"
 	newCmd.Trigger = "testcommand"
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
@@ -58,12 +67,16 @@ func TestCreateCommand(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
+
+	// Confirm that local clients can't override disable command setting
+	newCmd.Trigger = "LocalOverride"
+	_, resp = LocalClient.CreateCommand(newCmd)
+	CheckErrorMessage(t, resp, "api.command.disabled.app_error")
 }
 
 func TestUpdateCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
@@ -93,51 +106,109 @@ func TestUpdateCommand(t *testing.T) {
 		Token:     "tokenchange",
 	}
 
-	rcmd, resp := Client.UpdateCommand(cmd2)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		rcmd, resp := client.UpdateCommand(cmd2)
+		CheckNoError(t, resp)
 
-	require.Equal(t, cmd2.Trigger, rcmd.Trigger, "Trigger should have updated")
+		require.Equal(t, cmd2.Trigger, rcmd.Trigger, "Trigger should have updated")
 
-	require.Equal(t, cmd2.Method, rcmd.Method, "Method should have updated")
+		require.Equal(t, cmd2.Method, rcmd.Method, "Method should have updated")
 
-	require.Equal(t, cmd2.URL, rcmd.URL, "URL should have updated")
+		require.Equal(t, cmd2.URL, rcmd.URL, "URL should have updated")
 
-	require.Equal(t, cmd1.CreatorId, rcmd.CreatorId, "CreatorId should have not updated")
+		require.Equal(t, cmd1.CreatorId, rcmd.CreatorId, "CreatorId should have not updated")
 
-	require.Equal(t, cmd1.Token, rcmd.Token, "Token should have not updated")
+		require.Equal(t, cmd1.Token, rcmd.Token, "Token should have not updated")
 
-	cmd2.Id = GenerateTestId()
+		cmd2.Id = GenerateTestId()
 
-	rcmd, resp = Client.UpdateCommand(cmd2)
+		rcmd, resp = client.UpdateCommand(cmd2)
+		CheckNotFoundStatus(t, resp)
+
+		require.Nil(t, rcmd, "should be empty")
+
+		cmd2.Id = "junk"
+
+		_, resp = client.UpdateCommand(cmd2)
+		CheckBadRequestStatus(t, resp)
+
+		cmd2.Id = cmd1.Id
+		cmd2.TeamId = GenerateTestId()
+
+		_, resp = client.UpdateCommand(cmd2)
+		CheckBadRequestStatus(t, resp)
+
+		cmd2.TeamId = team.Id
+
+		_, resp = th.Client.UpdateCommand(cmd2)
+		CheckNotFoundStatus(t, resp)
+	})
+	th.SystemAdminClient.Logout()
+	_, resp := th.SystemAdminClient.UpdateCommand(cmd2)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestMoveCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	user := th.SystemAdminUser
+	team := th.BasicTeam
+	newTeam := th.CreateTeam()
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+
+	cmd1 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger1",
+	}
+
+	rcmd1, _ := th.App.CreateCommand(cmd1)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+
+		ok, resp := client.MoveCommand(newTeam.Id, rcmd1.Id)
+		CheckNoError(t, resp)
+		require.True(t, ok)
+
+		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
+		require.NotNil(t, rcmd1)
+		require.Equal(t, newTeam.Id, rcmd1.TeamId)
+
+		ok, resp = client.MoveCommand(newTeam.Id, "bogus")
+		CheckBadRequestStatus(t, resp)
+		require.False(t, ok)
+
+		ok, resp = client.MoveCommand(GenerateTestId(), rcmd1.Id)
+		CheckNotFoundStatus(t, resp)
+		require.False(t, ok)
+	})
+	cmd2 := &model.Command{
+		CreatorId: user.Id,
+		TeamId:    team.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger2",
+	}
+
+	rcmd2, _ := th.App.CreateCommand(cmd2)
+
+	_, resp := th.Client.MoveCommand(newTeam.Id, rcmd2.Id)
 	CheckNotFoundStatus(t, resp)
 
-	require.Nil(t, rcmd, "should be empty")
-
-	cmd2.Id = "junk"
-
-	_, resp = Client.UpdateCommand(cmd2)
-	CheckBadRequestStatus(t, resp)
-
-	cmd2.Id = cmd1.Id
-	cmd2.TeamId = GenerateTestId()
-
-	_, resp = Client.UpdateCommand(cmd2)
-	CheckBadRequestStatus(t, resp)
-
-	cmd2.TeamId = team.Id
-
-	_, resp = th.Client.UpdateCommand(cmd2)
-	CheckForbiddenStatus(t, resp)
-
-	Client.Logout()
-	_, resp = Client.UpdateCommand(cmd2)
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.MoveCommand(newTeam.Id, rcmd2.Id)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestDeleteCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
@@ -155,24 +226,26 @@ func TestDeleteCommand(t *testing.T) {
 		Trigger:   "trigger1",
 	}
 
-	rcmd1, _ := th.App.CreateCommand(cmd1)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		cmd1.Id = ""
+		rcmd1, err := th.App.CreateCommand(cmd1)
+		require.Nil(t, err)
+		ok, resp := client.DeleteCommand(rcmd1.Id)
+		CheckNoError(t, resp)
 
-	ok, resp := Client.DeleteCommand(rcmd1.Id)
-	CheckNoError(t, resp)
+		require.True(t, ok)
 
-	require.True(t, ok)
+		rcmd1, _ = th.App.GetCommand(rcmd1.Id)
+		require.Nil(t, rcmd1)
 
-	rcmd1, _ = th.App.GetCommand(rcmd1.Id)
-	require.Nil(t, rcmd1)
+		ok, resp = client.DeleteCommand("junk")
+		CheckBadRequestStatus(t, resp)
 
-	ok, resp = Client.DeleteCommand("junk")
-	CheckBadRequestStatus(t, resp)
+		require.False(t, ok)
 
-	require.False(t, ok)
-
-	_, resp = Client.DeleteCommand(GenerateTestId())
-	CheckNotFoundStatus(t, resp)
-
+		_, resp = client.DeleteCommand(GenerateTestId())
+		CheckNotFoundStatus(t, resp)
+	})
 	cmd2 := &model.Command{
 		CreatorId: user.Id,
 		TeamId:    team.Id,
@@ -183,16 +256,16 @@ func TestDeleteCommand(t *testing.T) {
 
 	rcmd2, _ := th.App.CreateCommand(cmd2)
 
-	_, resp = th.Client.DeleteCommand(rcmd2.Id)
-	CheckForbiddenStatus(t, resp)
+	_, resp := th.Client.DeleteCommand(rcmd2.Id)
+	CheckNotFoundStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.DeleteCommand(rcmd2.Id)
+	th.SystemAdminClient.Logout()
+	_, resp = th.SystemAdminClient.DeleteCommand(rcmd2.Id)
 	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestListCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -212,8 +285,8 @@ func TestListCommands(t *testing.T) {
 	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
 	CheckNoError(t, resp)
 
-	t.Run("ListSystemAndCustomCommands", func(t *testing.T) {
-		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, false)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		listCommands, resp := c.ListCommands(th.BasicTeam.Id, false)
 		CheckNoError(t, resp)
 
 		foundEcho := false
@@ -228,15 +301,15 @@ func TestListCommands(t *testing.T) {
 		}
 		require.True(t, foundEcho, "Couldn't find echo command")
 		require.True(t, foundCustom, "Should list the custom command")
-	})
+	}, "ListSystemAndCustomCommands")
 
-	t.Run("ListCustomOnlyCommands", func(t *testing.T) {
-		listCommands, resp := th.SystemAdminClient.ListCommands(th.BasicTeam.Id, true)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		listCommands, resp := c.ListCommands(th.BasicTeam.Id, true)
 		CheckNoError(t, resp)
 
 		require.Len(t, listCommands, 1, "Should list just one custom command")
 		require.Equal(t, listCommands[0].Trigger, "custom_command", "Wrong custom command trigger")
-	})
+	}, "ListCustomOnlyCommands")
 
 	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
 		_, resp := Client.ListCommands(th.BasicTeam.Id, true)
@@ -282,7 +355,7 @@ func TestListCommands(t *testing.T) {
 }
 
 func TestListAutocompleteCommands(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -348,8 +421,157 @@ func TestListAutocompleteCommands(t *testing.T) {
 	})
 }
 
+func TestListCommandAutocompleteSuggestions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "custom_command"}
+
+	_, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+
+	t.Run("ListAutocompleteSuggestionsOnly", func(t *testing.T) {
+		suggestions, resp := th.SystemAdminClient.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundShrug := false
+		foundCustom := false
+		for _, command := range suggestions {
+			if command.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if command.Suggestion == "shrug" {
+				foundShrug = true
+			}
+			if command.Suggestion == "custom_command" {
+				foundCustom = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.True(t, foundShrug, "Couldn't find shrug command")
+		require.False(t, foundCustom, "Should not list the custom command")
+	})
+
+	t.Run("ListAutocompleteSuggestionsOnlyWithInput", func(t *testing.T) {
+		suggestions, resp := th.SystemAdminClient.ListCommandAutocompleteSuggestions("/e", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundShrug := false
+		for _, command := range suggestions {
+			if command.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if command.Suggestion == "shrug" {
+				foundShrug = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundShrug, "Should not list the shrug command")
+	})
+
+	t.Run("RegularUserCanListOnlySystemCommands", func(t *testing.T) {
+		suggestions, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckNoError(t, resp)
+
+		foundEcho := false
+		foundCustom := false
+		for _, suggestion := range suggestions {
+			if suggestion.Suggestion == "echo" {
+				foundEcho = true
+			}
+			if suggestion.Suggestion == "custom_command" {
+				foundCustom = true
+			}
+		}
+		require.True(t, foundEcho, "Couldn't find echo command")
+		require.False(t, foundCustom, "Should not list the custom command")
+	})
+
+	t.Run("NoMember", func(t *testing.T) {
+		Client.Logout()
+		user := th.CreateUser()
+		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
+		Client.Login(user.Email, user.Password)
+		_, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		Client.Logout()
+		_, resp := Client.ListCommandAutocompleteSuggestions("/", th.BasicTeam.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestGetCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+
+	newCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "roger"}
+
+	newCmd, resp := th.SystemAdminClient.CreateCommand(newCmd)
+	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+
+		t.Run("ValidId", func(t *testing.T) {
+			cmd, resp := client.GetCommandById(newCmd.Id)
+			CheckNoError(t, resp)
+
+			require.Equal(t, newCmd.Id, cmd.Id)
+			require.Equal(t, newCmd.CreatorId, cmd.CreatorId)
+			require.Equal(t, newCmd.TeamId, cmd.TeamId)
+			require.Equal(t, newCmd.URL, cmd.URL)
+			require.Equal(t, newCmd.Method, cmd.Method)
+			require.Equal(t, newCmd.Trigger, cmd.Trigger)
+		})
+
+		t.Run("InvalidId", func(t *testing.T) {
+			_, resp := client.GetCommandById(strings.Repeat("z", len(newCmd.Id)))
+			require.Error(t, resp.Error)
+		})
+	})
+	t.Run("UserWithNoPermissionForCustomCommands", func(t *testing.T) {
+		_, resp := th.Client.GetCommandById(newCmd.Id)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("NoMember", func(t *testing.T) {
+		th.Client.Logout()
+		user := th.CreateUser()
+		th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, user.Id)
+		th.Client.Login(user.Email, user.Password)
+		_, resp := th.Client.GetCommandById(newCmd.Id)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("NotLoggedIn", func(t *testing.T) {
+		th.Client.Logout()
+		_, resp := th.Client.GetCommandById(newCmd.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
 func TestRegenToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -375,12 +597,12 @@ func TestRegenToken(t *testing.T) {
 	require.NotEqual(t, createdCmd.Token, token, "should update the token")
 
 	token, resp = Client.RegenCommandToken(createdCmd.Id)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 	require.Empty(t, token, "should not return the token")
 }
 
 func TestExecuteInvalidCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -442,7 +664,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 }
 
 func TestExecuteGetCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -498,12 +720,11 @@ func TestExecuteGetCommand(t *testing.T) {
 	assert.True(t, len(commandResponse.TriggerId) == 26)
 
 	expectedCommandResponse.TriggerId = commandResponse.TriggerId
-	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 }
 
 func TestExecutePostCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -557,13 +778,11 @@ func TestExecutePostCommand(t *testing.T) {
 	assert.True(t, len(commandResponse.TriggerId) == 26)
 
 	expectedCommandResponse.TriggerId = commandResponse.TriggerId
-	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
-
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -613,7 +832,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 }
 
 func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
 
@@ -666,7 +885,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 }
 
 func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
 
@@ -725,7 +944,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 }
 
 func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
 

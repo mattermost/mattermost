@@ -32,8 +32,40 @@ type QueryRowerContext interface {
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner
 }
 
-func (r *stdsqlRunner) QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner {
-	return r.stdsql.QueryRowContext(ctx, query, args...)
+// RunnerContext groups the Runner interface, along with the Contect versions of each of
+// its methods
+type RunnerContext interface {
+	Runner
+	QueryerContext
+	QueryRowerContext
+	ExecerContext
+}
+
+// WrapStdSqlCtx wraps a type implementing the standard SQL interface plus the context
+// versions of the methods with methods that squirrel expects.
+func WrapStdSqlCtx(stdSqlCtx StdSqlCtx) RunnerContext {
+	return &stdsqlCtxRunner{stdSqlCtx}
+}
+
+// StdSqlCtx encompasses the standard methods of the *sql.DB type, along with the Context
+// versions of those methods, and other types that wrap these methods.
+type StdSqlCtx interface {
+	StdSql
+	QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+}
+
+type stdsqlCtxRunner struct {
+	StdSqlCtx
+}
+
+func (r *stdsqlCtxRunner) QueryRow(query string, args ...interface{}) RowScanner {
+	return r.StdSqlCtx.QueryRow(query, args...)
+}
+
+func (r *stdsqlCtxRunner) QueryRowContext(ctx context.Context, query string, args ...interface{}) RowScanner {
+	return r.StdSqlCtx.QueryRowContext(ctx, query, args...)
 }
 
 // ExecContextWith ExecContexts the SQL returned by s with db.

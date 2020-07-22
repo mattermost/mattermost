@@ -1,5 +1,5 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/spf13/cobra"
 )
 
@@ -25,16 +25,34 @@ func init() {
 }
 
 func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData, verbose bool) {
-	fmt.Println(fmt.Sprintf("Found %d records in relation %s orphans of relation %s",
-		len(data.Records), data.ChildName, data.ParentName))
+	fmt.Printf("Found %d records in relation %s orphans of relation %s\n",
+		len(data.Records), data.ChildName, data.ParentName)
 	if !verbose {
 		return
 	}
 	for _, record := range data.Records {
-		if record.ChildId != "" {
-			fmt.Println(fmt.Sprintf("  Child %s (%s.%s) is missing Parent %s (%s.%s)", record.ChildId, data.ChildName, data.ChildIdAttr, record.ParentId, data.ChildName, data.ParentIdAttr))
+		var parentId string
+
+		if record.ParentId == nil {
+			parentId = "NULL"
+		} else if *record.ParentId == "" {
+			parentId = "empty"
 		} else {
-			fmt.Println(fmt.Sprintf("  Child is missing Parent %s (%s.%s)", record.ParentId, data.ChildName, data.ParentIdAttr))
+			parentId = *record.ParentId
+		}
+
+		if record.ChildId != nil {
+			if parentId == "NULL" || parentId == "empty" {
+				fmt.Printf("  Child %s (%s.%s) has %s ParentIdAttr (%s.%s)\n", *record.ChildId, data.ChildName, data.ChildIdAttr, parentId, data.ChildName, data.ParentIdAttr)
+			} else {
+				fmt.Printf("  Child %s (%s.%s) is missing Parent %s (%s.%s)\n", *record.ChildId, data.ChildName, data.ChildIdAttr, parentId, data.ChildName, data.ParentIdAttr)
+			}
+		} else {
+			if parentId == "NULL" || parentId == "empty" {
+				fmt.Printf("  Child has %s ParentIdAttr (%s.%s)\n", parentId, data.ChildName, data.ParentIdAttr)
+			} else {
+				fmt.Printf("  Child is missing Parent %s (%s.%s)\n", parentId, data.ChildName, data.ParentIdAttr)
+			}
 		}
 	}
 }
@@ -51,7 +69,7 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -65,7 +83,7 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 	}
 
 	verboseFlag, _ := command.Flags().GetBool("verbose")
-	results := a.Srv.Store.CheckIntegrity()
+	results := a.Srv().Store.CheckIntegrity()
 	for result := range results {
 		if result.Err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", result.Err.Error())

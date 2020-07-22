@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
@@ -5,7 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -116,14 +120,20 @@ func TestCORSRequestHandling(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			th := SetupConfig(func(cfg *model.Config) {
+			th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
 				*cfg.ServiceSettings.AllowCorsFrom = testcase.AllowCorsFrom
 				*cfg.ServiceSettings.CorsExposedHeaders = testcase.CorsExposedHeaders
 				*cfg.ServiceSettings.CorsAllowCredentials = testcase.CorsAllowCredentials
 			})
 			defer th.TearDown()
+			systemStore := mocks.SystemStore{}
+			systemStore.On("Get").Return(make(model.StringMap), nil)
+			licenseStore := mocks.LicenseStore{}
+			licenseStore.On("Get", "").Return(&model.LicenseRecord{}, nil)
+			th.App.Srv().Store.(*mocks.Store).On("System").Return(&systemStore)
+			th.App.Srv().Store.(*mocks.Store).On("License").Return(&licenseStore)
 
-			port := th.App.Srv.ListenAddr.Port
+			port := th.App.Srv().ListenAddr.Port
 			host := fmt.Sprintf("http://localhost:%v", port)
 			url := fmt.Sprintf("%v/api/v4/system/ping", host)
 

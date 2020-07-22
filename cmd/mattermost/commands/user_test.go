@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUserWithTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -37,7 +37,7 @@ func TestCreateUserWithTeam(t *testing.T) {
 }
 
 func TestCreateUserWithoutTeam(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -46,14 +46,14 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 
 	th.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
-	user, err := th.App.Srv.Store.User().GetByEmail(email)
+	user, err := th.App.Srv().Store.User().GetByEmail(email)
 	require.Nil(t, err)
 
 	require.Equal(t, email, user.Email)
 }
 
 func TestResetPassword(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "password", th.BasicUser.Email, "password2")
@@ -64,7 +64,7 @@ func TestResetPassword(t *testing.T) {
 }
 
 func TestMakeUserActiveAndInactive(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// first inactivate the user
@@ -75,16 +75,16 @@ func TestMakeUserActiveAndInactive(t *testing.T) {
 }
 
 func TestChangeUserEmail(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	newEmail := model.NewId() + "@mattermost-test.com"
 
 	th.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
-	_, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email)
+	_, err := th.App.Srv().Store.User().GetByEmail(th.BasicUser.Email)
 	require.NotNil(t, err, "should've updated to the new email")
 
-	user, err := th.App.Srv.Store.User().GetByEmail(newEmail)
+	user, err := th.App.Srv().Store.User().GetByEmail(newEmail)
 	require.Nil(t, err)
 
 	require.Equal(t, user.Email, newEmail, "should've updated to the new email")
@@ -109,8 +109,35 @@ func TestChangeUserEmail(t *testing.T) {
 
 }
 
+func TestDeleteUserBotUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "user", "delete", th.BasicUser.Username, "--confirm")
+	_, err := th.App.Srv().Store.User().Get(th.BasicUser.Id)
+	require.Error(t, err)
+
+	// Make a bot
+	bot := &model.Bot{
+		Username:    "bottodelete",
+		Description: "Delete me!",
+		OwnerId:     model.NewId(),
+	}
+	user, err := th.App.Srv().Store.User().Save(model.UserFromBot(bot))
+	require.Nil(t, err)
+	bot.UserId = user.Id
+	bot, nErr := th.App.Srv().Store.Bot().Save(bot)
+	require.Nil(t, nErr)
+
+	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
+	_, err = th.App.Srv().Store.User().Get(user.Id)
+	require.Error(t, err)
+	_, nErr = th.App.Srv().Store.Bot().Get(user.Id, true)
+	require.Error(t, nErr)
+}
+
 func TestConvertUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("Invalid command line input", func(t *testing.T) {
@@ -126,7 +153,7 @@ func TestConvertUser(t *testing.T) {
 
 	t.Run("Convert to bot from username", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
-		_, err := th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
 		require.Nil(t, err)
 	})
 
@@ -146,13 +173,13 @@ func TestConvertUser(t *testing.T) {
 		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
 			"--password", "password")
 		require.Nil(t, err)
-		_, err = th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser.Id, false)
 		require.NotNil(t, err)
 	})
 
 	t.Run("Convert to bot from email", func(t *testing.T) {
 		th.CheckCommand(t, "user", "convert", th.BasicUser2.Email, "--bot")
-		_, err := th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		_, err := th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
 		require.Nil(t, err)
 	})
 
@@ -168,10 +195,10 @@ func TestConvertUser(t *testing.T) {
 			"--system_admin")
 		require.Nil(t, err)
 
-		_, err = th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		_, err = th.App.Srv().Store.Bot().Get(th.BasicUser2.Id, false)
 		require.NotNil(t, err)
 
-		user, appErr := th.App.Srv.Store.User().Get(th.BasicUser2.Id)
+		user, appErr := th.App.Srv().Store.User().Get(th.BasicUser2.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "newusername", user.Username)
 		require.Equal(t, "valid@email.com", user.Email)

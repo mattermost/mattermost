@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
@@ -6,7 +9,7 @@ import (
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGroupMsgUsernames(t *testing.T) {
@@ -61,20 +64,21 @@ func TestGroupMsgProvider(t *testing.T) {
 	th.LinkUserToTeam(th.BasicUser, team)
 	cmd := &groupmsgProvider{}
 
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_GROUP_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
+
 	t.Run("Check without permission to create a GM channel.", func(t *testing.T) {
 		resp := cmd.DoCommand(th.App, &model.CommandArgs{
 			T:       i18n.IdentityTfunc(),
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
 			UserId:  th.BasicUser.Id,
-			Session: model.Session{
-				Roles: "",
-			},
 		}, targetUsers+"hello")
 
 		assert.Equal(t, "api.command_groupmsg.permission.app_error", resp.Text)
 		assert.Equal(t, "", resp.GotoLocation)
 	})
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_GROUP_CHANNEL.Id, model.SYSTEM_USER_ROLE_ID)
 
 	t.Run("Check without permissions to view a user in the list.", func(t *testing.T) {
 		th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
@@ -84,9 +88,6 @@ func TestGroupMsgProvider(t *testing.T) {
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
 			UserId:  th.BasicUser.Id,
-			Session: model.Session{
-				Roles: model.SYSTEM_USER_ROLE_ID,
-			},
 		}, targetUsers+"hello")
 
 		assert.Equal(t, "api.command_groupmsg.invalid_user.app_error", resp.Text)
@@ -99,9 +100,6 @@ func TestGroupMsgProvider(t *testing.T) {
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
 			UserId:  th.BasicUser.Id,
-			Session: model.Session{
-				Roles: model.SYSTEM_USER_ROLE_ID,
-			},
 		}, targetUsers+"hello")
 
 		channelName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
@@ -115,9 +113,6 @@ func TestGroupMsgProvider(t *testing.T) {
 			SiteURL: "http://test.url",
 			TeamId:  team.Id,
 			UserId:  th.BasicUser.Id,
-			Session: model.Session{
-				Roles: "",
-			},
 		}, targetUsers+"hello")
 
 		channelName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})

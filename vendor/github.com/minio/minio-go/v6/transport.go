@@ -22,12 +22,21 @@ package minio
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"time"
-
-	"golang.org/x/net/http2"
 )
+
+// mustGetSystemCertPool - return system CAs or empty pool in case of error (or windows)
+func mustGetSystemCertPool() *x509.CertPool {
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return x509.NewCertPool()
+	}
+	return pool
+}
 
 // DefaultTransport - this default transport is similar to
 // http.DefaultTransport but with additional param  DisableCompression
@@ -39,11 +48,12 @@ var DefaultTransport = func(secure bool) (http.RoundTripper, error) {
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
 		}).DialContext,
-		MaxIdleConns:          1024,
-		MaxIdleConnsPerHost:   1024,
-		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          256,
+		MaxIdleConnsPerHost:   16,
+		ResponseHeaderTimeout: time.Minute,
+		IdleConnTimeout:       time.Minute,
 		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		ExpectContinueTimeout: 10 * time.Second,
 		// Set this value so that the underlying transport round-tripper
 		// doesn't try to auto decode the body of objects with
 		// content-encoding set to `gzip`.
@@ -54,28 +64,19 @@ var DefaultTransport = func(secure bool) (http.RoundTripper, error) {
 	}
 
 	if secure {
-		rootCAs, _ := x509.SystemCertPool()
-		if rootCAs == nil {
-			// In some systems (like Windows) system cert pool is
-			// not supported or no certificates are present on the
-			// system - so we create a new cert pool.
-			rootCAs = x509.NewCertPool()
-		}
-
-		// Keep TLS config.
-		tlsConfig := &tls.Config{
-			RootCAs: rootCAs,
+		tr.TLSClientConfig = &tls.Config{
 			// Can't use SSLv3 because of POODLE and BEAST
 			// Can't use TLSv1.0 because of POODLE and BEAST using CBC cipher
 			// Can't use TLSv1.1 because of RC4 cipher usage
 			MinVersion: tls.VersionTLS12,
 		}
-		tr.TLSClientConfig = tlsConfig
-
-		// Because we create a custom TLSClientConfig, we have to opt-in to HTTP/2.
-		// See https://github.com/golang/go/issues/14275
-		if err := http2.ConfigureTransport(tr); err != nil {
-			return nil, err
+		if f := os.Getenv("SSL_CERT_FILE"); f != "" {
+			rootCAs := mustGetSystemCertPool()
+			data, err := ioutil.ReadFile(f)
+			if err == nil {
+				rootCAs.AppendCertsFromPEM(data)
+			}
+			tr.TLSClientConfig.RootCAs = rootCAs
 		}
 	}
 	return tr, nil

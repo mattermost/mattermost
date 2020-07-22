@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -26,12 +26,13 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 const (
@@ -54,7 +55,7 @@ const (
 	RotatedCCWMirrored = 7
 	RotatedCW          = 8
 
-	MaxImageSize         = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize         = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 	ImageThumbnailWidth  = 120
 	ImageThumbnailHeight = 100
 	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
@@ -69,8 +70,7 @@ const (
 )
 
 func (a *App) FileBackend() (filesstore.FileBackend, *model.AppError) {
-	license := a.License()
-	return filesstore.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
+	return a.Srv().FileBackend()
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
@@ -145,10 +145,11 @@ func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, ol
 	data, err := a.ReadFile(path)
 	if err != nil {
 		mlog.Error(
-			fmt.Sprintf("File not found when migrating post to use FileInfos, err=%v", err),
+			"File not found when migrating post to use FileInfos",
 			mlog.String("post_id", post.Id),
 			mlog.String("filename", filename),
 			mlog.String("path", path),
+			mlog.Err(err),
 		)
 		return nil
 	}
@@ -184,7 +185,7 @@ func (a *App) findTeamIdForFilename(post *model.Post, id, filename string) strin
 	name, _ := url.QueryUnescape(filename)
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	teams, err := a.Srv.Store.Team().GetTeamsByUserId(post.UserId)
+	teams, err := a.Srv().Store.Team().GetTeamsByUserId(post.UserId)
 	if err != nil {
 		mlog.Error("Unable to get teams when migrating post to use FileInfo", mlog.Err(err), mlog.String("post_id", post.Id))
 		return ""
@@ -236,7 +237,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	channel, errCh := a.Srv().Store.Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
 	if errCh != nil {
@@ -289,7 +290,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Srv.Store.Post().Get(post.Id, false)
+	result, err := a.Srv().Store.Post().Get(post.Id, false)
 	if err != nil {
 		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
@@ -298,7 +299,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, false)
+		fileInfos, err = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
 		if err != nil {
 			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
@@ -313,7 +314,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, err = a.Srv.Store.FileInfo().Save(info); err != nil {
+		if _, err = a.Srv().Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
@@ -329,14 +330,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	}
 
 	// Copy and save the updated post
-	newPost := &model.Post{}
-	*newPost = *post
+	newPost := post.Clone()
 
 	newPost.Filenames = []string{}
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, err = a.Srv.Store.Post().Update(newPost, post); err != nil {
+	if _, err = a.Srv().Store.Post().Update(newPost, post); err != nil {
 		mlog.Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
@@ -434,8 +434,13 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
+	_, err := a.GetChannel(channelId)
+	if err != nil && channelId != "" {
+		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
+			map[string]interface{}{"channelId": channelId}, "", http.StatusBadRequest)
+	}
 
+	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}
@@ -456,43 +461,43 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	return info, err
 }
 
-func UploadFileSetTeamId(teamId string) func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetTeamId(teamId string) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.TeamId = filepath.Base(teamId)
 	}
 }
 
-func UploadFileSetUserId(userId string) func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetUserId(userId string) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.UserId = filepath.Base(userId)
 	}
 }
 
-func UploadFileSetTimestamp(timestamp time.Time) func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetTimestamp(timestamp time.Time) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.Timestamp = timestamp
 	}
 }
 
-func UploadFileSetContentLength(contentLength int64) func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetContentLength(contentLength int64) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.ContentLength = contentLength
 	}
 }
 
-func UploadFileSetClientId(clientId string) func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetClientId(clientId string) func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.ClientId = clientId
 	}
 }
 
-func UploadFileSetRaw() func(t *uploadFileTask) {
-	return func(t *uploadFileTask) {
+func UploadFileSetRaw() func(t *UploadFileTask) {
+	return func(t *UploadFileTask) {
 		t.Raw = true
 	}
 }
 
-type uploadFileTask struct {
+type UploadFileTask struct {
 	// File name.
 	Name string
 
@@ -538,7 +543,7 @@ type uploadFileTask struct {
 	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, *model.AppError)
 }
 
-func (t *uploadFileTask) init(a *App) {
+func (t *UploadFileTask) init(a *App) {
 	t.buf = &bytes.Buffer{}
 	t.maxFileSize = *a.Config().FileSettings.MaxFileSize
 	t.limit = *a.Config().FileSettings.MaxFileSize
@@ -570,7 +575,7 @@ func (t *uploadFileTask) init(a *App) {
 
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
-	t.saveToDatabase = a.Srv.Store.FileInfo().Save
+	t.saveToDatabase = a.Srv().Store.FileInfo().Save
 }
 
 // UploadFileX uploads a single file as specified in t. It applies the upload
@@ -579,9 +584,9 @@ func (t *uploadFileTask) init(a *App) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(channelId, name string, input io.Reader,
-	opts ...func(*uploadFileTask)) (*model.FileInfo, *model.AppError) {
+	opts ...func(*UploadFileTask)) (*model.FileInfo, *model.AppError) {
 
-	t := &uploadFileTask{
+	t := &UploadFileTask{
 		ChannelId: filepath.Base(channelId),
 		Name:      filepath.Base(name),
 		Input:     input,
@@ -643,9 +648,14 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	return t.fileinfo, nil
 }
 
-func (t *uploadFileTask) readAll() *model.AppError {
+func (t *UploadFileTask) readAll() *model.AppError {
 	_, err := t.buf.ReadFrom(t.limitedInput)
 	if err != nil {
+		// Ugly hack: the error is not exported from net/http.
+		if err.Error() == "http: request body too large" {
+			return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+				"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
+		}
 		return t.newAppError("api.file.upload_file.read_request.app_error",
 			err.Error(), http.StatusBadRequest)
 	}
@@ -660,7 +670,7 @@ func (t *uploadFileTask) readAll() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) runPlugins() *model.AppError {
+func (t *UploadFileTask) runPlugins() *model.AppError {
 	if t.pluginsEnvironment == nil {
 		return nil
 	}
@@ -697,7 +707,7 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) preprocessImage() *model.AppError {
+func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.newReader())
@@ -722,7 +732,10 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.Height = config.Height
 
 	// Check dimensions before loading the whole thing into memory later on.
-	if t.fileinfo.Width*t.fileinfo.Height > MaxImageSize {
+	// This casting is done to prevent overflow on 32 bit systems (not needed
+	// in 64 bits systems because images can't have more than 32 bits height or
+	// width)
+	if int64(t.fileinfo.Width)*int64(t.fileinfo.Height) > MaxImageSize {
 		return t.newAppError("api.file.upload_file.large_image_detailed.app_error",
 			"", http.StatusBadRequest)
 	}
@@ -761,7 +774,7 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) postprocessImage() {
+func (t *UploadFileTask) postprocessImage() {
 	// don't try to process SVG files
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		return
@@ -791,29 +804,29 @@ func (t *uploadFileTask) postprocessImage() {
 		return
 	}
 
+	const jpegQuality = 90
 	writeJPEG := func(img image.Image, path string) {
 		r, w := io.Pipe()
 		go func() {
-			_, aerr := t.writeFile(r, path)
-			if aerr != nil {
-				mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
-				return
+			err := jpeg.Encode(w, img, &jpeg.Options{Quality: jpegQuality})
+			if err != nil {
+				mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
+				w.CloseWithError(err)
+			} else {
+				w.Close()
 			}
 		}()
-
-		err := jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
-		if err != nil {
-			mlog.Error("Unable to encode image as jpeg", mlog.String("path", path), mlog.Err(err))
-			w.CloseWithError(err)
-		} else {
-			w.Close()
+		_, aerr := t.writeFile(r, path)
+		if aerr != nil {
+			mlog.Error("Unable to upload", mlog.String("path", path), mlog.Err(aerr))
+			return
 		}
 	}
 
 	w := decoded.Bounds().Dx()
 	h := decoded.Bounds().Dy()
 
-	wg := &sync.WaitGroup{}
+	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
@@ -839,7 +852,7 @@ func (t *uploadFileTask) postprocessImage() {
 	wg.Wait()
 }
 
-func (t uploadFileTask) newReader() io.Reader {
+func (t UploadFileTask) newReader() io.Reader {
 	if t.teeInput != nil {
 		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
 	} else {
@@ -847,7 +860,7 @@ func (t uploadFileTask) newReader() io.Reader {
 	}
 }
 
-func (t uploadFileTask) pathPrefix() string {
+func (t UploadFileTask) pathPrefix() string {
 	return t.Timestamp.Format("20060102") +
 		"/teams/" + t.TeamId +
 		"/channels/" + t.ChannelId +
@@ -855,7 +868,7 @@ func (t uploadFileTask) pathPrefix() string {
 		"/" + t.fileinfo.Id + "/"
 }
 
-func (t uploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
+func (t UploadFileTask) newAppError(id string, details interface{}, httpStatus int, extra ...interface{}) *model.AppError {
 	params := map[string]interface{}{
 		"Name":          t.Name,
 		"Filename":      t.Name,
@@ -905,7 +918,10 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 
 	if info.IsImage() {
 		// Check dimensions before loading the whole thing into memory later on
-		if info.Width*info.Height > MaxImageSize {
+		// This casting is done to prevent overflow on 32 bit systems (not needed
+		// in 64 bits systems because images can't have more than 32 bits height or
+		// width)
+		if int64(info.Width)*int64(info.Height) > MaxImageSize {
 			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, data, err
 		}
@@ -944,7 +960,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		return nil, data, err
 	}
 
-	if _, err := a.Srv.Store.FileInfo().Save(info); err != nil {
+	if _, err := a.Srv().Store.FileInfo().Save(info); err != nil {
 		return nil, data, err
 	}
 
@@ -1088,7 +1104,11 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().Get(fileId)
+	return a.Srv().Store.FileInfo().Get(fileId)
+}
+
+func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+	return a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -1111,7 +1131,7 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	now := model.GetMillis()
 
 	for _, fileId := range fileIds {
-		fileInfo, err := a.Srv.Store.FileInfo().Get(fileId)
+		fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
 		if err != nil {
 			return nil, err
 		}
@@ -1122,7 +1142,7 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if _, err := a.Srv.Store.FileInfo().Save(fileInfo); err != nil {
+		if _, err := a.Srv().Store.FileInfo().Save(fileInfo); err != nil {
 			return newFileIds, err
 		}
 

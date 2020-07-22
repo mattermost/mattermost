@@ -7,7 +7,9 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/olivere/elastic/uritemplates"
 )
@@ -18,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-analyze.html
 // for detail.
 type IndicesAnalyzeService struct {
-	client      *Client
-	pretty      bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	index       string
 	request     *IndicesAnalyzeRequest
 	format      string
@@ -34,6 +42,46 @@ func NewIndicesAnalyzeService(client *Client) *IndicesAnalyzeService {
 		client:  client,
 		request: new(IndicesAnalyzeRequest),
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *IndicesAnalyzeService) Pretty(pretty bool) *IndicesAnalyzeService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *IndicesAnalyzeService) Human(human bool) *IndicesAnalyzeService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *IndicesAnalyzeService) ErrorTrace(errorTrace bool) *IndicesAnalyzeService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *IndicesAnalyzeService) FilterPath(filterPath ...string) *IndicesAnalyzeService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *IndicesAnalyzeService) Header(name string, value string) *IndicesAnalyzeService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *IndicesAnalyzeService) Headers(headers http.Header) *IndicesAnalyzeService {
+	s.headers = headers
+	return s
 }
 
 // Index is the name of the index to scope the operation.
@@ -114,12 +162,6 @@ func (s *IndicesAnalyzeService) Tokenizer(tokenizer string) *IndicesAnalyzeServi
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *IndicesAnalyzeService) Pretty(pretty bool) *IndicesAnalyzeService {
-	s.pretty = pretty
-	return s
-}
-
 // BodyJson is the text on which the analysis should be performed.
 func (s *IndicesAnalyzeService) BodyJson(body interface{}) *IndicesAnalyzeService {
 	s.bodyJson = body
@@ -151,8 +193,17 @@ func (s *IndicesAnalyzeService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.format != "" {
 		params.Set("format", s.format)
@@ -190,10 +241,11 @@ func (s *IndicesAnalyzeService) Do(ctx context.Context) (*IndicesAnalyzeResponse
 	}
 
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -233,53 +285,36 @@ type IndicesAnalyzeRequest struct {
 }
 
 type IndicesAnalyzeResponse struct {
-	Tokens []IndicesAnalyzeResponseToken `json:"tokens"` // json part for normal message
-	Detail IndicesAnalyzeResponseDetail  `json:"detail"` // json part for verbose message of explain request
+	Tokens []AnalyzeToken               `json:"tokens"` // json part for normal message
+	Detail IndicesAnalyzeResponseDetail `json:"detail"` // json part for verbose message of explain request
 }
 
-type IndicesAnalyzeResponseToken struct {
+type AnalyzeTokenList struct {
+	Name   string         `json:"name"`
+	Tokens []AnalyzeToken `json:"tokens,omitempty"`
+}
+
+type AnalyzeToken struct {
 	Token          string `json:"token"`
+	Type           string `json:"type"` // e.g. "<ALPHANUM>"
 	StartOffset    int    `json:"start_offset"`
 	EndOffset      int    `json:"end_offset"`
-	Type           string `json:"type"`
+	Bytes          string `json:"bytes"` // e.g. "[67 75 79]"
 	Position       int    `json:"position"`
-	PositionLength int    `json:"positionLength"` // seems to be wrong in 6.8 (no snake_case), see https://github.com/elastic/elasticsearch/blob/6.8/server/src/main/java/org/elasticsearch/action/admin/indices/analyze/AnalyzeResponse.java
+	PositionLength int    `json:"positionLength"` // seems to be wrong in 7.2+ (no snake_case), see https://github.com/elastic/elasticsearch/blob/7.2/server/src/main/java/org/elasticsearch/action/admin/indices/analyze/AnalyzeResponse.java
+	TermFrequency  int    `json:"termFrequency"`
+	Keyword        bool   `json:"keyword"`
+}
+
+type CharFilteredText struct {
+	Name         string   `json:"name"`
+	FilteredText []string `json:"filtered_text"`
 }
 
 type IndicesAnalyzeResponseDetail struct {
-	CustomAnalyzer bool          `json:"custom_analyzer"`
-	Charfilters    []interface{} `json:"charfilters"`
-	Analyzer       struct {
-		Name   string `json:"name"`
-		Tokens []struct {
-			Token          string `json:"token"`
-			StartOffset    int    `json:"start_offset"`
-			EndOffset      int    `json:"end_offset"`
-			Type           string `json:"type"`
-			Position       int    `json:"position"`
-			Bytes          string `json:"bytes"`
-			PositionLength int    `json:"positionLength"`
-		} `json:"tokens"`
-	} `json:"analyzer"`
-	Tokenizer struct {
-		Name   string `json:"name"`
-		Tokens []struct {
-			Token       string `json:"token"`
-			StartOffset int    `json:"start_offset"`
-			EndOffset   int    `json:"end_offset"`
-			Type        string `json:"type"`
-			Position    int    `json:"position"`
-		} `json:"tokens"`
-	} `json:"tokenizer"`
-	Tokenfilters []struct {
-		Name   string `json:"name"`
-		Tokens []struct {
-			Token       string `json:"token"`
-			StartOffset int    `json:"start_offset"`
-			EndOffset   int    `json:"end_offset"`
-			Type        string `json:"type"`
-			Position    int    `json:"position"`
-			Keyword     bool   `json:"keyword"`
-		} `json:"tokens"`
-	} `json:"tokenfilters"`
+	CustomAnalyzer bool                `json:"custom_analyzer"`
+	Analyzer       *AnalyzeTokenList   `json:"analyzer,omitempty"`
+	Charfilters    []*CharFilteredText `json:"charfilters,omitempty"`
+	Tokenizer      *AnalyzeTokenList   `json:"tokenizer,omitempty"`
+	TokenFilters   []*AnalyzeTokenList `json:"tokenfilters,omitempty"`
 }

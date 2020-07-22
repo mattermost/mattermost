@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
@@ -8,10 +8,9 @@ import (
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlWebhookStore struct {
@@ -19,22 +18,10 @@ type SqlWebhookStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-const (
-	WEBHOOK_CACHE_SIZE = 25000
-	WEBHOOK_CACHE_SEC  = 900 // 15 minutes
-)
-
-var webhookCache = utils.NewLru(WEBHOOK_CACHE_SIZE)
-
 func (s SqlWebhookStore) ClearCaches() {
-	webhookCache.Purge()
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Webhook - Purge")
-	}
 }
 
-func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
+func newSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.WebhookStore {
 	s := &SqlWebhookStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -68,7 +55,7 @@ func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 	return s
 }
 
-func (s SqlWebhookStore) CreateIndexesIfNotExists() {
+func (s SqlWebhookStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_incoming_webhook_user_id", "IncomingWebhooks", "UserId")
 	s.CreateIndexIfNotExists("idx_incoming_webhook_team_id", "IncomingWebhooks", "TeamId")
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_team_id", "OutgoingWebhooks", "TeamId")
@@ -83,10 +70,6 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
-	webhookCache.Remove(webhookId)
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
-	}
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
@@ -118,18 +101,6 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
-	if allowFromCache {
-		if cacheItem, ok := webhookCache.Get(id); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Webhook")
-			}
-			return cacheItem.(*model.IncomingWebhook), nil
-		}
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Webhook")
-		}
-	}
-
 	var webhook model.IncomingWebhook
 	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
 		if err == sql.ErrNoRows {
@@ -137,8 +108,6 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.Inc
 		}
 		return nil, model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 	}
-
-	webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
 
 	return &webhook, nil
 }
@@ -149,7 +118,6 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) *model.App
 		return model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	s.InvalidateWebhookCache(webhookId)
 	return nil
 }
 
@@ -159,7 +127,6 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.App
 		return model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	s.ClearCaches()
 	return nil
 }
 
@@ -168,8 +135,6 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *mod
 	if err != nil {
 		return model.NewAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 	}
-
-	s.ClearCaches()
 
 	return nil
 }

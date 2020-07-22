@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package imageproxy
 
@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -163,6 +163,34 @@ func TestLocalBackend_GetImage(t *testing.T) {
 		require.Equal(t, http.StatusGatewayTimeout, resp.StatusCode)
 
 		wait <- true
+	})
+
+	t.Run("SVG attachment", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "max-age=2592000, private")
+			w.Header().Set("Content-Type", "image/svg+xml")
+			w.Header().Set("Content-Length", "10")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("1111111111"))
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, mock.URL+"/test.svg")
+		resp := recorder.Result()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, "attachment;filename=\"test.svg\"", resp.Header.Get("Content-Disposition"))
+
+		_, err = ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
 	})
 }
 

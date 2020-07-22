@@ -102,7 +102,7 @@ func moveDeadNodes(nodes []*nodeState, gossipToTheDeadTime time.Duration) int {
 	numDead := 0
 	n := len(nodes)
 	for i := 0; i < n-numDead; i++ {
-		if nodes[i].State != stateDead {
+		if nodes[i].State != StateDead {
 			continue
 		}
 

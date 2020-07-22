@@ -1,13 +1,13 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -134,8 +134,8 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	s1, err = ss.Session().Save(s1)
-	require.Nil(t, err)
+	s1, nErr := ss.Session().Save(s1)
+	require.Nil(t, nErr)
 
 	_, err = ss.UserAccessToken().Save(uat)
 	require.Nil(t, err)

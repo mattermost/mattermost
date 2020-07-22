@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -37,7 +37,7 @@ func GetSystemEmojiId(emojiName string) (string, bool) {
 }
 
 func (emoji *Emoji) IsValid() *AppError {
-	if len(emoji.Id) != 26 {
+	if !IsValidId(emoji.Id) {
 		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

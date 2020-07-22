@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
@@ -310,4 +310,52 @@ in this~.`,
 	}
 
 	assert.Equal(t, expectedOutput, SlackConvertPostsMarkup(input))
+}
+
+func TestOldImportChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	u1 := th.CreateUser()
+	u2 := th.CreateUser()
+	t.Run("No panic on direct channel", func(t *testing.T) {
+		ch := th.CreateDmChannel(u1)
+		users := map[string]*model.User{
+			th.BasicUser.Id: th.BasicUser,
+		}
+		sCh := SlackChannel{
+			Id:      "someid",
+			Members: []string{u1.Id, "randomID"},
+			Creator: "randomID2",
+		}
+
+		_ = th.App.oldImportChannel(ch, sCh, users)
+	})
+
+	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
+		ch := th.CreateDmChannel(u1)
+		users := map[string]*model.User{
+			th.BasicUser.Id: th.BasicUser,
+		}
+		sCh := SlackChannel{
+			Id:      "someid",
+			Members: []string{th.BasicUser.Id},
+			Creator: "randomID2",
+		}
+
+		_ = th.App.oldImportChannel(ch, sCh, users)
+	})
+
+	t.Run("No panic on group channel", func(t *testing.T) {
+		ch := th.CreateGroupChannel(u1, u2)
+		users := map[string]*model.User{
+			th.BasicUser.Id: th.BasicUser,
+		}
+		sCh := SlackChannel{
+			Id:      "someid",
+			Members: []string{th.BasicUser.Id},
+			Creator: "randomID2",
+		}
+		_ = th.App.oldImportChannel(ch, sCh, users)
+	})
 }

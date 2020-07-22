@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 )
@@ -18,6 +19,7 @@ const (
 	PUSH_TYPE_MESSAGE      = "message"
 	PUSH_TYPE_CLEAR        = "clear"
 	PUSH_TYPE_UPDATE_BADGE = "update_badge"
+	PUSH_TYPE_SESSION      = "session"
 	PUSH_MESSAGE_V2        = "v2"
 
 	PUSH_SOUND_NONE = "none"
@@ -73,6 +75,11 @@ func (me *PushNotification) ToJson() string {
 	return string(b)
 }
 
+func (me *PushNotification) DeepCopy() *PushNotification {
+	copy := *me
+	return &copy
+}
+
 func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 
 	index := strings.Index(deviceId, ":")
@@ -83,16 +90,26 @@ func (me *PushNotification) SetDeviceIdAndPlatform(deviceId string) {
 	}
 }
 
-func PushNotificationFromJson(data io.Reader) *PushNotification {
+func PushNotificationFromJson(data io.Reader) (*PushNotification, error) {
+	if data == nil {
+		return nil, errors.New("push notification data can't be nil")
+	}
 	var me *PushNotification
-	json.NewDecoder(data).Decode(&me)
-	return me
+	if err := json.NewDecoder(data).Decode(&me); err != nil {
+		return nil, err
+	}
+	return me, nil
 }
 
-func PushNotificationAckFromJson(data io.Reader) *PushNotificationAck {
+func PushNotificationAckFromJson(data io.Reader) (*PushNotificationAck, error) {
+	if data == nil {
+		return nil, errors.New("push notification data can't be nil")
+	}
 	var ack *PushNotificationAck
-	json.NewDecoder(data).Decode(&ack)
-	return ack
+	if err := json.NewDecoder(data).Decode(&ack); err != nil {
+		return nil, err
+	}
+	return ack, nil
 }
 
 func (ack *PushNotificationAck) ToJson() string {

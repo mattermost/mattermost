@@ -20,10 +20,10 @@ package encrypt
 import (
 	"crypto/md5"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"net/http"
 
+	jsoniter "github.com/json-iterator/go"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -101,6 +101,7 @@ func NewSSEKMS(keyID string, context interface{}) (ServerSide, error) {
 	if context == nil {
 		return kms{key: keyID, hasContext: false}, nil
 	}
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	serializedContext, err := json.Marshal(context)
 	if err != nil {
 		return nil, err
@@ -188,7 +189,9 @@ func (s kms) Type() Type { return KMS }
 
 func (s kms) Marshal(h http.Header) {
 	h.Set(sseGenericHeader, "aws:kms")
-	h.Set(sseKmsKeyID, s.key)
+	if s.key != "" {
+		h.Set(sseKmsKeyID, s.key)
+	}
 	if s.hasContext {
 		h.Set(sseEncryptionContext, base64.StdEncoding.EncodeToString(s.context))
 	}

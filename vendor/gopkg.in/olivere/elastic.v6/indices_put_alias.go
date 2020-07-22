@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 )
@@ -241,9 +242,15 @@ func (a *AliasRemoveIndexAction) Source() (interface{}, error) {
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-aliases.html
 // for details.
 type AliasService struct {
-	client  *Client
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	actions []AliasAction
-	pretty  bool
 }
 
 // NewAliasService implements a service to manage aliases.
@@ -254,9 +261,43 @@ func NewAliasService(client *Client) *AliasService {
 	return builder
 }
 
-// Pretty asks Elasticsearch to indent the HTTP response.
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
 func (s *AliasService) Pretty(pretty bool) *AliasService {
-	s.pretty = pretty
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *AliasService) Human(human bool) *AliasService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *AliasService) ErrorTrace(errorTrace bool) *AliasService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *AliasService) FilterPath(filterPath ...string) *AliasService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *AliasService) Header(name string, value string) *AliasService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *AliasService) Headers(headers http.Header) *AliasService {
+	s.headers = headers
 	return s
 }
 
@@ -294,8 +335,17 @@ func (s *AliasService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.pretty {
-		params.Set("pretty", fmt.Sprintf("%v", s.pretty))
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	return path, params, nil
 }
@@ -321,10 +371,11 @@ func (s *AliasService) Do(ctx context.Context) (*AliasResult, error) {
 
 	// Get response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "POST",
-		Path:   path,
-		Params: params,
-		Body:   body,
+		Method:  "POST",
+		Path:    path,
+		Params:  params,
+		Body:    body,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err

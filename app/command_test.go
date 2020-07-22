@@ -1,9 +1,10 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -15,12 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 )
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	sourceTeam := th.CreateTeam()
@@ -70,9 +71,56 @@ func TestCreateCommandPost(t *testing.T) {
 
 	skipSlackParsing := false
 	_, err := th.App.CreateCommandPost(post, th.BasicTeam.Id, resp, skipSlackParsing)
-	if err == nil || err.Id != "api.context.invalid_param.app_error" {
-		t.Fatal("should have failed - bad post type")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.context.invalid_param.app_error")
+}
+
+func TestExecuteCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("valid tests with different whitespace characters", func(t *testing.T) {
+		TestCases := map[string]string{
+			"/code happy path":             "    happy path",
+			"/code\nnewline path":          "    newline path",
+			"/code\n/nDouble newline path": "    /nDouble newline path",
+			"/code  double space":          "     double space",
+			"/code\ttab":                   "    tab",
+		}
+
+		for TestCase, result := range TestCases {
+			args := &model.CommandArgs{
+				Command:   TestCase,
+				TeamId:    th.BasicTeam.Id,
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				T:         func(s string, args ...interface{}) string { return s },
+			}
+			resp, err := th.App.ExecuteCommand(args)
+			require.Nil(t, err)
+			require.NotNil(t, resp)
+
+			assert.Equal(t, resp.Text, result)
+		}
+	})
+
+	t.Run("missing slash character", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "missing leading slash character",
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		argsMissingSlashCharacter := &model.CommandArgs{
+			Command: "",
+			T:       func(s string, args ...interface{}) string { return s },
+		}
+		_, err := th.App.ExecuteCommand(argsMissingSlashCharacter)
+		require.Equal(t, "api.command.execute_command.format.app_error", err.Id)
+	})
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
@@ -104,16 +152,16 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, args.ParentId, post.ParentId)
 	assert.Equal(t, args.UserId, post.UserId)
 	assert.Equal(t, resp.Type, post.Type)
-	assert.Equal(t, resp.Props, post.Props)
+	assert.Equal(t, resp.Props, post.GetProps())
 	assert.Equal(t, resp.Text, post.Message)
-	assert.Nil(t, post.Props["override_icon_url"])
-	assert.Nil(t, post.Props["override_username"])
-	assert.Nil(t, post.Props["from_webhook"])
+	assert.Nil(t, post.GetProp("override_icon_url"))
+	assert.Nil(t, post.GetProp("override_username"))
+	assert.Nil(t, post.GetProp("from_webhook"))
 
 	// Command is not built in, so it is a bot command.
 	builtIn = false
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	builtIn = true
 
@@ -135,23 +183,23 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Nil(t, post.Props["override_username"])
+	assert.Nil(t, post.GetProp("override_username"))
 
 	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
 
 	// Override username config is turned on. Override username through command property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, command.Username, post.Props["override_username"])
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, command.Username, post.GetProp("override_username"))
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	command.Username = ""
 
 	// Override username through response property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, resp.Username, post.Props["override_username"])
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, resp.Username, post.GetProp("override_username"))
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
 
@@ -162,23 +210,23 @@ func TestHandleCommandResponsePost(t *testing.T) {
 
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Nil(t, post.Props["override_icon_url"])
+	assert.Nil(t, post.GetProp("override_icon_url"))
 
 	*th.App.Config().ServiceSettings.EnablePostIconOverride = true
 
 	// Override icon url config is turned on. Override icon url through command property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, command.IconURL, post.Props["override_icon_url"])
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, command.IconURL, post.GetProp("override_icon_url"))
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	command.IconURL = ""
 
 	// Override icon url through response property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
-	assert.Equal(t, resp.IconURL, post.Props["override_icon_url"])
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, resp.IconURL, post.GetProp("override_icon_url"))
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
@@ -186,7 +234,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@channel", post.Message)
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	// Test Slack attachments text conversion.
 	resp.Attachments = []*model.SlackAttachment{
@@ -201,16 +249,15 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	if assert.Len(t, post.Attachments(), 1) {
 		assert.Equal(t, "@here", post.Attachments()[0].Text)
 	}
-	assert.Equal(t, "true", post.Props["from_webhook"])
+	assert.Equal(t, "true", post.GetProp("from_webhook"))
 
 	channel = th.CreatePrivateChannel(th.BasicTeam)
 	resp.ChannelId = channel.Id
 	args.UserId = th.BasicUser2.Id
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 
-	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
-		t.Fatal("should have failed - forbidden channel post")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.command_post.forbidden.app_error")
 
 	// Test that /code text is not converted with the Slack text conversion.
 	command.Trigger = "code"
@@ -221,7 +268,11 @@ func TestHandleCommandResponsePost(t *testing.T) {
 			Text: "<!here>",
 		},
 	}
+
+	// set and unset SkipSlackParsing here seems the nicest way as no separate response objects are created for every testcase.
+	resp.SkipSlackParsing = true
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+	resp.SkipSlackParsing = false
 
 	assert.Nil(t, err)
 	assert.Equal(t, resp.Text, post.Message, "/code text should not be converted to Slack links")
@@ -248,9 +299,8 @@ func TestHandleCommandResponse(t *testing.T) {
 	builtIn := true
 
 	_, err := th.App.HandleCommandResponse(command, args, resp, builtIn)
-	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
-		t.Fatal("should have failed - invalid post type")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
 	resp = &model.CommandResponse{
 		Text: "message 1",
@@ -273,9 +323,8 @@ func TestHandleCommandResponse(t *testing.T) {
 	}
 
 	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
-	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
-		t.Fatal("should have failed - invalid post type on extra response")
-	}
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "api.command.execute_command.create_post_failed.app_error")
 
 	resp = &model.CommandResponse{
 		ExtraResponses: []*model.CommandResponse{
@@ -289,7 +338,7 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -372,9 +421,9 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
 		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
 
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
@@ -382,4 +431,175 @@ func TestDoCommandRequest(t *testing.T) {
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 		close(done)
 	})
+}
+
+func TestMentionsToTeamMembers(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	otherTeam := th.CreateTeam()
+	otherUser := th.CreateUser()
+	th.LinkUserToTeam(otherUser, otherTeam)
+
+	fixture := []struct {
+		message     string
+		inTeam      string
+		expectedMap model.UserMentionMap
+	}{
+		{
+			"",
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			"/trigger",
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			"/trigger 0 mentions",
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 1 valid user @%s", th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{th.BasicUser.Username: th.BasicUser.Id},
+		},
+		{
+			fmt.Sprintf("/trigger 2 valid users @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username,
+			),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger 1 user from another team @%s", otherUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 2 valid users + 1 from another team @%s @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username, otherUser.Username,
+			),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger a valid channel ~%s", th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.UserMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger channel and mentions ~%s @%s",
+				th.BasicChannel.Name, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{th.BasicUser.Username: th.BasicUser.Id},
+		},
+		{
+			fmt.Sprintf("/trigger repeated users @%s @%s @%s",
+				th.BasicUser.Username, th.BasicUser2.Username, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.UserMentionMap{
+				th.BasicUser.Username:  th.BasicUser.Id,
+				th.BasicUser2.Username: th.BasicUser2.Id,
+			},
+		},
+	}
+
+	for _, data := range fixture {
+		actualMap := th.App.mentionsToTeamMembers(data.message, data.inTeam)
+		require.Equal(t, actualMap, data.expectedMap)
+	}
+}
+
+func TestMentionsToPublicChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	otherPublicChannel := th.CreateChannel(th.BasicTeam)
+	privateChannel := th.CreatePrivateChannel(th.BasicTeam)
+
+	fixture := []struct {
+		message     string
+		inTeam      string
+		expectedMap model.ChannelMentionMap
+	}{
+		{
+			"",
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			"/trigger",
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			"/trigger 0 mentions",
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 1 public channel ~%s", th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{th.BasicChannel.Name: th.BasicChannel.Id},
+		},
+		{
+			fmt.Sprintf("/trigger 2 public channels ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name,
+			),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger 1 private channel ~%s", privateChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger 2 public channel + 1 private ~%s ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name, privateChannel.Name,
+			),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+		{
+			fmt.Sprintf("/trigger a valid user @%s", th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{},
+		},
+		{
+			fmt.Sprintf("/trigger channel and mentions ~%s @%s",
+				th.BasicChannel.Name, th.BasicUser.Username),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{th.BasicChannel.Name: th.BasicChannel.Id},
+		},
+		{
+			fmt.Sprintf("/trigger repeated channels ~%s ~%s ~%s",
+				th.BasicChannel.Name, otherPublicChannel.Name, th.BasicChannel.Name),
+			th.BasicTeam.Id,
+			model.ChannelMentionMap{
+				th.BasicChannel.Name:    th.BasicChannel.Id,
+				otherPublicChannel.Name: otherPublicChannel.Id,
+			},
+		},
+	}
+
+	for _, data := range fixture {
+		actualMap := th.App.mentionsToPublicChannels(data.message, data.inTeam)
+		require.Equal(t, actualMap, data.expectedMap)
+	}
 }

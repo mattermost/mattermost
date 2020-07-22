@@ -22,19 +22,27 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/xml"
+	"hash"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/minio/sha256-simd"
-
+	md5simd "github.com/minio/md5-simd"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
+	"github.com/minio/sha256-simd"
 )
+
+func trimEtag(etag string) string {
+	etag = strings.TrimPrefix(etag, "\"")
+	return strings.TrimSuffix(etag, "\"")
+}
 
 // xmlDecoder provide decoded value in xml.
 func xmlDecoder(body io.Reader, v interface{}) error {
@@ -44,14 +52,16 @@ func xmlDecoder(body io.Reader, v interface{}) error {
 
 // sum256 calculate sha256sum for an input byte array, returns hex encoded.
 func sum256Hex(data []byte) string {
-	hash := sha256.New()
+	hash := newSHA256Hasher()
+	defer hash.Close()
 	hash.Write(data)
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // sumMD5Base64 calculate md5sum for an input byte array, returns base64 encoded.
 func sumMD5Base64(data []byte) string {
-	hash := md5.New()
+	hash := newMd5Hasher()
+	defer hash.Close()
 	hash.Write(data)
 	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
 }
@@ -154,27 +164,121 @@ func isValidExpiry(expires time.Duration) error {
 	return nil
 }
 
-// make a copy of http.Header
-func cloneHeader(h http.Header) http.Header {
-	h2 := make(http.Header, len(h))
-	for k, vv := range h {
-		vv2 := make([]string, len(vv))
-		copy(vv2, vv)
-		h2[k] = vv2
+// Extract only necessary metadata header key/values by
+// filtering them out with a list of custom header keys.
+func extractObjMetadata(header http.Header) http.Header {
+	preserveKeys := []string{
+		"Content-Type",
+		"Cache-Control",
+		"Content-Encoding",
+		"Content-Language",
+		"Content-Disposition",
+		"X-Amz-Storage-Class",
+		"X-Amz-Object-Lock-Mode",
+		"X-Amz-Object-Lock-Retain-Until-Date",
+		"X-Amz-Object-Lock-Legal-Hold",
+		"X-Amz-Website-Redirect-Location",
+		"X-Amz-Server-Side-Encryption",
+		"X-Amz-Tagging-Count",
+		"X-Amz-Meta-",
+		// Add new headers to be preserved.
+		// if you add new headers here, please extend
+		// PutObjectOptions{} to preserve them
+		// upon upload as well.
 	}
-	return h2
-}
-
-// Filter relevant response headers from
-// the HEAD, GET http response. The function takes
-// a list of headers which are filtered out and
-// returned as a new http header.
-func filterHeader(header http.Header, filterKeys []string) (filteredHeader http.Header) {
-	filteredHeader = cloneHeader(header)
-	for _, key := range filterKeys {
-		filteredHeader.Del(key)
+	filteredHeader := make(http.Header)
+	for k, v := range header {
+		var found bool
+		for _, prefix := range preserveKeys {
+			if !strings.HasPrefix(k, prefix) {
+				continue
+			}
+			found = true
+			break
+		}
+		if found {
+			filteredHeader[k] = v
+		}
 	}
 	return filteredHeader
+}
+
+// ToObjectInfo converts http header values into ObjectInfo type,
+// extracts metadata and fills in all the necessary fields in ObjectInfo.
+func ToObjectInfo(bucketName string, objectName string, h http.Header) (ObjectInfo, error) {
+	var err error
+	// Trim off the odd double quotes from ETag in the beginning and end.
+	etag := trimEtag(h.Get("ETag"))
+
+	// Parse content length is exists
+	var size int64 = -1
+	contentLengthStr := h.Get("Content-Length")
+	if contentLengthStr != "" {
+		size, err = strconv.ParseInt(contentLengthStr, 10, 64)
+		if err != nil {
+			// Content-Length is not valid
+			return ObjectInfo{}, ErrorResponse{
+				Code:       "InternalError",
+				Message:    "Content-Length is invalid. " + reportIssue,
+				BucketName: bucketName,
+				Key:        objectName,
+				RequestID:  h.Get("x-amz-request-id"),
+				HostID:     h.Get("x-amz-id-2"),
+				Region:     h.Get("x-amz-bucket-region"),
+			}
+		}
+	}
+
+	// Parse Last-Modified has http time format.
+	date, err := time.Parse(http.TimeFormat, h.Get("Last-Modified"))
+	if err != nil {
+		return ObjectInfo{}, ErrorResponse{
+			Code:       "InternalError",
+			Message:    "Last-Modified time format is invalid. " + reportIssue,
+			BucketName: bucketName,
+			Key:        objectName,
+			RequestID:  h.Get("x-amz-request-id"),
+			HostID:     h.Get("x-amz-id-2"),
+			Region:     h.Get("x-amz-bucket-region"),
+		}
+	}
+
+	// Fetch content type if any present.
+	contentType := strings.TrimSpace(h.Get("Content-Type"))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	expiryStr := h.Get("Expires")
+	var expTime time.Time
+	if t, err := time.Parse(http.TimeFormat, expiryStr); err == nil {
+		expTime = t.UTC()
+	}
+
+	metadata := extractObjMetadata(h)
+	userMetadata := make(map[string]string)
+	for k, v := range metadata {
+		if strings.HasPrefix(k, "X-Amz-Meta-") {
+			userMetadata[strings.TrimPrefix(k, "X-Amz-Meta-")] = v[0]
+		}
+	}
+	userTags := s3utils.TagDecode(h.Get(amzTaggingHeader))
+
+	// Save object metadata info.
+	return ObjectInfo{
+		ETag:         etag,
+		Key:          objectName,
+		Size:         size,
+		LastModified: date,
+		ContentType:  contentType,
+		Expires:      expTime,
+		// Extract only the relevant header keys describing the object.
+		// following function filters out a list of standard set of keys
+		// which are not part of object metadata.
+		Metadata:     metadata,
+		UserMetadata: userMetadata,
+		UserTags:     userTags,
+	}, nil
 }
 
 // regCred matches credential string in HTTP header
@@ -224,6 +328,9 @@ var supportedHeaders = []string{
 	"content-disposition",
 	"content-language",
 	"x-amz-website-redirect-location",
+	"x-amz-object-lock-mode",
+	"x-amz-metadata-directive",
+	"x-amz-object-lock-retain-until-date",
 	"expires",
 	// Add more supported headers here.
 }
@@ -270,4 +377,35 @@ func isAmzHeader(headerKey string) bool {
 	key := strings.ToLower(headerKey)
 
 	return strings.HasPrefix(key, "x-amz-meta-") || strings.HasPrefix(key, "x-amz-grant-") || key == "x-amz-acl" || isSSEHeader(headerKey)
+}
+
+var md5Pool = sync.Pool{New: func() interface{} { return md5.New() }}
+var sha256Pool = sync.Pool{New: func() interface{} { return sha256.New() }}
+
+func newMd5Hasher() md5simd.Hasher {
+	return hashWrapper{Hash: md5Pool.New().(hash.Hash), isMD5: true}
+}
+
+func newSHA256Hasher() md5simd.Hasher {
+	return hashWrapper{Hash: sha256Pool.New().(hash.Hash), isSHA256: true}
+}
+
+// hashWrapper implements the md5simd.Hasher interface.
+type hashWrapper struct {
+	hash.Hash
+	isMD5    bool
+	isSHA256 bool
+}
+
+// Close will put the hasher back into the pool.
+func (m hashWrapper) Close() {
+	if m.isMD5 && m.Hash != nil {
+		m.Reset()
+		md5Pool.Put(m.Hash)
+	}
+	if m.isSHA256 && m.Hash != nil {
+		m.Reset()
+		sha256Pool.Put(m.Hash)
+	}
+	m.Hash = nil
 }

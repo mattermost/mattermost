@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
 import (
+	"encoding/json"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // desanitize replaces fake settings with their actual values.
@@ -160,4 +161,18 @@ func stripPassword(dsn, schema string) string {
 	}
 
 	return prefix + dsn[:i+1] + dsn[j:]
+}
+
+func IsJsonMap(data string) bool {
+	var m map[string]interface{}
+	return json.Unmarshal([]byte(data), &m) == nil
+}
+
+func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
+	cfg := make(mlog.LogTargetCfg)
+	err := json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }

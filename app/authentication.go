@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/mfa"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/mfa"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type TokenLocation int
@@ -51,9 +51,12 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return passErr
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
@@ -61,16 +64,21 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
 		// about the MFA state of the user in question
 		if mfaToken != "" {
-			if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+			if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 				return passErr
 			}
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
-	if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return passErr
 	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
@@ -86,15 +94,20 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
 			return passErr
 		}
+
+		a.InvalidateCacheForUser(user.Id)
+
 		return err
 	}
 
-	if passErr := a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
+	if passErr := a.Srv().Store.User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
 		return passErr
 	}
+
+	a.InvalidateCacheForUser(user.Id)
 
 	return nil
 }
@@ -108,12 +121,12 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 }
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	if a.Ldap == nil || ldapId == nil {
+	if a.Ldap() == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
-	ldapUser, err := a.Ldap.DoLogin(*ldapId, password)
+	ldapUser, err := a.Ldap().DoLogin(*ldapId, password)
 	if err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
@@ -172,7 +185,7 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 		return nil
 	}
 
-	mfaService := mfa.New(a, a.Srv.Store)
+	mfaService := mfa.New(a, a.Srv().Store)
 	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return err
@@ -208,8 +221,8 @@ func checkUserNotBot(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	license := a.License()
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
+	license := a.Srv().License()
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap() != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {

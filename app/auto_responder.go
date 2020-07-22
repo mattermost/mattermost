@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError) {
@@ -13,7 +13,15 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 		return false, nil
 	}
 
+	if sender.IsBot {
+		return false, nil
+	}
+
 	receiverId := channel.GetOtherUserIdForDM(sender.Id)
+	if receiverId == "" {
+		// User direct messaged themself, let them test their auto-responder.
+		receiverId = sender.Id
+	}
 
 	receiver, err := a.GetUser(receiverId)
 	if err != nil {
@@ -44,7 +52,7 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bo
 		UserId:    receiver.Id,
 	}
 
-	if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
+	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
 		mlog.Error(err.Error())
 		return false, err
 	}

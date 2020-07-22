@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -46,9 +46,9 @@ func (o *PostList) StripActionIntegrations() {
 	posts := o.Posts
 	o.Posts = make(map[string]*Post)
 	for id, post := range posts {
-		pcopy := *post
+		pcopy := post.Clone()
 		pcopy.StripActionIntegrations()
-		o.Posts[id] = &pcopy
+		o.Posts[id] = pcopy
 	}
 }
 

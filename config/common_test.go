@@ -1,14 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config_test
 
 import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig *model.Config
@@ -157,6 +160,18 @@ func TestConfigEnvironmentOverrides(t *testing.T) {
 
 		assert.Equal(t, "http://overridden.ca", *base.Get().ServiceSettings.SiteURL)
 	})
+}
+
+func TestRemoveEnvironmentOverrides(t *testing.T) {
+	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+	base, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	oldCfg := base.Get()
+	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
+	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
+	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
 }
 
 func newBool(b bool) *bool       { return &b }

@@ -1,18 +1,21 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
+	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 )
 
 const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
-var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
+var openGraphDataCache = cache.NewLRU(&cache.LRUOptions{
+	Size: OPEN_GRAPH_METADATA_CACHE_SIZE,
+})
 
 func (api *API) InitOpenGraph() {
 	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
@@ -43,15 +46,16 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ogJSONGeneric, ok := openGraphDataCache.Get(url)
-	if ok {
-		w.Write(ogJSONGeneric.([]byte))
+	var ogJSONGeneric []byte
+	err := openGraphDataCache.Get(url, &ogJSONGeneric)
+	if err == nil {
+		w.Write(ogJSONGeneric)
 		return
 	}
 
 	og := c.App.GetOpenGraphMetadata(url)
 	ogJSON, err := og.ToJSON()
-	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 hour
+	openGraphDataCache.SetWithExpiry(url, ogJSON, 1*time.Hour)
 	if err != nil {
 		w.Write([]byte(`{"url": ""}`))
 		return

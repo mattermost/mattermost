@@ -7,6 +7,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -19,8 +20,14 @@ import (
 // See https://www.elastic.co/guide/en/elasticsearch/reference/6.8/cat-aliases.html
 // for details.
 type CatAliasesService struct {
-	client        *Client
-	pretty        bool
+	client *Client
+
+	pretty     *bool       // pretty format the returned JSON response
+	human      *bool       // return human readable values for statistics
+	errorTrace *bool       // include the stack trace of returned errors
+	filterPath []string    // list of filters used to reduce the response
+	headers    http.Header // custom request-level HTTP headers
+
 	local         *bool
 	masterTimeout string
 	aliases       []string
@@ -33,6 +40,46 @@ func NewCatAliasesService(client *Client) *CatAliasesService {
 	return &CatAliasesService{
 		client: client,
 	}
+}
+
+// Pretty tells Elasticsearch whether to return a formatted JSON response.
+func (s *CatAliasesService) Pretty(pretty bool) *CatAliasesService {
+	s.pretty = &pretty
+	return s
+}
+
+// Human specifies whether human readable values should be returned in
+// the JSON response, e.g. "7.5mb".
+func (s *CatAliasesService) Human(human bool) *CatAliasesService {
+	s.human = &human
+	return s
+}
+
+// ErrorTrace specifies whether to include the stack trace of returned errors.
+func (s *CatAliasesService) ErrorTrace(errorTrace bool) *CatAliasesService {
+	s.errorTrace = &errorTrace
+	return s
+}
+
+// FilterPath specifies a list of filters used to reduce the response.
+func (s *CatAliasesService) FilterPath(filterPath ...string) *CatAliasesService {
+	s.filterPath = filterPath
+	return s
+}
+
+// Header adds a header to the request.
+func (s *CatAliasesService) Header(name string, value string) *CatAliasesService {
+	if s.headers == nil {
+		s.headers = http.Header{}
+	}
+	s.headers.Add(name, value)
+	return s
+}
+
+// Headers specifies the headers of the request.
+func (s *CatAliasesService) Headers(headers http.Header) *CatAliasesService {
+	s.headers = headers
+	return s
 }
 
 // Alias specifies one or more aliases to which information should be returned.
@@ -74,12 +121,6 @@ func (s *CatAliasesService) Sort(fields ...string) *CatAliasesService {
 	return s
 }
 
-// Pretty indicates that the JSON response be indented and human readable.
-func (s *CatAliasesService) Pretty(pretty bool) *CatAliasesService {
-	s.pretty = pretty
-	return s
-}
-
 // buildURL builds the URL for the operation.
 func (s *CatAliasesService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -101,10 +142,19 @@ func (s *CatAliasesService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{
-		"format": []string{"json"}, // always returns as JSON
+		"format": []string{"json"}, // always return JSON
 	}
-	if s.pretty {
-		params.Set("pretty", "true")
+	if v := s.pretty; v != nil {
+		params.Set("pretty", fmt.Sprint(*v))
+	}
+	if v := s.human; v != nil {
+		params.Set("human", fmt.Sprint(*v))
+	}
+	if v := s.errorTrace; v != nil {
+		params.Set("error_trace", fmt.Sprint(*v))
+	}
+	if len(s.filterPath) > 0 {
+		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if v := s.local; v != nil {
 		params.Set("local", fmt.Sprint(*v))
@@ -131,9 +181,10 @@ func (s *CatAliasesService) Do(ctx context.Context) (CatAliasesResponse, error) 
 
 	// Get HTTP response
 	res, err := s.client.PerformRequest(ctx, PerformRequestOptions{
-		Method: "GET",
-		Path:   path,
-		Params: params,
+		Method:  "GET",
+		Path:    path,
+		Params:  params,
+		Headers: s.headers,
 	})
 	if err != nil {
 		return nil, err
@@ -166,4 +217,6 @@ type CatAliasesResponseRow struct {
 	RoutingIndex string `json:"routing.index"`
 	// RoutingSearch specifies the search routing (or "-").
 	RoutingSearch string `json:"routing.search"`
+	// IsWriteIndex indicates whether the index can be written to (or "-").
+	IsWriteIndex string `json:"is_write_index"`
 }

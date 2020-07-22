@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config_test
 
@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetClientConfig(t *testing.T) {
@@ -18,7 +18,7 @@ func TestGetClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticId   string
+		diagnosticID   string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -139,6 +139,45 @@ func TestGetClientConfig(t *testing.T) {
 				"ExperimentalChannelOrganization": "true",
 			},
 		},
+		{
+			"default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP(model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "true",
+			},
+		},
+		{
+			"non-default marketplace",
+			&model.Config{
+				PluginSettings: model.PluginSettings{
+					MarketplaceUrl: sToP("http://example.com"),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"IsDefaultMarketplace": "false",
+			},
+		},
+		{
+			"enable ShowFullName prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					ShowFullName: bToP(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"ShowFullName": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -151,7 +190,7 @@ func TestGetClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			configMap := config.GenerateClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
@@ -167,7 +206,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 	testCases := []struct {
 		description    string
 		config         *model.Config
-		diagnosticId   string
+		diagnosticID   string
 		license        *model.License
 		expectedFields map[string]string
 	}{
@@ -197,6 +236,27 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"WebsocketSecurePort":              "443",
 			},
 		},
+		{
+			"password settings",
+			&model.Config{
+				PasswordSettings: model.PasswordSettings{
+					MinimumLength: iToP(15),
+					Lowercase:     bToP(true),
+					Uppercase:     bToP(true),
+					Number:        bToP(true),
+					Symbol:        bToP(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"PasswordMinimumLength":    "15",
+				"PasswordRequireLowercase": "true",
+				"PasswordRequireUppercase": "true",
+				"PasswordRequireNumber":    "true",
+				"PasswordRequireSymbol":    "false",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -209,7 +269,7 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				testCase.license.Features.SetDefaults()
 			}
 
-			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			configMap := config.GenerateLimitedClientConfig(testCase.config, testCase.diagnosticID, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {

@@ -666,6 +666,19 @@ func (m *DbMap) Begin() (*Transaction, error) {
 	return &Transaction{m, tx, false}, nil
 }
 
+// Begin starts a gorp Transaction with a given context and opts.
+func (m *DbMap) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Transaction, error) {
+	if m.logger != nil {
+		now := time.Now()
+		defer m.trace(now, "begin;")
+	}
+	tx, err := m.Db.BeginTx(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	return &Transaction{m, tx, false}, nil
+}
+
 // TableFor returns the *TableMap corresponding to the given Go Type
 // If no table is mapped to that type an error is returned.
 // If checkPK is true and the mapped table has no registered PKs, an error is returned.

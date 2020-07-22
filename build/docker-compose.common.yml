@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql:5.7"
+    image: "mysql:5.6"
     restart: always
     networks:
       - mm-test
@@ -20,6 +20,9 @@ services:
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
       POSTGRES_DB: mattermost_test
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
+    volumes:
+     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
     command: "server /data"
@@ -50,5 +53,26 @@ services:
       - mm-test
     environment:
       http.host: "0.0.0.0"
+      http.port: 9200
+      http.cors.enabled: "true"
+      http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+      http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+      http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+  dejavu:
+    image: "appbaseio/dejavu:3.4.2"
+    networks:
+      - mm-test
+  keycloak:
+    image: "jboss/keycloak:10.0.2"
+    restart: always
+    environment:
+      KEYCLOAK_USER: mmuser
+      KEYCLOAK_PASSWORD: mostest
+      DB_VENDOR: h2
+      KEYCLOAK_IMPORT: /setup/realm.json
+    networks:
+      - mm-test
+    volumes:
+     - "./docker/keycloak:/setup"

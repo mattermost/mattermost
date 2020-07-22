@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,8 +9,9 @@ import (
 
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -115,7 +116,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -172,11 +173,16 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		URL:              url,
 	}
 
-	if _, err := a.CreateCommand(newCommand); err != nil {
-		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
+	createdCommand, errCreate := a.CreateCommand(newCommand)
+	if errCreate != nil {
+		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + errCreate.Error())
 	}
 	CommandPrettyPrintln("created command '" + newCommand.DisplayName + "'")
 
+	auditRec := a.MakeAuditRecord("createCommand", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("command", createdCommand)
+	a.LogAuditRec(auditRec, nil)
 	return nil
 }
 
@@ -185,7 +191,7 @@ func showCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	slashCommand := getCommandFromCommandArg(a, args[0])
 	if slashCommand == nil {
@@ -203,7 +209,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Enter the destination team and at least one command to move.")
@@ -224,9 +230,13 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to move command '" + command.DisplayName + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Moved command '" + command.DisplayName + "'")
+
+			auditRec := a.MakeAuditRecord("moveCommand", audit.Success)
+			auditRec.AddMeta("team", team)
+			auditRec.AddMeta("command", command)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -239,7 +249,7 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	var teams []*model.Team
 	if len(args) < 1 {
@@ -257,7 +267,7 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		commands, err := a.Srv.Store.Command().GetByTeam(team.Id)
+		commands, err := a.Srv().Store.Command().GetByTeam(team.Id)
 		if err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
 			continue
@@ -275,27 +285,32 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	slashCommand := getCommandFromCommandArg(a, args[0])
 	if slashCommand == nil {
 		command.SilenceUsage = true
 		return errors.New("Unable to find command '" + args[0] + "'")
 	}
+
 	if err := a.DeleteCommand(slashCommand.Id); err != nil {
 		command.SilenceUsage = true
 		return errors.New("Unable to delete command '" + slashCommand.Id + "' error: " + err.Error())
 	}
 	CommandPrettyPrintln("Deleted command '" + slashCommand.Id + "' (" + slashCommand.DisplayName + ")")
+
+	auditRec := a.MakeAuditRecord("deleteCommand", audit.Success)
+	auditRec.AddMeta("command", slashCommand)
+	a.LogAuditRec(auditRec, nil)
 	return nil
 }
 
-func modifyCommandCmdF(command *cobra.Command, args []string) error {
+func modifyCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	oldCommand := getCommandFromCommandArg(a, args[0])
 	if oldCommand == nil {
@@ -303,6 +318,10 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find command '" + args[0] + "'")
 	}
 	modifiedCommand := oldCommand
+
+	auditRec := a.MakeAuditRecord("modifyCommand", audit.Fail)
+	defer func() { a.LogAuditRec(auditRec, cmdError) }()
+	auditRec.AddMeta("command", oldCommand)
 
 	// get creator user
 	creator, _ := command.Flags().GetString("creator")
@@ -376,10 +395,14 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	modifiedCommand.Method = method
 
-	if _, err := a.UpdateCommand(oldCommand, modifiedCommand); err != nil {
-		return errors.New("unable to modify command '" + modifiedCommand.DisplayName + "'. " + err.Error())
+	updatedCommand, errUpdated := a.UpdateCommand(oldCommand, modifiedCommand)
+	if errUpdated != nil {
+		return errors.New("unable to modify command '" + modifiedCommand.DisplayName + "'. " + errUpdated.Error())
 	}
 	CommandPrettyPrintln("modified command '" + modifiedCommand.DisplayName + "'")
+
+	auditRec.Success()
+	auditRec.AddMeta("update", updatedCommand)
 
 	return nil
 }

@@ -1,11 +1,11 @@
-// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -24,30 +24,31 @@ func getOrphanedRecords(ss *SqlSupplier, cfg relationalCheckConfig) ([]store.Orp
 
 	sub := ss.getQueryBuilder().
 		Select("TRUE").
-		From(cfg.parentName).
+		From(cfg.parentName + " AS PT").
 		Prefix("NOT EXISTS (").
 		Suffix(")").
-		Where(sq.Eq{"id": cfg.childName + "." + cfg.parentIdAttr})
+		Where("PT.id = CT." + cfg.parentIdAttr)
 
 	main := ss.getQueryBuilder().
 		Select().
-		Column(cfg.parentIdAttr + " AS ParentId").
-		From(cfg.childName).
+		Column("CT." + cfg.parentIdAttr + " AS ParentId").
+		From(cfg.childName + " AS CT").
 		Where(sub)
 
 	if cfg.childIdAttr != "" {
-		main = main.Column(cfg.childIdAttr + " AS ChildId")
+		main = main.Column("CT." + cfg.childIdAttr + " AS ChildId")
 	}
 
 	if cfg.canParentIdBeEmpty {
-		main = main.Where(sq.NotEq{cfg.parentIdAttr: ""})
+		main = main.Where(sq.NotEq{"CT." + cfg.parentIdAttr: ""})
 	}
 
 	if cfg.sortRecords {
-		main = main.OrderBy(cfg.parentIdAttr)
+		main = main.OrderBy("CT." + cfg.parentIdAttr)
 	}
 
 	query, args, _ := main.ToSql()
+
 	_, err := ss.GetMaster().Select(&records, query, args...)
 
 	return records, err
@@ -140,7 +141,7 @@ func checkPostsFileInfoIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 		parentName:   "Posts",
 		parentIdAttr: "PostId",
 		childName:    "FileInfo",
-		childIdAttr:  "",
+		childIdAttr:  "Id",
 	})
 }
 
@@ -324,10 +325,10 @@ func checkUsersEmojiIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 
 func checkUsersFileInfoIntegrity(ss *SqlSupplier) store.IntegrityCheckResult {
 	return checkParentChildIntegrity(ss, relationalCheckConfig{
-		parentName:   "Posts",
+		parentName:   "Users",
 		parentIdAttr: "CreatorId",
 		childName:    "FileInfo",
-		childIdAttr:  "",
+		childIdAttr:  "Id",
 	})
 }
 

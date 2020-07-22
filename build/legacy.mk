@@ -4,6 +4,29 @@ test-te: test-server
 # test-ee used to just run the enterprise edition tests, but now runs whatever is available
 test-ee: test-server
 
+## Old target to run go vet. Now it just invokes golangci-lint.
+govet: golangci-lint
+
+gofmt: ## Runs gofmt against all packages. This is now subsumed by make golangci-lint.
+	@echo Running GOFMT
+
+	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
+		 echo "Checking "$$package; \
+		 files=$$($(GO) list $(GOFLAGS) -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
+		 if [ "$$files" ]; then \
+			 gofmt_output=$$(gofmt -d -s $$files 2>&1); \
+			 if [ "$$gofmt_output" ]; then \
+				 echo "$$gofmt_output"; \
+				 echo "gofmt failure"; \
+				 exit 1; \
+			 fi; \
+		 fi; \
+	done
+	@echo "gofmt success"; \
+
+# check-licenses was used to check the license of the files, but now is done through mattermost-govet
+check-licenses: vet
+
 # clean old docker images
 clean-old-docker:
 	@echo Removing docker containers
