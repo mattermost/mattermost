@@ -7244,7 +7244,7 @@
     },
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
-        "translation": " "
+        "translation": "Kayıtlar silinemedi."
     },
     {
         "id": "app.bot.permenent_delete.bad_id",
@@ -7604,7 +7604,7 @@
     },
     {
         "id": "ent.get_users_in_channel_during",
-        "translation": " "
+        "translation": "Kanaldaki kullanıcılar belirtilen zaman aralığında alınamadı."
     },
     {
         "id": "model.guest.is_valid.email.app_error",
@@ -8081,5 +8081,41 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "Komut kaydedilemedi."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Birden çok satır değiştirildi."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "aktarılamadı."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Özel komut yürütülemedi."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Komut kodu üretilemedi."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Otomatik tamamlama komutları listelenemedi."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "İstatistikler alınamadı."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
     }
 ]
