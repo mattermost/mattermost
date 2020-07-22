@@ -479,16 +479,16 @@ func (s SqlChannelStore) MigrateSidebarCategories(fromTeamId, fromUserId string)
 func (s SqlChannelStore) CreateInitialSidebarCategories(userId, teamId string) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	if err := s.createInitialSidebarCategoriesT(transaction, userId, teamId); err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: createInitialSidebarCategoriesT")
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return err
+		return errors.Wrap(err, "CreateInitialSidebarCategories: commit_transaction")
 	}
 
 	return nil
@@ -507,7 +507,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 	var existingTypes []model.SidebarCategoryType
 	_, err := transaction.Select(&existingTypes, selectQuery, selectParams...)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to select existing categories")
 	}
 
 	hasCategoryOfType := func(categoryType model.SidebarCategoryType) bool {
@@ -530,7 +530,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderFavorites,
 			Type:        model.SidebarCategoryFavorites,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert favorites category")
 		}
 	}
 
@@ -544,7 +544,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderChannels,
 			Type:        model.SidebarCategoryChannels,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert channels category")
 		}
 	}
 
@@ -558,7 +558,7 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *gorp.Trans
 			SortOrder:   model.DefaultSidebarSortOrderDMs,
 			Type:        model.SidebarCategoryDirectMessages,
 		}); err != nil {
-			return err
+			return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to insert direct messages category")
 		}
 	}
 
@@ -3901,19 +3901,17 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			}
 
 			// And then add the new ones
-			var preferences []interface{}
-
 			for _, channelID := range category.Channels {
-				preferences = append(preferences, &model.Preference{
+				// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
+				// store in this package.
+				if err := s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
 					Name:     channelID,
 					UserId:   userId,
 					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
 					Value:    "true",
-				})
-			}
-
-			if err = transaction.Insert(preferences...); err != nil {
-				return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}); err != nil {
+					return nil, model.NewAppError("SqlPostStore.UpdateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		} else {
 			// Remove any old favorites that might have been in this category
@@ -3950,47 +3948,180 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 	return updatedCategories, nil
 }
 
-// UpdateSidebarChannelByPreference is called when the Preference table is being updated to keep SidebarCategories in sync
+// UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
-func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelsByPreferences", "store.sql_channel.sidebar_categories.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: begin_transaction")
 	}
-
 	defer finalizeTransaction(transaction)
+
 	for _, preference := range *preferences {
+		preference := preference
+
 		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
 			continue
 		}
-		params := map[string]interface{}{
-			"UserId":       preference.UserId,
-			"ChannelId":    preference.Name,
-			"CategoryType": model.SidebarCategoryFavorites,
-		}
+
 		// if new preference is false - remove the channel from the appropriate sidebar category
 		if preference.Value == "false" {
-			var deleteQuery string
-			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId AND SidebarChannels.UserId=:UserId AND ChannelId=:ChannelId"
-			} else {
-				deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.Type=:CategoryType AND cat.UserId = :UserId AND chan.UserId = :UserId AND   cat.TeamId = :TeamId AND chan.ChannelId=:ChannelId"
-			}
-
-			if _, err := transaction.Exec(deleteQuery, params); err != nil {
-				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if err := s.removeSidebarEntriesForPreferenceT(transaction, &preference); err != nil {
+				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: removeSidebarEntriesForPreferenceT")
 			}
 		} else {
-			// otherwise - insert new channel into the apropriate category. ignore duplicate error
-			if _, err := transaction.Exec("INSERT INTO SidebarChannels (ChannelId, UserId, CategoryId, SortOrder) SELECT Id AS CategoryId, :UserId AS UserId, :ChannelId AS ChannelId, MAX(SidebarChannels.SortOrder)+10 FROM SidebarCategories INNER JOIN SidebarChannels ON SidebarChannels.CategoryId = SidebarCategories.Id WHERE SidebarCategories.Type=:CategoryType AND SidebarCategories.UserId=:UserId GROUP BY SidebarChannels.CategoryId, SidebarCategories.Id", params); err != nil && !IsUniqueConstraintError(err, []string{"UserId"}) {
-				return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if err := s.addChannelToFavoritesCategoryT(transaction, &preference); err != nil {
+				return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: addChannelToFavoritesCategoryT")
 			}
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelByPreference", "store.sql_channel.sidebar_categories.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: commit_transaction")
 	}
+
+	return nil
+}
+
+func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *gorp.Transaction, preference *model.Preference) error {
+	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		return nil
+	}
+
+	// Delete any corresponding SidebarChannels entries in a Favorites category corresponding to this preference. This
+	// can't use the query builder because it uses DB-specific syntax
+	params := map[string]interface{}{
+		"UserId":       preference.UserId,
+		"ChannelId":    preference.Name,
+		"CategoryType": model.SidebarCategoryFavorites,
+	}
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = `
+			DELETE
+				SidebarChannels
+			FROM
+				SidebarChannels
+			JOIN
+				SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
+			WHERE
+				SidebarChannels.UserId = :UserId
+				AND SidebarChannels.ChannelId = :ChannelId
+				AND SidebarCategories.Type = :CategoryType`
+	} else {
+		query = `
+			DELETE FROM
+				SidebarChannels
+			USING
+				SidebarCategories
+			WHERE
+				SidebarChannels.CategoryId = SidebarCategories.Id
+				AND SidebarChannels.UserId = :UserId
+				AND SidebarChannels.ChannelId = :ChannelId
+				AND SidebarCategories.Type = :CategoryType`
+	}
+
+	if _, err := transaction.Exec(query, params); err != nil {
+		return errors.Wrap(err, "Failed to remove sidebar entries for preference")
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transaction, preference *model.Preference) error {
+	if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+		return nil
+	}
+
+	var channel *model.Channel
+	if obj, err := transaction.Get(&model.Channel{}, preference.Name); err != nil {
+		return errors.Wrapf(err, "Failed to get favorited channel with id=%s", preference.Name)
+	} else {
+		channel = obj.(*model.Channel)
+	}
+
+	// Get the IDs of the Favorites category/categories that the channel needs to be added to
+	builder := s.getQueryBuilder().
+		Select("SidebarCategories.Id").
+		From("SidebarCategories").
+		LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId and SidebarChannels.ChannelId = ?", preference.Name).
+		Where(sq.Eq{
+			"SidebarCategories.UserId": preference.UserId,
+			"Type":                     model.SidebarCategoryFavorites,
+		}).
+		Where("SidebarChannels.ChannelId is null")
+
+	if channel.TeamId != "" {
+		builder = builder.Where(sq.Eq{"TeamId": channel.TeamId})
+	}
+
+	idsQuery, idsParams, _ := builder.ToSql()
+
+	var categoryIds []string
+	if _, err := transaction.Select(&categoryIds, idsQuery, idsParams...); err != nil {
+		return errors.Wrap(err, "Failed to get Favorites sidebar categories")
+	}
+
+	if len(categoryIds) == 0 {
+		// The channel is already in the Favorites category/categories
+		return nil
+	}
+
+	// For each category ID, insert a row into SidebarChannels with the given channel ID and a SortOrder that's less than
+	// all existing SortOrders in the category so that the newly favorited channel comes first
+	insertQuery, insertParams, _ := s.getQueryBuilder().
+		Insert("SidebarChannels").
+		Columns(
+			"ChannelId",
+			"CategoryId",
+			"UserId",
+			"SortOrder",
+		).
+		Select(
+			sq.Select().
+				Column("? as ChannelId", preference.Name).
+				Column("SidebarCategories.Id as CategoryId").
+				Column("? as UserId", preference.UserId).
+				Column("COALESCE(MIN(SidebarChannels.SortOrder) - 10, 0) as SortOrder").
+				From("SidebarCategories").
+				LeftJoin("SidebarChannels on SidebarCategories.Id = SidebarChannels.CategoryId").
+				Where(sq.Eq{
+					"SidebarCategories.Id": categoryIds,
+				}).
+				GroupBy("SidebarCategories.Id")).ToSql()
+
+	if _, err := transaction.Exec(insertQuery, insertParams...); err != nil {
+		return errors.Wrap(err, "Failed to add sidebar entries for favorited channel")
+	}
+
+	return nil
+}
+
+// DeleteSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
+// At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
+func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
+
+	for _, preference := range *preferences {
+		preference := preference
+
+		if preference.Category != model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL {
+			continue
+		}
+
+		if err := s.removeSidebarEntriesForPreferenceT(transaction, &preference); err != nil {
+			return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: removeSidebarEntriesForPreferenceT")
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: commit_transaction")
+	}
+
 	return nil
 }
 
