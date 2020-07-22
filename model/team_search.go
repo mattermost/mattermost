@@ -12,11 +12,9 @@ type TeamSearch struct {
 	Term                    string `json:"term"`
 	Page                    *int   `json:"page,omitempty"`
 	PerPage                 *int   `json:"per_page,omitempty"`
-	AllowOpenInvite         bool   `json:"allow_open_invite"`
-	ExcludeAllowOpenInvite  bool   `json:"exclude_allow_open_invite"`
-	GroupConstrained        bool   `json:"group_constrained"`
-	IncludeGroupConstrained bool   `json:"include_group_constrained"`
-	ExcludeGroupConstrained bool   `json:"exclude_group_constrained"`
+	AllowOpenInvite         *bool  `json:"allow_open_invite,omitempty"`
+	GroupConstrained        *bool  `json:"group_constrained,omitempty"`
+	IncludeGroupConstrained *bool  `json:"include_group_constrained,omitempty"`
 }
 
 func (t *TeamSearch) IsPaginated() bool {
