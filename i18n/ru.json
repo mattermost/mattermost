@@ -6453,7 +6453,7 @@
     },
     {
         "id": "api.bot.delete_bot_icon_image.app_error",
-        "translation": "Не удалось удалить изображение профиля."
+        "translation": "Не получилось удалить изображение профиля."
     },
     {
         "id": "api.bot.set_bot_icon_image.app_error",
