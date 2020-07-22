@@ -249,6 +249,11 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/prereq-check-enterprise.sh
+endif
+
 check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
@@ -261,7 +266,7 @@ test-te-race: ## Checks for race conditions in the team edition.
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race: ## Checks for race conditions in the enterprise edition.
+test-ee-race: check-prereqs-enterprise ## Checks for race conditions in the enterprise edition.
 	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -312,7 +317,7 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
@@ -320,11 +325,11 @@ else
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
 
-test-server-ee: start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
 
-test-server-quick: ## Runs only quick tests.
+test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
