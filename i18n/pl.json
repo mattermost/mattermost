@@ -7826,5 +7826,181 @@
     {
         "id": "app.audit.get.finding.app_error",
         "translation": "Napotkaliśmy błąd szukając audytów"
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Nie można pobrać wszystkich kanałów"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "Nie udało się pobrać użytkowników na kanale w określonym przedziale czasowym"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Nie udało się usunąć wiadomości"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Nie udało się usunąć wiadomości"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "Nie można wyczyścić rekordów"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Nie udało się usunąć wiadomości"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Nie udało się usunąć wiadomości"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Nie można usunąć tokenu"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Nie można usunąć tokenu"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Nie można zaktualizować identyfikatora urządzenia"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Nie można zaktualizować istniejącej sesji"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Nie można zapisać sesji"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Nie można usunąć wszystkich sesji"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Nie można usunąć sesji"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Nie można usunąć wszystkich sesji dla użytkownika"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania sesji użytkowników"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania sesji użytkownika"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Nie można policzyć sesji"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "Nie można usunąć schematu"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Nie można zapisać tokena"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Nie można usunąć tokenu"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Wystąpił błąd podczas aktualizowania aplikacji"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Nie można znaleźć istniejącej aplikacji do aktualizacji"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Nie można zapisać aplikacji."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Wymagana aktualizacja istniejącej aplikacji"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Nie można usunąć tokena dostępu"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Nie można usunąć kodu autoryzacji"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Wystąpił błąd podczas znajdywania aplikacji OAuth2"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Nie można znaleźć żadnych istniejących aplikacji"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Wystąpił błąd podczas wyszukiwania aplikacji"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Nie można znaleźć żądanej aplikacji"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Wystąpił błąd w znalezieniu wszystkich identyfikatorów dostępu"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Podczas usuwania aplikacji OAuth2 wystąpił błąd"
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "Nie można zapisać emoji"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Nie można zaktualizować polecenia"
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Nie można zapisać polecenia"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Nie można uzyskać poleceń"
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Nie można uzyskać poleceń"
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Nie można uzyskać komendy"
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Nie można usunąć polecenia"
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Nie można zapisać polecenia"
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "Nie można zaktualizować kanału"
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "Nie można skasować kanału"
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "Nie można pobrać wszystkich kanałów"
     }
 ]
