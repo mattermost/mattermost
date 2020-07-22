@@ -5159,30 +5159,6 @@
         "translation": "Er is een probleem opgetreden tijdens het bijwerken van de kanaal leden"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Failed to delete"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Fout bij controle of de tabel bestaat"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Failed to get all discovery rows"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Failed to update last ping at"
-    },
-    {
         "id": "store.sql_command.analytics_command_count.app_error",
         "translation": "Bericht kan niet opgehaald worden"
     },
@@ -5607,52 +5583,40 @@
         "translation": "Unable to update the preference"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Unable to get a token with this code"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het verwijderen van de rol."
     },
     {
         "id": "store.sql_role.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rol."
     },
     {
         "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rol."
     },
     {
         "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het ophalen van de rollen."
     },
     {
         "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "We could not permanently delete all the roles"
+        "translation": "We konden niet alle rollen definitief verwijderen."
     },
     {
         "id": "store.sql_role.save.insert.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het opslaan van de nieuwe rol."
     },
     {
         "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "The role was not valid"
+        "translation": "Ongeldige rol."
     },
     {
         "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Failed to open the transaction to save the role"
+        "translation": "Fout bij het openen van de transactie om de rol op te slaan."
     },
     {
         "id": "store.sql_role.save.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
+        "translation": "Fout bij het bijwerken van de rol."
     },
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
@@ -6620,11 +6584,7 @@
     },
     {
         "id": "store.sql_role.get_all.app_error",
-        "translation": "Alle rollen kunnen niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Kan niet alle tokens van een type verwijderen."
+        "translation": "Fout bij het ophalen van alle rollen."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7911,15 +7871,35 @@
         "translation": "De transactie kan niet worden vastgelegt"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Privé bericht"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanalen"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "Migration failed due to invalid progress data."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "Fout bij het verwijderen van de niet-eigen categorie."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Fout bij het toevoegen van de record aan de databank."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "Migratie mislukte door een databasefout."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Fout bij het bewaren van het token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Fout bij het verwijderen van het token."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "Fout bij het aanmaken van de initiële zijbalkcategorieën voor de gebruiker."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "Het kanaal in het verzoek behoort niet tot de gebruiker"
     }
 ]
