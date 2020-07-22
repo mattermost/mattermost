@@ -233,6 +233,11 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		return
 	}
 
+	if c.Params.LimitAfter == 0 {
+		c.SetInvalidUrlParam("limit_after")
+		return
+	}
+
 	skipFetchThreads := r.URL.Query().Get("skipFetchThreads") == "true"
 	postList, err := c.App.GetPostsForChannelAroundLastUnread(channelId, userId, c.Params.LimitBefore, c.Params.LimitAfter, skipFetchThreads)
 	if err != nil {

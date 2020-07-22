@@ -401,6 +401,7 @@ func (s *Server) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
+		"advanced_logging_config":  *cfg.LogSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
@@ -512,6 +513,7 @@ func (s *Server) trackConfig() {
 		"isdefault_support_email":                      isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
 		"custom_terms_of_service_enabled":              *cfg.SupportSettings.CustomTermsOfServiceEnabled,
 		"custom_terms_of_service_re_acceptance_period": *cfg.SupportSettings.CustomTermsOfServiceReAcceptancePeriod,
+		"enable_ask_community_link":                    *cfg.SupportSettings.EnableAskCommunityLink,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
@@ -716,6 +718,7 @@ func (s *Server) trackConfig() {
 		"is_default_global_relay_smtp_username": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpUsername, ""),
 		"is_default_global_relay_smtp_password": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.SmtpPassword, ""),
 		"is_default_global_relay_email_address": isDefault(*cfg.MessageExportSettings.GlobalRelaySettings.EmailAddress, ""),
+		"global_relay_smtp_server_timeout":      *cfg.EmailSettings.SMTPServerTimeout,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{

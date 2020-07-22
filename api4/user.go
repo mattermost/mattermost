@@ -30,6 +30,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
@@ -45,6 +46,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/password", api.ApiSessionRequired(updatePassword)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/promote", api.ApiSessionRequired(promoteGuestToUser)).Methods("POST")
 	api.BaseRoutes.User.Handle("/demote", api.ApiSessionRequired(demoteUserToGuest)).Methods("POST")
+	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiSessionRequired(convertUserToBot)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset", api.ApiHandler(resetPassword)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
@@ -96,6 +98,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -107,10 +110,16 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		var token *model.Token
-		token, err = c.App.Srv().Store.Token().GetByToken(tokenId)
-		if err != nil {
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
+		if nErr != nil {
+			var status int
+			switch nErr.(type) {
+			case *store.ErrNotFound:
+				status = http.StatusNotFound
+			default:
+				status = http.StatusInternalServerError
+			}
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
@@ -127,12 +136,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
-		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
+		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(user)
+		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(user)
+		ruser, err = c.App.CreateUserFromSignup(user, redirect)
 	}
 
 	if err != nil {
@@ -506,6 +515,68 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(stats.ToJson()))
 }
 
+func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("in_team")
+	channelID := r.URL.Query().Get("in_channel")
+	includeDeleted := r.URL.Query().Get("include_deleted")
+	includeBotAccounts := r.URL.Query().Get("include_bots")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
+
+	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
+	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(channelID) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(teamID) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
+	options := &model.UserCountOptions{
+		IncludeDeleted:     includeDeletedBool,
+		IncludeBotAccounts: includeBotAccountsBool,
+		TeamId:             teamID,
+		ChannelId:          channelID,
+		Roles:              roles,
+		ChannelRoles:       channelRoles,
+		TeamRoles:          teamRoles,
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	stats, err := c.App.GetFilteredUsersStats(options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(stats.ToJson()))
+}
+
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelIds := model.ArrayFromJson(r.Body)
 
@@ -536,6 +607,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidUrlParam("team_id")
@@ -567,6 +641,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidUrlParam("inactive")
 	}
 
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(inChannelId) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(inTeamId) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -584,6 +684,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Inactive:         inactiveBool,
 		Active:           activeBool,
 		Role:             role,
+		Roles:            roles,
+		ChannelRoles:     channelRoles,
+		TeamRoles:        teamRoles,
 		Sort:             sort,
 		Page:             c.Params.Page,
 		PerPage:          c.Params.PerPage,
@@ -818,6 +921,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: props.GroupConstrained,
 		Limit:            props.Limit,
 		Role:             props.Role,
+		Roles:            props.Roles,
+		ChannelRoles:     props.ChannelRoles,
+		TeamRoles:        props.TeamRoles,
 	}
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
@@ -1185,7 +1291,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
-			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
@@ -1847,6 +1953,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("email")
 		return
 	}
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1860,7 +1967,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
+	if err = c.App.SendEmailVerification(user, user.Email, redirect); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)
@@ -2380,4 +2487,37 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("convertUserToBot", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user", user)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	bot, err := c.App.ConvertUserToBot(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("convertedTo", bot)
+
+	w.Write(bot.ToJson())
 }

@@ -1062,6 +1062,7 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
+	AdvancedLoggingConfig  *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1103,6 +1104,10 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
@@ -1265,6 +1270,7 @@ type FileSettings struct {
 	AmazonS3AccessKeyId     *string `restricted:"true"`
 	AmazonS3SecretAccessKey *string `restricted:"true"`
 	AmazonS3Bucket          *string `restricted:"true"`
+	AmazonS3PathPrefix      *string `restricted:"true"`
 	AmazonS3Region          *string `restricted:"true"`
 	AmazonS3Endpoint        *string `restricted:"true"`
 	AmazonS3SSL             *bool   `restricted:"true"`
@@ -1327,6 +1333,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3Bucket == nil {
 		s.AmazonS3Bucket = NewString("")
+	}
+
+	if s.AmazonS3PathPrefix == nil {
+		s.AmazonS3PathPrefix = NewString("")
 	}
 
 	if s.AmazonS3Region == nil {
@@ -1591,6 +1601,7 @@ type SupportSettings struct {
 	SupportEmail                           *string
 	CustomTermsOfServiceEnabled            *bool
 	CustomTermsOfServiceReAcceptancePeriod *int
+	EnableAskCommunityLink                 *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1644,6 +1655,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
 		s.CustomTermsOfServiceReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
+	}
+
+	if s.EnableAskCommunityLink == nil {
+		s.EnableAskCommunityLink = NewBool(true)
 	}
 }
 
@@ -2594,10 +2609,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType *string // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername *string
-	SmtpPassword *string
-	EmailAddress *string // the address to send messages to
+	CustomerType      *string // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername      *string
+	SmtpPassword      *string
+	EmailAddress      *string // the address to send messages to
+	SMTPServerTimeout *int
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -2612,6 +2628,9 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.EmailAddress == nil {
 		s.EmailAddress = NewString("")
+	}
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(1800)
 	}
 }
 

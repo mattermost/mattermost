@@ -4,7 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/wiggin77/logr"
+	"github.com/mattermost/logr"
 )
 
 // Writer outputs log records to any `io.Writer`.

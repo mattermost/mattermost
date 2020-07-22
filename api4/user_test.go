@@ -23,7 +23,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -80,7 +80,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
@@ -256,7 +256,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		_, resp := th.Client.CreateUserWithToken(&user, "wrong")
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_link_invalid.app_error")
 	})
 
@@ -580,7 +580,7 @@ func TestGetMe(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -630,7 +630,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -829,7 +829,7 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1477,7 +1477,7 @@ func TestGetUsersByIds(t *testing.T) {
 
 func TestGetUsersByIdsWithOptions(t *testing.T) {
 	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
@@ -1559,7 +1559,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 }
 
 func TestGetTotalUsersStat(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
@@ -1574,7 +1574,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1737,7 +1737,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUserUnicodeNames(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1800,7 +1800,7 @@ func TestUserUnicodeNames(t *testing.T) {
 }
 
 func TestUpdateUserAuth(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team := th.CreateTeamWithClient(th.SystemAdminClient)
@@ -2167,7 +2167,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestGetUsers(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	rusers, resp := th.Client.GetUsers(0, 60, "")
@@ -3060,7 +3060,7 @@ func TestGetUserAudits(t *testing.T) {
 }
 
 func TestVerifyUserEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	email := th.GenerateTestEmail()
@@ -3068,7 +3068,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
+	token, err := th.App.Srv().EmailService.CreateVerifyEmailToken(ruser.Id, email)
 	require.Nil(t, err, "Unable to create email verify token")
 
 	_, resp := th.Client.VerifyUserEmail(token.Token)
@@ -4491,7 +4491,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 }
 
 func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4872,7 +4872,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 }
 
 func TestVerifyUserEmailWithoutToken(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("Should verify a new user", func(t *testing.T) {
@@ -5073,5 +5073,31 @@ func TestPublishUserTyping(t *testing.T) {
 		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
 		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
 		CheckServiceUnavailableStatus(t, resp)
+	})
+}
+
+func TestConvertUserToBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, resp := th.Client.ConvertUserToBot(th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, bot)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Username: GenerateTestUsername(), Password: "password"}
+
+		ruser, resp := client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		bot, resp = client.ConvertUserToBot(ruser.Id)
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
+		require.Equal(t, bot.UserId, ruser.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
 	})
 }
