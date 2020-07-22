@@ -8122,5 +8122,13 @@
     {
         "id": "api.user.delete_team.not_enabled.app_error",
         "translation": "Функция удаления команды навсегда не включена. Пожалуйста, обратитесь к системному администратору."
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Невозможно обновить боковую панель, чтобы соответствовать обновленным настройкам"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Невозможно обновить боковую панель, чтобы соответствовать удаленным настройкам"
     }
 ]
