@@ -59,7 +59,7 @@ func (a *App) GetAuditsPage(userId string, page int, perPage int) (model.Audits,
 	return audits, nil
 }
 
-// LogAuditRec logs an audit record using default CLILevel.
+// LogAuditRec logs an audit record using default LvlAuditCLI.
 func (a *App) LogAuditRec(rec *audit.Record, err error) {
 	a.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI, err)
 }
