@@ -8016,7 +8016,7 @@
     },
     {
         "id": "app.oauth.save_app.save.app_error",
-        "translation": "Uygulama kaydedilemedi"
+        "translation": "Uygulama kaydedilemedi."
     },
     {
         "id": "app.oauth.save_app.existing.app_error",
@@ -8117,5 +8117,13 @@
     {
         "id": "api.user.delete_team.not_enabled.app_error",
         "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk güncellenmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
     }
 ]
