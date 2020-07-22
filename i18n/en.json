@@ -1815,12 +1815,20 @@
     "translation": "Unable to delete user preferences."
   },
   {
+    "id": "api.preference.delete_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match deleted preferences"
+  },
+  {
     "id": "api.preference.preferences_category.get.app_error",
     "translation": "Unable to get user preferences."
   },
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Unable to set user preferences."
+  },
+  {
+    "id": "api.preference.update_preferences.update_sidebar.app_error",
+    "translation": "Unable to update sidebar to match updated preferences"
   },
   {
     "id": "api.push_notification.disabled.app_error",
