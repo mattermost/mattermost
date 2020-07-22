@@ -64,6 +64,9 @@ func logrAddTargets(lgr *logr.Logr, targets LogTargetCfg) error {
 	return errs
 }
 
+// NewLogrTarget creates a `logr.Target` based on a target config.
+// Can be used when parsing custom config files, or when programmatically adding
+// built-in targets. Use `mlog.AddTarget` to add custom targets.
 func NewLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 	formatter, err := newFormatter(name, t.Format)
 	if err != nil {
