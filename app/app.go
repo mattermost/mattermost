@@ -117,14 +117,6 @@ func (a *App) InitServer() {
 	a.saml = a.srv.Saml
 }
 
-// DO NOT CALL THIS.
-// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
-// shutdown should be called directly on the server
-func (a *App) Shutdown() {
-	a.Srv().Shutdown()
-	a.srv = nil
-}
-
 func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)

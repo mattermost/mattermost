@@ -13,6 +13,9 @@ import (
 
 func (api *API) InitSystemLocal() {
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiLocal(getLogs)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(setServerBusy)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(getServerBusyExpires)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiLocal(clearServerBusy)).Methods("DELETE")
 	api.BaseRoutes.ApiRoot.Handle("/integrity", api.ApiLocal(localCheckIntegrity)).Methods("POST")
 }
 

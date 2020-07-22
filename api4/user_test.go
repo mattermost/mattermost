@@ -23,7 +23,7 @@ import (
 )
 
 func TestCreateUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
@@ -80,7 +80,7 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestCreateUserInputFilter(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
@@ -580,7 +580,7 @@ func TestGetMe(t *testing.T) {
 }
 
 func TestGetUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -630,7 +630,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -829,7 +829,7 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 }
 
 func TestGetUserByEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1477,7 +1477,7 @@ func TestGetUsersByIds(t *testing.T) {
 
 func TestGetUsersByIdsWithOptions(t *testing.T) {
 	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
@@ -1559,7 +1559,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 }
 
 func TestGetTotalUsersStat(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
@@ -1574,7 +1574,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -1737,7 +1737,7 @@ func TestPatchUser(t *testing.T) {
 }
 
 func TestUserUnicodeNames(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1800,7 +1800,7 @@ func TestUserUnicodeNames(t *testing.T) {
 }
 
 func TestUpdateUserAuth(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team := th.CreateTeamWithClient(th.SystemAdminClient)
@@ -1857,34 +1857,32 @@ func TestDeleteUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	user := th.BasicUser
 	th.LoginBasic()
-
-	testUser := th.SystemAdminUser
-	_, resp := th.Client.DeleteUser(testUser.Id)
+	_, resp := th.Client.DeleteUser(th.SystemAdminUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-
-	_, resp = th.Client.DeleteUser(user.Id)
+	_, resp = th.Client.DeleteUser(th.BasicUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.Client.Login(testUser.Email, testUser.Password)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		_, resp = c.DeleteUser(model.NewId())
+		CheckNotFoundStatus(t, resp)
 
-	user.Id = model.NewId()
-	_, resp = th.Client.DeleteUser(user.Id)
-	CheckNotFoundStatus(t, resp)
+		_, resp = c.DeleteUser("junk")
+		CheckBadRequestStatus(t, resp)
 
-	user.Id = "junk"
-	_, resp = th.Client.DeleteUser(user.Id)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.Client.DeleteUser(testUser.Id)
-	CheckNoError(t, resp)
+		userToDelete := th.CreateUser()
+		_, resp = c.DeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+	})
 
 	selfDeleteUser := th.CreateUser()
-	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
+	th.LoginBasic()
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
+	CheckForbiddenStatus(t, resp)
 
+	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.TeamSettings.EnableUserDeactivation = false
 	})
@@ -1896,6 +1894,46 @@ func TestDeleteUser(t *testing.T) {
 	})
 	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
 	CheckNoError(t, resp)
+}
+
+func TestPermanentDeleteUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableAPIUserDeletion := *th.App.Config().ServiceSettings.EnableAPIUserDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIUserDeletion = &enableAPIUserDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
+
+	userToDelete := th.CreateUser()
+
+	t.Run("Permanent deletion not available through API if EnableAPIUserDeletion is not set", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.PermanentDeleteUser(userToDelete.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPIUserDeletion is not set", func(t *testing.T) {
+		ok, resp := th.LocalClient.PermanentDeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		userToDelete = th.CreateUser()
+		ok, resp := c.PermanentDeleteUser(userToDelete.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		_, err := th.App.GetTeam(userToDelete.Id)
+		assert.NotNil(t, err)
+
+		ok, resp = c.PermanentDeleteUser("junk")
+		CheckBadRequestStatus(t, resp)
+		require.False(t, ok, "should have returned false")
+	}, "Permanent deletion with EnableAPIUserDeletion set")
 }
 
 func TestPermanentDeleteAllUsers(t *testing.T) {
@@ -2167,7 +2205,7 @@ func TestUpdateUserActive(t *testing.T) {
 }
 
 func TestGetUsers(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	rusers, resp := th.Client.GetUsers(0, 60, "")
@@ -3060,7 +3098,7 @@ func TestGetUserAudits(t *testing.T) {
 }
 
 func TestVerifyUserEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	email := th.GenerateTestEmail()
@@ -4491,7 +4529,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 }
 
 func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -4872,25 +4910,25 @@ func TestPromoteGuestToUser(t *testing.T) {
 }
 
 func TestVerifyUserEmailWithoutToken(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("Should verify a new user", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		email := th.GenerateTestEmail()
 		user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_USER_ROLE_ID}
 		ruser, _ := th.Client.CreateUser(&user)
 
-		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken(ruser.Id)
+		vuser, resp := client.VerifyUserEmailWithoutToken(ruser.Id)
 		require.Nil(t, resp.Error)
 		require.Equal(t, ruser.Id, vuser.Id)
-	})
+	}, "Should verify a new user")
 
-	t.Run("Should not be able to find user", func(t *testing.T) {
-		vuser, resp := th.SystemAdminClient.VerifyUserEmailWithoutToken("randomId")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		vuser, resp := client.VerifyUserEmailWithoutToken("randomId")
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "api.context.invalid_url_param.app_error")
 		require.Nil(t, vuser)
-	})
+	}, "Should not be able to find user")
 
 	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
 		user := th.CreateUser()
@@ -5073,5 +5111,31 @@ func TestPublishUserTyping(t *testing.T) {
 		_, resp := th.SystemAdminClient.PublishUserTyping(th.SystemAdminUser.Id, tr)
 		CheckErrorMessage(t, resp, "api.context.server_busy.app_error")
 		CheckServiceUnavailableStatus(t, resp)
+	})
+}
+
+func TestConvertUserToBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, resp := th.Client.ConvertUserToBot(th.BasicUser.Id)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, bot)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		user := model.User{Email: th.GenerateTestEmail(), Username: GenerateTestUsername(), Password: "password"}
+
+		ruser, resp := client.CreateUser(&user)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+
+		bot, resp = client.ConvertUserToBot(ruser.Id)
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
+		require.Equal(t, bot.UserId, ruser.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNoError(t, resp)
+		require.NotNil(t, bot)
 	})
 }
