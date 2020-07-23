@@ -1096,25 +1096,17 @@ func (s *Server) trackWarnMetrics() {
 	if appErr != nil {
 		return
 	}
-
 	warnMetricsStatus := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
+				s.SendDiagnostic(TRACK_WARN_METRICS, map[string]interface{}{
+					key: warnMetricsStatus[key].StoreStatus != "false",
+				})
 				warnMetricsStatus[key] = &model.WarnMetricStatus{
 					StoreStatus: value,
 				}
 			}
 		}
 	}
-
-	s.SendDiagnostic(TRACK_WARN_METRICS, map[string]interface{}{
-		"number_of_active_users_200": getStatus(warnMetricsStatus[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].StoreStatus),
-		"number_of_active_users_400": getStatus(warnMetricsStatus[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].StoreStatus),
-		"number_of_active_users_500": getStatus(warnMetricsStatus[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].StoreStatus),
-	})
-}
-
-func getStatus(status string) bool {
-	return status != "false"
 }
