@@ -21,10 +21,12 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.User.Handle("", api.ApiLocal(localGetUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiLocal(updateUser)).Methods("PUT")
+	api.BaseRoutes.User.Handle("", api.ApiLocal(localDeleteUser)).Methods("DELETE")
 	api.BaseRoutes.User.Handle("/roles", api.ApiLocal(updateUserRoles)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiLocal(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/active", api.ApiLocal(updateUserActive)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiLocal(convertUserToBot)).Methods("POST")
+	api.BaseRoutes.User.Handle("/email/verify/member", api.ApiLocal(verifyUserEmailWithoutToken)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiLocal(localGetUserByUsername)).Methods("GET")
 	api.BaseRoutes.UserByEmail.Handle("", api.ApiLocal(localGetUserByEmail)).Methods("GET")
@@ -133,19 +135,6 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.UserListToJson(profiles)))
 }
 
-func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
-	if err := c.App.PermanentDeleteAllUsers(); err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	userIds := model.ArrayFromJson(r.Body)
 
@@ -210,6 +199,51 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.SanitizeProfile(user, c.IsSystemAdmin())
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	w.Write([]byte(user.ToJson()))
+}
+
+func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userId := c.Params.UserId
+
+	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	user, err := c.App.GetUser(userId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	auditRec.AddMeta("user", user)
+
+	if c.Params.Permanent {
+		err = c.App.PermanentDeleteUser(user)
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if err := c.App.PermanentDeleteAllUsers(); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func localGetUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
