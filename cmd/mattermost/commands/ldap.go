@@ -44,7 +44,7 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if ldapI := a.Ldap(); ldapI != nil {
 		job, err := ldapI.StartSynchronizeJob(true)
@@ -65,7 +65,7 @@ func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	toAttribute := args[0]
 	if ldapI := a.Ldap(); ldapI != nil {
