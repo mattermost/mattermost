@@ -2192,11 +2192,17 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:  opts.ExcludeChannelNames,
-		NotAssociatedToGroup: opts.NotAssociatedToGroup,
-		IncludeDeleted:       opts.IncludeDeleted,
-		Page:                 opts.Page,
-		PerPage:              opts.PerPage,
+		ExcludeChannelNames:     opts.ExcludeChannelNames,
+		NotAssociatedToGroup:    opts.NotAssociatedToGroup,
+		IncludeDeleted:          opts.IncludeDeleted,
+		Deleted:                 opts.Deleted,
+		TeamIds:                 opts.TeamIds,
+		GroupConstrained:        opts.GroupConstrained,
+		ExcludeGroupConstrained: opts.ExcludeGroupConstrained,
+		Public:                  opts.Public,
+		Private:                 opts.Private,
+		Page:                    opts.Page,
+		PerPage:                 opts.PerPage,
 	}
 
 	term = strings.TrimSpace(term)
@@ -2589,7 +2595,7 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page, perPage)
+		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
 			a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
 			break
