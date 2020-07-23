@@ -5,10 +5,8 @@ package api4
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -102,7 +100,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
 			u, resp := client.CreateUser(user) // we need the returned created user to use its Id for deletion.
 			CheckNoError(t, resp)
-			_, resp = th.SystemAdminClient.PermanentDeleteUser(u.Id)
+			_, resp = client.PermanentDeleteUser(u.Id)
 			CheckNoError(t, resp)
 		}, "ValidUser")
 
@@ -147,16 +145,19 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.EnableOpenServer = true
 			*cfg.TeamSettings.EnableUserCreation = true
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
+			*cfg.ServiceSettings.EnableAPIUserDeletion = true
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testinvalidrole@mattermost.com"
+			emailAddr := "foobar+testinvalidrole@mattermost.com"
 			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
 			_, resp := client.CreateUser(user)
 			CheckNoError(t, resp)
 			ruser, err := th.App.GetUserByEmail(emailAddr)
 			require.Nil(t, err)
 			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
+			_, resp = client.PermanentDeleteUser(ruser.Id)
+			CheckNoError(t, resp)
 		}, "InvalidRole")
 	})
 
