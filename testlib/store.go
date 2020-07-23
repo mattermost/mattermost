@@ -31,6 +31,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "AdvancedPermissionsMigrationComplete").Return(&model.System{Name: "AdvancedPermissionsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "EmojisPermissionsMigrationComplete").Return(&model.System{Name: "EmojisPermissionsMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "GuestRolesCreationMigrationComplete").Return(&model.System{Name: "GuestRolesCreationMigrationComplete", Value: "true"}, nil)
+	systemStore.On("GetByName", "SystemConsoleRolesCreationMigrationComplete").Return(&model.System{Name: "SystemConsoleRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT).Return(&model.System{Name: model.MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT).Return(&model.System{Name: model.MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS).Return(&model.System{Name: model.MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Value: "true"}, nil)
