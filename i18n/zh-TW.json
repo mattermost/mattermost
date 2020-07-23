@@ -8100,5 +8100,17 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "無法移動直接傳訊或群組頻道"
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "無法更新側邊欄以符合更新的偏好設定"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "無法更新側邊欄以符合刪除的偏好設定"
     }
 ]
