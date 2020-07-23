@@ -828,8 +828,7 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 func upgradeDatabaseToVersion527(sqlStore SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
-	sqlStore.CreateColumnIfNotExists("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)", "")
-	sqlStore.AlterColumnDefaultIfExists("Commands", "PluginId", model.NewString("NULL"), model.NewString(""))
+	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
 	// }
