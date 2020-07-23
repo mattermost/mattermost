@@ -5891,6 +5891,10 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
