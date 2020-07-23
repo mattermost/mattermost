@@ -1096,16 +1096,12 @@ func (s *Server) trackWarnMetrics() {
 	if appErr != nil {
 		return
 	}
-	warnMetricsStatus := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
 				s.SendDiagnostic(TRACK_WARN_METRICS, map[string]interface{}{
-					key: warnMetricsStatus[key].StoreStatus != "false",
+					key: value != "false",
 				})
-				warnMetricsStatus[key] = &model.WarnMetricStatus{
-					StoreStatus: value,
-				}
 			}
 		}
 	}
