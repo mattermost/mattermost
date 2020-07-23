@@ -216,9 +216,7 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
-	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error)
 	CreateInitialSidebarCategories(userId, teamId string) error
-	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)

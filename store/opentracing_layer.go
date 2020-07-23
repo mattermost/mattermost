@@ -1647,24 +1647,6 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelId strin
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateFavoritesToSidebarChannels")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId, runningOrder)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigratePublicChannels")
@@ -1681,24 +1663,6 @@ func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
 	}
 
 	return resultVar0
-}
-
-func (s *OpenTracingLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateSidebarCategories")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
 }
 
 func (s *OpenTracingLayerChannelStore) PermanentDelete(channelId string) error {
