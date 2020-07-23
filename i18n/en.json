@@ -4395,12 +4395,40 @@
     "translation": "Unable to delete user."
   },
   {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Unable to delete the personal access token."
+  },
+  {
     "id": "app.user_access_token.disabled",
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Unable to get all personal access tokens."
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Unable to get the personal access tokens by user."
+  },
+  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Unable to save the personal access token."
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "We encountered an error searching user access tokens."
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Unable to disable the access token."
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Unable to enable the access token."
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
@@ -7709,42 +7737,6 @@
   {
     "id": "store.sql_user.verify_email.app_error",
     "translation": "Unable to update verify email field."
-  },
-  {
-    "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Unable to delete the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Unable to get the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Unable to get all personal access tokens."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Unable to get the personal access token by token."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Unable to get the personal access tokens by user."
-  },
-  {
-    "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Unable to save the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.search.app_error",
-    "translation": "We encountered an error searching user access tokens."
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Unable to disable the access token."
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Unable to enable the access token."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
