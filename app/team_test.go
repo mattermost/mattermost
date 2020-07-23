@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1100,4 +1102,25 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 
 	_, err = th.App.Srv().Store.Token().GetByToken(t3.Token)
 	require.Nil(t, err)
+}
+
+func TestClearTeamMembersCache(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockTeamStore := mocks.TeamStore{}
+	tms := []*model.TeamMember{}
+	for i := 0; i < 200; i++ {
+		tms = append(tms, &model.TeamMember{
+			TeamId: "1",
+		})
+	}
+	mockTeamStore.On("GetMembers", "teamID", 0, 100, mock.Anything).Return(tms, nil)
+	mockTeamStore.On("GetMembers", "teamID", 100, 100, mock.Anything).Return([]*model.TeamMember{{
+		TeamId: "1",
+	}}, nil)
+	mockStore.On("Team").Return(&mockTeamStore)
+
+	th.App.ClearTeamMembersCache("teamID")
 }
