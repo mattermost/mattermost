@@ -405,15 +405,13 @@ func (s *Server) trackConfig() {
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
-		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
-		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
-		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
-		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
@@ -424,6 +422,7 @@ func (s *Server) trackConfig() {
 		"file_level":              *cfg.NotificationLogSettings.FileLevel,
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
+		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
