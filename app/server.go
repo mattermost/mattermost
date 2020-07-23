@@ -36,8 +36,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
@@ -110,9 +108,9 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            cache2.Cache
-	seenPendingPostIdsCache cache2.Cache
-	statusCache             cache2.Cache
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -162,8 +160,6 @@ type Server struct {
 	Saml             einterfaces.SamlInterface
 
 	CacheProvider cache.Provider
-
-	CacheProvider2 cache2.Provider
 
 	tracer                      *tracing.Tracer
 	timestampLastDiagnosticSent time.Time
@@ -247,22 +243,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = new(lru.CacheProvider)
-
-	s.CacheProvider.Connect()
-
-	s.CacheProvider2 = cache2.NewProvider()
-	if err := s.CacheProvider2.Connect(); err != nil {
+	s.CacheProvider = cache.NewProvider()
+	if err := s.CacheProvider.Connect(); err != nil {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.sessionCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: model.SESSION_CACHE_SIZE,
 	})
-	s.seenPendingPostIdsCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PENDING_POST_IDS_CACHE_SIZE,
 	})
-	s.statusCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.statusCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: model.STATUS_CACHE_SIZE,
 	})
 
@@ -303,7 +295,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider2,
+					s.CacheProvider,
 				),
 				s.SearchEngine,
 				s.Config(),
@@ -467,13 +459,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ReloadConfig()
 
+	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		s.configureAudit(s.Audit)
+		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+			mlog.Error("Error configuring audit", mlog.Err(err))
+		}
 	}
 
-	if license == nil || !*license.Features.AdvancedLogging {
+	if !allowAdvancedLogging {
 		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelCtx()
 		mlog.Info("Shutting down advanced logging")
@@ -702,11 +698,7 @@ func (s *Server) Shutdown() error {
 	}
 
 	if s.CacheProvider != nil {
-		s.CacheProvider.Close()
-	}
-
-	if s.CacheProvider2 != nil {
-		if err = s.CacheProvider2.Close(); err != nil {
+		if err = s.CacheProvider.Close(); err != nil {
 			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}

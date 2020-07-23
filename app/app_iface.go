@@ -83,10 +83,6 @@ type AppIface interface {
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
-	// DO NOT CALL THIS.
-	// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
-	// shutdown should be called directly on the server
-	Shutdown()
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -218,10 +214,10 @@ type AppIface interface {
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
-	// LogAuditRec logs an audit record using default CLILevel.
+	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
@@ -423,9 +419,9 @@ type AppIface interface {
 	CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError)
 	CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError)
 	CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
-	CreateUserFromSignup(user *model.User) (*model.User, *model.AppError)
-	CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError)
+	CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError)
+	CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError)
+	CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError)
 	CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError)
 	CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError)
 	DataRetention() einterfaces.DataRetentionInterface
@@ -856,7 +852,7 @@ type AppIface interface {
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
-	SendEmailVerification(user *model.User, newEmail string) *model.AppError
+	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 	SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)

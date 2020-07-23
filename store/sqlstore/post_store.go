@@ -692,6 +692,11 @@ func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.Post
 }
 
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if options.Page < 0 || options.PerPage < 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil,
+			fmt.Sprintf("Page=%d and PerPage=%d must be non-negative", options.Page, options.PerPage), http.StatusBadRequest)
+	}
+
 	offset := options.Page * options.PerPage
 	var posts, parents []*model.Post
 
