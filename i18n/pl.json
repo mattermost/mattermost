@@ -5164,64 +5164,8 @@
         "translation": "Wystąpił błąd podczas aktualizowania użytkownika kanału"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Nie można zapisać wiersza ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Nie udało się usunąć"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Nie udało się sprawdzić czy istnieje"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Nie udało się uzyskać wszystkich wierszy wykrywania"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Nie można zapisać wiersza ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Nie udało się zaktualizować ostatniego polecenia ping w"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Nie można policzyć poleceń"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Nie można uzyskać komendy"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Nie można usunąć polecenia"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Nie można usunąć polecenia"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Nie można uzyskać komendy"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Nie można uzyskać poleceń"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Nie można zapisać polecenia"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Nie można zastąpić istniejącego polecenia"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Nie można zaktualizować polecenia"
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5304,10 +5248,6 @@
         "translation": "nie znaleziono pasującej grupy"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "nie zmieniono wierszy"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "grupa o tej nazwie już istnieje"
     },
@@ -5342,102 +5282,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Nie można zaktualizować zadania"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Nie można zatwierdzić transakcji"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Nie można otworzyć transakcji, aby usunąć aplikację OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Podczas usuwania aplikacji OAuth2 wystąpił błąd"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Wystąpił błąd podczas wyszukiwania identyfikatora dostępu"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Wystąpił błąd w znalezieniu wszystkich identyfikatorów dostępu"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Nie można znaleźć żądanej aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Wystąpił błąd podczas wyszukiwania aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Nie można znaleźć żadnych istniejących aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Wystąpił błąd podczas znajdywania aplikacji OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Nie można znaleźć istniejącego kodu autoryzacji"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Wystąpił błąd podczas wykrycia kodu autoryzacji"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Wystąpił błąd podczas wyszukiwania identyfikatora dostępu"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Nie można usunąć kodu autoryzacji"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Nie można usunąć tokena dostępu"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Nie można usunąć kodu autoryzacji"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Nie można zapisać tokenu dostępu."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Wymagana aktualizacja istniejącej aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Nie można zapisać aplikacji."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Nie można zapisać kodu autoryzacji."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Wystąpił błąd podczas aktualizowania identyfikatora dostępu"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Nie można znaleźć istniejącej aplikacji do aktualizacji"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Wystąpił błąd podczas wyszukiwania aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Nie można zaktualizować aplikacji"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Wystąpił błąd podczas aktualizowania aplikacji"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5612,18 +5456,6 @@
         "translation": "Nie można zaktualizować preferencji"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Nie można usunąć tokenu"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Nie można uzyskać tokena z tym kodem"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Nie można zapisać tokena"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Nie można usunąć roli"
     },
@@ -5662,50 +5494,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Nie udało się zatwierdzić transakcji, aby zapisać rolę"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Nie można policzyć sesji"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania sesji użytkownika"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania sesji użytkowników"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Nie można usunąć wszystkich sesji dla użytkownika"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Nie można usunąć sesji"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Nie można usunąć wszystkich sesji"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Nie można zapisać sesji"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Nie można zaktualizować istniejącej sesji"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Nie można zaktualizować identyfikatora urządzenia"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Nie można zaktualizować last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Nie można zaktualizować ról"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6592,20 +6380,8 @@
         "translation": "Nie udało się zatwierdzić transakcji bazy danych"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Nie można aktualizować rekwizytów sesyjnych"
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Nie udało się pobrać wszystkich ról"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Niemożna usunąć wszystkich tokenów tego typu"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7778,14 +7554,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nie można dokonać transakcji"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Wiadomości bezpośrednie"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanały"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

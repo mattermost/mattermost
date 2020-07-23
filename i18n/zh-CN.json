@@ -5154,64 +5154,8 @@
         "translation": "我们更新频道成员遇到了一个错误"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "保存 ClusterDiscovery 失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "删除失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "检查表是否存在失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "获取所有探索资料失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "保存 ClusterDiscovery 失败"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "更新最近 ping 失败于"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "无法获取命令"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "无法获取命令"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "无法删除命令"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "无法删除命令"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "无法获取命令"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "无法获取命令"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "无法保存命令"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "您不能覆盖一个现有的命令"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "无法更新命令"
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5294,10 +5238,6 @@
         "translation": "未找到符合的组"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "无数据更新"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "已有用户组拥有此名称"
     },
@@ -5332,102 +5272,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "无法更新任务"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "无法提交事务"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "无法开启删除 OAuth2 应用事物"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "删除 OAuth2 应用时遇到错误"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "我们查找访问令牌时遇到一个错误"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "我们查找访问令牌时遇到一个错误"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "无法找到请求的应用"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "我们查找这个app出现错误"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "没找到现有的应用"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "寻找 OAuth2 应用时遇到错误"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "找不到现有的授权码"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "我们查找授权码遇到了一个错误"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "我们查找访问令牌时遇到一个错误"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "无法删除授权码"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "无法移除令牌"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "无法删除授权码"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "无法保存访问令牌"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "必须对现有的应用执行更新"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "无法保存应用。"
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "无法保存授权码。"
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "我们更新访问令牌时遇到一个错误"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "找不到现有的 app 更新"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "我们查找app遇到了一个错误"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "无法更新应用"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "我们更新这个app出现一个错误"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5602,18 +5446,6 @@
         "translation": "无法更新偏好"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "无法删除令牌"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "无法用此代码获取令牌"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "无法保存令牌"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "无法删除角色"
     },
@@ -5652,50 +5484,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "提交事务以保存角色失败"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "无法会话计数"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "我们查找这个会话时出错"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "我们查找用户会话时出错"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "无法删除该用户所有的会话"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "无法移除该会话"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "无法移除所有会话"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "无法保存会话"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "无法更新现有会话"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "无法更新设备 id"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "无法更新 last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "无法更新角色"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -7782,20 +7570,8 @@
         "translation": "提交数据库事务失败"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "无法更新会话属性。"
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "无法更新 expires_at。"
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "无法获取所有角色。"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "无法移除所有此类型的令牌。"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7808,10 +7584,6 @@
     {
         "id": "store.sql_post.get_post_after_time.app_error",
         "translation": "无法获取时间限制后的消息。"
-    },
-    {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "无法更新 expired_notify。"
     },
     {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
@@ -7872,14 +7644,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "无法提交事务"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "私信"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "频道"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

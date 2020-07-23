@@ -5159,64 +5159,8 @@
         "translation": "Kanal üyesi güncellenirken bir sorun çıktı."
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Küme Keşfi satırı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Silinemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Var olup olmadığı denetlenemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Tüm keşif satırları alınamadı."
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Küme Keşfi satırı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Son ping zamanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Komutlar sayılamadı."
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Komut alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Komut silinemedi."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Komut silinemedi."
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Komut alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Komutlar alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Komut kaydedilemedi."
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Var olan bir komutun üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Komut güncellenemedi."
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5299,10 +5243,6 @@
         "translation": "eşleşen bir grup bulunamadı"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "herhangi bir satır değiştirilmedi"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "aynı adlı bir takım zaten var"
     },
@@ -5337,102 +5277,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Görev güncellenemedi."
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Hareket işlenemedi."
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "OAuth2 uygulamasını silme işlemi açılamadı."
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "OAuth2 uygulaması silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Erişim kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Tüm erişim kodları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "İstenilen uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Var olan herhangi bir uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "OAuth2 uygulamaları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Var olan kimlik doğrulama kodu bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Kimlik doğrulama kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Erişim kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Kimlik doğrulama kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Erişim kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Kimlik doğrulama kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Erişim kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Güncelleme var olan uygulama için çağrılmalı."
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Uygulama kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Kimlik doğrulama kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Erişim kodu güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Güncellenecek var olan uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Uygulama güncellenemedi."
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Uygulama güncellenirken bir sorun çıktı."
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5607,18 +5451,6 @@
         "translation": "Ayar güncellenemedi."
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Kod silinemedi."
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Bu koda uyan bir kod alınamadı."
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Kod kaydedilemedi."
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Rol silinemedi."
     },
@@ -5657,50 +5489,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Rolü kaydedecek işlem yapılamadı."
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Oturumlar sayılamadı."
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Oturum aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Kullanıcı oturumları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Kullanıcının tüm oturumları silinemedi."
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Oturum silinemedi."
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Tüm oturumlar silinemedi."
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Oturum kaydedilemedi."
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Var olan oturum güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Aygıt kodu güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Son işlem zamanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Roller güncellenemedi."
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -7179,18 +6967,6 @@
         "translation": "İleti yanıtları sayısı alınamadı"
     },
     {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Bir türdeki tüm kodlar silinemez."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Sona erme süresi güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Oturum özellikleri güncellenemedi."
-    },
-    {
         "id": "store.sql_team.get_all_private_team_listing.app_error",
         "translation": "Tüm özel takımlar alınamadı."
     },
@@ -7675,10 +7451,6 @@
         "translation": "İstenilen takımların bazıları bulunamadı"
     },
     {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Sona erme bildirimi güncellenemedi."
-    },
-    {
         "id": "store.sql_team.search_private_team.app_error",
         "translation": "Özel takımlar aranırken bir sorun çıktı."
     },
@@ -7919,14 +7691,6 @@
         "translation": "İşlem tamamlanamadı."
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Doğrudan İletiler"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Kanallar"
-    },
-    {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
     },
@@ -7937,10 +7701,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Kayıt veritabanına eklenemedi."
-    },
-    {
-        "id": "sidebar.category.favorites",
-        "translation": "Sık kullanılanlar"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
