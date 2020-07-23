@@ -45,7 +45,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.UserId = c.App.Session().UserId
 
 	auditRec := c.MakeAuditRecord("createPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post", post)
 
 	hasPermission := false
@@ -377,7 +377,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deletePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("post_id", c.Params.PostId)
 
 	post, err := c.App.GetSinglePost(c.Params.PostId)
@@ -537,7 +537,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("updatePost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
 	if post.Id != c.Params.PostId {
@@ -595,7 +595,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("patchPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	// Updating the file_ids of a post is not a supported operation and will be ignored
 	post.FileIds = nil
@@ -660,7 +660,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 	}
 
 	auditRec := c.MakeAuditRecord("saveIsPinnedPost", audit.Fail)
-	defer c.LogAuditRecWithLevel(auditRec, app.RestContentLevel)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
 	if !c.App.SessionHasPermissionToChannelByPost(*c.App.Session(), c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)

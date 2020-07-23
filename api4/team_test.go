@@ -22,7 +22,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -86,7 +86,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamSanitization(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Non-admin users can create a team, but they become a team admin by doing so
@@ -259,7 +259,7 @@ func TestGetTeamUnread(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
@@ -357,7 +357,7 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestUpdateTeamSanitization(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -476,7 +476,7 @@ func TestPatchTeam(t *testing.T) {
 }
 
 func TestRestoreTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -545,7 +545,7 @@ func TestRestoreTeam(t *testing.T) {
 }
 
 func TestPatchTeamSanitization(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -577,7 +577,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 }
 
 func TestUpdateTeamPrivacy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -654,7 +654,7 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 }
 
 func TestTeamUnicodeNames(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -721,7 +721,7 @@ func TestTeamUnicodeNames(t *testing.T) {
 }
 
 func TestRegenerateTeamInviteId(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -776,7 +776,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
@@ -999,7 +999,7 @@ func TestGetAllTeams(t *testing.T) {
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
@@ -1226,7 +1226,7 @@ func TestSearchAllTeams(t *testing.T) {
 }
 
 func TestSearchAllTeamsPaged(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	commonRandom := model.NewId()
 	teams := [3]*model.Team{}
@@ -3060,7 +3060,7 @@ func TestRemoveTeamIcon(t *testing.T) {
 }
 
 func TestUpdateTeamScheme(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
