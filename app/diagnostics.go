@@ -1101,7 +1101,9 @@ func (s *Server) trackWarnMetrics() {
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
-				warnMetricsStatus[key].StoreStatus = value
+				warnMetricsStatus[key] = &model.WarnMetricStatus{
+					StoreStatus: value,
+				}
 			}
 		}
 	}

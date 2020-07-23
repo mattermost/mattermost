@@ -1154,14 +1154,13 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 			continue
 		}
 
-		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: "true"}); err != nil {
+		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
 			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
 			continue
 		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
 
 		if !warnMetric.IsBotOnly {
-			mlog.Info("Number of active users is greater than limit")
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)

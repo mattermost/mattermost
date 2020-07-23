@@ -199,7 +199,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
-				if !warnMetric.IsBotOnly && value == "true" {
+				if !warnMetric.IsBotOnly && value == model.WARN_METRIC_STATUS_LIMIT_REACHED {
 					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil)
 				}
 			}

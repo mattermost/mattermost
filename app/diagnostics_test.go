@@ -240,6 +240,7 @@ func TestRudderDiagnostics(t *testing.T) {
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
 			TRACK_PLUGINS,
+			TRACK_WARN_METRICS,
 		} {
 			require.Contains(t, info, item)
 		}

@@ -26,9 +26,10 @@ const (
 )
 
 const (
-	WARN_METRIC_STATUS_RUNONCE      = "runonce"
-	WARN_METRIC_STATUS_ACK          = "ack"
-	WARN_METRIC_STATUS_STORE_PREFIX = "warn_metric_"
+	WARN_METRIC_STATUS_LIMIT_REACHED = "true"
+	WARN_METRIC_STATUS_RUNONCE       = "runonce"
+	WARN_METRIC_STATUS_ACK           = "ack"
+	WARN_METRIC_STATUS_STORE_PREFIX  = "warn_metric_"
 )
 
 type System struct {
