@@ -550,15 +550,19 @@ func (es *EmailService) sendNotificationMail(to, subject, htmlBody string) *mode
 }
 
 func (es *EmailService) sendMail(to, subject, htmlBody string) *model.AppError {
+	return es.sendMailWithCC(to, subject, htmlBody, "")
+}
+
+func (es *EmailService) sendMailWithCC(to, subject, htmlBody string, ccMail string) *model.AppError {
 	license := es.srv.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, es.srv.Config(), license != nil && *license.Features.Compliance, ccMail)
 }
 
 func (es *EmailService) sendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader) *model.AppError {
 	license := es.srv.License()
 	config := es.srv.Config()
 
-	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance)
+	return mailservice.SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, embeddedFiles, config, license != nil && *license.Features.Compliance, "")
 }
 
 func (es *EmailService) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
