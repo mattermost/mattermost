@@ -4519,10 +4519,10 @@ type Z_CreateCommandArgs struct {
 
 type Z_CreateCommandReturns struct {
 	A *model.Command
-	B *model.AppError
+	B error
 }
 
-func (g *apiRPCClient) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (g *apiRPCClient) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	_args := &Z_CreateCommandArgs{cmd}
 	_returns := &Z_CreateCommandReturns{}
 	if err := g.client.Call("Plugin.CreateCommand", _args, _returns); err != nil {
@@ -4533,9 +4533,10 @@ func (g *apiRPCClient) CreateCommand(cmd *model.Command) (*model.Command, *model
 
 func (s *apiRPCServer) CreateCommand(args *Z_CreateCommandArgs, returns *Z_CreateCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
+		CreateCommand(cmd *model.Command) (*model.Command, error)
 	}); ok {
 		returns.A, returns.B = hook.CreateCommand(args.A)
+		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API CreateCommand called but not implemented."))
 	}
@@ -4549,10 +4550,10 @@ type Z_ListCommandsArgs struct {
 
 type Z_ListCommandsReturns struct {
 	A []*model.Command
-	B *model.AppError
+	B error
 }
 
-func (g *apiRPCClient) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (g *apiRPCClient) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
 	_args := &Z_ListCommandsArgs{teamID, customOnly}
 	_returns := &Z_ListCommandsReturns{}
 	if err := g.client.Call("Plugin.ListCommands", _args, _returns); err != nil {
@@ -4563,9 +4564,10 @@ func (g *apiRPCClient) ListCommands(teamID string, customOnly bool) ([]*model.Co
 
 func (s *apiRPCServer) ListCommands(args *Z_ListCommandsArgs, returns *Z_ListCommandsReturns) error {
 	if hook, ok := s.impl.(interface {
-		ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError)
+		ListCommands(teamID string, customOnly bool) ([]*model.Command, error)
 	}); ok {
 		returns.A, returns.B = hook.ListCommands(args.A, args.B)
+		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API ListCommands called but not implemented."))
 	}
@@ -4578,10 +4580,10 @@ type Z_GetCommandArgs struct {
 
 type Z_GetCommandReturns struct {
 	A *model.Command
-	B *model.AppError
+	B error
 }
 
-func (g *apiRPCClient) GetCommand(commandID string) (*model.Command, *model.AppError) {
+func (g *apiRPCClient) GetCommand(commandID string) (*model.Command, error) {
 	_args := &Z_GetCommandArgs{commandID}
 	_returns := &Z_GetCommandReturns{}
 	if err := g.client.Call("Plugin.GetCommand", _args, _returns); err != nil {
@@ -4592,9 +4594,10 @@ func (g *apiRPCClient) GetCommand(commandID string) (*model.Command, *model.AppE
 
 func (s *apiRPCServer) GetCommand(args *Z_GetCommandArgs, returns *Z_GetCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetCommand(commandID string) (*model.Command, *model.AppError)
+		GetCommand(commandID string) (*model.Command, error)
 	}); ok {
 		returns.A, returns.B = hook.GetCommand(args.A)
+		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetCommand called but not implemented."))
 	}
@@ -4608,10 +4611,10 @@ type Z_UpdateCommandArgs struct {
 
 type Z_UpdateCommandReturns struct {
 	A *model.Command
-	B *model.AppError
+	B error
 }
 
-func (g *apiRPCClient) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+func (g *apiRPCClient) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
 	_args := &Z_UpdateCommandArgs{commandID, updatedCmd}
 	_returns := &Z_UpdateCommandReturns{}
 	if err := g.client.Call("Plugin.UpdateCommand", _args, _returns); err != nil {
@@ -4622,9 +4625,10 @@ func (g *apiRPCClient) UpdateCommand(commandID string, updatedCmd *model.Command
 
 func (s *apiRPCServer) UpdateCommand(args *Z_UpdateCommandArgs, returns *Z_UpdateCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError)
+		UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error)
 	}); ok {
 		returns.A, returns.B = hook.UpdateCommand(args.A, args.B)
+		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API UpdateCommand called but not implemented."))
 	}
@@ -4636,10 +4640,10 @@ type Z_DeleteCommandArgs struct {
 }
 
 type Z_DeleteCommandReturns struct {
-	A *model.AppError
+	A error
 }
 
-func (g *apiRPCClient) DeleteCommand(commandID string) *model.AppError {
+func (g *apiRPCClient) DeleteCommand(commandID string) error {
 	_args := &Z_DeleteCommandArgs{commandID}
 	_returns := &Z_DeleteCommandReturns{}
 	if err := g.client.Call("Plugin.DeleteCommand", _args, _returns); err != nil {
@@ -4650,9 +4654,10 @@ func (g *apiRPCClient) DeleteCommand(commandID string) *model.AppError {
 
 func (s *apiRPCServer) DeleteCommand(args *Z_DeleteCommandArgs, returns *Z_DeleteCommandReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteCommand(commandID string) *model.AppError
+		DeleteCommand(commandID string) error
 	}); ok {
 		returns.A = hook.DeleteCommand(args.A)
+		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteCommand called but not implemented."))
 	}

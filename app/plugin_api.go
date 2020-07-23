@@ -930,16 +930,16 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	return responseTransfer.GenerateResponse()
 }
 
-func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	cmd.CreatorId = ""
 	cmd.PluginId = api.id
 
 	cmd, appErr := api.app.CreateCommand(cmd)
 
-	return cmd, appErr
+	return cmd, normalizeAppErr(appErr)
 }
 
-func (api *PluginAPI) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (api *PluginAPI) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
 	var commands []*model.Command
 	var appErr *model.AppError
 
@@ -950,17 +950,18 @@ func (api *PluginAPI) ListCommands(teamID string, customOnly bool) ([]*model.Com
 		// If EnableCommands setting is false, this will not return custom team commands.
 		commands, appErr = api.app.ListAllCommands(teamID, api.app.T)
 	}
-	return commands, appErr
+	return commands, normalizeAppErr(appErr)
 }
 
-func (api *PluginAPI) GetCommand(commandID string) (*model.Command, *model.AppError) {
-	return api.app.GetCommand(commandID)
+func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
+	cmd, appErr := api.app.GetCommand(commandID)
+	return cmd, normalizeAppErr(appErr)
 }
 
-func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
-	oldCmd, appErr := api.GetCommand(commandID)
-	if appErr != nil {
-		return nil, appErr
+func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
+	oldCmd, err := api.GetCommand(commandID)
+	if err != nil {
+		return nil, err
 	}
 
 	updatedCmd.Trigger = strings.ToLower(updatedCmd.Trigger)
@@ -978,6 +979,28 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 	return api.app.Srv().Store.Command().Update(updatedCmd)
 }
 
-func (api *PluginAPI) DeleteCommand(commandID string) *model.AppError {
-	return api.app.DeleteCommand(commandID)
+func (api *PluginAPI) DeleteCommand(commandID string) error {
+	appErr := api.app.DeleteCommand(commandID)
+	return normalizeAppErr(appErr)
+}
+
+// normalizeAppError returns a truly nil error if appErr is nil.
+//
+// This doesn't happen automatically when a *model.AppError is cast to an error, since the
+// resulting error interface has a concrete type with a nil value. This leads to the seemingly
+// impossible:
+//
+//     var err error
+//     err = func() *model.AppError { return nil }()
+//     if err != nil {
+//         panic("err != nil, which surprises most")
+//     }
+//
+// This is a conversion function needed until all server functions return error
+func normalizeAppErr(appErr *model.AppError) error {
+	if appErr == nil {
+		return nil
+	}
+
+	return appErr
 }

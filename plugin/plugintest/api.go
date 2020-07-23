@@ -169,7 +169,7 @@ func (_m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.App
 }
 
 // CreateCommand provides a mock function with given fields: cmd
-func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	ret := _m.Called(cmd)
 
 	var r0 *model.Command
@@ -181,13 +181,11 @@ func (_m *API) CreateCommand(cmd *model.Command) (*model.Command, *model.AppErro
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Command) error); ok {
 		r1 = rf(cmd)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -392,16 +390,14 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 }
 
 // DeleteCommand provides a mock function with given fields: commandID
-func (_m *API) DeleteCommand(commandID string) *model.AppError {
+func (_m *API) DeleteCommand(commandID string) error {
 	ret := _m.Called(commandID)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(commandID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
@@ -869,7 +865,7 @@ func (_m *API) GetChannelsForTeamForUser(teamId string, userId string, includeDe
 }
 
 // GetCommand provides a mock function with given fields: commandID
-func (_m *API) GetCommand(commandID string) (*model.Command, *model.AppError) {
+func (_m *API) GetCommand(commandID string) (*model.Command, error) {
 	ret := _m.Called(commandID)
 
 	var r0 *model.Command
@@ -881,13 +877,11 @@ func (_m *API) GetCommand(commandID string) (*model.Command, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(commandID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -2414,7 +2408,7 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 }
 
 // ListCommands provides a mock function with given fields: teamID, customOnly
-func (_m *API) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (_m *API) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
 	ret := _m.Called(teamID, customOnly)
 
 	var r0 []*model.Command
@@ -2426,13 +2420,11 @@ func (_m *API) ListCommands(teamID string, customOnly bool) ([]*model.Command, *
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(teamID, customOnly)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -3017,7 +3009,7 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 }
 
 // UpdateCommand provides a mock function with given fields: commandID, updatedCmd
-func (_m *API) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+func (_m *API) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
 	ret := _m.Called(commandID, updatedCmd)
 
 	var r0 *model.Command
@@ -3029,13 +3021,11 @@ func (_m *API) UpdateCommand(commandID string, updatedCmd *model.Command) (*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.Command) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, *model.Command) error); ok {
 		r1 = rf(commandID, updatedCmd)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

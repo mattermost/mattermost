@@ -979,7 +979,7 @@ type API interface {
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	CreateCommand(cmd *model.Command) (*model.Command, *model.AppError)
+	CreateCommand(cmd *model.Command) (*model.Command, error)
 
 	// ListCommands returns the list of slash commands for teamID. If customOnly is true, it
 	// will return only the custom commands for teamID (e.g., those created through the integrations
@@ -987,13 +987,13 @@ type API interface {
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError)
+	ListCommands(teamID string, customOnly bool) ([]*model.Command, error)
 
 	// GetCommand returns the command definition based on a command id string.
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	GetCommand(commandID string) (*model.Command, *model.AppError)
+	GetCommand(commandID string) (*model.Command, error)
 
 	// UpdateCommand updates a single command (commandID) with the information provided in the
 	// updatedCmd model.Command struct. The following fields in the command cannot be updated:
@@ -1002,13 +1002,13 @@ type API interface {
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError)
+	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error)
 
 	// DeleteCommand deletes a slash command (commandID).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	DeleteCommand(commandID string) *model.AppError
+	DeleteCommand(commandID string) error
 }
 
 var handshake = plugin.HandshakeConfig{

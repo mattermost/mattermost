@@ -1037,35 +1037,35 @@ func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) 
 	return _returnsA
 }
 
-func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreateCommand(cmd)
 	api.recordTime(startTime, "CreateCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) ListCommands(teamID string, customOnly bool) ([]*model.Command, *model.AppError) {
+func (api *apiTimerLayer) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.ListCommands(teamID, customOnly)
 	api.recordTime(startTime, "ListCommands", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetCommand(commandID string) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) GetCommand(commandID string) (*model.Command, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetCommand(commandID)
 	api.recordTime(startTime, "GetCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, *model.AppError) {
+func (api *apiTimerLayer) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.UpdateCommand(commandID, updatedCmd)
 	api.recordTime(startTime, "UpdateCommand", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) DeleteCommand(commandID string) *model.AppError {
+func (api *apiTimerLayer) DeleteCommand(commandID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.DeleteCommand(commandID)
 	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
