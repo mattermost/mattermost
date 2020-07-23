@@ -263,6 +263,20 @@ func (_m *ChannelStore) DeleteSidebarCategory(categoryId string) *model.AppError
 	return r0
 }
 
+// DeleteSidebarChannelsByPreferences provides a mock function with given fields: preferences
+func (_m *ChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	ret := _m.Called(preferences)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Preferences) error); ok {
+		r0 = rf(preferences)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id, allowFromCache
 func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(id, allowFromCache)
@@ -2026,16 +2040,14 @@ func (_m *ChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channe
 }
 
 // UpdateSidebarChannelsByPreferences provides a mock function with given fields: preferences
-func (_m *ChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (_m *ChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	ret := _m.Called(preferences)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Preferences) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Preferences) error); ok {
 		r0 = rf(preferences)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0

@@ -702,6 +702,24 @@ func (s *OpenTracingLayerChannelStore) DeleteSidebarCategory(categoryId string) 
 	return resultVar0
 }
 
+func (s *OpenTracingLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.DeleteSidebarChannelsByPreferences")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0 := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.Get")
@@ -2169,7 +2187,7 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channe
 	return resultVar0
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarChannelsByPreferences")
 	s.Root.Store.SetContext(newCtx)

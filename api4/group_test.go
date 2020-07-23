@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -60,7 +60,7 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestPatchGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -408,7 +408,7 @@ func TestGetGroupChannel(t *testing.T) {
 }
 
 func TestGetGroupTeams(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -1073,7 +1073,7 @@ func TestGetGroupStats(t *testing.T) {
 }
 
 func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))

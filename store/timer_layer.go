@@ -664,6 +664,22 @@ func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryId string) *model
 	return resultVar0
 }
 
+func (s *TimerLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	start := timemodule.Now()
+
+	resultVar0 := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed)
+	}
+	return resultVar0
+}
+
 func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
@@ -2001,7 +2017,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *mod
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)

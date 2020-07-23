@@ -7305,6 +7305,105 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Nil(t, res)
 	})
 
+	t.Run("should add and remove favorites preferences, even if the channel is already favorited in preferences", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+		teamId2 := model.NewId()
+
+		// Create the initial categories and find the favorites categories in each team
+		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+
+		favoritesCategory := categories.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
+
+		nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId2)
+		require.Nil(t, nErr)
+
+		categories2, err := ss.Channel().GetSidebarCategories(userId, teamId2)
+		require.Nil(t, err)
+
+		favoritesCategory2 := categories2.Categories[0]
+		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory2.Type)
+
+		// Create a direct channel
+		otherUserId := model.NewId()
+
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+			&model.Channel{
+				Name: model.GetDMNameFromIds(userId, otherUserId),
+				Type: model.CHANNEL_DIRECT,
+			},
+			&model.ChannelMember{
+				UserId:      userId,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+			&model.ChannelMember{
+				UserId:      otherUserId,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+		)
+		assert.Nil(t, nErr)
+
+		// Assign it to favorites on the first team. The favorites preference gets set for all teams.
+		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{dmChannel.Id},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err := ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		// Assign it to favorites on the second team. The favorites preference is already set.
+		updated, err := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory2.SidebarCategory,
+				Channels:        []string{dmChannel.Id},
+			},
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, []string{dmChannel.Id}, updated[0].Channels)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, "true", res.Value)
+
+		// Remove it from favorites on the first team. This clears the favorites preference for all teams.
+		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory.SidebarCategory,
+				Channels:        []string{},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+
+		// Remove it from favorites on the second team. The favorites preference was already deleted.
+		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId2, []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: favoritesCategory2.SidebarCategory,
+				Channels:        []string{},
+			},
+		})
+		assert.Nil(t, err)
+
+		res, err = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
+		assert.Equal(t, sql.ErrNoRows.Error(), err.DetailedError)
+		assert.Nil(t, res)
+	})
+
 	t.Run("should not affect other users' favorites preferences", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
