@@ -1424,29 +1424,6 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId s
 	return r0, r1
 }
 
-// MigrateFavoritesToSidebarChannels provides a mock function with given fields: lastUserId, runningOrder
-func (_m *ChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
-	ret := _m.Called(lastUserId, runningOrder)
-
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(string, int64) map[string]interface{}); ok {
-		r0 = rf(lastUserId, runningOrder)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
-		r1 = rf(lastUserId, runningOrder)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // MigratePublicChannels provides a mock function with given fields:
 func (_m *ChannelStore) MigratePublicChannels() error {
 	ret := _m.Called()
@@ -1459,29 +1436,6 @@ func (_m *ChannelStore) MigratePublicChannels() error {
 	}
 
 	return r0
-}
-
-// MigrateSidebarCategories provides a mock function with given fields: fromTeamId, fromUserId
-func (_m *ChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, error) {
-	ret := _m.Called(fromTeamId, fromUserId)
-
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(string, string) map[string]interface{}); ok {
-		r0 = rf(fromTeamId, fromUserId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(fromTeamId, fromUserId)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // PermanentDelete provides a mock function with given fields: channelId
