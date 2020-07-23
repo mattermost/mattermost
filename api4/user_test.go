@@ -588,30 +588,32 @@ func TestGetUser(t *testing.T) {
 
 	th.App.UpdateUser(user, false)
 
-	ruser, resp := th.Client.GetUser(user.Id, "")
-	CheckNoError(t, resp)
-	CheckUserSanitization(t, ruser)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		ruser, resp := client.GetUser(user.Id, "")
+		CheckNoError(t, resp)
+		CheckUserSanitization(t, ruser)
 
-	require.Equal(t, user.Email, ruser.Email)
+		require.Equal(t, user.Email, ruser.Email)
 
-	assert.NotNil(t, ruser.Props)
-	assert.Equal(t, ruser.Props["testpropkey"], "testpropvalue")
-	require.False(t, ruser.IsBot)
+		assert.NotNil(t, ruser.Props)
+		assert.Equal(t, ruser.Props["testpropkey"], "testpropvalue")
+		require.False(t, ruser.IsBot)
 
-	ruser, resp = th.Client.GetUser(user.Id, resp.Etag)
-	CheckEtag(t, ruser, resp)
+		ruser, resp = client.GetUser(user.Id, resp.Etag)
+		CheckEtag(t, ruser, resp)
 
-	_, resp = th.Client.GetUser("junk", "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetUser("junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = th.Client.GetUser(model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetUser(model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
+	})
 
 	// Check against privacy config settings
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-	ruser, resp = th.Client.GetUser(user.Id, "")
+	ruser, resp := th.Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
 
 	require.Empty(t, ruser.Email, "email should be blank")
@@ -751,23 +753,25 @@ func TestGetUserByUsername(t *testing.T) {
 
 	user := th.BasicUser
 
-	ruser, resp := th.Client.GetUserByUsername(user.Username, "")
-	CheckNoError(t, resp)
-	CheckUserSanitization(t, ruser)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		ruser, resp := client.GetUserByUsername(user.Username, "")
+		CheckNoError(t, resp)
+		CheckUserSanitization(t, ruser)
 
-	require.Equal(t, user.Email, ruser.Email)
+		require.Equal(t, user.Email, ruser.Email)
 
-	ruser, resp = th.Client.GetUserByUsername(user.Username, resp.Etag)
-	CheckEtag(t, ruser, resp)
+		ruser, resp = client.GetUserByUsername(user.Username, resp.Etag)
+		CheckEtag(t, ruser, resp)
 
-	_, resp = th.Client.GetUserByUsername(GenerateTestUsername(), "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetUserByUsername(GenerateTestUsername(), "")
+		CheckNotFoundStatus(t, resp)
+	})
 
 	// Check against privacy config settings
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-	ruser, resp = th.Client.GetUserByUsername(th.BasicUser2.Username, "")
+	ruser, resp := th.Client.GetUserByUsername(th.BasicUser2.Username, "")
 	CheckNoError(t, resp)
 
 	require.Empty(t, ruser.Email, "email should be blank")
@@ -782,25 +786,12 @@ func TestGetUserByUsername(t *testing.T) {
 	_, resp = th.Client.GetUserByUsername(user.Username, "")
 	CheckUnauthorizedStatus(t, resp)
 
-	// System admins should ignore privacy settings
-	ruser, _ = th.SystemAdminClient.GetUserByUsername(user.Username, resp.Etag)
-	require.NotEmpty(t, ruser.Email, "email should not be blank")
-	require.NotEmpty(t, ruser.FirstName, "first name should not be blank")
-	require.NotEmpty(t, ruser.LastName, "last name should not be blank")
-
-	t.Run("Get user with a / character in the email", func(t *testing.T) {
-		user := &model.User{
-			Email:    "email/with/slashes@example.com",
-			Username: GenerateTestUsername(),
-			Password: "Pa$$word11",
-		}
-
-		newUser, resp := th.SystemAdminClient.CreateUser(user)
-		require.Nil(t, resp.Error)
-
-		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
-		require.Nil(t, resp.Error)
-		require.Equal(t, ruser.Id, newUser.Id)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// System admins should ignore privacy settings
+		ruser, _ = client.GetUserByUsername(user.Username, resp.Etag)
+		require.NotEmpty(t, ruser.Email, "email should not be blank")
+		require.NotEmpty(t, ruser.FirstName, "first name should not be blank")
+		require.NotEmpty(t, ruser.LastName, "last name should not be blank")
 	})
 }
 
@@ -833,36 +824,50 @@ func TestGetUserByEmail(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.CreateUser()
+	userWithSlash, resp := th.SystemAdminClient.CreateUser(&model.User{
+		Email:    "email/with/slashes@example.com",
+		Username: GenerateTestUsername(),
+		Password: "Pa$$word11",
+	})
+	require.Nil(t, resp.Error)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PrivacySettings.ShowEmailAddress = true
 		*cfg.PrivacySettings.ShowFullName = true
 	})
 
-	t.Run("should be able to get another user by email", func(t *testing.T) {
-		ruser, resp := th.Client.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
-		CheckUserSanitization(t, ruser)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		t.Run("should be able to get another user by email", func(t *testing.T) {
+			ruser, resp := client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
+			CheckUserSanitization(t, ruser)
 
-		require.Equal(t, user.Email, ruser.Email)
-	})
+			require.Equal(t, user.Email, ruser.Email)
+		})
 
-	t.Run("should return not modified when provided with a matching etag", func(t *testing.T) {
-		_, resp := th.Client.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
+		t.Run("Get user with a / character in the email", func(t *testing.T) {
+			ruser, resp := client.GetUserByEmail(userWithSlash.Email, "")
+			require.Nil(t, resp.Error)
+			require.Equal(t, ruser.Id, userWithSlash.Id)
+		})
 
-		ruser, resp := th.Client.GetUserByEmail(user.Email, resp.Etag)
-		CheckEtag(t, ruser, resp)
-	})
+		t.Run("should return not modified when provided with a matching etag", func(t *testing.T) {
+			_, resp := client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
 
-	t.Run("should return bad request when given an invalid email", func(t *testing.T) {
-		_, resp := th.Client.GetUserByEmail(GenerateTestUsername(), "")
-		CheckBadRequestStatus(t, resp)
-	})
+			ruser, resp := client.GetUserByEmail(user.Email, resp.Etag)
+			CheckEtag(t, ruser, resp)
+		})
 
-	t.Run("should return 404 when given a non-existent email", func(t *testing.T) {
-		_, resp := th.Client.GetUserByEmail(th.GenerateTestEmail(), "")
-		CheckNotFoundStatus(t, resp)
+		t.Run("should return bad request when given an invalid email", func(t *testing.T) {
+			_, resp := client.GetUserByEmail(GenerateTestUsername(), "")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("should return 404 when given a non-existent email", func(t *testing.T) {
+			_, resp := client.GetUserByEmail(th.GenerateTestEmail(), "")
+			CheckNotFoundStatus(t, resp)
+		})
 	})
 
 	t.Run("should sanitize full name for non-admin based on privacy settings", func(t *testing.T) {
@@ -886,27 +891,6 @@ func TestGetUserByEmail(t *testing.T) {
 		assert.NotEqual(t, "", ruser.LastName, "last name should be set")
 	})
 
-	t.Run("should not sanitize full name for admin, regardless of privacy settings", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PrivacySettings.ShowEmailAddress = true
-			*cfg.PrivacySettings.ShowFullName = false
-		})
-
-		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
-		assert.NotEqual(t, "", ruser.FirstName, "first name should be set")
-		assert.NotEqual(t, "", ruser.LastName, "last name should be set")
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PrivacySettings.ShowFullName = true
-		})
-
-		ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
-		assert.NotEqual(t, "", ruser.FirstName, "first name should be set")
-		assert.NotEqual(t, "", ruser.LastName, "last name should be set")
-	})
-
 	t.Run("should return forbidden for non-admin when privacy settings hide email", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PrivacySettings.ShowEmailAddress = false
@@ -924,22 +908,45 @@ func TestGetUserByEmail(t *testing.T) {
 		assert.Equal(t, user.Email, ruser.Email, "email should be set")
 	})
 
-	t.Run("should always return email for admin, regardless of privacy settings", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PrivacySettings.ShowEmailAddress = false
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("should not sanitize full name for admin, regardless of privacy settings", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PrivacySettings.ShowEmailAddress = true
+				*cfg.PrivacySettings.ShowFullName = false
+			})
+
+			ruser, resp := client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
+			assert.NotEqual(t, "", ruser.FirstName, "first name should be set")
+			assert.NotEqual(t, "", ruser.LastName, "last name should be set")
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PrivacySettings.ShowFullName = true
+			})
+
+			ruser, resp = client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
+			assert.NotEqual(t, "", ruser.FirstName, "first name should be set")
+			assert.NotEqual(t, "", ruser.LastName, "last name should be set")
 		})
 
-		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
-		assert.Equal(t, user.Email, ruser.Email, "email should be set")
+		t.Run("should always return email for admin, regardless of privacy settings", func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PrivacySettings.ShowEmailAddress = false
+			})
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PrivacySettings.ShowEmailAddress = true
+			ruser, resp := client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
+			assert.Equal(t, user.Email, ruser.Email, "email should be set")
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PrivacySettings.ShowEmailAddress = true
+			})
+
+			ruser, resp = client.GetUserByEmail(user.Email, "")
+			CheckNoError(t, resp)
+			assert.Equal(t, user.Email, ruser.Email, "email should be set")
 		})
-
-		ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, "")
-		CheckNoError(t, resp)
-		assert.Equal(t, user.Email, ruser.Email, "email should be set")
 	})
 }
 
@@ -1437,34 +1444,36 @@ func TestGetUsersByIds(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	t.Run("should return the user", func(t *testing.T) {
-		users, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		t.Run("should return the user", func(t *testing.T) {
+			users, resp := client.GetUsersByIds([]string{th.BasicUser.Id})
 
-		CheckNoError(t, resp)
+			CheckNoError(t, resp)
 
-		assert.Equal(t, th.BasicUser.Id, users[0].Id)
-		CheckUserSanitization(t, users[0])
-	})
+			assert.Equal(t, th.BasicUser.Id, users[0].Id)
+			CheckUserSanitization(t, users[0])
+		})
 
-	t.Run("should return error when no IDs are specified", func(t *testing.T) {
-		_, resp := th.Client.GetUsersByIds([]string{})
+		t.Run("should return error when no IDs are specified", func(t *testing.T) {
+			_, resp := client.GetUsersByIds([]string{})
 
-		CheckBadRequestStatus(t, resp)
-	})
+			CheckBadRequestStatus(t, resp)
+		})
 
-	t.Run("should not return an error for invalid IDs", func(t *testing.T) {
-		users, resp := th.Client.GetUsersByIds([]string{"junk"})
+		t.Run("should not return an error for invalid IDs", func(t *testing.T) {
+			users, resp := client.GetUsersByIds([]string{"junk"})
 
-		CheckNoError(t, resp)
-		require.Empty(t, users, "no users should be returned")
-	})
+			CheckNoError(t, resp)
+			require.Empty(t, users, "no users should be returned")
+		})
 
-	t.Run("should still return users for valid IDs when invalid IDs are specified", func(t *testing.T) {
-		users, resp := th.Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
+		t.Run("should still return users for valid IDs when invalid IDs are specified", func(t *testing.T) {
+			users, resp := client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
 
-		CheckNoError(t, resp)
+			CheckNoError(t, resp)
 
-		require.Len(t, users, 1, "1 user should be returned")
+			require.Len(t, users, 1, "1 user should be returned")
+		})
 	})
 
 	t.Run("should return error when not logged in", func(t *testing.T) {
@@ -2208,30 +2217,32 @@ func TestGetUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	rusers, resp := th.Client.GetUsers(0, 60, "")
-	CheckNoError(t, resp)
-	for _, u := range rusers {
-		CheckUserSanitization(t, u)
-	}
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rusers, resp := client.GetUsers(0, 60, "")
+		CheckNoError(t, resp)
+		for _, u := range rusers {
+			CheckUserSanitization(t, u)
+		}
 
-	rusers, resp = th.Client.GetUsers(0, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, rusers, 1, "should be 1 per page")
+		rusers, resp = client.GetUsers(0, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, rusers, 1, "should be 1 per page")
 
-	rusers, resp = th.Client.GetUsers(1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, rusers, 1, "should be 1 per page")
+		rusers, resp = client.GetUsers(1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, rusers, 1, "should be 1 per page")
 
-	rusers, resp = th.Client.GetUsers(10000, 100, "")
-	CheckNoError(t, resp)
-	require.Empty(t, rusers, "should be no users")
+		rusers, resp = client.GetUsers(10000, 100, "")
+		CheckNoError(t, resp)
+		require.Empty(t, rusers, "should be no users")
 
-	// Check default params for page and per_page
-	_, err := th.Client.DoApiGet("/users", "")
-	require.Nil(t, err)
+		// Check default params for page and per_page
+		_, err := client.DoApiGet("/users", "")
+		require.Nil(t, err)
+	})
 
 	th.Client.Logout()
-	_, resp = th.Client.GetUsers(0, 60, "")
+	_, resp := th.Client.GetUsers(0, 60, "")
 	CheckUnauthorizedStatus(t, resp)
 }
 
