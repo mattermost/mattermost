@@ -1280,7 +1280,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(FILE_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
