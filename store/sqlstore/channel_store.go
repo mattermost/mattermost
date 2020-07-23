@@ -2816,8 +2816,7 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 	query := s.getQueryBuilder().
 		Select(selectStr).
 		From("Channels AS c").
-		Join("Teams AS t ON t.Id = c.TeamId").
-		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
+		Join("Teams AS t ON t.Id = c.TeamId")
 
 	// don't bother ordering or limiting if we're just getting the count
 	if !countQuery {
@@ -2825,8 +2824,9 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 			OrderBy("c.DisplayName, t.DisplayName").
 			Limit(uint64(limit))
 	}
-
-	if !opts.IncludeDeleted {
+	if opts.Deleted {
+		query = query.Where(sq.NotEq{"c.DeleteAt": int(0)})
+	} else if !opts.IncludeDeleted {
 		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 	}
 
@@ -2852,6 +2852,30 @@ func (s SqlChannelStore) channelSearchQuery(term string, opts store.ChannelSearc
 
 	if len(opts.NotAssociatedToGroup) > 0 {
 		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
+
+	if len(opts.TeamIds) > 0 {
+		query = query.Where(sq.Eq{"c.TeamId": opts.TeamIds})
+	}
+
+	if opts.GroupConstrained {
+		query = query.Where(sq.Eq{"c.GroupConstrained": true})
+	} else if opts.ExcludeGroupConstrained {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.GroupConstrained": true},
+			sq.Eq{"c.GroupConstrained": nil},
+		})
+	}
+
+	if opts.Public && !opts.Private {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_OPEN})
+	} else if opts.Private && !opts.Public {
+		query = query.Where(sq.Eq{"c.Type": model.CHANNEL_PRIVATE})
+	} else {
+		query = query.Where(sq.Or{
+			sq.Eq{"c.Type": model.CHANNEL_OPEN},
+			sq.Eq{"c.Type": model.CHANNEL_PRIVATE},
+		})
 	}
 
 	return query
