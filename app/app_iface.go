@@ -83,10 +83,6 @@ type AppIface interface {
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
-	// DO NOT CALL THIS.
-	// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
-	// shutdown should be called directly on the server
-	Shutdown()
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -218,10 +214,10 @@ type AppIface interface {
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
-	// LogAuditRec logs an audit record using default CLILevel.
+	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
