@@ -7921,5 +7921,181 @@
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "Migration failed due to invalid progress data."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Kan de sessies niet tellen."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Fout bij het bewaren van het token."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Fout bij het verwijderen van het token."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Er is een probleem opgetreden bij het bijwerken van de app."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Kan de bestaande app niet vinden om bij te werken."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "De app kan niet worden opgeslagen."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Moet update voor bestaande app aanroepen."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Het toegangstoken kan niet worden verwijderd."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Kan de machtigingscode niet verwijderen."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Er is een fout opgetreden tijdens het vinden van OAuth2 applicaties."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Geen bestaande apps gevonden."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Er is een probleem opgetreden bij het zoeken naar de app."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "De gevraagde app is niet gevonden."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Er is een probleem opgetreden bij het ophalen van alle access tokens."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Kan de opdracht niet bijwerken."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Fout bij het uitvoeren van de eigen opdracht."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Kan het opdrachttoken niet opnieuw genereren."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Kan de opdracht niet verplaatsen."
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Kan de team opdrachten niet oplijsten."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Kan de auto-aanvul opdrachten niet oplijsten."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Maar dan één rij is gewijzigd."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Kan de opdrachten niet ophalen."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Kan de opdracht niet ophalen."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Kan de opdracht niet wissen."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Kan de opdracht niet bewaren."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "Fout bij het aanmaken van de initiële zijbalkcategorieën voor de gebruiker."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "Fout bij het ophalen van de statistieken."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "Het kanaal in het verzoek behoort niet tot de gebruiker"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "Fout bij het verwijderen van de niet-eigen categorie."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Fout bij het toevoegen van de record aan de databank."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "Migratie mislukte door een databasefout."
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "Ophalen van gebruikers in kanaal tijdens opgegeven periode is mislukt."
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "Opschonen van records is mislukt."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Token kan niet worden verwijderd."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Token kan niet worden verwijderd."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Het apparaat-id kan niet worden bijgewerkt."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Kan de huidige sessie niet bijwerken."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Kan de sessie niet bewaren."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Kan niet alle sessies verwijderen."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Kan de sessie niet verwijderen."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Kan niet alle sessies voor de gebruiker verwijderen."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Er is een probleem opgestreden tijdens het opzoeken van de gebruikerssessie."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Er is een fout opgetreden bij het zoeken naar de sessie."
     }
 ]

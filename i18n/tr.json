@@ -7244,7 +7244,7 @@
     },
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
-        "translation": " "
+        "translation": "Kayıtlar silinemedi."
     },
     {
         "id": "app.bot.permenent_delete.bad_id",
@@ -7604,7 +7604,7 @@
     },
     {
         "id": "ent.get_users_in_channel_during",
-        "translation": " "
+        "translation": "Kanaldaki kullanıcılar belirtilen zaman aralığında alınamadı."
     },
     {
         "id": "model.guest.is_valid.email.app_error",
@@ -7953,5 +7953,177 @@
     {
         "id": "api.invalid_channel",
         "translation": "İstekte listelenmiş kanal kullanıcıya ait değil"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Kod silinemedi."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Kod silinemedi."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Aygıt kodu güncellenemedi."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Var olan oturum güncellenemedi."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Oturum kaydedilemedi."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Tüm oturumlar silinemedi."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Oturum silinemedi."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Kullanıcının tüm oturumları silinemedi."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Kullanıcı oturumları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Oturum aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Oturumlar sayılamadı."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Kod kaydedilemedi."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Kod silinemedi."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Uygulama güncellenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Güncellenecek var olan uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Uygulama kaydedilemedi."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Güncelleme var olan uygulama için çağrılmalı."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Erişim kodu silinemedi."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Kimlik doğrulama kodu silinemedi."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "OAuth2 uygulamaları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Var olan herhangi bir uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "İstenilen uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Tüm erişim kodları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "OAuth2 uygulaması silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Komut güncellenemedi."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Komut kaydedilemedi."
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Komutlar alınamadı."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Komutlar alınamadı."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Komut alınamadı."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Komut silinemedi."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Komut kaydedilemedi."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Birden çok satır değiştirildi."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "aktarılamadı."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Özel komut yürütülemedi."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Komut kodu üretilemedi."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Otomatik tamamlama komutları listelenemedi."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "İstatistikler alınamadı."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk güncellenmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
     }
 ]

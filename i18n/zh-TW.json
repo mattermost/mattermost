@@ -7800,5 +7800,305 @@
     {
         "id": "app.audit.get.finding.app_error",
         "translation": "尋找稽核紀錄時遇到錯誤"
+    },
+    {
+        "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+        "translation": "無法取得最舊實體的建立時間。"
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "多於一筆資料列被改變。"
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "指令不存在。"
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "指令不存在。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "無法刪除非自訂類別。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "插入資料至資料庫失敗。"
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "無法取得私人頻道。"
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "需要服務提供者識別碼"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "由於資料庫錯誤，遷移失敗。"
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "無法遷移。"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "無法取得此頻道特定時間範圍內的使用者。"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "刪除使用者訊息失敗"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "刪除頻道訊息失敗"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "清除紀錄失敗。"
+    },
+    {
+        "id": "ent.cluster.timeout.error",
+        "translation": "等待叢集回應逾時"
+    },
+    {
+        "id": "ent.cluster.json_encode.error",
+        "translation": "封裝 JSON 要求時發生錯誤"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "刪除使用者訊息失敗"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "刪除頻道訊息失敗"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "無法刪除使用者。"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "無法刪除團隊。"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "無法更新裝置 ID。"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "無法更新現有工作階段。"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "無法儲存工作階段。"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "無法移除所有工作階段。"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "無法移除工作階段。"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "無法為使用者移除全部工作階段。"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "尋找使用者工作階段時發生錯誤。"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "尋找工作階段時發生錯誤。"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "無法計數工作階段。"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "無法刪除此結構描述。"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "無法儲存 Token。"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "無法刪除 Token。"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "更新應用程式時遇到錯誤。"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "無法找到現存應用程式以更新。"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "無法儲存應用程式。"
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "必須為現有的應用程式呼叫更新。"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "無法移除存取 Token。"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "無法移除認證碼。"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "尋找 OAuth2 應用程式時發生錯誤。"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "找不到任何現存的應用程式。"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "尋找應用程式時遇到錯誤。"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "無法找到要求的應用程式。"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "尋找所有存取 Token 時遇到錯誤。"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "刪除 OAuth2 應用程式時發生錯誤。"
+    },
+    {
+        "id": "app.emoji.get_by_name.no_result",
+        "translation": "找不到繪文字。"
+    },
+    {
+        "id": "app.emoji.get.no_result",
+        "translation": "找不到繪文字。"
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "無法儲存繪文字。"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "無法更新命令。"
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "無法執行自訂命令。"
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "無法重新產生命令 Token。"
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "無法移動命令。"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "無法表列團隊命令。"
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "無法表列命令的自動完成選項。"
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "無法表列命令。"
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "無法取得指令"
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "無法刪除命令。"
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "無法儲存命令。"
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "無法更新頻道。"
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "無法復原頻道。"
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "無法計算所有頻道。"
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "無法為使用者建立初始側邊欄類別"
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "無法取得分析結果。"
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "需要團隊 ID 參數以自動完成頻道列表"
+    },
+    {
+        "id": "api.team.import_team.unknown_import_from.app_error",
+        "translation": "未知的匯入來源"
+    },
+    {
+        "id": "api.push_notifications.session.expired",
+        "translation": "工作階段逾期：請登入以持續接收通知。{{.siteName}}的工作階段被系統管理員設定為每 {{.daysCount}} 天逾期。"
+    },
+    {
+        "id": "api.post.error_get_post_id.pending",
+        "translation": "無法取得保留中的文章。"
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "無法要求試用授權。請在 Mattermost 系統控制台的網頁伺服器區段設定站台 URL。"
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "無法取得試用授權，請再嘗試一次或聯絡 support@mattermost.com。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "要求授權前必須接受 Mattermost Software Evaluation Agreement 跟隱私權政策。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request",
+        "translation": "要求的使用者數量不正確。"
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "要求中列出的頻道不屬於使用者"
+    },
+    {
+        "id": "api.file.upload_file.incorrect_channelId.app_error",
+        "translation": "無法上傳檔案。頻道 ID 不正確：{{.channelId}}"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "伺服器錯誤：建立繪文字時遇到伺服器內部錯誤。"
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "無法清除站台 URL。"
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "無法移動直接傳訊或群組頻道"
     }
 ]
