@@ -5154,64 +5154,8 @@
         "translation": "チャンネルのメンバーを更新する際にエラーが発生しました。"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "ClusterDiscovery 行の保存に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "削除に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "存在確認に失敗ました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "すべての discovery 行の取得に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "ClusterDiscovery 行の保存に失敗しました"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "最終確認日時の更新に失敗しました"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "コマンドをカウントできませんでした"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "コマンドを取得できませんでした"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "コマンドを削除できませんでした"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "コマンドを削除できませんでした"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "コマンドを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "コマンドを取得できませんでした"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "コマンドを保存できませんでした"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "既にあるコマンドは上書きできません"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "コマンドを更新できませんでした"
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5294,10 +5238,6 @@
         "translation": "一致するグループが見付かりませんでした"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "データは変更されませんでした"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "その名前を持つチームは既に存在しています"
     },
@@ -5332,102 +5272,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "ジョブを更新できませんでした。"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "トランザクションをコミットできません"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "OAuth2アプリケーションを削除するトランザクションを開始できません"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "OAuth2アプリケーションを削除中にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "アクセストークンを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "全てのアクセストークンを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "要求されたアプリが見付かりませんでした"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "アプリケーションを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "既存のアプリが見付かりませんでした"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "OAuth2アプリケーションを検索中にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "既存の認証コードが見付かりませんでした"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "認証コードを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "アクセストークンを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "認証コードを削除できませんでした"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "アクセストークンを削除できませんでした"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "認証コードを削除できませんでした"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "アクセストークンを保存できませんでした。"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "既存のアプリケーションの更新をしなくてはいけません"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "アプリを保存できませんでした。"
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "認証コードを保存できませんでした。"
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "アクセストークンを更新する際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "更新すべき既存のアプリが見付かりませんでした"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "アプリケーションを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "アプリを更新できませんでした"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "アプリケーションを更新する際にエラーが発生しました"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5602,18 +5446,6 @@
         "translation": "設定を更新できませんでした。"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "トークンを削除できません"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "このコードのトークンを取得できません"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "トークンを保存できません"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "役割を削除できませんでした。"
     },
@@ -5652,50 +5484,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "役割を保存するためのトランザクションをコミットできませんでした。"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "セッションをカウントできませんでした"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "セッションを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "ユーザーセッションを探す際にエラーが発生しました"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "ユーザーの全てのセッションを削除できませんでした"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "セッションを削除できませんでした"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "全てのセッションを削除できませんでした"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "セッションを保存できませんでした"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "既存のセッションを更新できませんでした"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "デバイスIDを更新できませんでした"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "最終活動日時を更新できませんでした"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "役割を更新できませんでした"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6582,20 +6370,8 @@
         "translation": "データベーストランザクションをコミットできませんでした。"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "セッション情報を更新できませんでした。"
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "expires_at を更新できませんでした。"
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "全役割を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "そのタイプのすべてのトークンを削除できませんでした。"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7746,10 +7522,6 @@
         "translation": "ブランド画像が見つからないため、削除できませんでした。"
     },
     {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "expired_notifyを更新できませんでした。"
-    },
-    {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
         "translation": "最も古いエンティティの作成時間を取得できませんでした。"
     },
@@ -7904,14 +7676,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "トランザクションをコミットできませんでした。"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "ダイレクトメッセージ"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "チャンネル"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

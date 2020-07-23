@@ -5154,63 +5154,7 @@
         "translation": "We encountered an error updating the channel member"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Failed to delete"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "테이블이 존재하는지 확인하지 못했습니다."
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Failed to get all discovery rows"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Failed to save ClusterDiscovery row"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Failed to update last ping at"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "You cannot overwrite an existing Command"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
         "translation": "내용을 가져올수 없습니다."
     },
     {
@@ -5294,10 +5238,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "A team with that domain already exists"
     },
@@ -5332,102 +5272,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Unable to commit transaction"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Unable to open transaction to delete the OAuth2 app"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "An error occurred while deleting the OAuth2 App"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Unable to find the requested app"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "We encountered an error finding the app"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "An error occurred while finding the OAuth2 Apps"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "We couldn't find the existing authorization code"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "We encountered an error finding the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "We couldn't remove the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "We couldn't remove the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Must call update for exisiting app"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "인증 코드를 저장할 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "접근 토큰을 업데이트하다 에러가 발생했습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "We encountered an error finding the app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "We encountered an error updating the app"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5602,18 +5446,6 @@
         "translation": "Unable to update the preference"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Unable to get a token with this code"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "내용을 가져올수 없습니다."
     },
@@ -5652,50 +5484,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Failed to commit the transaction to save the role"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "채널 업데이트에 실패하였습니다"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "We encountered an error finding the session"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "We encountered an error while finding user sessions"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "We couldn't remove all the sessions for the user"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Cannot update existing session"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Unable to update the device id"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Unable to update the last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "내용을 가져올수 없습니다."
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6582,20 +6370,8 @@
         "translation": "Failed to commit the database transaction"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Unable to update session props."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "채널을 불러올 수 없습니다."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "모든 토큰 유형을 제거 할 수 없습니다"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7752,14 +7528,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Unable to commit transaction"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "개인 메시지"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "채널"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

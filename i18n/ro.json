@@ -5164,64 +5164,8 @@
         "translation": "Am întâlnit o eroare la actualizarea membru canal"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Nu a reuşit să salveze ClusterDiscovery rând"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Nu se poate șterge"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Nu a reuşit să verifice dacă există"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Nu pentru a obţine toate rândurile de descoperire"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Nu a reuşit să salveze ClusterDiscovery rând"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Imposibil de actualizat ultima ping la"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Imposibil de numărare a comenzilor"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Nu se poate obține comanda"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Nu se poate șterge comanda"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Nu se poate șterge comanda"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Nu se poate obține comanda"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Nu pot primi comenzile"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Imposibil de salvat comanda"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Nu se poate suprascrie o comandă existentă"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Imposibil de actualizat comanda"
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5304,10 +5248,6 @@
         "translation": "nici o potrivire de grup găsita"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "nu s-au schimbat rânduri"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "un grup cu acest nume există deja"
     },
@@ -5342,102 +5282,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Imposibil de actualizat jobul"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Nu s-a putut efectua tranzacția"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Imposibil de deschis tranzacția pentru a șterge aplicația OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Eroare în timpul ștergerii OAuth2 App"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Am întâmpinat o eroare în găsirea simbolului de acces"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Am intalnit o eroare găsirea toate tichetele de acces"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Imposibil de găsit aplicația solicitată"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Am intalnit o eroare găsirea app"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Imposibil de găsit toate aplicațiile existente"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "A apărut o eroare în timp ce găsirea OAuth2 Apps"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Nu se poate găsi codul de autorizare existent"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Am intalnit o eroare găsi codul de autorizare"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Am întâmpinat o eroare în găsirea simbolului de acces"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Nu se poate elimina codul de autorizare"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Imposibilitatea de a elimina simbolul de acces"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Nu se poate elimina codul de autorizare"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Imposibil de salvat indicativul de acces."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Trebuie să cheme update app existente"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Imposibil de salvat aplicația."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Imposibil de salvat codul de autorizare."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Am întâlnit o eroare la actualizarea simbolul acces"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Imposibil de găsit actualizarea aplicației existente"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Am intalnit o eroare găsirea app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Imposibil de actualizat aplicația"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Am întâlnit o eroare la actualizarea app"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5612,18 +5456,6 @@
         "translation": "Imposibil de actualizat preferința"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Imposibil de șters token"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Imposibilitatea de a obţine un tichet cu acest cod"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Imposibil de salvat token"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Imposibil de șters rolul"
     },
@@ -5662,50 +5494,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Nu a reuşit să se angajeze tranzacţie pentru a salva rolul"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Imposibil de numărare a sesiunilor"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Am întâmpinat o eroare în găsirea sesiunii"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Am întâmpinat o eroare în găsirea sesiunilor de utilizatori"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Nu am putut elimina toate sesiunile pentru utilizator"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Imposibil de eliminat sesiunea"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Nu se pot elimina toate sesiunile"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Nu este posibilă salvarea sesiunii"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Imposibil de actualizat sesiunea existentă"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Imposibil de actualizat id-ul dispozitivului"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Imposibil de actualizat ultima_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Imposibil de actualizat rolurile"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6592,20 +6380,8 @@
         "translation": "Nu s-a efectuat tranzacția bazei de date"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Imposibil de actualizat accesorii de sesiune."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Imposibil de actualizat expires_at."
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Imposibil de obținut toate rolurile."
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Imposibil de eliminat toate jetoanele unui tip."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7772,10 +7548,6 @@
         "translation": " "
     },
     {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Imposibil de actualizat expired_notify."
-    },
-    {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
         "translation": "Nu se poate obține cel mai vechi timp de creație."
     },
@@ -7922,14 +7694,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nu s-a putut efectua tranzacția"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Mesaje Directe"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Canale"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",

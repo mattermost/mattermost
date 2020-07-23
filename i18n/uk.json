@@ -5164,64 +5164,8 @@
         "translation": "Виникла помилка при спробі прочитати файл"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Не вдалося видалити"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Не вдалося перевірити існування"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Не вдалося отримати всі рядки відкриття"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Не вдалося оновити останній ping у"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Неможливо видалити команду"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Неможливо видалити команду"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Не вдається отримати команду"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Не вдається отримати команди"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Не вдається зберегти команду"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Ви не можете переписати існуючу команду"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Не вдається оновити команду"
     },
     {
         "id": "store.sql_command_webhooks.get.app_error",
@@ -5304,10 +5248,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Команда з таким ім'ям вже існує"
     },
@@ -5342,102 +5282,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Не вдається оновити схему"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Не вдається здійснити транзакцію"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Неможливо відкрити транзакцію для видалення додатка OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Під час видалення додатка OAuth2 сталася помилка"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Виникла помилка під час пошуку токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Виникла помилка під час знаходження всіх токенів доступу"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Не вдалося знайти потрібний додаток"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Виникла помилка під час знаходження додатку"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Не вдалося знайти дійсну команду для оновлення"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Під час пошуку додатків OAuth2 сталася помилка"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Не вдалося знайти дійсний код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Виникла помилка при пошуку коду авторизації"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "У нас виникла помилка під час пошуку токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Не вдалося видалити код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Неможливо видалити маркер доступу"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Не вдалося видалити код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Необхідно викликати оновлення наявної програми"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Не вдається зберегти додаток."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Не вдалося зберегти код авторизації."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Ми виявили помилку під час оновлення токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Неможливо знайти існуючу програму для оновлення"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Виникла помилка під час пошуку додатоку"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Не вдається оновити додаток"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Виникла помилка під час оновлення додатка"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5612,18 +5456,6 @@
         "translation": "Не вдається зберегти налаштування"
     },
     {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Неможливо видалити токен"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Неможливо отримати токен із цим кодом"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Неможливо видалити роль"
     },
@@ -5662,50 +5494,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Не вдалося здійснити транзакцію для збереження ролі"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Не вдається підрахувати сеанси"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Виникла помилка при пошуку сесії"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Виникла помилка при пошуку сесій користувача"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Невдала спроба видалити всі сесії користувача"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Не вдається видалити сеанс"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Не вдається видалити всі сеанси"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Не вдається зберегти сеанс"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Неможливо оновити існуючий сеанс"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Неможливо оновити ідентифікатор пристрою"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Не вдається оновити last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Не вдається оновити ролі"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6592,20 +6380,8 @@
         "translation": "Не вдалося здійснити транзакцію бази даних"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Unable to update session props."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Неможливо отримати всі канали"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Unable to remove all the tokens of a type."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7762,14 +7538,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Не вдається здійснити транзакцію"
-    },
-    {
-        "id": "sidebar.category.dm",
-        "translation": "Особисті повідомлення"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Канали"
     },
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
