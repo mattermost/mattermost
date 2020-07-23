@@ -118,7 +118,9 @@ func TestCreateUserInputFilter(t *testing.T) {
 					AuthService: "ldap",
 					AuthData:    model.NewString("999099"),
 				}
-				_, resp := th.SystemAdminClient.CreateUser(user)
+				u, resp := th.SystemAdminClient.CreateUser(user)
+				CheckNoError(t, resp)
+				_, resp = th.SystemAdminClient.PermanentDeleteUser(u.Id)
 				CheckNoError(t, resp)
 			})
 			t.Run("LocalClient", func(t *testing.T) {
@@ -128,7 +130,9 @@ func TestCreateUserInputFilter(t *testing.T) {
 					AuthService: "ldap",
 					AuthData:    model.NewString("999100"),
 				}
-				_, resp := th.LocalClient.CreateUser(user)
+				u, resp := th.LocalClient.CreateUser(user)
+				CheckNoError(t, resp)
+				_, resp = th.LocalClient.PermanentDeleteUser(u.Id)
 				CheckNoError(t, resp)
 			})
 		})
