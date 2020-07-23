@@ -5208,7 +5208,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o1 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "ChannelA",
+		DisplayName: "A1 ChannelA",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5217,7 +5217,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o2 := model.Channel{
 		TeamId:      t2.Id,
-		DisplayName: "ChannelA",
+		DisplayName: "A2 ChannelA",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5250,7 +5250,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o3 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "ChannelA (alternate)",
+		DisplayName: "A3 ChannelA (alternate)",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5259,7 +5259,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o4 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "ChannelB",
+		DisplayName: "A4 ChannelB",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_PRIVATE,
 	}
@@ -5267,17 +5267,18 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	o5 := model.Channel{
-		TeamId:      t1.Id,
-		DisplayName: "ChannelC",
-		Name:        "zz" + model.NewId() + "b",
-		Type:        model.CHANNEL_PRIVATE,
+		TeamId:           t1.Id,
+		DisplayName:      "A5 ChannelC",
+		Name:             "zz" + model.NewId() + "b",
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
 	}
 	_, nErr = ss.Channel().Save(&o5, -1)
 	require.Nil(t, nErr)
 
 	o6 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "Off-Topic",
+		DisplayName: "A6 Off-Topic",
 		Name:        "off-topic",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5286,7 +5287,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o7 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "Off-Set",
+		DisplayName: "A7 Off-Set",
 		Name:        "off-set",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5307,7 +5308,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o8 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "Off-Limit",
+		DisplayName: "A8 Off-Limit",
 		Name:        "off-limit",
 		Type:        model.CHANNEL_PRIVATE,
 	}
@@ -5316,7 +5317,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o9 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "Town Square",
+		DisplayName: "A9 Town Square",
 		Name:        "town-square",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5325,7 +5326,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o10 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "The",
+		DisplayName: "B10 The",
 		Name:        "the",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5334,7 +5335,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o11 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "Native Mobile Apps",
+		DisplayName: "B11 Native Mobile Apps",
 		Name:        "native-mobile-apps",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5343,7 +5344,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o12 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "ChannelZ",
+		DisplayName: "B12 ChannelZ",
 		Purpose:     "This can now be searchable!",
 		Name:        "with-purpose",
 		Type:        model.CHANNEL_OPEN,
@@ -5353,7 +5354,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o13 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "ChannelA (deleted)",
+		DisplayName: "B13 ChannelA (deleted)",
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5367,7 +5368,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o14 := model.Channel{
 		TeamId:      t2.Id,
-		DisplayName: "FOOBARDISPLAYNAME",
+		DisplayName: "B14 FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -5387,20 +5388,34 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"Search FooBar by name2", "ever", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o14}, 1},
 		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}, 0},
 		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, &model.ChannelList{&o1, &o2, &o3, &o13}, 0},
-		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o14, &o11, &o8, &o7, &o6, &o10, &o9}, 0},
+		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o6, &o7, &o8, &o9, &o10, &o11, &o12, &o14}, 0},
 		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{}, 0},
-		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o8, &o7, &o6}, 0},
+		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6, &o7, &o8}, 0},
 		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}, 0},
 		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
 		{"the in name", "the", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o10}, 0},
 		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o11}, 0},
 		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o12}, 0},
 		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
-		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o8, &o7}, 0},
+		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o7, &o8}, 0},
 		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, &model.ChannelList{}, 0},
-		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o8, &o6}, 0},
-		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o8, &o7, &o6}, 3},
-		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o6}, 3},
+		{"exclude by group association", "off-", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o6, &o8}, 0},
+		{"paginate includes count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(100)}, &model.ChannelList{&o6, &o7, &o8}, 3},
+		{"paginate, page 2 correct entries and count", "off-", store.ChannelSearchOpts{IncludeDeleted: false, PerPage: model.NewInt(2), Page: model.NewInt(1)}, &model.ChannelList{&o8}, 3},
+		{"Filter private", "", store.ChannelSearchOpts{IncludeDeleted: false, Private: true}, &model.ChannelList{&o4, &o5, &o8}, 3},
+		{"Filter public", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o6, &o7}, 10},
+		{"Filter public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter public and private and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 14},
+		{"Filter group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o5}, 1},
+		{"Filter exclude group constrained and include deleted", "", store.ChannelSearchOpts{IncludeDeleted: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 13},
+		{"Filter private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeGroupConstrained: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o8}, 2},
+		{"Filter team 2", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o2, &o14}, 2},
+		{"Filter team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{}, 0},
+		{"Filter team 1 and team 2, private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o4, &o5, &o8}, 3},
+		{"Filter team 1 and team 2, public and private", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5}, 13},
+		{"Filter team 1 and team 2, public and private and group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, GroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o5}, 1},
+		{"Filter team 1 and team 2, public and private and exclude group constrained", "", store.ChannelSearchOpts{IncludeDeleted: false, TeamIds: []string{t1.Id, t2.Id}, Public: true, Private: true, ExcludeGroupConstrained: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o1, &o2, &o3, &o4, &o6}, 12},
+		{"Filter deleted returns only deleted channels", "", store.ChannelSearchOpts{Deleted: true, Page: model.NewInt(0), PerPage: model.NewInt(5)}, &model.ChannelList{&o13}, 1},
 	}
 
 	for _, testCase := range testCases {
