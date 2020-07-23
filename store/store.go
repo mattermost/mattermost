@@ -580,16 +580,16 @@ type JobStore interface {
 }
 
 type UserAccessTokenStore interface {
-	Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	DeleteAllForUser(userId string) *model.AppError
-	Delete(tokenId string) *model.AppError
-	Get(tokenId string) (*model.UserAccessToken, *model.AppError)
-	GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError)
-	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
-	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
-	Search(term string) ([]*model.UserAccessToken, *model.AppError)
-	UpdateTokenEnable(tokenId string) *model.AppError
-	UpdateTokenDisable(tokenId string) *model.AppError
+	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
+	DeleteAllForUser(userId string) error
+	Delete(tokenId string) error
+	Get(tokenId string) (*model.UserAccessToken, error)
+	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
+	GetByToken(tokenString string) (*model.UserAccessToken, error)
+	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, error)
+	Search(term string) ([]*model.UserAccessToken, error)
+	UpdateTokenEnable(tokenId string) error
+	UpdateTokenDisable(tokenId string) error
 }
 
 type PluginStore interface {
