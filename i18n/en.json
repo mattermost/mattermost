@@ -1179,6 +1179,18 @@
     "translation": "Please enter text for your Custom Terms of Service."
   },
   {
+    "id": "api.email.send_warn_metric_ack.failure.app_error",
+    "translation": "Failure to send admin acknowledgment email"
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+    "translation": "Could not find warn metric."
+  },
+  {
+    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+    "translation": "SMTP Server is required"
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
   },
@@ -1927,6 +1939,86 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+    "translation": "Contact: {{.Contact}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+    "translation": "Diagnostic Id: {{.DiagnosticId}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_email_header",
+    "translation": "Email: {{.Email}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_footer",
+    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+    "translation": "Total Active Users: {{.NoRegisteredUsers}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+    "translation": "Site URL: {{.SiteUrl}}"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.mailto_subject",
+    "translation": "Mattermost Contact Us request"
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.body",
+    "translation": "Please email us."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_failure.message",
+    "translation": "Message could not be sent."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.notification_success.message",
+    "translation": "Thank you for contacting Mattermost. We will follow up with you soon."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+    "translation": "Mattermost Contact Us request. My team has now {{.Limit}} users and I am considering Mattermost Enterprise Edition.\r\n"
+  },
+  {
+    "id": "api.server.warn_metric.contact_us",
+    "translation": "Contact us"
+  },
+  {
+    "id": "api.server.warn_metric.contacting_us",
+    "translation": "Contacting us"
+  },
+  {
+    "id": "api.server.warn_metric.email_us",
+    "translation": "Email us"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise E10 and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+    "translation": "Integrate AD/LDAP"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise E20.\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+    "translation": "Integrate SAML 2.0"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise E20, which offers features such as user management, server clustering, and performance monitoring."
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+    "translation": "Upgrade to Mattermost Enterprise edition"
+  },
+  {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
     "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
@@ -2461,6 +2553,38 @@
   {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Email Verification"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_email_header",
+    "translation": "Email: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_name_header",
+    "translation": "Contact: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+    "translation": "Diagnostic Id: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Total Active Users: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "Site URL: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.footer",
+    "translation": "If you have any additional inquiries, please contact support@mattermost.com"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+    "translation": "Mattermost Contact Us request. My team has now {{ .Limit }} users and I am considering Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.templates.warn_metric_ack.subject",
+    "translation": "Mattermost Contact Us request"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -4203,6 +4327,26 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.warn_metric.bot_description",
+    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
+  },
+  {
+    "id": "app.system.warn_metric.bot_displayname",
+    "translation": "Mattermost Advisor"
+  },
+  {
+    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+    "translation": "List of admins is empty."
+  },
+  {
+    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+    "translation": "Could not find metric."
+  },
+  {
+    "id": "app.system.warn_metric.store.app_error",
+    "translation": "Failed to store value for {{.WarnMetricName}}"
+  },
+  {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
   },
@@ -4251,12 +4395,40 @@
     "translation": "Unable to delete user."
   },
   {
+    "id": "app.user_access_token.delete.app_error",
+    "translation": "Unable to delete the personal access token."
+  },
+  {
     "id": "app.user_access_token.disabled",
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
+    "id": "app.user_access_token.get_all.app_error",
+    "translation": "Unable to get all personal access tokens."
+  },
+  {
+    "id": "app.user_access_token.get_by_user.app_error",
+    "translation": "Unable to get the personal access tokens by user."
+  },
+  {
     "id": "app.user_access_token.invalid_or_missing",
     "translation": "Invalid or missing token."
+  },
+  {
+    "id": "app.user_access_token.save.app_error",
+    "translation": "Unable to save the personal access token."
+  },
+  {
+    "id": "app.user_access_token.search.app_error",
+    "translation": "We encountered an error searching user access tokens."
+  },
+  {
+    "id": "app.user_access_token.update_token_disable.app_error",
+    "translation": "Unable to disable the access token."
+  },
+  {
+    "id": "app.user_access_token.update_token_enable.app_error",
+    "translation": "Unable to enable the access token."
   },
   {
     "id": "app.user_terms_of_service.delete.app_error",
@@ -7565,42 +7737,6 @@
   {
     "id": "store.sql_user.verify_email.app_error",
     "translation": "Unable to update verify email field."
-  },
-  {
-    "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Unable to delete the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Unable to get the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Unable to get all personal access tokens."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Unable to get the personal access token by token."
-  },
-  {
-    "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Unable to get the personal access tokens by user."
-  },
-  {
-    "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Unable to save the personal access token."
-  },
-  {
-    "id": "store.sql_user_access_token.search.app_error",
-    "translation": "We encountered an error searching user access tokens."
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "Unable to disable the access token."
-  },
-  {
-    "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "Unable to enable the access token."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

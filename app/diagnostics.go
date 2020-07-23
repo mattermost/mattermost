@@ -57,6 +57,7 @@ const (
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
 	TRACK_CHANNEL_MODERATION        = "channel_moderation"
+	TRACK_WARN_METRICS              = "warn_metrics"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -83,6 +84,7 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 		s.trackElasticsearch()
 		s.trackGroups()
 		s.trackChannelModeration()
+		s.trackWarnMetrics()
 	}
 }
 
@@ -1087,4 +1089,20 @@ func (s *Server) trackChannelModeration() {
 		"use_channel_mentions_user_disabled_count":  useChannelMentionsUser,
 		"use_channel_mentions_guest_disabled_count": useChannelMentionsGuest,
 	})
+}
+
+func (s *Server) trackWarnMetrics() {
+	systemDataList, appErr := s.Store.System().Get()
+	if appErr != nil {
+		return
+	}
+	for key, value := range systemDataList {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if _, ok := model.WarnMetricsTable[key]; ok {
+				s.SendDiagnostic(TRACK_WARN_METRICS, map[string]interface{}{
+					key: value != "false",
+				})
+			}
+		}
+	}
 }
