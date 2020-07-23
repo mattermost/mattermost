@@ -101,7 +101,6 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
 	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
 	t.Run("GroupSyncedChannelCount", func(t *testing.T) { testGroupSyncedChannelCount(t, ss) })
-	t.Run("SidebarChannelsMigration", func(t *testing.T) { testSidebarChannelsMigration(t, ss) })
 	t.Run("CreateInitialSidebarCategories", func(t *testing.T) { testCreateInitialSidebarCategories(t, ss) })
 	t.Run("GetSidebarCategory", func(t *testing.T) { testGetSidebarCategory(t, ss, s) })
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
@@ -6708,136 +6707,6 @@ func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
 	require.GreaterOrEqual(t, countAfter, count+1)
 }
 
-func testSidebarChannelsMigration(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
-
-	channel1, err := ss.Channel().Save(&model.Channel{
-		DisplayName:      model.NewId(),
-		Name:             model.NewId(),
-		TeamId:           teamId,
-		Type:             model.CHANNEL_PRIVATE,
-		GroupConstrained: model.NewBool(true),
-	}, 10)
-	require.Nil(t, err)
-	defer func() {
-		ss.Channel().PermanentDeleteMembersByChannel(channel1.Id)
-		ss.Channel().PermanentDeleteByTeam(teamId)
-		ss.Channel().PermanentDelete(channel1.Id)
-	}()
-
-	channel2, err := ss.Channel().Save(&model.Channel{
-		DisplayName:      model.NewId(),
-		Name:             model.NewId(),
-		TeamId:           teamId,
-		Type:             model.CHANNEL_PRIVATE,
-		GroupConstrained: model.NewBool(true),
-	}, 10)
-	require.Nil(t, err)
-	defer func() {
-		ss.Channel().PermanentDeleteMembersByChannel(channel2.Id)
-		ss.Channel().PermanentDeleteByTeam(teamId)
-		ss.Channel().PermanentDelete(channel2.Id)
-	}()
-
-	var users []*model.User
-	for i := 0; i < 3; i++ {
-		u := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
-		_, err = ss.User().Save(u)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
-		require.Nil(t, err)
-		users = append(users, u)
-	}
-
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   channel1.Id,
-		UserId:      users[0].Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	})
-	require.Nil(t, err)
-
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
-		ChannelId:   channel2.Id,
-		UserId:      users[0].Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-	})
-	require.Nil(t, err)
-
-	err = ss.Preference().Save(&model.Preferences{
-		{
-			Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
-			Name:     channel1.Id,
-			UserId:   users[0].Id,
-			Value:    "true",
-		},
-	})
-	require.Nil(t, err)
-
-	_, err = ss.Channel().CreateDirectChannel(users[0], users[1])
-	require.Nil(t, err)
-
-	t.Run("MigrateSidebarCategories", func(t *testing.T) {
-		_, nErr := ss.Channel().MigrateSidebarCategories(strings.Repeat("0", 26), strings.Repeat("0", 26))
-		require.Nil(t, nErr)
-		res, err2 := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
-		require.Nil(t, err2)
-		require.Len(t, res.Categories, 3)
-		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
-		require.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
-		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
-	})
-
-	t.Run("MigrateFavoritesToSidebarChannels", func(t *testing.T) {
-		_, nErr := ss.Channel().MigrateFavoritesToSidebarChannels(strings.Repeat("0", 26), 0)
-		require.Nil(t, nErr)
-	})
-
-	t.Run("GetSidebarCategories", func(t *testing.T) {
-		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
-		require.Nil(t, err)
-		require.Equal(t, model.SidebarCategoryFavorites, res.Categories[0].Type)
-		require.Len(t, res.Categories[0].Channels, 1)
-		require.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
-		require.Len(t, res.Categories[1].Channels, 1)
-		require.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
-		require.Len(t, res.Categories[2].Channels, 1)
-	})
-
-	t.Run("GetSidebarCategoriesWithoutNewChannel", func(t *testing.T) {
-		channel3, err := ss.Channel().Save(&model.Channel{
-			DisplayName:      model.NewId(),
-			Name:             model.NewId(),
-			TeamId:           teamId,
-			Type:             model.CHANNEL_PRIVATE,
-			GroupConstrained: model.NewBool(true),
-		}, 10)
-		require.Nil(t, err)
-		channel4, err := ss.Channel().CreateDirectChannel(users[0], users[2])
-		require.Nil(t, err)
-
-		defer func() {
-			ss.Channel().PermanentDeleteMembersByChannel(channel3.Id)
-			ss.Channel().PermanentDelete(channel3.Id)
-			ss.Channel().PermanentDeleteMembersByChannel(channel4.Id)
-			ss.Channel().PermanentDelete(channel4.Id)
-			ss.Channel().PermanentDeleteByTeam(teamId)
-		}()
-
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
-			ChannelId:   channel3.Id,
-			UserId:      users[0].Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.Nil(t, err)
-
-		res, err := ss.Channel().GetSidebarCategories(users[0].Id, teamId)
-		require.Nil(t, err)
-		require.Len(t, res.Categories[0].Channels, 1)
-		require.Len(t, res.Categories[1].Channels, 2)
-		require.Len(t, res.Categories[2].Channels, 2)
-	})
-}
-
 func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("should return a custom category with its Channels field set", func(t *testing.T) {
 		userId := model.NewId()
@@ -7983,6 +7852,229 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		res, err := ss.Channel().GetSidebarCategories(userId, teamId)
 		assert.Nil(t, err)
 		assert.Equal(t, initialCategories.Categories, res.Categories)
+	})
+
+	t.Run("should populate the Favorites category with regular channels", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Set up two channels, one favorited and one not
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "channel1",
+		}, 1000)
+		require.Nil(t, nErr)
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		channel2, nErr := ss.Channel().Save(&model.Channel{
+			TeamId: teamId,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "channel2",
+		}, 1000)
+		require.Nil(t, nErr)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		err = ss.Preference().Save(&model.Preferences{
+			{
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel1.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, err)
+
+		// Create the categories
+		nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		// Get and check the categories for channels
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, categories.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Equal(t, []string{channel1.Id}, categories.Categories[0].Channels)
+		assert.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		assert.Equal(t, []string{channel2.Id}, categories.Categories[1].Channels)
+	})
+
+	t.Run("should populate the Favorites category in alphabetical order", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		// Set up two channels
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			Type:        model.CHANNEL_OPEN,
+			Name:        "channel1",
+			DisplayName: "zebra",
+		}, 1000)
+		require.Nil(t, nErr)
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		channel2, nErr := ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			Type:        model.CHANNEL_OPEN,
+			Name:        "channel2",
+			DisplayName: "aardvark",
+		}, 1000)
+		require.Nil(t, nErr)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		err = ss.Preference().Save(&model.Preferences{
+			{
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel1.Id,
+				Value:    "true",
+			},
+			{
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel2.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, err)
+
+		// Create the categories
+		nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		// Get and check the categories for channels
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, categories.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Equal(t, []string{channel2.Id, channel1.Id}, categories.Categories[0].Channels)
+	})
+
+	t.Run("should populate the Favorites category with DMs and GMs", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+
+		otherUserId1 := model.NewId()
+		otherUserId2 := model.NewId()
+
+		// Set up two direct channels, one favorited and one not
+		dmChannel1, err := ss.Channel().SaveDirectChannel(
+			&model.Channel{
+				Name: model.GetDMNameFromIds(userId, otherUserId1),
+				Type: model.CHANNEL_DIRECT,
+			},
+			&model.ChannelMember{
+				UserId:      userId,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+			&model.ChannelMember{
+				UserId:      otherUserId1,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+		)
+		require.Nil(t, err)
+
+		dmChannel2, err := ss.Channel().SaveDirectChannel(
+			&model.Channel{
+				Name: model.GetDMNameFromIds(userId, otherUserId2),
+				Type: model.CHANNEL_DIRECT,
+			},
+			&model.ChannelMember{
+				UserId:      userId,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+			&model.ChannelMember{
+				UserId:      otherUserId2,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			},
+		)
+		require.Nil(t, err)
+
+		err = ss.Preference().Save(&model.Preferences{
+			{
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     dmChannel1.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, err)
+
+		// Create the categories
+		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		// Get and check the categories for channels
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, categories.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Equal(t, []string{dmChannel1.Id}, categories.Categories[0].Channels)
+		assert.Equal(t, model.SidebarCategoryDirectMessages, categories.Categories[2].Type)
+		assert.Equal(t, []string{dmChannel2.Id}, categories.Categories[2].Channels)
+	})
+
+	t.Run("should not populate the Favorites category with channels from other teams", func(t *testing.T) {
+		userId := model.NewId()
+		teamId := model.NewId()
+		teamId2 := model.NewId()
+
+		// Set up a channel on another team and favorite it
+		channel1, nErr := ss.Channel().Save(&model.Channel{
+			TeamId: teamId2,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "channel1",
+		}, 1000)
+		require.Nil(t, nErr)
+		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, err)
+
+		err = ss.Preference().Save(&model.Preferences{
+			{
+				UserId:   userId,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel1.Id,
+				Value:    "true",
+			},
+		})
+		require.Nil(t, err)
+
+		// Create the categories
+		nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
+
+		// Get and check the categories for channels
+		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, err)
+		require.Len(t, categories.Categories, 3)
+		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
+		assert.Equal(t, []string{}, categories.Categories[0].Channels)
+		assert.Equal(t, model.SidebarCategoryChannels, categories.Categories[1].Type)
+		assert.Equal(t, []string{}, categories.Categories[1].Channels)
 	})
 }
 
