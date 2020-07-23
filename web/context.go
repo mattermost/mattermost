@@ -24,13 +24,15 @@ type Context struct {
 	siteURLHeader string
 }
 
-// LogAuditRec logs an audit record using default RestLevel.
+// LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
-	c.LogAuditRecWithLevel(rec, app.RestLevel)
+	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
 // LogAuditRec logs an audit record using specified Level.
-func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
+// If the context is flagged with a permissions error then `level`
+// is ignored and the audit record is emitted with `LevelPerms`.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
 	if rec == nil {
 		return
 	}
@@ -38,7 +40,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		rec.AddMeta("err", c.Err.Id)
 		rec.AddMeta("code", c.Err.StatusCode)
 		if c.Err.Id == "api.context.permissions.app_error" {
-			level = app.RestPermsLevel
+			level = app.LevelPerms
 		}
 		rec.Fail()
 	}

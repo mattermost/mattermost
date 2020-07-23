@@ -459,13 +459,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ReloadConfig()
 
+	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		s.configureAudit(s.Audit)
+		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+			mlog.Error("Error configuring audit", mlog.Err(err))
+		}
 	}
 
-	if license == nil || !*license.Features.AdvancedLogging {
+	if !allowAdvancedLogging {
 		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelCtx()
 		mlog.Info("Shutting down advanced logging")
