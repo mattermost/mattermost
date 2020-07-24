@@ -266,7 +266,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 		}
 
 		if len(sysAdminsList) == 0 {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
 		}
 		sysAdmins = append(sysAdmins, sysAdminsList...)
 
