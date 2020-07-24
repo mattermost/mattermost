@@ -136,7 +136,6 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
@@ -242,7 +241,6 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
 	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
