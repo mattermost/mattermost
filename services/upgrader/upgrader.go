@@ -307,35 +307,42 @@ func extractBinary(executablePath string, filename string) error {
 		}
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
-			oldFile, err := os.Open(executablePath)
+			tmpFile, err := ioutil.TempFile("", "*")
 			if err != nil {
 				return err
 			}
-			backup, err := ioutil.ReadAll(oldFile)
-			oldFile.Close()
+			tmpFileName := tmpFile.Name()
+			os.Remove(tmpFileName)
+			err = os.Rename(executablePath, tmpFileName)
 			if err != nil {
 				return err
 			}
 			outFile, err := os.Create(executablePath)
 			if err != nil {
+				err2 := os.Rename(tmpFileName, executablePath)
+				if err != nil {
+					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+				}
 				return err
 			}
 			defer outFile.Close()
 			if _, err := io.Copy(outFile, tarReader); err != nil {
-				_, err2 := outFile.Seek(0, 0)
+				err2 := os.Remove(executablePath)
 				if err2 != nil {
 					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
-				err2 = outFile.Truncate(0)
+
+				err2 = os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
 					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
-				_, err2 = io.Copy(outFile, bytes.NewReader(backup))
+
+				err2 = os.Remove(tmpFileName)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
-					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+					mlog.Warn("Unable to unable to clean up the binary backup file.")
 				}
 				return err
 			}
