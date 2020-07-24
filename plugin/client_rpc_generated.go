@@ -4543,33 +4543,121 @@ func (s *apiRPCServer) CreateCommand(args *Z_CreateCommandArgs, returns *Z_Creat
 	return nil
 }
 
-type Z_ListCommandsArgs struct {
+type Z_ListAllCommandsArgs struct {
 	A string
-	B bool
 }
 
-type Z_ListCommandsReturns struct {
+type Z_ListAllCommandsReturns struct {
 	A []*model.Command
 	B error
 }
 
-func (g *apiRPCClient) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
-	_args := &Z_ListCommandsArgs{teamID, customOnly}
-	_returns := &Z_ListCommandsReturns{}
-	if err := g.client.Call("Plugin.ListCommands", _args, _returns); err != nil {
-		log.Printf("RPC call to ListCommands API failed: %s", err.Error())
+func (g *apiRPCClient) ListAllCommands(teamID string) ([]*model.Command, error) {
+	_args := &Z_ListAllCommandsArgs{teamID}
+	_returns := &Z_ListAllCommandsReturns{}
+	if err := g.client.Call("Plugin.ListAllCommands", _args, _returns); err != nil {
+		log.Printf("RPC call to ListAllCommands API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) ListCommands(args *Z_ListCommandsArgs, returns *Z_ListCommandsReturns) error {
+func (s *apiRPCServer) ListAllCommands(args *Z_ListAllCommandsArgs, returns *Z_ListAllCommandsReturns) error {
 	if hook, ok := s.impl.(interface {
-		ListCommands(teamID string, customOnly bool) ([]*model.Command, error)
+		ListAllCommands(teamID string) ([]*model.Command, error)
 	}); ok {
-		returns.A, returns.B = hook.ListCommands(args.A, args.B)
+		returns.A, returns.B = hook.ListAllCommands(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListCommands called but not implemented."))
+		return encodableError(fmt.Errorf("API ListAllCommands called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ListCustomCommandsArgs struct {
+	A string
+}
+
+type Z_ListCustomCommandsReturns struct {
+	A []*model.Command
+	B error
+}
+
+func (g *apiRPCClient) ListCustomCommands(teamID string) ([]*model.Command, error) {
+	_args := &Z_ListCustomCommandsArgs{teamID}
+	_returns := &Z_ListCustomCommandsReturns{}
+	if err := g.client.Call("Plugin.ListCustomCommands", _args, _returns); err != nil {
+		log.Printf("RPC call to ListCustomCommands API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ListCustomCommands(args *Z_ListCustomCommandsArgs, returns *Z_ListCustomCommandsReturns) error {
+	if hook, ok := s.impl.(interface {
+		ListCustomCommands(teamID string) ([]*model.Command, error)
+	}); ok {
+		returns.A, returns.B = hook.ListCustomCommands(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API ListCustomCommands called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ListPluginCommandsArgs struct {
+	A string
+}
+
+type Z_ListPluginCommandsReturns struct {
+	A []*model.Command
+	B error
+}
+
+func (g *apiRPCClient) ListPluginCommands(teamID string) ([]*model.Command, error) {
+	_args := &Z_ListPluginCommandsArgs{teamID}
+	_returns := &Z_ListPluginCommandsReturns{}
+	if err := g.client.Call("Plugin.ListPluginCommands", _args, _returns); err != nil {
+		log.Printf("RPC call to ListPluginCommands API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ListPluginCommands(args *Z_ListPluginCommandsArgs, returns *Z_ListPluginCommandsReturns) error {
+	if hook, ok := s.impl.(interface {
+		ListPluginCommands(teamID string) ([]*model.Command, error)
+	}); ok {
+		returns.A, returns.B = hook.ListPluginCommands(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API ListPluginCommands called but not implemented."))
+	}
+	return nil
+}
+
+type Z_ListBuiltInCommandsArgs struct {
+}
+
+type Z_ListBuiltInCommandsReturns struct {
+	A []*model.Command
+	B error
+}
+
+func (g *apiRPCClient) ListBuiltInCommands() ([]*model.Command, error) {
+	_args := &Z_ListBuiltInCommandsArgs{}
+	_returns := &Z_ListBuiltInCommandsReturns{}
+	if err := g.client.Call("Plugin.ListBuiltInCommands", _args, _returns); err != nil {
+		log.Printf("RPC call to ListBuiltInCommands API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) ListBuiltInCommands(args *Z_ListBuiltInCommandsArgs, returns *Z_ListBuiltInCommandsReturns) error {
+	if hook, ok := s.impl.(interface {
+		ListBuiltInCommands() ([]*model.Command, error)
+	}); ok {
+		returns.A, returns.B = hook.ListBuiltInCommands()
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API ListBuiltInCommands called but not implemented."))
 	}
 	return nil
 }

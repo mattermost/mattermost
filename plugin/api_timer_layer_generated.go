@@ -1044,10 +1044,31 @@ func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, err
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
+func (api *apiTimerLayer) ListAllCommands(teamID string) ([]*model.Command, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.ListCommands(teamID, customOnly)
-	api.recordTime(startTime, "ListCommands", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.ListAllCommands(teamID)
+	api.recordTime(startTime, "ListAllCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListCustomCommands(teamID string) ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListCustomCommands(teamID)
+	api.recordTime(startTime, "ListCustomCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListPluginCommands(teamID string) ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListPluginCommands(teamID)
+	api.recordTime(startTime, "ListPluginCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListBuiltInCommands() ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListBuiltInCommands()
+	api.recordTime(startTime, "ListBuiltInCommands", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

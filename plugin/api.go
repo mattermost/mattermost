@@ -981,13 +981,35 @@ type API interface {
 	// Minimum server version: 5.26
 	CreateCommand(cmd *model.Command) (*model.Command, error)
 
-	// ListCommands returns the list of slash commands for teamID. If customOnly is true, it
-	// will return only the custom commands for teamID (e.g., those created through the integrations
-	// menu, the REST api, or the plugin api).
+	// ListAllCommands returns the list of all slash commands for teamID. E.g., custom commands
+	// (those created through the integrations menu, the REST api, or the plugin api CreateCommand),
+	// plugin commands (those created with plugin api RegisterCommand), and builtin commands
+	// (those added internally through RegisterCommandProvider).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	ListCommands(teamID string, customOnly bool) ([]*model.Command, error)
+	ListAllCommands(teamID string) ([]*model.Command, error)
+
+	// ListCustomCommands returns the list of slash commands for teamID that where created
+	// through the integrations menu, the REST api, or the plugin api CreateCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.26
+	ListCustomCommands(teamID string) ([]*model.Command, error)
+
+	// ListPluginCommands returns the list of slash commands for teamID that were created
+	// with the plugin api RegisterCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.26
+	ListPluginCommands(teamID string) ([]*model.Command, error)
+
+	// ListBuiltInCommands returns the list of slash commands that are builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.26
+	ListBuiltInCommands() ([]*model.Command, error)
 
 	// GetCommand returns the command definition based on a command id string.
 	//

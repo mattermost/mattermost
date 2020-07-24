@@ -939,18 +939,65 @@ func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) 
 	return cmd, normalizeAppErr(appErr)
 }
 
-func (api *PluginAPI) ListCommands(teamID string, customOnly bool) ([]*model.Command, error) {
-	var commands []*model.Command
-	var appErr *model.AppError
+func (api *PluginAPI) ListAllCommands(teamID string) ([]*model.Command, error) {
+	ret := make([]*model.Command, 0)
 
-	if customOnly {
-		// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
-		return api.app.Srv().Store.Command().GetByTeam(teamID)
-	} else {
-		// If EnableCommands setting is false, this will not return custom team commands.
-		commands, appErr = api.app.ListAllCommands(teamID, api.app.T)
+	cmds, err := api.ListCustomCommands(teamID)
+	if err != nil {
+		return nil, err
 	}
-	return commands, normalizeAppErr(appErr)
+	ret = append(ret, cmds...)
+
+	cmds, err = api.ListPluginCommands(teamID)
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	cmds, err = api.ListBuiltInCommands()
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	return ret, nil
+}
+
+func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
+	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
+	return api.app.Srv().Store.Command().GetByTeam(teamID)
+}
+
+func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
+	commands := make([]*model.Command, 0)
+	seen := make(map[string]bool)
+
+	for _, cmd := range api.app.PluginCommandsForTeam(teamID) {
+		if !seen[cmd.Trigger] {
+			seen[cmd.Trigger] = true
+			commands = append(commands, cmd)
+		}
+	}
+
+	return commands, nil
+}
+
+func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
+	commands := make([]*model.Command, 0)
+	seen := make(map[string]bool)
+
+	for _, value := range commandProviders {
+		if cmd := value.GetCommand(api.app, api.app.T); cmd != nil {
+			cpy := *cmd
+			if cpy.AutoComplete && !seen[cpy.Trigger] {
+				cpy.Sanitize()
+				seen[cpy.Trigger] = true
+				commands = append(commands, &cpy)
+			}
+		}
+	}
+
+	return commands, nil
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
