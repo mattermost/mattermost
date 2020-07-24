@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -16,6 +15,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/openpgp"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -307,20 +307,38 @@ func extractBinary(executablePath string, filename string) error {
 		}
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
-			os.Rename(executablePath, executablePath+".bak")
+			oldFile, err := os.Open(executablePath)
+			if err != nil {
+				return err
+			}
+			backup, err := ioutil.ReadAll(oldFile)
+			oldFile.Close()
+			if err != nil {
+				return err
+			}
 			outFile, err := os.Create(executablePath)
 			if err != nil {
-				os.Rename(executablePath+".bak", executablePath)
 				return err
 			}
 			defer outFile.Close()
 			if _, err := io.Copy(outFile, tarReader); err != nil {
-				os.Remove(executablePath)
-				os.Rename(executablePath+".bak", executablePath)
+				_, err2 := outFile.Seek(0, 0)
+				if err2 != nil {
+					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+				}
+				err2 = outFile.Truncate(0)
+				if err2 != nil {
+					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+				}
+				_, err2 = io.Copy(outFile, bytes.NewReader(backup))
+				if err2 != nil {
+					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
+				}
 				return err
 			}
-			os.Remove(executablePath + ".bak")
-			os.Chmod(executablePath, 0755)
 			break
 		}
 	}
