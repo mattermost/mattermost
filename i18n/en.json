@@ -2651,6 +2651,10 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition."
   },
   {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "The file signature for the downloaded mattermost doesn't match."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },

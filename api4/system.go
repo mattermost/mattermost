@@ -621,8 +621,15 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	percentage, err := c.App.Srv().UpgradeToE0Status()
 	var s map[string]interface{}
 	if err != nil {
-		appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusTooManyRequests)
-		s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
+		var isErr *upgrader.InvalidSignature
+		switch {
+		case errors.As(err, &isErr):
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
+		default:
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
+		}
 	} else {
 		s = map[string]interface{}{"percentage": percentage, "error": nil}
 	}

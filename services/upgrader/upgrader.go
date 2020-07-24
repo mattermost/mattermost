@@ -2,6 +2,7 @@ package upgrader
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -15,9 +16,30 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"golang.org/x/crypto/openpgp"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
+
+const mattermostBuildPublicKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQENBFjZQxwBCAC6kNn3zDlq/aY83M9V7MHVPoK2jnZ3BfH7sA+ibQXsijCkPSR4
+5bCUJ9qVA4XKGK+cpO9vkolSNs10igCaaemaUZNB6ksu3gT737/SZcCAfRO+cLX7
+Q2la+jwTvu1YeT/M5xDZ1KHTFxsGskeIenz2rZHeuZwBl9qep34QszWtRX40eRts
+fl6WltLrepiExTp6NMZ50k+Em4JGM6CWBMo22ucy0jYjZXO5hEGb3o6NGiG+Dx2z
+b2J78LksCKGsSrn0F1rLJeA933bFL4g9ozv9asBlzmpgG77ESg6YE1N/Rh7WDzVA
+prIR0MuB5JjElASw5LDVxDV6RZsxEVQr7ETLABEBAAG0KU1hdHRlcm1vc3QgQnVp
+bGQgPGRldi1vcHNAbWF0dGVybW9zdC5jb20+iQFUBBMBCAA+AhsDBQsJCAcCBhUI
+CQoLAgQWAgMBAh4BAheAFiEEobMdRvDzoQsCzy1E+PLDF0R3SygFAl6HYr0FCQlw
+hqEACgkQ+PLDF0R3SyheNQgAnkiT2vFMCtU5FmC16HVYXzDpYMtdCQPh/gmeEkiI
+80rFRg/cn6f0BNnaTfDu6r6cepmhLNpDAowjQ7uBnv8fL2dzCydIGFv2r7FfmcOJ
+zhEQ3zXPwP6mYlxPCCgxAozsLv9Yv41KGCHIlzYwkAazc0BhpAW/h8L3VGkE+b+g
+x6lKVoufm4rKnT49Dgly6fVOxuR/BqZo87B5jksV3izLTHt5hiY8Pc5GW8WwO/tr
+pNAw+6HRXq1Dr/JRz5PIOr5KP5tVLBed4IteZ1xaTRd4++07ZbiZjhXY8WKpVp3y
+iN7Om24jQpxbJI9+KKJ3+yhcwhr8/PJ8ZVuhJo3BNv1PcQ==
+=9Qk8
+-----END PGP PUBLIC KEY BLOCK-----`
 
 var upgradePercentage int64
 var upgradeError error
@@ -28,7 +50,7 @@ type writeCounter struct {
 	readed int64
 }
 
-// ErrNotFound indicates that a resource was not found
+// InvalidPermissions indicates that the file permissions doesn't allow to upgrade
 type InvalidPermissions struct {
 	ErrType            string
 	Path               string
@@ -49,7 +71,7 @@ func (e *InvalidPermissions) Error() string {
 	return fmt.Sprintf("the user %s is unable to update the %s file", e.MattermostUsername, e.Path)
 }
 
-// ErrNotFound indicates that a resource was not found
+// InvalidArch indicates that the current operating system or cpu architecture doesn't support upgrades
 type InvalidArch struct{}
 
 func NewInvalidArch() *InvalidArch {
@@ -58,6 +80,17 @@ func NewInvalidArch() *InvalidArch {
 
 func (e *InvalidArch) Error() string {
 	return fmt.Sprintf("invalid operating system or processor architecture")
+}
+
+// InvalidArch indicates that the current operating system or cpu architecture doesn't support upgrades
+type InvalidSignature struct{}
+
+func NewInvalidSignature() *InvalidSignature {
+	return &InvalidSignature{}
+}
+
+func (e *InvalidSignature) Error() string {
+	return fmt.Sprintf("invalid file signature")
 }
 
 func (wc *writeCounter) Write(p []byte) (int, error) {
@@ -78,12 +111,38 @@ func getCurrentVersionTgzUrl() string {
 	return "https://releases.mattermost.com/" + model.CurrentVersion + "/mattermost-" + model.CurrentVersion + "-linux-amd64.tar.gz"
 }
 
+func verifySignature(filename string, sigfilename string, publicKey string) error {
+	keyring, err := openpgp.ReadArmoredKeyRing(bytes.NewReader([]byte(publicKey)))
+	if err != nil {
+		mlog.Error("Unable to load the public key to verify the file signature", mlog.Err(err))
+		return NewInvalidSignature()
+	}
+
+	mattermost_tar, err := os.Open(filename)
+	if err != nil {
+		mlog.Error("Unable to open the mattermost tar file verify the file signature", mlog.Err(err))
+		return NewInvalidSignature()
+	}
+
+	signature, err := os.Open(sigfilename)
+	if err != nil {
+		mlog.Error("Unable to open the mattermost sig file verify the file signature", mlog.Err(err))
+		return NewInvalidSignature()
+	}
+
+	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature)
+	if err != nil {
+		mlog.Error("Unable to verify the mattermost file signature", mlog.Err(err))
+		return NewInvalidSignature()
+	}
+	return nil
+}
+
 func canIWriteTheExecutable() error {
 	executablePath, err := os.Executable()
 	if err != nil {
 		return errors.New("error getting the executable path")
 	}
-	fmt.Println(executablePath)
 	executableInfo, err := os.Stat(executablePath)
 	if err != nil {
 		return errors.New("error getting the executable info")
@@ -170,6 +229,25 @@ func UpgradeToE0() error {
 		return err
 	}
 	defer os.Remove(filename)
+	sigfilename, err := download(getCurrentVersionTgzUrl() + ".sig")
+	if err != nil {
+		if sigfilename != "" {
+			os.Remove(sigfilename)
+		}
+		upgradeError = errors.New("error downloading the new version signature file")
+		mlog.Error("Unable to download the mattermost server version signature file", mlog.String("url", getCurrentVersionTgzUrl()+".sig"), mlog.Err(err))
+		upgradePercentage = 0
+		return err
+	}
+	defer os.Remove(sigfilename)
+
+	err = verifySignature(filename, sigfilename, mattermostBuildPublicKey)
+	if err != nil {
+		upgradePercentage = 0
+		upgradeError = errors.New("Unable to verify downloaded file signature")
+		mlog.Error("Unable to verify downloaded file signature", mlog.Err(err))
+		return err
+	}
 
 	err = extractBinary(executablePath, filename)
 	if err != nil {
