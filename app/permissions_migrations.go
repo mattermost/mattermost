@@ -23,7 +23,6 @@ const (
 	PERMISSION_CREATE_EMOJIS                     = "create_emojis"
 	PERMISSION_DELETE_EMOJIS                     = "delete_emojis"
 	PERMISSION_DELETE_OTHERS_EMOJIS              = "delete_others_emojis"
-	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
 	PERMISSION_MANAGE_WEBHOOKS                   = "manage_webhooks"
 	PERMISSION_MANAGE_OTHERS_WEBHOOKS            = "manage_others_webhooks"
 	PERMISSION_MANAGE_INCOMING_WEBHOOKS          = "manage_incoming_webhooks"
@@ -57,18 +56,6 @@ const (
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
-	PERMISSION_CREATE_USER_ACCESS_TOKEN          = "create_user_access_token"
-	PERMISSION_READ_USER_ACCESS_TOKEN            = "read_user_access_token"
-	PERMISSION_REVOKE_USER_ACCESS_TOKEN          = "revoke_user_access_token"
-	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
-	PERMISSION_GET_PUBLIC_LINK                   = "get_public_link"
-	PERMISSION_LIST_USERS_WITHOUT_TEAM           = "list_users_without_team"
-	PERMISSION_MANAGE_OAUTH                      = "manage_oauth"
-	PERMISSION_MANAGE_ROLES                      = "manage_roles"
-	PERMISSION_MANAGE_TEAM                       = "manage_team"
-	PERMISSION_CREATE_DIRECT_CHANNEL             = "create_direct_channel"
-	PERMISSION_CREATE_GROUP_CHANNEL              = "create_group_channel"
-	PERMISSION_CREATE_TEAM                       = "create_team"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
