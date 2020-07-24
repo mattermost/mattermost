@@ -218,7 +218,7 @@ func UpgradeToE0() error {
 		return err
 	}
 
-	filename, err := download(getCurrentVersionTgzUrl())
+	filename, err := download(getCurrentVersionTgzUrl(), 1024*1024*300)
 	if err != nil {
 		if filename != "" {
 			os.Remove(filename)
@@ -229,7 +229,7 @@ func UpgradeToE0() error {
 		return err
 	}
 	defer os.Remove(filename)
-	sigfilename, err := download(getCurrentVersionTgzUrl() + ".sig")
+	sigfilename, err := download(getCurrentVersionTgzUrl()+".sig", 1024)
 	if err != nil {
 		if sigfilename != "" {
 			os.Remove(sigfilename)
@@ -264,7 +264,7 @@ func UpgradeToE0Status() (int64, error) {
 	return upgradePercentage, upgradeError
 }
 
-func download(url string) (string, error) {
+func download(url string, limit int64) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -278,7 +278,7 @@ func download(url string) (string, error) {
 	defer out.Close()
 
 	counter := &writeCounter{total: resp.ContentLength}
-	_, err = io.Copy(out, io.TeeReader(resp.Body, counter))
+	_, err = io.Copy(out, io.TeeReader(&io.LimitedReader{R: resp.Body, N: limit}, counter))
 	return out.Name(), err
 }
 
