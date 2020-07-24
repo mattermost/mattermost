@@ -17,88 +17,58 @@ type permissionTransformation struct {
 type permissionsMap []permissionTransformation
 
 const (
-	PERMISSION_MANAGE_SYSTEM                               = "manage_system"
-	PERMISSION_MANAGE_EMOJIS                               = "manage_emojis"
-	PERMISSION_MANAGE_OTHERS_EMOJIS                        = "manage_others_emojis"
-	PERMISSION_CREATE_EMOJIS                               = "create_emojis"
-	PERMISSION_DELETE_EMOJIS                               = "delete_emojis"
-	PERMISSION_DELETE_OTHERS_EMOJIS                        = "delete_others_emojis"
-	PERMISSION_MANAGE_JOBS                                 = "manage_jobs"
-	PERMISSION_MANAGE_WEBHOOKS                             = "manage_webhooks"
-	PERMISSION_MANAGE_OTHERS_WEBHOOKS                      = "manage_others_webhooks"
-	PERMISSION_MANAGE_INCOMING_WEBHOOKS                    = "manage_incoming_webhooks"
-	PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS             = "manage_others_incoming_webhooks"
-	PERMISSION_MANAGE_OUTGOING_WEBHOOKS                    = "manage_outgoing_webhooks"
-	PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS             = "manage_others_outgoing_webhooks"
-	PERMISSION_LIST_PUBLIC_TEAMS                           = "list_public_teams"
-	PERMISSION_LIST_PRIVATE_TEAMS                          = "list_private_teams"
-	PERMISSION_JOIN_PUBLIC_TEAMS                           = "join_public_teams"
-	PERMISSION_JOIN_PRIVATE_TEAMS                          = "join_private_teams"
-	PERMISSION_PERMANENT_DELETE_USER                       = "permanent_delete_user"
-	PERMISSION_CREATE_BOT                                  = "create_bot"
-	PERMISSION_READ_BOTS                                   = "read_bots"
-	PERMISSION_READ_OTHERS_BOTS                            = "read_others_bots"
-	PERMISSION_MANAGE_BOTS                                 = "manage_bots"
-	PERMISSION_MANAGE_OTHERS_BOTS                          = "manage_others_bots"
-	PERMISSION_DELETE_PUBLIC_CHANNEL                       = "delete_public_channel"
-	PERMISSION_DELETE_PRIVATE_CHANNEL                      = "delete_private_channel"
-	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES            = "manage_public_channel_properties"
-	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES           = "manage_private_channel_properties"
-	PERMISSION_VIEW_MEMBERS                                = "view_members"
-	PERMISSION_INVITE_USER                                 = "invite_user"
-	PERMISSION_INVITE_GUEST                                = "invite_guest"
-	PERMISSION_PROMOTE_GUEST                               = "promote_guest"
-	PERMISSION_DEMOTE_TO_GUEST                             = "demote_to_guest"
-	PERMISSION_USE_CHANNEL_MENTIONS                        = "use_channel_mentions"
-	PERMISSION_CREATE_POST                                 = "create_post"
-	PERMISSION_CREATE_POST_PUBLIC                          = "create_post_public"
-	PERMISSION_USE_GROUP_MENTIONS                          = "use_group_mentions"
-	PERMISSION_ADD_REACTION                                = "add_reaction"
-	PERMISSION_REMOVE_REACTION                             = "remove_reaction"
-	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS               = "manage_public_channel_members"
-	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS              = "manage_private_channel_members"
-	PERMISSION_CREATE_USER_ACCESS_TOKEN                    = "create_user_access_token"
-	PERMISSION_READ_USER_ACCESS_TOKEN                      = "read_user_access_token"
-	PERMISSION_REVOKE_USER_ACCESS_TOKEN                    = "revoke_user_access_token"
-	PERMISSION_EDIT_OTHER_USERS                            = "edit_other_users"
-	PERMISSION_GET_PUBLIC_LINK                             = "get_public_link"
-	PERMISSION_LIST_USERS_WITHOUT_TEAM                     = "list_users_without_team"
-	PERMISSION_MANAGE_OAUTH                                = "manage_oauth"
-	PERMISSION_MANAGE_ROLES                                = "manage_roles"
-	PERMISSION_MANAGE_TEAM                                 = "manage_team"
-	PERMISSION_CREATE_DIRECT_CHANNEL                       = "create_direct_channel"
-	PERMISSION_CREATE_GROUP_CHANNEL                        = "create_group_channel"
-	PERMISSION_CREATE_TEAM                                 = "create_team"
-	PERMISSION_READ_SYSCONSOLE_ABOUT                       = "read_sysconsole_about"
-	PERMISSION_WRITE_SYSCONSOLE_ABOUT                      = "write_sysconsole_about"
-	PERMISSION_READ_SYSCONSOLE_REPORTING                   = "read_sysconsole_reporting"
-	PERMISSION_WRITE_SYSCONSOLE_REPORTING                  = "write_sysconsole_reporting"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT              = "read_sysconsole_user_management"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT             = "write_sysconsole_user_management"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS        = "read_sysconsole_user_management_users"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS       = "write_sysconsole_user_management_users"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS       = "read_sysconsole_user_management_groups"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS      = "write_sysconsole_user_management_groups"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS        = "read_sysconsole_user_management_teams"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS       = "write_sysconsole_user_management_teams"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS     = "read_sysconsole_user_management_channels"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS    = "write_sysconsole_user_management_channels"
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS  = "read_sysconsole_user_management_permissions"
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS = "write_sysconsole_user_management_permissions"
-	PERMISSION_READ_SYSCONSOLE_ENVIRONMENT                 = "read_sysconsole_environment"
-	PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT                = "write_sysconsole_environment"
-	PERMISSION_READ_SYSCONSOLE_SITE                        = "read_sysconsole_site"
-	PERMISSION_WRITE_SYSCONSOLE_SITE                       = "write_sysconsole_site"
-	PERMISSION_READ_SYSCONSOLE_AUTHENTICATION              = "read_sysconsole_authentication"
-	PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION             = "write_sysconsole_authentication"
-	PERMISSION_READ_SYSCONSOLE_PLUGINS                     = "read_sysconsole_plugins"
-	PERMISSION_WRITE_SYSCONSOLE_PLUGINS                    = "write_sysconsole_plugins"
-	PERMISSION_READ_SYSCONSOLE_INTEGRATIONS                = "read_sysconsole_integrations"
-	PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS               = "write_sysconsole_integrations"
-	PERMISSION_READ_SYSCONSOLE_COMPLIANCE                  = "read_sysconsole_compliance"
-	PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE                 = "write_sysconsole_compliance"
-	PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL                = "read_sysconsole_experimental"
-	PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL               = "write_sysconsole_experimental"
+	PERMISSION_MANAGE_SYSTEM                     = "manage_system"
+	PERMISSION_MANAGE_EMOJIS                     = "manage_emojis"
+	PERMISSION_MANAGE_OTHERS_EMOJIS              = "manage_others_emojis"
+	PERMISSION_CREATE_EMOJIS                     = "create_emojis"
+	PERMISSION_DELETE_EMOJIS                     = "delete_emojis"
+	PERMISSION_DELETE_OTHERS_EMOJIS              = "delete_others_emojis"
+	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
+	PERMISSION_MANAGE_WEBHOOKS                   = "manage_webhooks"
+	PERMISSION_MANAGE_OTHERS_WEBHOOKS            = "manage_others_webhooks"
+	PERMISSION_MANAGE_INCOMING_WEBHOOKS          = "manage_incoming_webhooks"
+	PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS   = "manage_others_incoming_webhooks"
+	PERMISSION_MANAGE_OUTGOING_WEBHOOKS          = "manage_outgoing_webhooks"
+	PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS   = "manage_others_outgoing_webhooks"
+	PERMISSION_LIST_PUBLIC_TEAMS                 = "list_public_teams"
+	PERMISSION_LIST_PRIVATE_TEAMS                = "list_private_teams"
+	PERMISSION_JOIN_PUBLIC_TEAMS                 = "join_public_teams"
+	PERMISSION_JOIN_PRIVATE_TEAMS                = "join_private_teams"
+	PERMISSION_PERMANENT_DELETE_USER             = "permanent_delete_user"
+	PERMISSION_CREATE_BOT                        = "create_bot"
+	PERMISSION_READ_BOTS                         = "read_bots"
+	PERMISSION_READ_OTHERS_BOTS                  = "read_others_bots"
+	PERMISSION_MANAGE_BOTS                       = "manage_bots"
+	PERMISSION_MANAGE_OTHERS_BOTS                = "manage_others_bots"
+	PERMISSION_DELETE_PUBLIC_CHANNEL             = "delete_public_channel"
+	PERMISSION_DELETE_PRIVATE_CHANNEL            = "delete_private_channel"
+	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES  = "manage_public_channel_properties"
+	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES = "manage_private_channel_properties"
+	PERMISSION_VIEW_MEMBERS                      = "view_members"
+	PERMISSION_INVITE_USER                       = "invite_user"
+	PERMISSION_INVITE_GUEST                      = "invite_guest"
+	PERMISSION_PROMOTE_GUEST                     = "promote_guest"
+	PERMISSION_DEMOTE_TO_GUEST                   = "demote_to_guest"
+	PERMISSION_USE_CHANNEL_MENTIONS              = "use_channel_mentions"
+	PERMISSION_CREATE_POST                       = "create_post"
+	PERMISSION_CREATE_POST_PUBLIC                = "create_post_public"
+	PERMISSION_USE_GROUP_MENTIONS                = "use_group_mentions"
+	PERMISSION_ADD_REACTION                      = "add_reaction"
+	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
+	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
+	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
+	PERMISSION_CREATE_USER_ACCESS_TOKEN          = "create_user_access_token"
+	PERMISSION_READ_USER_ACCESS_TOKEN            = "read_user_access_token"
+	PERMISSION_REVOKE_USER_ACCESS_TOKEN          = "revoke_user_access_token"
+	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
+	PERMISSION_GET_PUBLIC_LINK                   = "get_public_link"
+	PERMISSION_LIST_USERS_WITHOUT_TEAM           = "list_users_without_team"
+	PERMISSION_MANAGE_OAUTH                      = "manage_oauth"
+	PERMISSION_MANAGE_ROLES                      = "manage_roles"
+	PERMISSION_MANAGE_TEAM                       = "manage_team"
+	PERMISSION_CREATE_DIRECT_CHANNEL             = "create_direct_channel"
+	PERMISSION_CREATE_GROUP_CHANNEL              = "create_group_channel"
+	PERMISSION_CREATE_TEAM                       = "create_team"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -469,40 +439,14 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 }
 
 func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) {
+	permissionsToAdd := []string{}
+	for _, permission := range append(model.SysconsoleReadPermissions, model.SysconsoleWritePermissions...) {
+		permissionsToAdd = append(permissionsToAdd, permission.Id)
+	}
 	return permissionsMap{
 		permissionTransformation{
-			On: isRole(model.SYSTEM_ADMIN_ROLE_ID),
-			Add: []string{
-				PERMISSION_READ_SYSCONSOLE_ABOUT,
-				PERMISSION_WRITE_SYSCONSOLE_ABOUT,
-				PERMISSION_READ_SYSCONSOLE_REPORTING,
-				PERMISSION_WRITE_SYSCONSOLE_REPORTING,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
-				PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-				PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-				PERMISSION_READ_SYSCONSOLE_ENVIRONMENT,
-				PERMISSION_WRITE_SYSCONSOLE_ENVIRONMENT,
-				PERMISSION_READ_SYSCONSOLE_SITE,
-				PERMISSION_WRITE_SYSCONSOLE_SITE,
-				PERMISSION_READ_SYSCONSOLE_AUTHENTICATION,
-				PERMISSION_WRITE_SYSCONSOLE_AUTHENTICATION,
-				PERMISSION_READ_SYSCONSOLE_PLUGINS,
-				PERMISSION_WRITE_SYSCONSOLE_PLUGINS,
-				PERMISSION_READ_SYSCONSOLE_INTEGRATIONS,
-				PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS,
-				PERMISSION_READ_SYSCONSOLE_COMPLIANCE,
-				PERMISSION_WRITE_SYSCONSOLE_COMPLIANCE,
-				PERMISSION_READ_SYSCONSOLE_EXPERIMENTAL,
-				PERMISSION_WRITE_SYSCONSOLE_EXPERIMENTAL},
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: permissionsToAdd,
 		},
 	}, nil
 }

@@ -253,19 +253,19 @@ func (a *App) DoSystemConsoleRolesCreationMigration() {
 	allSucceeded := true
 	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_MANAGER_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_MANAGER_ROLE_ID]); err != nil {
-			mlog.Critical("Failed to create new Junior Admin role to database.", mlog.Err(err))
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_MANAGER_ROLE_ID))
 			allSucceeded = false
 		}
 	}
 	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID]); err != nil {
-			mlog.Critical("Failed to create new System Console Viewer role to database.", mlog.Err(err))
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID))
 			allSucceeded = false
 		}
 	}
 	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err != nil {
 		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_USER_MANAGER_ROLE_ID]); err != nil {
-			mlog.Critical("Failed to create new User Manager role to database.", mlog.Err(err))
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_USER_MANAGER_ROLE_ID))
 			allSucceeded = false
 		}
 	}
