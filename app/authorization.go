@@ -11,10 +11,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-func (a *App) MakePermissionError(permission *model.Permission) *model.AppError {
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session().UserId+", "+"permission="+permission.Id, http.StatusForbidden)
-}
-
 func (a *App) MakePermissionsError(permissions []*model.Permission) *model.AppError {
 	permissionsStr := "permission="
 	for _, permission := range permissions {
@@ -263,7 +259,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
+			return a.MakePermissionsError([]*model.Permission{model.PERMISSION_MANAGE_BOTS})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
@@ -272,7 +268,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
 			}
-			return a.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
+			return a.MakePermissionsError([]*model.Permission{model.PERMISSION_MANAGE_OTHERS_BOTS})
 		}
 	}
 

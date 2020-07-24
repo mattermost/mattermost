@@ -79,7 +79,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionsError(permissions)
+		c.SetPermissionError(permissions...)
 		return
 	}
 
@@ -141,7 +141,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionsError(permissions)
+		c.SetPermissionError(permissions...)
 		return
 	}
 
@@ -247,7 +247,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionsError(permissions)
+		c.SetPermissionError(permissions...)
 		return
 	}
 

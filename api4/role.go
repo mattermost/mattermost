@@ -135,7 +135,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionsError(permissions)
+		c.SetPermissionError(permissions...)
 		return
 	}
 

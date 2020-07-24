@@ -25,7 +25,7 @@ func (api *API) InitConfig() {
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
+		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
 		return
 	}
 
@@ -45,7 +45,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
+		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
 		return
 	}
 
@@ -329,7 +329,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg.SetDefaults()
 
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
+		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
 		return
 	}
 
@@ -458,7 +458,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionsError(model.SYSCONSOLE_READ_PERMISSIONS)
+		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
 		return
 	}
 
