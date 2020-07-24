@@ -57,6 +57,7 @@ const (
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
 	TRACK_CHANNEL_MODERATION        = "channel_moderation"
+	TRACK_WARN_METRICS              = "warn_metrics"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -83,6 +84,7 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 		s.trackElasticsearch()
 		s.trackGroups()
 		s.trackChannelModeration()
+		s.trackWarnMetrics()
 	}
 }
 
@@ -405,15 +407,13 @@ func (s *Server) trackConfig() {
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_AUDIT, map[string]interface{}{
-		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
-		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
-		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
-		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
@@ -424,6 +424,7 @@ func (s *Server) trackConfig() {
 		"file_level":              *cfg.NotificationLogSettings.FileLevel,
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
+		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
@@ -1088,4 +1089,20 @@ func (s *Server) trackChannelModeration() {
 		"use_channel_mentions_user_disabled_count":  useChannelMentionsUser,
 		"use_channel_mentions_guest_disabled_count": useChannelMentionsGuest,
 	})
+}
+
+func (s *Server) trackWarnMetrics() {
+	systemDataList, appErr := s.Store.System().Get()
+	if appErr != nil {
+		return
+	}
+	for key, value := range systemDataList {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if _, ok := model.WarnMetricsTable[key]; ok {
+				s.SendDiagnostic(TRACK_WARN_METRICS, map[string]interface{}{
+					key: value != "false",
+				})
+			}
+		}
+	}
 }
