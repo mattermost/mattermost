@@ -24,8 +24,8 @@ func (api *API) InitConfig() {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
 
@@ -44,8 +44,8 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("configReload", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
 
@@ -328,8 +328,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
 
@@ -457,8 +457,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SYSCONSOLE_READ_PERMISSIONS) {
-		c.SetPermissionError(model.SYSCONSOLE_READ_PERMISSIONS...)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
 		return
 	}
 

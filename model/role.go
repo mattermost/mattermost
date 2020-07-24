@@ -141,8 +141,8 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
 	rolePermissionsMap := AsStringBoolMap(r.Permissions)
 
-	for _, cp := range ALL_PERMISSIONS {
-		if cp.Scope != PERMISSION_SCOPE_CHANNEL {
+	for _, cp := range AllPermissions {
+		if cp.Scope != PermissionScopeChannel {
 			continue
 		}
 
@@ -156,7 +156,7 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 			continue
 		}
 
-		_, permissionIsModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[cp.Id]
+		_, permissionIsModerated := ChannelModeratedPermissionsMap[cp.Id]
 		if permissionIsModerated {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
 			if presentOnRole && presentOnHigherScope {
@@ -222,13 +222,13 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	patchMap := make(map[string]bool)
 
 	for _, permission := range role.Permissions {
-		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+		if channelModeratedPermissionName, found := ChannelModeratedPermissionsMap[permission]; found {
 			roleMap[channelModeratedPermissionName] = true
 		}
 	}
 
 	for _, permission := range *patch.Permissions {
-		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+		if channelModeratedPermissionName, found := ChannelModeratedPermissionsMap[permission]; found {
 			patchMap[channelModeratedPermissionName] = true
 		}
 	}
@@ -252,11 +252,11 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
-		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
+		if _, found := ChannelModeratedPermissionsMap[permission]; !found {
 			continue
 		}
 
-		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+		for moderated, moderatedPermissionValue := range ChannelModeratedPermissionsMap {
 			// the moderated permission has already been found to be true so skip this iteration
 			if moderatedPermissions[moderatedPermissionValue] {
 				continue
@@ -285,14 +285,14 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 	// Iterate through the list of existing permissions on the role and append permissions that we want to keep.
 	for _, permission := range r.Permissions {
 		// Permission is not moderated so dont add it to the patch and skip the channelModerationsPatch
-		if _, isModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !isModerated {
+		if _, isModerated := ChannelModeratedPermissionsMap[permission]; !isModerated {
 			continue
 		}
 
 		permissionEnabled := true
 		// Check if permission has a matching moderated permission name inside the channel moderation patch
 		for _, channelModerationPatch := range channelModerationsPatch {
-			if *channelModerationPatch.Name == CHANNEL_MODERATED_PERMISSIONS_MAP[permission] {
+			if *channelModerationPatch.Name == ChannelModeratedPermissionsMap[permission] {
 				// Permission key exists in patch with a value of false so skip over it
 				if roleName == "members" {
 					if channelModerationPatch.Roles.Members != nil && !*channelModerationPatch.Roles.Members {
@@ -313,7 +313,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 
 	// Iterate through the patch and add any permissions that dont already exist on the role
 	for _, channelModerationPatch := range channelModerationsPatch {
-		for permission, moderatedPermissionName := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+		for permission, moderatedPermissionName := range ChannelModeratedPermissionsMap {
 			if roleName == "members" && channelModerationPatch.Roles.Members != nil && *channelModerationPatch.Roles.Members && *channelModerationPatch.Name == moderatedPermissionName {
 				permissionsToAddToPatch[permission] = true
 			}
@@ -355,7 +355,7 @@ func (r *Role) IsValidWithoutId() bool {
 
 	for _, permission := range r.Permissions {
 		permissionValidated := false
-		for _, p := range ALL_PERMISSIONS {
+		for _, p := range AllPermissions {
 			if permission == p.Id {
 				permissionValidated = true
 				break

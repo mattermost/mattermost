@@ -1465,10 +1465,10 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 	channel := th.BasicChannel
 
-	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
-	createReactions := model.CHANNEL_MODERATED_PERMISSIONS[1]
-	manageMembers := model.CHANNEL_MODERATED_PERMISSIONS[2]
-	channelMentions := model.CHANNEL_MODERATED_PERMISSIONS[3]
+	createPosts := model.ChannelModeratedPermissions[0]
+	createReactions := model.ChannelModeratedPermissions[1]
+	manageMembers := model.ChannelModeratedPermissions[2]
+	channelMentions := model.ChannelModeratedPermissions[3]
 
 	nonChannelModeratedPermission := model.PERMISSION_CREATE_BOT.Id
 

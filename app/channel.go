@@ -954,7 +954,7 @@ func buildChannelModerations(channelType string, memberRole *model.Role, guestRo
 	}
 
 	var channelModerations []*model.ChannelModeration
-	for _, permissionKey := range model.CHANNEL_MODERATED_PERMISSIONS {
+	for _, permissionKey := range model.ChannelModeratedPermissions {
 		roles := &model.ChannelModeratedRoles{}
 
 		roles.Members = &model.ChannelModeratedRole{

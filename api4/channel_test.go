@@ -3623,7 +3623,7 @@ func TestPatchChannelModerations(t *testing.T) {
 
 	emptyPatch := []*model.ChannelModerationPatch{}
 
-	createPosts := model.CHANNEL_MODERATED_PERMISSIONS[0]
+	createPosts := model.ChannelModeratedPermissions[0]
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
