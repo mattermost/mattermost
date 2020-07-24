@@ -741,8 +741,12 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInTeamPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if len(inChannelId) > 0 {
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), inChannelId, model.PERMISSION_READ_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		permissions := []*model.Permission{
+			model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
+			model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
+		}
+		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), inChannelId, model.PERMISSION_READ_CHANNEL) && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+			c.SetPermissionError(append(permissions, model.PERMISSION_READ_CHANNEL)...)
 			return
 		}
 		if sort == "status" {

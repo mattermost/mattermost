@@ -1475,8 +1475,12 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	permissions := []*model.Permission{
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
+		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
+	}
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
+		c.SetPermissionError(permissions...)
 		return
 	}
 
