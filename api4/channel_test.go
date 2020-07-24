@@ -1239,109 +1239,166 @@ func TestSearchAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channel := &model.Channel{
-		DisplayName: "FOOBARDISPLAYNAME",
+	openChannel, chanErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "SearchAllChannels-FOOBARDISPLAYNAME",
 		Name:        "whatever",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
+	})
+	CheckNoError(t, chanErr)
+
+	privateChannel, privErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "SearchAllChannels-private1",
+		Name:        "private1",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	CheckNoError(t, privErr)
+
+	team := th.CreateTeam()
+	groupConstrainedChannel, groupErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName:      "SearchAllChannels-groupConstrained-1",
+		Name:             "groupconstrained1",
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+		TeamId:           team.Id,
+	})
+	CheckNoError(t, groupErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
+	})
+
+	testCases := []struct {
+		Description        string
+		Search             *model.ChannelSearch
+		ExpectedChannelIds []string
+	}{
+		{
+			"Middle of word search",
+			&model.ChannelSearch{Term: "bardisplay"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Prefix search",
+			&model.ChannelSearch{Term: "SearchAllChannels-foobar"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Suffix search",
+			&model.ChannelSearch{Term: "displayname"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Name search",
+			&model.ChannelSearch{Term: "what"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Name suffix search",
+			&model.ChannelSearch{Term: "ever"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Basic channel name middle of word search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name[2:14]},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Upper case search",
+			&model.ChannelSearch{Term: strings.ToUpper(th.BasicChannel.Name)},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Mixed case search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name[0:2] + strings.ToUpper(th.BasicChannel.Name[2:5]) + th.BasicChannel.Name[5:]},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Non mixed case search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Search private channel name",
+			&model.ChannelSearch{Term: th.BasicPrivateChannel.Name},
+			[]string{th.BasicPrivateChannel.Id},
+		},
+		{
+			"Search with private channel filter",
+			&model.ChannelSearch{Private: true},
+			[]string{th.BasicPrivateChannel.Id, th.BasicPrivateChannel2.Id, privateChannel.Id, groupConstrainedChannel.Id},
+		},
+		{
+			"Search with public channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", Public: true},
+			[]string{openChannel.Id},
+		},
+		{
+			"Search with private channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", Private: true},
+			[]string{privateChannel.Id, groupConstrainedChannel.Id},
+		},
+		{
+			"Search with teamIds channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", TeamIds: []string{th.BasicTeam.Id}},
+			[]string{openChannel.Id, privateChannel.Id},
+		},
+		{
+			"Search with deleted without IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name},
+			[]string{},
+		},
+		{
+			"Search with deleted IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name, IncludeDeleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search with deleted IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name, IncludeDeleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search with deleted Deleted filter and empty term",
+			&model.ChannelSearch{Term: "", Deleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search for group constrained",
+			&model.ChannelSearch{Term: "SearchAllChannels", GroupConstrained: true},
+			[]string{groupConstrainedChannel.Id},
+		},
+		{
+			"Search for group constrained and public",
+			&model.ChannelSearch{Term: "SearchAllChannels", GroupConstrained: true, Public: true},
+			[]string{},
+		},
+		{
+			"Search for exclude group constrained",
+			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeGroupConstrained: true},
+			[]string{openChannel.Id, privateChannel.Id},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			channels, resp := th.SystemAdminClient.SearchAllChannels(testCase.Search)
+			CheckNoError(t, resp)
+			assert.Equal(t, len(testCase.ExpectedChannelIds), len(*channels))
+			actualChannelIds := []string{}
+			for _, channelWithTeamData := range *channels {
+				actualChannelIds = append(actualChannelIds, channelWithTeamData.Channel.Id)
+			}
+			assert.ElementsMatch(t, testCase.ExpectedChannelIds, actualChannelIds)
+		})
 	}
 
-	// Testing Mixed Case (Ensure we get results for partial word searches)
-
-	// Search by using display name
-	foobarchannel, err := th.SystemAdminClient.CreateChannel(channel)
-	CheckNoError(t, err)
-
-	search := &model.ChannelSearch{Term: "bardisplay"}
-
-	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
+	// Searching with no terms returns all default channels
+	allChannels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckNoError(t, resp)
+	assert.True(t, len(*allChannels) >= 3)
 
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: "foobar"}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: "displayname"}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
-
-	// Search by using Name
-	search = &model.ChannelSearch{Term: "what"}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: "ever"}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	// Seach by partial word search and testing case sensitivty
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, foobarchannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: th.BasicChannel.Name[2:14]}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: strings.ToUpper(th.BasicChannel.Name)}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
-
-	search = &model.ChannelSearch{Term: th.BasicChannel.Name[0:2] + strings.ToUpper(th.BasicChannel.Name[2:5]) + th.BasicChannel.Name[5:]}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
-
-	// Testing Non-Mixed Case test cases
-	search = &model.ChannelSearch{Term: th.BasicChannel.Name}
-
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
-
-	search.Term = th.BasicPrivateChannel.Name
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicPrivateChannel.Id, (*channels)[0].Id)
-
-	search.Term = ""
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-	// At least, all the not-deleted channels created during the InitBasic
-	assert.True(t, len(*channels) >= 3)
-
-	search.Term = th.BasicChannel.Name
-	_, resp = Client.SearchAllChannels(search)
+	_, resp = Client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -3192,7 +3249,7 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 }
 
 func TestUpdateChannelScheme(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))

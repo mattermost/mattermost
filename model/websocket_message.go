@@ -66,6 +66,8 @@ const (
 	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_UPDATED                 = "sidebar_category_updated"
 	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_DELETED                 = "sidebar_category_deleted"
 	WEBSOCKET_EVENT_SIDEBAR_CATEGORY_ORDER_UPDATED           = "sidebar_category_order_updated"
+	WEBSOCKET_WARN_METRIC_STATUS_RECEIVED                    = "warn_metric_status_received"
+	WEBSOCKET_WARN_METRIC_STATUS_REMOVED                     = "warn_metric_status_removed"
 )
 
 type WebSocketMessage interface {
