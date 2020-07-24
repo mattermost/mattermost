@@ -302,9 +302,6 @@ func MakeConfigSectionToPermissionMap() map[string]*model.Permission {
 	return sectionToPermission
 }
 
-//contains sections that do not have correspndance in the SystemConsole
-//thse are permissioned by the PERMISSION_MANAGE_SYSTEM not by the section/item permissions
-
 func ConfigSettingsWhiteList() map[string]string {
 	whiteList := make(map[string]string)
 	whiteList["ThemeSettings"] = "ThemeSettings"
@@ -328,8 +325,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cfg.SetDefaults()
 
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if !c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
+		c.SetPermissionError(model.SysconsoleWritePermissions...)
 		return
 	}
 
@@ -338,9 +335,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	//if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-	// Start with the current configuration, and only merge values not marked as being
-	// restricted.
+
 	var err1 error
 	cfg, err1 = config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
@@ -412,6 +407,7 @@ func filterConfigByPermission(c *Context, structField reflect.StructField, paren
 	}
 	return true
 }
+
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	format := r.URL.Query().Get("format")
 
@@ -467,15 +463,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-	// if *appCfg.ExperimentalSettings.RestrictSystemAdmin {
-	// 	filterFn = func(structField reflect.StructField, base, patch reflect.Value, parentTypeName "") bool {
-	// 		return !(structField.Tag.Get("restricted") == "true")
-	// 	}
-	// } else {
-	// 	filterFn = func(structField reflect.StructField, base, patch reflect.Value, "") bool {
-	// 		return true
-	// 	}
-	// }
+
 	filterFn := func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
 		return filterConfigByPermission(c, structField, parentStructFieldName)
 	}
