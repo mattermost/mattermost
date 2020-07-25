@@ -2743,7 +2743,7 @@ type ConfigFunc func() *Config
 // integrations, compliance, plugins, experimental. Fields of type struct do not
 // automatically grant permissions. Example:
 //  type HairSettings struct {
-//      // Colour is writeable by roles with either model.PERMISSION_WRITE_SYSCONSOLE_REPORTING 
+//      // Colour is writeable by roles with either model.PERMISSION_WRITE_SYSCONSOLE_REPORTING
 //      // or model.PERMISSION_WRITE_SYSCONSOLE_USER_MANAGEMENT_GROUPS permission.
 //      Colour string `permissions:"reporting user_management_groups"`
 //
