@@ -247,96 +247,96 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `restricted:"true"`
+	SiteURL                                           *string  `restricted:"true" permissions:"environment"`
 	WebsocketURL                                      *string  `restricted:"true"`
 	LicenseFileLocation                               *string  `restricted:"true"`
-	ListenAddress                                     *string  `restricted:"true"`
-	ConnectionSecurity                                *string  `restricted:"true"`
-	TLSCertFile                                       *string  `restricted:"true"`
-	TLSKeyFile                                        *string  `restricted:"true"`
+	ListenAddress                                     *string  `restricted:"true" permissions:"environment"`
+	ConnectionSecurity                                *string  `restricted:"true" permissions:"environment"`
+	TLSCertFile                                       *string  `restricted:"true" permissions:"environment"`
+	TLSKeyFile                                        *string  `restricted:"true" permissions:"environment"`
 	TLSMinVer                                         *string  `restricted:"true"`
 	TLSStrictTransport                                *bool    `restricted:"true"`
 	TLSStrictTransportMaxAge                          *int64   `restricted:"true"`
 	TLSOverwriteCiphers                               []string `restricted:"true"`
-	UseLetsEncrypt                                    *bool    `restricted:"true"`
-	LetsEncryptCertificateCacheFile                   *string  `restricted:"true"`
-	Forward80To443                                    *bool    `restricted:"true"`
+	UseLetsEncrypt                                    *bool    `restricted:"true" permissions:"environment"`
+	LetsEncryptCertificateCacheFile                   *string  `restricted:"true" permissions:"environment"`
+	Forward80To443                                    *bool    `restricted:"true" permissions:"environment"`
 	TrustedProxyIPHeader                              []string `restricted:"true"`
-	ReadTimeout                                       *int     `restricted:"true"`
-	WriteTimeout                                      *int     `restricted:"true"`
+	ReadTimeout                                       *int     `restricted:"true" permissions:"environment"`
+	WriteTimeout                                      *int     `restricted:"true" permissions:"environment"`
 	IdleTimeout                                       *int     `restricted:"true"`
-	MaximumLoginAttempts                              *int     `restricted:"true"`
+	MaximumLoginAttempts                              *int     `restricted:"true" permissions:"authentication"`
 	GoroutineHealthThreshold                          *int     `restricted:"true"`
-	GoogleDeveloperKey                                *string  `restricted:"true"`
-	EnableOAuthServiceProvider                        *bool
-	EnableIncomingWebhooks                            *bool
-	EnableOutgoingWebhooks                            *bool
-	EnableCommands                                    *bool
-	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
-	EnablePostUsernameOverride                        *bool
-	EnablePostIconOverride                            *bool
-	EnableLinkPreviews                                *bool
-	EnableTesting                                     *bool   `restricted:"true"`
-	EnableDeveloper                                   *bool   `restricted:"true"`
-	EnableOpenTracing                                 *bool   `restricted:"true"`
-	EnableSecurityFixAlert                            *bool   `restricted:"true"`
-	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
-	AllowedUntrustedInternalConnections               *string `restricted:"true"`
-	EnableMultifactorAuthentication                   *bool
-	EnforceMultifactorAuthentication                  *bool
-	EnableUserAccessTokens                            *bool
-	AllowCorsFrom                                     *string `restricted:"true"`
-	CorsExposedHeaders                                *string `restricted:"true"`
-	CorsAllowCredentials                              *bool   `restricted:"true"`
-	CorsDebug                                         *bool   `restricted:"true"`
-	AllowCookiesForSubdomains                         *bool   `restricted:"true"`
-	ExtendSessionLengthWithActivity                   *bool   `restricted:"true"`
-	SessionLengthWebInDays                            *int    `restricted:"true"`
-	SessionLengthMobileInDays                         *int    `restricted:"true"`
-	SessionLengthSSOInDays                            *int    `restricted:"true"`
-	SessionCacheInMinutes                             *int    `restricted:"true"`
-	SessionIdleTimeoutInMinutes                       *int    `restricted:"true"`
-	WebsocketSecurePort                               *int    `restricted:"true"`
-	WebsocketPort                                     *int    `restricted:"true"`
-	WebserverMode                                     *string `restricted:"true"`
-	EnableCustomEmoji                                 *bool
-	EnableEmojiPicker                                 *bool
-	EnableGifPicker                                   *bool
-	GfycatApiKey                                      *string
-	GfycatApiSecret                                   *string
-	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
+	GoogleDeveloperKey                                *string  `restricted:"true" permissions:"site"`
+	EnableOAuthServiceProvider                        *bool    `permissions:"integrations"`
+	EnableIncomingWebhooks                            *bool    `permissions:"integrations"`
+	EnableOutgoingWebhooks                            *bool    `permissions:"integrations"`
+	EnableCommands                                    *bool    `permissions:"integrations"`
+	DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations *bool    `json:"EnableOnlyAdminIntegrations" mapstructure:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
+	EnablePostUsernameOverride                        *bool    `permissions:"integrations"`
+	EnablePostIconOverride                            *bool    `permissions:"integrations"`
+	EnableLinkPreviews                                *bool    `permissions:"site"`
+	EnableTesting                                     *bool    `restricted:"true" permissions:"environment"`
+	EnableDeveloper                                   *bool    `restricted:"true" permissions:"environment"`
+	EnableOpenTracing                                 *bool    `restricted:"true"`
+	EnableSecurityFixAlert                            *bool    `restricted:"true" permissions:"environment"`
+	EnableInsecureOutgoingConnections                 *bool    `restricted:"true" permissions:"environment"`
+	AllowedUntrustedInternalConnections               *string  `restricted:"true" permissions:"environment"`
+	EnableMultifactorAuthentication                   *bool    `permissions:"authentication"`
+	EnforceMultifactorAuthentication                  *bool    `permissions:"authentication"`
+	EnableUserAccessTokens                            *bool    `permissions:"integrations"`
+	AllowCorsFrom                                     *string  `restricted:"true" permissions:"integrations"`
+	CorsExposedHeaders                                *string  `restricted:"true" permissions:"integrations"`
+	CorsAllowCredentials                              *bool    `restricted:"true" permissions:"integrations"`
+	CorsDebug                                         *bool    `restricted:"true" permissions:"integrations"`
+	AllowCookiesForSubdomains                         *bool    `restricted:"true"`
+	ExtendSessionLengthWithActivity                   *bool    `restricted:"true"`
+	SessionLengthWebInDays                            *int     `restricted:"true" permissions:"environment"`
+	SessionLengthMobileInDays                         *int     `restricted:"true" permissions:"environment"`
+	SessionLengthSSOInDays                            *int     `restricted:"true" permissions:"environment"`
+	SessionCacheInMinutes                             *int     `restricted:"true" permissions:"environment"`
+	SessionIdleTimeoutInMinutes                       *int     `restricted:"true" permissions:"environment"`
+	WebsocketSecurePort                               *int     `restricted:"true"`
+	WebsocketPort                                     *int     `restricted:"true"`
+	WebserverMode                                     *string  `restricted:"true" permissions:"environment"`
+	EnableCustomEmoji                                 *bool    `permissions:"site"`
+	EnableEmojiPicker                                 *bool    `permissions:"site"`
+	EnableGifPicker                                   *bool    `permissions:"integrations"`
+	GfycatApiKey                                      *string  `permissions:"integrations"`
+	GfycatApiSecret                                   *string  `permissions:"integrations"`
+	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
 	EnablePostSearch                                  *bool  `restricted:"true"`
-	MinimumHashtagLength                              *int   `restricted:"true"`
+	MinimumHashtagLength                              *int   `restricted:"true" permissions:"environment"`
 	EnableUserTypingMessages                          *bool  `restricted:"true"`
 	EnableChannelViewedMessages                       *bool  `restricted:"true"`
 	EnableUserStatuses                                *bool  `restricted:"true"`
-	ExperimentalEnableAuthenticationTransfer          *bool  `restricted:"true"`
+	ExperimentalEnableAuthenticationTransfer          *bool  `restricted:"true" permissions:"experimental"`
 	ClusterLogTimeoutMilliseconds                     *int   `restricted:"true"`
 	CloseUnusedDirectMessages                         *bool
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
-	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
-	ExperimentalGroupUnreadChannels                   *string
-	ExperimentalChannelOrganization                   *bool
-	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `permissions:"experimental"`
+	ExperimentalGroupUnreadChannels                   *string `permissions:"experimental"`
+	ExperimentalChannelOrganization                   *bool   `permissions:"experimental"`
+	ExperimentalChannelSidebarOrganization            *string `permissions:"experimental"`
 	ExperimentalDataPrefetch                          *bool
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
-	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalEnableHardenedMode                    *bool `permissions:"experimental"`
 	DisableLegacyMFA                                  *bool `restricted:"true"`
-	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
+	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true" permissions:"experimental"`
 	EnableEmailInvitations                            *bool
-	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
-	EnableBotAccountCreation                          *bool
-	EnableSVGs                                        *bool
-	EnableLatex                                       *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true" permissions:"integrations"`
+	EnableBotAccountCreation                          *bool `permissions:"integrations"`
+	EnableSVGs                                        *bool `permissions:"site"`
+	EnableLatex                                       *bool `permissions:"site"`
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 }
@@ -751,21 +751,21 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `restricted:"true"`
-	ClusterName                        *string `restricted:"true"`
-	OverrideHostname                   *string `restricted:"true"`
-	NetworkInterface                   *string `restricted:"true"`
-	BindAddress                        *string `restricted:"true"`
-	AdvertiseAddress                   *string `restricted:"true"`
-	UseIpAddress                       *bool   `restricted:"true"`
-	UseExperimentalGossip              *bool   `restricted:"true"`
-	EnableExperimentalGossipEncryption *bool   `restricted:"true"`
-	ReadOnlyConfig                     *bool   `restricted:"true"`
-	GossipPort                         *int    `restricted:"true"`
-	StreamingPort                      *int    `restricted:"true"`
-	MaxIdleConns                       *int    `restricted:"true"`
-	MaxIdleConnsPerHost                *int    `restricted:"true"`
-	IdleConnTimeoutMilliseconds        *int    `restricted:"true"`
+	Enable                             *bool   `restricted:"true" permissions:"environment"`
+	ClusterName                        *string `restricted:"true" permissions:"environment"`
+	OverrideHostname                   *string `restricted:"true" permissions:"environment"`
+	NetworkInterface                   *string `restricted:"true" permissions:"environment"`
+	BindAddress                        *string `restricted:"true" permissions:"environment"`
+	AdvertiseAddress                   *string `restricted:"true" permissions:"environment"`
+	UseIpAddress                       *bool   `restricted:"true" permissions:"environment"`
+	UseExperimentalGossip              *bool   `restricted:"true" permissions:"environment"`
+	EnableExperimentalGossipEncryption *bool   `restricted:"true" permissions:"environment"`
+	ReadOnlyConfig                     *bool   `restricted:"true" permissions:"environment"`
+	GossipPort                         *int    `restricted:"true" permissions:"environment"`
+	StreamingPort                      *int    `restricted:"true" permissions:"environment"`
+	MaxIdleConns                       *int    `restricted:"true" permissions:"environment"`
+	MaxIdleConnsPerHost                *int    `restricted:"true" permissions:"environment"`
+	IdleConnTimeoutMilliseconds        *int    `restricted:"true" permissions:"environment"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -831,9 +831,9 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable           *bool   `restricted:"true"`
-	BlockProfileRate *int    `restricted:"true"`
-	ListenAddress    *string `restricted:"true"`
+	Enable           *bool   `restricted:"true" permissions:"environment"`
+	BlockProfileRate *int    `restricted:"true" permissions:"environment"`
+	ListenAddress    *string `restricted:"true" permissions:"environment"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -851,12 +851,12 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool
-	ClientSideCertCheck             *string
-	EnableClickToReply              *bool  `restricted:"true"`
-	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
-	RestrictSystemAdmin             *bool  `restricted:"true"`
-	UseNewSAMLLibrary               *bool
+	ClientSideCertEnable            *bool   `permissions:"experimental"`
+	ClientSideCertCheck             *string `permissions:"experimental"`
+	EnableClickToReply              *bool   `restricted:"true" permissions:"experimental"`
+	LinkMetadataTimeoutMilliseconds *int64  `restricted:"true" permissions:"experimental"`
+	RestrictSystemAdmin             *bool   `restricted:"true" permissions:"experimental"`
+	UseNewSAMLLibrary               *bool   `permissions:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -885,7 +885,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 }
 
 type AnalyticsSettings struct {
-	MaxUsersForStatistics *int `restricted:"true"`
+	MaxUsersForStatistics *int `restricted:"true" permissions:"-"`
 }
 
 func (s *AnalyticsSettings) SetDefaults() {
@@ -895,13 +895,13 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool
-	Secret          *string
-	Id              *string
-	Scope           *string
-	AuthEndpoint    *string
-	TokenEndpoint   *string
-	UserApiEndpoint *string
+	Enable          *bool   `permissions:"authentication"`
+	Secret          *string `permissions:"authentication"`
+	Id              *string `permissions:"authentication"`
+	Scope           *string `permissions:"authentication"`
+	AuthEndpoint    *string `permissions:"authentication"`
+	TokenEndpoint   *string `permissions:"authentication"`
+	UserApiEndpoint *string `permissions:"authentication"`
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
@@ -935,14 +935,14 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 }
 
 type Office365Settings struct {
-	Enable          *bool
-	Secret          *string
-	Id              *string
-	Scope           *string
-	AuthEndpoint    *string
-	TokenEndpoint   *string
-	UserApiEndpoint *string
-	DirectoryId     *string
+	Enable          *bool   `permissions:"authentication"`
+	Secret          *string `permissions:"authentication"`
+	Id              *string `permissions:"authentication"`
+	Scope           *string `permissions:"authentication"`
+	AuthEndpoint    *string `permissions:"authentication"`
+	TokenEndpoint   *string `permissions:"authentication"`
+	UserApiEndpoint *string `permissions:"authentication"`
+	DirectoryId     *string `permissions:"authentication"`
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -992,17 +992,17 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type SqlSettings struct {
-	DriverName                  *string  `restricted:"true"`
-	DataSource                  *string  `restricted:"true"`
-	DataSourceReplicas          []string `restricted:"true"`
-	DataSourceSearchReplicas    []string `restricted:"true"`
-	MaxIdleConns                *int     `restricted:"true"`
-	ConnMaxLifetimeMilliseconds *int     `restricted:"true"`
-	MaxOpenConns                *int     `restricted:"true"`
-	Trace                       *bool    `restricted:"true"`
-	AtRestEncryptKey            *string  `restricted:"true"`
-	QueryTimeout                *int     `restricted:"true"`
-	DisableDatabaseSearch       *bool    `restricted:"true"`
+	DriverName                  *string  `restricted:"true" permissions:"environment"`
+	DataSource                  *string  `restricted:"true" permissions:"environment"`
+	DataSourceReplicas          []string `restricted:"true" permissions:"environment"`
+	DataSourceSearchReplicas    []string `restricted:"true" permissions:"environment"`
+	MaxIdleConns                *int     `restricted:"true" permissions:"environment"`
+	ConnMaxLifetimeMilliseconds *int     `restricted:"true" permissions:"environment"`
+	MaxOpenConns                *int     `restricted:"true" permissions:"environment"`
+	Trace                       *bool    `restricted:"true" permissions:"environment"`
+	AtRestEncryptKey            *string  `restricted:"true" permissions:"environment"`
+	QueryTimeout                *int     `restricted:"true" permissions:"environment"`
+	DisableDatabaseSearch       *bool    `restricted:"true" permissions:"environment"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1058,17 +1058,17 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `restricted:"true"`
-	ConsoleLevel           *string `restricted:"true"`
-	ConsoleJson            *bool   `restricted:"true"`
-	EnableFile             *bool   `restricted:"true"`
-	FileLevel              *string `restricted:"true"`
-	FileJson               *bool   `restricted:"true"`
-	FileLocation           *string `restricted:"true"`
-	EnableWebhookDebugging *bool   `restricted:"true"`
-	EnableDiagnostics      *bool   `restricted:"true"`
-	EnableSentry           *bool   `restricted:"true"`
-	AdvancedLoggingConfig  *string `restricted:"true"`
+	EnableConsole          *bool   `restricted:"true" permissions:"environment"`
+	ConsoleLevel           *string `restricted:"true" permissions:"environment"`
+	ConsoleJson            *bool   `restricted:"true" permissions:"environment"`
+	EnableFile             *bool   `restricted:"true" permissions:"environment"`
+	FileLevel              *string `restricted:"true" permissions:"environment"`
+	FileJson               *bool   `restricted:"true" permissions:"environment"`
+	FileLocation           *string `restricted:"true" permissions:"environment"`
+	EnableWebhookDebugging *bool   `restricted:"true" permissions:"environment"`
+	EnableDiagnostics      *bool   `restricted:"true" permissions:"environment"`
+	EnableSentry           *bool   `restricted:"true" permissions:"environment"`
+	AdvancedLoggingConfig  *string `restricted:"true" permissions:"environment"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1118,14 +1118,14 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `restricted:"true"`
-	FileName              *string `restricted:"true"`
-	FileMaxSizeMB         *int    `restricted:"true"`
-	FileMaxAgeDays        *int    `restricted:"true"`
-	FileMaxBackups        *int    `restricted:"true"`
-	FileCompress          *bool   `restricted:"true"`
-	FileMaxQueueSize      *int    `restricted:"true"`
-	AdvancedLoggingConfig *string `restricted:"true"`
+	FileEnabled           *bool   `restricted:"true" permissions:"experimental"`
+	FileName              *string `restricted:"true" permissions:"experimental"`
+	FileMaxSizeMB         *int    `restricted:"true" permissions:"experimental"`
+	FileMaxAgeDays        *int    `restricted:"true" permissions:"experimental"`
+	FileMaxBackups        *int    `restricted:"true" permissions:"experimental"`
+	FileCompress          *bool   `restricted:"true" permissions:"experimental"`
+	FileMaxQueueSize      *int    `restricted:"true" permissions:"experimental"`
+	AdvancedLoggingConfig *string `restricted:"true" permissions:"experimental"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1163,14 +1163,14 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `restricted:"true"`
-	ConsoleLevel          *string `restricted:"true"`
-	ConsoleJson           *bool   `restricted:"true"`
-	EnableFile            *bool   `restricted:"true"`
-	FileLevel             *string `restricted:"true"`
-	FileJson              *bool   `restricted:"true"`
-	FileLocation          *string `restricted:"true"`
-	AdvancedLoggingConfig *string `restricted:"true"`
+	EnableConsole         *bool   `restricted:"true" permissions:"-"`
+	ConsoleLevel          *string `restricted:"true" permissions:"-"`
+	ConsoleJson           *bool   `restricted:"true" permissions:"-"`
+	EnableFile            *bool   `restricted:"true" permissions:"-"`
+	FileLevel             *string `restricted:"true" permissions:"-"`
+	FileJson              *bool   `restricted:"true" permissions:"-"`
+	FileLocation          *string `restricted:"true" permissions:"-"`
+	AdvancedLoggingConfig *string `restricted:"true" permissions:"-"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1208,11 +1208,11 @@ func (s *NotificationLogSettings) SetDefaults() {
 }
 
 type PasswordSettings struct {
-	MinimumLength *int
-	Lowercase     *bool
-	Number        *bool
-	Uppercase     *bool
-	Symbol        *bool
+	MinimumLength *int  `permissions:"authentication"`
+	Lowercase     *bool `permissions:"authentication"`
+	Number        *bool `permissions:"authentication"`
+	Uppercase     *bool `permissions:"authentication"`
+	Symbol        *bool `permissions:"authentication"`
 }
 
 func (s *PasswordSettings) SetDefaults() {
@@ -1238,25 +1238,25 @@ func (s *PasswordSettings) SetDefaults() {
 }
 
 type FileSettings struct {
-	EnableFileAttachments   *bool
-	EnableMobileUpload      *bool
-	EnableMobileDownload    *bool
-	MaxFileSize             *int64
-	DriverName              *string `restricted:"true"`
-	Directory               *string `restricted:"true"`
-	EnablePublicLink        *bool
-	PublicLinkSalt          *string
-	InitialFont             *string
-	AmazonS3AccessKeyId     *string `restricted:"true"`
-	AmazonS3SecretAccessKey *string `restricted:"true"`
-	AmazonS3Bucket          *string `restricted:"true"`
-	AmazonS3PathPrefix      *string `restricted:"true"`
-	AmazonS3Region          *string `restricted:"true"`
-	AmazonS3Endpoint        *string `restricted:"true"`
-	AmazonS3SSL             *bool   `restricted:"true"`
-	AmazonS3SignV2          *bool   `restricted:"true"`
-	AmazonS3SSE             *bool   `restricted:"true"`
-	AmazonS3Trace           *bool   `restricted:"true"`
+	EnableFileAttachments   *bool   `permissions:"site"`
+	EnableMobileUpload      *bool   `permissions:"site"`
+	EnableMobileDownload    *bool   `permissions:"site"`
+	MaxFileSize             *int64  `permissions:"environment"`
+	DriverName              *string `restricted:"true" permissions:"environment"`
+	Directory               *string `restricted:"true" permissions:"environment"`
+	EnablePublicLink        *bool   `permissions:"site"`
+	PublicLinkSalt          *string `permissions:"site"`
+	InitialFont             *string `permissions:"environment"`
+	AmazonS3AccessKeyId     *string `restricted:"true" permissions:"environment"`
+	AmazonS3SecretAccessKey *string `restricted:"true" permissions:"environment"`
+	AmazonS3Bucket          *string `restricted:"true" permissions:"environment"`
+	AmazonS3PathPrefix      *string `restricted:"true" permissions:"environment"`
+	AmazonS3Region          *string `restricted:"true" permissions:"environment"`
+	AmazonS3Endpoint        *string `restricted:"true" permissions:"environment"`
+	AmazonS3SSL             *bool   `restricted:"true" permissions:"environment"`
+	AmazonS3SignV2          *bool   `restricted:"true" permissions:"environment"`
+	AmazonS3SSE             *bool   `restricted:"true" permissions:"environment"`
+	AmazonS3Trace           *bool   `restricted:"true" permissions:"environment"`
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1347,33 +1347,33 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail             *bool
-	EnableSignInWithEmail             *bool
-	EnableSignInWithUsername          *bool
-	SendEmailNotifications            *bool
+	EnableSignUpWithEmail             *bool `permissions:"authentication"`
+	EnableSignInWithEmail             *bool `permissions:"authentication"`
+	EnableSignInWithUsername          *bool `permissions:"authentication"`
+	SendEmailNotifications            *bool `permissions:"site"`
 	UseChannelInEmailNotifications    *bool
-	RequireEmailVerification          *bool
-	FeedbackName                      *string
-	FeedbackEmail                     *string
-	ReplyToAddress                    *string
+	RequireEmailVerification          *bool   `permissions:"authentication"`
+	FeedbackName                      *string `permissions:"site"`
+	FeedbackEmail                     *string `permissions:"site"`
+	ReplyToAddress                    *string `permissions:"site"`
 	FeedbackOrganization              *string
-	EnableSMTPAuth                    *bool   `restricted:"true"`
-	SMTPUsername                      *string `restricted:"true"`
-	SMTPPassword                      *string `restricted:"true"`
-	SMTPServer                        *string `restricted:"true"`
-	SMTPPort                          *string `restricted:"true"`
+	EnableSMTPAuth                    *bool   `restricted:"true" permissions:"environment"`
+	SMTPUsername                      *string `restricted:"true" permissions:"environment"`
+	SMTPPassword                      *string `restricted:"true" permissions:"environment"`
+	SMTPServer                        *string `restricted:"true" permissions:"environment"`
+	SMTPPort                          *string `restricted:"true" permissions:"environment"`
 	SMTPServerTimeout                 *int
-	ConnectionSecurity                *string `restricted:"true"`
-	SendPushNotifications             *bool
-	PushNotificationServer            *string
-	PushNotificationContents          *string
+	ConnectionSecurity                *string `restricted:"true" permissions:"environment"`
+	SendPushNotifications             *bool   `permissions:"environment"`
+	PushNotificationServer            *string `permissions:"environment"`
+	PushNotificationContents          *string `permissions:"site"`
 	PushNotificationBuffer            *int
-	EnableEmailBatching               *bool
+	EnableEmailBatching               *bool `permissions:"site"`
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
-	EnablePreviewModeBanner           *bool
-	SkipServerCertificateVerification *bool `restricted:"true"`
-	EmailNotificationContentsType     *string
+	EnablePreviewModeBanner           *bool   `permissions:"site"`
+	SkipServerCertificateVerification *bool   `restricted:"true" permissions:"environment"`
+	EmailNotificationContentsType     *string `permissions:"site"`
 	LoginButtonColor                  *string
 	LoginButtonBorderColor            *string
 	LoginButtonTextColor              *string
@@ -1522,13 +1522,13 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 }
 
 type RateLimitSettings struct {
-	Enable           *bool  `restricted:"true"`
-	PerSec           *int   `restricted:"true"`
-	MaxBurst         *int   `restricted:"true"`
-	MemoryStoreSize  *int   `restricted:"true"`
-	VaryByRemoteAddr *bool  `restricted:"true"`
-	VaryByUser       *bool  `restricted:"true"`
-	VaryByHeader     string `restricted:"true"`
+	Enable           *bool  `restricted:"true" permissions:"environment"`
+	PerSec           *int   `restricted:"true" permissions:"environment"`
+	MaxBurst         *int   `restricted:"true" permissions:"environment"`
+	MemoryStoreSize  *int   `restricted:"true" permissions:"environment"`
+	VaryByRemoteAddr *bool  `restricted:"true" permissions:"environment"`
+	VaryByUser       *bool  `restricted:"true" permissions:"environment"`
+	VaryByHeader     string `restricted:"true" permissions:"environment"`
 }
 
 func (s *RateLimitSettings) SetDefaults() {
@@ -1558,8 +1558,8 @@ func (s *RateLimitSettings) SetDefaults() {
 }
 
 type PrivacySettings struct {
-	ShowEmailAddress *bool
-	ShowFullName     *bool
+	ShowEmailAddress *bool `permissions:"site"`
+	ShowFullName     *bool `permissions:"site"`
 }
 
 func (s *PrivacySettings) setDefaults() {
@@ -1573,14 +1573,14 @@ func (s *PrivacySettings) setDefaults() {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink                     *string `restricted:"true"`
-	PrivacyPolicyLink                      *string `restricted:"true"`
-	AboutLink                              *string `restricted:"true"`
-	HelpLink                               *string `restricted:"true"`
-	ReportAProblemLink                     *string `restricted:"true"`
-	SupportEmail                           *string
-	CustomTermsOfServiceEnabled            *bool
-	CustomTermsOfServiceReAcceptancePeriod *int
+	TermsOfServiceLink                     *string `restricted:"true" permissions:"site"`
+	PrivacyPolicyLink                      *string `restricted:"true" permissions:"site"`
+	AboutLink                              *string `restricted:"true" permissions:"site"`
+	HelpLink                               *string `restricted:"true" permissions:"site"`
+	ReportAProblemLink                     *string `restricted:"true" permissions:"site"`
+	SupportEmail                           *string `permissions:"site"`
+	CustomTermsOfServiceEnabled            *bool   `permissions:"compliance"`
+	CustomTermsOfServiceReAcceptancePeriod *int    `permissions:"compliance"`
 	EnableAskCommunityLink                 *bool
 }
 
@@ -1643,11 +1643,11 @@ func (s *SupportSettings) SetDefaults() {
 }
 
 type AnnouncementSettings struct {
-	EnableBanner         *bool
-	BannerText           *string
-	BannerColor          *string
-	BannerTextColor      *string
-	AllowBannerDismissal *bool
+	EnableBanner         *bool   `permissions:"site"`
+	BannerText           *string `permissions:"site"`
+	BannerColor          *string `permissions:"site"`
+	BannerTextColor      *string `permissions:"site"`
+	AllowBannerDismissal *bool   `permissions:"site"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1673,10 +1673,10 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool
-	DefaultTheme         *string
-	AllowCustomThemes    *bool
-	AllowedThemes        []string
+	EnableThemeSelection *bool    `permissions:"-"`
+	DefaultTheme         *string  `permissions:"-"`
+	AllowCustomThemes    *bool    `permissions:"-"`
+	AllowedThemes        []string `permissions:"-"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -1698,17 +1698,17 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                                  *string
-	MaxUsersPerTeam                                           *int
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
-	EnableUserCreation                                        *bool
-	EnableOpenServer                                          *bool
+	SiteName                                                  *string `permissions:"site"`
+	MaxUsersPerTeam                                           *int    `permissions:"site"`
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool   `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	EnableUserCreation                                        *bool   `permissions:"authentication"`
+	EnableOpenServer                                          *bool   `permissions:"authentication"`
 	EnableUserDeactivation                                    *bool
-	RestrictCreationToDomains                                 *string
-	EnableCustomBrand                                         *bool
-	CustomBrandText                                           *string
-	CustomDescriptionText                                     *string
-	RestrictDirectMessage                                     *string
+	RestrictCreationToDomains                                 *string `permissions:"authentication"`
+	EnableCustomBrand                                         *bool   `permissions:"site"`
+	CustomBrandText                                           *string `permissions:"site"`
+	CustomDescriptionText                                     *string `permissions:"site"`
+	RestrictDirectMessage                                     *string `permissions:"site"`
 	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
@@ -1717,19 +1717,19 @@ type TeamSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
-	EnableXToLeaveChannelsFromLHS                             *bool
+	EnableXToLeaveChannelsFromLHS                             *bool   `permissions:"experimental"`
 	UserStatusAwayTimeout                                     *int64
-	MaxChannelsPerTeam                                        *int64
-	MaxNotificationsPerChannel                                *int64
-	EnableConfirmNotificationsToChannel                       *bool
-	TeammateNameDisplay                                       *string
-	ExperimentalViewArchivedChannels                          *bool
-	ExperimentalEnableAutomaticReplies                        *bool
-	ExperimentalHideTownSquareinLHS                           *bool
-	ExperimentalTownSquareIsReadOnly                          *bool
-	LockTeammateNameDisplay                                   *bool
-	ExperimentalPrimaryTeam                                   *string
-	ExperimentalDefaultChannels                               []string
+	MaxChannelsPerTeam                                        *int64   `permissions:"site"`
+	MaxNotificationsPerChannel                                *int64   `permissions:"environment"`
+	EnableConfirmNotificationsToChannel                       *bool    `permissions:"site"`
+	TeammateNameDisplay                                       *string  `permissions:"site"`
+	ExperimentalViewArchivedChannels                          *bool    `permissions:"experimental"`
+	ExperimentalEnableAutomaticReplies                        *bool    `permissions:"experimental"`
+	ExperimentalHideTownSquareinLHS                           *bool    `permissions:"experimental"`
+	ExperimentalTownSquareIsReadOnly                          *bool    `permissions:"experimental"`
+	LockTeammateNameDisplay                                   *bool    `permissions:"site"`
+	ExperimentalPrimaryTeam                                   *string  `permissions:"experimental"`
+	ExperimentalDefaultChannels                               []string `permissions:"experimental"`
 }
 
 func (s *TeamSettings) SetDefaults() {
@@ -1881,63 +1881,63 @@ func (s *TeamSettings) SetDefaults() {
 }
 
 type ClientRequirements struct {
-	AndroidLatestVersion string `restricted:"true"`
-	AndroidMinVersion    string `restricted:"true"`
-	DesktopLatestVersion string `restricted:"true"`
-	DesktopMinVersion    string `restricted:"true"`
-	IosLatestVersion     string `restricted:"true"`
-	IosMinVersion        string `restricted:"true"`
+	AndroidLatestVersion string `restricted:"true" permissions:"-"`
+	AndroidMinVersion    string `restricted:"true" permissions:"-"`
+	DesktopLatestVersion string `restricted:"true" permissions:"-"`
+	DesktopMinVersion    string `restricted:"true" permissions:"-"`
+	IosLatestVersion     string `restricted:"true" permissions:"-"`
+	IosMinVersion        string `restricted:"true" permissions:"-"`
 }
 
 type LdapSettings struct {
 	// Basic
-	Enable             *bool
-	EnableSync         *bool
-	LdapServer         *string
-	LdapPort           *int
-	ConnectionSecurity *string
-	BaseDN             *string
-	BindUsername       *string
-	BindPassword       *string
+	Enable             *bool   `permissions:"authentication"`
+	EnableSync         *bool   `permissions:"authentication"`
+	LdapServer         *string `permissions:"authentication"`
+	LdapPort           *int    `permissions:"authentication"`
+	ConnectionSecurity *string `permissions:"authentication"`
+	BaseDN             *string `permissions:"authentication"`
+	BindUsername       *string `permissions:"authentication"`
+	BindPassword       *string `permissions:"authentication"`
 
 	// Filtering
-	UserFilter        *string
-	GroupFilter       *string
-	GuestFilter       *string
-	EnableAdminFilter *bool
-	AdminFilter       *string
+	UserFilter        *string `permissions:"authentication"`
+	GroupFilter       *string `permissions:"authentication"`
+	GuestFilter       *string `permissions:"authentication"`
+	EnableAdminFilter *bool   `permissions:"authentication"`
+	AdminFilter       *string `permissions:"authentication"`
 
 	// Group Mapping
-	GroupDisplayNameAttribute *string
-	GroupIdAttribute          *string
+	GroupDisplayNameAttribute *string `permissions:"authentication"`
+	GroupIdAttribute          *string `permissions:"authentication"`
 
 	// User Mapping
-	FirstNameAttribute *string
-	LastNameAttribute  *string
-	EmailAttribute     *string
-	UsernameAttribute  *string
-	NicknameAttribute  *string
-	IdAttribute        *string
-	PositionAttribute  *string
-	LoginIdAttribute   *string
-	PictureAttribute   *string
+	FirstNameAttribute *string `permissions:"authentication"`
+	LastNameAttribute  *string `permissions:"authentication"`
+	EmailAttribute     *string `permissions:"authentication"`
+	UsernameAttribute  *string `permissions:"authentication"`
+	NicknameAttribute  *string `permissions:"authentication"`
+	IdAttribute        *string `permissions:"authentication"`
+	PositionAttribute  *string `permissions:"authentication"`
+	LoginIdAttribute   *string `permissions:"authentication"`
+	PictureAttribute   *string `permissions:"authentication"`
 
 	// Synchronization
-	SyncIntervalMinutes *int
+	SyncIntervalMinutes *int `permissions:"authentication"`
 
 	// Advanced
-	SkipCertificateVerification *bool
-	QueryTimeout                *int
-	MaxPageSize                 *int
+	SkipCertificateVerification *bool `permissions:"authentication"`
+	QueryTimeout                *int  `permissions:"authentication"`
+	MaxPageSize                 *int  `permissions:"authentication"`
 
 	// Customization
-	LoginFieldName *string
+	LoginFieldName *string `permissions:"authentication"`
 
-	LoginButtonColor       *string
-	LoginButtonBorderColor *string
-	LoginButtonTextColor   *string
+	LoginButtonColor       *string `permissions:"authentication"`
+	LoginButtonBorderColor *string `permissions:"authentication"`
+	LoginButtonTextColor   *string `permissions:"authentication"`
 
-	Trace *bool
+	Trace *bool `permissions:"authentication"`
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2078,9 +2078,9 @@ func (s *LdapSettings) SetDefaults() {
 }
 
 type ComplianceSettings struct {
-	Enable      *bool
-	Directory   *string
-	EnableDaily *bool
+	Enable      *bool   `permissions:"compliance"`
+	Directory   *string `permissions:"compliance"`
+	EnableDaily *bool   `permissions:"compliance"`
 }
 
 func (s *ComplianceSettings) SetDefaults() {
@@ -2098,9 +2098,9 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale *string
-	DefaultClientLocale *string
-	AvailableLocales    *string
+	DefaultServerLocale *string `permissions:"site"`
+	DefaultClientLocale *string `permissions:"site"`
+	AvailableLocales    *string `permissions:"site"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2119,48 +2119,48 @@ func (s *LocalizationSettings) SetDefaults() {
 
 type SamlSettings struct {
 	// Basic
-	Enable                        *bool
-	EnableSyncWithLdap            *bool
-	EnableSyncWithLdapIncludeAuth *bool
+	Enable                        *bool `permissions:"authentication"`
+	EnableSyncWithLdap            *bool `permissions:"authentication"`
+	EnableSyncWithLdapIncludeAuth *bool `permissions:"authentication"`
 
-	Verify      *bool
-	Encrypt     *bool
-	SignRequest *bool
+	Verify      *bool `permissions:"authentication"`
+	Encrypt     *bool `permissions:"authentication"`
+	SignRequest *bool `permissions:"authentication"`
 
-	IdpUrl                      *string
-	IdpDescriptorUrl            *string
-	IdpMetadataUrl              *string
-	ServiceProviderIdentifier   *string
-	AssertionConsumerServiceURL *string
+	IdpUrl                      *string `permissions:"authentication"`
+	IdpDescriptorUrl            *string `permissions:"authentication"`
+	IdpMetadataUrl              *string `permissions:"authentication"`
+	ServiceProviderIdentifier   *string `permissions:"authentication"`
+	AssertionConsumerServiceURL *string `permissions:"authentication"`
 
-	SignatureAlgorithm *string
-	CanonicalAlgorithm *string
+	SignatureAlgorithm *string `permissions:"authentication"`
+	CanonicalAlgorithm *string `permissions:"authentication"`
 
-	ScopingIDPProviderId *string
-	ScopingIDPName       *string
+	ScopingIDPProviderId *string `permissions:"authentication"`
+	ScopingIDPName       *string `permissions:"authentication"`
 
-	IdpCertificateFile    *string
-	PublicCertificateFile *string
-	PrivateKeyFile        *string
+	IdpCertificateFile    *string `permissions:"authentication"`
+	PublicCertificateFile *string `permissions:"authentication"`
+	PrivateKeyFile        *string `permissions:"authentication"`
 
 	// User Mapping
-	IdAttribute          *string
-	GuestAttribute       *string
-	EnableAdminAttribute *bool
-	AdminAttribute       *string
-	FirstNameAttribute   *string
-	LastNameAttribute    *string
-	EmailAttribute       *string
-	UsernameAttribute    *string
-	NicknameAttribute    *string
-	LocaleAttribute      *string
-	PositionAttribute    *string
+	IdAttribute          *string `permissions:"authentication"`
+	GuestAttribute       *string `permissions:"authentication"`
+	EnableAdminAttribute *bool   `permissions:"authentication"`
+	AdminAttribute       *string `permissions:"authentication"`
+	FirstNameAttribute   *string `permissions:"authentication"`
+	LastNameAttribute    *string `permissions:"authentication"`
+	EmailAttribute       *string `permissions:"authentication"`
+	UsernameAttribute    *string `permissions:"authentication"`
+	NicknameAttribute    *string `permissions:"authentication"`
+	LocaleAttribute      *string `permissions:"authentication"`
+	PositionAttribute    *string `permissions:"authentication"`
 
-	LoginButtonText *string
+	LoginButtonText *string `permissions:"authentication"`
 
-	LoginButtonColor       *string
-	LoginButtonBorderColor *string
-	LoginButtonTextColor   *string
+	LoginButtonColor       *string `permissions:"authentication"`
+	LoginButtonBorderColor *string `permissions:"authentication"`
+	LoginButtonTextColor   *string `permissions:"authentication"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -2300,9 +2300,9 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `restricted:"true"`
-	AndroidAppDownloadLink *string `restricted:"true"`
-	IosAppDownloadLink     *string `restricted:"true"`
+	AppDownloadLink        *string `restricted:"true" permissions:"site"`
+	AndroidAppDownloadLink *string `restricted:"true" permissions:"site"`
+	IosAppDownloadLink     *string `restricted:"true" permissions:"site"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2320,27 +2320,27 @@ func (s *NativeAppSettings) SetDefaults() {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl                 *string `restricted:"true"`
-	Username                      *string `restricted:"true"`
-	Password                      *string `restricted:"true"`
-	EnableIndexing                *bool   `restricted:"true"`
-	EnableSearching               *bool   `restricted:"true"`
-	EnableAutocomplete            *bool   `restricted:"true"`
-	Sniff                         *bool   `restricted:"true"`
-	PostIndexReplicas             *int    `restricted:"true"`
-	PostIndexShards               *int    `restricted:"true"`
-	ChannelIndexReplicas          *int    `restricted:"true"`
-	ChannelIndexShards            *int    `restricted:"true"`
-	UserIndexReplicas             *int    `restricted:"true"`
-	UserIndexShards               *int    `restricted:"true"`
-	AggregatePostsAfterDays       *int    `restricted:"true"`
-	PostsAggregatorJobStartTime   *string `restricted:"true"`
-	IndexPrefix                   *string `restricted:"true"`
-	LiveIndexingBatchSize         *int    `restricted:"true"`
-	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
-	RequestTimeoutSeconds         *int    `restricted:"true"`
-	SkipTLSVerification           *bool   `restricted:"true"`
-	Trace                         *string `restricted:"true"`
+	ConnectionUrl                 *string `restricted:"true" permissions:"environment"`
+	Username                      *string `restricted:"true" permissions:"environment"`
+	Password                      *string `restricted:"true" permissions:"environment"`
+	EnableIndexing                *bool   `restricted:"true" permissions:"environment"`
+	EnableSearching               *bool   `restricted:"true" permissions:"environment"`
+	EnableAutocomplete            *bool   `restricted:"true" permissions:"environment"`
+	Sniff                         *bool   `restricted:"true" permissions:"environment"`
+	PostIndexReplicas             *int    `restricted:"true" permissions:"environment"`
+	PostIndexShards               *int    `restricted:"true" permissions:"environment"`
+	ChannelIndexReplicas          *int    `restricted:"true" permissions:"environment"`
+	ChannelIndexShards            *int    `restricted:"true" permissions:"environment"`
+	UserIndexReplicas             *int    `restricted:"true" permissions:"environment"`
+	UserIndexShards               *int    `restricted:"true" permissions:"environment"`
+	AggregatePostsAfterDays       *int    `restricted:"true" permissions:"environment"`
+	PostsAggregatorJobStartTime   *string `restricted:"true" permissions:"environment"`
+	IndexPrefix                   *string `restricted:"true" permissions:"environment"`
+	LiveIndexingBatchSize         *int    `restricted:"true" permissions:"environment"`
+	BulkIndexingTimeWindowSeconds *int    `restricted:"true" permissions:"environment"`
+	RequestTimeoutSeconds         *int    `restricted:"true" permissions:"environment"`
+	SkipTLSVerification           *bool   `restricted:"true" permissions:"environment"`
+	Trace                         *string `restricted:"true" permissions:"environment"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2430,11 +2430,11 @@ func (s *ElasticsearchSettings) SetDefaults() {
 }
 
 type BleveSettings struct {
-	IndexDir                      *string
-	EnableIndexing                *bool
-	EnableSearching               *bool
-	EnableAutocomplete            *bool
-	BulkIndexingTimeWindowSeconds *int
+	IndexDir                      *string `permissions:"experimental"`
+	EnableIndexing                *bool   `permissions:"experimental"`
+	EnableSearching               *bool   `permissions:"experimental"`
+	EnableAutocomplete            *bool   `permissions:"experimental"`
+	BulkIndexingTimeWindowSeconds *int    `permissions:"experimental"`
 }
 
 func (bs *BleveSettings) SetDefaults() {
@@ -2460,11 +2460,11 @@ func (bs *BleveSettings) SetDefaults() {
 }
 
 type DataRetentionSettings struct {
-	EnableMessageDeletion *bool
-	EnableFileDeletion    *bool
-	MessageRetentionDays  *int
-	FileRetentionDays     *int
-	DeletionJobStartTime  *string
+	EnableMessageDeletion *bool   `permissions:"compliance"`
+	EnableFileDeletion    *bool   `permissions:"compliance"`
+	MessageRetentionDays  *int    `permissions:"compliance"`
+	FileRetentionDays     *int    `permissions:"compliance"`
+	DeletionJobStartTime  *string `permissions:"compliance"`
 }
 
 func (s *DataRetentionSettings) SetDefaults() {
@@ -2490,8 +2490,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `restricted:"true"`
-	RunScheduler *bool `restricted:"true"`
+	RunJobs      *bool `restricted:"true" permissions:"-"`
+	RunScheduler *bool `restricted:"true" permissions:"-"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2509,20 +2509,20 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool
-	EnableUploads               *bool   `restricted:"true"`
-	AllowInsecureDownloadUrl    *bool   `restricted:"true"`
-	EnableHealthCheck           *bool   `restricted:"true"`
-	Directory                   *string `restricted:"true"`
-	ClientDirectory             *string `restricted:"true"`
-	Plugins                     map[string]map[string]interface{}
-	PluginStates                map[string]*PluginState
-	EnableMarketplace           *bool
-	EnableRemoteMarketplace     *bool
-	AutomaticPrepackagedPlugins *bool
-	RequirePluginSignature      *bool
-	MarketplaceUrl              *string
-	SignaturePublicKeyFiles     []string
+	Enable                      *bool                             `permissions:"plugins"`
+	EnableUploads               *bool                             `restricted:"true" permissions:"plugins"`
+	AllowInsecureDownloadUrl    *bool                             `restricted:"true" permissions:"plugins"`
+	EnableHealthCheck           *bool                             `restricted:"true" permissions:"plugins"`
+	Directory                   *string                           `restricted:"true" permissions:"plugins"`
+	ClientDirectory             *string                           `restricted:"true" permissions:"plugins"`
+	Plugins                     map[string]map[string]interface{} `permissions:"plugins"`
+	PluginStates                map[string]*PluginState           `permissions:"plugins"`
+	EnableMarketplace           *bool                             `permissions:"plugins"`
+	EnableRemoteMarketplace     *bool                             `permissions:"plugins"`
+	AutomaticPrepackagedPlugins *bool                             `permissions:"plugins"`
+	RequirePluginSignature      *bool                             `permissions:"plugins"`
+	MarketplaceUrl              *string                           `permissions:"plugins"`
+	SignaturePublicKeyFiles     []string                          `permissions:"plugins"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2615,11 +2615,11 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 }
 
 type MessageExportSettings struct {
-	EnableExport        *bool
-	ExportFormat        *string
-	DailyRunTime        *string
-	ExportFromTimestamp *int64
-	BatchSize           *int
+	EnableExport        *bool   `permissions:"compliance"`
+	ExportFormat        *string `permissions:"compliance"`
+	DailyRunTime        *string `permissions:"compliance"`
+	ExportFromTimestamp *int64  `permissions:"compliance"`
+	BatchSize           *int    `permissions:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
 	GlobalRelaySettings *GlobalRelayMessageExportSettings
@@ -2653,8 +2653,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     []string
-	ExperimentalTimezone *bool
+	CustomUrlSchemes     []string `permissions:"site"`
+	ExperimentalTimezone *bool    `permissions:"experimental"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -2669,10 +2669,10 @@ func (s *DisplaySettings) SetDefaults() {
 }
 
 type GuestAccountsSettings struct {
-	Enable                           *bool
-	AllowEmailAccounts               *bool
-	EnforceMultifactorAuthentication *bool
-	RestrictCreationToDomains        *string
+	Enable                           *bool   `permissions:"authentication"`
+	AllowEmailAccounts               *bool   `permissions:"authentication"`
+	EnforceMultifactorAuthentication *bool   `permissions:"authentication"`
+	RestrictCreationToDomains        *string `permissions:"authentication"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {
@@ -2694,10 +2694,10 @@ func (s *GuestAccountsSettings) SetDefaults() {
 }
 
 type ImageProxySettings struct {
-	Enable                  *bool
-	ImageProxyType          *string
-	RemoteImageProxyURL     *string
-	RemoteImageProxyOptions *string
+	Enable                  *bool   `permissions:"environment"`
+	ImageProxyType          *string `permissions:"environment"`
+	RemoteImageProxyURL     *string `permissions:"environment"`
+	RemoteImageProxyOptions *string `permissions:"environment"`
 }
 
 func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
@@ -2737,42 +2737,42 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 type Config struct {
-	ServiceSettings           ServiceSettings
-	TeamSettings              TeamSettings
-	ClientRequirements        ClientRequirements
-	SqlSettings               SqlSettings
-	LogSettings               LogSettings
-	ExperimentalAuditSettings ExperimentalAuditSettings
-	NotificationLogSettings   NotificationLogSettings
-	PasswordSettings          PasswordSettings
-	FileSettings              FileSettings
-	EmailSettings             EmailSettings
-	RateLimitSettings         RateLimitSettings
-	PrivacySettings           PrivacySettings
-	SupportSettings           SupportSettings
-	AnnouncementSettings      AnnouncementSettings
-	ThemeSettings             ThemeSettings
-	GitLabSettings            SSOSettings
-	GoogleSettings            SSOSettings
-	Office365Settings         Office365Settings
-	LdapSettings              LdapSettings
-	ComplianceSettings        ComplianceSettings
-	LocalizationSettings      LocalizationSettings
-	SamlSettings              SamlSettings
-	NativeAppSettings         NativeAppSettings
-	ClusterSettings           ClusterSettings
-	MetricsSettings           MetricsSettings
-	ExperimentalSettings      ExperimentalSettings
-	AnalyticsSettings         AnalyticsSettings
-	ElasticsearchSettings     ElasticsearchSettings
-	BleveSettings             BleveSettings
-	DataRetentionSettings     DataRetentionSettings
-	MessageExportSettings     MessageExportSettings
-	JobSettings               JobSettings
-	PluginSettings            PluginSettings
-	DisplaySettings           DisplaySettings
-	GuestAccountsSettings     GuestAccountsSettings
-	ImageProxySettings        ImageProxySettings
+	ServiceSettings           ServiceSettings           `permissions:"-"`
+	TeamSettings              TeamSettings              `permissions:"-"`
+	ClientRequirements        ClientRequirements        `permissions:"-"`
+	SqlSettings               SqlSettings               `permissions:"environment"`
+	LogSettings               LogSettings               `permissions:"environment"`
+	ExperimentalAuditSettings ExperimentalAuditSettings `permissions:"experimental"`
+	NotificationLogSettings   NotificationLogSettings   `permissions:"-"`
+	PasswordSettings          PasswordSettings          `permissions:"authentication"`
+	FileSettings              FileSettings              `permissions:"-"`
+	EmailSettings             EmailSettings             `permissions:"-"`
+	RateLimitSettings         RateLimitSettings         `permissions:"environment"`
+	PrivacySettings           PrivacySettings           `permissions:"site"`
+	SupportSettings           SupportSettings           `permissions:"-"`
+	AnnouncementSettings      AnnouncementSettings      `permissions:"site"`
+	ThemeSettings             ThemeSettings             `permissions:"-"`
+	GitLabSettings            SSOSettings               `permissions:"authentication"`
+	GoogleSettings            SSOSettings               `permissions:"authentication"`
+	Office365Settings         Office365Settings         `permissions:"authentication"`
+	LdapSettings              LdapSettings              `permissions:"authentication"`
+	ComplianceSettings        ComplianceSettings        `permissions:"compliance"`
+	LocalizationSettings      LocalizationSettings      `permissions:"site"`
+	SamlSettings              SamlSettings              `permissions:"authentication"`
+	NativeAppSettings         NativeAppSettings         `permissions:"site"`
+	ClusterSettings           ClusterSettings           `permissions:"environment"`
+	MetricsSettings           MetricsSettings           `permissions:"environment"`
+	ExperimentalSettings      ExperimentalSettings      `permissions:"-"`
+	AnalyticsSettings         AnalyticsSettings         `permissions:"-"`
+	ElasticsearchSettings     ElasticsearchSettings     `permissions:"environment"`
+	BleveSettings             BleveSettings             `permissions:"experimental"`
+	DataRetentionSettings     DataRetentionSettings     `permissions:"compliance"`
+	MessageExportSettings     MessageExportSettings     `permissions:"compliance"`
+	JobSettings               JobSettings               `permissions:"-"`
+	PluginSettings            PluginSettings            `permissions:"plugins"`
+	DisplaySettings           DisplaySettings           `permissions:"-"`
+	GuestAccountsSettings     GuestAccountsSettings     `permissions:"authentication"`
+	ImageProxySettings        ImageProxySettings        `permissions:"environment"`
 }
 
 func (o *Config) Clone() *Config {
