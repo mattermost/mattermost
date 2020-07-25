@@ -127,44 +127,41 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func filterConfigByPermission(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
-	// if the field is retricted then no role can update it
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		restricted := structField.Tag.Get("restricted") == "true"
-		if restricted {
-			return false
-		}
-	}
-
-	// manage system doesn't need to check for config settings permissions
-	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		return true
-	}
-
-	// otherwise check the permissions tag
-	tagPermissions := strings.Fields(structField.Tag.Get("permissions"))
-
 	permissionMap := map[string]*model.Permission{}
 	for _, p := range model.AllPermissions {
 		permissionMap[p.Id] = p
 	}
 
-	for _, tagPermission := range tagPermissions {
-		// if the hyphen character is present, every role can update it
-		if tagPermission == "-" {
+	tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
+
+	hasPermission := false
+	for _, val := range tagPermissions {
+		tagValue := strings.TrimSpace(val)
+		// restrictadmin tag trumps all permissions
+		if tagValue == "restrictadmin" {
+			if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+				return false
+			}
+		}
+
+		// if the hyphen character is present permissions are ignored
+		if tagValue == "-" {
 			return true
 		}
 
-		permissionID := fmt.Sprintf("write_sysconsole_%s", tagPermission)
+		// check for the permission associated to the tag value
+		permissionID := fmt.Sprintf("write_sysconsole_%s", tagValue)
 		if permission, ok := permissionMap[permissionID]; ok {
 			if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-				return true
+				// don't return early because 'restrictadmin' could be the last tag value
+				hasPermission = true
 			}
 		} else {
 			mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
 		}
 	}
 
-	return false
+	return hasPermission
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
