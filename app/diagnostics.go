@@ -1091,6 +1091,7 @@ func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 		"jira",
 		"jitsi",
 		"mattermost-autolink",
+		"memes",
 		"skype4business",
 		"zoom",
 	}
