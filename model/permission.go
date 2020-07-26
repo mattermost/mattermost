@@ -601,21 +601,18 @@ func initializePermissions() {
 		"authentication.permissions.promote_guest.description",
 		PermissionScopeSystem,
 	}
-
 	PERMISSION_DEMOTE_TO_GUEST = &Permission{
 		"demote_to_guest",
 		"authentication.permissions.demote_to_guest.name",
 		"authentication.permissions.demote_to_guest.description",
 		PermissionScopeSystem,
 	}
-
 	PERMISSION_USE_CHANNEL_MENTIONS = &Permission{
 		"use_channel_mentions",
 		"authentication.permissions.use_channel_mentions.name",
 		"authentication.permissions.use_channel_mentions.description",
 		PermissionScopeChannel,
 	}
-
 	PERMISSION_USE_GROUP_MENTIONS = &Permission{
 		"use_group_mentions",
 		"authentication.permissions.use_group_mentions.name",
@@ -862,7 +859,7 @@ func initializePermissions() {
 		PERMISSION_LIST_PRIVATE_TEAMS,
 		PERMISSION_JOIN_PRIVATE_TEAMS,
 		PERMISSION_EDIT_OTHER_USERS,
-		PERMISSION_PERMANENT_DELETE_USER,
+		// PERMISSION_PERMANENT_DELETE_USER,
 		PERMISSION_GET_PUBLIC_LINK,
 		PERMISSION_MANAGE_OAUTH,
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
@@ -893,14 +890,14 @@ func initializePermissions() {
 		PERMISSION_LIST_TEAM_CHANNELS,
 		PERMISSION_JOIN_PUBLIC_CHANNELS,
 		PERMISSION_READ_PUBLIC_CHANNEL,
-		PERMISSION_MANAGE_WEBHOOKS,
-		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
+		// PERMISSION_MANAGE_WEBHOOKS,
+		// PERMISSION_MANAGE_OTHERS_WEBHOOKS,
 		PERMISSION_MANAGE_INCOMING_WEBHOOKS,
 		PERMISSION_MANAGE_OUTGOING_WEBHOOKS,
 		PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS,
 		PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS,
-		PERMISSION_MANAGE_EMOJIS,
-		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		// PERMISSION_MANAGE_EMOJIS,
+		// PERMISSION_MANAGE_OTHERS_EMOJIS,
 		PERMISSION_CREATE_EMOJIS,
 		PERMISSION_DELETE_EMOJIS,
 		PERMISSION_DELETE_OTHERS_EMOJIS,
