@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"path"
 	"runtime"
 	"strconv"
 	"sync/atomic"
@@ -143,7 +144,7 @@ func canIWriteTheExecutable() error {
 	if err != nil {
 		return errors.New("error getting the executable path")
 	}
-	executableInfo, err := os.Stat(executablePath)
+	executableInfo, err := os.Stat(path.Dir(executablePath))
 	if err != nil {
 		return errors.New("error getting the executable info")
 	}
@@ -165,15 +166,15 @@ func canIWriteTheExecutable() error {
 
 	mode := executableInfo.Mode()
 	if fileUID != mattermostUID && mode&(1<<1) == 0 && mode&(1<<7) == 0 {
-		return NewInvalidPermissions("invalid-user-and-permission", executablePath, mattermostUser.Username, fileUser.Username)
+		return NewInvalidPermissions("invalid-user-and-permission", path.Dir(executablePath), mattermostUser.Username, fileUser.Username)
 	}
 
 	if fileUID != mattermostUID && mode&(1<<1) == 0 && mode&(1<<7) != 0 {
-		return NewInvalidPermissions("invalid-user", executablePath, mattermostUser.Username, fileUser.Username)
+		return NewInvalidPermissions("invalid-user", path.Dir(executablePath), mattermostUser.Username, fileUser.Username)
 	}
 
 	if fileUID == mattermostUID && mode&(1<<7) == 0 {
-		return NewInvalidPermissions("invalid-permission", executablePath, mattermostUser.Username, fileUser.Username)
+		return NewInvalidPermissions("invalid-permission", path.Dir(executablePath), mattermostUser.Username, fileUser.Username)
 	}
 	return nil
 }
