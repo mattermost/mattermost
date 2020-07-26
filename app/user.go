@@ -979,15 +979,6 @@ func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError 
 	return nil
 }
 
-func (a *App) updateDirectChannelForUser(channel *model.Channel, updatedTime int64) error {
-	err := a.Srv().Store.Channel().Delete(channel.Id, updatedTime)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	updateTime := model.GetMillis()
 	user.UpdateAt = updateTime
@@ -1011,14 +1002,13 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 
 	directChannels, e := a.Srv().Store.Channel().GetDirectChannelsForUser(user.Id)
 	if e != nil {
-		return nil, e
+		mlog.Error("Failed to retrieve direct channels for current user", mlog.Err(e))
 	}
 
 	for _, channel := range directChannels {
-		if active {
-			updateTime = 0
+		if err := a.Srv().Store.Channel().Delete(channel.Id, user.DeleteAt); err != nil {
+			mlog.Error("Failed to update the delete timestamp for user", mlog.Err(err))
 		}
-		a.updateDirectChannelForUser(channel, updateTime)
 	}
 
 	a.invalidateUserChannelMembersCaches(user.Id)

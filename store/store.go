@@ -233,7 +233,7 @@ type ChannelStore interface {
 	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
-	GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError)
+	GetDirectChannelsForUser(userId string) ([]*model.Channel, error)
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.

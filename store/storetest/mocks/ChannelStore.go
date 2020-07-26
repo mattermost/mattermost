@@ -2111,7 +2111,7 @@ func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string
 }
 
 // GetDirectChannelsForUser provides a mock function with given fields: userId
-func (_m *ChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError) {
+func (_m *ChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, error) {
 	ret := _m.Called(userId)
 
 	var r0 []*model.Channel

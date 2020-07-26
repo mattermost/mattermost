@@ -1000,7 +1000,7 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ChannelStore.GetDirectChannelsForUser(userId)

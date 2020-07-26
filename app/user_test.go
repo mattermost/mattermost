@@ -234,6 +234,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	})
 
 	th.App.UpdateActive(th.BasicUser, false)
+	require.NotZero(t, th.BasicUser.DeleteAt)
 
 	retbot1, err := th.App.GetBot(bot.UserId, true)
 	require.Nil(t, err)
@@ -243,6 +244,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	require.Zero(t, user1.DeleteAt)
 
 	th.App.UpdateActive(th.BasicUser, true)
+	require.Zero(t, th.BasicUser.DeleteAt)
 
 	// Automatic deactivation enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {

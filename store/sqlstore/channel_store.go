@@ -3442,8 +3442,8 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 	return c > 0, nil
 }
 
-func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, *model.AppError) {
-	queryFormat := `
+func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Channel, error) {
+	query := `
 			SELECT
 				C.*,
 				OtherUsers.Username as DisplayName
@@ -3460,7 +3460,6 @@ func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Chann
 					ChannelMembers AS ICM ON ICM.UserId = IU.Id
 				WHERE
 					IU.Id != :UserId
-					%v
 				) AS OtherUsers ON OtherUsers.ChannelId = C.Id
 			WHERE
 			    C.Type = 'D'
@@ -3468,7 +3467,7 @@ func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Chann
 
 	var channels model.ChannelList
 
-	if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"UserId": userId}); err != nil {
+	if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId}); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetDirectChannelsForUser", "store.sql_channel.direct_channels_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

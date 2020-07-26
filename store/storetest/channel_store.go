@@ -107,6 +107,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetSidebarCategories", func(t *testing.T) { testGetSidebarCategories(t, ss) })
 	t.Run("UpdateSidebarCategories", func(t *testing.T) { testUpdateSidebarCategories(t, ss, s) })
 	t.Run("DeleteSidebarCategory", func(t *testing.T) { testDeleteSidebarCategory(t, ss, s) })
+	t.Run("GetDirectChannelsForUser", func(t *testing.T) { testGetDirectChannelsForUser(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -7994,5 +7995,30 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 
 		err = ss.Channel().DeleteSidebarCategory(res.Categories[2].Id)
 		assert.NotNil(t, err)
+	})
+}
+
+func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
+	user := model.User{Id: model.NewId()}
+
+	t.Run("direct messages with created user & others", func(t *testing.T) {
+		u1 := model.User{Id: model.NewId()}
+		u2 := model.User{Id: model.NewId()}
+		u3 := model.User{Id: model.NewId()}
+		u4 := model.User{Id: model.NewId()}
+		_, nErr := ss.Channel().CreateDirectChannel(&u1, &user)
+		require.Nil(t, nErr)
+		_, nErr = ss.Channel().CreateDirectChannel(&u2, &user)
+		require.Nil(t, nErr)
+		_, nErr = ss.Channel().CreateDirectChannel(&u4, &user)
+		require.Nil(t, nErr)
+		// other user direct message
+		_, nErr = ss.Channel().CreateDirectChannel(&u3, &u4)
+		require.Nil(t, nErr)
+
+		directChannels, err := ss.Channel().GetDirectChannelsForUser(user.Id)
+		require.Nil(t, err)
+
+		assert.Len(t, len(directChannels), 3)
 	})
 }
