@@ -216,16 +216,15 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
-	MigrateSidebarCategories(fromTeamId, fromUserId string) (map[string]interface{}, error)
 	CreateInitialSidebarCategories(userId, teamId string) error
-	MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error)
 	GetSidebarCategories(userId, teamId string) (*model.OrderedSidebarCategories, *model.AppError)
 	GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError)
 	GetSidebarCategoryOrder(userId, teamId string) ([]string, *model.AppError)
 	CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
 	UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) *model.AppError
 	UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError)
-	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError
+	UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error
+	DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error
 	DeleteSidebarCategory(categoryId string) *model.AppError
 	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
@@ -488,9 +487,9 @@ type CommandStore interface {
 }
 
 type CommandWebhookStore interface {
-	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError)
-	Get(id string) (*model.CommandWebhook, *model.AppError)
-	TryUse(id string, limit int) *model.AppError
+	Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error)
+	Get(id string) (*model.CommandWebhook, error)
+	TryUse(id string, limit int) error
 	Cleanup()
 }
 
@@ -579,16 +578,16 @@ type JobStore interface {
 }
 
 type UserAccessTokenStore interface {
-	Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	DeleteAllForUser(userId string) *model.AppError
-	Delete(tokenId string) *model.AppError
-	Get(tokenId string) (*model.UserAccessToken, *model.AppError)
-	GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError)
-	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
-	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
-	Search(term string) ([]*model.UserAccessToken, *model.AppError)
-	UpdateTokenEnable(tokenId string) *model.AppError
-	UpdateTokenDisable(tokenId string) *model.AppError
+	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
+	DeleteAllForUser(userId string) error
+	Delete(tokenId string) error
+	Get(tokenId string) (*model.UserAccessToken, error)
+	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
+	GetByToken(tokenString string) (*model.UserAccessToken, error)
+	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, error)
+	Search(term string) ([]*model.UserAccessToken, error)
+	UpdateTokenEnable(tokenId string) error
+	UpdateTokenDisable(tokenId string) error
 }
 
 type PluginStore interface {
@@ -749,11 +748,17 @@ type LinkMetadataStore interface {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup string
-	IncludeDeleted       bool
-	ExcludeChannelNames  []string
-	Page                 *int
-	PerPage              *int
+	NotAssociatedToGroup    string
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
 }
 
 func (c *ChannelSearchOpts) IsPaginated() bool {

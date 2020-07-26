@@ -138,11 +138,12 @@ func TestSendMailUsingConfig(t *testing.T) {
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
+	var emailCC = "test@example.com"
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true)
+	err2 := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, emailCC)
 	require.Nil(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -176,6 +177,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
+	var emailCC = "test@example.com"
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
@@ -184,7 +186,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 		"test1.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 		"test2.png": bytes.NewReader([]byte("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")),
 	}
-	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true)
+	err2 := SendMailWithEmbeddedFilesUsingConfig(emailTo, emailSubject, emailBody, embeddedFiles, cfg, true, emailCC)
 	require.Nil(t, err2, "Should connect to the SMTP Server")
 
 	//Check if the email was send to the right email address
@@ -416,7 +418,7 @@ func TestSendMail(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			mail := mailData{"", "", mail.Address{}, tc.replyTo, "", "", nil, nil, nil}
+			mail := mailData{"", "", mail.Address{}, "", tc.replyTo, "", "", nil, nil, nil}
 			appErr = SendMail(mocm, mail, mockBackend, time.Now())
 			require.Nil(t, appErr)
 			if len(tc.contains) > 0 {

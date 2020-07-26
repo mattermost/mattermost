@@ -664,6 +664,22 @@ func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryId string) *model
 	return resultVar0
 }
 
+func (s *TimerLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.Preferences) error {
+	start := timemodule.Now()
+
+	resultVar0 := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if resultVar0 == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteSidebarChannelsByPreferences", success, elapsed)
+	}
+	return resultVar0
+}
+
 func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	start := timemodule.Now()
 
@@ -1521,22 +1537,6 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelId string, fro
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (map[string]interface{}, error) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.ChannelStore.MigrateFavoritesToSidebarChannels(lastUserId, runningOrder)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateFavoritesToSidebarChannels", success, elapsed)
-	}
-	return resultVar0, resultVar1
-}
-
 func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 	start := timemodule.Now()
 
@@ -1551,22 +1551,6 @@ func (s *TimerLayerChannelStore) MigratePublicChannels() error {
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigratePublicChannels", success, elapsed)
 	}
 	return resultVar0
-}
-
-func (s *TimerLayerChannelStore) MigrateSidebarCategories(fromTeamId string, fromUserId string) (map[string]interface{}, error) {
-	start := timemodule.Now()
-
-	resultVar0, resultVar1 := s.ChannelStore.MigrateSidebarCategories(fromTeamId, fromUserId)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if resultVar1 == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateSidebarCategories", success, elapsed)
-	}
-	return resultVar0, resultVar1
 }
 
 func (s *TimerLayerChannelStore) PermanentDelete(channelId string) error {
@@ -2033,7 +2017,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *mod
 	return resultVar0
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences *model.Preferences) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)
@@ -2384,7 +2368,7 @@ func (s *TimerLayerCommandWebhookStore) Cleanup() {
 	}
 }
 
-func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandWebhookStore.Get(id)
@@ -2400,7 +2384,7 @@ func (s *TimerLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, *
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, *model.AppError) {
+func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.CommandWebhookStore.Save(webhook)
@@ -2416,7 +2400,7 @@ func (s *TimerLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) *model.AppError {
+func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.CommandWebhookStore.TryUse(id, limit)
@@ -7876,7 +7860,7 @@ func (s *TimerLayerUserStore) VerifyEmail(userId string, email string) (string, 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) Delete(tokenId string) *model.AppError {
+func (s *TimerLayerUserAccessTokenStore) Delete(tokenId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserAccessTokenStore.Delete(tokenId)
@@ -7892,7 +7876,7 @@ func (s *TimerLayerUserAccessTokenStore) Delete(tokenId string) *model.AppError 
 	return resultVar0
 }
 
-func (s *TimerLayerUserAccessTokenStore) DeleteAllForUser(userId string) *model.AppError {
+func (s *TimerLayerUserAccessTokenStore) DeleteAllForUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserAccessTokenStore.DeleteAllForUser(userId)
@@ -7908,7 +7892,7 @@ func (s *TimerLayerUserAccessTokenStore) DeleteAllForUser(userId string) *model.
 	return resultVar0
 }
 
-func (s *TimerLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Get(tokenId)
@@ -7924,7 +7908,7 @@ func (s *TimerLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessT
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetAll(offset, limit)
@@ -7940,7 +7924,7 @@ func (s *TimerLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByToken(tokenString)
@@ -7956,7 +7940,7 @@ func (s *TimerLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetByUser(userId string, page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) GetByUser(userId string, page int, perPage int) ([]*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.GetByUser(userId, page, perPage)
@@ -7972,7 +7956,7 @@ func (s *TimerLayerUserAccessTokenStore) GetByUser(userId string, page int, perP
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Save(token)
@@ -7988,7 +7972,7 @@ func (s *TimerLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, *model.AppError) {
+func (s *TimerLayerUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.UserAccessTokenStore.Search(term)
@@ -8004,7 +7988,7 @@ func (s *TimerLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) *model.AppError {
+func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
@@ -8020,7 +8004,7 @@ func (s *TimerLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) *mod
 	return resultVar0
 }
 
-func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) *model.AppError {
+func (s *TimerLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
