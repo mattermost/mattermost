@@ -337,6 +337,8 @@ type ServiceSettings struct {
 	EnableLatex                                       *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
+	EnableOfficeFilePreviews                          *bool
+	UnoconvURL                                        *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -741,6 +743,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.LocalModeSocketLocation == nil {
 		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
+	}
+
+	if s.EnableOfficeFilePreviews == nil {
+		s.EnableOfficeFilePreviews = NewBool(false)
+	}
+
+	if s.UnoconvURL == nil {
+		s.UnoconvURL = NewString("")
 	}
 }
 
@@ -3282,6 +3292,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
 		*s.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.EnableOfficeFilePreviews && len(*s.UnoconvURL) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.unoconv_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
