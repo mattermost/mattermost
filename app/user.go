@@ -1000,14 +1000,14 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		}
 	}
 
-	directChannels, e := a.Srv().Store.Channel().GetDirectChannelsForUser(user.Id)
-	if e != nil {
-		mlog.Error("Failed to retrieve direct channels for current user", mlog.Err(e))
+	directChannels, nErr := a.Srv().Store.Channel().GetDirectChannelsForUser(user.Id)
+	if nErr != nil {
+		mlog.Error("Failed to retrieve direct channels for the current user", mlog.Err(nErr))
 	}
 
 	for _, channel := range directChannels {
 		if err := a.Srv().Store.Channel().Delete(channel.Id, user.DeleteAt); err != nil {
-			mlog.Error("Failed to update the delete timestamp for user", mlog.Err(err))
+			mlog.Error("Failed to update the deleted timestamp", mlog.Err(err))
 		}
 	}
 
