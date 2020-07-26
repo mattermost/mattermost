@@ -50,13 +50,14 @@ func GetNotificationsLogFileLocation(fileLocation string) string {
 
 func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
 	return &model.LogSettings{
-		ConsoleJson:   notificationLogSettings.ConsoleJson,
-		ConsoleLevel:  notificationLogSettings.ConsoleLevel,
-		EnableConsole: notificationLogSettings.EnableConsole,
-		EnableFile:    notificationLogSettings.EnableFile,
-		FileJson:      notificationLogSettings.FileJson,
-		FileLevel:     notificationLogSettings.FileLevel,
-		FileLocation:  notificationLogSettings.FileLocation,
+		ConsoleJson:           notificationLogSettings.ConsoleJson,
+		ConsoleLevel:          notificationLogSettings.ConsoleLevel,
+		EnableConsole:         notificationLogSettings.EnableConsole,
+		EnableFile:            notificationLogSettings.EnableFile,
+		FileJson:              notificationLogSettings.FileJson,
+		FileLevel:             notificationLogSettings.FileLevel,
+		FileLocation:          notificationLogSettings.FileLocation,
+		AdvancedLoggingConfig: notificationLogSettings.AdvancedLoggingConfig,
 	}
 }
 

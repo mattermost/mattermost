@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -116,6 +117,19 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 
 func NewAPIv4Client(url string) *Client4 {
 	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}, "", ""}
+}
+
+func NewAPIv4SocketClient(socketPath string) *Client4 {
+	tr := &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", socketPath)
+		},
+	}
+
+	client := NewAPIv4Client("http://_")
+	client.HttpClient = &http.Client{Transport: tr}
+
+	return client
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
@@ -1219,6 +1233,16 @@ func (c *Client4) UpdateUserActive(userId string, active bool) (bool, *Response)
 // DeleteUser deactivates a user in the system based on the provided user id string.
 func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetUserRoute(userId))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// PermanentDeleteUser deletes a user in the system based on the provided user id string.
+func (c *Client4) PermanentDeleteUser(userId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUserRoute(userId) + "?permanent=" + c.boolString(true))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}

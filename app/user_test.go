@@ -602,13 +602,13 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 
 	t.Run("should create a user", func(t *testing.T) {
-		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		u, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.Nil(t, err)
 		require.Equal(t, u.Id, user.Id)
 	})
 
 	t.Run("invalid invite id", func(t *testing.T) {
-		_, err := th.App.CreateUserWithInviteId(&user, "")
+		_, err := th.App.CreateUserWithInviteId(&user, "", "")
 		require.NotNil(t, err)
 		require.Contains(t, err.Id, "store.sql_team.get_by_invite_id")
 	})
@@ -617,7 +617,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
 		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
 		require.Nil(t, err)
-		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId)
+		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
 	})
