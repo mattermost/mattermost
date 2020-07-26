@@ -282,6 +282,20 @@ func download(url string, limit int64) (string, error) {
 	return out.Name(), err
 }
 
+func getFilePermissionsOrDefault(filename string, def os.FileMode) os.FileMode {
+	file, err := os.Open(filename)
+	if err != nil {
+		mlog.Error("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
+		return def
+	}
+	fileStats, err := file.Stat()
+	if err != nil {
+		mlog.Error("Unable to get the file permissions", mlog.String("filename", filename), mlog.Err(err))
+		return def
+	}
+	return fileStats.Mode()
+}
+
 func extractBinary(executablePath string, filename string) error {
 	gzipStream, err := os.Open(filename)
 	if err != nil {
@@ -307,6 +321,7 @@ func extractBinary(executablePath string, filename string) error {
 		}
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
+			permissions := getFilePermissionsOrDefault(executablePath, 0755)
 			tmpFile, err := ioutil.TempFile("", "*")
 			if err != nil {
 				return err
@@ -327,7 +342,7 @@ func extractBinary(executablePath string, filename string) error {
 				return err
 			}
 			defer outFile.Close()
-			if _, err := io.Copy(outFile, tarReader); err != nil {
+			if _, err = io.Copy(outFile, tarReader); err != nil {
 				err2 := os.Remove(executablePath)
 				if err2 != nil {
 					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
@@ -339,12 +354,15 @@ func extractBinary(executablePath string, filename string) error {
 					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
-
-				err2 = os.Remove(tmpFileName)
-				if err2 != nil {
-					mlog.Warn("Unable to unable to clean up the binary backup file.")
-				}
 				return err
+			}
+			err = os.Remove(tmpFileName)
+			if err != nil {
+				mlog.Warn("Unable to unable to clean up the binary backup file.", mlog.Err(err))
+			}
+			err = os.Chmod(executablePath, permissions)
+			if err != nil {
+				mlog.Warn("Unable to unable to set the right permissions to the file.", mlog.Err(err))
 			}
 			break
 		}
