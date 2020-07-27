@@ -154,7 +154,7 @@ type ChannelStore interface {
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error)
 	GetDeletedByName(team_id string, name string) (*model.Channel, error)
 	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error)
-	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error)
+	GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
@@ -402,12 +402,12 @@ type ClusterDiscoveryStore interface {
 }
 
 type ComplianceStore interface {
-	Save(compliance *model.Compliance) (*model.Compliance, *model.AppError)
-	Update(compliance *model.Compliance) (*model.Compliance, *model.AppError)
-	Get(id string) (*model.Compliance, *model.AppError)
-	GetAll(offset, limit int) (model.Compliances, *model.AppError)
-	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError)
-	MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError)
+	Save(compliance *model.Compliance) (*model.Compliance, error)
+	Update(compliance *model.Compliance) (*model.Compliance, error)
+	Get(id string) (*model.Compliance, error)
+	GetAll(offset, limit int) (model.Compliances, error)
+	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error)
+	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
 }
 
 type OAuthStore interface {

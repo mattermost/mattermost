@@ -1003,7 +1003,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	var channelList *model.ChannelList
 
 	var nErr error
-	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
