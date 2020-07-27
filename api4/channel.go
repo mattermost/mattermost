@@ -999,12 +999,20 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	includeDeleted = includeDeleted || props.IncludeDeleted
+
 	opts := model.ChannelSearchOpts{
-		NotAssociatedToGroup:   props.NotAssociatedToGroup,
-		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
-		IncludeDeleted:         includeDeleted,
-		Page:                   props.Page,
-		PerPage:                props.PerPage,
+		NotAssociatedToGroup:    props.NotAssociatedToGroup,
+		ExcludeDefaultChannels:  props.ExcludeDefaultChannels,
+		TeamIds:                 props.TeamIds,
+		GroupConstrained:        props.GroupConstrained,
+		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
+		Public:                  props.Public,
+		Private:                 props.Private,
+		IncludeDeleted:          includeDeleted,
+		Deleted:                 props.Deleted,
+		Page:                    props.Page,
+		PerPage:                 props.PerPage,
 	}
 
 	channels, totalCount, appErr := c.App.SearchAllChannels(props.Term, opts)
@@ -1014,9 +1022,7 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Don't fill in channels props, since unused by client and potentially expensive.
-
 	var payload []byte
-
 	if props.Page != nil && props.PerPage != nil {
 		data := model.ChannelsWithCount{Channels: channels, TotalCount: totalCount}
 		payload = data.ToJson()
