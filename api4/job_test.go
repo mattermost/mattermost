@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -41,7 +41,7 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -70,7 +70,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -117,7 +117,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -237,7 +237,7 @@ func TestDownloadJob(t *testing.T) {
 }
 
 func TestCancelJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobs := []*model.Job{
