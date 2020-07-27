@@ -650,6 +650,27 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole permission
+	SysconsoleAncillaryPermissions := map[string][]*Permission{
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS.Id:      {PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS},
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS.Id:    {PERMISSION_READ_PUBLIC_CHANNEL, PERMISSION_READ_CHANNEL},
+		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS.Id: {PERMISSION_EDIT_OTHER_USERS},
+		PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id:                {PERMISSION_MANAGE_JOBS},
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS.Id:     {PERMISSION_MANAGE_TEAM, PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS, PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS},
+		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS.Id:   {PERMISSION_MANAGE_TEAM, PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES, PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES, PERMISSION_MANAGE_TEAM},
+	}
+
+	// Add the ancillary permissions to each new system role
+	for _, role := range []*Role{roles[SYSTEM_USER_MANAGER_ROLE_ID], roles[SYSTEM_READ_ONLY_ADMIN_ROLE_ID], roles[SYSTEM_MANAGER_ROLE_ID]} {
+		for _, rolePermission := range role.Permissions {
+			if ancillaryPermissions, ok := SysconsoleAncillaryPermissions[rolePermission]; ok {
+				for _, ancillaryPermission := range ancillaryPermissions {
+					role.Permissions = append(role.Permissions, ancillaryPermission.Id)
+				}
+			}
+		}
+	}
+
 	allPermissionIDs := []string{}
 	for _, permission := range AllPermissions {
 		allPermissionIDs = append(allPermissionIDs, permission.Id)

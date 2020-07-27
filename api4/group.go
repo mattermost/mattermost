@@ -483,14 +483,10 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-	}
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), syncableID, model.PERMISSION_MANAGE_TEAM) && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-			return c.App.MakePermissionError(append(permissions, model.PERMISSION_MANAGE_TEAM))
+		if !c.App.SessionHasPermissionToTeam(*c.App.Session(), syncableID, model.PERMISSION_MANAGE_TEAM) {
+			return c.App.MakePermissionError([]*model.Permission{model.PERMISSION_MANAGE_TEAM})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(syncableID)
@@ -505,8 +501,8 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
 
-		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), syncableID, permission) && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-			return c.App.MakePermissionError(append(permissions, permission))
+		if !c.App.SessionHasPermissionToChannel(*c.App.Session(), syncableID, permission) {
+			return c.App.MakePermissionError([]*model.Permission{permission})
 		}
 	}
 
@@ -646,12 +642,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 	}
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
-	}
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, permission) && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(append(permissions, permission)...)
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, permission) {
+		c.SetPermissionError(permission)
 		return
 	}
 
