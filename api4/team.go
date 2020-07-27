@@ -1005,11 +1005,6 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(props.Term) == 0 {
-		c.SetInvalidParam("term")
-		return
-	}
-
 	var teams []*model.Team
 	var totalCount int64
 	var err *model.AppError

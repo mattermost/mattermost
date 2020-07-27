@@ -1453,6 +1453,10 @@
     "translation": "input/output error"
   },
   {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Unable to download this job"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3955,6 +3959,10 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -4633,6 +4641,30 @@
   {
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response"
+  },
+  {
+    "id": "ent.compliance.actiance.attachment.copy.appError",
+    "translation": "Unable to copy the attachment into the zip file."
+  },
+  {
+    "id": "ent.compliance.actiance.file.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.creation.appError",
+    "translation": "There was an error creating actiance warning text file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.write.appError",
+    "translation": "There was an error writing to the actiance xml file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.write.appError",
+    "translation": "There was an error writing to the actiance XML file"
   },
   {
     "id": "ent.compliance.bad_export_type.appError",

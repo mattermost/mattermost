@@ -2615,11 +2615,12 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 }
 
 type MessageExportSettings struct {
-	EnableExport        *bool   `access:"compliance"`
-	ExportFormat        *string `access:"compliance"`
-	DailyRunTime        *string `access:"compliance"`
-	ExportFromTimestamp *int64  `access:"compliance"`
-	BatchSize           *int    `access:"compliance"`
+	EnableExport          *bool   `access:"compliance"`
+	ExportFormat          *string `access:"compliance"`
+	DailyRunTime          *string `access:"compliance"`
+	ExportFromTimestamp   *int64  `access:"compliance"`
+	BatchSize             *int    `access:"compliance"`
+	DownloadExportResults *bool   `access:"compliance"`
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
 	GlobalRelaySettings *GlobalRelayMessageExportSettings
@@ -2628,6 +2629,10 @@ type MessageExportSettings struct {
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
+	}
+
+	if s.DownloadExportResults == nil {
+		s.DownloadExportResults = NewBool(false)
 	}
 
 	if s.ExportFormat == nil {
