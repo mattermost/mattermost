@@ -27,6 +27,7 @@ const (
 
 	PREVIEW_IMAGE_TYPE   = "image/jpeg"
 	THUMBNAIL_IMAGE_TYPE = "image/jpeg"
+	PREVIEW_PDF_TYPE     = "application/pdf"
 )
 
 var UNSAFE_CONTENT_TYPES = [...]string{
@@ -606,6 +607,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	contentType := PREVIEW_IMAGE_TYPE
+	if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+		contentType = PREVIEW_PDF_TYPE
+	}
+
 	fileReader, err := c.App.FileReader(info.PreviewPath)
 	if err != nil {
 		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
@@ -624,7 +630,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer fileReader.Close()
 
-	err = writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	err = writeFileResponse(info.Name, contentType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 	if err != nil {
 		c.Err = err
 		return
