@@ -597,13 +597,18 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if info.PreviewPath == "" {
-		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
-		return
+		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+			pathWithoutExtension := info.Path[:strings.LastIndex(info.Path, ".")]
+			info.PreviewPath = pathWithoutExtension + "_preview.pdf"
+		} else {
+			c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
+			return
+		}
 	}
 
 	fileReader, err := c.App.FileReader(info.PreviewPath)
 	if err != nil {
-		if info.PreviewPath != "" && *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
 			c.App.HandleOfficeFiles([]*model.FileInfo{info})
 			fileReader, err = c.App.FileReader(info.PreviewPath)
 			if err != nil {
