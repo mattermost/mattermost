@@ -1453,6 +1453,10 @@
     "translation": "input/output error"
   },
   {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Unable to download this job"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3953,6 +3957,10 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
     "id": "app.notification.body.intro.direct.full",

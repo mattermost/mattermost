@@ -4698,6 +4698,21 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DownloadJob downloads the results of the job
+func (c *Client4) DownloadJob(jobId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
 // Roles Section
 
 // GetRole gets a single role by ID.
