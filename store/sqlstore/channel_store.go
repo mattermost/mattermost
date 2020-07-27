@@ -3958,7 +3958,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			for _, channelID := range category.Channels {
 				// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
 				// store in this package.
-				if err := s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
+				if err = s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
 					Name:     channelID,
 					UserId:   userId,
 					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
