@@ -57,6 +57,7 @@ const (
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
 	PERMISSION_READ_JOBS                         = "read_jobs"
+	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -427,16 +428,27 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 }
 
 func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) {
-	permissionsToAdd := []string{PERMISSION_READ_JOBS}
+	transformations := []permissionTransformation{}
+
+	permissionsToAdd := []string{}
 	for _, permission := range append(model.SysconsoleReadPermissions, model.SysconsoleWritePermissions...) {
 		permissionsToAdd = append(permissionsToAdd, permission.Id)
 	}
-	return permissionsMap{
+
+	// add the new permissions to system admin
+	transformations = append(transformations,
 		permissionTransformation{
 			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
 			Add: permissionsToAdd,
-		},
-	}, nil
+		})
+
+	// add read_jobs to all roles with manage_jobs
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_JOBS),
+		Add: []string{PERMISSION_READ_JOBS},
+	})
+
+	return transformations, nil
 }
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
