@@ -650,14 +650,16 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole permission
+	// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
 	SysconsoleAncillaryPermissions := map[string][]*Permission{
 		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS.Id: {
 			PERMISSION_READ_PUBLIC_CHANNEL,
 			PERMISSION_READ_CHANNEL,
 		},
 		// PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS.Id:     {PERMISSION_EDIT_OTHER_USERS},
-		// PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id:              {PERMISSION_MANAGE_JOBS},
+		PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id: {
+			PERMISSION_READ_JOBS,
+		},
 		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS.Id: {
 			PERMISSION_MANAGE_TEAM,
 			PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES,

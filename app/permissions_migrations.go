@@ -56,6 +56,7 @@ const (
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
+	PERMISSION_READ_JOBS                         = "read_jobs"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -426,7 +427,7 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 }
 
 func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) {
-	permissionsToAdd := []string{}
+	permissionsToAdd := []string{PERMISSION_READ_JOBS}
 	for _, permission := range append(model.SysconsoleReadPermissions, model.SysconsoleWritePermissions...) {
 		permissionsToAdd = append(permissionsToAdd, permission.Id)
 	}

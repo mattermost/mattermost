@@ -29,8 +29,8 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
+		c.SetPermissionError(model.PERMISSION_READ_JOBS)
 		return
 	}
 
@@ -67,8 +67,8 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
+		c.SetPermissionError(model.PERMISSION_READ_JOBS)
 		return
 	}
 
@@ -139,8 +139,8 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
+		c.SetPermissionError(model.PERMISSION_READ_JOBS)
 		return
 	}
 
@@ -159,9 +159,8 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// why is PERMISSION_MANAGE_JOBS required to view jobs? Pertinent to sysconsole access to /admin_console/environment/elasticsearch.
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_JOBS) {
+		c.SetPermissionError(model.PERMISSION_READ_JOBS)
 		return
 	}
 
