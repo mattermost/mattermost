@@ -137,16 +137,18 @@ func filterConfigByPermission(c *Context, structField reflect.StructField, paren
 	hasPermission := false
 	for _, val := range tagPermissions {
 		tagValue := strings.TrimSpace(val)
-		// restrictadmin tag trumps all permissions
-		if tagValue == "restrictadmin" {
+		// ConfigAccessTagRestrictManageSystem trumps all other permissions
+		if tagValue == model.ConfigAccessTagRestrictManageSystem {
 			if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 				return false
 			}
 		}
 
-		// if the hyphen character is present permissions are ignored
-		if tagValue == "-" {
-			return true
+		// ConfigAccessTagAnySysconsoleWritePermission can skip the other permissions checks
+		if tagValue == model.ConfigAccessTagAnySysconsoleWritePermission {
+			if c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
+				return true
+			}
 		}
 
 		// check for the permission associated to the tag value

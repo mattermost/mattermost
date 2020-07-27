@@ -2736,35 +2736,43 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 
 type ConfigFunc func() *Config
 
-// Config fields support the 'access' tag with the following values (corresponding to the suffix of the associated
-// model.PERMISSION_WRITE_SYSCONSOLE_* name): about, reporting, user_management, user_management_users,
-// user_management_groups, user_management_teams, user_management_channels,
-// user_management_permissions, environment, site, authentication, plugins,
-// integrations, compliance, plugins, experimental. Fields of type struct do not
-// automatically grant access. Example:
+const ConfigAccessTagRestrictManageSystem = "restricmanagesystem"
+const ConfigAccessTagAnySysconsoleWritePermission = "-"
+
+// Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
+// PERMISSION_WRITE_SYSCONSOLE_* name: 'about', 'reporting', 'user_management', 'user_management_users',
+// 'user_management_groups', 'user_management_teams', 'user_management_channels',
+// 'user_management_permissions', 'environment', 'site', 'authentication', 'plugins',
+// 'integrations', 'compliance', 'plugins', 'experimental'.
+//
+// By default config values can be updated with the PERMISSION_MANAGE_SYSTEM permission. If ExperimentalSettings.RestrictSystemAdmin is true
+// and the access tag contains the value 'restricmanagesystem', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
+//
+// The access tag value does not automatically grant write access to all child struct field.
+//
+// Example:
 //  type HairSettings struct {
-//      // Colour is writeable by roles with either model.PERMISSION_WRITE_SYSCONSOLE_REPORTING
-//      // or model.PERMISSION_WRITE_SYSCONSOLE_USER_MANAGEMENT_GROUPS permission.
+//      // Colour is writeable by PERMISSION_WRITE_SYSCONSOLE_REPORTING,
+//      // PERMISSION_WRITE_SYSCONSOLE_USER_MANAGEMENT_GROUPS, and PERMISSION_MANAGE_SYSTEM permissions.
 //      Colour string `access:"reporting,user_management_groups"`
 //
 //      // Frizz is writeable by roles with any write access to any config field.
 //      Frizz string `access:"-"`
 //
-//      // Length and Barber are only writeable by system_admin.
+//      // Length and Barber are only writeable by PERMISSION_MANAGE_SYSTEM.
 //      Length string
 //      Barber Barber
 //
-//      // Shampoo may have fields that are writeable by roles with
-//      // model.PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
+//      // Shampoo may have fields that are writeable by PERMISSION_WRITE_SYSCONSOLE_REPORTING.
 //      Shampoo Shampoo `access:"reporting"`
 //  }
 //
 //  type Barber struct {
-//      // Brand is writeable by roles with model.PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
+//      // Brand is writeable by roles with PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
 //      Brand string `access:"reporting"`
 //
-//      // Cheap is only writeable to system_admin.
-//      Cheap bool
+//      // Cheap is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
+//      Cheap bool `access:restrictmanagesystem`
 //  }
 type Config struct {
 	ServiceSettings           ServiceSettings           `access:"-"`
