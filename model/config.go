@@ -247,27 +247,27 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment,restrictadmin"`
-	WebsocketURL                                      *string  `access:"restrictadmin"`
-	LicenseFileLocation                               *string  `access:"restrictadmin"`
-	ListenAddress                                     *string  `access:"environment,restrictadmin"`
-	ConnectionSecurity                                *string  `access:"environment,restrictadmin"`
-	TLSCertFile                                       *string  `access:"environment,restrictadmin"`
-	TLSKeyFile                                        *string  `access:"environment,restrictadmin"`
-	TLSMinVer                                         *string  `access:"restrictadmin"`
-	TLSStrictTransport                                *bool    `access:"restrictadmin"`
-	TLSStrictTransportMaxAge                          *int64   `access:"restrictadmin"`
-	TLSOverwriteCiphers                               []string `access:"restrictadmin"`
-	UseLetsEncrypt                                    *bool    `access:"environment,restrictadmin"`
-	LetsEncryptCertificateCacheFile                   *string  `access:"environment,restrictadmin"`
-	Forward80To443                                    *bool    `access:"environment,restrictadmin"`
-	TrustedProxyIPHeader                              []string `access:"restrictadmin"`
-	ReadTimeout                                       *int     `access:"environment,restrictadmin"`
-	WriteTimeout                                      *int     `access:"environment,restrictadmin"`
-	IdleTimeout                                       *int     `access:"restrictadmin"`
-	MaximumLoginAttempts                              *int     `access:"authentication,restrictadmin"`
-	GoroutineHealthThreshold                          *int     `access:"restrictadmin"`
-	GoogleDeveloperKey                                *string  `access:"site,restrictadmin"`
+	SiteURL                                           *string  `access:"environment,restrict_manage_system"`
+	WebsocketURL                                      *string  `access:"restrict_manage_system"`
+	LicenseFileLocation                               *string  `access:"restrict_manage_system"`
+	ListenAddress                                     *string  `access:"environment,restrict_manage_system"`
+	ConnectionSecurity                                *string  `access:"environment,restrict_manage_system"`
+	TLSCertFile                                       *string  `access:"environment,restrict_manage_system"`
+	TLSKeyFile                                        *string  `access:"environment,restrict_manage_system"`
+	TLSMinVer                                         *string  `access:"restrict_manage_system"`
+	TLSStrictTransport                                *bool    `access:"restrict_manage_system"`
+	TLSStrictTransportMaxAge                          *int64   `access:"restrict_manage_system"`
+	TLSOverwriteCiphers                               []string `access:"restrict_manage_system"`
+	UseLetsEncrypt                                    *bool    `access:"environment,restrict_manage_system"`
+	LetsEncryptCertificateCacheFile                   *string  `access:"environment,restrict_manage_system"`
+	Forward80To443                                    *bool    `access:"environment,restrict_manage_system"`
+	TrustedProxyIPHeader                              []string `access:"restrict_manage_system"`
+	ReadTimeout                                       *int     `access:"environment,restrict_manage_system"`
+	WriteTimeout                                      *int     `access:"environment,restrict_manage_system"`
+	IdleTimeout                                       *int     `access:"restrict_manage_system"`
+	MaximumLoginAttempts                              *int     `access:"authentication,restrict_manage_system"`
+	GoroutineHealthThreshold                          *int     `access:"restrict_manage_system"`
+	GoogleDeveloperKey                                *string  `access:"site,restrict_manage_system"`
 	EnableOAuthServiceProvider                        *bool    `access:"integrations"`
 	EnableIncomingWebhooks                            *bool    `access:"integrations"`
 	EnableOutgoingWebhooks                            *bool    `access:"integrations"`
@@ -276,29 +276,29 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool    `access:"integrations"`
 	EnablePostIconOverride                            *bool    `access:"integrations"`
 	EnableLinkPreviews                                *bool    `access:"site"`
-	EnableTesting                                     *bool    `access:"environment,restrictadmin"`
-	EnableDeveloper                                   *bool    `access:"environment,restrictadmin"`
-	EnableOpenTracing                                 *bool    `access:"restrictadmin"`
-	EnableSecurityFixAlert                            *bool    `access:"environment,restrictadmin"`
-	EnableInsecureOutgoingConnections                 *bool    `access:"environment,restrictadmin"`
-	AllowedUntrustedInternalConnections               *string  `access:"environment,restrictadmin"`
+	EnableTesting                                     *bool    `access:"environment,restrict_manage_system"`
+	EnableDeveloper                                   *bool    `access:"environment,restrict_manage_system"`
+	EnableOpenTracing                                 *bool    `access:"restrict_manage_system"`
+	EnableSecurityFixAlert                            *bool    `access:"environment,restrict_manage_system"`
+	EnableInsecureOutgoingConnections                 *bool    `access:"environment,restrict_manage_system"`
+	AllowedUntrustedInternalConnections               *string  `access:"environment,restrict_manage_system"`
 	EnableMultifactorAuthentication                   *bool    `access:"authentication"`
 	EnforceMultifactorAuthentication                  *bool    `access:"authentication"`
 	EnableUserAccessTokens                            *bool    `access:"integrations"`
-	AllowCorsFrom                                     *string  `access:"integrations,restrictadmin"`
-	CorsExposedHeaders                                *string  `access:"integrations,restrictadmin"`
-	CorsAllowCredentials                              *bool    `access:"integrations,restrictadmin"`
-	CorsDebug                                         *bool    `access:"integrations,restrictadmin"`
-	AllowCookiesForSubdomains                         *bool    `access:"restrictadmin"`
-	ExtendSessionLengthWithActivity                   *bool    `access:"restrictadmin"`
-	SessionLengthWebInDays                            *int     `access:"environment,restrictadmin"`
-	SessionLengthMobileInDays                         *int     `access:"environment,restrictadmin"`
-	SessionLengthSSOInDays                            *int     `access:"environment,restrictadmin"`
-	SessionCacheInMinutes                             *int     `access:"environment,restrictadmin"`
-	SessionIdleTimeoutInMinutes                       *int     `access:"environment,restrictadmin"`
-	WebsocketSecurePort                               *int     `access:"restrictadmin"`
-	WebsocketPort                                     *int     `access:"restrictadmin"`
-	WebserverMode                                     *string  `access:"environment,restrictadmin"`
+	AllowCorsFrom                                     *string  `access:"integrations,restrict_manage_system"`
+	CorsExposedHeaders                                *string  `access:"integrations,restrict_manage_system"`
+	CorsAllowCredentials                              *bool    `access:"integrations,restrict_manage_system"`
+	CorsDebug                                         *bool    `access:"integrations,restrict_manage_system"`
+	AllowCookiesForSubdomains                         *bool    `access:"restrict_manage_system"`
+	ExtendSessionLengthWithActivity                   *bool    `access:"restrict_manage_system"`
+	SessionLengthWebInDays                            *int     `access:"environment,restrict_manage_system"`
+	SessionLengthMobileInDays                         *int     `access:"environment,restrict_manage_system"`
+	SessionLengthSSOInDays                            *int     `access:"environment,restrict_manage_system"`
+	SessionCacheInMinutes                             *int     `access:"environment,restrict_manage_system"`
+	SessionIdleTimeoutInMinutes                       *int     `access:"environment,restrict_manage_system"`
+	WebsocketSecurePort                               *int     `access:"restrict_manage_system"`
+	WebsocketPort                                     *int     `access:"restrict_manage_system"`
+	WebserverMode                                     *string  `access:"environment,restrict_manage_system"`
 	EnableCustomEmoji                                 *bool    `access:"site"`
 	EnableEmojiPicker                                 *bool    `access:"site"`
 	EnableGifPicker                                   *bool    `access:"integrations"`
@@ -308,14 +308,14 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `access:"restrictadmin"`
-	EnablePostSearch                                  *bool  `access:"restrictadmin"`
-	MinimumHashtagLength                              *int   `access:"environment,restrictadmin"`
-	EnableUserTypingMessages                          *bool  `access:"restrictadmin"`
-	EnableChannelViewedMessages                       *bool  `access:"restrictadmin"`
-	EnableUserStatuses                                *bool  `access:"restrictadmin"`
-	ExperimentalEnableAuthenticationTransfer          *bool  `access:"experimental,restrictadmin"`
-	ClusterLogTimeoutMilliseconds                     *int   `access:"restrictadmin"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `access:"restrict_manage_system"`
+	EnablePostSearch                                  *bool  `access:"restrict_manage_system"`
+	MinimumHashtagLength                              *int   `access:"environment,restrict_manage_system"`
+	EnableUserTypingMessages                          *bool  `access:"restrict_manage_system"`
+	EnableChannelViewedMessages                       *bool  `access:"restrict_manage_system"`
+	EnableUserStatuses                                *bool  `access:"restrict_manage_system"`
+	ExperimentalEnableAuthenticationTransfer          *bool  `access:"experimental,restrict_manage_system"`
+	ClusterLogTimeoutMilliseconds                     *int   `access:"restrict_manage_system"`
 	CloseUnusedDirectMessages                         *bool
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
@@ -330,10 +330,10 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental"`
-	DisableLegacyMFA                                  *bool `access:"restrictadmin"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,restrictadmin"`
+	DisableLegacyMFA                                  *bool `access:"restrict_manage_system"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,restrict_manage_system"`
 	EnableEmailInvitations                            *bool
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,restrictadmin"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,restrict_manage_system"`
 	EnableBotAccountCreation                          *bool `access:"integrations"`
 	EnableSVGs                                        *bool `access:"site"`
 	EnableLatex                                       *bool `access:"site"`
@@ -751,21 +751,21 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                             *bool   `access:"environment,restrictadmin"`
-	ClusterName                        *string `access:"environment,restrictadmin"`
-	OverrideHostname                   *string `access:"environment,restrictadmin"`
-	NetworkInterface                   *string `access:"environment,restrictadmin"`
-	BindAddress                        *string `access:"environment,restrictadmin"`
-	AdvertiseAddress                   *string `access:"environment,restrictadmin"`
-	UseIpAddress                       *bool   `access:"environment,restrictadmin"`
-	UseExperimentalGossip              *bool   `access:"environment,restrictadmin"`
-	EnableExperimentalGossipEncryption *bool   `access:"environment,restrictadmin"`
-	ReadOnlyConfig                     *bool   `access:"environment,restrictadmin"`
-	GossipPort                         *int    `access:"environment,restrictadmin"`
-	StreamingPort                      *int    `access:"environment,restrictadmin"`
-	MaxIdleConns                       *int    `access:"environment,restrictadmin"`
-	MaxIdleConnsPerHost                *int    `access:"environment,restrictadmin"`
-	IdleConnTimeoutMilliseconds        *int    `access:"environment,restrictadmin"`
+	Enable                             *bool   `access:"environment,restrict_manage_system"`
+	ClusterName                        *string `access:"environment,restrict_manage_system"`
+	OverrideHostname                   *string `access:"environment,restrict_manage_system"`
+	NetworkInterface                   *string `access:"environment,restrict_manage_system"`
+	BindAddress                        *string `access:"environment,restrict_manage_system"`
+	AdvertiseAddress                   *string `access:"environment,restrict_manage_system"`
+	UseIpAddress                       *bool   `access:"environment,restrict_manage_system"`
+	UseExperimentalGossip              *bool   `access:"environment,restrict_manage_system"`
+	EnableExperimentalGossipEncryption *bool   `access:"environment,restrict_manage_system"`
+	ReadOnlyConfig                     *bool   `access:"environment,restrict_manage_system"`
+	GossipPort                         *int    `access:"environment,restrict_manage_system"`
+	StreamingPort                      *int    `access:"environment,restrict_manage_system"`
+	MaxIdleConns                       *int    `access:"environment,restrict_manage_system"`
+	MaxIdleConnsPerHost                *int    `access:"environment,restrict_manage_system"`
+	IdleConnTimeoutMilliseconds        *int    `access:"environment,restrict_manage_system"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -831,9 +831,9 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable           *bool   `access:"environment,restrictadmin"`
-	BlockProfileRate *int    `access:"environment,restrictadmin"`
-	ListenAddress    *string `access:"environment,restrictadmin"`
+	Enable           *bool   `access:"environment,restrict_manage_system"`
+	BlockProfileRate *int    `access:"environment,restrict_manage_system"`
+	ListenAddress    *string `access:"environment,restrict_manage_system"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -853,9 +853,9 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool   `access:"experimental"`
 	ClientSideCertCheck             *string `access:"experimental"`
-	EnableClickToReply              *bool   `access:"experimental,restrictadmin"`
-	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,restrictadmin"`
-	RestrictSystemAdmin             *bool   `access:"experimental,restrictadmin"`
+	EnableClickToReply              *bool   `access:"experimental,restrict_manage_system"`
+	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,restrict_manage_system"`
+	RestrictSystemAdmin             *bool   `access:"experimental,restrict_manage_system"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 }
 
@@ -885,7 +885,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 }
 
 type AnalyticsSettings struct {
-	MaxUsersForStatistics *int `access:"-,restrictadmin"`
+	MaxUsersForStatistics *int `access:"-,restrict_manage_system"`
 }
 
 func (s *AnalyticsSettings) SetDefaults() {
@@ -992,17 +992,17 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type SqlSettings struct {
-	DriverName                  *string  `access:"environment,restrictadmin"`
-	DataSource                  *string  `access:"environment,restrictadmin"`
-	DataSourceReplicas          []string `access:"environment,restrictadmin"`
-	DataSourceSearchReplicas    []string `access:"environment,restrictadmin"`
-	MaxIdleConns                *int     `access:"environment,restrictadmin"`
-	ConnMaxLifetimeMilliseconds *int     `access:"environment,restrictadmin"`
-	MaxOpenConns                *int     `access:"environment,restrictadmin"`
-	Trace                       *bool    `access:"environment,restrictadmin"`
-	AtRestEncryptKey            *string  `access:"environment,restrictadmin"`
-	QueryTimeout                *int     `access:"environment,restrictadmin"`
-	DisableDatabaseSearch       *bool    `access:"environment,restrictadmin"`
+	DriverName                  *string  `access:"environment,restrict_manage_system"`
+	DataSource                  *string  `access:"environment,restrict_manage_system"`
+	DataSourceReplicas          []string `access:"environment,restrict_manage_system"`
+	DataSourceSearchReplicas    []string `access:"environment,restrict_manage_system"`
+	MaxIdleConns                *int     `access:"environment,restrict_manage_system"`
+	ConnMaxLifetimeMilliseconds *int     `access:"environment,restrict_manage_system"`
+	MaxOpenConns                *int     `access:"environment,restrict_manage_system"`
+	Trace                       *bool    `access:"environment,restrict_manage_system"`
+	AtRestEncryptKey            *string  `access:"environment,restrict_manage_system"`
+	QueryTimeout                *int     `access:"environment,restrict_manage_system"`
+	DisableDatabaseSearch       *bool    `access:"environment,restrict_manage_system"`
 }
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
@@ -1058,17 +1058,17 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool   `access:"environment,restrictadmin"`
-	ConsoleLevel           *string `access:"environment,restrictadmin"`
-	ConsoleJson            *bool   `access:"environment,restrictadmin"`
-	EnableFile             *bool   `access:"environment,restrictadmin"`
-	FileLevel              *string `access:"environment,restrictadmin"`
-	FileJson               *bool   `access:"environment,restrictadmin"`
-	FileLocation           *string `access:"environment,restrictadmin"`
-	EnableWebhookDebugging *bool   `access:"environment,restrictadmin"`
-	EnableDiagnostics      *bool   `access:"environment,restrictadmin"`
-	EnableSentry           *bool   `access:"environment,restrictadmin"`
-	AdvancedLoggingConfig  *string `access:"environment,restrictadmin"`
+	EnableConsole          *bool   `access:"environment,restrict_manage_system"`
+	ConsoleLevel           *string `access:"environment,restrict_manage_system"`
+	ConsoleJson            *bool   `access:"environment,restrict_manage_system"`
+	EnableFile             *bool   `access:"environment,restrict_manage_system"`
+	FileLevel              *string `access:"environment,restrict_manage_system"`
+	FileJson               *bool   `access:"environment,restrict_manage_system"`
+	FileLocation           *string `access:"environment,restrict_manage_system"`
+	EnableWebhookDebugging *bool   `access:"environment,restrict_manage_system"`
+	EnableDiagnostics      *bool   `access:"environment,restrict_manage_system"`
+	EnableSentry           *bool   `access:"environment,restrict_manage_system"`
+	AdvancedLoggingConfig  *string `access:"environment,restrict_manage_system"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1118,14 +1118,14 @@ func (s *LogSettings) SetDefaults() {
 }
 
 type ExperimentalAuditSettings struct {
-	FileEnabled           *bool   `access:"experimental,restrictadmin"`
-	FileName              *string `access:"experimental,restrictadmin"`
-	FileMaxSizeMB         *int    `access:"experimental,restrictadmin"`
-	FileMaxAgeDays        *int    `access:"experimental,restrictadmin"`
-	FileMaxBackups        *int    `access:"experimental,restrictadmin"`
-	FileCompress          *bool   `access:"experimental,restrictadmin"`
-	FileMaxQueueSize      *int    `access:"experimental,restrictadmin"`
-	AdvancedLoggingConfig *string `access:"experimental,restrictadmin"`
+	FileEnabled           *bool   `access:"experimental,restrict_manage_system"`
+	FileName              *string `access:"experimental,restrict_manage_system"`
+	FileMaxSizeMB         *int    `access:"experimental,restrict_manage_system"`
+	FileMaxAgeDays        *int    `access:"experimental,restrict_manage_system"`
+	FileMaxBackups        *int    `access:"experimental,restrict_manage_system"`
+	FileCompress          *bool   `access:"experimental,restrict_manage_system"`
+	FileMaxQueueSize      *int    `access:"experimental,restrict_manage_system"`
+	AdvancedLoggingConfig *string `access:"experimental,restrict_manage_system"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
@@ -1163,14 +1163,14 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"-,restrictadmin"`
-	ConsoleLevel          *string `access:"-,restrictadmin"`
-	ConsoleJson           *bool   `access:"-,restrictadmin"`
-	EnableFile            *bool   `access:"-,restrictadmin"`
-	FileLevel             *string `access:"-,restrictadmin"`
-	FileJson              *bool   `access:"-,restrictadmin"`
-	FileLocation          *string `access:"-,restrictadmin"`
-	AdvancedLoggingConfig *string `access:"-,restrictadmin"`
+	EnableConsole         *bool   `access:"-,restrict_manage_system"`
+	ConsoleLevel          *string `access:"-,restrict_manage_system"`
+	ConsoleJson           *bool   `access:"-,restrict_manage_system"`
+	EnableFile            *bool   `access:"-,restrict_manage_system"`
+	FileLevel             *string `access:"-,restrict_manage_system"`
+	FileJson              *bool   `access:"-,restrict_manage_system"`
+	FileLocation          *string `access:"-,restrict_manage_system"`
+	AdvancedLoggingConfig *string `access:"-,restrict_manage_system"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1242,21 +1242,21 @@ type FileSettings struct {
 	EnableMobileUpload      *bool   `access:"site"`
 	EnableMobileDownload    *bool   `access:"site"`
 	MaxFileSize             *int64  `access:"environment"`
-	DriverName              *string `access:"environment,restrictadmin"`
-	Directory               *string `access:"environment,restrictadmin"`
+	DriverName              *string `access:"environment,restrict_manage_system"`
+	Directory               *string `access:"environment,restrict_manage_system"`
 	EnablePublicLink        *bool   `access:"site"`
 	PublicLinkSalt          *string `access:"site"`
 	InitialFont             *string `access:"environment"`
-	AmazonS3AccessKeyId     *string `access:"environment,restrictadmin"`
-	AmazonS3SecretAccessKey *string `access:"environment,restrictadmin"`
-	AmazonS3Bucket          *string `access:"environment,restrictadmin"`
-	AmazonS3PathPrefix      *string `access:"environment,restrictadmin"`
-	AmazonS3Region          *string `access:"environment,restrictadmin"`
-	AmazonS3Endpoint        *string `access:"environment,restrictadmin"`
-	AmazonS3SSL             *bool   `access:"environment,restrictadmin"`
-	AmazonS3SignV2          *bool   `access:"environment,restrictadmin"`
-	AmazonS3SSE             *bool   `access:"environment,restrictadmin"`
-	AmazonS3Trace           *bool   `access:"environment,restrictadmin"`
+	AmazonS3AccessKeyId     *string `access:"environment,restrict_manage_system"`
+	AmazonS3SecretAccessKey *string `access:"environment,restrict_manage_system"`
+	AmazonS3Bucket          *string `access:"environment,restrict_manage_system"`
+	AmazonS3PathPrefix      *string `access:"environment,restrict_manage_system"`
+	AmazonS3Region          *string `access:"environment,restrict_manage_system"`
+	AmazonS3Endpoint        *string `access:"environment,restrict_manage_system"`
+	AmazonS3SSL             *bool   `access:"environment,restrict_manage_system"`
+	AmazonS3SignV2          *bool   `access:"environment,restrict_manage_system"`
+	AmazonS3SSE             *bool   `access:"environment,restrict_manage_system"`
+	AmazonS3Trace           *bool   `access:"environment,restrict_manage_system"`
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -1357,13 +1357,13 @@ type EmailSettings struct {
 	FeedbackEmail                     *string `access:"site"`
 	ReplyToAddress                    *string `access:"site"`
 	FeedbackOrganization              *string
-	EnableSMTPAuth                    *bool   `access:"environment,restrictadmin"`
-	SMTPUsername                      *string `access:"environment,restrictadmin"`
-	SMTPPassword                      *string `access:"environment,restrictadmin"`
-	SMTPServer                        *string `access:"environment,restrictadmin"`
-	SMTPPort                          *string `access:"environment,restrictadmin"`
+	EnableSMTPAuth                    *bool   `access:"environment,restrict_manage_system"`
+	SMTPUsername                      *string `access:"environment,restrict_manage_system"`
+	SMTPPassword                      *string `access:"environment,restrict_manage_system"`
+	SMTPServer                        *string `access:"environment,restrict_manage_system"`
+	SMTPPort                          *string `access:"environment,restrict_manage_system"`
 	SMTPServerTimeout                 *int
-	ConnectionSecurity                *string `access:"environment,restrictadmin"`
+	ConnectionSecurity                *string `access:"environment,restrict_manage_system"`
 	SendPushNotifications             *bool   `access:"environment"`
 	PushNotificationServer            *string `access:"environment"`
 	PushNotificationContents          *string `access:"site"`
@@ -1372,7 +1372,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
 	EnablePreviewModeBanner           *bool   `access:"site"`
-	SkipServerCertificateVerification *bool   `access:"environment,restrictadmin"`
+	SkipServerCertificateVerification *bool   `access:"environment,restrict_manage_system"`
 	EmailNotificationContentsType     *string `access:"site"`
 	LoginButtonColor                  *string
 	LoginButtonBorderColor            *string
@@ -1522,13 +1522,13 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 }
 
 type RateLimitSettings struct {
-	Enable           *bool  `access:"environment,restrictadmin"`
-	PerSec           *int   `access:"environment,restrictadmin"`
-	MaxBurst         *int   `access:"environment,restrictadmin"`
-	MemoryStoreSize  *int   `access:"environment,restrictadmin"`
-	VaryByRemoteAddr *bool  `access:"environment,restrictadmin"`
-	VaryByUser       *bool  `access:"environment,restrictadmin"`
-	VaryByHeader     string `access:"environment,restrictadmin"`
+	Enable           *bool  `access:"environment,restrict_manage_system"`
+	PerSec           *int   `access:"environment,restrict_manage_system"`
+	MaxBurst         *int   `access:"environment,restrict_manage_system"`
+	MemoryStoreSize  *int   `access:"environment,restrict_manage_system"`
+	VaryByRemoteAddr *bool  `access:"environment,restrict_manage_system"`
+	VaryByUser       *bool  `access:"environment,restrict_manage_system"`
+	VaryByHeader     string `access:"environment,restrict_manage_system"`
 }
 
 func (s *RateLimitSettings) SetDefaults() {
@@ -1573,11 +1573,11 @@ func (s *PrivacySettings) setDefaults() {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink                     *string `access:"site,restrictadmin"`
-	PrivacyPolicyLink                      *string `access:"site,restrictadmin"`
-	AboutLink                              *string `access:"site,restrictadmin"`
-	HelpLink                               *string `access:"site,restrictadmin"`
-	ReportAProblemLink                     *string `access:"site,restrictadmin"`
+	TermsOfServiceLink                     *string `access:"site,restrict_manage_system"`
+	PrivacyPolicyLink                      *string `access:"site,restrict_manage_system"`
+	AboutLink                              *string `access:"site,restrict_manage_system"`
+	HelpLink                               *string `access:"site,restrict_manage_system"`
+	ReportAProblemLink                     *string `access:"site,restrict_manage_system"`
 	SupportEmail                           *string `access:"site"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance"`
@@ -1881,12 +1881,12 @@ func (s *TeamSettings) SetDefaults() {
 }
 
 type ClientRequirements struct {
-	AndroidLatestVersion string `access:"-,restrictadmin"`
-	AndroidMinVersion    string `access:"-,restrictadmin"`
-	DesktopLatestVersion string `access:"-,restrictadmin"`
-	DesktopMinVersion    string `access:"-,restrictadmin"`
-	IosLatestVersion     string `access:"-,restrictadmin"`
-	IosMinVersion        string `access:"-,restrictadmin"`
+	AndroidLatestVersion string `access:"-,restrict_manage_system"`
+	AndroidMinVersion    string `access:"-,restrict_manage_system"`
+	DesktopLatestVersion string `access:"-,restrict_manage_system"`
+	DesktopMinVersion    string `access:"-,restrict_manage_system"`
+	IosLatestVersion     string `access:"-,restrict_manage_system"`
+	IosMinVersion        string `access:"-,restrict_manage_system"`
 }
 
 type LdapSettings struct {
@@ -2300,9 +2300,9 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string `access:"site,restrictadmin"`
-	AndroidAppDownloadLink *string `access:"site,restrictadmin"`
-	IosAppDownloadLink     *string `access:"site,restrictadmin"`
+	AppDownloadLink        *string `access:"site,restrict_manage_system"`
+	AndroidAppDownloadLink *string `access:"site,restrict_manage_system"`
+	IosAppDownloadLink     *string `access:"site,restrict_manage_system"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -2320,27 +2320,27 @@ func (s *NativeAppSettings) SetDefaults() {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl                 *string `access:"environment,restrictadmin"`
-	Username                      *string `access:"environment,restrictadmin"`
-	Password                      *string `access:"environment,restrictadmin"`
-	EnableIndexing                *bool   `access:"environment,restrictadmin"`
-	EnableSearching               *bool   `access:"environment,restrictadmin"`
-	EnableAutocomplete            *bool   `access:"environment,restrictadmin"`
-	Sniff                         *bool   `access:"environment,restrictadmin"`
-	PostIndexReplicas             *int    `access:"environment,restrictadmin"`
-	PostIndexShards               *int    `access:"environment,restrictadmin"`
-	ChannelIndexReplicas          *int    `access:"environment,restrictadmin"`
-	ChannelIndexShards            *int    `access:"environment,restrictadmin"`
-	UserIndexReplicas             *int    `access:"environment,restrictadmin"`
-	UserIndexShards               *int    `access:"environment,restrictadmin"`
-	AggregatePostsAfterDays       *int    `access:"environment,restrictadmin"`
-	PostsAggregatorJobStartTime   *string `access:"environment,restrictadmin"`
-	IndexPrefix                   *string `access:"environment,restrictadmin"`
-	LiveIndexingBatchSize         *int    `access:"environment,restrictadmin"`
-	BulkIndexingTimeWindowSeconds *int    `access:"environment,restrictadmin"`
-	RequestTimeoutSeconds         *int    `access:"environment,restrictadmin"`
-	SkipTLSVerification           *bool   `access:"environment,restrictadmin"`
-	Trace                         *string `access:"environment,restrictadmin"`
+	ConnectionUrl                 *string `access:"environment,restrict_manage_system"`
+	Username                      *string `access:"environment,restrict_manage_system"`
+	Password                      *string `access:"environment,restrict_manage_system"`
+	EnableIndexing                *bool   `access:"environment,restrict_manage_system"`
+	EnableSearching               *bool   `access:"environment,restrict_manage_system"`
+	EnableAutocomplete            *bool   `access:"environment,restrict_manage_system"`
+	Sniff                         *bool   `access:"environment,restrict_manage_system"`
+	PostIndexReplicas             *int    `access:"environment,restrict_manage_system"`
+	PostIndexShards               *int    `access:"environment,restrict_manage_system"`
+	ChannelIndexReplicas          *int    `access:"environment,restrict_manage_system"`
+	ChannelIndexShards            *int    `access:"environment,restrict_manage_system"`
+	UserIndexReplicas             *int    `access:"environment,restrict_manage_system"`
+	UserIndexShards               *int    `access:"environment,restrict_manage_system"`
+	AggregatePostsAfterDays       *int    `access:"environment,restrict_manage_system"`
+	PostsAggregatorJobStartTime   *string `access:"environment,restrict_manage_system"`
+	IndexPrefix                   *string `access:"environment,restrict_manage_system"`
+	LiveIndexingBatchSize         *int    `access:"environment,restrict_manage_system"`
+	BulkIndexingTimeWindowSeconds *int    `access:"environment,restrict_manage_system"`
+	RequestTimeoutSeconds         *int    `access:"environment,restrict_manage_system"`
+	SkipTLSVerification           *bool   `access:"environment,restrict_manage_system"`
+	Trace                         *string `access:"environment,restrict_manage_system"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2490,8 +2490,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `access:"-,restrictadmin"`
-	RunScheduler *bool `access:"-,restrictadmin"`
+	RunJobs      *bool `access:"-,restrict_manage_system"`
+	RunScheduler *bool `access:"-,restrict_manage_system"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2510,11 +2510,11 @@ type PluginState struct {
 
 type PluginSettings struct {
 	Enable                      *bool                             `access:"plugins"`
-	EnableUploads               *bool                             `access:"plugins,restrictadmin"`
-	AllowInsecureDownloadUrl    *bool                             `access:"plugins,restrictadmin"`
-	EnableHealthCheck           *bool                             `access:"plugins,restrictadmin"`
-	Directory                   *string                           `access:"plugins,restrictadmin"`
-	ClientDirectory             *string                           `access:"plugins,restrictadmin"`
+	EnableUploads               *bool                             `access:"plugins,restrict_manage_system"`
+	AllowInsecureDownloadUrl    *bool                             `access:"plugins,restrict_manage_system"`
+	EnableHealthCheck           *bool                             `access:"plugins,restrict_manage_system"`
+	Directory                   *string                           `access:"plugins,restrict_manage_system"`
+	ClientDirectory             *string                           `access:"plugins,restrict_manage_system"`
 	Plugins                     map[string]map[string]interface{} `access:"plugins"`
 	PluginStates                map[string]*PluginState           `access:"plugins"`
 	EnableMarketplace           *bool                             `access:"plugins"`
@@ -2736,7 +2736,7 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 
 type ConfigFunc func() *Config
 
-const ConfigAccessTagRestrictManageSystem = "restricmanagesystem"
+const ConfigAccessTagRestrictManageSystem = "restrict_manage_system"
 const ConfigAccessTagAnySysconsoleWritePermission = "-"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
@@ -2746,7 +2746,7 @@ const ConfigAccessTagAnySysconsoleWritePermission = "-"
 // 'integrations', 'compliance', 'plugins', 'experimental'.
 //
 // By default config values can be updated with the PERMISSION_MANAGE_SYSTEM permission. If ExperimentalSettings.RestrictSystemAdmin is true
-// and the access tag contains the value 'restricmanagesystem', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
+// and the access tag contains the value 'restrict_manage_system', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
 //
 // The access tag value does not automatically grant write access to all child struct field.
 //
@@ -2772,7 +2772,7 @@ const ConfigAccessTagAnySysconsoleWritePermission = "-"
 //      Brand string `access:"reporting"`
 //
 //      // Cheap is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
-//      Cheap bool `access:restrictmanagesystem`
+//      Cheap bool `access:restrict_manage_system`
 //  }
 type Config struct {
 	ServiceSettings           ServiceSettings           `access:"-"`

@@ -137,6 +137,7 @@ func filterConfigByPermission(c *Context, structField reflect.StructField, paren
 	hasPermission := false
 	for _, val := range tagPermissions {
 		tagValue := strings.TrimSpace(val)
+
 		// ConfigAccessTagRestrictManageSystem trumps all other permissions
 		if tagValue == model.ConfigAccessTagRestrictManageSystem {
 			if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
@@ -144,10 +145,9 @@ func filterConfigByPermission(c *Context, structField reflect.StructField, paren
 			}
 		}
 
-		// ConfigAccessTagAnySysconsoleWritePermission can skip the other permissions checks
 		if tagValue == model.ConfigAccessTagAnySysconsoleWritePermission {
 			if c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
-				return true
+				hasPermission = true
 			}
 		}
 
@@ -155,7 +155,7 @@ func filterConfigByPermission(c *Context, structField reflect.StructField, paren
 		permissionID := fmt.Sprintf("write_sysconsole_%s", tagValue)
 		if permission, ok := permissionMap[permissionID]; ok {
 			if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-				// don't return early because 'restrictadmin' could be the last tag value
+				// don't return early because ConfigAccessTagRestrictManageSystem could be the last tag value
 				hasPermission = true
 			}
 		} else {
