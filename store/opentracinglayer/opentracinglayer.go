@@ -7222,7 +7222,7 @@ func (s *OpenTracingLayerTeamStore) SaveMultipleMembers(members []*model.TeamMem
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAll")
 	s.Root.Store.SetContext(newCtx)
@@ -7231,7 +7231,7 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string) ([]*model.Team, *mode
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.TeamStore.SearchAll(term)
+	resultVar0, resultVar1 := s.TeamStore.SearchAll(term, opts)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
@@ -7240,7 +7240,7 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string) ([]*model.Team, *mode
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAllPaged")
 	s.Root.Store.SetContext(newCtx)
@@ -7249,7 +7249,7 @@ func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, page int, perPag
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, page, perPage)
+	resultVar0, resultVar1, resultVar2 := s.TeamStore.SearchAllPaged(term, opts)
 	if resultVar2 != nil {
 		span.LogFields(spanlog.Error(resultVar2))
 		ext.Error.Set(span, true)
