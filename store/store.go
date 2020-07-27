@@ -67,7 +67,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	CheckIntegrity() <-chan IntegrityCheckResult
+	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
 }
@@ -774,24 +774,6 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-type OrphanedRecord struct {
-	ParentId *string
-	ChildId  *string
-}
-
-type RelationalIntegrityCheckData struct {
-	ParentName   string
-	ChildName    string
-	ParentIdAttr string
-	ChildIdAttr  string
-	Records      []OrphanedRecord
-}
-
-type IntegrityCheckResult struct {
-	Data interface{}
-	Err  error
 }
 
 const mySQLDeadlockCode = uint16(1213)
