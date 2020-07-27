@@ -5369,3 +5369,18 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 
 	return cat, BuildResponse(r)
 }
+
+// CheckIntegrity performs a database integrity check.
+func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
+	r, err := c.DoApiPost("/integrity", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var results []IntegrityCheckResult
+	if err := json.NewDecoder(r.Body).Decode(&results); err != nil {
+		appErr := NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	return results, BuildResponse(r)
+}

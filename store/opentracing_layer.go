@@ -2632,7 +2632,7 @@ func (s *OpenTracingLayerCommandWebhookStore) TryUse(id string, limit int) error
 	return resultVar0
 }
 
-func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.ComplianceExport")
 	s.Root.Store.SetContext(newCtx)
@@ -2650,7 +2650,7 @@ func (s *OpenTracingLayerComplianceStore) ComplianceExport(compliance *model.Com
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -2668,7 +2668,7 @@ func (s *OpenTracingLayerComplianceStore) Get(id string) (*model.Compliance, *mo
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.Compliances, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.Compliances, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -2686,7 +2686,7 @@ func (s *OpenTracingLayerComplianceStore) GetAll(offset int, limit int) (model.C
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.MessageExport")
 	s.Root.Store.SetContext(newCtx)
@@ -2704,7 +2704,7 @@ func (s *OpenTracingLayerComplianceStore) MessageExport(after int64, limit int) 
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -2722,7 +2722,7 @@ func (s *OpenTracingLayerComplianceStore) Save(compliance *model.Compliance) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s *OpenTracingLayerComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ComplianceStore.Update")
 	s.Root.Store.SetContext(newCtx)
