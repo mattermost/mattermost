@@ -178,6 +178,88 @@ func TestUpdateConfig(t *testing.T) {
 	})
 }
 
+func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
+		// forbidden by default
+		_, resp := th.Client.GetConfig()
+		CheckForbiddenStatus(t, resp)
+
+		// add any sysconsole read permission
+		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SYSTEM_USER_ROLE_ID)
+		_, resp = th.Client.GetConfig()
+
+		// should be readable now
+		CheckNoError(t, resp)
+	})
+}
+
+func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	// add read sysconsole integrations config
+	th.AddPermissionToRole(model.PERMISSION_READ_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+
+	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.Client.GetConfig()
+		CheckNoError(t, resp)
+
+		// try update a config value allowed by sysconsole WRITE integrations
+		// mockVal := model.NewId()
+		// cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, resp = th.Client.UpdateConfig(cfg)
+
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("the wrong write permission does not grant access", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.Client.GetConfig()
+		CheckNoError(t, resp)
+
+		originalValue := *cfg.ServiceSettings.AllowCorsFrom
+
+		// add the wrong write permission
+		th.AddPermissionToRole(model.PERMISSION_WRITE_SYSCONSOLE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
+
+		// try update a config value allowed by sysconsole WRITE integrations
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, resp = th.Client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		// ensure the config setting was not updated
+		cfg, resp = th.Client.GetConfig()
+		CheckNoError(t, resp)
+		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
+	})
+
+	t.Run("config value is writeable by specific system console permission", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.Client.GetConfig()
+		CheckNoError(t, resp)
+
+		th.AddPermissionToRole(model.PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		// try update a config value allowed by sysconsole WRITE integrations
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, resp = th.Client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		// ensure the config setting was updated
+		cfg, resp = th.Client.GetConfig()
+		CheckNoError(t, resp)
+		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, mockVal)
+	})
+}
+
 func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
