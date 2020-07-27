@@ -93,6 +93,7 @@ var PERMISSION_PROMOTE_GUEST *Permission
 var PERMISSION_DEMOTE_TO_GUEST *Permission
 var PERMISSION_USE_CHANNEL_MENTIONS *Permission
 var PERMISSION_USE_GROUP_MENTIONS *Permission
+var PERMISSION_READ_OTHER_USERS_TEAMS *Permission
 
 var PERMISSION_READ_SYSCONSOLE_ABOUT *Permission
 var PERMISSION_WRITE_SYSCONSOLE_ABOUT *Permission
@@ -626,6 +627,12 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeChannel,
 	}
+	PERMISSION_READ_OTHER_USERS_TEAMS = &Permission{
+		"read_other_users_teams",
+		"authentication.permissions.read_other_users_teams.name",
+		"authentication.permissions.read_other_users_teams.description",
+		PermissionScopeSystem,
+	}
 	PERMISSION_READ_SYSCONSOLE_ABOUT = &Permission{
 		"read_sysconsole_about",
 		"authentication.permissions.use_group_mentions.name",
@@ -866,6 +873,7 @@ func initializePermissions() {
 		PERMISSION_LIST_PRIVATE_TEAMS,
 		PERMISSION_JOIN_PRIVATE_TEAMS,
 		PERMISSION_EDIT_OTHER_USERS,
+		PERMISSION_READ_OTHER_USERS_TEAMS,
 		// PERMISSION_PERMANENT_DELETE_USER (deprecated)
 		PERMISSION_GET_PUBLIC_LINK,
 		PERMISSION_MANAGE_OAUTH,

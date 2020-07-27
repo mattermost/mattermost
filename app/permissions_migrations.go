@@ -58,6 +58,8 @@ const (
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
 	PERMISSION_READ_JOBS                         = "read_jobs"
 	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
+	PERMISSION_READ_OTHER_USERS_TEAMS            = "read_other_users_teams"
+	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -446,6 +448,12 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 	transformations = append(transformations, permissionTransformation{
 		On:  permissionExists(PERMISSION_MANAGE_JOBS),
 		Add: []string{PERMISSION_READ_JOBS},
+	})
+
+	// add read_other_users_teams to all roles with edit_other_users
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_EDIT_OTHER_USERS),
+		Add: []string{PERMISSION_READ_OTHER_USERS_TEAMS},
 	})
 
 	return transformations, nil
