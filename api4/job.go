@@ -92,8 +92,8 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS, model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 
