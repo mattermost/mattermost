@@ -920,10 +920,10 @@ func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
+func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
