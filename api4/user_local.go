@@ -200,38 +200,6 @@ func localGetUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
-func localDeleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	userId := c.Params.UserId
-
-	auditRec := c.MakeAuditRecord("localDeleteUser", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
-	user, err := c.App.GetUser(userId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	auditRec.AddMeta("user", user)
-
-	if c.Params.Permanent {
-		err = c.App.PermanentDeleteUser(user)
-	} else {
-		_, err = c.App.UpdateActive(user, false)
-	}
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	auditRec.Success()
-	ReturnStatusOK(w)
-}
-
 func localPermanentDeleteAllUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("localPermanentDeleteAllUsers", audit.Fail)
 	defer c.LogAuditRec(auditRec)
