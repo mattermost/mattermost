@@ -949,6 +949,18 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 5, len(channels))
+
+		// Should return all channels including basicDeleted.
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
+
+		// Should stil return all channels including basicDeleted.
+		now := time.Now().Add(-time.Minute).Unix() * 1000
+		Client.GetChannelsForTeamAndUserWithLastDeleteAt(th.BasicTeam.Id, th.BasicUser.Id,
+			true, int(now), "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
 	})
 }
 

@@ -920,10 +920,10 @@ func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId strin
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
+func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -2416,7 +2416,7 @@ func (s *TimerLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	return resultVar0
 }
 
-func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
+func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.ComplianceExport(compliance)
@@ -2432,7 +2432,7 @@ func (s *TimerLayerComplianceStore) ComplianceExport(compliance *model.Complianc
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
+func (s *TimerLayerComplianceStore) Get(id string) (*model.Compliance, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.Get(id)
@@ -2448,7 +2448,7 @@ func (s *TimerLayerComplianceStore) Get(id string) (*model.Compliance, *model.Ap
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerComplianceStore) GetAll(offset int, limit int) (model.Compliances, *model.AppError) {
+func (s *TimerLayerComplianceStore) GetAll(offset int, limit int) (model.Compliances, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.GetAll(offset, limit)
@@ -2464,7 +2464,7 @@ func (s *TimerLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError) {
+func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.MessageExport(after, limit)
@@ -2480,7 +2480,7 @@ func (s *TimerLayerComplianceStore) MessageExport(after int64, limit int) ([]*mo
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s *TimerLayerComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.Save(compliance)
@@ -2496,7 +2496,7 @@ func (s *TimerLayerComplianceStore) Save(compliance *model.Compliance) (*model.C
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, *model.AppError) {
+func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model.Compliance, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.ComplianceStore.Update(compliance)

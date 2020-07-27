@@ -2490,6 +2490,18 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
+// GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
+func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
@@ -5356,4 +5368,19 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 	}
 
 	return cat, BuildResponse(r)
+}
+
+// CheckIntegrity performs a database integrity check.
+func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
+	r, err := c.DoApiPost("/integrity", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var results []IntegrityCheckResult
+	if err := json.NewDecoder(r.Body).Decode(&results); err != nil {
+		appErr := NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	return results, BuildResponse(r)
 }
