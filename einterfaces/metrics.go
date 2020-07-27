@@ -56,4 +56,6 @@ type MetricsInterface interface {
 	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
 	ObservePluginMultiHookDuration(elapsed float64)
 	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
+
+	ObserveEnabledUsers(users int64)
 }

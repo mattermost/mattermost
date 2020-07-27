@@ -132,7 +132,9 @@ func (a *App) initJobs() {
 	if jobsExpiryNotifyInterface != nil {
 		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
 	}
-
+	if jobsActiveUsersInterface != nil {
+		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
+	}
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }

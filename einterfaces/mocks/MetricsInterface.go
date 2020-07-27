@@ -181,6 +181,11 @@ func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveEnabledUsers provides a mock function with given fields: users
+func (_m *MetricsInterface) ObserveEnabledUsers(users int64) {
+	_m.Called(users)
+}
+
 // ObservePluginApiDuration provides a mock function with given fields: pluginID, apiName, success, elapsed
 func (_m *MetricsInterface) ObservePluginApiDuration(pluginID string, apiName string, success bool, elapsed float64) {
 	_m.Called(pluginID, apiName, success, elapsed)
