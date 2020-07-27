@@ -3274,7 +3274,7 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.EnableOfficeFilePreviews && len(*s.UnoconvURL) == 0 {
+	if *s.EnableOfficeFilePreviews && !IsValidHttpUrl(*s.UnoconvURL) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.unoconv_url.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -26,7 +26,7 @@ func generateUnoconvPreview(unoconvURL string, fileInfo *model.FileInfo, fileRea
 	req.Header.Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileInfo.Name))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return model.NewAppError("getFileThumbnail", "api.file.get_file.pdf.app_error", nil, err.Error(), http.StatusBadRequest)
+		return errors.Wrap(err, "Unable to generate file preview using unoconv.")
 	}
 	defer resp.Body.Close()
 	_, appErr := writeFile(resp.Body, fileInfo.PreviewPath)

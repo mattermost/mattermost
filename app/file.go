@@ -1031,7 +1031,8 @@ func (a *App) HandleOfficeFiles(infos []*model.FileInfo) error {
 			defer wg.Done()
 			fileReader, appErr := backend.Reader(info.Path)
 			if appErr != nil {
-				mlog.Error("Unable to generate document preview", mlog.Err(err), mlog.String("fileId", info.Id))
+				mlog.Error("Unable to generate document preview", mlog.Err(appErr), mlog.String("fileId", info.Id))
+				return
 			}
 			err := previews.GeneratePreview(unoconvURL, info, fileReader, a.WriteFile)
 			if err != nil {
