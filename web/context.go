@@ -182,7 +182,7 @@ func (c *Context) MfaRequired() {
 	}
 
 	if !user.MfaActive {
-		c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
+		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 }
