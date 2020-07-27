@@ -48,6 +48,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -310,7 +311,7 @@ func NewServer(options ...Option) (*Server, error) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return store.NewTimerLayer(
+			return timerlayer.New(
 				searchStore,
 				s.Metrics,
 			)
