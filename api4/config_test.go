@@ -210,9 +210,6 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		cfg, resp := th.Client.GetConfig()
 		CheckNoError(t, resp)
 
-		// try update a config value allowed by sysconsole WRITE integrations
-		// mockVal := model.NewId()
-		// cfg.ServiceSettings.AllowCorsFrom = &mockVal
 		_, resp = th.Client.UpdateConfig(cfg)
 
 		CheckForbiddenStatus(t, resp)
