@@ -317,7 +317,7 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: check-prereqs-enterprise go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
