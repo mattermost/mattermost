@@ -990,7 +990,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelUnread(channelId string, userId
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
+func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -999,7 +999,7 @@ func (s *OpenTracingLayerChannelStore) GetChannels(teamId string, userId string,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := s.ChannelStore.GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
