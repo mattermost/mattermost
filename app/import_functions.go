@@ -1238,7 +1238,8 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		user := users[*line.Post.User]
 
 		// Check if this post already exists.
-		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
+		var posts []*model.Post
+		posts, err = a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
 		if err != nil {
 			return line.LineNumber, err
 		}
@@ -1265,7 +1266,8 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.Props = *line.Post.Props
 		}
 
-		fileIds, err := a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
+		var fileIds map[string]bool
+		fileIds, err = a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
 		if err != nil {
 			return line.LineNumber, err
 		}

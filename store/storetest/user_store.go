@@ -2054,9 +2054,9 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p2.Message = "first message"
 
 	_, nErr = ss.Post().Save(&p2)
-	require.Nil(t, err)
-	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
 	require.Nil(t, nErr)
+	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	require.Nil(t, err)
 
 	p3 := model.Post{}
 	p3.ChannelId = c2.Id

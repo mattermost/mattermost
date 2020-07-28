@@ -540,7 +540,7 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 		found = false
 		for _, id := range ids {
 			found = true
-			if err := s.permanentDelete(id); err != nil {
+			if err = s.permanentDelete(id); err != nil {
 				return err
 			}
 		}
