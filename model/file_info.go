@@ -134,7 +134,7 @@ func (fi *FileInfo) IsImage() bool {
 }
 
 func (fi *FileInfo) IsUnoconvSupported() bool {
-	return fi.Extension == "doc" || fi.Extension == "docx" || fi.Extension == "ppt" || fi.Extension == "pptx" || fi.Extension == "odt" || fi.Extension == "odp" || fi.Extension == "rtf"
+	return fi.Extension == "doc" || fi.Extension == "docx" || fi.Extension == "ppt" || fi.Extension == "pptx" || fi.Extension == "xls" || fi.Extension == "xlsx" || fi.Extension == "odt" || fi.Extension == "odp" || fi.Extension == "ods" || fi.Extension == "rtf"
 }
 
 func NewInfo(name string) *FileInfo {

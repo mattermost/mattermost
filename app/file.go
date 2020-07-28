@@ -651,10 +651,8 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 
 	if !t.Raw && *a.Config().ServiceSettings.EnableOfficeFilePreviews && t.fileinfo.IsUnoconvSupported() {
 		unoconvURL := *a.Config().ServiceSettings.UnoconvURL
-		wg.Add(1)
 		go func() {
 			previews.GeneratePreview(unoconvURL, t.fileinfo, t.newReader(), t.writeFile)
-			wg.Done()
 		}()
 	}
 
