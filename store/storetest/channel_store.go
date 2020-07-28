@@ -8322,14 +8322,24 @@ func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 		ss.Channel().SaveDirectChannel(&o2, &m3, &m4)
 
 		directChannelsUser1, nErr := ss.Channel().GetDirectChannelsForUser(u1.Id)
-		assert.Equal(t, directChannelsUser1[0].DisplayName, u3.Username)
-		assert.Equal(t, directChannelsUser1[1].DisplayName, u2.Username)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser1, 2)
 
+		var user1DireactChannelNames []string
+		for _, item := range directChannelsUser1 {
+			user1DireactChannelNames = append(user1DireactChannelNames, item.DisplayName)
+		}
+		require.Contains(t, user1DireactChannelNames, u3.Username)
+		require.Contains(t, user1DireactChannelNames, u2.Username)
+
 		directChannelsUser2, nErr := ss.Channel().GetDirectChannelsForUser(u2.Id)
-		assert.Equal(t, directChannelsUser1[0].DisplayName, u3.Username)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser2, 1)
+
+		var user2DireactChannelNames []string
+		for _, item := range directChannelsUser2 {
+			user2DireactChannelNames = append(user2DireactChannelNames, item.DisplayName)
+		}
+		require.Contains(t, user2DireactChannelNames, u1.Username)
 	})
 }
