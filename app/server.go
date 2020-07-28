@@ -48,6 +48,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -310,7 +311,7 @@ func NewServer(options ...Option) (*Server, error) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return store.NewTimerLayer(
+			return timerlayer.New(
 				searchStore,
 				s.Metrics,
 			)
@@ -641,7 +642,6 @@ func (s *Server) Shutdown() error {
 	defer sentry.Flush(2 * time.Second)
 
 	s.HubStop()
-	s.StopPushNotificationsHubWorkers()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
@@ -659,6 +659,8 @@ func (s *Server) Shutdown() error {
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
+	// Push notification hub needs to be shutdown after HTTP server
+	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
 
