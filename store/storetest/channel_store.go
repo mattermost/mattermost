@@ -8268,10 +8268,13 @@ func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 		ss.Channel().SaveDirectChannel(&o2, &m3, &m4)
 
 		directChannelsUser1, nErr := ss.Channel().GetDirectChannelsForUser(u1.Id)
+		assert.Equal(t, directChannelsUser1[0].DisplayName, u3.Username)
+		assert.Equal(t, directChannelsUser1[1].DisplayName, u2.Username)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser1, 2)
 
 		directChannelsUser2, nErr := ss.Channel().GetDirectChannelsForUser(u2.Id)
+		assert.Equal(t, directChannelsUser1[0].DisplayName, u3.Username)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser2, 1)
 	})

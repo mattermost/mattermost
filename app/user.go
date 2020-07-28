@@ -980,8 +980,7 @@ func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError 
 }
 
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
-	updateTime := model.GetMillis()
-	user.UpdateAt = updateTime
+	user.UpdateAt = model.GetMillis()
 	if active {
 		user.DeleteAt = 0
 	} else {
