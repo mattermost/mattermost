@@ -16,6 +16,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
+var writeFilter func(c *Context, structField reflect.StructField, parentStructFieldName string) bool
+var readFilter func(c *Context, structField reflect.StructField, parentStructFieldName string) bool
+
+type filterType string
+
+const filterTypeWrite = "write"
+const filterTypeRead = "read"
+
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
@@ -23,6 +31,11 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
+}
+
+func init() {
+	writeFilter = makeFilterConfigByPermission(filterTypeWrite)
+	readFilter = makeFilterConfigByPermission(filterTypeRead)
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -35,6 +48,15 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	cfg := c.App.GetSanitizedConfig()
+
+	cfg, err := config.Merge(&model.Config{}, cfg, &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+			return readFilter(c, structField, parentStructFieldName)
+		},
+	})
+	if err != nil {
+		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	auditRec.Success()
 
@@ -90,7 +112,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err1 error
 	cfg, err1 = config.Merge(appCfg, cfg, &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
-			return filterConfigByPermission(c, structField, parentStructFieldName)
+			return writeFilter(c, structField, parentStructFieldName)
 		},
 	})
 	if err1 != nil {
@@ -124,46 +146,6 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
-}
-
-func filterConfigByPermission(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
-	permissionMap := map[string]*model.Permission{}
-	for _, p := range model.AllPermissions {
-		permissionMap[p.Id] = p
-	}
-
-	tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
-
-	hasPermission := false
-	for _, val := range tagPermissions {
-		tagValue := strings.TrimSpace(val)
-
-		// ConfigAccessTagRestrictManageSystem trumps all other permissions
-		if tagValue == model.ConfigAccessTagRestrictManageSystem {
-			if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-				return false
-			}
-		}
-
-		if tagValue == model.ConfigAccessTagAnySysconsoleWritePermission {
-			if c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
-				hasPermission = true
-			}
-		}
-
-		// check for the permission associated to the tag value
-		permissionID := fmt.Sprintf("write_sysconsole_%s", tagValue)
-		if permission, ok := permissionMap[permissionID]; ok {
-			if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-				// don't return early because ConfigAccessTagRestrictManageSystem could be the last tag value
-				hasPermission = true
-			}
-		} else {
-			mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
-		}
-	}
-
-	return hasPermission
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -223,7 +205,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	filterFn := func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
-		return filterConfigByPermission(c, structField, parentStructFieldName)
+		return writeFilter(c, structField, parentStructFieldName)
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
@@ -258,4 +240,48 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+}
+
+func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
+	return func(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
+		permissionMap := map[string]*model.Permission{}
+		for _, p := range model.AllPermissions {
+			permissionMap[p.Id] = p
+		}
+
+		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
+
+		hasPermission := false
+		for _, val := range tagPermissions {
+			tagValue := strings.TrimSpace(val)
+
+			// ConfigAccessTagRestrictManageSystem trumps all other permissions
+			if accessType == filterTypeWrite {
+				if tagValue == model.ConfigAccessTagRestrictManageSystem {
+					if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+						return false
+					}
+				}
+			}
+
+			if tagValue == model.ConfigAccessTagAnySysconsoleWritePermission {
+				if c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
+					hasPermission = true
+				}
+			}
+
+			// check for the permission associated to the tag value
+			permissionID := fmt.Sprintf("%s_sysconsole_%s", accessType, tagValue)
+			if permission, ok := permissionMap[permissionID]; ok {
+				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
+					// don't return early because ConfigAccessTagRestrictManageSystem could be the last tag value
+					hasPermission = true
+				}
+			} else {
+				mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
+			}
+		}
+
+		return hasPermission
+	}
 }

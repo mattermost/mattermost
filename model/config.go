@@ -247,7 +247,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string  `access:"environment,restrict_manage_system"`
+	SiteURL                                           *string  `access:"environment,authentication,restrict_manage_system"`
 	WebsocketURL                                      *string  `access:"restrict_manage_system"`
 	LicenseFileLocation                               *string  `access:"restrict_manage_system"`
 	ListenAddress                                     *string  `access:"environment,restrict_manage_system"`
