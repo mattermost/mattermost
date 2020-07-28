@@ -1453,6 +1453,10 @@
     "translation": "input/output error"
   },
   {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Unable to download this job"
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3355,6 +3359,14 @@
     "translation": "Invalid webhook."
   },
   {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "We encountered an error retrieving the compliance reports."
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "We encountered an error saving the compliance report."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3945,6 +3957,10 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -4627,6 +4643,30 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
+    "id": "ent.compliance.actiance.attachment.copy.appError",
+    "translation": "Unable to copy the attachment into the zip file."
+  },
+  {
+    "id": "ent.compliance.actiance.file.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.creation.appError",
+    "translation": "There was an error creating actiance warning text file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.write.appError",
+    "translation": "There was an error writing to the actiance xml file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.write.appError",
+    "translation": "There was an error writing to the actiance XML file"
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -5049,6 +5089,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Failed to select message export data."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -6847,18 +6891,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "We encountered an error retrieving the compliance reports."
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data."
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "We encountered an error saving the compliance report."
-  },
-  {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
     "translation": "Unable to delete attachments of the user."
   },
@@ -6993,10 +7025,6 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
   },
   {
     "id": "store.sql_post.delete.app_error",
