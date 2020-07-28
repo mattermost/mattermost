@@ -41,6 +41,7 @@ type Store interface {
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
+	UploadSession() UploadSessionStore
 	Reaction() ReactionStore
 	Role() RoleStore
 	Scheme() SchemeStore
@@ -547,6 +548,14 @@ type FileInfoStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 	PermanentDeleteByUser(userId string) (int64, *model.AppError)
 	ClearCaches()
+}
+
+type UploadSessionStore interface {
+	Save(session *model.UploadSession) (*model.UploadSession, error)
+	Update(session *model.UploadSession) error
+	Get(id string) (*model.UploadSession, error)
+	GetForUser(userId string) ([]*model.UploadSession, error)
+	Delete(id string) error
 }
 
 type ReactionStore interface {
