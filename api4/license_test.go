@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetOldClientLicense(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -44,7 +44,7 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 	LocalClient := th.LocalClient
@@ -78,7 +78,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 	LocalClient := th.LocalClient

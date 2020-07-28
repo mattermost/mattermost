@@ -109,7 +109,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 }
 
 func TestHubConnIndex(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex()
