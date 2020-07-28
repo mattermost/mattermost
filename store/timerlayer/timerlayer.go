@@ -4845,7 +4845,7 @@ func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppError) {
+func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PreferenceStore.CleanupFlagsBatch(limit)
@@ -4861,7 +4861,7 @@ func (s *TimerLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *mode
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) Delete(userId string, category string, name string) *model.AppError {
+func (s *TimerLayerPreferenceStore) Delete(userId string, category string, name string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PreferenceStore.Delete(userId, category, name)
@@ -4877,7 +4877,7 @@ func (s *TimerLayerPreferenceStore) Delete(userId string, category string, name 
 	return resultVar0
 }
 
-func (s *TimerLayerPreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
+func (s *TimerLayerPreferenceStore) DeleteCategory(userId string, category string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PreferenceStore.DeleteCategory(userId, category)
@@ -4893,7 +4893,7 @@ func (s *TimerLayerPreferenceStore) DeleteCategory(userId string, category strin
 	return resultVar0
 }
 
-func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category string, name string) *model.AppError {
+func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category string, name string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PreferenceStore.DeleteCategoryAndName(category, name)
@@ -4909,7 +4909,7 @@ func (s *TimerLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 	return resultVar0
 }
 
-func (s *TimerLayerPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
+func (s *TimerLayerPreferenceStore) Get(userId string, category string, name string) (*model.Preference, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PreferenceStore.Get(userId, category, name)
@@ -4925,7 +4925,7 @@ func (s *TimerLayerPreferenceStore) Get(userId string, category string, name str
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+func (s *TimerLayerPreferenceStore) GetAll(userId string) (model.Preferences, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PreferenceStore.GetAll(userId)
@@ -4941,7 +4941,7 @@ func (s *TimerLayerPreferenceStore) GetAll(userId string) (model.Preferences, *m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
+func (s *TimerLayerPreferenceStore) GetCategory(userId string, category string) (model.Preferences, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PreferenceStore.GetCategory(userId, category)
@@ -4957,7 +4957,7 @@ func (s *TimerLayerPreferenceStore) GetCategory(userId string, category string) 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PreferenceStore.PermanentDeleteByUser(userId)
@@ -4973,7 +4973,7 @@ func (s *TimerLayerPreferenceStore) PermanentDeleteByUser(userId string) *model.
 	return resultVar0
 }
 
-func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) *model.AppError {
+func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PreferenceStore.Save(preferences)

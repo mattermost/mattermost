@@ -494,15 +494,15 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) *model.AppError
-	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
-	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
-	GetAll(userId string) (model.Preferences, *model.AppError)
-	Delete(userId, category, name string) *model.AppError
-	DeleteCategory(userId string, category string) *model.AppError
-	DeleteCategoryAndName(category string, name string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
+	Save(preferences *model.Preferences) error
+	GetCategory(userId string, category string) (model.Preferences, error)
+	Get(userId string, category string, name string) (*model.Preference, error)
+	GetAll(userId string) (model.Preferences, error)
+	Delete(userId, category, name string) error
+	DeleteCategory(userId string, category string) error
+	DeleteCategoryAndName(category string, name string) error
+	PermanentDeleteByUser(userId string) error
+	CleanupFlagsBatch(limit int64) (int64, error)
 }
 
 type LicenseStore interface {
