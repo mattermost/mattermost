@@ -2073,8 +2073,10 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	w.Write(model.SidebarCategoriesWithChannelsToJson(categories))
 }
 
+// validateUserChannels confirms that the given user is a member of the given channel IDs. Returns an error if the user
+// is not a member of any channel or nil if the user is a member of each channel.
 func validateUserChannels(operationName string, c *Context, teamId, userId string, channelIDs []string) *model.AppError {
-	channels, err := c.App.GetChannelsForUser(teamId, userId, false, 0)
+	channels, err := c.App.GetChannelsForUser(teamId, userId, true, 0)
 	if err != nil {
 		return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
