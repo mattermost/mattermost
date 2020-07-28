@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/store"
 	rudder "github.com/rudderlabs/analytics-go"
 )
@@ -649,58 +650,7 @@ func (s *Server) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	pluginConfigData := map[string]interface{}{
-		"enable_antivirus":              pluginActivated(cfg.PluginSettings.PluginStates, "antivirus"),
-		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
-		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
-		"enable_confluence":             pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.confluence"),
-		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
-		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
-		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
-		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
-		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
-		"enable_jitsi":                  pluginActivated(cfg.PluginSettings.PluginStates, "jitsi"),
-		"enable_mscalendar":             pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.mscalendar"),
-		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_skype4business":         pluginActivated(cfg.PluginSettings.PluginStates, "skype4business"),
-		"enable_todo":                   pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.plugin-todo"),
-		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
-		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
-		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
-		"enable":                        *cfg.PluginSettings.Enable,
-		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
-		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
-		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
-		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
-		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
-		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
-		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
-	}
-
-	pluginsEnvironment := s.GetPluginsEnvironment()
-	if pluginsEnvironment != nil {
-		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
-		} else {
-			pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
-			pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
-			pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
-			pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
-			pluginConfigData["version_github"] = pluginVersion(plugins, "github")
-			pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
-			pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
-			pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
-			pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
-			pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
-			pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
-			pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
-		}
-	}
-
-	s.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
+	s.trackPluginConfig(cfg, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
 	s.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -1106,4 +1056,109 @@ func (s *Server) trackWarnMetrics() {
 			}
 		}
 	}
+}
+
+func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
+	pluginConfigData := map[string]interface{}{
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
+		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
+		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
+		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
+		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
+	}
+
+	// knownPluginIDs lists all known plugin IDs in the Marketplace
+	knownPluginIDs := []string{
+		"antivirus",
+		"com.github.manland.mattermost-plugin-gitlab",
+		"com.github.moussetc.mattermost.plugin.giphy",
+		"com.github.phillipahereza.mattermost-plugin-digitalocean",
+		"com.mattermost.aws-sns",
+		"com.mattermost.confluence",
+		"com.mattermost.custom-attributes",
+		"com.mattermost.mscalendar",
+		"com.mattermost.nps",
+		"com.mattermost.plugin-incident-response",
+		"com.mattermost.plugin-todo",
+		"com.mattermost.webex",
+		"com.mattermost.welcomebot",
+		"github",
+		"jenkins",
+		"jira",
+		"jitsi",
+		"mattermost-autolink",
+		"memes",
+		"skype4business",
+		"zoom",
+	}
+
+	marketplacePlugins, err := s.getAllMarketplaceplugins(marketplaceURL)
+	if err != nil {
+		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
+
+		for _, id := range knownPluginIDs {
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	} else {
+		for _, p := range marketplacePlugins {
+			id := p.Manifest.Id
+
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	}
+
+	pluginsEnvironment := s.GetPluginsEnvironment()
+	if pluginsEnvironment != nil {
+		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+		} else {
+			// If marketplace request failed, use predefined list
+			if marketplacePlugins == nil {
+				for _, id := range knownPluginIDs {
+					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+				}
+			} else {
+				for _, p := range marketplacePlugins {
+					id := p.Manifest.Id
+
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+				}
+			}
+		}
+	}
+
+	s.SendDiagnostic(TRACK_CONFIG_PLUGIN, pluginConfigData)
+}
+
+func (s *Server) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
+	marketplaceClient, err := marketplace.NewClient(
+		marketplaceURL,
+		s.HTTPService,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch all plugins from marketplace.
+	filter := &model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	}
+
+	license := s.License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	return marketplaceClient.GetPlugins(filter)
 }
