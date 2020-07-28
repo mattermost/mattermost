@@ -7456,8 +7456,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Nil(t, err)
 
 		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
-		var nfErr *store.ErrNotFound
-		assert.True(t, errors.As(nErr, &nfErr))
+		require.Error(t, nErr)
 		assert.Nil(t, res)
 
 		// Remove it from favorites on the second team. The favorites preference was already deleted.
@@ -7470,7 +7469,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		assert.Nil(t, err)
 
 		res, nErr = ss.Preference().Get(userId, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, dmChannel.Id)
-		assert.True(t, errors.As(nErr, &nfErr))
+		require.Error(t, nErr)
 		assert.Nil(t, res)
 	})
 
