@@ -255,9 +255,9 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		for _, val := range tagPermissions {
 			tagValue := strings.TrimSpace(val)
 
-			// ConfigAccessTagRestrictManageSystem trumps all other permissions
+			// ConfigAccessTagRestrictSysAdminWrite trumps all other permissions
 			if accessType == filterTypeWrite {
-				if tagValue == model.ConfigAccessTagRestrictManageSystem {
+				if tagValue == model.ConfigAccessTagRestrictSysAdminWrite {
 					if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
 						return false
 					}
@@ -274,7 +274,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			permissionID := fmt.Sprintf("%s_sysconsole_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
 				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-					// don't return early because ConfigAccessTagRestrictManageSystem could be the last tag value
+					// don't return early because ConfigAccessTagRestrictSysAdminWrite could be the last tag value
 					hasPermission = true
 				}
 			} else {
