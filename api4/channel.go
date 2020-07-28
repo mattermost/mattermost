@@ -854,7 +854,17 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted)
+	query := r.URL.Query()
+	lastDeleteAt, nErr := strconv.Atoi(query.Get("last_delete_at"))
+	if nErr != nil {
+		lastDeleteAt = 0
+	}
+	if lastDeleteAt < 0 {
+		c.SetInvalidUrlParam("last_delete_at")
+		return
+	}
+
+	channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
 	if err != nil {
 		c.Err = err
 		return
@@ -2046,8 +2056,10 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 	w.Write(model.SidebarCategoriesWithChannelsToJson(categories))
 }
 
+// validateUserChannels confirms that the given user is a member of the given channel IDs. Returns an error if the user
+// is not a member of any channel or nil if the user is a member of each channel.
 func validateUserChannels(operationName string, c *Context, teamId, userId string, channelIDs []string) *model.AppError {
-	channels, err := c.App.GetChannelsForUser(teamId, userId, false)
+	channels, err := c.App.GetChannelsForUser(teamId, userId, true, 0)
 	if err != nil {
 		return model.NewAppError("Api4."+operationName, "api.invalid_channel", nil, err.Error(), http.StatusBadRequest)
 	}
