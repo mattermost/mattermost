@@ -2332,7 +2332,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	if err := a.Srv().Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {

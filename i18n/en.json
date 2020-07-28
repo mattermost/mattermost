@@ -7027,11 +7027,11 @@
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "store.sql_post.delete.app_error",
+    "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
   {
-    "id": "store.sql_post.get.app_error",
+    "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
   },
   {
@@ -7107,11 +7107,11 @@
     "translation": "We encountered an error permanently deleting the batch of posts."
   },
   {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
+    "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Unable to delete the posts by channel."
   },
   {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
+    "id": "app.post.permanent_delete_by_user.app_error",
     "translation": "Unable to select the posts to delete for the user."
   },
   {
@@ -7123,11 +7123,11 @@
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.save.app_error",
+    "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
   {
-    "id": "store.sql_post.save.existing.app_error",
+    "id": "app.post.save.existing.app_error",
     "translation": "You cannot update an existing Post."
   },
   {
@@ -7135,7 +7135,7 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
-    "id": "store.sql_post.update.app_error",
+    "id": "app.post.update.app_error",
     "translation": "Unable to update the Post."
   },
   {
