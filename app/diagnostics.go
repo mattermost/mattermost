@@ -1083,6 +1083,7 @@ func (s *Server) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
 		"com.mattermost.custom-attributes",
 		"com.mattermost.mscalendar",
 		"com.mattermost.nps",
+		"com.mattermost.plugin-incident-response",
 		"com.mattermost.plugin-todo",
 		"com.mattermost.webex",
 		"com.mattermost.welcomebot",
