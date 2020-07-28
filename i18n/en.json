@@ -6683,6 +6683,34 @@
     "translation": "Invalid token."
   },
   {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Invalid value for CreateAt"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Invalid value for FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Invalid value for FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Invalid value for Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Invalid value for Id"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Invalid value for Path"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Invalid Value for UserId"
+  },
+  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Invalid auth data."
   },
