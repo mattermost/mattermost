@@ -53,6 +53,43 @@ func TestGetConfig(t *testing.T) {
 	})
 }
 
+func TestGetConfigWithAccessTag(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	varyByHeader := *&th.App.Config().RateLimitSettings.VaryByHeader // environment perm.
+	supportEmail := *&th.App.Config().SupportSettings.SupportEmail   // site perm.
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.RateLimitSettings.VaryByHeader = varyByHeader
+		cfg.SupportSettings.SupportEmail = supportEmail
+	})
+
+	// set some values so that we know they're not blank
+	mockVaryByHeader := model.NewId()
+	mockSupportEmail := model.NewId() + "@mattermost.com"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.RateLimitSettings.VaryByHeader = mockVaryByHeader
+		cfg.SupportSettings.SupportEmail = &mockSupportEmail
+	})
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	// add read sysconsole environment config
+	th.AddPermissionToRole(model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+
+	cfg, resp := th.Client.GetConfig()
+	CheckNoError(t, resp)
+
+	t.Run("Cannot read value without permission", func(t *testing.T) {
+		assert.Nil(t, cfg.SupportSettings.SupportEmail)
+	})
+
+	t.Run("Can read value with permission", func(t *testing.T) {
+		assert.Equal(t, mockVaryByHeader, cfg.RateLimitSettings.VaryByHeader)
+	})
+}
+
 func TestReloadConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -204,6 +241,7 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 	// add read sysconsole integrations config
 	th.AddPermissionToRole(model.PERMISSION_READ_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_READ_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
 
 	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
@@ -217,13 +255,14 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("the wrong write permission does not grant access", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, resp := th.Client.GetConfig()
+		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		originalValue := *cfg.ServiceSettings.AllowCorsFrom
 
 		// add the wrong write permission
 		th.AddPermissionToRole(model.PERMISSION_WRITE_SYSCONSOLE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_WRITE_SYSCONSOLE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
@@ -239,10 +278,11 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 
 	t.Run("config value is writeable by specific system console permission", func(t *testing.T) {
 		// should be readable because has a sysconsole read permission
-		cfg, resp := th.Client.GetConfig()
+		cfg, resp := th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 
 		th.AddPermissionToRole(model.PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_WRITE_SYSCONSOLE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
 
 		// try update a config value allowed by sysconsole WRITE integrations
 		mockVal := model.NewId()
