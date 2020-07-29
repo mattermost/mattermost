@@ -631,19 +631,8 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var permission *model.Permission
-	channel, err := c.App.GetChannel(c.Params.ChannelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	if channel.Type == model.CHANNEL_PRIVATE {
-		permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
-	} else {
-		permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
-	}
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, permission) {
-		c.SetPermissionError(permission)
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_READ_CHANNEL_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL_GROUPS)
 		return
 	}
 

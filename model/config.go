@@ -885,7 +885,7 @@ func (s *ExperimentalSettings) SetDefaults() {
 }
 
 type AnalyticsSettings struct {
-	MaxUsersForStatistics *int `access:"-,restrict_sys_admin_write"`
+	MaxUsersForStatistics *int `access:"restrict_sys_admin_write"`
 }
 
 func (s *AnalyticsSettings) SetDefaults() {
@@ -1163,14 +1163,14 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 }
 
 type NotificationLogSettings struct {
-	EnableConsole         *bool   `access:"-,restrict_sys_admin_write"`
-	ConsoleLevel          *string `access:"-,restrict_sys_admin_write"`
-	ConsoleJson           *bool   `access:"-,restrict_sys_admin_write"`
-	EnableFile            *bool   `access:"-,restrict_sys_admin_write"`
-	FileLevel             *string `access:"-,restrict_sys_admin_write"`
-	FileJson              *bool   `access:"-,restrict_sys_admin_write"`
-	FileLocation          *string `access:"-,restrict_sys_admin_write"`
-	AdvancedLoggingConfig *string `access:"-,restrict_sys_admin_write"`
+	EnableConsole         *bool   `access:"restrict_sys_admin_write"`
+	ConsoleLevel          *string `access:"restrict_sys_admin_write"`
+	ConsoleJson           *bool   `access:"restrict_sys_admin_write"`
+	EnableFile            *bool   `access:"restrict_sys_admin_write"`
+	FileLevel             *string `access:"restrict_sys_admin_write"`
+	FileJson              *bool   `access:"restrict_sys_admin_write"`
+	FileLocation          *string `access:"restrict_sys_admin_write"`
+	AdvancedLoggingConfig *string `access:"restrict_sys_admin_write"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1673,10 +1673,10 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool    `access:"-"`
-	DefaultTheme         *string  `access:"-"`
-	AllowCustomThemes    *bool    `access:"-"`
-	AllowedThemes        []string `access:"-"`
+	EnableThemeSelection *bool
+	DefaultTheme         *string
+	AllowCustomThemes    *bool
+	AllowedThemes        []string
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -1881,12 +1881,12 @@ func (s *TeamSettings) SetDefaults() {
 }
 
 type ClientRequirements struct {
-	AndroidLatestVersion string `access:"-,restrict_sys_admin_write"`
-	AndroidMinVersion    string `access:"-,restrict_sys_admin_write"`
-	DesktopLatestVersion string `access:"-,restrict_sys_admin_write"`
-	DesktopMinVersion    string `access:"-,restrict_sys_admin_write"`
-	IosLatestVersion     string `access:"-,restrict_sys_admin_write"`
-	IosMinVersion        string `access:"-,restrict_sys_admin_write"`
+	AndroidLatestVersion string `access:"restrict_sys_admin_write"`
+	AndroidMinVersion    string `access:"restrict_sys_admin_write"`
+	DesktopLatestVersion string `access:"restrict_sys_admin_write"`
+	DesktopMinVersion    string `access:"restrict_sys_admin_write"`
+	IosLatestVersion     string `access:"restrict_sys_admin_write"`
+	IosMinVersion        string `access:"restrict_sys_admin_write"`
 }
 
 type LdapSettings struct {
@@ -2490,8 +2490,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool `access:"-,restrict_sys_admin_write"`
-	RunScheduler *bool `access:"-,restrict_sys_admin_write"`
+	RunJobs      *bool `access:"restrict_sys_admin_write"`
+	RunScheduler *bool `access:"restrict_sys_admin_write"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2742,7 +2742,6 @@ func (s *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
-const ConfigAccessTagAnySysconsoleWritePermission = "-"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
 // PERMISSION_WRITE_SYSCONSOLE_* name: 'about', 'reporting', 'user_management', 'user_management_users',
@@ -2761,8 +2760,6 @@ const ConfigAccessTagAnySysconsoleWritePermission = "-"
 //      // PERMISSION_WRITE_SYSCONSOLE_USER_MANAGEMENT_GROUPS, and PERMISSION_MANAGE_SYSTEM permissions.
 //      Colour string `access:"reporting,user_management_groups"`
 //
-//      // Frizz is writeable by roles with any write access to any config field.
-//      Frizz string `access:"-"`
 //
 //      // Length and Barber are only writeable by PERMISSION_MANAGE_SYSTEM.
 //      Length string
@@ -2780,42 +2777,42 @@ const ConfigAccessTagAnySysconsoleWritePermission = "-"
 //      Cheap bool `access:restrict_sys_admin_write`
 //  }
 type Config struct {
-	ServiceSettings           ServiceSettings           `access:"-"`
-	TeamSettings              TeamSettings              `access:"-"`
-	ClientRequirements        ClientRequirements        `access:"-"`
+	ServiceSettings           ServiceSettings `access:"environment,authentication,site,integrations"`
+	TeamSettings              TeamSettings
+	ClientRequirements        ClientRequirements
 	SqlSettings               SqlSettings               `access:"environment"`
 	LogSettings               LogSettings               `access:"environment"`
 	ExperimentalAuditSettings ExperimentalAuditSettings `access:"experimental"`
-	NotificationLogSettings   NotificationLogSettings   `access:"-"`
-	PasswordSettings          PasswordSettings          `access:"authentication"`
-	FileSettings              FileSettings              `access:"-"`
-	EmailSettings             EmailSettings             `access:"-"`
-	RateLimitSettings         RateLimitSettings         `access:"environment"`
-	PrivacySettings           PrivacySettings           `access:"site"`
-	SupportSettings           SupportSettings           `access:"-"`
-	AnnouncementSettings      AnnouncementSettings      `access:"site"`
-	ThemeSettings             ThemeSettings             `access:"-"`
-	GitLabSettings            SSOSettings               `access:"authentication"`
-	GoogleSettings            SSOSettings               `access:"authentication"`
-	Office365Settings         Office365Settings         `access:"authentication"`
-	LdapSettings              LdapSettings              `access:"authentication"`
-	ComplianceSettings        ComplianceSettings        `access:"compliance"`
-	LocalizationSettings      LocalizationSettings      `access:"site"`
-	SamlSettings              SamlSettings              `access:"authentication"`
-	NativeAppSettings         NativeAppSettings         `access:"site"`
-	ClusterSettings           ClusterSettings           `access:"environment"`
-	MetricsSettings           MetricsSettings           `access:"environment"`
-	ExperimentalSettings      ExperimentalSettings      `access:"-"`
-	AnalyticsSettings         AnalyticsSettings         `access:"-"`
-	ElasticsearchSettings     ElasticsearchSettings     `access:"environment"`
-	BleveSettings             BleveSettings             `access:"experimental"`
-	DataRetentionSettings     DataRetentionSettings     `access:"compliance"`
-	MessageExportSettings     MessageExportSettings     `access:"compliance"`
-	JobSettings               JobSettings               `access:"-"`
-	PluginSettings            PluginSettings            `access:"plugins"`
-	DisplaySettings           DisplaySettings           `access:"-"`
-	GuestAccountsSettings     GuestAccountsSettings     `access:"authentication"`
-	ImageProxySettings        ImageProxySettings        `access:"environment"`
+	NotificationLogSettings   NotificationLogSettings
+	PasswordSettings          PasswordSettings `access:"authentication"`
+	FileSettings              FileSettings
+	EmailSettings             EmailSettings
+	RateLimitSettings         RateLimitSettings `access:"environment"`
+	PrivacySettings           PrivacySettings   `access:"site"`
+	SupportSettings           SupportSettings
+	AnnouncementSettings      AnnouncementSettings `access:"site"`
+	ThemeSettings             ThemeSettings
+	GitLabSettings            SSOSettings          `access:"authentication"`
+	GoogleSettings            SSOSettings          `access:"authentication"`
+	Office365Settings         Office365Settings    `access:"authentication"`
+	LdapSettings              LdapSettings         `access:"authentication"`
+	ComplianceSettings        ComplianceSettings   `access:"compliance"`
+	LocalizationSettings      LocalizationSettings `access:"site"`
+	SamlSettings              SamlSettings         `access:"authentication"`
+	NativeAppSettings         NativeAppSettings    `access:"site"`
+	ClusterSettings           ClusterSettings      `access:"environment"`
+	MetricsSettings           MetricsSettings      `access:"environment"`
+	ExperimentalSettings      ExperimentalSettings
+	AnalyticsSettings         AnalyticsSettings
+	ElasticsearchSettings     ElasticsearchSettings `access:"environment"`
+	BleveSettings             BleveSettings         `access:"experimental"`
+	DataRetentionSettings     DataRetentionSettings `access:"compliance"`
+	MessageExportSettings     MessageExportSettings `access:"compliance"`
+	JobSettings               JobSettings
+	PluginSettings            PluginSettings        `access:"plugins"`
+	DisplaySettings           DisplaySettings       `access:"site,experimental"`
+	GuestAccountsSettings     GuestAccountsSettings `access:"authentication"`
+	ImageProxySettings        ImageProxySettings    `access:"environment"`
 }
 
 func (o *Config) Clone() *Config {

@@ -264,12 +264,6 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				}
 			}
 
-			if tagValue == model.ConfigAccessTagAnySysconsoleWritePermission {
-				if c.App.SessionHasPermissionToAny(*c.App.Session(), model.SysconsoleWritePermissions) {
-					hasPermission = true
-				}
-			}
-
 			// check for the permission associated to the tag value
 			permissionID := fmt.Sprintf("%s_sysconsole_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
