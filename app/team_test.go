@@ -1139,6 +1139,110 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestEmailInvites(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Invites disabled", func(t *testing.T) {
+		userInvites := []string{"newuser1@valid.com", "newuser2@valid.com"}
+		_, err := th.App.InviteNewUsersToTeamGracefully(userInvites, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Equal(t, "api.team.invite_members.disabled.app_error", err.Id)
+	})
+
+	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
+	th.BasicTeam.AllowedDomains = "valid.com"
+	_, err := th.App.UpdateTeam(th.BasicTeam)
+	require.Nil(t, err, "Should update the team")
+
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	t.Run("Empty invite list", func(t *testing.T) {
+		_, err := th.App.InviteNewUsersToTeamGracefully([]string{}, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Equal(t, "api.team.invite_members.no_one.app_error", err.Id)
+	})
+
+	t.Run("invites to disallowed domains", func(t *testing.T) {
+		userInvites := []string{"newuser1@valid.com", "newuser2@invalid.com"}
+		inviteResult, err := th.App.InviteNewUsersToTeamGracefully(userInvites, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, invite := range inviteResult {
+			if "newuser2@invalid.com" == invite.Email {
+				require.Equal(t, "api.team.invite_members.invalid_email.app_error", invite.Error.Id)
+			} else {
+				require.Nil(t, invite.Error)
+			}
+		}
+	})
+
+	t.Run("Happy path", func(t *testing.T) {
+		userInvites := []string{"newuser1@valid.com", "newuser2@valid.com"}
+		inviteResult, err := th.App.InviteNewUsersToTeamGracefully(userInvites, th.BasicTeam.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, invite := range inviteResult {
+			require.Nil(t, invite.Error)
+		}
+	})
+}
+
+func TestEmailGuestInvites(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	userInvites := model.GuestsInvite{
+		Emails:   []string{"newuser1@valid.com", "newuser2@valid.com"},
+		Channels: []string{th.BasicChannel.Id},
+		Message:  "Welcome!",
+	}
+
+	t.Run("Invites disabled", func(t *testing.T) {
+		_, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &userInvites, th.BasicUser.Id)
+		require.Equal(t, "api.team.invite_members.disabled.app_error", err.Id)
+	})
+
+	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
+	th.BasicTeam.AllowedDomains = "valid.com"
+	_, err := th.App.UpdateTeam(th.BasicTeam)
+	require.Nil(t, err, "Should update the team")
+
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableEmailInvitations = &enableEmailInvitations })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	t.Run("Empty invite list", func(t *testing.T) {
+		userInvites.Emails = []string{}
+		_, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &userInvites, th.BasicUser.Id)
+		require.Equal(t, "api.team.invite_members.no_one.app_error", err.Id)
+	})
+
+	t.Run("invites to disallowed domains", func(t *testing.T) {
+		userInvites.Emails = []string{"newuser1@valid.com", "newuser2@invalid.com"}
+		inviteResult, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &userInvites, th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, invite := range inviteResult {
+			if "newuser2@invalid.com" == invite.Email {
+				require.Equal(t, "api.team.invite_members.invalid_email.app_error", invite.Error.Id)
+			} else {
+				require.Nil(t, invite.Error)
+			}
+		}
+	})
+
+	t.Run("Happy path", func(t *testing.T) {
+		userInvites.Emails = []string{"newuser1@valid.com", "newuser2@valid.com"}
+		inviteResult, err := th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, &userInvites, th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, invite := range inviteResult {
+			require.Nil(t, invite.Error)
+		}
+	})
+}
+
 func TestClearTeamMembersCache(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
