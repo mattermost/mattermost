@@ -388,7 +388,6 @@ func listCommandAutocompleteSuggestions(c *Context, w http.ResponseWriter, r *ht
 		c.SetInvalidParam("userInput")
 		return
 	}
-	userInput = strings.TrimPrefix(userInput, "/")
 
 	commands, err := c.App.ListAutocompleteCommands(c.Params.TeamId, c.App.T)
 	if err != nil {

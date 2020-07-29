@@ -18,15 +18,29 @@ func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.C
 		return strings.Compare(strings.ToLower(commands[i].Trigger), strings.ToLower(commands[j].Trigger)) < 0
 	})
 
+	userInput := commandArgs.Command
+	preParsedInput := "" //input before the slash command
+	if strings.HasPrefix(userInput, "/") {
+		userInput = strings.TrimPrefix(userInput, "/")
+	} else {
+		index := strings.Index(userInput, " /")
+		if index != -1 {
+			preParsedInput = userInput[:index+1]
+			userInput = userInput[index+2:]
+		}
+	}
+
 	autocompleteData := []*model.AutocompleteData{}
 	for _, command := range commands {
 		if command.AutocompleteData == nil {
 			command.AutocompleteData = model.NewAutocompleteData(command.Trigger, command.AutoCompleteHint, command.AutoCompleteDesc)
 		}
+		if preParsedInput != "" && !command.AutocompleteData.CanAutocompleteInTheMiddle {
+			continue
+		}
 		autocompleteData = append(autocompleteData, command.AutocompleteData)
 	}
 
-	userInput := commandArgs.Command
 	suggestions := a.getSuggestions(commandArgs, autocompleteData, "", userInput, roleID)
 	for i, suggestion := range suggestions {
 		for _, command := range commands {
@@ -35,6 +49,7 @@ func (a *App) GetSuggestions(commandArgs *model.CommandArgs, commands []*model.C
 				break
 			}
 		}
+		suggestions[i].Complete = preParsedInput + suggestions[i].Complete
 	}
 
 	return suggestions
@@ -47,8 +62,12 @@ func (a *App) getSuggestions(commandArgs *model.CommandArgs, commands []*model.A
 	if index == -1 { // no space in input
 		for _, command := range commands {
 			if strings.HasPrefix(command.Trigger, strings.ToLower(inputToBeParsed)) && (command.RoleID == roleID || roleID == model.SYSTEM_ADMIN_ROLE_ID || roleID == "") {
+				complete := "/" + inputParsed + command.Trigger
+				if command.Replace != "" {
+					complete = command.Replace
+				}
 				s := model.AutocompleteSuggestion{
-					Complete:    inputParsed + command.Trigger,
+					Complete:    complete,
 					Suggestion:  command.Trigger,
 					Description: command.HelpText,
 					Hint:        command.Hint,
@@ -183,10 +202,10 @@ func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (
 	in := strings.TrimPrefix(toBeParsed, " ")
 	namedArg := "--" + arg.Name
 	if in == "" { //The user has not started typing the argument.
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "/" + parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 	if strings.HasPrefix(strings.ToLower(namedArg), strings.ToLower(in)) {
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "/" + parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 
 	if !strings.HasPrefix(strings.ToLower(in), strings.ToLower(namedArg)+" ") {
@@ -202,12 +221,12 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	in := strings.TrimPrefix(toBeParsed, " ")
 	a := arg.Data.(*model.AutocompleteTextArg)
 	if in == "" { //The user has not started typing the argument.
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "/" + parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
 	if in[0] == '"' { //input with multiple words
 		indexOfSecondQuote := strings.Index(in[1:], `"`)
 		if indexOfSecondQuote == -1 { //typing of the multiple word argument is not finished
-			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "/" + parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 		}
 		// this argument is typed already
 		offset := 2
@@ -219,7 +238,7 @@ func parseInputTextArgument(arg *model.AutocompleteArg, parsed, toBeParsed strin
 	// input with a single word
 	index := strings.Index(in, " ")
 	if index == -1 { // typing of the single word argument is not finished
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "/" + parsed + toBeParsed, Suggestion: "", Hint: a.Hint, Description: arg.HelpText}
 	}
 	// single word argument already typed
 	return false, parsed + in[:index+1], in[index+1:], model.AutocompleteSuggestion{}
@@ -281,7 +300,11 @@ func parseListItems(items []model.AutocompleteListItem, parsed, toBeParsed strin
 	// user has not finished typing static argument
 	for _, arg := range items {
 		if strings.HasPrefix(strings.ToLower(arg.Item), strings.ToLower(in)) {
-			suggestions = append(suggestions, model.AutocompleteSuggestion{Complete: parsed + arg.Item, Suggestion: arg.Item, Hint: arg.Hint, Description: arg.HelpText})
+			suggestion := model.AutocompleteSuggestion{Complete: "/" + parsed + arg.Item, Suggestion: arg.Item, Hint: arg.Hint, Description: arg.HelpText}
+			if arg.Replace != "" {
+				suggestion.Complete = arg.Replace
+			}
+			suggestions = append(suggestions, suggestion)
 		}
 	}
 	return true, parsed + toBeParsed, "", suggestions

@@ -34,6 +34,10 @@ type AutocompleteData struct {
 	HelpText string
 	// Role of the user who should be able to see the autocomplete info of this command
 	RoleID string
+	// Determines the text to be replaced when autocompleting this command.
+	Replace string
+	// Determines if command can be used in the middle of the sentense.
+	CanAutocompleteInTheMiddle bool
 	// Arguments of the command. Arguments can be named or positional.
 	// If they are positional order in the list matters, if they are named order does not matter.
 	// All arguments should be either named or positional, no mixing allowed.
@@ -71,6 +75,7 @@ type AutocompleteListItem struct {
 	Item     string
 	Hint     string
 	HelpText string
+	Replace  string
 }
 
 // AutocompleteStaticListArg is used to input one of the arguments from the list,
