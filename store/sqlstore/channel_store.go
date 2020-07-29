@@ -3613,19 +3613,56 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	if err = transaction.Insert(category); err != nil {
 		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	var channels []interface{}
-	runningOrder := 0
-	for _, channelID := range newCategory.Channels {
-		channels = append(channels, &model.SidebarChannel{
-			ChannelId:  channelID,
-			CategoryId: newCategoryId,
-			SortOrder:  int64(runningOrder),
-			UserId:     userId,
-		})
-		runningOrder += model.MinimalSidebarSortDistance
-	}
-	if err = transaction.Insert(channels...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+
+	if len(newCategory.Channels) > 0 {
+		channelIdsKeys, deleteParams := MapStringsToQueryParams(newCategory.Channels, "ChannelId")
+		deleteParams["UserId"] = userId
+		deleteParams["TeamId"] = teamId
+
+		// Remove any channels from their previous categories and add them to the new one
+		var deleteQuery string
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			deleteQuery = `
+				DELETE
+					SidebarChannels
+				FROM
+					SidebarChannels
+				JOIN
+					SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
+				WHERE
+					SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					AND SidebarCategories.TeamId = :TeamId`
+		} else {
+			deleteQuery = `
+				DELETE FROM
+					SidebarChannels
+				USING
+					SidebarCategories
+				WHERE
+					SidebarChannels.CategoryId = SidebarCategories.Id
+					AND SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					AND SidebarCategories.TeamId = :TeamId`
+		}
+
+		_, err = transaction.Exec(deleteQuery, deleteParams)
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		var channels []interface{}
+		for i, channelID := range newCategory.Channels {
+			channels = append(channels, &model.SidebarChannel{
+				ChannelId:  channelID,
+				CategoryId: newCategoryId,
+				SortOrder:  int64(i * model.MinimalSidebarSortDistance),
+				UserId:     userId,
+			})
+		}
+		if err = transaction.Insert(channels...); err != nil {
+			return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// now we re-order the categories according to the new order
