@@ -2744,10 +2744,10 @@ type ConfigFunc func() *Config
 const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
-// PERMISSION_WRITE_SYSCONSOLE_* name: 'about', 'reporting', 'user_management', 'user_management_users',
+// PERMISSION_WRITE_SYSCONSOLE_* name: 'about', 'reporting', 'user_management_users',
 // 'user_management_groups', 'user_management_teams', 'user_management_channels',
 // 'user_management_permissions', 'environment', 'site', 'authentication', 'plugins',
-// 'integrations', 'compliance', 'plugins', 'experimental'.
+// 'integrations', 'compliance', 'plugins', and 'experimental'.
 //
 // By default config values can be updated with the PERMISSION_MANAGE_SYSTEM permission. If ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'restrict_sys_admin_write', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
