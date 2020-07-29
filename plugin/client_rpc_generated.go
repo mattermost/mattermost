@@ -4543,32 +4543,32 @@ func (s *apiRPCServer) CreateCommand(args *Z_CreateCommandArgs, returns *Z_Creat
 	return nil
 }
 
-type Z_ListAllCommandsArgs struct {
+type Z_ListCommandsArgs struct {
 	A string
 }
 
-type Z_ListAllCommandsReturns struct {
+type Z_ListCommandsReturns struct {
 	A []*model.Command
 	B error
 }
 
-func (g *apiRPCClient) ListAllCommands(teamID string) ([]*model.Command, error) {
-	_args := &Z_ListAllCommandsArgs{teamID}
-	_returns := &Z_ListAllCommandsReturns{}
-	if err := g.client.Call("Plugin.ListAllCommands", _args, _returns); err != nil {
-		log.Printf("RPC call to ListAllCommands API failed: %s", err.Error())
+func (g *apiRPCClient) ListCommands(teamID string) ([]*model.Command, error) {
+	_args := &Z_ListCommandsArgs{teamID}
+	_returns := &Z_ListCommandsReturns{}
+	if err := g.client.Call("Plugin.ListCommands", _args, _returns); err != nil {
+		log.Printf("RPC call to ListCommands API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) ListAllCommands(args *Z_ListAllCommandsArgs, returns *Z_ListAllCommandsReturns) error {
+func (s *apiRPCServer) ListCommands(args *Z_ListCommandsArgs, returns *Z_ListCommandsReturns) error {
 	if hook, ok := s.impl.(interface {
-		ListAllCommands(teamID string) ([]*model.Command, error)
+		ListCommands(teamID string) ([]*model.Command, error)
 	}); ok {
-		returns.A, returns.B = hook.ListAllCommands(args.A)
+		returns.A, returns.B = hook.ListCommands(args.A)
 		returns.B = encodableError(returns.B)
 	} else {
-		return encodableError(fmt.Errorf("API ListAllCommands called but not implemented."))
+		return encodableError(fmt.Errorf("API ListCommands called but not implemented."))
 	}
 	return nil
 }

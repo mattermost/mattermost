@@ -2407,29 +2407,6 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
-// ListAllCommands provides a mock function with given fields: teamID
-func (_m *API) ListAllCommands(teamID string) ([]*model.Command, error) {
-	ret := _m.Called(teamID)
-
-	var r0 []*model.Command
-	if rf, ok := ret.Get(0).(func(string) []*model.Command); ok {
-		r0 = rf(teamID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Command)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(teamID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // ListBuiltInCommands provides a mock function with given fields:
 func (_m *API) ListBuiltInCommands() ([]*model.Command, error) {
 	ret := _m.Called()
@@ -2446,6 +2423,29 @@ func (_m *API) ListBuiltInCommands() ([]*model.Command, error) {
 	var r1 error
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ListCommands provides a mock function with given fields: teamID
+func (_m *API) ListCommands(teamID string) ([]*model.Command, error) {
+	ret := _m.Called(teamID)
+
+	var r0 []*model.Command
+	if rf, ok := ret.Get(0).(func(string) []*model.Command); ok {
+		r0 = rf(teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Command)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(teamID)
 	} else {
 		r1 = ret.Error(1)
 	}

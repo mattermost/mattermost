@@ -93,6 +93,10 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if o.CreatorId != "" && o.PluginId != "" {
+		return NewAppError("Command.IsValid", "model.command.is_valid.plugin_id.app_error", nil, "command cannot have both a CreatorId and a PluginId", http.StatusBadRequest)
+	}
+
 	if !IsValidId(o.TeamId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.team_id.app_error", nil, "", http.StatusBadRequest)
 	}

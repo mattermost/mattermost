@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -933,28 +934,45 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	cmd.CreatorId = ""
 	cmd.PluginId = api.id
+	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	cmd, appErr := api.app.CreateCommand(cmd)
-
-	return cmd, normalizeAppErr(appErr)
-}
-
-func (api *PluginAPI) ListAllCommands(teamID string) ([]*model.Command, error) {
-	ret := make([]*model.Command, 0)
-
-	cmds, err := api.ListCustomCommands(teamID)
+	teamCmds, err := api.app.Srv().Store.Command().GetByTeam(cmd.TeamId)
 	if err != nil {
 		return nil, err
 	}
-	ret = append(ret, cmds...)
 
-	cmds, err = api.ListPluginCommands(teamID)
+	for _, existingCommand := range teamCmds {
+		if cmd.Trigger == existingCommand.Trigger {
+			return nil, errors.New("cannot create command, duplicate trigger name found")
+		}
+	}
+
+	for _, builtInProvider := range commandProviders {
+		builtInCommand := builtInProvider.GetCommand(api.app, utils.T)
+		if builtInCommand != nil && cmd.Trigger == builtInCommand.Trigger {
+			return nil, errors.New("cannot create command, duplicate trigger name found")
+		}
+	}
+
+	return api.app.Srv().Store.Command().Save(cmd)
+}
+
+func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
+	ret := make([]*model.Command, 0)
+
+	cmds, err := api.ListPluginCommands(teamID)
 	if err != nil {
 		return nil, err
 	}
 	ret = append(ret, cmds...)
 
 	cmds, err = api.ListBuiltInCommands()
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	cmds, err = api.ListCustomCommands(teamID)
 	if err != nil {
 		return nil, err
 	}
@@ -1001,8 +1019,7 @@ func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
 }
 
 func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
-	cmd, appErr := api.app.GetCommand(commandID)
-	return cmd, normalizeAppErr(appErr)
+	return api.app.Srv().Store.Command().Get(commandID)
 }
 
 func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
@@ -1017,8 +1034,7 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 	updatedCmd.CreateAt = oldCmd.CreateAt
 	updatedCmd.UpdateAt = model.GetMillis()
 	updatedCmd.DeleteAt = oldCmd.DeleteAt
-	updatedCmd.CreatorId = oldCmd.CreatorId
-	updatedCmd.PluginId = oldCmd.PluginId
+	updatedCmd.PluginId = api.id
 	if updatedCmd.TeamId == "" {
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
@@ -1027,27 +1043,10 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 }
 
 func (api *PluginAPI) DeleteCommand(commandID string) error {
-	appErr := api.app.DeleteCommand(commandID)
-	return normalizeAppErr(appErr)
-}
-
-// normalizeAppError returns a truly nil error if appErr is nil.
-//
-// This doesn't happen automatically when a *model.AppError is cast to an error, since the
-// resulting error interface has a concrete type with a nil value. This leads to the seemingly
-// impossible:
-//
-//     var err error
-//     err = func() *model.AppError { return nil }()
-//     if err != nil {
-//         panic("err != nil, which surprises most")
-//     }
-//
-// This is a conversion function needed until all server functions return error
-func normalizeAppErr(appErr *model.AppError) error {
-	if appErr == nil {
-		return nil
+	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	if err != nil {
+		return err
 	}
 
-	return appErr
+	return nil
 }

@@ -981,14 +981,14 @@ type API interface {
 	// Minimum server version: 5.26
 	CreateCommand(cmd *model.Command) (*model.Command, error)
 
-	// ListAllCommands returns the list of all slash commands for teamID. E.g., custom commands
+	// ListCommands returns the list of all slash commands for teamID. E.g., custom commands
 	// (those created through the integrations menu, the REST api, or the plugin api CreateCommand),
 	// plugin commands (those created with plugin api RegisterCommand), and builtin commands
 	// (those added internally through RegisterCommandProvider).
 	//
 	// @tag SlashCommand
 	// Minimum server version: 5.26
-	ListAllCommands(teamID string) ([]*model.Command, error)
+	ListCommands(teamID string) ([]*model.Command, error)
 
 	// ListCustomCommands returns the list of slash commands for teamID that where created
 	// through the integrations menu, the REST api, or the plugin api CreateCommand.

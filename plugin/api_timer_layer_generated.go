@@ -1044,10 +1044,10 @@ func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, err
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) ListAllCommands(teamID string) ([]*model.Command, error) {
+func (api *apiTimerLayer) ListCommands(teamID string) ([]*model.Command, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.ListAllCommands(teamID)
-	api.recordTime(startTime, "ListAllCommands", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.ListCommands(teamID)
+	api.recordTime(startTime, "ListCommands", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
