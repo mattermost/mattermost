@@ -659,12 +659,12 @@ func AsStringBoolMap(list []string) map[string]bool {
 
 // SanitizeUnicode will remove undesirable Unicode characters from a string.
 func SanitizeUnicode(s string) string {
-	return strings.Map(filterBlacklist, s)
+	return strings.Map(filterBlocklist, s)
 }
 
-// filterBlacklist returns `r` if it is not in the blacklist, otherwise drop (-1).
-// Blacklist is taken from https://www.w3.org/TR/unicode-xml/#Charlist
-func filterBlacklist(r rune) rune {
+// filterBlocklist returns `r` if it is not in the blocklist, otherwise drop (-1).
+// Blocklist is taken from https://www.w3.org/TR/unicode-xml/#Charlist
+func filterBlocklist(r rune) rune {
 	const drop = -1
 	switch r {
 	case '\u0340', '\u0341': // clones of grave and acute; deprecated in Unicode
