@@ -6703,6 +6703,10 @@
     "translation": "Unable to count messages since given date."
   },
   {
+    "id": "store.sql_channel.direct_channels_for_user.app_error",
+    "translation": "Failed to retrieve direct messages channel for the user."
+  },
+  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
