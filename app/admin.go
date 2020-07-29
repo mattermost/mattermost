@@ -22,7 +22,9 @@ import (
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
