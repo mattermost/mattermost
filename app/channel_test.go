@@ -1877,6 +1877,28 @@ func TestMarkChannelsAsViewedPanic(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestClearChannelMembersCache(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockChannelStore := mocks.ChannelStore{}
+	cms := model.ChannelMembers{}
+	for i := 0; i < 200; i++ {
+		cms = append(cms, model.ChannelMember{
+			ChannelId: "1",
+		})
+	}
+	mockChannelStore.On("GetMembers", "channelID", 0, 100).Return(&cms, nil)
+	mockChannelStore.On("GetMembers", "channelID", 100, 100).Return(&model.ChannelMembers{
+		model.ChannelMember{
+			ChannelId: "1",
+		}}, nil)
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	th.App.ClearChannelMembersCache("channelID")
+}
+
 func TestSidebarCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
