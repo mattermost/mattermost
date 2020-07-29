@@ -324,7 +324,6 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	permissions := []*model.Permission{
 		model.PERMISSION_READ_SYSCONSOLE_REPORTING,
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {

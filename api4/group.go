@@ -89,7 +89,6 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -133,7 +132,6 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -330,7 +328,6 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -521,7 +518,6 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -562,7 +558,6 @@ func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {

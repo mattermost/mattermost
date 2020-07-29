@@ -393,7 +393,6 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
 	}
 	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -507,7 +506,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHER_USERS_TEAMS) {
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHER_USERS_TEAMS) {
 		c.SetPermissionError(model.PERMISSION_READ_OTHER_USERS_TEAMS)
 		return
 	}
@@ -1467,7 +1466,6 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -1531,7 +1529,6 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {

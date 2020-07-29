@@ -757,7 +757,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		permissions := []*model.Permission{
-			model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 			model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 		}
 		if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {

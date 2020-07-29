@@ -691,7 +691,6 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
 	}
@@ -1671,7 +1670,6 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -1747,7 +1745,6 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
@@ -1791,7 +1788,6 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 	defer c.LogAuditRec(auditRec)
 
 	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
 	}
 	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {

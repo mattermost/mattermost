@@ -102,9 +102,6 @@ var PERMISSION_WRITE_SYSCONSOLE_ABOUT *Permission
 var PERMISSION_READ_SYSCONSOLE_REPORTING *Permission
 var PERMISSION_WRITE_SYSCONSOLE_REPORTING *Permission
 
-var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT *Permission
-var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT *Permission
-
 var PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS *Permission
 var PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS *Permission
 
@@ -664,18 +661,6 @@ func initializePermissions() {
 		"authentication.permissions.use_group_mentions.description",
 		PermissionScopeSystem,
 	}
-	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT = &Permission{
-		"read_sysconsole_user_management",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
-		PermissionScopeSystem,
-	}
-	PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT = &Permission{
-		"write_sysconsole_user_management",
-		"authentication.permissions.use_group_mentions.name",
-		"authentication.permissions.use_group_mentions.description",
-		PermissionScopeSystem,
-	}
 	PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS = &Permission{
 		"read_sysconsole_user_management_users",
 		"authentication.permissions.use_group_mentions.name",
@@ -836,7 +821,6 @@ func initializePermissions() {
 	SysconsoleReadPermissions = []*Permission{
 		PERMISSION_READ_SYSCONSOLE_ABOUT,
 		PERMISSION_READ_SYSCONSOLE_REPORTING,
-		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT,
 		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
 		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 		PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS,
@@ -854,7 +838,6 @@ func initializePermissions() {
 	SysconsoleWritePermissions = []*Permission{
 		PERMISSION_WRITE_SYSCONSOLE_ABOUT,
 		PERMISSION_WRITE_SYSCONSOLE_REPORTING,
-		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT,
 		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_USERS,
 		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
 		PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_TEAMS,
