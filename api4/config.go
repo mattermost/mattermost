@@ -16,8 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-var writeFilter func(c *Context, structField reflect.StructField, parentStructFieldName string) bool
-var readFilter func(c *Context, structField reflect.StructField, parentStructFieldName string) bool
+var writeFilter func(c *Context, structField reflect.StructField) bool
+var readFilter func(c *Context, structField reflect.StructField) bool
 
 type filterType string
 
@@ -50,8 +50,8 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := c.App.GetSanitizedConfig()
 
 	cfg, err := config.Merge(&model.Config{}, cfg, &utils.MergeConfig{
-		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
-			return readFilter(c, structField, parentStructFieldName)
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return readFilter(c, structField)
 		},
 	})
 	if err != nil {
@@ -111,8 +111,8 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err1 error
 	cfg, err1 = config.Merge(appCfg, cfg, &utils.MergeConfig{
-		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
-			return writeFilter(c, structField, parentStructFieldName)
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return writeFilter(c, structField)
 		},
 	})
 	if err1 != nil {
@@ -204,8 +204,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filterFn := func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
-		return writeFilter(c, structField, parentStructFieldName)
+	filterFn := func(structField reflect.StructField, base, patch reflect.Value) bool {
+		return writeFilter(c, structField)
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
@@ -242,8 +242,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
 }
 
-func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
-	return func(c *Context, structField reflect.StructField, parentStructFieldName string) bool {
+func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
+	return func(c *Context, structField reflect.StructField) bool {
 		permissionMap := map[string]*model.Permission{}
 		for _, p := range model.AllPermissions {
 			permissionMap[p.Id] = p

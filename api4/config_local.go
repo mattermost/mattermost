@@ -73,7 +73,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	appCfg := c.App.Config()
-	filterFn := func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+	filterFn := func(structField reflect.StructField, base, patch reflect.Value) bool {
 		return true
 	}
 

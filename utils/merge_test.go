@@ -1169,7 +1169,7 @@ func TestMergeWithStructFieldFilter(t *testing.T) {
 		expected := evenSimpler{newBool(true), &evenSimpler2{newString("base")}}
 
 		merged, err := mergeEvenSimplerWithConfig(t1, t2, &utils.MergeConfig{
-			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 				return false
 			},
 		})
@@ -1184,7 +1184,7 @@ func TestMergeWithStructFieldFilter(t *testing.T) {
 		expected := evenSimpler{newBool(false), &evenSimpler2{newString("base")}}
 
 		merged, err := mergeEvenSimplerWithConfig(t1, t2, &utils.MergeConfig{
-			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value, parentStructFieldName string) bool {
+			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 				return structField.Name == "B"
 			},
 		})
