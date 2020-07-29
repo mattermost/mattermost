@@ -8261,17 +8261,17 @@ func testDeleteSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 	teamID := model.NewId()
 
-	o1 := model.Channel{}
-	o1.TeamId = teamID
-	o1.DisplayName = "Different Name" + model.NewId()
-	o1.Name = "zz" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_DIRECT
+	c1 := model.Channel{}
+	c1.TeamId = teamID
+	c1.DisplayName = "Different Name" + model.NewId()
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_DIRECT
 
-	o2 := model.Channel{}
-	o2.TeamId = teamID
-	o2.DisplayName = "Different Name 1" + model.NewId()
-	o2.Name = "zz1" + model.NewId() + "c"
-	o2.Type = model.CHANNEL_DIRECT
+	c2 := model.Channel{}
+	c2.TeamId = teamID
+	c2.DisplayName = "Different Name 1" + model.NewId()
+	c2.Name = "zz1" + model.NewId() + "c"
+	c2.Type = model.CHANNEL_DIRECT
 
 	t.Run("direct messages with created user & others", func(t *testing.T) {
 		u1 := &model.User{}
@@ -8299,47 +8299,40 @@ func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 
 		m1 := model.ChannelMember{}
-		m1.ChannelId = o1.Id
+		m1.ChannelId = c1.Id
 		m1.UserId = u1.Id
 		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 
 		m2 := model.ChannelMember{}
-		m2.ChannelId = o1.Id
+		m2.ChannelId = c1.Id
 		m2.UserId = u2.Id
 		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
 		m3 := model.ChannelMember{}
-		m3.ChannelId = o2.Id
+		m3.ChannelId = c2.Id
 		m3.UserId = u1.Id
 		m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 
 		m4 := model.ChannelMember{}
-		m4.ChannelId = o2.Id
+		m4.ChannelId = c2.Id
 		m4.UserId = u3.Id
 		m4.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-		ss.Channel().SaveDirectChannel(&o2, &m3, &m4)
+		ss.Channel().SaveDirectChannel(&c1, &m1, &m2)
+		ss.Channel().SaveDirectChannel(&c2, &m3, &m4)
 
 		directChannelsUser1, nErr := ss.Channel().GetDirectChannelsForUser(u1.Id)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser1, 2)
 
-		var user1DireactChannelNames []string
 		for _, item := range directChannelsUser1 {
-			user1DireactChannelNames = append(user1DireactChannelNames, item.DisplayName)
+			require.Contains(t, []string{u3.Username, u2.Username}, item.DisplayName)
 		}
-		require.Contains(t, user1DireactChannelNames, u3.Username)
-		require.Contains(t, user1DireactChannelNames, u2.Username)
 
 		directChannelsUser2, nErr := ss.Channel().GetDirectChannelsForUser(u2.Id)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser2, 1)
 
-		var user2DireactChannelNames []string
-		for _, item := range directChannelsUser2 {
-			user2DireactChannelNames = append(user2DireactChannelNames, item.DisplayName)
-		}
-		require.Contains(t, user2DireactChannelNames, u1.Username)
+		require.Contains(t, directChannelsUser2[0].DisplayName, u1.Username)
 	})
 }
