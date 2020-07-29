@@ -386,7 +386,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 		}
 	}
 	if len(errorMails) > 0 {
-		return model.NewAppError("emailSentFailed", "api.user.invite.error", nil, strings.Join(errorMails, ", "), http.StatusUnprocessableEntity)
+		return model.NewAppError("emailSentFailed", "api.user.invite.error", nil, strings.Join(errorMails, ", "), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -483,7 +483,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 		}
 	}
 	if len(errorMails) > 0 {
-		return model.NewAppError("emailSentFailed", "api.user.invite.error", nil, strings.Join(errorMails, ", "), http.StatusUnprocessableEntity)
+		return model.NewAppError("emailSentFailed", "api.user.invite.error", nil, strings.Join(errorMails, ", "), http.StatusInternalServerError)
 	}
 	return nil
 }

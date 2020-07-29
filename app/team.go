@@ -1233,9 +1233,8 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite := &model.EmailInviteWithError{
 				Email: email,
-				Error: nil,
+				Error: model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest),
 			}
-			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
 			inviteListWithErrors = append(inviteListWithErrors, invite)
 		} else {
 			goodEmails = append(goodEmails, email)
