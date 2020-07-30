@@ -7693,5 +7693,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Une erreur s'est produite lors du chargement des rapports de conformité"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Impossible de copier le fichier joint dans le fichier zip."
     }
 ]

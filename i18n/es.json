@@ -7973,5 +7973,9 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Error al enviar correo electrónico al administrador"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "No se puedo copiar el adjunto en el fichero comprimido."
     }
 ]

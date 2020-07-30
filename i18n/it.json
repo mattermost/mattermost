@@ -7921,5 +7921,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Non è stato possibile recuperare i rapporti di compliance."
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Impossibile copiare l'allegato nel file zip."
     }
 ]

@@ -7820,5 +7820,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "添付ファイルをzipファイルにコピーできません。"
     }
 ]
