@@ -652,15 +652,15 @@
     },
     {
         "id": "api.command_invite.channel.error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_invite.desc",
-        "translation": "Invite a user to a channel"
+        "translation": "Nodig een gebruiker uit in een kanaal"
     },
     {
         "id": "api.command_invite.directchannel.app_error",
-        "translation": "You can't add someone to a direct message channel."
+        "translation": "Je kan niet iemand toevoegen aan een direct-berichten-kanaal."
     },
     {
         "id": "api.command_invite.fail.app_error",
@@ -668,15 +668,15 @@
     },
     {
         "id": "api.command_invite.hint",
-        "translation": "@[username] ~[channel]"
+        "translation": "@[gebruikersnaam] ~[kanaal]"
     },
     {
         "id": "api.command_invite.missing_message.app_error",
-        "translation": "Missing Username and Channel."
+        "translation": "Ontbrekende gebruikersnaam en kanaal."
     },
     {
         "id": "api.command_invite.missing_user.app_error",
-        "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+        "translation": "We kunnen de gebruiker niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
     },
     {
         "id": "api.command_invite.name",
@@ -684,23 +684,23 @@
     },
     {
         "id": "api.command_invite.permission.app_error",
-        "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+        "translation": "Je hebt niet genoeg rechten om {{.User}} toe te voegen in {{.Channel}}."
     },
     {
         "id": "api.command_invite.private_channel.app_error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+        "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de kanaalaanduiding om kanalen te identificeren."
     },
     {
         "id": "api.command_invite.success",
-        "translation": "{{.User}} added to {{.Channel}} channel."
+        "translation": "{{.User}} toegevoegd aan {{.Channel}} kanaal."
     },
     {
         "id": "api.command_invite.user_already_in_channel.app_error",
-        "translation": "{{.User}} is already in the channel."
+        "translation": "{{.User}} is reeds lid van het kanaal."
     },
     {
         "id": "api.command_invite_people.permission.app_error",
-        "translation": "You don't have permission to invite new users to this server."
+        "translation": "Je hebt niet voldoende rechten om nieuwe gebruikers uit te nodigen op deze server."
     },
     {
         "id": "api.command_join.desc",
@@ -712,7 +712,7 @@
     },
     {
         "id": "api.command_join.hint",
-        "translation": "~[channel]"
+        "translation": "~[kanaal]"
     },
     {
         "id": "api.command_join.list.app_error",
@@ -728,11 +728,11 @@
     },
     {
         "id": "api.command_kick.name",
-        "translation": "kick"
+        "translation": "schoppen"
     },
     {
         "id": "api.command_leave.desc",
-        "translation": "Leave the current channel"
+        "translation": "Verlaat het huidige kanaal"
     },
     {
         "id": "api.command_leave.fail.app_error",
@@ -7997,5 +7997,37 @@
     {
         "id": "app.preference.delete.app_error",
         "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Er trad een fout op bij het aanmaken van het actiance xml-bestand"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Er trad een fout op bij het schrijven naar het actiance xml-bestand"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Er trad een fout op bij het aanmaken van het bestand met de actiance waarschuwingen"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Er trad een fout op bij het aanmaken van het actiance XML-bestand"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Kan deze taak niet downloaden"
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "DownloadExportResults in config.json is \"false\". Wijzig dit naar \"true\" om de resultaten van deze taak te downloaden."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Kan de gebruiker niet ophalen vanuit het sessie UserID."
     }
 ]
