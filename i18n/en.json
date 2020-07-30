@@ -1131,6 +1131,10 @@
     "translation": "Sorry, we could not find the page."
   },
   {
+    "id": "api.context.get_user.app_error",
+    "translation": "Unable to get user from session UserID."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body."
   },
@@ -1451,6 +1455,10 @@
   {
     "id": "api.io_error",
     "translation": "input/output error"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Unable to download this job"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -3355,6 +3363,14 @@
     "translation": "Invalid webhook."
   },
   {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "We encountered an error retrieving the compliance reports."
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "We encountered an error saving the compliance report."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3947,6 +3963,10 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -4229,6 +4249,30 @@
   {
     "id": "app.plugin.write_file.saving.app_error",
     "translation": "An error occurred while saving the file."
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "We encountered an error while deleting preferences."
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error while deleteing preferences."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "We encountered an error while updating preferences."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
@@ -4627,6 +4671,30 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
+    "id": "ent.compliance.actiance.attachment.copy.appError",
+    "translation": "Unable to copy the attachment into the zip file."
+  },
+  {
+    "id": "ent.compliance.actiance.file.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.creation.appError",
+    "translation": "There was an error creating actiance warning text file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.write.appError",
+    "translation": "There was an error writing to the actiance xml file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.write.appError",
+    "translation": "There was an error writing to the actiance XML file"
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -4697,6 +4765,10 @@
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
     "translation": "Failed to purge records."
+  },
+  {
+    "id": "ent.data_retention.flags_batch.internal_error",
+    "translation": "We encountered an error cleaning up the batch of flags."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -5049,6 +5121,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Failed to select message export data."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -6847,18 +6923,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "We encountered an error retrieving the compliance reports."
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data."
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "We encountered an error saving the compliance report."
-  },
-  {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
     "translation": "Unable to delete attachments of the user."
   },
@@ -6995,10 +7059,6 @@
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
-  },
-  {
     "id": "store.sql_post.delete.app_error",
     "translation": "Unable to delete the post."
   },
@@ -7109,58 +7169,6 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
-    "id": "store.sql_preference.delete.app_error",
-    "translation": "We encountered an error while deleting preferences."
-  },
-  {
-    "id": "store.sql_preference.get.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.get_all.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.get_category.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "A preference with that user id, category, and name already exists."
-  },
-  {
-    "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference."
-  },
-  {
-    "id": "store.sql_preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleteing preferences."
-  },
-  {
-    "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Unable to commit transaction to save preferences."
-  },
-  {
-    "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Unable to open transaction to save preferences."
-  },
-  {
-    "id": "store.sql_preference.save.updating.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference."
   },
   {
     "id": "store.sql_role.delete.update.app_error",

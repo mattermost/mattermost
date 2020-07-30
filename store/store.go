@@ -67,7 +67,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	CheckIntegrity() <-chan IntegrityCheckResult
+	CheckIntegrity() <-chan model.IntegrityCheckResult
 	SetContext(context context.Context)
 	Context() context.Context
 }
@@ -78,8 +78,8 @@ type TeamStore interface {
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
 	GetByNames(name []string) ([]*model.Team, *model.AppError)
-	SearchAll(term string) ([]*model.Team, *model.AppError)
-	SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError)
+	SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
+	SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError)
 	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
@@ -154,7 +154,7 @@ type ChannelStore interface {
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, error)
 	GetDeletedByName(team_id string, name string) (*model.Channel, error)
 	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, error)
-	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error)
+	GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
@@ -402,12 +402,12 @@ type ClusterDiscoveryStore interface {
 }
 
 type ComplianceStore interface {
-	Save(compliance *model.Compliance) (*model.Compliance, *model.AppError)
-	Update(compliance *model.Compliance) (*model.Compliance, *model.AppError)
-	Get(id string) (*model.Compliance, *model.AppError)
-	GetAll(offset, limit int) (model.Compliances, *model.AppError)
-	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError)
-	MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError)
+	Save(compliance *model.Compliance) (*model.Compliance, error)
+	Update(compliance *model.Compliance) (*model.Compliance, error)
+	Get(id string) (*model.Compliance, error)
+	GetAll(offset, limit int) (model.Compliances, error)
+	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, error)
+	MessageExport(after int64, limit int) ([]*model.MessageExport, error)
 }
 
 type OAuthStore interface {
@@ -494,15 +494,15 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) *model.AppError
-	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
-	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
-	GetAll(userId string) (model.Preferences, *model.AppError)
-	Delete(userId, category, name string) *model.AppError
-	DeleteCategory(userId string, category string) *model.AppError
-	DeleteCategoryAndName(category string, name string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
+	Save(preferences *model.Preferences) error
+	GetCategory(userId string, category string) (model.Preferences, error)
+	Get(userId string, category string, name string) (*model.Preference, error)
+	GetAll(userId string) (model.Preferences, error)
+	Delete(userId, category, name string) error
+	DeleteCategory(userId string, category string) error
+	DeleteCategoryAndName(category string, name string) error
+	PermanentDeleteByUser(userId string) error
+	CleanupFlagsBatch(limit int64) (int64, error)
 }
 
 type LicenseStore interface {
@@ -774,24 +774,6 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-type OrphanedRecord struct {
-	ParentId *string
-	ChildId  *string
-}
-
-type RelationalIntegrityCheckData struct {
-	ParentName   string
-	ChildName    string
-	ParentIdAttr string
-	ChildIdAttr  string
-	Records      []OrphanedRecord
-}
-
-type IntegrityCheckResult struct {
-	Data interface{}
-	Err  error
 }
 
 const mySQLDeadlockCode = uint16(1213)

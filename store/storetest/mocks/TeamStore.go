@@ -972,13 +972,13 @@ func (_m *TeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPe
 	return r0, r1
 }
 
-// SearchAll provides a mock function with given fields: term
-func (_m *TeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
-	ret := _m.Called(term)
+// SearchAll provides a mock function with given fields: term, opts
+func (_m *TeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+	ret := _m.Called(term, opts)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
-		r0 = rf(term)
+	if rf, ok := ret.Get(0).(func(string, *model.TeamSearch) []*model.Team); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -986,8 +986,8 @@ func (_m *TeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(term)
+	if rf, ok := ret.Get(1).(func(string, *model.TeamSearch) *model.AppError); ok {
+		r1 = rf(term, opts)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -997,13 +997,13 @@ func (_m *TeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 	return r0, r1
 }
 
-// SearchAllPaged provides a mock function with given fields: term, page, perPage
-func (_m *TeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
-	ret := _m.Called(term, page, perPage)
+// SearchAllPaged provides a mock function with given fields: term, opts
+func (_m *TeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+	ret := _m.Called(term, opts)
 
 	var r0 []*model.Team
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Team); ok {
-		r0 = rf(term, page, perPage)
+	if rf, ok := ret.Get(0).(func(string, *model.TeamSearch) []*model.Team); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Team)
@@ -1011,15 +1011,15 @@ func (_m *TeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mode
 	}
 
 	var r1 int64
-	if rf, ok := ret.Get(1).(func(string, int, int) int64); ok {
-		r1 = rf(term, page, perPage)
+	if rf, ok := ret.Get(1).(func(string, *model.TeamSearch) int64); ok {
+		r1 = rf(term, opts)
 	} else {
 		r1 = ret.Get(1).(int64)
 	}
 
 	var r2 *model.AppError
-	if rf, ok := ret.Get(2).(func(string, int, int) *model.AppError); ok {
-		r2 = rf(term, page, perPage)
+	if rf, ok := ret.Get(2).(func(string, *model.TeamSearch) *model.AppError); ok {
+		r2 = rf(term, opts)
 	} else {
 		if ret.Get(2) != nil {
 			r2 = ret.Get(2).(*model.AppError)
