@@ -7698,5 +7698,17 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "Serwer SMTP jest wymagany."
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Nie można wybrać danych eksportu wiadomości"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Wystąpił błąd podczas zapisywania raportu zgodności"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
     }
 ]

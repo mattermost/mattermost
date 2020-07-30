@@ -7709,5 +7709,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
     }
 ]

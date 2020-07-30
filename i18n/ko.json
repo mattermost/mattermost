@@ -7704,5 +7704,17 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "사이트 URL을 지울 수 없습니다."
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Failed to select message export data"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "We encountered an error saving the compliance report"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "We encountered an error retrieving the compliance reports"
     }
 ]

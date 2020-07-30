@@ -7686,5 +7686,17 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "Потрібно SMTP сервер"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Не вдалося вибрати дані експорту повідомлення"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
     }
 ]

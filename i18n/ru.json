@@ -7962,5 +7962,17 @@
     {
         "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
         "translation": "Не удалось найти предупреждение метрики."
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Не удалось выбрать данные экспорта сообщений."
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Возникла ошибка при сохранении комплаенс-отчета."
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Возникла ошибка с получением комплаенс-отчетов."
     }
 ]
