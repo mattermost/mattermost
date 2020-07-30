@@ -7942,5 +7942,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Imposibil de copiat atașamentul în fișierul zip."
     }
 ]

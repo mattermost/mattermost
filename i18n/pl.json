@@ -7710,5 +7710,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Nie można skopiować załącznika do pliku zip."
     }
 ]

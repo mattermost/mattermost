@@ -7888,5 +7888,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "取得規範報告時遇到錯誤"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "無法複製附加檔案至 zip 檔案中。"
     }
 ]

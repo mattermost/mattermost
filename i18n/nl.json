@@ -7965,5 +7965,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Er is een probleem opgetreden bij het ophalen van het 'compliance' rapport"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Unable to copy the attachment into the zip file."
     }
 ]

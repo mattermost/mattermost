@@ -7698,5 +7698,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Неможливо скопіювати вкладення у файл zip."
     }
 ]

@@ -7777,5 +7777,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Encontramos um erro ao obter o relatório de conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Não é possível copiar o anexo para um arquivo zip."
     }
 ]

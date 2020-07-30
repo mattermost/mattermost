@@ -7952,5 +7952,9 @@
     {
         "id": "api.job.unable_to_download_job",
         "translation": "이 작업을 다운로드할 수 없음"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Unable to copy the attachment into the zip file."
     }
 ]

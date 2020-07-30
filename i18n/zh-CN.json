@@ -7804,5 +7804,9 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "我们获取合规报告时遇到错误"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "无法复制附件到 zip 文件。"
     }
 ]
