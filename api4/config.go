@@ -22,8 +22,8 @@ var permissionMap map[string]*model.Permission
 
 type filterType string
 
-const filterTypeWrite = "write"
-const filterTypeRead = "read"
+const filterTypeWrite filterType = "write"
+const filterTypeRead filterType = "read"
 
 func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
