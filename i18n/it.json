@@ -7653,5 +7653,65 @@
     {
         "id": "app.reaction.bulk_get_for_post_ids.app_error",
         "translation": "Impossibile ottenere le reazioni per la pubblicazione"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Impossibile aggiornare il comando."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Impossibile eseguire il comando personalizzato."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Impossibile rigenerare il gettone del comando."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Impossibile spostare il comando."
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Impossibile elencare i comandi di squadra."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Impossibile elencare i comandi di autocompletamento."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Impossibile elencare i comandi."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Impossibile ottenere il comando."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Impossibile cancellare il comando."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Impossibile salvare il comando."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "Impossibile creare le categorie iniziali della barra laterale per l'utente."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "Impossibile ottenere le statistiche."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "Devi accettare l'Accordo di Valutazione Software Mattermost e la Politica sulla Privacy per richiedere una licenza."
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "Il canale elencato nella richiesta non appartiene all'utente"
     }
 ]
