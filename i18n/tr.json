@@ -8025,5 +8025,9 @@
     {
         "id": "app.preference.delete.app_error",
         "translation": "Ayarlar silinirken bir sorun çıktı."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Kullanıcı oturum kullanıcı kodundan bulunamadı."
     }
 ]
