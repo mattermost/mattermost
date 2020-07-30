@@ -8034,5 +8034,9 @@
     {
         "id": "app.preference.delete.app_error",
         "translation": "Возникла ошибка при удалении настроек."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Невозможно получить пользователя из UserID сеанса."
     }
 ]
