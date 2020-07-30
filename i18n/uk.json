@@ -7758,5 +7758,17 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "Потрібно SMTP сервер"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Адреса сайту:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Усього активних користувачів"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Адреса електронної пошти:"
     }
 ]

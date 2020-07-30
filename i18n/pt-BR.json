@@ -7845,5 +7845,17 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Falha ao enviar email de confirmação do administrador"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total Usuários Ativos"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Email:"
     }
 ]
