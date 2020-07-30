@@ -269,7 +269,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			}
 
 			// check for the permission associated to the tag value
-			permissionID := fmt.Sprintf("%s_sysconsole_%s", accessType, tagValue)
+			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
 				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
 					// don't return early because ConfigAccessTagRestrictSysAdminWrite could be the last tag value
