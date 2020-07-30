@@ -7985,5 +7985,9 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Errore durante l'invio dell'email di conferma all'amministratore"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Richiesta di contatto con Mattermost"
     }
 ]
