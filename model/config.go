@@ -2744,31 +2744,31 @@ type ConfigFunc func() *Config
 const ConfigAccessTagWriteRestrictable = "write_restrictable"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
-// PERMISSION_SYSCONSOLE_WRITE_* name: 'about', 'reporting', 'user_management_users',
+// PERMISSION_SYSCONSOLE_*_* permission Id: 'about', 'reporting', 'user_management_users',
 // 'user_management_groups', 'user_management_teams', 'user_management_channels',
 // 'user_management_permissions', 'environment', 'site', 'authentication', 'plugins',
-// 'integrations', 'compliance', 'plugins', and 'experimental'.
+// 'integrations', 'compliance', 'plugins', and 'experimental'. They grant read and/or write access to the config field
+// to roles without PERMISSION_MANAGE_SYSTEM.
 //
-// By default config values can be updated with the PERMISSION_MANAGE_SYSTEM permission. If ExperimentalSettings.RestrictSystemAdmin is true
+// By default config values can be written with PERMISSION_MANAGE_SYSTEM, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
+//
+// PERMISSION_MANAGE_SYSTEM always grants read access.
 //
 // Example:
 //  type HairSettings struct {
-//      // Colour is writeable by PERMISSION_SYSCONSOLE_WRITE_REPORTING,
-//      // PERMISSION_SYSCONSOLE_WRITE_USER_MANAGEMENT_GROUPS, and PERMISSION_MANAGE_SYSTEM permissions.
+//      // Colour is writeable with either PERMISSION_SYSCONSOLE_WRITE_REPORTING or PERMISSION_SYSCONSOLE_WRITE_USER_MANAGEMENT_GROUPS.
+//      // It is readable by PERMISSION_SYSCONSOLE_READ_REPORTING and PERMISSION_SYSCONSOLE_READ_USER_MANAGEMENT_GROUPS permissions.
+//      // PERMISSION_MANAGE_SYSTEM grants read and write access.
 //      Colour string `access:"reporting,user_management_groups"`
 //
 //
-//      // Length is only writeable by PERMISSION_MANAGE_SYSTEM.
+//      // Length is only readable and writable via PERMISSION_MANAGE_SYSTEM.
 //      Length string
-//  }
 //
-//  type Barber struct {
-//      // Name is writeable by roles with PERMISSION_SYSCONSOLE_WRITE_REPORTING permission.
-//      Name string `access:"reporting"`
-//
-//      // Price is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
-//      Price bool `access:write_restrictable`
+//      // Product is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
+//      // PERMISSION_MANAGE_SYSTEM can always read the value.
+//      Product bool `access:write_restrictable`
 //  }
 type Config struct {
 	ServiceSettings           ServiceSettings
