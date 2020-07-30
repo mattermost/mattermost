@@ -182,7 +182,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	for name, permissions := range expected1 {
 		role, err := th.App.GetRoleByName(name)
 		assert.Nil(t, err)
-		assert.Equal(t, role.Permissions, permissions, fmt.Sprintf("role %q didn't match", name)) //
+		assert.Equal(t, role.Permissions, permissions, fmt.Sprintf("role %q didn't match", name))
 	}
 	// Add a license and change the policy config.
 	restrictPublicChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement
