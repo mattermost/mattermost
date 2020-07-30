@@ -7989,5 +7989,13 @@
     {
         "id": "api.templates.warn_metric_ack.subject",
         "translation": "Richiesta di contatto con Mattermost"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Impossibile trovare la metrica di avviso."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
     }
 ]

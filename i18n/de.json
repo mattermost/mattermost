@@ -7773,5 +7773,21 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "Site URL kann nicht leer sein."
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Warnmetrik konnte nicht gefunden werden."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Seiten-URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Gesamte aktive Benutzer"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-Mail:"
     }
 ]

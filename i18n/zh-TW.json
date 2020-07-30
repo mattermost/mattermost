@@ -7948,5 +7948,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "寄送管理員通知郵件時失敗"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost 聯絡我們 要求"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "如果有其他的查詢，請聯絡 support@mattermost.com"
     }
 ]
