@@ -5164,60 +5164,8 @@
         "translation": "Возникла ошибка при обновлении участника канала"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Вы не можете перезаписать существующую Команду"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "You cannot update an existing CommandWebhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Неверный вебхук"
     },
     {
         "id": "store.sql_compliance.get.finding.app_error",
@@ -5280,10 +5228,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Команда с таким именем уже существует"
     },
@@ -5318,102 +5262,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Невозможно начать транзакцию по удалению приложения OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Возникла ошибка при удалении приложения OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Возникла ошибка с обнаружением токена доступа"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Возникла ошибка с обнаружением всех токенов доступа"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Unable to find the requested app"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Возникла ошибка с обнаружением приложения"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Не удалось найти действительную команду для обновления"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Возникла ошибка при поиске приложений OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Не удалось найти действительный код авторизации"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Возникла ошибка при поиске кода авторизации"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Возникла ошибка при поиске токена доступа"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Неудачная попытка удалить код авторизации"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Неудачная попытка удалить код авторизации"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Необходимо вызвать обновление для существующего приложения"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Не удалось сохранить код авторизации."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Возникла ошибка при обновлении токена доступа"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Не удалось найти существующее приложение для обновления"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Возникла ошибка при поиске приложения"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Возникла ошибка обновления приложения"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5626,50 +5474,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Failed to commit the transaction to save the role"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Возникла ошибка при поиске сессии"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Возникла ошибка при поиске сессий пользователя"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Неудачная попытка удалить все сессии пользователя"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Не удалось удалить плагин"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Невозможно обновить имеющуюся сессию"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Unable to update the device id"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Unable to update the last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Не удалось удалить плагин"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6270,10 +6074,6 @@
     {
         "id": "web.command_webhook.command.app_error",
         "translation": "Не удалось найти команду"
-    },
-    {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Неверный вебхук"
     },
     {
         "id": "web.command_webhook.parse.app_error",
@@ -7292,10 +7092,6 @@
         "translation": "Невозможно получить сообщение в течение определенного времени."
     },
     {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Не удалось обновить expired_notify."
-    },
-    {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
@@ -7634,14 +7430,6 @@
     {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Не удалось получить все роли."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Не удалось обновить expires_at."
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Невозможно обновить свойства сессии."
     },
     {
         "id": "store.sql_team.analytics_private_team_count.app_error",

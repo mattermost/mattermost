@@ -5154,60 +5154,8 @@
         "translation": "更新頻道成員時遇到錯誤"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "無法計算指令數量"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "無法取得指令"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "無法刪除指令"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "無法刪除指令"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "無法取得指令"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "無法取得指令"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "無法儲存指令"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "無法覆蓋已存在的命令"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "無法更新指令"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "無法儲存指令 Webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "無法更新現有的命令 Webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "無法使用 Webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "無效的 Webhook"
     },
     {
         "id": "store.sql_compliance.get.finding.app_error",
@@ -5270,10 +5218,6 @@
         "translation": "找不到對應的群組"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "沒有資料列被變更"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "已經存在相同名稱的團隊"
     },
@@ -5308,102 +5252,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "無法更新工作"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "無法提交交易"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "無法開啟交易以刪除 OAuth2 應用程式"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "刪除 OAuth2 應用程式時發生錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "尋找存取 Token 時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "尋找存取 Token 時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "找不到要求的應用程式"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "尋找應用程式時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "找不到已存在的應用程式"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "尋找 OAuth2 應用程式時發生錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "找不到已存在的授權碼"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "尋找授權碼時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "尋找存取 Token 時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "無法移除授權碼"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "無法儲存存取 Token"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "無法移除授權碼"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "無法儲存存取 Token"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "必須為已存在的應用程式執行更新"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "無法儲存應用程式"
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "無法儲存授權碼。"
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "更新存取 Token 時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "找不到已存在的應用程式以更新"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "尋找應用程式時遇到錯誤"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "無法更新應用程式"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "更新應用程式時遇到錯誤"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5616,50 +5464,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "認可交易以儲存角色時失敗"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "無法計算工作階段數量"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "尋找工作階段時遇到錯誤"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "尋找使用者工作階段時遇到錯誤"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "無法移除使用者所有的工作階段"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "無法移除工作階段"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "無法移除所有的工作階段"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "無法儲存工作階段"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "無法更新已存在的工作階段"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "無法更新裝置 ID"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "無法更新最新活動時間"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "無法更新角色"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6262,10 +6066,6 @@
         "translation": "找不到命令"
     },
     {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "無效的 Webhook"
-    },
-    {
         "id": "web.command_webhook.parse.app_error",
         "translation": "無法解析流入的資料"
     },
@@ -6544,14 +6344,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "認可資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "無法更新工作階段屬性"
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "無法更新 expires_at 。"
     },
     {
         "id": "store.sql_role.get_all.app_error",

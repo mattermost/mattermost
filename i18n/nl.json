@@ -5159,60 +5159,8 @@
         "translation": "Er is een probleem opgetreden tijdens het bijwerken van de kanaal leden"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Een bestaande opdracht kan niet overschreven worden"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "You cannot update an existing CommandWebhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Ongeldige webhook"
     },
     {
         "id": "store.sql_compliance.get.finding.app_error",
@@ -5275,10 +5223,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Een team met dat domein bestaat al"
     },
@@ -5313,102 +5257,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "De transactie kan niet worden vastgelegd"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Niet mogelijk om de OAuth2 app te verwijderen"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Er deed zich een fout voor tijdens het verwijderen van de OAuth2 App"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Er is een probleem opgetreden bij het ophalen van alle access tokens"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Unable to find the requested app"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Er is een probleem opgetreden bij het zoeken naar de app"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "We kunnen geen bestaand team vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Er is een fout opgetreden tijdens het vinden van OAuth2 applicaties."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "We kunnen de authorisatie code niet vinden"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Er is een probleem opgetreden bij het zoeken van de autorisatie code"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "De authorisatie code kan niet verwijderd worden"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Het access token kan niet opgeslagen worden."
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "De authorisatie code kan niet verwijderd worden"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Het access token kan niet opgeslagen worden."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Bijwerken moet worden aangeroepen voor een bestaande app"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "De authorisatie code kan niet opgeslagen worden."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Er is een probleem opgetreden bij het bijwerken van het access token"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "We kunnen de bestaande app niet vinden om bij te werken"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken van de app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Er is een probleem opgetreden bij het bijwerken van de app"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5621,50 +5469,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Failed to commit the transaction to save the role"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken naar de sessie"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Er is een probleem opgestreden tijdens het opzoeken van de gebruikers sessie"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Niet alle gebruikers sessie kunnen verwijderd worden voor de gebruiker"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Kan de huidige sessie niet bijwerken"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Unable to update the device id"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Unable to update the last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6267,10 +6071,6 @@
         "translation": "Het kanaal kan niet gevonden worden"
     },
     {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Ongeldige webhook"
-    },
-    {
         "id": "web.command_webhook.parse.app_error",
         "translation": "Kan binnenkomende data niet verwerken"
     },
@@ -6573,14 +6373,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Kan sessie props niet bijwerken."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Fout bij bijwerken van expires_at."
     },
     {
         "id": "store.sql_role.get_all.app_error",
@@ -7757,10 +7549,6 @@
     {
         "id": "bleveengine.delete_channel_posts.error",
         "translation": "Fout bij het verwijden van de kanaalberichten"
-    },
-    {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Fout bij het bijwerken van expired_notify."
     },
     {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",

@@ -5154,60 +5154,8 @@
         "translation": "We encountered an error updating the channel member"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "You cannot overwrite an existing Command"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "You cannot update an existing CommandWebhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "잘못된 Webhook"
     },
     {
         "id": "store.sql_compliance.get.finding.app_error",
@@ -5270,10 +5218,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "A team with that domain already exists"
     },
@@ -5308,102 +5252,6 @@
     {
         "id": "store.sql_job.update.app_error",
         "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Unable to commit transaction"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Unable to open transaction to delete the OAuth2 app"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "An error occurred while deleting the OAuth2 App"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Unable to find the requested app"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "We encountered an error finding the app"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "An error occurred while finding the OAuth2 Apps"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "We couldn't find the existing authorization code"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "We encountered an error finding the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "We couldn't remove the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "We couldn't remove the authorization code"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Must call update for exisiting app"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "인증 코드를 저장할 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "접근 토큰을 업데이트하다 에러가 발생했습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "We encountered an error finding the app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "We encountered an error updating the app"
     },
     {
         "id": "store.sql_plugin_store.delete.app_error",
@@ -5616,50 +5464,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Failed to commit the transaction to save the role"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "채널 업데이트에 실패하였습니다"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "We encountered an error finding the session"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "We encountered an error while finding user sessions"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "We couldn't remove all the sessions for the user"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Cannot update existing session"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Unable to update the device id"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Unable to update the last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "내용을 가져올수 없습니다."
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6262,10 +6066,6 @@
         "translation": "채널을 찾을 수 없습니다"
     },
     {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "잘못된 Webhook"
-    },
-    {
         "id": "web.command_webhook.parse.app_error",
         "translation": "Unable to parse incoming data"
     },
@@ -6544,14 +6344,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Unable to update session props."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
     },
     {
         "id": "store.sql_role.get_all.app_error",
