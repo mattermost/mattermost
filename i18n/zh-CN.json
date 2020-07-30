@@ -7852,5 +7852,61 @@
     {
         "id": "api.user.delete_user.not_enabled.app_error",
         "translation": "永久删除功能未开启。请联系您的系统管理员。"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "管理列表为空。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "诊断 Id： "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "联络： "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "升级到企业版"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "整合 SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "整合 AD/LDAP"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "正在联系我们"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "联系我们"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "感谢您联系 Mattermost，我们会尽快与您联络。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "无法发送消息。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "网站地址：{{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "电子邮件：{{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "诊断 ID：{{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "联络：{{.Contact}}"
     }
 ]
