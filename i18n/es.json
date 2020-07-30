@@ -7873,5 +7873,153 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "El Servidor SMTP es necesario"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "Error al almacenar el valor para {{.WarnMetricName}}"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "No se pudo encontrar la métrica."
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "La lista de administradores está vacía."
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Asesor de Mattermost"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Obtenga más información sobre el Asesor de Mattermost] (https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Solicitud de Contacto de Mattermost"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Solicitud de contacto de Mattermost. Mi equipo ahora tiene {{.Limit}} usuarios y estoy considerando Mattermost edición Enterprise."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Si tiene alguna consulta adicional, comuníquese con support@mattermost.com"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "URL del Sitio: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total de usuarios activos: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "Id de Diagnostico: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "Contacto: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Correo Electrónico: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Actualizar a Mattermost edición Enterprise"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost recomienda encarecidamente que las implementaciones de más de 500 usuarios se actualicen a Mattermost Enterprise E20, que ofrece características tales como administración de usuarios, agrupación de servidores y monitoreo del rendimiento."
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "Integrar SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "Tu sistema Mattermost ahora tiene 400 usuarios. Cuando conecta Mattermost con un proveedor de inicio de sesión único de su organización, los usuarios pueden acceder a Mattermost sin tener que volver a ingresar sus credenciales. Póngase en contacto con el soporte para obtener más información sobre la integración con SAML 2.0, disponible en Mattermost Enterprise E20.\n[Obtenga más información sobre la integración con SAML 2.0] (https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "Integrar AD/LDAP"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "Tu sistema Mattermost ahora tiene 200 usuarios. A medida que crece su base de usuarios, el aprovisionamiento de nuevas cuentas puede llevar mucho tiempo. Recomendamos que actualice a Mattermost Enterprise E10 e integre el Active Directory/LDAP de su organización, lo que permitirá que cualquier persona con una cuenta acceda a Mattermost. Los usuarios pueden iniciar sesión sin tener que crear nuevos nombres de usuario y contraseñas, y los administradores ahorran tiempo aprovisionando y administrando cuentas.\n[Obtenga más información sobre la integración con AD/LDAP] (https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Envíanos un correo electrónico"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Contactándonos"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Contáctanos"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Solicitud de contacto de Mattermost. Mi equipo ahora tiene {{.Limit}} usuarios y estoy considerando la edición Enterprise de Mattermost\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Gracias por contactar a Mattermost. Pronto nos pondremos en contacto contigo."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "El mensaje no pudo ser enviado."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Por favor envíenos un correo electrónico."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Solicitud de contacto de Mattermost"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "URL del Sitio: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Total de usuarios activos: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Si tiene alguna consulta adicional, comuníquese con support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "Correo Electrónico: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "Id de Diagnostico: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "Contacto: {{.Contact}}"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "No se puede actualizar la barra lateral para que coincida con las preferencias actualizadas"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "No se puede actualizar la barra lateral para que coincida con las preferencias eliminadas"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "No se pudo encontrar métrica de advertencia."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Error al enviar correo electrónico al administrador"
     }
 ]
