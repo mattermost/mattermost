@@ -7702,5 +7702,45 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Неможливо скопіювати вкладення у файл zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Виникла помилка при оновленні налаштувань"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Виникла помилка при видаленні налаштувань"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Виникла помилка при видаленні налаштувань"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Адреса сайту:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Усього активних користувачів"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Адреса електронної пошти:"
     }
 ]

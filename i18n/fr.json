@@ -7697,5 +7697,45 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Impossible de copier le fichier joint dans le fichier zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Une erreur s'est produite lors du nettoyage du lot des indicateurs."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Une erreur s'est produite lors de la modification des préférences."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Une erreur s'est produite lors de la suppression des préférences."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des préférences."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des préférences."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des préférences."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Une erreur s'est produite lors de la suppression des préférences."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "URL de site :"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total utilisateurs actifs"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Adresse e-mail :"
     }
 ]

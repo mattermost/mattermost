@@ -7808,5 +7808,49 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "无法复制附件到 zip 文件。"
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "清理批量标记时遇到错误。"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "我们在更新偏好设置时遇到错误。"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "我们删除偏好设置时遇到错误。"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "我们在查找偏好设置时遇到错误。"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "我们在查找偏好设置时遇到错误。"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "我们在查找偏好设置时遇到错误。"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "我们删除偏好设置时遇到错误。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "站点网址："
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "总活动用户"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "电子邮件："
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "永久删除功能未开启。请联系您的系统管理员。"
     }
 ]

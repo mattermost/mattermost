@@ -8006,5 +8006,33 @@
     {
         "id": "api.job.unable_to_download_job",
         "translation": "Невозможно скачать это задание"
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Мы столкнулись с ошибкой при очистке пакета флагов."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Возникла ошибка при обновлении настроек."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Возникла ошибка при удалении настроек."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Возникла ошибка при поиске настроек."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Возникла ошибка при поиске настроек."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Возникла ошибка при поиске настроек."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Возникла ошибка при удалении настроек."
     }
 ]

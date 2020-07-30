@@ -7977,5 +7977,57 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "No se puedo copiar el adjunto en el fichero comprimido."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Encontramos un error al actualizar las preferencias."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Encontramos un error mientras se eliminaban las preferencias."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Encontramos un error mientras buscamos las preferencias."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Encontramos un error mientras buscamos las preferencias."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Encontramos un error mientras buscamos las preferencias."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Encontramos un error mientras se eliminaban las preferencias."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": " Había un error escribiendo al actiance lima de XML"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": " Había un error creando actiance lima de XML"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": " Había un error escribiendo al actiance xml lima"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": " Había un error creando actiance lima de texto del aviso"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": " Había un error creando actiance lima de XML"
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Incapaz de coger usuario de sesión UserID."
     }
 ]

@@ -7997,5 +7997,33 @@
     {
         "id": "api.job.unable_to_download_job",
         "translation": "Bu görev indirilemedi"
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "İşaretler toplu olarak temizlenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Ayarlar güncellenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Ayarlar silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Ayarlar silinirken bir sorun çıktı."
     }
 ]

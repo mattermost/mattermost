@@ -7925,5 +7925,45 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Impossibile copiare l'allegato nel file zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Si è verificato un errore pulendo i flag"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Errore riscontrato nell'aggiornamento delle preferenze"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Errore riscontrato nell'eliminare le preferenze"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Errore riscontrato durante l'eliminazione delle preferenze"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Impossibile trovare la metrica di avviso."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
     }
 ]

@@ -7956,5 +7956,33 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Unable to copy the attachment into the zip file."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "We encountered an error cleaning up the batch of flags."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "기본 설정을 업데이트하는 동안 오류가 발생함"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "We encountered an error while deleteing preferences"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "환경 설정을 찾는 중 오류가 발생했습니다"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "환경 설정을 찾는 중 오류가 발생했습니다"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "환경 설정을 찾는 중 오류가 발생했습니다"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "We encountered an error while deleting preferences"
     }
 ]

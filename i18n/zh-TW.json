@@ -7892,5 +7892,65 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "無法複製附加檔案至 zip 檔案中。"
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "永久批次清除標記時遇到錯誤"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "更新偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "刪除偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "尋找偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "尋找偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "尋找偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "刪除偏好設定時遇到錯誤"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "找不到警告計量。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "站台網址："
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "總活躍使用者"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "電子郵件地址："
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "升級至企業版"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost 強烈建議將使用者數量超過 {limit} 的佈署升級至企業版，企業版提供使用者管理、伺服器叢集、效能監控等功能。"
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
     }
 ]

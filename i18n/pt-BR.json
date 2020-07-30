@@ -7781,5 +7781,45 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Não é possível copiar o anexo para um arquivo zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Encontramos um erro ao limpar o lote de flags."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Encontramos um erro enquanto atualizava as preferências."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Encontramos um erro enquanto excluía as preferências."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Encontramos um erro enquanto excluía as preferências."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total Usuários Ativos"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Email:"
     }
 ]

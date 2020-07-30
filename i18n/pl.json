@@ -7714,5 +7714,45 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Nie można skopiować załącznika do pliku zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Wystąpił błąd w trakcie aktualizacji ustawień"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Wystąpił błąd w trakcie kasowania ustawień"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Wystąpił błąd w trakcie kasowania ustawień"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "URL strony:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Ogólnie aktywnych użytkowników"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-Mail:"
     }
 ]

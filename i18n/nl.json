@@ -7969,5 +7969,33 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Unable to copy the attachment into the zip file."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Er is een fout opgetreden bij het opschonen van de reeks vlaggen."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het bijwerken van de voorkeuren."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het opzoeken van voorkeuren."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het opzoeken van voorkeuren."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het opzoeken van voorkeuren."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Er is een probleem opgetreden tijden het verwijderen van voorkeuren."
     }
 ]

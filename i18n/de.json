@@ -7713,5 +7713,49 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Warnmetrik konnte nicht gefunden werden."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Seiten-URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Gesamte aktive Benutzer"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-Mail:"
     }
 ]

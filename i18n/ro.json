@@ -7946,5 +7946,33 @@
     {
         "id": "ent.compliance.actiance.attachment.copy.appError",
         "translation": "Imposibil de copiat atașamentul în fișierul zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Am întâlnit o eroare la curățarea lotului de steaguri."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Am întâlnit o eroare la actualizarea preferințelor."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Am întâmpinat o eroare la ștergerea preferințelor."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Am întâlnit o eroare la găsirea preferințelor."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Am întâlnit o eroare la găsirea preferințelor."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Am întâlnit o eroare la găsirea preferințelor."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Am întâlnit o eroare la ștergerea preferințelor."
     }
 ]
