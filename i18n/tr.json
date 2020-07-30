@@ -7708,11 +7708,11 @@
     },
     {
         "id": "app.user.permanentdeleteuser.internal_error",
-        "translation": "Kod silinemedi."
+        "translation": "Kullanıcı silinemedi."
     },
     {
         "id": "app.team.permanentdeleteteam.internal_error",
-        "translation": "Kod silinemedi."
+        "translation": "Takım silinemedi."
     },
     {
         "id": "app.session.update_device_id.app_error",
@@ -7764,7 +7764,7 @@
     },
     {
         "id": "app.oauth.update_app.find.app_error",
-        "translation": "Güncellenecek var olan uygulama bulunamadı."
+        "translation": "Var olan güncellenecek uygulama bulunamadı."
     },
     {
         "id": "app.oauth.save_app.save.app_error",
@@ -7812,15 +7812,15 @@
     },
     {
         "id": "app.command.movecommand.internal_error",
-        "translation": "Komut kaydedilemedi."
+        "translation": "Komut taşınamadı."
     },
     {
         "id": "app.command.listteamcommands.internal_error",
-        "translation": "Komutlar alınamadı."
+        "translation": "Takım komutları listelenemedi."
     },
     {
         "id": "app.command.listallcommands.internal_error",
-        "translation": "Komutlar alınamadı."
+        "translation": "Komutlar listelenemedi."
     },
     {
         "id": "app.command.getcommand.internal_error",
@@ -7881,5 +7881,145 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "SMTP sunucusu zorunludur"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise E20 sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise E10 sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Danışmanı"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Mattermost Danışmanı hakkında ayrıntılı bilgi alın](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özellikler sunan Mattermost Enterprise E20 sürümünün kullanılmasını önerir."
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "{{.WarnMetricName}} değeri kaydedilemedi"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Ölçüt bulunamadı."
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "Yönetici listesi boş."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost ile iletişim kurma isteği"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site adresi: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Etkin Kullanıcı Toplamı: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "Tanı kodu: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "İlgili: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-posta: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Mattermost Enterprise sürümüne yükseltin"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "SAML 2.0 ile bütünleştirin"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "AD/LDAP ile bütünleştirin"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Bize e-posta gönderin"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Bizimle iletişim kurmak"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum."
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Bizimle iletişim kurun"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Mattermost ile iletişim kurduğunuz için teşekkür ederiz. Kısa süre içinde size yazacağız."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "İleti gönderilemedi."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Lütfen bize e-posta gönderin."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost ile iletişim kurma isteği"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "Site adresi: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Etkin Kullanıcı Toplamı: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "E-posta: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "Tanı kodu: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "İlgili: {{.Contact}}"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Uyarı ölçütü bulunamadı."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Yönetici onayı e-postası gönderilemedi"
     }
 ]
