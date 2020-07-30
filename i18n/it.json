@@ -7604,7 +7604,7 @@
     },
     {
         "id": "api.invalid_channel",
-        "translation": "Il canale elencato nella richiesta non appartiene all'utente"
+        "translation": "I canali nella richiesta non sono di pertinenza dell'utente"
     },
     {
         "id": "app.command_webhook.try_use.invalid",
