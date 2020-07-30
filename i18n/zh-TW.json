@@ -7884,5 +7884,69 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "須填入 SMTP 伺服器"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "寄送電子郵件給我們"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "正在聯絡我們"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "聯絡我們"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost 聯絡我們 要求。我的團隊現有 {{.Limit}} 使用者，正在考慮企業版。\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "感謝您對 Mattermost 有興趣，我們會盡快聯絡。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "無法發送訊息。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "請寄送電子郵件給我們。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost 聯絡我們 要求"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "站台網址：{{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "總活躍使用者：{{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "如果有其他的查詢，請聯絡 support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "電子郵件：{{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "診斷 ID：{{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "聯絡：{{.Contact}}"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "找不到警告計量。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "寄送管理員通知郵件時失敗"
     }
 ]
