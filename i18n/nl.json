@@ -7785,5 +7785,13 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "SMTP-server is verplicht"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Contacteer ons"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Dank je om Mattermost te contacteren. We nemen spoedig contact op met jou."
     }
 ]

@@ -7808,5 +7808,17 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "SMTPサーバーが必要です"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "メッセージエクスポートデータを選択できませんでした。"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "コンプライアンスリポート保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
     }
 ]

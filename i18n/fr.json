@@ -7681,5 +7681,17 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "Un serveur SMTP est nécessaire"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Impossible de sélectionner les données d'exportation de messages"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Une erreur s'est produite lors de l'enregistrement du rapport de conformité"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Une erreur s'est produite lors du chargement des rapports de conformité"
     }
 ]

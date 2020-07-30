@@ -7697,5 +7697,17 @@
     {
         "id": "api.config.update_config.clear_siteurl.app_error",
         "translation": "Site URL kann nicht leer sein."
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
     }
 ]

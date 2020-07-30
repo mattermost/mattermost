@@ -7754,5 +7754,13 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "Serverul SMTP este necesar"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Contactează-ne"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Vă mulțumim că ați contactat Mattermost. Vă vom contacta în curând."
     }
 ]
