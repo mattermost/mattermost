@@ -61,7 +61,7 @@ const (
 	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
 	ImagePreviewWidth    = 1920
 
-	UploadFileInitialBufferSize = 2 * 1024 * 1024 // 2Mb
+	maxUploadInitialBufferSize = 1024 * 1024 // 1Mb
 
 	// Deprecated
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
@@ -549,6 +549,12 @@ func (t *UploadFileTask) init(a *App) {
 		t.limit = t.ContentLength
 	} else {
 		t.limit = t.maxFileSize
+	}
+
+	if t.ContentLength > 0 && t.ContentLength < maxUploadInitialBufferSize {
+		t.buf.Grow(int(t.ContentLength))
+	} else {
+		t.buf.Grow(maxUploadInitialBufferSize)
 	}
 
 	t.fileinfo = model.NewInfo(filepath.Base(t.Name))
