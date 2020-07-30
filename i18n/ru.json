@@ -5168,18 +5168,6 @@
         "translation": "Невозможно получить команду."
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Возникла ошибка с получением комплаенс-отчетов."
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Не удалось выбрать данные экспорта сообщений."
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Возникла ошибка при сохранении комплаенс-отчета."
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Невозможно удалить вложения пользователя."
     },
@@ -5288,10 +5276,6 @@
         "translation": "Невозможно получить количество пользователей с сообщениями."
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Невозможно получить сообщения экспорта комплаенса."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Невозможно удалить сообщение."
     },
@@ -5382,58 +5366,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Невозможно обновить сообщение."
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Мы столкнулись с ошибкой при очистке пакета флагов."
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Возникла ошибка при удалении настроек."
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Возникла ошибка при поиске настроек."
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Возникла ошибка при поиске настроек."
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Возникла ошибка при поиске настроек."
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Настройка с таким идентификатором пользователя, категорией и именем уже существует."
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Невозможно сохранить настройки."
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Возникла ошибка при удалении настроек."
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Невозможно зафиксировать транзакцию по сохранению настроек."
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Возникла ошибка при обновлении настроек."
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Невозможно начать транзакцию по сохранению настроек."
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Возникла ошибка при обновлении настроек."
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Невозможно обновить настройки."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5882,42 +5814,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Невозможно обновить поле проверки электронной почты."
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Невозможно удалить персональный токен доступа."
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Не удалось получить персональный токен доступа."
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Не удалось получить все персональные токены доступа."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Не удалось получить персональный токен доступа по токену."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Не удалось получить персональные токены доступа по пользователю."
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Не удалось сохранить персональный токен доступа."
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "При поиске токенов доступа пользователя произошла ошибка."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Невозможно отключить токен доступа."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Невозможно включить токен доступа."
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7668,10 +7564,6 @@
         "translation": "Не удалось зафиксировать транзакцию."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Миграция не удалась из-за неверных данных о прогрессе."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "Невозможно удалить ненастраиваемую категорию."
     },
@@ -7682,10 +7574,6 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Невозможно получить приватные каналы."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Миграция не удалась из-за ошибки базы данных."
     },
     {
         "id": "app.recover.save.app_error",

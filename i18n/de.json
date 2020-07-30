@@ -5163,18 +5163,6 @@
         "translation": "Konnte den Befehl nicht abrufen."
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Die Anhänge des Benutzers konnten nicht gelöscht werden."
     },
@@ -5283,10 +5271,6 @@
         "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Konnte die Compliance-Export-Nachrichten nicht abrufen."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Konnte die Nachricht nicht löschen."
     },
@@ -5377,58 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Konnte die Nachricht nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Es trat ein Fehler beim Sichen der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Eine Einstellung mit dieser Benutzer-ID, Kategorie und Name existiert bereits"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Konnte die Einstellung nicht speichern."
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Konnte Transaktion zum Speichern der Einstellungen nicht ausführen"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Öffnen der Transaktion zum Speichern der Einstellungen nicht möglich"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Konnte die Einstellung nicht aktualisieren."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5877,42 +5809,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Es konnte das E-Mail-Adresse bestätigt Feld nicht aktualisiert werden"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Token abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Konnte das Zugriffs-Token nicht aktivieren."
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7509,10 +7405,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Konnte die Transaktion nicht ausführen."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migration aufgrund ungültiger Fortschrittsdaten fehlgeschlagen ."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",

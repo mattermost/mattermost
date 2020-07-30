@@ -5158,18 +5158,6 @@
         "translation": "无法获取命令"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "我们获取合规报告时遇到错误"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "选择消息导出数据失败"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "我们保存合规报告时遇到错误"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "无法删除用户的附件"
     },
@@ -5278,10 +5266,6 @@
         "translation": "无法获取用户的消息数量"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "无法获取合规导出消息。"
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "无法删除消息。"
     },
@@ -5372,58 +5356,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "无法更新消息"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "清理批量标记时遇到错误"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "我们删除偏好设置时出现错误"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "我们在查找偏好设置时遇到了一个错误"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "我们在查找偏好设置时遇到了一个错误"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "我们在查找偏好设置时遇到了一个错误"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "一个带用户id,分类，名称的偏好设置已经存在"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "无法保存偏好"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "我们删除偏好设置时出现一个错误"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "保存偏好设置时无法提交事务"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "我们更新偏好设置时出现一个错误"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "保存偏好设置时不能打开事务"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "我们更新偏好设置时出现一个错误"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "无法更新偏好"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5872,42 +5804,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "无法更新验证电子邮件字段"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "无法删除个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "无法获取个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "无法获取所有个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "无法从令牌获取个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "无法从用户获取个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "无法保存个人访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "我们查找用户访问令牌时遇到一个错误"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "无法停用该访问令牌"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "无法开启该访问令牌"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7622,10 +7518,6 @@
         "translation": "无法提交事务"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "迁移因无效进度数据失败。"
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "批量永久删除互动时遇到错误"
     },
@@ -7828,10 +7720,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "插入数据至数据库失败。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "迁移因数据错误而失败。"
     },
     {
         "id": "ent.ldap_id_migrate.app_error",

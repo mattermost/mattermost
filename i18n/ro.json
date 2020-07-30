@@ -5168,18 +5168,6 @@
         "translation": "Nu se poate obține comanda"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Am intalnit o eroare regăsirea rapoarte de conformitate"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Nu a reuşit să selectaţi datele de export mesaj"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Am întâlnit o eroare la salvarea raportul de conformitate"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Imposibil de șters atașamentele utilizatorului"
     },
@@ -5288,10 +5276,6 @@
         "translation": "Nu s-a putut obține conturile utilizatorilor cu postări"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Imposibilitatea de a obține posturile de export conforme."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Nu se poate șterge postarea"
     },
@@ -5382,58 +5366,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Imposibil de actualizat Postarea"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Am intalnit o eroare de curăţare a lotului de steaguri"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Am întâmpinat o eroare în timpul ștergerii preferințelor"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Am întâmpinat o eroare la găsirea preferințelor"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Am întâmpinat o eroare la găsirea preferințelor"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Am întâmpinat o eroare la găsirea preferințelor"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "O preferință cu acea identitate de utilizator, categorie și nume există deja"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Imposibil de salvat preferința"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Am întâmpinat o eroare în timpul ștergerii preferințelor"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Imposibilitatea de a comite tranzacţie pentru a salva preferinţele"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Am întâlnit o eroare în timpul actualizării preferinte"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Imposibil de deschis tranzacţie pentru a salva preferinţele"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Am întâlnit o eroare în timpul actualizării preferinte"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Imposibil de actualizat preferința"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5882,42 +5814,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Imposibil de actualizat câmpul de confirmare a e-mailului"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Imposibil de șters indicativul de acces personal"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Imposibil de obținut indicativul de acces personal"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Nu se pot obține toate jetoanele de acces personale"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Imposibil de obținut tokenul de acces personal cu jeton"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Imposibil de obținut token-urile personale de acces de către utilizator"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Nu am putut salva jetonul de acces personal"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Am întâmpinat o eroare în căutarea jetoanelor de acces utilizator"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Imposibil de dezactivat simbolul de acces"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Imposibil de activat indicativul de acces"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7670,10 +7566,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nu s-a putut efectua tranzacția"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migrarea a eșuat din cauza datelor de progres invalide."
     },
     {
         "id": "app.command.listteamcommands.internal_error",

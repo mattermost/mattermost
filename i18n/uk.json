@@ -5168,18 +5168,6 @@
         "translation": "Не вдається отримати команду"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Виникла помилка при спробі прочитати файл"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Не вдалося вибрати дані експорту повідомлення"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Виникла помилка при спробі прочитати файл"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Не вдалося видалити вкладення користувача"
     },
@@ -5288,10 +5276,6 @@
         "translation": "Неможливо отримати кількість користувачів із повідомленнями"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Ми не змогли отримати відповідні експортні повідомлення."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Неможливо видалити публікацію"
     },
@@ -5382,58 +5366,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Не вдається оновити повідомлення"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Виникла помилка при видаленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Виникла помилка при пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Виникла помилка при пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Виникла помилка під час пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Налаштування з таким ідентифікатором користувача, категорією і ім'ям вже існує"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Не вдається зберегти налаштування"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Виникла помилка при видаленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Неможливо зафіксувати транзакцію по збереженню налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Виникла помилка при оновленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Неможливо розпочати транзакцію по збереженню налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Виникла помилка при оновленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Не вдається зберегти налаштування"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5882,42 +5814,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Неможливо оновити поле перевірки електронної пошти"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Не вдалося видалити персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Не вдалося отримати персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Не можливо отримати всі токени особистого доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Не вдалося отримати персональний токен доступу по токену"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Не вдалося отримати персональні токени доступу для користувача"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Неможливо зберегти персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Ми виявили помилку пошуку токенів доступу користувача"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Неможливо зберегти токен"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7514,10 +7410,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Не вдається здійснити транзакцію"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Не вдалося перемістити через недійсні дані про перебіг."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",

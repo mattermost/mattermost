@@ -5158,18 +5158,6 @@
         "translation": "コマンドを取得できませんでした。"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "コンプライアンスリポートを取得する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "メッセージエクスポートデータを選択できませんでした。"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "コンプライアンスリポート保存する際にエラーが発生しました。"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "ユーザーの添付ファイルを削除できませんでした。"
     },
@@ -5278,10 +5266,6 @@
         "translation": "投稿をしたユーザー数を取得できませんでした。"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "コンプライアンスエクスポート投稿を取得できませんでした。"
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "投稿を削除できませんでした。"
     },
@@ -5372,58 +5356,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "投稿を更新できませんでした。"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "フラグのバッチ処理をクリーンアップする際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "設定を削除する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "設定を探す際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "設定を探す際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "設定を探す際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "ユーザーIDとカテゴリー、名前の設定は既に存在しています。"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "設定を保存できませんでした。"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "設定を削除する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "設定を保存するトランザクションをコミットできません。"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "設定を更新する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "設定を保存するトランザクションを開始できません。"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "設定を更新する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "設定を更新できませんでした。"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5872,42 +5804,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "電子メールアドレスの確認欄を更新できません。"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "パーソナルアクセストークンを削除できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "パーソナルアクセストークンを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "パーソナルアクセストークンを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "トークンからパーソナルアクセストークンを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "ユーザーからパーソナルアクセストークンを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "パーソナルアクセストークンを保存できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "アクセストークンを探す際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "アクセストークンを無効化できませんでした。"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "アクセストークンを有効化できませんでした。"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7654,10 +7550,6 @@
         "translation": "トランザクションをコミットできませんでした。"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "不正な進捗データのため移行に失敗しました。"
-    },
-    {
         "id": "app.command.listteamcommands.internal_error",
         "translation": "コマンドを取得できませんでした。"
     },
@@ -7820,10 +7712,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "データベースへレコードを挿入できませんでした。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "データベースエラーによりマイグレーションできませんでした。"
     },
     {
         "id": "app.channel.create_initial_sidebar_categories.internal_error",

@@ -5158,18 +5158,6 @@
         "translation": "내용을 가져올수 없습니다."
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "We encountered an error retrieving the compliance reports"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Failed to select message export data"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "We encountered an error saving the compliance report"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Unable to delete attachments of the user"
     },
@@ -5278,10 +5266,6 @@
         "translation": "Unable to get user counts with posts"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Unable to get the compliance export posts."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "내용을 가져올수 없습니다."
     },
@@ -5372,58 +5356,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "We encountered an error cleaning up the batch of flags"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "We encountered an error while deleting preferences"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "We encountered an error while finding preferences"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "We encountered an error while finding preferences"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "We encountered an error while finding preferences"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "A preference with that user id, category, and name already exists"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Unable to save the preference"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "We encountered an error while deleteing preferences"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Unable to commit transaction to save preferences"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "We encountered an error while updating preferences"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Unable to open transaction to save preferences"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "We encountered an error while updating preferences"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Unable to update the preference"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5872,42 +5804,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Unable to update verify email field"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "We encountered an error finding the access token"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "채널을 찾을 수 없습니다"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7504,10 +7400,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Unable to commit transaction"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migration failed due to invalid progress data."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",

@@ -5158,18 +5158,6 @@
         "translation": "無法取得指令"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "取得規範報告時遇到錯誤"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "無法選擇匯出訊息資料"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "儲存規範報告時遇到錯誤"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "無法刪除使用者的附件檔案"
     },
@@ -5278,10 +5266,6 @@
         "translation": "無法取得使用者訊息計數"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "無法取得合規匯出訊息。"
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "無法刪除訊息"
     },
@@ -5372,58 +5356,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "無法更新訊息"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "永久批次清除標記時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "刪除偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "尋找偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "尋找偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "尋找偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "包含該使用者 ID、類別以及名稱的偏好設定已存在"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "無法儲存偏好"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "刪除偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "無法提交交易去儲存偏好設定"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "更新偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "無法開啟交易去儲存偏好設定"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "更新偏好設定時遇到錯誤"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "無法更新偏好"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5872,42 +5804,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "無法更新驗證電子郵件欄位"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "無法刪除個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "無法取得個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "無法取得全部的個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "無法根據 Token 取得個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "無法根據使用者取得個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "無法刪除儲存個人存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "尋找存取 Token 時遇到錯誤"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "無法停用存取 Token"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "無法啟用存取 Token"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7506,10 +7402,6 @@
         "translation": "無法提交交易"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "由於無效的進度資料，移轉失敗"
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "永久批次刪除回應時遇到錯誤"
     },
@@ -7732,10 +7624,6 @@
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "需要服務提供者識別碼"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "由於資料庫錯誤，遷移失敗。"
     },
     {
         "id": "ent.ldap_id_migrate.app_error",

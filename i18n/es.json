@@ -5163,18 +5163,6 @@
         "translation": "No se pudo obtener el comando"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Se ha detectado un error al recuperar los informes de conformidad"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Error al seleccionar los mensajes a exportar"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Se ha detectado un error al guardar el informe de conformidad"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "No se pudo eliminar los archivos adjuntos del usuario"
     },
@@ -5283,10 +5271,6 @@
         "translation": "No se pudo obtener el número de usuarios con mensajes"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "No se pudo obtener los mensajes para la exportación del Informe de Conformidad."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "No se puede eliminar el mensaje"
     },
@@ -5377,58 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "No se puede actualizar el mensaje"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Encontramos un error mientras eliminabamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Encontramos un error mientras buscamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Encontramos un error mientras buscamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Encontramos un error mientras buscamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "La preferencia para ese usuario, categoria y nombre ya existe"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "No se puede guardar la preferencia"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Encontramos un error mientras eliminabamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "No se pudo hacer commit de la transacción para guardar las preferencias"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Encontramos un error mientras actualizabamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "No se pudo abrir la transacción para guardar las preferencias"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Encontramos un error mientras actualizabamos las preferencias"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "No se puede actualizar la preferencia"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5877,42 +5809,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "No se puede actualizar el campo de verificar correo"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "No se puede eliminar el token de acceso personal"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "No se puede obtener el token de acceso personal"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "No se puede obtener todos los tokens de acceso personal"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "No se puede obtener el token de acceso personal por token"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "No se puede obtener el token de acceso personal por usuario"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "No se puede guardar el token de acceso personal"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Encontramos un error buscando los tokens de acceso"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "No se puede inhabilitar el token de acceso"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "No se puede habilitar guardar token de acceso"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7651,10 +7547,6 @@
         "translation": "No se puede perpetrar la transacción"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "La migración ha fallado porque hay datos erróneos de progreso."
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "Cambió más de un registro."
     },
@@ -7865,10 +7757,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Ocurrió un error al insertar el registro en la base de datos."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "La Migración falló debido a un error de la base de datos"
     },
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",

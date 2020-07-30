@@ -5168,18 +5168,6 @@
         "translation": "Nie można uzyskać komendy"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Nie można wybrać danych eksportu wiadomości"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Wystąpił błąd podczas zapisywania raportu zgodności"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Nie można usunąć załączników użytkownika"
     },
@@ -5288,10 +5276,6 @@
         "translation": "Nie można uzyskać liczby użytkowników za pomocą postów"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Nie można uzyskać wpisów eksportu zgodności."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Nie można usunąć wpisu"
     },
@@ -5382,58 +5366,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Nie można zaktualizować wpisu"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Napotkaliśmy błąd podczas czyszczenia partii flag"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Wystąpił błąd w trakcie kasowania ustawień"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania ustawień"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "To ustawienie dla danego użytkownika i kategorii już istnieje"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Nie można zapisać preferencji"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Wystąpił błąd w trakcie kasowania ustawień"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Nie udało się zakończyć transakcji w trakcie zapisu ustawień"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Wystąpił błąd w trakcie aktualizacji ustawień"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Nie udało się rozpocząć transakcji w trakcie zapisu ustawień"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Wystąpił błąd w trakcie aktualizacji ustawień"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Nie można zaktualizować preferencji"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5882,42 +5814,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Nie można zaktualizować pola weryfikacji adresu e-mail"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Nie można usunąć osobistego tokenu dostępu"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Nie można uzyskać osobistego tokenu dostępu"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Nie można uzyskać wszystkich osobistych tokenów dostępu"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Nie można uzyskać osobistego tokenu dostępu za pomocą tokena"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Nie można uzyskać osobistych tokenów dostępu przez użytkownika"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Nie można zapisać osobistego tokenu dostępu"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Napotkaliśmy błąd podczas wyszukiwania tokenów dostępu użytkownika"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Nie można wyłączyć tokenu dostępu"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Nie można włączyć tokenu dostępu"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7530,10 +7426,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Nie można dokonać transakcji"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migracja nie powiodła się z powodu nieprawidłowych danych o postępach."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",

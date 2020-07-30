@@ -5163,18 +5163,6 @@
         "translation": "Impossible de récupérer la commande"
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Une erreur s'est produite lors du chargement des rapports de conformité"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Impossible de sélectionner les données d'exportation de messages"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Une erreur s'est produite lors de l'enregistrement du rapport de conformité"
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Impossible de supprimer les fichiers joints de l'utilisateur"
     },
@@ -5283,10 +5271,6 @@
         "translation": "Impossible de récupérer le nombre d'utilisateurs ayant envoyé des messages"
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Impossible de récupérer les messages de l'export de conformité."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "Impossible de supprimer le message"
     },
@@ -5377,58 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Impossible de modifier le message"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Une erreur s'est produite lors du nettoyage du lot des indicateurs"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Une erreur s'est produite lors de la suppression des préférences"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des préférences"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des préférences"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des préférences"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Une préférence avec cet id utilisateur, catégorie et nom existe déjà"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Impossible de sauvegarder les préférences"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Une erreur s'est produite lors de la suppression des préférences"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction d'enregistrement des préférences"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Une erreur s'est produite lors de la modification des préférences"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Impossible d'ouvrir une transaction pour enregistrer les préférences"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Une erreur s'est produite lors de la modification des préférences"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Impossible de mettre à jour les préférences"
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5877,42 +5809,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "Impossible de mettre à jour le champ de vérification de l'adresse e-mail"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Impossible de supprimer le jeton d'accès personnel"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Impossible de récupérer le jeton d'accès personnel"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Impossible de récupérer tous les jetons d'accès personnel"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Impossible de récupérer le jeton d'accès personnel par jeton"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Impossible de récupérer les jetons d'accès personnel par utilisateur"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Impossible d'enregistrer le jeton d'accès personnel"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des jetons d'accès personnel"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Impossible de désactiver le jeton d'accès"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Impossible d'activer le jeton d'accès"
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7509,10 +7405,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Impossible de valider la transaction"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "La migration a échoué à cause de données de progression invalides."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",

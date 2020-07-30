@@ -5163,18 +5163,6 @@
         "translation": "Komut alınamadı."
     },
     {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Uygunluk raporları alınırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "İleti dışa aktarma verisi seçilemedi."
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Uygunluk raporu kaydedilirken bir sorun çıktı."
-    },
-    {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
         "translation": "Kullanıcının ek dosyaları silinemedi."
     },
@@ -5283,10 +5271,6 @@
         "translation": "İletilerin kullanıcı sayıları alınamadı."
     },
     {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Dışa aktarılan uygunluk iletileri alınamadı."
-    },
-    {
         "id": "store.sql_post.delete.app_error",
         "translation": "İleti silinemedi."
     },
@@ -5377,58 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "İleti güncellenemedi."
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "İşaretler toplu olarak temizlenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Ayarlar silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Bu kullanıcı kodu, kategori ve adı taşıyan bir ayar zaten var."
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Ayar kaydedilemedi."
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Ayarlar silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Ayarlar kaydedilirken işlem tamamlanamadı."
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Ayarlar güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Ayarlar kaydedilirken işlem açılamadı."
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Ayarlar güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Ayar güncellenemedi."
     },
     {
         "id": "store.sql_role.delete.update.app_error",
@@ -5877,42 +5809,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "E-posta doğrulama alanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Kişisel erişim kodu silinemedi."
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Kişisel erişim kodu alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Tüm kişisel erişim kodları alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Koda göre kişisel erişim kodu alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Kişisel erişim kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Kullanıcı erişim kodları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Erişim kodu devre dışı bırakılamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Erişim kodu etkinleştirilemedi."
     },
     {
         "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7667,20 +7563,12 @@
         "translation": "İşlem tamamlanamadı."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "Özel olmayan kategori silinemedi."
     },
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Kayıt veritabanına eklenemedi."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Veritabanı sorunu nedeniyle aktarılamadı."
     },
     {
         "id": "app.channel.create_initial_sidebar_categories.internal_error",
