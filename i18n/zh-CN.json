@@ -7644,5 +7644,173 @@
     {
         "id": "app.reaction.bulk_get_for_post_ids.app_error",
         "translation": "无法获取消息的互动"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "无法获取命令。"
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "无效的 webhook。"
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "无法使用 webhook。"
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "无法解析传入数据。"
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "无法获取 webhook。"
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "无法获取 webhook。"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "无法保存 CommandWebhook。"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "您不能更新现有的 CommandWebhook。"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "我们更新此应用时遇到错误。"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "未找到现有的应用进行更新。"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "无法保存应用。"
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "必须对现有的应用执行更新。"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "无法移除令牌。"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "无法删除授权码。"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "寻找 OAuth2 应用时遇到错误。"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "没找到现有的应用。"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "我们查找此应用时遇到错误。"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "无法找到请求的应用。"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "我们查找所有访问令牌时遇到错误。"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "删除 OAuth2 应用时遇到错误。"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "无法删除令牌。"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "无法删除令牌。"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "无法更新设备 id。"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "无法更新现有会话。"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "无法保存会话。"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "无法移除所有会话。"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "无法移除该会话。"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "无法删除该用户所有的会话。"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "我们在查找用户会话时遇到错误。"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "我们在查找此会话时遇到错误。"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "无法会话计数。"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "无法更新命令。"
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "无法保存命令。"
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "无法获取命令。"
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "无法获取命令。"
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "无法删除命令。"
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "无法保存命令。"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "无法保存令牌。"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "无法删除令牌。"
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "无法获取所有频道。"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "获取频道在指定时间段的用户失败。"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "清理记录失败。"
     }
 ]

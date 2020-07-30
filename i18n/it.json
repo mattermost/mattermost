@@ -7713,5 +7713,157 @@
     {
         "id": "api.invalid_channel",
         "translation": "Il canale elencato nella richiesta non appartiene all'utente"
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Webhook non valido"
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Impossibile utilizzare il webhook"
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Impossibile analizzare i dati in ingresso"
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Impossibile ottenere il webhook"
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Impossibile ottenere il webhook"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Impossibile salvare il ComandoWebhook"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Impossibile aggiornare un comando Webhook esistente"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Riscontrato un errore nel aggiornamento dell'app"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Non è stato possibile trovare l'app da aggiornare"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Impossibile salvare l'app."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "L'aggiornamento deve essere invocato per le app esistenti"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Impossibile salvare il token"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Non è stato possibile rimuovere il codice di autorizzazione"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Si è verificato un errore durante la ricerca delle app OAuth2"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Impossibile trovare un'app esistente"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Errore riscontrato nel trovare l'app"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Impossibile ottenere l'app richiesta"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Si è verificato un errore durante la ricerca del token di accesso"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Si è verificato un errore durante l'eliminazione dell'App OAuth2"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Impossibile eliminare il token"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Impossibile eliminare il token"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Impossibile aggiornare l'id utente"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Impossibile aggiornare la sessione esistente"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Impossibile salvare la sessione"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Impossibile rimuovere tutte le sessioni"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Impossibile rimuovere la sessione"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Non è stato possibile rimuovere tutte le sessioni per l'utente"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Errore riscontrato durante la ricerca delle sessioni utente"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Errore riscontrato nel trovare la sessione"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Impossibile contare le sessioni"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Impossibile salvare il token"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Impossibile eliminare il token"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "Impossibile eliminare una categoria non personalizzata."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "Impossibile inserire la riga nel database."
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "Migrazione fallita a causa di un errore sul database."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Impossibile recuperare tutti i canali"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "Impossibile cancellare i record"
     }
 ]

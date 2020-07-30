@@ -7697,5 +7697,153 @@
     {
         "id": "ent.get_users_in_channel_during",
         "translation": " "
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Não foi possível obter os comandos."
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Webhook inválido."
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Não foi possível utilizar o webhook."
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Não é possível processar os dados de entrada."
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Não foi possível obter o webhook."
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Não foi possível obter o webhook."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Não foi possível salvar o CommandWebhook."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Você não pode atualizar o CommandWebhook existente."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Encontramos um erro ao atualizar o app."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Não foi possível encontrar o app existente para atualizar."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Não foi possível salvar o app."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Deve chamar atualização para aplicação existente."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Não foi possível remover o token de acesso."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Não conseguimos remover o código de autorização."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Ocorreu um erro ao encontrar os Apps OAuth2."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Não foi possível encontrar nenhum app existente."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Encontramos um erro ao procurar o app."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Não foi possível encontrar o app requisitado."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Encontramos um erro ao procurar todos os token de acesso."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Ocorreu um erro ao excluir o App OAuth2."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Não é possível excluir o token."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Não é possível excluir o token."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Não foi possível atualizar o id do dispositivo."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Não foi possível atualizar a sessão existente."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Não foi possível salvar a sessão."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Não foi possível remover todas as sessões."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Não foi possível remover a sessão."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Não foi possível remover todas as sessões do usuário."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Encontramos um erro enquanto procurava a sessão do usuário."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Encontramos um erro ao procurar a sessão."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Não foi possível contar as sessões."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Não foi possível atualizar o comando."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Não foi possível obter os comandos."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Não foi possível obter o comando."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Não foi possível excluir o comando."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Não foi possível salvar o Comando."
     }
 ]
