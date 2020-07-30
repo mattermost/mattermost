@@ -588,13 +588,14 @@ func (s *Server) trackConfig() {
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
-		"enable":                  *cfg.ClusterSettings.Enable,
-		"network_interface":       isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":            isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":       isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":          *cfg.ClusterSettings.UseIpAddress,
-		"use_experimental_gossip": *cfg.ClusterSettings.UseExperimentalGossip,
-		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                                *cfg.ClusterSettings.Enable,
+		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
+		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
+		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
