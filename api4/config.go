@@ -255,34 +255,49 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")
 
-		hasPermission := false
+		// If there are no access tag values and the role has manage_system, no need to continue
+		// checking permissions.
+		if len(tagPermissions) == 0 {
+			if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+				return true
+			}
+		}
+
+		// one iteration for write_restrictable value, it could be anywhere in the order of values
 		for _, val := range tagPermissions {
 			tagValue := strings.TrimSpace(val)
-
 			if tagValue == "" {
 				continue
 			}
-
-			// ConfigAccessTagRestrictSysAdminWrite trumps all other permissions
-			if tagValue == model.ConfigAccessTagRestrictSysAdminWrite {
+			// ConfigAccessTagWriteRestrictable trumps all other permissions
+			if tagValue == model.ConfigAccessTagWriteRestrictable {
 				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
 					return false
 				}
 				continue
 			}
+		}
 
-			// check for the permission associated to the tag value
+		// another iteration for permissions checks of other tag values
+		for _, val := range tagPermissions {
+			tagValue := strings.TrimSpace(val)
+			if tagValue == "" {
+				continue
+			}
+			if tagValue == model.ConfigAccessTagWriteRestrictable {
+				continue
+			}
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
 				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
-					// don't return early because ConfigAccessTagRestrictSysAdminWrite could be the last tag value
-					hasPermission = true
+					return true
 				}
 			} else {
 				mlog.Warn("Unrecognized config permissions tag value.", mlog.String("tag_value", permissionID))
 			}
 		}
 
-		return hasPermission
+		// with manage_system, default to allow, otherwise default not-allow
+		return c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	}
 }
