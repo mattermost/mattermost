@@ -18,6 +18,7 @@ import (
 
 var writeFilter func(c *Context, structField reflect.StructField) bool
 var readFilter func(c *Context, structField reflect.StructField) bool
+var permissionMap map[string]*model.Permission
 
 type filterType string
 
@@ -36,6 +37,10 @@ func (api *API) InitConfig() {
 func init() {
 	writeFilter = makeFilterConfigByPermission(filterTypeWrite)
 	readFilter = makeFilterConfigByPermission(filterTypeRead)
+	permissionMap = map[string]*model.Permission{}
+	for _, p := range model.AllPermissions {
+		permissionMap[p.Id] = p
+	}
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -244,9 +249,8 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
 	return func(c *Context, structField reflect.StructField) bool {
-		permissionMap := map[string]*model.Permission{}
-		for _, p := range model.AllPermissions {
-			permissionMap[p.Id] = p
+		if structField.Type.Kind() == reflect.Struct {
+			return true
 		}
 
 		tagPermissions := strings.Split(structField.Tag.Get("access"), ",")

@@ -2752,8 +2752,6 @@ const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 // By default config values can be updated with the PERMISSION_MANAGE_SYSTEM permission. If ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'restrict_sys_admin_write', then even PERMISSION_MANAGE_SYSTEM does not grant write access.
 //
-// The access tag value does not automatically grant write access to all child struct field.
-//
 // Example:
 //  type HairSettings struct {
 //      // Colour is writeable by PERMISSION_WRITE_SYSCONSOLE_REPORTING,
@@ -2761,58 +2759,54 @@ const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 //      Colour string `access:"reporting,user_management_groups"`
 //
 //
-//      // Length and Barber are only writeable by PERMISSION_MANAGE_SYSTEM.
+//      // Length is only writeable by PERMISSION_MANAGE_SYSTEM.
 //      Length string
-//      Barber Barber
-//
-//      // Shampoo may have fields that are writeable by PERMISSION_WRITE_SYSCONSOLE_REPORTING.
-//      Shampoo Shampoo `access:"reporting"`
 //  }
 //
 //  type Barber struct {
-//      // Brand is writeable by roles with PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
-//      Brand string `access:"reporting"`
+//      // Name is writeable by roles with PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
+//      Name string `access:"reporting"`
 //
-//      // Cheap is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
-//      Cheap bool `access:restrict_sys_admin_write`
+//      // Price is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
+//      Price bool `access:restrict_sys_admin_write`
 //  }
 type Config struct {
-	ServiceSettings           ServiceSettings `access:"environment,authentication,site,integrations"`
+	ServiceSettings           ServiceSettings
 	TeamSettings              TeamSettings
 	ClientRequirements        ClientRequirements
-	SqlSettings               SqlSettings               `access:"environment"`
-	LogSettings               LogSettings               `access:"environment"`
-	ExperimentalAuditSettings ExperimentalAuditSettings `access:"experimental"`
+	SqlSettings               SqlSettings
+	LogSettings               LogSettings
+	ExperimentalAuditSettings ExperimentalAuditSettings
 	NotificationLogSettings   NotificationLogSettings
-	PasswordSettings          PasswordSettings `access:"authentication"`
+	PasswordSettings          PasswordSettings
 	FileSettings              FileSettings
 	EmailSettings             EmailSettings
-	RateLimitSettings         RateLimitSettings `access:"environment"`
-	PrivacySettings           PrivacySettings   `access:"site"`
+	RateLimitSettings         RateLimitSettings
+	PrivacySettings           PrivacySettings
 	SupportSettings           SupportSettings
-	AnnouncementSettings      AnnouncementSettings `access:"site"`
+	AnnouncementSettings      AnnouncementSettings
 	ThemeSettings             ThemeSettings
-	GitLabSettings            SSOSettings          `access:"authentication"`
-	GoogleSettings            SSOSettings          `access:"authentication"`
-	Office365Settings         Office365Settings    `access:"authentication"`
-	LdapSettings              LdapSettings         `access:"authentication"`
-	ComplianceSettings        ComplianceSettings   `access:"compliance"`
-	LocalizationSettings      LocalizationSettings `access:"site"`
-	SamlSettings              SamlSettings         `access:"authentication"`
-	NativeAppSettings         NativeAppSettings    `access:"site"`
-	ClusterSettings           ClusterSettings      `access:"environment"`
-	MetricsSettings           MetricsSettings      `access:"environment"`
+	GitLabSettings            SSOSettings
+	GoogleSettings            SSOSettings
+	Office365Settings         Office365Settings
+	LdapSettings              LdapSettings
+	ComplianceSettings        ComplianceSettings
+	LocalizationSettings      LocalizationSettings
+	SamlSettings              SamlSettings
+	NativeAppSettings         NativeAppSettings
+	ClusterSettings           ClusterSettings
+	MetricsSettings           MetricsSettings
 	ExperimentalSettings      ExperimentalSettings
 	AnalyticsSettings         AnalyticsSettings
-	ElasticsearchSettings     ElasticsearchSettings `access:"environment"`
-	BleveSettings             BleveSettings         `access:"experimental"`
-	DataRetentionSettings     DataRetentionSettings `access:"compliance"`
-	MessageExportSettings     MessageExportSettings `access:"compliance"`
+	ElasticsearchSettings     ElasticsearchSettings
+	BleveSettings             BleveSettings
+	DataRetentionSettings     DataRetentionSettings
+	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	PluginSettings            PluginSettings        `access:"plugins"`
-	DisplaySettings           DisplaySettings       `access:"site,experimental"`
-	GuestAccountsSettings     GuestAccountsSettings `access:"authentication"`
-	ImageProxySettings        ImageProxySettings    `access:"environment"`
+	PluginSettings            PluginSettings
+	DisplaySettings           DisplaySettings
+	GuestAccountsSettings     GuestAccountsSettings
+	ImageProxySettings        ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {

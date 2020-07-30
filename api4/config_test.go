@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -31,12 +32,12 @@ func TestGetConfig(t *testing.T) {
 		if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		require.True(t, cfg.FileSettings.PublicLinkSalt == nil || *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING, "did not sanitize properly")
+		require.Equal(t, model.FAKE_SETTING, *cfg.FileSettings.PublicLinkSalt, "did not sanitize properly")
 
-		if cfg.FileSettings.AmazonS3AccessKeyId != nil && *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+		if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
-		if cfg.EmailSettings.SMTPPassword != nil && *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
+		if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
 		if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
@@ -144,7 +145,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), fmt.Sprintf(`{"ServiceSettings":{"SiteURL":"%s"}}`, *cfg.ServiceSettings.SiteURL))
 			require.Nil(t, appErr)
 		})
 
