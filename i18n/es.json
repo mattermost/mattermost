@@ -7656,7 +7656,7 @@
     },
     {
         "id": "store.sql_group.more_than_one_row_changed",
-        "translation": "Más de uno rema cambiado."
+        "translation": "Cambió más de un registro."
     },
     {
         "id": "api.user.delete_team.not_enabled.app_error",
@@ -7664,11 +7664,11 @@
     },
     {
         "id": "store.sql_command.update.missing.app_error",
-        "translation": "La orden no existe."
+        "translation": "El comando no existe."
     },
     {
         "id": "store.sql_command.get.missing.app_error",
-        "translation": "La orden no existe."
+        "translation": "El comando no existe."
     },
     {
         "id": "ent.ldap_id_migrate.app_error",
