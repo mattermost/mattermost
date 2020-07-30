@@ -7692,7 +7692,7 @@
     },
     {
         "id": "app.command.listteamcommands.internal_error",
-        "translation": "Kan de opdrachten niet ophalen."
+        "translation": "Kan de team opdrachten niet oplijsten."
     },
     {
         "id": "app.command_webhook.try_use.invalid",
@@ -7820,7 +7820,7 @@
     },
     {
         "id": "app.command.movecommand.internal_error",
-        "translation": "Kan de opdracht niet bewaren."
+        "translation": "Kan de opdracht niet verplaatsen."
     },
     {
         "id": "app.command.listallcommands.internal_error",
@@ -7828,7 +7828,7 @@
     },
     {
         "id": "app.command.getcommand.internal_error",
-        "translation": "Kan de opdracht niet verkrijgen."
+        "translation": "Kan de opdracht niet ophalen."
     },
     {
         "id": "app.command.deletecommand.internal_error",
@@ -7845,5 +7845,25 @@
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
         "translation": "Opschonen van records is mislukt."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Fout bij het uitvoeren van de eigen opdracht."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Kan het opdrachttoken niet opnieuw genereren."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Kan de auto-aanvul opdrachten niet oplijsten."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Maar dan één rij is gewijzigd."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "Fout bij het ophalen van de statistieken."
     }
 ]
