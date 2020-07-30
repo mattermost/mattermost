@@ -7716,5 +7716,241 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "We encountered an error retrieving the compliance reports"
+    },
+    {
+        "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
+        "translation": "가장 오래된 엔티티 작성 시간을 얻을 수 없습니다."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "둘 이상의 행이 변경되었습니다."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "명령이 존재하지 않습니다."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "명령이 존재하지 않습니다."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "비 사용자 정의 카테고리를 삭제할 수 없습니다."
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "데이터베이스에 레코드를 삽입하지 못했습니다."
+    },
+    {
+        "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+        "translation": "서비스 제공자 식별자가 필요합니다"
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "마이그레이션 할 수 없습니다."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Actiance xml 파일에 작성하는 중에 오류가 발생했습니다"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Actiance 경고 텍스트 파일을 작성하는 중에 오류가 발생했습니다"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Actiance XML 파일을 작성하는 중에 오류가 발생했습니다"
+    },
+    {
+        "id": "ent.cluster.timeout.error",
+        "translation": "클러스터 응답 대기 시간이 초과되었습니다"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "{{.WarnMetricName}}의 값을 저장하지 못했습니다"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "측정 항목을 찾을 수 없습니다."
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "관리자 목록이 비어 있습니다."
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Advisor"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Mattermost Advisor에 대해 자세히 알아보기](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "config.json의 DownloadExportResults가 false입니다. 이 작업의 결과를 다운로드하려면 이 것을 true로 설정하십시오."
+    },
+    {
+        "id": "app.emoji.get_by_name.no_result",
+        "translation": "이모지를 찾을 수 없습니다."
+    },
+    {
+        "id": "app.emoji.get.no_result",
+        "translation": "이모지를 찾을 수 없습니다."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "사용자 정의 명령을 실행할 수 없습니다."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "명령 토큰을 재생성 할 수 없습니다."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "자동 완성 명령을 나열 할 수 없습니다."
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "사용자에 대한 초기 사이드 바 카테고리를 생성할 수 없습니다."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "분석을 할 수 없습니다."
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "영구 사용자 삭제 기능이 활성화되어 있지 않습니다. 시스템 관리자에게 문의하십시오."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "영구 팀 삭제 기능이 활성화되어 있지 않습니다. 시스템 관리자에게 문의하십시오."
+    },
+    {
+        "id": "api.user.autocomplete_users.missing_team_id.app_error",
+        "translation": "채널별로 자동 완성하려면 팀 ID 매개 변수가 필요합니다."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}}명의 사용자가 있으며 Mattermost Enterprise Edition을 고려하고 있습니다."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "추가 문의 사항이 있으면 support@mattermost.com으로 문의하십시오"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "사이트 URL: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "총 등록된 사용자: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "진단 Id: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "연락처: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "이메일: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Mattermost Enterprise 버전으로 업그레이드"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost는 사용자 관리, 서버 클러스터링 및 성능 모니터링과 같은 기능을 제공하는 Mattermost Enterprise E20으로 500명 이상의 사용자를 수용할 것을 강력히 권장합니다."
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "현재 당신의 Mattermost 시스템에는 400명의 사용자가 있습니다. Mattermost를 조직의 single sign-on 공급자와 연결하면 사용자는 자격 증명을 다시 입력하지 않고도 Mattermost에 액세스 할 수 있습니다. Mattermost Enterprise E20에서 제공되는 SAML 2.0과의 통합에 대한 자세한 내용은 지원 부서에 문의하십시오.\n[SAML 2.0과의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "현재 당신의 Mattermost 시스템에는 200명의 사용자가 있습니다. 사용자층이 증가함에 따라 새로운 계정을 프로비저닝하는 데 시간이 많이 걸릴 수 있습니다. 계정을 가진 모든 사람이 Mattermost에 액세스 할 수 있도록, Mattermost Enterprise E10으로 업그레이드하고 조직의 Active Directory/LDAP를 통합하는 것을 추천합니다. 사용자는 새로운 사용자 이름과 비밀번호를 만들 필요없이 로그인 할 수 있으며 관리자는 계정 프로비저닝 및 관리 시간을 절약 할 수 있습니다.\n[AD/LDAP와의 통합에 대해 자세히 알아보기](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost 문의 요청. 현재 팀에 {{.Limit}} 명의 사용자가 있으며 Mattermost Enterprise Edition을 고려하고 있습니다.\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Mattermost에 문의 해 주셔서 감사합니다. 곧 연락 드리겠습니다."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "메시지를 보낼 수 없습니다."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "이메일을 보내 주시기 바랍니다."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "사이트 URL: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "총 등록된 사용자: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "추가 문의 사항이 있으면 support@mattermost.com으로 문의하십시오"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "이메일: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "진단 Id: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "연락처: {{.Contact}}"
+    },
+    {
+        "id": "api.push_notifications.session.expired",
+        "translation": "세션 만료 : 알림을 계속 받으려면 로그인하십시오. {{.siteName}}의 세션은 시스템 관리자에 의해 {{.daysCount}}일마다 만료되도록 구성되어 있습니다."
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "업데이트 된 환경 설정과 일치하도록 사이드 바를 업데이트 할 수 없습니다"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "삭제 된 환경 설정과 일치하도록 사이드 바를 업데이트 할 수 없습니다"
+    },
+    {
+        "id": "api.post.error_get_post_id.pending",
+        "translation": "대기중인 게시물을 가져올 수 없음."
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "평가판 라이센스를 요청할 수 없습니다. Mattermost 시스템 콘솔의 웹 서버 섹션에서 사이트 URL을 구성하십시오."
+    },
+    {
+        "id": "api.license.request_trial_license.app_error",
+        "translation": "평가판 라이센스를 얻을 수없는 경우 다시 시도하거나 support@mattermost.com에 문의하십시오."
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "라이센스를 요청하려면 Mattermost 소프트웨어 평가 계약 및 개인 정보 보호 정책에 동의해야합니다."
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "이 작업을 다운로드할 수 없음"
     }
 ]
