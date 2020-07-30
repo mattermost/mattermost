@@ -7540,10 +7540,6 @@
         "translation": "Не вдається здійснити транзакцію"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Не вдалося перемістити через недійсні дані про перебіг."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
     },
@@ -7758,5 +7754,21 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Неможливо видалити канали прямого або групового повідомлення"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Потрібно SMTP сервер"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Адреса сайту:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Усього активних користувачів"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Адреса електронної пошти:"
     }
 ]

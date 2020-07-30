@@ -7539,10 +7539,6 @@
         "translation": "Não é possível confirmar a transação"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "A migração falhou devido a dados de progresso inválidos."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Encontramos um erro ao apagar o lote de reações"
     },
@@ -7597,10 +7593,6 @@
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "É necessário o Identificador do Provedor de Serviços"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Falha na migração devido a erro no banco de dados."
     },
     {
         "id": "ent.elasticsearch.delete_user_posts.error",
@@ -7841,5 +7833,29 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Servidor SMTP é obrigatório"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Falha ao enviar email de confirmação do administrador"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total Usuários Ativos"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Email:"
     }
 ]

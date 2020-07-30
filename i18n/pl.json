@@ -7556,10 +7556,6 @@
         "translation": "Nie można dokonać transakcji"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migracja nie powiodła się z powodu nieprawidłowych danych o postępach."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
     },
@@ -7770,5 +7766,21 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Nie można pobrać wszystkich kanałów"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Serwer SMTP jest wymagany."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "URL strony:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Ogólnie aktywnych użytkowników"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-Mail:"
     }
 ]

@@ -7535,10 +7535,6 @@
         "translation": "Impossible de valider la transaction"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "La migration a échoué à cause de données de progression invalides."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Une erreur s'est produite lors de la suppression définitive du lot de réactions"
     },
@@ -7753,5 +7749,21 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Impossible de supprimer des canaux de groupe ou de messages personnels"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Un serveur SMTP est nécessaire"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "URL de site :"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total utilisateurs actifs"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Adresse e-mail :"
     }
 ]

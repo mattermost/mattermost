@@ -7678,20 +7678,12 @@
         "translation": "トランザクションをコミットできませんでした。"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "不正な進捗データのため移行に失敗しました。"
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "既定のカテゴリを削除できませんでした。"
     },
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "データベースへレコードを挿入できませんでした。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "データベースエラーによりマイグレーションできませんでした。"
     },
     {
         "id": "ent.get_users_in_channel_during",
@@ -7880,5 +7872,21 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "削除された設定と一致するようサイドバーを更新できませんでした"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTPサーバーが必要です"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "サイトURL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "総アクティブユーザー"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "電子メールアドレス:"
     }
 ]
