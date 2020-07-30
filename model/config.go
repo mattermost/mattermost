@@ -290,7 +290,7 @@ type ServiceSettings struct {
 	CorsAllowCredentials                              *bool    `access:"integrations,restrict_sys_admin_write"`
 	CorsDebug                                         *bool    `access:"integrations,restrict_sys_admin_write"`
 	AllowCookiesForSubdomains                         *bool    `access:"restrict_sys_admin_write"`
-	ExtendSessionLengthWithActivity                   *bool    `access:"restrict_sys_admin_write"`
+	ExtendSessionLengthWithActivity                   *bool    `access:"environment,restrict_sys_admin_write"`
 	SessionLengthWebInDays                            *int     `access:"environment,restrict_sys_admin_write"`
 	SessionLengthMobileInDays                         *int     `access:"environment,restrict_sys_admin_write"`
 	SessionLengthSSOInDays                            *int     `access:"environment,restrict_sys_admin_write"`
@@ -307,32 +307,32 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation *string  `json:"RestrictCustomEmojiCreation" mapstructure:"RestrictCustomEmojiCreation"` // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string  `json:"RestrictPostDelete" mapstructure:"RestrictPostDelete"`                   // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string  `json:"AllowEditPost" mapstructure:"AllowEditPost"`                             // This field is deprecated and must not be used.
-	PostEditTimeLimit                                 *int
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `access:"restrict_sys_admin_write"`
-	EnablePostSearch                                  *bool  `access:"restrict_sys_admin_write"`
-	MinimumHashtagLength                              *int   `access:"environment,restrict_sys_admin_write"`
-	EnableUserTypingMessages                          *bool  `access:"restrict_sys_admin_write"`
-	EnableChannelViewedMessages                       *bool  `access:"restrict_sys_admin_write"`
-	EnableUserStatuses                                *bool  `access:"restrict_sys_admin_write"`
-	ExperimentalEnableAuthenticationTransfer          *bool  `access:"experimental,restrict_sys_admin_write"`
-	ClusterLogTimeoutMilliseconds                     *int   `access:"restrict_sys_admin_write"`
-	CloseUnusedDirectMessages                         *bool
-	EnablePreviewFeatures                             *bool
-	EnableTutorial                                    *bool
-	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental"`
-	ExperimentalGroupUnreadChannels                   *string `access:"experimental"`
-	ExperimentalChannelOrganization                   *bool   `access:"experimental"`
-	ExperimentalChannelSidebarOrganization            *string `access:"experimental"`
-	ExperimentalDataPrefetch                          *bool
-	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
+	PostEditTimeLimit                                 *int     `access:"user_management_permissions"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64   `access:"experimental,restrict_sys_admin_write"`
+	EnablePostSearch                                  *bool    `access:"restrict_sys_admin_write"`
+	MinimumHashtagLength                              *int     `access:"environment,restrict_sys_admin_write"`
+	EnableUserTypingMessages                          *bool    `access:"experimental,restrict_sys_admin_write"`
+	EnableChannelViewedMessages                       *bool    `access:"experimental,restrict_sys_admin_write"`
+	EnableUserStatuses                                *bool    `access:"restrict_sys_admin_write"`
+	ExperimentalEnableAuthenticationTransfer          *bool    `access:"experimental,restrict_sys_admin_write"`
+	ClusterLogTimeoutMilliseconds                     *int     `access:"restrict_sys_admin_write"`
+	CloseUnusedDirectMessages                         *bool    `access:"experimental"`
+	EnablePreviewFeatures                             *bool    `access:"experimental"`
+	EnableTutorial                                    *bool    `access:"experimental"`
+	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool    `access:"experimental"`
+	ExperimentalGroupUnreadChannels                   *string  `access:"experimental"`
+	ExperimentalChannelOrganization                   *bool    `access:"experimental"`
+	ExperimentalChannelSidebarOrganization            *string  `access:"experimental"`
+	ExperimentalDataPrefetch                          *bool    `access:"experimental"`
+	DEPRECATED_DO_NOT_USE_ImageProxyType              *string  `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string  `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string  `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental"`
 	DisableLegacyMFA                                  *bool `access:"restrict_sys_admin_write"`
 	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental,restrict_sys_admin_write"`
-	EnableEmailInvitations                            *bool
+	EnableEmailInvitations                            *bool `access:"authentication"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations,restrict_sys_admin_write"`
 	EnableBotAccountCreation                          *bool `access:"integrations"`
 	EnableSVGs                                        *bool `access:"site"`
@@ -1347,16 +1347,16 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 }
 
 type EmailSettings struct {
-	EnableSignUpWithEmail             *bool `access:"authentication"`
-	EnableSignInWithEmail             *bool `access:"authentication"`
-	EnableSignInWithUsername          *bool `access:"authentication"`
-	SendEmailNotifications            *bool `access:"site"`
-	UseChannelInEmailNotifications    *bool
+	EnableSignUpWithEmail             *bool   `access:"authentication"`
+	EnableSignInWithEmail             *bool   `access:"authentication"`
+	EnableSignInWithUsername          *bool   `access:"authentication"`
+	SendEmailNotifications            *bool   `access:"site"`
+	UseChannelInEmailNotifications    *bool   `access:"experimental"`
 	RequireEmailVerification          *bool   `access:"authentication"`
 	FeedbackName                      *string `access:"site"`
 	FeedbackEmail                     *string `access:"site"`
 	ReplyToAddress                    *string `access:"site"`
-	FeedbackOrganization              *string
+	FeedbackOrganization              *string `access:"site"`
 	EnableSMTPAuth                    *bool   `access:"environment,restrict_sys_admin_write"`
 	SMTPUsername                      *string `access:"environment,restrict_sys_admin_write"`
 	SMTPPassword                      *string `access:"environment,restrict_sys_admin_write"`
@@ -1368,15 +1368,15 @@ type EmailSettings struct {
 	PushNotificationServer            *string `access:"environment"`
 	PushNotificationContents          *string `access:"site"`
 	PushNotificationBuffer            *int
-	EnableEmailBatching               *bool `access:"site"`
-	EmailBatchingBufferSize           *int
-	EmailBatchingInterval             *int
+	EnableEmailBatching               *bool   `access:"site"`
+	EmailBatchingBufferSize           *int    `access:"experimental"`
+	EmailBatchingInterval             *int    `access:"experimental"`
 	EnablePreviewModeBanner           *bool   `access:"site"`
 	SkipServerCertificateVerification *bool   `access:"environment,restrict_sys_admin_write"`
 	EmailNotificationContentsType     *string `access:"site"`
-	LoginButtonColor                  *string
-	LoginButtonBorderColor            *string
-	LoginButtonTextColor              *string
+	LoginButtonColor                  *string `access:"experimental"`
+	LoginButtonBorderColor            *string `access:"experimental"`
+	LoginButtonTextColor              *string `access:"experimental"`
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -1581,7 +1581,7 @@ type SupportSettings struct {
 	SupportEmail                           *string `access:"site"`
 	CustomTermsOfServiceEnabled            *bool   `access:"compliance"`
 	CustomTermsOfServiceReAcceptancePeriod *int    `access:"compliance"`
-	EnableAskCommunityLink                 *bool
+	EnableAskCommunityLink                 *bool   `access:"site"`
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1673,9 +1673,9 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool
-	DefaultTheme         *string
-	AllowCustomThemes    *bool
+	EnableThemeSelection *bool   `access:"experimental"`
+	DefaultTheme         *string `access:"experimental"`
+	AllowCustomThemes    *bool   `access:"experimental"`
 	AllowedThemes        []string
 }
 
@@ -1698,32 +1698,32 @@ func (s *ThemeSettings) SetDefaults() {
 }
 
 type TeamSettings struct {
-	SiteName                                                  *string `access:"site"`
-	MaxUsersPerTeam                                           *int    `access:"site"`
-	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool   `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
-	EnableUserCreation                                        *bool   `access:"authentication"`
-	EnableOpenServer                                          *bool   `access:"authentication"`
-	EnableUserDeactivation                                    *bool
-	RestrictCreationToDomains                                 *string `access:"authentication"`
-	EnableCustomBrand                                         *bool   `access:"site"`
-	CustomBrandText                                           *string `access:"site"`
-	CustomDescriptionText                                     *string `access:"site"`
-	RestrictDirectMessage                                     *string `access:"site"`
-	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
-	EnableXToLeaveChannelsFromLHS                             *bool   `access:"experimental"`
-	UserStatusAwayTimeout                                     *int64
+	SiteName                                                  *string  `access:"site"`
+	MaxUsersPerTeam                                           *int     `access:"site"`
+	DEPRECATED_DO_NOT_USE_EnableTeamCreation                  *bool    `json:"EnableTeamCreation" mapstructure:"EnableTeamCreation"` // This field is deprecated and must not be used.
+	EnableUserCreation                                        *bool    `access:"authentication"`
+	EnableOpenServer                                          *bool    `access:"authentication"`
+	EnableUserDeactivation                                    *bool    `access:"experimental"`
+	RestrictCreationToDomains                                 *string  `access:"authentication"`
+	EnableCustomBrand                                         *bool    `access:"site"`
+	CustomBrandText                                           *string  `access:"site"`
+	CustomDescriptionText                                     *string  `access:"site"`
+	RestrictDirectMessage                                     *string  `access:"site"`
+	DEPRECATED_DO_NOT_USE_RestrictTeamInvite                  *string  `json:"RestrictTeamInvite" mapstructure:"RestrictTeamInvite"`                                   // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement     *string  `json:"RestrictPublicChannelManagement" mapstructure:"RestrictPublicChannelManagement"`         // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement    *string  `json:"RestrictPrivateChannelManagement" mapstructure:"RestrictPrivateChannelManagement"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelCreation       *string  `json:"RestrictPublicChannelCreation" mapstructure:"RestrictPublicChannelCreation"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelCreation      *string  `json:"RestrictPrivateChannelCreation" mapstructure:"RestrictPrivateChannelCreation"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion       *string  `json:"RestrictPublicChannelDeletion" mapstructure:"RestrictPublicChannelDeletion"`             // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion      *string  `json:"RestrictPrivateChannelDeletion" mapstructure:"RestrictPrivateChannelDeletion"`           // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManageMembers *string  `json:"RestrictPrivateChannelManageMembers" mapstructure:"RestrictPrivateChannelManageMembers"` // This field is deprecated and must not be used.
+	EnableXToLeaveChannelsFromLHS                             *bool    `access:"experimental"`
+	UserStatusAwayTimeout                                     *int64   `access:"experimental"`
 	MaxChannelsPerTeam                                        *int64   `access:"site"`
 	MaxNotificationsPerChannel                                *int64   `access:"environment"`
 	EnableConfirmNotificationsToChannel                       *bool    `access:"site"`
 	TeammateNameDisplay                                       *string  `access:"site"`
-	ExperimentalViewArchivedChannels                          *bool    `access:"experimental"`
+	ExperimentalViewArchivedChannels                          *bool    `access:"experimental,site"`
 	ExperimentalEnableAutomaticReplies                        *bool    `access:"experimental"`
 	ExperimentalHideTownSquareinLHS                           *bool    `access:"experimental"`
 	ExperimentalTownSquareIsReadOnly                          *bool    `access:"experimental"`
@@ -2589,11 +2589,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType      *string // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername      *string
-	SmtpPassword      *string
-	EmailAddress      *string // the address to send messages to
-	SMTPServerTimeout *int
+	CustomerType      *string `access:"compliance"` // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername      *string `access:"compliance"`
+	SmtpPassword      *string `access:"compliance"`
+	EmailAddress      *string `access:"compliance"` // the address to send messages to
+	SMTPServerTimeout *int    `access:"compliance"`
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
