@@ -130,8 +130,8 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
-		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 

@@ -177,8 +177,8 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT) {
-		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_ENVIRONMENT)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
 		return
 	}
 

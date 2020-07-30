@@ -2744,7 +2744,7 @@ type ConfigFunc func() *Config
 const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 
 // Config fields support the 'access' tag with the following values corresponding to the suffix of the associated
-// PERMISSION_WRITE_SYSCONSOLE_* name: 'about', 'reporting', 'user_management_users',
+// PERMISSION_SYSCONSOLE_WRITE_* name: 'about', 'reporting', 'user_management_users',
 // 'user_management_groups', 'user_management_teams', 'user_management_channels',
 // 'user_management_permissions', 'environment', 'site', 'authentication', 'plugins',
 // 'integrations', 'compliance', 'plugins', and 'experimental'.
@@ -2754,8 +2754,8 @@ const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 //
 // Example:
 //  type HairSettings struct {
-//      // Colour is writeable by PERMISSION_WRITE_SYSCONSOLE_REPORTING,
-//      // PERMISSION_WRITE_SYSCONSOLE_USER_MANAGEMENT_GROUPS, and PERMISSION_MANAGE_SYSTEM permissions.
+//      // Colour is writeable by PERMISSION_SYSCONSOLE_WRITE_REPORTING,
+//      // PERMISSION_SYSCONSOLE_WRITE_USER_MANAGEMENT_GROUPS, and PERMISSION_MANAGE_SYSTEM permissions.
 //      Colour string `access:"reporting,user_management_groups"`
 //
 //
@@ -2764,7 +2764,7 @@ const ConfigAccessTagRestrictSysAdminWrite = "restrict_sys_admin_write"
 //  }
 //
 //  type Barber struct {
-//      // Name is writeable by roles with PERMISSION_WRITE_SYSCONSOLE_REPORTING permission.
+//      // Name is writeable by roles with PERMISSION_SYSCONSOLE_WRITE_REPORTING permission.
 //      Name string `access:"reporting"`
 //
 //      // Price is only writeable by PERMISSION_MANAGE_SYSTEM if ExperimentalSettings.RestrictSystemAdmin is false.
