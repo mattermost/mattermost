@@ -74,11 +74,8 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -134,11 +131,8 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
@@ -238,11 +232,8 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("remote_id", c.Params.RemoteId)
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_GROUPS)
 		return
 	}
 

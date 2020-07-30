@@ -36,11 +36,8 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -63,11 +60,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -81,11 +75,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -110,11 +101,8 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_TEAMS)
 		return
 	}
 
@@ -144,11 +132,8 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_CHANNELS)
 		return
 	}
 
@@ -199,11 +184,8 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("scheme", scheme)
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -234,11 +216,8 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 

@@ -392,11 +392,8 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS,
-	}
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_USERS)
 		return
 	}
 
@@ -1465,11 +1462,8 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_WRITE_SYSCONSOLE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -1528,11 +1522,8 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		groupIDs = append(groupIDs, gid)
 	}
 
-	permissions := []*model.Permission{
-		model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS,
-	}
-	if !c.App.SessionHasPermissionToAny(*c.App.Session(), permissions) {
-		c.SetPermissionError(permissions...)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_READ_SYSCONSOLE_USERMANAGEMENT_GROUPS)
 		return
 	}
 
