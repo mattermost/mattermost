@@ -7861,5 +7861,9 @@
     {
         "id": "app.oauth.delete_app.app_error",
         "translation": "Si è verificato un errore durante l'eliminazione dell'App OAuth2"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "E' richiesto un server SMTP"
     }
 ]

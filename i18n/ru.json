@@ -7894,5 +7894,21 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "Невозможно обновить боковую панель, чтобы соответствовать удаленным настройкам"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Связаться с нами"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Спасибо, что связались с Mattermost. Мы свяжемся с вами в ближайшее время."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Требуется SMTP сервер"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Не удалось отправить администратору письмо с подтверждением"
     }
 ]

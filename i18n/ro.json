@@ -7826,5 +7826,9 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "Imposibil de salvat comanda."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Serverul SMTP este necesar"
     }
 ]

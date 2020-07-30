@@ -7885,5 +7885,9 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP sunucusu zorunludur"
     }
 ]

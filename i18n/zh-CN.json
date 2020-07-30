@@ -7868,5 +7868,9 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "无法保存命令。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "需要SMTP服务器"
     }
 ]

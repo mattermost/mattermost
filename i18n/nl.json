@@ -7861,5 +7861,9 @@
     {
         "id": "app.session.get.app_error",
         "translation": "Er is een fout opgetreden bij het zoeken naar de sessie."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP-server is verplicht"
     }
 ]

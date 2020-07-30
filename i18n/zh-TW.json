@@ -7880,5 +7880,9 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "無法更新側邊欄以符合刪除的偏好設定"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "須填入 SMTP 伺服器"
     }
 ]

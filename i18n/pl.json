@@ -7770,5 +7770,9 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Nie można pobrać wszystkich kanałów"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Serwer SMTP jest wymagany."
     }
 ]

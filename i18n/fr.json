@@ -7753,5 +7753,9 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Impossible de supprimer des canaux de groupe ou de messages personnels"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Un serveur SMTP est nécessaire"
     }
 ]

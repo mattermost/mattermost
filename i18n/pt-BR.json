@@ -7841,5 +7841,9 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Servidor SMTP é obrigatório"
     }
 ]

@@ -7753,5 +7753,9 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP-Server wird benötigt"
     }
 ]

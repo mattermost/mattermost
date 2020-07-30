@@ -7758,5 +7758,9 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "Неможливо видалити канали прямого або групового повідомлення"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Потрібно SMTP сервер"
     }
 ]

@@ -7880,5 +7880,9 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "削除された設定と一致するようサイドバーを更新できませんでした"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTPサーバーが必要です"
     }
 ]

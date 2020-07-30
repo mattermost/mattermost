@@ -7748,5 +7748,9 @@
     {
         "id": "api.channel.move_channel.type.invalid",
         "translation": "개인 혹은 단체 메시지 채널을 삭제할 수 없습니다"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP 서버가 필요합니다"
     }
 ]
