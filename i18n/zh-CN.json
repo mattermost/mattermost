@@ -7812,5 +7812,65 @@
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
         "translation": "清理记录失败。"
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "命令不存在。"
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "命令不存在。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
+        "translation": "无法删除非自定义分类。"
+    },
+    {
+        "id": "store.sql_channel.sidebar_categories.app_error",
+        "translation": "插入数据至数据库失败。"
+    },
+    {
+        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
+        "translation": "迁移因数据错误而失败。"
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "无法迁移。"
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "无法执行自定义指令。"
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "无法生成命令令牌。"
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "无法列出命令自动完成。"
+    },
+    {
+        "id": "app.channel.create_initial_sidebar_categories.internal_error",
+        "translation": "无法创建用户初始侧栏分类。"
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "无法获取分析结果。"
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "永久删除功能未开启。请联系您的系统管理员。"
+    },
+    {
+        "id": "api.license.request_trial_license.no-site-url.app_error",
+        "translation": "无法请求试用许可证。请在 Mattermost 系统控制台设置站点网址。"
+    },
+    {
+        "id": "api.license.request-trial.bad-request.terms-not-accepted",
+        "translation": "您在请求许可证前必须接受 Mattermost Software Evaluation Agreement 以及隐私政策。"
+    },
+    {
+        "id": "api.invalid_channel",
+        "translation": "请求中的频道列表不属于用户"
     }
 ]
