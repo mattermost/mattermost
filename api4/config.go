@@ -259,13 +259,16 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		for _, val := range tagPermissions {
 			tagValue := strings.TrimSpace(val)
 
+			if tagValue == "" {
+				continue
+			}
+
 			// ConfigAccessTagRestrictSysAdminWrite trumps all other permissions
-			if accessType == filterTypeWrite {
-				if tagValue == model.ConfigAccessTagRestrictSysAdminWrite {
-					if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-						return false
-					}
+			if tagValue == model.ConfigAccessTagRestrictSysAdminWrite {
+				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
+					return false
 				}
+				continue
 			}
 
 			// check for the permission associated to the tag value
