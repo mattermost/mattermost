@@ -7965,5 +7965,37 @@
     {
         "id": "app.compliance.get.finding.app_error",
         "translation": "Uygunluk raporları alınırken bir sorun çıktı."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Actiance uyarı metin dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Ek dosya zip dosyasına kopyalanamadı."
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "config.json içindeki DownloadExportResults seçeneği false olarak ayarlanmış. Bu görevin sonuçlarını indirmek için bu seçeneği true olarak ayarlayın."
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Bu görev indirilemedi"
     }
 ]
