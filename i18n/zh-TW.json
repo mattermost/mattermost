@@ -7844,5 +7844,33 @@
     {
         "id": "app.oauth.save_app.existing.app_error",
         "translation": "必須為現有的應用程式呼叫更新。"
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "無效的 Webhook"
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "無法使用 Webhook"
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "無法解析流入的資料"
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "無法取得 Webhook"
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "無法取得 Webhook"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "無法儲存指令 Webhook"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "無法更新現有的命令 Webhook"
     }
 ]

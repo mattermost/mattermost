@@ -7674,5 +7674,161 @@
     {
         "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
         "translation": "Migrarea a eșuat din cauza datelor de progres invalide."
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Imposibil de obținut comenzile."
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Webhook invalid."
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Imposibil de utilizat webhook-ul."
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Imposibil de analizat datele primite."
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Imposibil să obțineți webhook-ul."
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Imposibil să obțineți webhook-ul."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Imposibil de salvat comanda CommandWebhook."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Nu puteți actualiza un CommandWebhook existent."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Am întâlnit o eroare la actualizarea aplicației."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Nu se poate găsi aplicația existentă pentru actualizare."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Imposibil de salvat aplicația."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Trebuie să apelați actualizarea pentru aplicația existentă."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Imposibil de eliminat tokenul de acces."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Imposibil de eliminat codul de autorizare."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "A apărut o eroare la găsirea aplicațiilor OAuth2."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Nu se pot găsi aplicații existente."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Am întâlnit o eroare la găsirea aplicației."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Nu se poate găsi aplicația solicitată."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Am întâlnit o eroare la găsirea tuturor jetoanelor de acces."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "A apărut o eroare la ștergerea aplicației OAuth2."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Imposibil de șters token."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Imposibil de șters token."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Imposibil de actualizat ID-ul dispozitivului."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Imposibil de actualizat sesiunea existentă."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Imposibil de salvat sesiunea."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Imposibil de eliminat toate sesiunile."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Imposibil de eliminat sesiunea."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Imposibil de eliminat toate sesiunile pentru utilizator."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Am întâlnit o eroare la găsirea sesiunilor de utilizator."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Am întâlnit o eroare la găsirea sesiunii."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Imposibil de numărat sesiunile."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Nu se poate actualiza comanda."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Imposibil de salvat comanda."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Imposibil de obținut comenzile."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Nu se poate obține comanda."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Imposibil de șters comanda."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Imposibil de salvat comanda."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Imposibil de salvat jetonul."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Imposibil de șters token."
     }
 ]
