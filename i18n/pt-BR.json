@@ -7821,5 +7821,17 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "Email:"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Falha ao enviar email de confirmação do administrador"
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Não foi possível obter o usuário da sessão UserID."
     }
 ]
