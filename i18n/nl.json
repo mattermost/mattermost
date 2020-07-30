@@ -401,7 +401,7 @@
     },
     {
         "id": "api.command_away.name",
-        "translation": "afwezig "
+        "translation": "afwezig"
     },
     {
         "id": "api.command_away.success",
@@ -461,7 +461,7 @@
     },
     {
         "id": "api.command_channel_purpose.permission.app_error",
-        "translation": "You don't have the appropriate permissions to edit the channel purpose."
+        "translation": "Je hebt niet voldoende rechten om het kanaal doel te bewerken."
     },
     {
         "id": "api.command_channel_purpose.update_channel.app_error",
@@ -477,7 +477,7 @@
     },
     {
         "id": "api.command_channel_rename.desc",
-        "translation": "Rename the channel"
+        "translation": "Het kanaal hernoemen"
     },
     {
         "id": "api.command_channel_rename.direct_group.app_error",
@@ -493,15 +493,15 @@
     },
     {
         "id": "api.command_channel_rename.name",
-        "translation": "rename"
+        "translation": "hernoemen"
     },
     {
         "id": "api.command_channel_rename.permission.app_error",
-        "translation": "You don't have the appropriate permissions to rename the channel."
+        "translation": "Je hebt niet voldoende rechten om het kanaal te hernoemen."
     },
     {
         "id": "api.command_channel_rename.too_long.app_error",
-        "translation": "Kanaalnaam moet {{.Length}}  of minder karakters zijn."
+        "translation": "Kanaalnaam moet {{.Length}} of minder karakters zijn."
     },
     {
         "id": "api.command_channel_rename.too_short.app_error",
@@ -509,11 +509,11 @@
     },
     {
         "id": "api.command_channel_rename.update_channel.app_error",
-        "translation": "Error to update the current channel."
+        "translation": "Fout bij het bijwerken van het huidige kanaal."
     },
     {
         "id": "api.command_code.desc",
-        "translation": "Display text as a code block"
+        "translation": "Toon tekst als een blok code"
     },
     {
         "id": "api.command_code.hint",
@@ -541,23 +541,23 @@
     },
     {
         "id": "api.command_dnd.desc",
-        "translation": "Do not disturb disables desktop and mobile push notifications."
+        "translation": "Niet storen schakelt desktop en mobiele pushmeldingen uit."
     },
     {
         "id": "api.command_dnd.disabled",
-        "translation": "Do Not Disturb is disabled."
+        "translation": "Niet storen is ingeschakeld."
     },
     {
         "id": "api.command_dnd.error",
-        "translation": "Error to retrieve the user status."
+        "translation": "Fout bij het ophalen van de status van de gebruiker."
     },
     {
         "id": "api.command_dnd.name",
-        "translation": "dnd"
+        "translation": "niet storen"
     },
     {
         "id": "api.command_dnd.success",
-        "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+        "translation": "Niet storen is ingeschakeld. Je zal geen desktop of mobiele pushberichten krijgen tot Niet storen wordt uitgeschakeld."
     },
     {
         "id": "api.command_echo.delay.app_error",
@@ -601,7 +601,7 @@
     },
     {
         "id": "api.command_groupmsg.desc",
-        "translation": "Sends a Group Message to the specified users"
+        "translation": "Verstuurt een groepsbericht naar de gespecificeerde gebruikers"
     },
     {
         "id": "api.command_groupmsg.fail.app_error",
@@ -613,22 +613,22 @@
     },
     {
         "id": "api.command_groupmsg.hint",
-        "translation": "@[username1],@[username2] 'message'"
+        "translation": "@[username1],@[username2] 'bericht'"
     },
     {
         "id": "api.command_groupmsg.invalid_user.app_error",
         "translation": {
-            "one": "Unable to find the user: {{.Users}}",
-            "other": "Unable to find the users: {{.Users}}"
+            "one": "Kan de gebruiker niet vinden {{.Users}}",
+            "other": "Kan de gebruikers niet vinden: {{.Users}}"
         }
     },
     {
         "id": "api.command_groupmsg.max_users.app_error",
-        "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+        "translation": "Groepsberichten zijn beperkt tot {{.MaxUsers}} gebruikers."
     },
     {
         "id": "api.command_groupmsg.min_users.app_error",
-        "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+        "translation": "Groepberichten moeten minstens {{.MinUsers}} gebruikers hebben."
     },
     {
         "id": "api.command_groupmsg.name",
@@ -636,11 +636,11 @@
     },
     {
         "id": "api.command_groupmsg.permission.app_error",
-        "translation": "You don't have the appropriate permissions to create a new group message."
+        "translation": "Je hebt niet voldoende rechten om een nieuw groepsbericht aan te maken."
     },
     {
         "id": "api.command_help.desc",
-        "translation": "Open the Mattermost help page"
+        "translation": "Open de Mattermost help pagina"
     },
     {
         "id": "api.command_help.name",
@@ -648,19 +648,19 @@
     },
     {
         "id": "api.command_invite.channel.app_error",
-        "translation": "Error to retrieve the current channel."
+        "translation": "Fout bij het ophalen van het huidig kanaal."
     },
     {
         "id": "api.command_invite.channel.error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_invite.desc",
-        "translation": "Invite a user to a channel"
+        "translation": "Nodig een gebruiker uit in een kanaal"
     },
     {
         "id": "api.command_invite.directchannel.app_error",
-        "translation": "You can't add someone to a direct message channel."
+        "translation": "Je kan niet iemand toevoegen aan een direct-berichten-kanaal."
     },
     {
         "id": "api.command_invite.fail.app_error",
@@ -668,15 +668,15 @@
     },
     {
         "id": "api.command_invite.hint",
-        "translation": "@[username] ~[channel]"
+        "translation": "@[gebruikersnaam] ~[kanaal]"
     },
     {
         "id": "api.command_invite.missing_message.app_error",
-        "translation": "Missing Username and Channel."
+        "translation": "Ontbrekende gebruikersnaam en kanaal."
     },
     {
         "id": "api.command_invite.missing_user.app_error",
-        "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+        "translation": "We kunnen de gebruiker niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
     },
     {
         "id": "api.command_invite.name",
@@ -684,23 +684,23 @@
     },
     {
         "id": "api.command_invite.permission.app_error",
-        "translation": "You don't have enough permissions to add {{.User}} in {{.Channel}}."
+        "translation": "Je hebt niet genoeg rechten om {{.User}} toe te voegen in {{.Channel}}."
     },
     {
         "id": "api.command_invite.private_channel.app_error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the channel handle to identify channels."
+        "translation": "Kan het kanaal{{.Channel}} niet vinden. Gebruik de kanaalaanduiding om kanalen te identificeren."
     },
     {
         "id": "api.command_invite.success",
-        "translation": "{{.User}} added to {{.Channel}} channel."
+        "translation": "{{.User}} toegevoegd aan {{.Channel}} kanaal."
     },
     {
         "id": "api.command_invite.user_already_in_channel.app_error",
-        "translation": "{{.User}} is already in the channel."
+        "translation": "{{.User}} is reeds lid van het kanaal."
     },
     {
         "id": "api.command_invite_people.permission.app_error",
-        "translation": "You don't have permission to invite new users to this server."
+        "translation": "Je hebt niet voldoende rechten om nieuwe gebruikers uit te nodigen op deze server."
     },
     {
         "id": "api.command_join.desc",
@@ -712,7 +712,7 @@
     },
     {
         "id": "api.command_join.hint",
-        "translation": "~[channel]"
+        "translation": "~[kanaal]"
     },
     {
         "id": "api.command_join.list.app_error",
@@ -728,11 +728,11 @@
     },
     {
         "id": "api.command_kick.name",
-        "translation": "kick"
+        "translation": "schoppen"
     },
     {
         "id": "api.command_leave.desc",
-        "translation": "Leave the current channel"
+        "translation": "Verlaat het huidige kanaal"
     },
     {
         "id": "api.command_leave.fail.app_error",
@@ -1612,11 +1612,11 @@
     },
     {
         "id": "api.server.start_server.rate_limiting_memory_store",
-        "translation": "Kon de geheugenopslag limitatie niet laden. Controleer uw MemoryStoreSize configuratie instellingen. "
+        "translation": "Kon de geheugenopslag limitatie niet laden. Controleer uw MemoryStoreSize configuratie instellingen."
     },
     {
         "id": "api.server.start_server.rate_limiting_rate_limiter",
-        "translation": "Kan de snelheidsregeling niet laden"
+        "translation": "Kan de snelheidsregeling niet laden."
     },
     {
         "id": "api.server.start_server.starting.critical",
@@ -1704,11 +1704,11 @@
     },
     {
         "id": "api.status.user_not_found.app_error",
-        "translation": "User not found"
+        "translation": "Gebruiker niet gevonden."
     },
     {
         "id": "api.team.add_user_to_team.added",
-        "translation": "%v is door %v aan het kanaal toegevoegd"
+        "translation": "%v is door %v aan het kanaal toegevoegd."
     },
     {
         "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -1720,7 +1720,7 @@
     },
     {
         "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-        "translation": "Ongeldige stuurprogramma voor bestand instellingen. Deze moet 'lokaal' of 'amazons3' zijn"
+        "translation": "Ongeldige stuurprogramma voor bestand instellingen. Deze moet 'lokaal' of 'amazons3' zijn."
     },
     {
         "id": "api.team.get_team_icon.read_file.app_error",
@@ -1728,11 +1728,11 @@
     },
     {
         "id": "api.team.import_team.array.app_error",
-        "translation": "Lege data bij 'licentie' in aanvraag"
+        "translation": "Lege data bij 'licentie' in aanvraag."
     },
     {
         "id": "api.team.import_team.integer.app_error",
-        "translation": "Bestandsgroote is niet numeriek"
+        "translation": "Bestandsgrootte is geen getal."
     },
     {
         "id": "api.team.import_team.no_file.app_error",
@@ -1744,11 +1744,11 @@
     },
     {
         "id": "api.team.import_team.open.app_error",
-        "translation": "Kan het bestand niet openen"
+        "translation": "Kan het bestand niet openen."
     },
     {
         "id": "api.team.import_team.parse.app_error",
-        "translation": "Kan het 'multipart form' niet verwerken"
+        "translation": "Kan het 'multipart form' niet verwerken."
     },
     {
         "id": "api.team.import_team.unavailable.app_error",
@@ -1796,11 +1796,11 @@
     },
     {
         "id": "api.team.remove_team_icon.get_team.app_error",
-        "translation": "An error occurred getting the team"
+        "translation": "Er trad een fout op bij het ophalen van het team."
     },
     {
         "id": "api.team.remove_user_from_team.missing.app_error",
-        "translation": "De gebruiker is geen onderdeel van dit team"
+        "translation": "De gebruiker is geen lid van dit team."
     },
     {
         "id": "api.team.remove_user_from_team.removed",
@@ -1808,7 +1808,7 @@
     },
     {
         "id": "api.team.set_team_icon.array.app_error",
-        "translation": "Lege array bij 'image' in aanvraag"
+        "translation": "Lege array bij 'image' in aanvraag."
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
@@ -2284,7 +2284,7 @@
     },
     {
         "id": "api.user.oauth_to_email.context.app_error",
-        "translation": "Het bijwerken van het wachtwoord is niet gelukt, want de de context user_id kwam niet overeen met de opgegeven user id."
+        "translation": "Het bijwerken van het wachtwoord is niet gelukt, want de context user_id kwam niet overeen met de opgegeven user id."
     },
     {
         "id": "api.user.oauth_to_email.not_available.app_error",
@@ -3616,7 +3616,7 @@
     },
     {
         "id": "ent.saml.build_request.encoding.app_error",
-        "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder. "
+        "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
     },
     {
         "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -3768,7 +3768,7 @@
     },
     {
         "id": "model.access.is_valid.client_id.app_error",
-        "translation": "Ongeldig client id "
+        "translation": "Ongeldig client id."
     },
     {
         "id": "model.access.is_valid.redirect_uri.app_error",
@@ -4876,7 +4876,7 @@
     },
     {
         "id": "model.user.is_valid.pwd_symbol.app_error",
-        "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 karakter (bv. \"~!@#$%^&*()\"). "
+        "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 karakter (bv. \"~!@#$%^&*()\")."
     },
     {
         "id": "model.user.is_valid.pwd_uppercase.app_error",
@@ -4936,7 +4936,7 @@
     },
     {
         "id": "plugin_api.get_file_link.no_post.app_error",
-        "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker. "
+        "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker."
     },
     {
         "id": "plugin_api.send_mail.missing_htmlbody",
@@ -5504,7 +5504,7 @@
     },
     {
         "id": "store.sql_status.reset_all.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het resetten van alle statussen "
+        "translation": "Er is een probleem opgetreden tijdens het resetten van alle statussen."
     },
     {
         "id": "store.sql_status.save.app_error",
@@ -6132,7 +6132,7 @@
     },
     {
         "id": "web.incoming_webhook.text.app_error",
-        "translation": "Geen tekst gespecifieerd"
+        "translation": "Geen tekst gespecificeerd."
     },
     {
         "id": "web.incoming_webhook.user.app_error",
@@ -7260,7 +7260,7 @@
     },
     {
         "id": "api.team.invate_guests_to_channels.license.error",
-        "translation": "Je licentie ondersteunt geen gastgebruikers."
+        "translation": "Je licentie ondersteunt geen gastgebruikers"
     },
     {
         "id": "api.team.invate_guests_to_channels.disabled.error",
@@ -7272,11 +7272,11 @@
     },
     {
         "id": "api.team.get_all_teams.insufficient_permissions",
-        "translation": "Je hebt niet voldoende rechten om alle teams op te lijsten."
+        "translation": "Je hebt niet voldoende rechten om alle teams op te lijsten"
     },
     {
         "id": "api.team.demote_user_to_guest.license.error",
-        "translation": "Je licentie ondersteunt geen gastgebruikers."
+        "translation": "Je licentie ondersteunt geen gastgebruikers"
     },
     {
         "id": "api.team.demote_user_to_guest.disabled.error",
@@ -7684,7 +7684,7 @@
     },
     {
         "id": "app.session.analytics_session_count.app_error",
-        "translation": "Kan de sessies niet tellen."
+        "translation": "Fout bij het tellen van de sessies."
     },
     {
         "id": "app.recover.save.app_error",
@@ -7768,11 +7768,11 @@
     },
     {
         "id": "store.sql_group.more_than_one_row_changed",
-        "translation": "Maar dan één rij is gewijzigd."
+        "translation": "Meer dan één rij is gewijzigd."
     },
     {
         "id": "app.command.listallcommands.internal_error",
-        "translation": "Kan de opdrachten niet ophalen."
+        "translation": "Kan de opdrachten niet oplijsten."
     },
     {
         "id": "app.command.getcommand.internal_error",
@@ -7816,11 +7816,11 @@
     },
     {
         "id": "app.user.permanentdeleteuser.internal_error",
-        "translation": "Token kan niet worden verwijderd."
+        "translation": "Gebruiker kan niet worden verwijderd."
     },
     {
         "id": "app.team.permanentdeleteteam.internal_error",
-        "translation": "Token kan niet worden verwijderd."
+        "translation": "Team kan niet worden verwijderd."
     },
     {
         "id": "app.session.update_device_id.app_error",
@@ -7848,11 +7848,11 @@
     },
     {
         "id": "app.session.get_sessions.app_error",
-        "translation": "Er is een probleem opgestreden tijdens het opzoeken van de gebruikerssessie."
+        "translation": "Er is een probleem opgestreden tijdens het vinden van de gebruikerssessie."
     },
     {
         "id": "app.session.get.app_error",
-        "translation": "Er is een fout opgetreden bij het zoeken naar de sessie."
+        "translation": "Er is een fout opgetreden bij het vinden van de sessie."
     },
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
@@ -7865,5 +7865,161 @@
     {
         "id": "api.server.warn_metric.bot_response.notification_success.message",
         "translation": "Dank je om Mattermost te contacteren. We nemen spoedig contact op met jou."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-mail: "
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Opdracht bestaat niet."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Opdracht bestaat niet."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "kan niet migreren."
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "Fout bij het bewaren van waarde voor {{.WarnMetricName}}"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Kon geen metrics vinden."
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "Lijst van beheerders is leeg."
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Meer informatie over the Mattermost Adviseur](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Adviseur"
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Definitief verwijderen van de teams is niet ingeschakeld. Contacteer je systeembeheerder."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Contacteer-ons-verzoek"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise editie."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Heb je nog verdere vragen, dan kan je contact met ons opnemen op support@mattermost.com"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site URL: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Totaal actieve gebruikers: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "Diagnostisch id: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "Contact: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Upgrade naar Mattermost Enterprise editie"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers upgraden naar Mattermost Enterprise E20, die functies biedt zoals gebruikersbeheer, serverclustering en prestatiemonitoring."
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "Integratie van SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise E20.\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "Integreer AD/LDAP"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise E10 en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Stuur ons een e-mail"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Contacteer ons"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost Contacteer-ons-verzoek. Mijn team heeft nu {{.Limit}} gebruikers en ik overweeg de Mattermost Enterprise Editie.\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "Bericht kon niet verzonden worden."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Stuur ons een e-mail."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost Contacteer-ons-verzoek"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "Site URL: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Totaal actieve gebruikbers {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Als je nog meer vragen heeft, kan je contact opnemen met support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "E-mail: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "Diagnostisch Id: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "Contacteer: {{.Contact}}"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Kan de zijbalk niet bijwerken naar de bijgewerkte voorkeuren"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Kan de zijbalk niet bijwerken met de verwijderde voorkeuren"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Kon waarschuwingsmetric niet vinden."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Fout bij verzenden van admin bevestigingse-mail"
     }
 ]
