@@ -7530,10 +7530,6 @@
         "translation": "Unable to commit transaction"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migration failed due to invalid progress data."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "We encountered an error permanently deleting the batch of reactions"
     },

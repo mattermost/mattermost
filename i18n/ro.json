@@ -7696,10 +7696,6 @@
         "translation": "Nu s-a putut efectua tranzacția"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migrarea a eșuat din cauza datelor de progres invalide."
-    },
-    {
         "id": "app.user.permanentdeleteuser.internal_error",
         "translation": "Imposibil de șters token."
     },

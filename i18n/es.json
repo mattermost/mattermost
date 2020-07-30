@@ -7675,10 +7675,6 @@
         "translation": "No se puede perpetrar la transacción"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "La migración ha fallado porque hay datos erróneos de progreso."
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "Cambió más de un registro."
     },
@@ -7701,10 +7697,6 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "No se pudo obtener todos los canales."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "La Migración falló debido a un error de la base de datos"
     },
     {
         "id": "ent.ldap_id_migrate.app_error",

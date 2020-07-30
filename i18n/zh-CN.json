@@ -7646,10 +7646,6 @@
         "translation": "无法提交事务"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "迁移因无效进度数据失败。"
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "批量永久删除互动时遇到错误"
     },
@@ -7684,10 +7680,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "插入数据至数据库失败。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "迁移因数据错误而失败。"
     },
     {
         "id": "ent.ldap_id_migrate.app_error",

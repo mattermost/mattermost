@@ -7692,10 +7692,6 @@
         "translation": "Не удалось зафиксировать транзакцию."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Миграция не удалась из-за неверных данных о прогрессе."
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "Изменено более одной строки."
     },
@@ -7850,10 +7846,6 @@
     {
         "id": "app.analytics.getanalytics.internal_error",
         "translation": "Невозможно получить аналитику."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Миграция не удалась из-за ошибки базы данных."
     },
     {
         "id": "api.invalid_channel",

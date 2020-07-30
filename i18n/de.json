@@ -7535,10 +7535,6 @@
         "translation": "Konnte die Transaktion nicht ausführen."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migration aufgrund ungültiger Fortschrittsdaten fehlgeschlagen ."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
     },

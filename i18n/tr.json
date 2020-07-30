@@ -7691,20 +7691,12 @@
         "translation": "İşlem tamamlanamadı."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "Özel olmayan kategori silinemedi."
     },
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Kayıt veritabanına eklenemedi."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Veritabanı sorunu nedeniyle aktarılamadı."
     },
     {
         "id": "app.channel.create_initial_sidebar_categories.internal_error",

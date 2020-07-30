@@ -7678,20 +7678,12 @@
         "translation": "トランザクションをコミットできませんでした。"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "不正な進捗データのため移行に失敗しました。"
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "既定のカテゴリを削除できませんでした。"
     },
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "データベースへレコードを挿入できませんでした。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "データベースエラーによりマイグレーションできませんでした。"
     },
     {
         "id": "ent.get_users_in_channel_during",

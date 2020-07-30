@@ -7655,10 +7655,6 @@
         "translation": "Impossibile confermare la transazione"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migrazione fallita a causa di dati di progresso non validi."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Si è verificato un errore durante la cancellazione delle reazioni"
     },
@@ -7749,10 +7745,6 @@
     {
         "id": "store.sql_channel.get_private_channels.get.app_error",
         "translation": "Impossibile recuperare tutti i canali"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Migrazione fallita a causa di un errore sul database."
     },
     {
         "id": "ent.get_users_in_channel_during",

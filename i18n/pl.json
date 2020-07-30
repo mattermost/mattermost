@@ -7556,10 +7556,6 @@
         "translation": "Nie można dokonać transakcji"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migracja nie powiodła się z powodu nieprawidłowych danych o postępach."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Napotkaliśmy błąd powodujący trwałe usunięcie partii reakcji"
     },
