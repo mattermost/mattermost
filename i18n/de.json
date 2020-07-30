@@ -7757,5 +7757,21 @@
     {
         "id": "api.email.send_warn_metric_ack.missing_server.app_error",
         "translation": "SMTP-Server wird benötigt"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "server_error: Es ist ein Interner Serverfehler beim Erstellen des Emojis aufgetreten."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Konnte Warnmetrik nicht finden."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Fehler beim Senden der Administrator Bestätigungs-E-Mail"
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "Site URL kann nicht leer sein."
     }
 ]
