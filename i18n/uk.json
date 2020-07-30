@@ -7654,5 +7654,37 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Неможливо отримати всі канали"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Неможливо зберегти токен"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Неможливо зберегти токен"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Ми виявили помилку пошуку токенів доступу користувача"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Неможливо зберегти персональний токен доступу"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Не вдалося отримати персональні токени доступу для користувача"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Не можливо отримати всі токени особистого доступу"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Не вдалося видалити персональний токен доступу"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Потрібно SMTP сервер"
     }
 ]

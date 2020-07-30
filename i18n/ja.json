@@ -7776,5 +7776,37 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "削除された設定と一致するようサイドバーを更新できませんでした"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "アクセストークンを有効化できませんでした。"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "アクセストークンを無効化できませんでした。"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "アクセストークンを探す際にエラーが発生しました。"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "パーソナルアクセストークンを保存できませんでした。"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "ユーザーからパーソナルアクセストークンを取得できませんでした。"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "パーソナルアクセストークンを取得できませんでした。"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "パーソナルアクセストークンを削除できませんでした。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTPサーバーが必要です"
     }
 ]

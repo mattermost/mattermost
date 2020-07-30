@@ -7649,5 +7649,37 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Impossible de récupérer tous les canaux."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Impossible d'activer le jeton d'accès"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Impossible de désactiver le jeton d'accès"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des jetons d'accès personnel"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Impossible d'enregistrer le jeton d'accès personnel"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Impossible de récupérer les jetons d'accès personnel par utilisateur"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Impossible de récupérer tous les jetons d'accès personnel"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Impossible de supprimer le jeton d'accès personnel"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Un serveur SMTP est nécessaire"
     }
 ]

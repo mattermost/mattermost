@@ -7753,5 +7753,37 @@
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
         "translation": "Impossibile cancellare i record"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Impossibile attivare il token di accesso."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Impossibile disattivare il token di accesso."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Si è verificato un errore durante la ricerca dei token di accesso personali."
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Impossibile salvare il token di accesso personale."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Impossibile trovare i token di accesso personale per utente."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Impossibile trovare tutti i token di accesso personale."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Impossibile eliminare il token di accesso personale."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "E' richiesto un server SMTP"
     }
 ]

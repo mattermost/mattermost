@@ -7753,5 +7753,37 @@
     {
         "id": "app.analytics.getanalytics.internal_error",
         "translation": "Fout bij het ophalen van de statistieken."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Het access token kan niet opgeslagen worden."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Het access token kan niet opgeslagen worden."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Het access token kan niet opgeslagen worden."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Het access token kan niet verwijderd worden"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Het access token kan niet verwijderd worden"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Het access token kan niet verwijderd worden"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP-server is verplicht"
     }
 ]

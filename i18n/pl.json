@@ -7666,5 +7666,37 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Nie można pobrać wszystkich kanałów"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Nie można włączyć tokenu dostępu"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Nie można wyłączyć tokenu dostępu"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Napotkaliśmy błąd podczas wyszukiwania tokenów dostępu użytkownika"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Nie można zapisać osobistego tokenu dostępu"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Nie można uzyskać osobistych tokenów dostępu przez użytkownika"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Nie można uzyskać wszystkich osobistych tokenów dostępu"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Nie można usunąć osobistego tokenu dostępu"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Serwer SMTP jest wymagany."
     }
 ]

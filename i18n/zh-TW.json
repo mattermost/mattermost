@@ -7760,5 +7760,37 @@
     {
         "id": "app.command_webhook.create_command_webhook.existing",
         "translation": "無法更新現有的命令 Webhook"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "無法啟用存取 Token"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "無法停用存取 Token"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "尋找存取 Token 時遇到錯誤"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "無法刪除儲存個人存取 Token"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "無法根據使用者取得個人存取 Token"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "無法取得全部的個人存取 Token"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "無法刪除個人存取 Token"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "須填入 SMTP 伺服器"
     }
 ]

@@ -7760,5 +7760,37 @@
     {
         "id": "api.invalid_channel",
         "translation": "请求中的频道列表不属于用户"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "无法开启该访问令牌"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "无法停用该访问令牌"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "我们查找用户访问令牌时遇到一个错误"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "无法保存个人访问令牌"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "无法从用户获取个人访问令牌"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "无法获取所有个人访问令牌"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "无法删除个人访问令牌"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "需要SMTP服务器"
     }
 ]

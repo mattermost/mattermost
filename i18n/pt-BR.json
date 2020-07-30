@@ -7733,5 +7733,37 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Não foi possível habilitar o token de acesso"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Não foi possível desativar o token de acesso"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Encontramos um erro ao procurar os tokens de acesso"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Não foi possível salvar o token de acesso individual"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Não foi possível obter o token de acesso individual pelo usuário"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Não foi possível obter todos os tokens de acesso individual"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Não foi possível remover o token de acesso individual"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Servidor SMTP é obrigatório"
     }
 ]

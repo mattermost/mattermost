@@ -7649,5 +7649,37 @@
     {
         "id": "app.channel.get_all_channels_count.app_error",
         "translation": "Konnte nicht alle Kanäle abrufen."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Konnte das Zugriffs-Token nicht aktivieren."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP-Server wird benötigt"
     }
 ]

@@ -7781,5 +7781,37 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Erişim kodu etkinleştirilemedi."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Erişim kodu devre dışı bırakılamadı."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Kullanıcı erişim kodları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Kişisel erişim kodu kaydedilemedi."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Tüm kişisel erişim kodları alınamadı."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Kişisel erişim kodu silinemedi."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP sunucusu zorunludur"
     }
 ]

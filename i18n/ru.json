@@ -7790,5 +7790,37 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "Невозможно обновить боковую панель, чтобы соответствовать удаленным настройкам"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Невозможно включить токен доступа."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Невозможно отключить токен доступа."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "При поиске токенов доступа пользователя произошла ошибка."
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Не удалось сохранить персональный токен доступа."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Не удалось получить персональные токены доступа по пользователю."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Не удалось получить все персональные токены доступа."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Невозможно удалить персональный токен доступа."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Требуется SMTP сервер"
     }
 ]

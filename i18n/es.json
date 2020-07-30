@@ -7769,5 +7769,37 @@
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
         "translation": "No se pudo purgar los registros."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "No se puede habilitar guardar token de acceso"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "No se puede inhabilitar el token de acceso"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Encontramos un error buscando los tokens de acceso"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "No se puede guardar el token de acceso personal"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "No se puede obtener el token de acceso personal por usuario"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "No se puede obtener todos los tokens de acceso personal"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "No se puede eliminar el token de acceso personal"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "El Servidor SMTP es necesario"
     }
 ]

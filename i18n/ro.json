@@ -7722,5 +7722,37 @@
     {
         "id": "app.recover.delete.app_error",
         "translation": "Imposibil de șters token."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Imposibil de activat indicativul de acces"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Imposibil de dezactivat simbolul de acces"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Am întâmpinat o eroare în căutarea jetoanelor de acces utilizator"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Nu am putut salva jetonul de acces personal"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Imposibil de obținut token-urile personale de acces de către utilizator"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Nu se pot obține toate jetoanele de acces personale"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Imposibil de șters indicativul de acces personal"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Serverul SMTP este necesar"
     }
 ]
