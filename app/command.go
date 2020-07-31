@@ -603,6 +603,10 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		return nil, model.NewAppError("CreateCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	return a.createCommand(cmd)
+}
+
+func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(cmd.TeamId)

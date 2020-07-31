@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -934,27 +933,14 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
 	cmd.CreatorId = ""
 	cmd.PluginId = api.id
-	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	teamCmds, err := api.app.Srv().Store.Command().GetByTeam(cmd.TeamId)
-	if err != nil {
-		return nil, err
+	cmd, appErr := api.app.createCommand(cmd)
+
+	if appErr != nil {
+		return cmd, appErr
 	}
 
-	for _, existingCommand := range teamCmds {
-		if cmd.Trigger == existingCommand.Trigger {
-			return nil, errors.New("cannot create command, duplicate trigger name found")
-		}
-	}
-
-	for _, builtInProvider := range commandProviders {
-		builtInCommand := builtInProvider.GetCommand(api.app, utils.T)
-		if builtInCommand != nil && cmd.Trigger == builtInCommand.Trigger {
-			return nil, errors.New("cannot create command, duplicate trigger name found")
-		}
-	}
-
-	return api.app.Srv().Store.Command().Save(cmd)
+	return cmd, nil
 }
 
 func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
