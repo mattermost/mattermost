@@ -1929,8 +1929,6 @@ type LdapSettings struct {
 	SkipCertificateVerification *bool
 	QueryTimeout                *int
 	MaxPageSize                 *int
-	PublicCertificateFile       *string
-	PrivateKeyFile              *string
 
 	// Customization
 	LoginFieldName *string
