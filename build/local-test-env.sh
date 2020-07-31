@@ -43,7 +43,7 @@ up()
         -e MM_EMAILSETTINGS_SMTPSERVER="inbucket" \
         -e MM_EMAILSETTINGS_SMTPPORT="10025" \
         -e MM_ELASTICSEARCHSETTINGS_CONNECTIONURL="http://elasticsearch:9200" \
-        mattermost/mattermost-build-server:20200322_golang-1.14.1 /bin/bash
+        mattermost/mattermost-build-server:20200731_golang-1.14.6 /bin/bash
 }
 
 down()
