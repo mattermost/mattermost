@@ -47,7 +47,7 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
@@ -97,7 +97,7 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
