@@ -4027,6 +4027,24 @@ func (s *OpenTracingLayerJobStore) GetNewestJobByStatusAndType(status string, jo
 	return resultVar0, resultVar1
 }
 
+func (s *OpenTracingLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetNewestJobByStatusesAndType")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (s *OpenTracingLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.Save")
