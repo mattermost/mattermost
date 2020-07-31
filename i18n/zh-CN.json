@@ -7646,10 +7646,6 @@
         "translation": "无法提交事务"
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "迁移因无效进度数据失败。"
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "批量永久删除互动时遇到错误"
     },
@@ -7684,10 +7680,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "插入数据至数据库失败。"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "迁移因数据错误而失败。"
     },
     {
         "id": "ent.ldap_id_migrate.app_error",
@@ -7868,5 +7860,77 @@
     {
         "id": "app.command.createcommand.internal_error",
         "translation": "无法保存命令。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "需要SMTP服务器"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "站点网址："
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "总活动用户"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "电子邮件："
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "管理列表为空。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "诊断 Id： "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "联络： "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "升级到企业版"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "整合 SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "整合 AD/LDAP"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "正在联系我们"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "联系我们"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "感谢您联系 Mattermost，我们会尽快与您联络。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "无法发送消息。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "网站地址：{{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "电子邮件：{{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "诊断 ID：{{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "联络：{{.Contact}}"
     }
 ]
