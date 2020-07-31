@@ -8029,5 +8029,9 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Fout bij het tellen van de inkomende webhooks."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Ongeldige plugin id."
     }
 ]
