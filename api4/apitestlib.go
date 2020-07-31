@@ -98,7 +98,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	if includeCache {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
@@ -188,7 +188,9 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -204,7 +206,9 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -220,7 +224,9 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -283,7 +289,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) InitLogin() *TestHelper {
 	me.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
@@ -318,9 +324,21 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser.Password = "Pa$$word11"
 	me.BasicUser2.Password = "Pa$$word11"
 
-	me.LoginSystemAdmin()
-	me.LoginTeamAdmin()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		me.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		me.LoginTeamAdmin()
+		wg.Done()
+	}()
+	wg.Wait()
+	return me
+}
 
+func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()

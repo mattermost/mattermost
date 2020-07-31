@@ -17,7 +17,7 @@ import (
 )
 
 func TestGetImage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Prevent the test client from following a redirect
