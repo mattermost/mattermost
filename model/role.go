@@ -691,6 +691,9 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS,
 			PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS,
 		},
+		PERMISSION_SYSCONSOLE_WRITE_SITE.Id: {
+			PERMISSION_EDIT_BRAND,
+		},
 	}
 
 	// Add the ancillary permissions to each new system role

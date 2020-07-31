@@ -61,6 +61,7 @@ const (
 	PERMISSION_READ_OTHER_USERS_TEAMS            = "read_other_users_teams"
 	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
 	PERMISSION_READ_CHANNEL_GROUPS               = "read_channel_groups"
+	PERMISSION_EDIT_BRAND                        = "edit_brand"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -464,6 +465,12 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 			permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS),
 		),
 		Add: []string{PERMISSION_READ_CHANNEL_GROUPS},
+	})
+
+	// add edit_brand to all roles with manage_system
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_SYSTEM),
+		Add: []string{PERMISSION_EDIT_BRAND},
 	})
 
 	return transformations, nil

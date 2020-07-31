@@ -95,6 +95,7 @@ var PERMISSION_DEMOTE_TO_GUEST *Permission
 var PERMISSION_USE_CHANNEL_MENTIONS *Permission
 var PERMISSION_USE_GROUP_MENTIONS *Permission
 var PERMISSION_READ_OTHER_USERS_TEAMS *Permission
+var PERMISSION_EDIT_BRAND *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -637,6 +638,12 @@ func initializePermissions() {
 		"authentication.permissions.read_other_users_teams.description",
 		PermissionScopeSystem,
 	}
+	PERMISSION_EDIT_BRAND = &Permission{
+		"edit_brand",
+		"authentication.permissions.edit_brand.name",
+		"authentication.permissions.edit_brand.description",
+		PermissionScopeSystem,
+	}
 	PERMISSION_SYSCONSOLE_READ_ABOUT = &Permission{
 		"sysconsole_read_about",
 		"authentication.permissions.use_group_mentions.name",
@@ -883,6 +890,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_JOBS,
 		PERMISSION_PROMOTE_GUEST,
 		PERMISSION_DEMOTE_TO_GUEST,
+		PERMISSION_EDIT_BRAND,
 	}
 
 	TeamScopedPermissions := []*Permission{
