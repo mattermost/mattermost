@@ -7949,5 +7949,89 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Kullanıcı oturum kullanıcı kodundan bulunamadı."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Uygulama eki kodu geçersiz."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Giden web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Gelen web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Gelen web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Giden web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Gelen web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Web bağlantısı silinemedi."
     }
 ]
