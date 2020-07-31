@@ -1441,8 +1441,14 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	}
 
 	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			appErr.StatusCode = http.StatusBadRequest
+			return appErr
+		default:
+			return model.NewAppError("importDirectChannel", "app.preference.save.updating.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	if data.Header != nil {

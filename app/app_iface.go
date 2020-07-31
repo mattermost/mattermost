@@ -83,10 +83,6 @@ type AppIface interface {
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
-	// DO NOT CALL THIS.
-	// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
-	// shutdown should be called directly on the server
-	Shutdown()
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -218,10 +214,10 @@ type AppIface interface {
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
-	// LogAuditRec logs an audit record using default CLILevel.
+	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
@@ -517,7 +513,7 @@ type AppIface interface {
 	GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)
-	GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
@@ -696,6 +692,7 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
+	GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
@@ -757,6 +754,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
+	NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
