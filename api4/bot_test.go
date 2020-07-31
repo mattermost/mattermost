@@ -20,7 +20,7 @@ import (
 
 func TestCreateBot(t *testing.T) {
 	t.Run("create bot without permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -137,7 +137,7 @@ func TestCreateBot(t *testing.T) {
 
 func TestPatchBot(t *testing.T) {
 	t.Run("patch non-existent bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -204,7 +204,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch someone else's bot without permission", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -1278,7 +1278,7 @@ func TestSetBotIconImage(t *testing.T) {
 }
 
 func TestGetBotIconImage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
@@ -1340,7 +1340,7 @@ func TestGetBotIconImage(t *testing.T) {
 }
 
 func TestDeleteBotIconImage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
