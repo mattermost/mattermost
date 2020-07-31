@@ -912,7 +912,7 @@
     },
     {
         "id": "api.command_settings.name",
-        "translation": "settings"
+        "translation": "instellingen"
     },
     {
         "id": "api.command_settings.unsupported.app_error",
@@ -1098,7 +1098,7 @@
     },
     {
         "id": "api.file.file_exists.exists_local.app_error",
-        "translation": "Unable to check if the file exists."
+        "translation": "Fout bij het controleren of het bestand bestaat."
     },
     {
         "id": "api.file.file_exists.s3.app_error",
@@ -1174,15 +1174,15 @@
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-        "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+        "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-        "translation": "Unable to upload files. Incorrect number of files specified."
+        "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
     },
     {
         "id": "api.file.upload_file.large_image.app_error",
-        "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+        "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
     },
     {
         "id": "api.file.upload_file.large_image_detailed.app_error",
@@ -1190,7 +1190,7 @@
     },
     {
         "id": "api.file.upload_file.multiple_channel_ids.app_error",
-        "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+        "translation": "Fout bij het opladen van bestand(-en). Meerdere conflicterende channel_ids."
     },
     {
         "id": "api.file.upload_file.read_form_value.app_error",
@@ -5811,86 +5811,6 @@
         "translation": "Het verificatie e-mail adres kan niet bijgewerkt worden"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Een bestaande binnenkomende webhook kan niet overschreven worden"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Een uitgaande webhook kan niet overschreven worden"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
         "id": "store.update_error",
         "translation": "update error"
     },
@@ -8029,5 +7949,85 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Kan de gebruiker niet ophalen vanuit het sessie UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Fout bij het bijwerken van de webhook."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Fout bij het bijwerken van de IncomingWebhook."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Een uitgaande webhook kan niet overschreven worden."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Fout bij het bewaren van de OutgoingWebhook."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Je kan geen bestaande IncomingWebhook overschrijven."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Fout bij het bewaren van de IncomingWebhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Fout bij het tellen van de uitgaande webhooks."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Fout bij het tellen van de inkomende webhooks."
     }
 ]
