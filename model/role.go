@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
+var SysconsoleAncillaryPermissions map[string][]*Permission
+
 var BuiltInSchemeManagedRoleIDs []string
 
 func init() {
@@ -654,8 +657,7 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
-	SysconsoleAncillaryPermissions := map[string][]*Permission{
+	SysconsoleAncillaryPermissions = map[string][]*Permission{
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id: {
 			PERMISSION_READ_PUBLIC_CHANNEL,
 			PERMISSION_READ_CHANNEL,
