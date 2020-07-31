@@ -5595,6 +5595,10 @@
     "translation": "Invalid Method."
   },
   {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin id."
+  },
+  {
     "id": "model.command.is_valid.team_id.app_error",
     "translation": "Invalid team ID."
   },
