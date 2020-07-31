@@ -1731,13 +1731,13 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 	}
 }
 
-func TestPluginAPICreateCommand(t *testing.T) {
+func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	foundCommand := func() bool {
-		cmds, appErr := api.app.ListTeamCommands(th.BasicTeam.Id)
+	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+		cmds, appErr := listXCommand(th.BasicTeam.Id)
 		require.Nil(t, appErr)
 
 		for _, cmd := range cmds {
@@ -1748,7 +1748,7 @@ func TestPluginAPICreateCommand(t *testing.T) {
 		return false
 	}
 
-	require.False(t, foundCommand())
+	require.False(t, foundCommand(api.ListCommands))
 
 	cmd := &model.Command{
 		TeamId:  th.BasicTeam.Id,
@@ -1764,7 +1764,9 @@ func TestPluginAPICreateCommand(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "pluginid", newCmd.PluginId)
 	require.Equal(t, "", newCmd.CreatorId)
-	require.True(t, foundCommand())
+	require.True(t, foundCommand(api.ListCommands))
+	require.True(t, foundCommand(api.ListCustomCommands))
+	require.False(t, foundCommand(api.ListPluginCommands))
 }
 
 func TestPluginAPIUpdateCommand(t *testing.T) {
