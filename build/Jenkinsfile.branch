@@ -9,7 +9,7 @@ def platformStages = new org.mattermost.PlatformStages()
 
 def rndEE = UUID.randomUUID().toString()
 def rndTE = UUID.randomUUID().toString()
-def mmBuilderServer = 'mattermost/mattermost-build-server:20200322_golang-1.14.1'
+def mmBuilderServer = 'mattermost/mattermost-build-server:20200731_golang-1.14.6'
 def mmBuilderWebapp = 'mattermost/mattermost-build-webapp:oct-2-2018'
 
 pipeline {
