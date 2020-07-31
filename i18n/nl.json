@@ -788,19 +788,19 @@
     },
     {
         "id": "api.command_msg.permission.app_error",
-        "translation": "You don't have the appropriate permissions to direct message this user."
+        "translation": "Je hebt niet voldoende rechten om directe berichten te sturen naar deze gebruiker."
     },
     {
         "id": "api.command_mute.desc",
-        "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+        "translation": "Schakelt bureaublad, e-mail en push meldingen uit voor het huidige kanaal of het opgegeven kanaal."
     },
     {
         "id": "api.command_mute.error",
-        "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het kanaal {{.Channel}} niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_mute.hint",
-        "translation": "~[channel]"
+        "translation": "~[kanaal]"
     },
     {
         "id": "api.command_mute.name",
@@ -808,27 +808,27 @@
     },
     {
         "id": "api.command_mute.no_channel.error",
-        "translation": "Could not find the specified channel. Please use the [channel handle](https://about.mattermost.com/default-channel-handle-documentation) to identify channels."
+        "translation": "Kan het opgegeven kanaal niet vinden. Gebruik de [kanaalaanduiding](https://about.mattermost.com/default-channel-handle-documentation) om kanalen aan te duiden."
     },
     {
         "id": "api.command_mute.not_member.error",
-        "translation": "Could not mute channel {{.Channel}} as you are not a member."
+        "translation": "Kan het kanaal {{.Channel}} niet dempen omdat je geen lid bent."
     },
     {
         "id": "api.command_mute.success_mute",
-        "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
+        "translation": "Je zal geen meldingen ontvangen voor {{.Channel}} tot het dempen van het kanaal is uitgeschakeld."
     },
     {
         "id": "api.command_mute.success_mute_direct_msg",
-        "translation": "You will not receive notifications for this channel until channel mute is turned off."
+        "translation": "Je zal geen meldingen ontvangen voor dit kanaal tot het dempen van het kanaal is uitgeschakeld."
     },
     {
         "id": "api.command_mute.success_unmute",
-        "translation": "{{.Channel}} is no longer muted."
+        "translation": "{{.Channel}} is niet langer gedempt."
     },
     {
         "id": "api.command_mute.success_unmute_direct_msg",
-        "translation": "This channel is no longer muted."
+        "translation": "Dit kanaal is niet langer gedempt."
     },
     {
         "id": "api.command_offline.desc",
@@ -860,11 +860,11 @@
     },
     {
         "id": "api.command_remove.desc",
-        "translation": "Remove a member from the channel"
+        "translation": "Verwijdert een lid van het kanaal"
     },
     {
         "id": "api.command_remove.direct_group.app_error",
-        "translation": "You can't remove someone from a direct message channel."
+        "translation": "Je kan niet iemand verwijderen van een direct berichten kanaal."
     },
     {
         "id": "api.command_remove.hint",
@@ -876,7 +876,7 @@
     },
     {
         "id": "api.command_remove.missing.app_error",
-        "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
+        "translation": "We kunnen de gebruiker niet vinden. Deze kan gedeactiveerd zijn door de systeembeheerder."
     },
     {
         "id": "api.command_remove.name",
@@ -884,15 +884,15 @@
     },
     {
         "id": "api.command_remove.permission.app_error",
-        "translation": "You don't have the appropriate permissions to remove the member."
+        "translation": "Je hebt niet voldoende rechten om de gebruiker te verwijderen."
     },
     {
         "id": "api.command_remove.user_not_in_channel",
-        "translation": "{{.Username}} is not a member of this channel."
+        "translation": "{{.Username}} is geen lid van dit kanaal."
     },
     {
         "id": "api.command_search.desc",
-        "translation": "Search text in messages"
+        "translation": "Zoek tekst in berichten"
     },
     {
         "id": "api.command_search.hint",
@@ -908,11 +908,11 @@
     },
     {
         "id": "api.command_settings.desc",
-        "translation": "Open the Account Settings dialog"
+        "translation": "Open de accountinstellingen dialoog"
     },
     {
         "id": "api.command_settings.name",
-        "translation": "settings"
+        "translation": "instellingen"
     },
     {
         "id": "api.command_settings.unsupported.app_error",
@@ -944,7 +944,7 @@
     },
     {
         "id": "api.config.client.old_format.app_error",
-        "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+        "translation": "Nieuw formaat voor de client configuratie is nog niet ondersteund. Gebruik format=old in de query."
     },
     {
         "id": "api.context.404.app_error",
@@ -960,7 +960,7 @@
     },
     {
         "id": "api.context.invalid_token.error",
-        "translation": "Invalid session token={{.Token}}, err={{.Error}}"
+        "translation": "Ongeldige sessietoken={{.Token}}, err={{.Error}}"
     },
     {
         "id": "api.context.invalid_url_param.app_error",
@@ -968,7 +968,7 @@
     },
     {
         "id": "api.context.mfa_required.app_error",
-        "translation": "Multi-factor authentication is required on this server."
+        "translation": "Multi-factor authenticatie is vereist op deze server."
     },
     {
         "id": "api.context.permissions.app_error",
@@ -988,7 +988,7 @@
     },
     {
         "id": "api.create_terms_of_service.empty_text.app_error",
-        "translation": "Please enter text for your Custom Terms of Service."
+        "translation": "Geef je teskt voor je eigen gebruiksvoorwaarden."
     },
     {
         "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1004,7 +1004,7 @@
     },
     {
         "id": "api.email_batching.render_batched_post.direct_message",
-        "translation": "Direct Message from "
+        "translation": "Direct bericht van "
     },
     {
         "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1012,17 +1012,17 @@
     },
     {
         "id": "api.email_batching.render_batched_post.group_message",
-        "translation": "Group Message from "
+        "translation": "Groepsbericht van "
     },
     {
         "id": "api.email_batching.render_batched_post.notification",
-        "translation": "Notification from "
+        "translation": "Vermelding van "
     },
     {
         "id": "api.email_batching.send_batched_email_notification.body_text",
         "translation": {
-            "one": "You have a new notification.",
-            "other": "You have {{.Count}} new notifications."
+            "one": "Je hebt een nieuwe melding.",
+            "other": "Je hebt {{.Count}} nieuwe meldingen."
         }
     },
     {
@@ -1070,39 +1070,39 @@
     },
     {
         "id": "api.emoji.upload.large_image.decode_error",
-        "translation": "Unable to create emoji. An error occurred when trying to decode the image."
+        "translation": "Kan geen emoticon aanmaken. Er trad een fout op toen we de afbeelding probeerden te decoden."
     },
     {
         "id": "api.emoji.upload.large_image.encode_error",
-        "translation": "Unable to create emoji. An error occurred when trying to encode the image."
+        "translation": "Kan geen emoticon aanmaken. Er trad een fout op toen we de afbeelding probeerden te encoden."
     },
     {
         "id": "api.emoji.upload.large_image.gif_decode_error",
-        "translation": "Unable to create emoji. An error occurred when trying to decode the GIF image."
+        "translation": "Kan geen emoticon aanmaken. Er trad een fout op toen we de GIF-afbeelding probeerden te decoden."
     },
     {
         "id": "api.emoji.upload.large_image.gif_encode_error",
-        "translation": "Unable to create emoji. An error occurred when trying to encode the GIF image."
+        "translation": "Kan geen emoticon aanmaken. Er trad een fout op toen we de GIF-afbeelding probeerden te encoden."
     },
     {
         "id": "api.emoji.upload.large_image.too_large.app_error",
-        "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+        "translation": "Kan geen emoticon aanmaken. De afbeelding moet kleiner zijn dan {{.MaxWidth}} op {{.MaxHeight}}."
     },
     {
         "id": "api.emoji.upload.open.app_error",
-        "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+        "translation": "Kan geen emoticon aanmaken. Er trad een fout op toen we de bijgevoegde afbeelding probeerden te openen."
     },
     {
         "id": "api.file.attachments.disabled.app_error",
-        "translation": "File attachments have been disabled on this server."
+        "translation": "Bijlagen zijn uitgeschakeld op deze server."
     },
     {
         "id": "api.file.file_exists.exists_local.app_error",
-        "translation": "Unable to check if the file exists."
+        "translation": "Fout bij het controleren of het bestand bestaat."
     },
     {
         "id": "api.file.file_exists.s3.app_error",
-        "translation": "Unable to check if the file exists."
+        "translation": "Fout bij het nagaan of het bestand bestaat."
     },
     {
         "id": "api.file.get_file.public_invalid.app_error",
@@ -1126,7 +1126,7 @@
     },
     {
         "id": "api.file.move_file.copy_within_s3.app_error",
-        "translation": "Unable to copy file within S3."
+        "translation": "Fout bij het kopiëren van het bestand binnen S3."
     },
     {
         "id": "api.file.move_file.delete_from_s3.app_error",
@@ -1138,7 +1138,7 @@
     },
     {
         "id": "api.file.no_driver.app_error",
-        "translation": "No file driver selected."
+        "translation": "Geen file-driver geselecteerd."
     },
     {
         "id": "api.file.read_file.reading_local.app_error",
@@ -1158,31 +1158,31 @@
     },
     {
         "id": "api.file.test_connection.local.connection.app_error",
-        "translation": "Don't have permissions to write to local path specified or other error."
+        "translation": "Je hebt geen rechten om te schrijven naar het opgegeven lokale pad of een andere fout."
     },
     {
         "id": "api.file.test_connection.s3.bucked_create.app_error",
-        "translation": "Unable to create bucket."
+        "translation": "Fout bij het aanmaken van de bucket."
     },
     {
         "id": "api.file.test_connection.s3.bucket_exists.app_error",
-        "translation": "Error checking if bucket exists."
+        "translation": "Fout bij het controleren of de bucket bestaat."
     },
     {
         "id": "api.file.test_connection.s3.connection.app_error",
-        "translation": "Bad connection to S3 or minio."
+        "translation": "Slechte verbinding naar S3 of minio."
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-        "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+        "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-        "translation": "Unable to upload files. Incorrect number of files specified."
+        "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
     },
     {
         "id": "api.file.upload_file.large_image.app_error",
-        "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+        "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
     },
     {
         "id": "api.file.upload_file.large_image_detailed.app_error",
@@ -1190,7 +1190,7 @@
     },
     {
         "id": "api.file.upload_file.multiple_channel_ids.app_error",
-        "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+        "translation": "Fout bij het opladen van bestand(-en). Meerdere conflicterende channel_ids."
     },
     {
         "id": "api.file.upload_file.read_form_value.app_error",

@@ -7976,5 +7976,33 @@
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
         "translation": "Mattermost 強烈建議將使用者數量超過 {limit} 的佈署升級至企業版，企業版提供使用者管理、伺服器叢集、效能監控等功能。"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "儲存 {{.WarnMetricName}} 的值失敗"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "管理員清單空白。"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Advisor"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[了解 Mattermost Advisor 的更多資訊](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "聯絡： "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "整合 SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "整合 AD/LDAP"
     }
 ]
