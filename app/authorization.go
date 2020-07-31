@@ -75,15 +75,13 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if err != nil {
 		return false
 	}
+
 	if session.IsUnrestricted() {
 		return true
 	}
-	if err == nil && channel.TeamId != "" {
-		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-	}
 
-	if err != nil && err.StatusCode == http.StatusNotFound {
-		return false
+	if channel.TeamId != "" {
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
 	return a.SessionHasPermissionTo(session, permission)
