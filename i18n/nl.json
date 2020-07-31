@@ -1098,7 +1098,7 @@
     },
     {
         "id": "api.file.file_exists.exists_local.app_error",
-        "translation": "Unable to check if the file exists."
+        "translation": "Fout bij het controleren of het bestand bestaat."
     },
     {
         "id": "api.file.file_exists.s3.app_error",
@@ -1174,15 +1174,15 @@
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-        "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+        "translation": "Fout bij het opladen van bestand(-en). We hebben{{.NumClientIds}} client_ids voor {{.NumFiles}} bestand(-en)."
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_files.app_error",
-        "translation": "Unable to upload files. Incorrect number of files specified."
+        "translation": "Fout bij uploaden van bestanden. Foutief aantal files opgegeven."
     },
     {
         "id": "api.file.upload_file.large_image.app_error",
-        "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+        "translation": "Bestand is te groot en kon niet worden opgeladen: {{.Filename}}"
     },
     {
         "id": "api.file.upload_file.large_image_detailed.app_error",
@@ -1190,7 +1190,7 @@
     },
     {
         "id": "api.file.upload_file.multiple_channel_ids.app_error",
-        "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+        "translation": "Fout bij het opladen van bestand(-en). Meerdere conflicterende channel_ids."
     },
     {
         "id": "api.file.upload_file.read_form_value.app_error",
