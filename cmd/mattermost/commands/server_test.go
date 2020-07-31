@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	UnitTestListeningPort = ":0"
+)
+
 type ServerTestHelper struct {
 	disableConfigWatch bool
 	interruptChan      chan os.Signal
@@ -55,6 +59,9 @@ func TestRunServerSuccess(t *testing.T) {
 
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
+
+	// Use non-default listening port in case another server instance is already running.
+	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
 	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
@@ -104,6 +111,9 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
 
+	// Use non-default listening port in case another server instance is already running.
+	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
+
 	// Start and stop the server
 	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
@@ -124,6 +134,9 @@ func TestRunServerNoSystemd(t *testing.T) {
 
 	configStore, err := config.NewMemoryStore()
 	require.NoError(t, err)
+
+	// Use non-default listening port in case another server instance is already running.
+	*configStore.Get().ServiceSettings.ListenAddress = UnitTestListeningPort
 
 	err = runServer(configStore, th.disableConfigWatch, false, th.interruptChan)
 	require.NoError(t, err)
