@@ -912,7 +912,7 @@
     },
     {
         "id": "api.command_settings.name",
-        "translation": "settings"
+        "translation": "instellingen"
     },
     {
         "id": "api.command_settings.unsupported.app_error",
