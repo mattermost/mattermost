@@ -211,7 +211,12 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 	if err != nil || len(sessions) == 0 {
 		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
-	client.SetToken(sessions[0].Token)
+	for _, session := range sessions {
+		if !session.IsExpired() {
+			client.SetToken(session.Token)
+			break
+		}
+	}
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -326,7 +331,12 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	if err != nil || len(sessions) == 0 {
 		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
-	client.SetToken(sessions[0].Token)
+	for _, session := range sessions {
+		if !session.IsExpired() {
+			client.SetToken(session.Token)
+			break
+		}
+	}
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTestChannels(channelsr)
@@ -351,7 +361,12 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 	if err != nil || len(sessions) == 0 {
 		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
-	client.MockSession(sessions[0].Token)
+	for _, session := range sessions {
+		if !session.IsExpired() {
+			client.MockSession(session.Token)
+			break
+		}
+	}
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
@@ -404,7 +419,12 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	if err != nil || len(sessions) == 0 {
 		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
-	client.SetToken(sessions[0].Token)
+	for _, session := range sessions {
+		if !session.IsExpired() {
+			client.MockSession(session.Token)
+			break
+		}
+	}
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames
