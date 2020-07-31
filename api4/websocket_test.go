@@ -63,7 +63,7 @@ func TestWebSocket(t *testing.T) {
 }
 
 func TestWebSocketTrailingSlash(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
@@ -196,7 +196,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 }
 
 func TestWebsocketOriginSecurity(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)

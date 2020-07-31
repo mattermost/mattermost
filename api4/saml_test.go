@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetSamlMetadata(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 

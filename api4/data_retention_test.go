@@ -8,7 +8,7 @@ import (
 )
 
 func TestDataRetentionGetPolicy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	_, resp := th.Client.GetDataRetentionPolicy()
