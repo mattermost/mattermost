@@ -912,7 +912,7 @@
     },
     {
         "id": "api.command_settings.name",
-        "translation": "settings"
+        "translation": "instellingen"
     },
     {
         "id": "api.command_settings.unsupported.app_error",
@@ -7949,5 +7949,85 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Kan de gebruiker niet ophalen vanuit het sessie UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Fout bij het bijwerken van de webhook."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Fout bij het bijwerken van de IncomingWebhook."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Een uitgaande webhook kan niet overschreven worden."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Fout bij het bewaren van de OutgoingWebhook."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Je kan geen bestaande IncomingWebhook overschrijven."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Fout bij het bewaren van de IncomingWebhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Fout bij het ophalen van de webhooks."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Fout bij het ophalen van de webhook."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Fout bij het verwijderen van de webhook."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Fout bij het tellen van de uitgaande webhooks."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Fout bij het tellen van de inkomende webhooks."
     }
 ]
