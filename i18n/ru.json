@@ -8038,5 +8038,9 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Невозможно сосчитать входящие веб-хуки."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Неверный идентификатор плагина."
     }
 ]
