@@ -5811,86 +5811,6 @@
         "translation": "Es konnte das E-Mail-Adresse bestätigt Feld nicht aktualisiert werden"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Konnte den eingehenden Webhook nicht speichern."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Konnte den ausgehenden Webhook nicht speichern."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht aktualisieren."
-    },
-    {
         "id": "store.update_error",
         "translation": "Aktualisierungsfehler"
     },
@@ -7757,5 +7677,85 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "E-Mail:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht aktualisieren."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Konnte den ausgehenden Webhook nicht speichern."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Konnte den eingehenden Webhook nicht speichern."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
     }
 ]
