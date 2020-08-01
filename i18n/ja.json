@@ -8020,5 +8020,13 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "セッションユーザーIDからユーザーを取得できませんでした。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Contact Usリクエスト"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
     }
 ]
