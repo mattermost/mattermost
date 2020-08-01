@@ -8008,5 +8008,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "管理者承認メールの送信に失敗しました"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Contact Usリクエスト"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
     }
 ]
