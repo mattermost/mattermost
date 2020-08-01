@@ -8,8 +8,17 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tinylib/msgp/msgp"
 	"github.com/vmihailenco/msgpack/v5"
 )
+
+// msgpPool is used to store hot objects in a sync.Pool.
+var msgpPool = sync.Pool{
+	New: func() interface{} {
+		s := make([]byte, 0)
+		return &s
+	},
+}
 
 // LRU is a thread-safe fixed size LRU cache.
 type LRU struct {
@@ -141,9 +150,23 @@ func (l *LRU) set(key string, value interface{}, ttl time.Duration) error {
 		expires = time.Now().Add(ttl)
 	}
 
-	buf, err := msgpack.Marshal(value)
-	if err != nil {
-		return err
+	var buf []byte
+	var err error
+
+	// We use a fast path for hot structs.
+	if msgpVal, ok := value.(msgp.Marshaler); ok {
+		poolData := msgpPool.Get().(*[]byte)
+		buf = *poolData
+		buf, err = msgpVal.MarshalMsg(buf[:0])
+		if err != nil {
+			return err
+		}
+	} else {
+		// Slow path for other structs.
+		buf, err = msgpack.Marshal(value)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Check for existing item, ignoring expiry since we'd update anyway.
@@ -182,6 +205,13 @@ func (l *LRU) get(key string, value interface{}) error {
 
 		l.evictList.MoveToFront(ent)
 
+		// We use a fast path for hot structs.
+		if msgpVal, ok := value.(msgp.Unmarshaler); ok {
+			defer msgpPool.Put(&e.value)
+			_, err := msgpVal.UnmarshalMsg(e.value)
+			return err
+		}
+		// Slow path for other structs.
 		return msgpack.Unmarshal(e.value, value)
 	}
 	return ErrKeyNotFound

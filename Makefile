@@ -551,6 +551,13 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 endif
 endif
 
+gen-serialized: ## Generates serialization methods for hot structs
+	# This tool only works at a file level, not at a package level.
+	# So you would need to move the structs that need to be serialized temporarily
+	# to session.go and run the tool.
+	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
+
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX
