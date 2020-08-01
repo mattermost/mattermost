@@ -7674,5 +7674,85 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "E-Mail:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Nie można zaktualizować webhooka"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Nie można zaktualizować Przychodzącego Webhooka"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Nie udało się nadpisać wychodzącego webhooka"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Nie można zapisać wychodzącego Webhooka"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Nie udało się zapisać wychodzącego webhooka"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Nie można zapisać Przychodzącego Webhooka"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Nie można uzyskać webhooków"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Nie można uzyskać webhooków"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Nie można uzyskać wychodzących webhooków"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Nie można uzyskać wychodzących webhooków"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Nie można uzyskać webhooków"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Nie można uzyskać wychodzących webhooków"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Nie można usunąć webhooka"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Nie można policzyć wychodzących webhooków"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Nie można policzyć przychodzących webhooków"
     }
 ]
