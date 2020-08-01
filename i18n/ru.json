@@ -5816,86 +5816,6 @@
         "translation": "Невозможно обновить поле проверки электронной почты."
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Невозможно сосчитать входящие веб-хуки."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Невозможно сосчитать исходящие веб-хуки."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Не удалось получить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Не удалось получить вебхуки."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Не удалось получить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Не удалось получить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Не удалось получить вебхуки."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Не удалось получить вебхуки."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Невозможно удалить вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Невозможно сохранить входящий вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Вы не можете перезаписать существующий входящий вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Не удалось сохранить исходящий вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Вы не можете перезаписать существующий исходящий вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Не удалось обновить входящий вебхук."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Не удалось обновить вебхук."
-    },
-    {
         "id": "store.update_error",
         "translation": "ошибка обновления"
     },
@@ -8038,5 +7958,89 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Невозможно получить пользователя из UserID сеанса."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Не удалось обновить вебхук."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Не удалось обновить входящий вебхук."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Вы не можете перезаписать существующий исходящий вебхук."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Не удалось сохранить исходящий вебхук."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Вы не можете перезаписать существующий входящий вебхук."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Невозможно сохранить входящий вебхук."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Не удалось получить вебхуки."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Не удалось получить вебхуки."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Не удалось получить вебхук."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Не удалось получить вебхук."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Не удалось получить вебхуки."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Не удалось получить вебхук."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Невозможно удалить вебхук."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Невозможно сосчитать исходящие веб-хуки."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Невозможно сосчитать входящие веб-хуки."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Неверный идентификатор плагина."
     }
 ]
