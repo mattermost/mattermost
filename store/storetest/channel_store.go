@@ -8432,54 +8432,48 @@ func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 	c2.Name = "zz1" + model.NewId() + "c"
 	c2.Type = model.CHANNEL_DIRECT
 
-	t.Run("direct messages with created user & others", func(t *testing.T) {
-		u1 := &model.User{}
-		u1.Email = MakeEmail()
-		u1.Nickname = model.NewId()
-		_, err := ss.User().Save(u1)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
-		require.Nil(t, err)
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
-		u2 := &model.User{}
-		u2.Email = MakeEmail()
-		u2.Nickname = model.NewId()
-		_, err = ss.User().Save(u2)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
-		require.Nil(t, err)
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
-		u3 := &model.User{}
-		u3.Email = MakeEmail()
-		u3.Nickname = model.NewId()
-		_, err = ss.User().Save(u3)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}, -1)
-		require.Nil(t, err)
+	u3 := &model.User{}
+	u3.Email = MakeEmail()
+	u3.Nickname = model.NewId()
+	_, err = ss.User().Save(u3)
+	require.Nil(t, err)
 
-		m1 := model.ChannelMember{}
-		m1.ChannelId = c1.Id
-		m1.UserId = u1.Id
-		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	m1 := model.ChannelMember{}
+	m1.ChannelId = c1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		m2 := model.ChannelMember{}
-		m2.ChannelId = c1.Id
-		m2.UserId = u2.Id
-		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	m2 := model.ChannelMember{}
+	m2.ChannelId = c1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		m3 := model.ChannelMember{}
-		m3.ChannelId = c2.Id
-		m3.UserId = u1.Id
-		m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c2.Id
+	m3.UserId = u1.Id
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		m4 := model.ChannelMember{}
-		m4.ChannelId = c2.Id
-		m4.UserId = u3.Id
-		m4.NotifyProps = model.GetDefaultChannelNotifyProps()
+	m4 := model.ChannelMember{}
+	m4.ChannelId = c2.Id
+	m4.UserId = u3.Id
+	m4.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		ss.Channel().SaveDirectChannel(&c1, &m1, &m2)
-		ss.Channel().SaveDirectChannel(&c2, &m3, &m4)
+	ss.Channel().SaveDirectChannel(&c1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&c2, &m3, &m4)
 
+	t.Run("direct messages for user `u1`", func(t *testing.T) {
 		directChannelsUser1, nErr := ss.Channel().GetDirectChannelsForUser(u1.Id)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser1, 2)
@@ -8487,11 +8481,19 @@ func testGetDirectChannelsForUser(t *testing.T, ss store.Store) {
 		for _, item := range directChannelsUser1 {
 			require.Contains(t, []string{u3.Username, u2.Username}, item.DisplayName)
 		}
+	})
 
+	t.Run("direct messages for user `u2` & `u3`", func(t *testing.T) {
 		directChannelsUser2, nErr := ss.Channel().GetDirectChannelsForUser(u2.Id)
 		require.Nil(t, nErr)
 		require.Len(t, directChannelsUser2, 1)
 
 		require.Contains(t, directChannelsUser2[0].DisplayName, u1.Username)
+
+		directChannelsUser3, nErr := ss.Channel().GetDirectChannelsForUser(u3.Id)
+		require.Nil(t, nErr)
+		require.Len(t, directChannelsUser2, 1)
+
+		require.Contains(t, directChannelsUser3[0].DisplayName, u1.Username)
 	})
 }
