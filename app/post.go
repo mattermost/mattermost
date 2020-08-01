@@ -921,6 +921,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		switch {
 		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("DeletePost", "app.post.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
