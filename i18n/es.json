@@ -7949,5 +7949,85 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Incapaz de coger usuario de sesión UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "No se puede actualizar el webhook"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "No se puede actualizar el webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "No puedes sobreescribir un Webhook de Salida existente"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "No se puede guardar el webhook de salida"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "No puedes sobreescribir un Webhook de Entrada existente"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "No se puede guardar el webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "No se puede obtener los webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "No se puede obtener los webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "No se puede obtener el webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "No se puede obtener el webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "No se puede obtener los webhooks"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "No se puede obtener el webhook"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "No se puede eliminar el webhook"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "No se puede contabilizar los webhooks de salida"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "No se puede contabilizar los webhooks de entrada"
     }
 ]
