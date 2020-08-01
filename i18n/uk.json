@@ -5816,86 +5816,6 @@
         "translation": "Неможливо оновити поле перевірки електронної пошти"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа "
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Не вдається зберегти вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Не вдається зберегти Outgoing Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Неможливо оновити вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Неможливо оновити веб-ключа"
-    },
-    {
         "id": "store.update_error",
         "translation": "update error"
     },
@@ -7742,5 +7662,85 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "Адреса електронної пошти:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Неможливо оновити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Неможливо оновити вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Не вдається зберегти Outgoing Webhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Не вдається зберегти вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
     }
 ]

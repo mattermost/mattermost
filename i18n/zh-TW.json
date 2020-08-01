@@ -5806,86 +5806,6 @@
         "translation": "無法更新驗證電子郵件欄位"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "無法計算內送 Webhook 數量"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "無法計算外寄 Webhook 數量"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "無法取得 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "無法刪除 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "無法儲存內送 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "無法覆蓋一個已存在的內送 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "無法儲存外寄 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "無法複蓋一個已存在的外寄 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "無法更新內送 Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "無法更新 Webhook"
-    },
-    {
         "id": "store.update_error",
         "translation": "更新失敗"
     },
@@ -7952,5 +7872,141 @@
     {
         "id": "api.user.delete_user.not_enabled.app_error",
         "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "寫入 actiance XML 檔案時發生錯誤"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "建立 actiance XML 檔案時發生錯誤"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "寫入 actiance 警告文字檔案時發生錯誤"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "建立 actiance 警告文字檔案時發生錯誤"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "建立 actiance XML 檔案時發生錯誤"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "無法更新 webhook。"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "無法更新 IncomingWebhook。"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "無法覆蓋已存在的 OutgoingWebhook。"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "無法儲存 OutgoingWebhook。"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "您不能覆蓋已存在的 IncomingWebhook。"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "無法儲存 IncomingWebhook。"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "無法取得 Webhook。"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "無法刪除 Webhook。"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "無法計算外寄 Webhook 數量"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "無法計算內送 Webhook 數量"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "儲存 {{.WarnMetricName}} 的值失敗"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "管理員清單空白。"
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "config.json 當中的 DownloadExportResults 設定為 false。請設為 true 才能下載此工作的結果。"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "無法下載此工作"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Advisor"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[了解 Mattermost Advisor 的更多資訊](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "聯絡： "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "整合 SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "整合 AD/LDAP"
     }
 ]
