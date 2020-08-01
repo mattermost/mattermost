@@ -1035,7 +1035,7 @@
     },
     {
         "id": "api.emoji.create.other_user.app_error",
-        "translation": "不正なユーザーIDです"
+        "translation": "不正なユーザーIDです。"
     },
     {
         "id": "api.emoji.create.parse.app_error",
@@ -7775,15 +7775,15 @@
     },
     {
         "id": "api.templates.warn_metric_ack.body.site_url_header",
-        "translation": "サイトURL:"
+        "translation": "サイトURL: "
     },
     {
         "id": "api.templates.warn_metric_ack.body.registered_users_header",
-        "translation": "総アクティブユーザー"
+        "translation": "総アクティブユーザー: "
     },
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
-        "translation": "電子メールアドレス:"
+        "translation": "電子メールアドレス: "
     },
     {
         "id": "app.webhooks.update_outgoing.app_error",
@@ -7864,5 +7864,161 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "内向きのウェブフックをカウントできませんでした。"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。Mattermost Enterprise E20で利用可能なSAML 2.0連携の詳細についてはサポートまでお問い合わせください。\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "あなたのMattermostには200ユーザーが登録しています。ユーザーが増加するにつれ、新規アカウントの払い出しに時間がかかる可能性があります。Mattermost Enterprise E10へアップグレードし、あなたの組織のActive Directory/LDAPと連携することをお勧めします。ユーザーは新たにユーザー名とパスワードを設定する必要なくログインすることができるようになるため、管理者のアカウント払い出しや管理にかかる時間を短縮できます。\nAD/LDAP連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください"
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "不正なプラグインIDです。"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "ActianceXMLファイルを書き出す際にエラーが発生しました"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "ActianceXMLファイルを作成する際にエラーが発生しました"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Actiance XMLファイルを書き出す際にエラーが発生しました"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Actiance警告テキストファイルを作成する際にエラーが発生しました"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Actiance XMLファイルを作成する際にエラーが発生しました"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "{{.WarnMetricName}}に値を保存できませんでした"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "メトリックが見つかりませんでした。"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "管理者リストが空です。"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Mattermostアドバイザーについて詳しく知る](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermostアドバイザー"
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "config.json内のDownloadExportResultsが無効になっています。このジョブの結果をダウンロードするには有効にしてください。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost Contact Usリクエストです。私のチームは現在 {{.Limit}}ユーザーが登録しており、Mattermost Enterprise Editionを検討しています。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "診断ID: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "連絡先: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Mattermost Enterprise エディションへアップグレードする"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能を持つMattermost Enterprise E20へのアップグレードを強く推奨します。"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "SAML 2.0連携"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "AD/LDAP連携"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "メールにてお問い合わせください"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "問い合わせ中"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "お問い合わせください"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost Contact Usリクエストです。私のチームは現在{{.Limit}}ユーザーが所属しており、Mattermost Enterprise Editionの利用を検討しています。\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Mattermostへのお問い合わせありがとうございます。後ほど返信いたします。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "メッセージを送信できませんでした。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "メールでお問い合わせください。"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost Contact Usリクエスト"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "サイトURL: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "全アクティブユーザー: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "電子メール: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "診断ID: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "連絡先: {{.Contact}}"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "このジョブをダウンロードできませんでした"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "警告メトリックが見つかりません。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "管理者承認メールの送信に失敗しました"
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "セッションユーザーIDからユーザーを取得できませんでした。"
     }
 ]
