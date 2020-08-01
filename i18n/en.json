@@ -4527,6 +4527,86 @@
     "translation": "Unable to save terms of service."
   },
   {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Unable to count the incoming webhooks."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Unable to count the outgoing webhooks."
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Unable to save the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "You cannot overwrite an existing IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Unable to save the OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "You cannot overwrite an existing OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Unable to update the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Unable to update the webhook."
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
@@ -5549,6 +5629,10 @@
   {
     "id": "model.command.is_valid.method.app_error",
     "translation": "Invalid Method."
+  },
+  {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin id."
   },
   {
     "id": "model.command.is_valid.team_id.app_error",
@@ -7769,86 +7853,6 @@
   {
     "id": "store.sql_user.verify_email.app_error",
     "translation": "Unable to update verify email field."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Unable to count the incoming webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Unable to count the outgoing webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Unable to save the IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "You cannot overwrite an existing IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Unable to save the OutgoingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "You cannot overwrite an existing OutgoingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Unable to update the IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Unable to update the webhook."
   },
   {
     "id": "store.update_error",

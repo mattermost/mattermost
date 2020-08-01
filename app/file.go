@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/disintegration/imaging"
+	_ "github.com/oov/psd"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
