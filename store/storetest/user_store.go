@@ -2332,7 +2332,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 
 	t1id := model.NewId()
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u1.Id, SchemeAdmin: true, SchemeUser: true}, -1)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u2.Id, SchemeAdmin: true, SchemeUser: true}, -1)
 	require.Nil(t, nErr)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1id, UserId: u3.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
