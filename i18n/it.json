@@ -7885,5 +7885,85 @@
     {
         "id": "api.user.delete_user.not_enabled.app_error",
         "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Impossibile aggiornare il webhook."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Impossibile aggiornare il webhook in ingresso."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Non puoi sovrascrivere un Webhook in uscita esistente."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Impossibile salvare il webhook in uscita."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Non puoi sovrascrivere un Webhook in ingresso esistente."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Impossibile salvare il webhook in ingresso."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Impossibile cancellare i webhook."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Impossibile cancellare i webhook."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Impossibile ottenere il webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Impossibile ottenere il webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Impossibile cancellare i webhook."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Impossibile ottenere il webhook."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Impossibile cancellare il webhook."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Impossibile contare il webhook in uscita."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Impossibile contare i webhook in ingresso."
     }
 ]
