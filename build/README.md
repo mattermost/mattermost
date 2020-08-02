@@ -18,3 +18,4 @@ In our Docker Hub Repository we have the following images:
 - `mattermost/mattermost-build-server:feb-28-2019` which is based on Go 1.12 you can use for MM versions >= `5.9.0` <= `5.15.0`
 - `mattermost/mattermost-build-server:sep-17-2019` which is based on Go 1.12.9 you can use for MM versions >= `5.16.0`
 - `mattermost/mattermost-build-server:20200322_golang-1.14.1` which is based on Go 1.14.1 you can use for MM versions >= `5.24.0`
+- `mattermost/mattermost-build-server:20200731_golang-1.14.6` which is based on Go 1.14.6 you can use for MM versions >= `5.26.0`

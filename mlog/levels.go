@@ -13,20 +13,25 @@ var (
 	LvlDebug = LogLevel{ID: 5, Name: "debug"}
 	LvlTrace = LogLevel{ID: 6, Name: "trace"}
 	// used only by the logger
-	LvlLogError = LogLevel{ID: 11, Name: "logerror"}
+	LvlLogError = LogLevel{ID: 11, Name: "logerror", Stacktrace: true}
 )
 
-// Register custom (discrete) levels here...
-// ! ID's must not exceed 32,768 !
+// Register custom (discrete) levels here.
+// !!!!! ID's must not exceed 32,768 !!!!!!
 var (
 	// used by the audit system
-	LvlAuditDebug = LogLevel{ID: 100, Name: "AuditDebug"}
-	LvlAuditError = LogLevel{ID: 101, Name: "AuditError"}
+	LvlAuditAPI     = LogLevel{ID: 100, Name: "audit-api"}
+	LvlAuditContent = LogLevel{ID: 101, Name: "audit-content"}
+	LvlAuditPerms   = LogLevel{ID: 102, Name: "audit-permissions"}
+	LvlAuditCLI     = LogLevel{ID: 103, Name: "audit-cli"}
+
 	// used by the TCP log target
-	LvlTcpLogTarget = LogLevel{ID: 105, Name: "TcpLogTarget"}
+	LvlTcpLogTarget = LogLevel{ID: 120, Name: "TcpLogTarget"}
+
+	// add more here ...
 )
 
 // Combinations for LogM (log multi)
 var (
-	MLvlExample = []LogLevel{LvlAuditDebug, LvlDebug}
+	MLvlAuditAll = []LogLevel{LvlAuditAPI, LvlAuditContent, LvlAuditPerms, LvlAuditCLI}
 )
