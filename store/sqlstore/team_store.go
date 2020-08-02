@@ -951,6 +951,7 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 	return members[0], nil
 }
 
+// GetMember returns a member based on the member's UserId
 func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
@@ -973,6 +974,7 @@ func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember
 	return dbMember.ToModel(), nil
 }
 
+// GetMembers returns all members of a team between the offset and the limit
 func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
@@ -1014,6 +1016,7 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 	return dbMembers.ToModel(), nil
 }
 
+// GetTotalMemberCount returns the total number of members on a team
 func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
@@ -1035,6 +1038,7 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 	return count, nil
 }
 
+// GetActiveMemberCount returns the number of active members on a team
 func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
@@ -1058,6 +1062,7 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 	return count, nil
 }
 
+// GetMembersByIds returns members of a team based on the their UserIds
 func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
 	if len(userIds) == 0 {
 		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "Invalid list of user ids", http.StatusInternalServerError)
@@ -1082,6 +1087,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 	return dbMembers.ToModel(), nil
 }
 
+// GetTeamsForUser returns all teams that a user is a member of, based on the user's UserId
 func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
