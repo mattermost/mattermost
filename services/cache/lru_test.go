@@ -229,10 +229,10 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	err = l.Set("session", session)
 	require.Nil(t, err)
 
-	var s model.Session
+	var s *model.Session
 	err = l.Get("session", &s)
 	require.Nil(t, err)
-	require.Equal(t, *session, s)
+	require.Equal(t, session, s)
 
 	user := &model.User{
 		Id:             "id",
@@ -272,13 +272,13 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	err = l.Set("user", user)
 	require.Nil(t, err)
 
-	var u model.User
+	var u *model.User
 	err = l.Get("user", &u)
 	require.Nil(t, err)
 	// msgp returns an empty map instead of a nil map.
 	// This does not make an actual difference in terms of functionality.
 	u.Timezone = nil
-	require.Equal(t, *user, u)
+	require.Equal(t, user, u)
 }
 
 func BenchmarkLRU(b *testing.B) {
@@ -532,7 +532,7 @@ func BenchmarkLRU(b *testing.B) {
 			err := l2.Set("test", status)
 			require.Nil(b, err)
 
-			var val model.Status
+			var val *model.Status
 			err = l2.Get("test", &val)
 			require.Nil(b, err)
 		}
@@ -568,7 +568,7 @@ func BenchmarkLRU(b *testing.B) {
 			err := l2.Set("test", &session)
 			require.Nil(b, err)
 
-			var val model.Session
+			var val *model.Session
 			err = l2.Get("test", &val)
 			require.Nil(b, err)
 		}
