@@ -20,7 +20,7 @@ import (
 
 func TestCreateBot(t *testing.T) {
 	t.Run("create bot without permissions", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -137,7 +137,7 @@ func TestCreateBot(t *testing.T) {
 
 func TestPatchBot(t *testing.T) {
 	t.Run("patch non-existent bot", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -204,7 +204,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch someone else's bot without permission", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -1278,7 +1278,7 @@ func TestSetBotIconImage(t *testing.T) {
 }
 
 func TestGetBotIconImage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
@@ -1340,7 +1340,7 @@ func TestGetBotIconImage(t *testing.T) {
 }
 
 func TestDeleteBotIconImage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
@@ -1401,6 +1401,68 @@ func TestDeleteBotIconImage(t *testing.T) {
 	exists, err = th.App.FileExists(fpath)
 	require.Nil(t, err)
 	require.False(t, exists, "icon.svg should not for the user")
+}
+
+func TestConvertBotToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "bot",
+	}
+	bot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	_, resp = th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+	CheckBadRequestStatus(t, resp)
+
+	user, resp := th.Client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+	CheckForbiddenStatus(t, resp)
+	require.Nil(t, user)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+
+		user, resp := client.ConvertBotToUser(bot.UserId, &model.UserPatch{}, false)
+		CheckBadRequestStatus(t, resp)
+
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, false)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+
+		bot = &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "systemAdminBot",
+		}
+		bot, resp = th.SystemAdminClient.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+
+		user, resp = client.ConvertBotToUser(bot.UserId, &model.UserPatch{Password: model.NewString("password")}, true)
+		CheckNoError(t, resp)
+		require.NotNil(t, user)
+		require.Equal(t, bot.UserId, user.Id)
+		require.Contains(t, user.GetRoles(), model.SYSTEM_ADMIN_ROLE_ID)
+
+		bot, resp = client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func sToP(s string) *string {

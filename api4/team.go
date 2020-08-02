@@ -367,8 +367,12 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
+			err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		} else {
+			err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
+		}
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
@@ -993,11 +997,6 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.TeamSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("team_search")
-		return
-	}
-
-	if len(props.Term) == 0 {
-		c.SetInvalidParam("term")
 		return
 	}
 
