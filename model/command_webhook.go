@@ -33,7 +33,7 @@ func (o *CommandWebhook) PreSave() {
 }
 
 func (o *CommandWebhook) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -41,23 +41,23 @@ func (o *CommandWebhook) IsValid() *AppError {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.create_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.CommandId) != 26 {
+	if !IsValidId(o.CommandId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.command_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.RootId) != 0 && len(o.RootId) != 26 {
+	if len(o.RootId) != 0 && !IsValidId(o.RootId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ParentId) != 0 && len(o.ParentId) != 26 {
+	if len(o.ParentId) != 0 && !IsValidId(o.ParentId) {
 		return NewAppError("CommandWebhook.IsValid", "model.command_hook.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

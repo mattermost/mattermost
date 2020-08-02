@@ -15,7 +15,7 @@ func TestPluginShutdownTest(t *testing.T) {
 		t.Skip("skipping test to verify forced shutdown of slow plugin")
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -63,7 +63,7 @@ func TestPluginShutdownTest(t *testing.T) {
 	done := make(chan bool)
 	go func() {
 		defer close(done)
-		th.App.ShutDownPlugins()
+		th.App.Srv().ShutDownPlugins()
 	}()
 
 	select {

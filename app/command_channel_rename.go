@@ -25,12 +25,15 @@ func (me *RenameProvider) GetTrigger() string {
 }
 
 func (me *RenameProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+	renameAutocompleteData := model.NewAutocompleteData(CMD_RENAME, T("api.command_channel_rename.hint"), T("api.command_channel_rename.desc"))
+	renameAutocompleteData.AddTextArgument(T("api.command_channel_rename.hint"), "[text]", "")
 	return &model.Command{
 		Trigger:          CMD_RENAME,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_channel_rename.desc"),
 		AutoCompleteHint: T("api.command_channel_rename.hint"),
 		DisplayName:      T("api.command_channel_rename.name"),
+		AutocompleteData: renameAutocompleteData,
 	}
 }
 
@@ -45,14 +48,14 @@ func (me *RenameProvider) DoCommand(a *App, args *model.CommandArgs, message str
 
 	switch channel.Type {
 	case model.CHANNEL_OPEN:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	case model.CHANNEL_PRIVATE:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

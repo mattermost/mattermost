@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
-
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -83,6 +82,7 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 			http.NotFound(w, r)
 			return
 		}
+
 		handler.ServeHTTP(w, r)
 	})
 }

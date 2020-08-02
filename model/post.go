@@ -64,6 +64,7 @@ const (
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
+	POST_SYSTEM_WARN_METRIC_STATUS        = "warn_metric_status"
 )
 
 var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
@@ -241,7 +242,7 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -253,19 +254,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -312,7 +313,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
-		POST_ADD_BOT_TEAMS_CHANNELS:
+		POST_ADD_BOT_TEAMS_CHANNELS,
+		POST_SYSTEM_WARN_METRIC_STATUS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -521,6 +523,9 @@ func (o *Post) DisableMentionHighlights() string {
 
 // DisableMentionHighlights disables mention highlighting for a post patch if required.
 func (o *PostPatch) DisableMentionHighlights() {
+	if o.Message == nil {
+		return
+	}
 	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
 		if o.Props == nil {
 			o.Props = &StringInterface{}

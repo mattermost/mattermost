@@ -31,15 +31,15 @@ func AdvancedPermissionsPhase2ProgressFromJson(data io.Reader) *AdvancedPermissi
 }
 
 func (p *AdvancedPermissionsPhase2Progress) IsValid() bool {
-	if len(p.LastChannelId) != 26 {
+	if !model.IsValidId(p.LastChannelId) {
 		return false
 	}
 
-	if len(p.LastTeamId) != 26 {
+	if !model.IsValidId(p.LastTeamId) {
 		return false
 	}
 
-	if len(p.LastUserId) != 26 {
+	if !model.IsValidId(p.LastUserId) {
 		return false
 	}
 
@@ -71,7 +71,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 
 	if progress.CurrentTable == "TeamMembers" {
 		// Run a TeamMembers migration batch.
-		if result, err := worker.app.Srv().Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
+		if result, err := worker.srv.Store.Team().MigrateTeamMembers(progress.LastTeamId, progress.LastUserId); err != nil {
 			return false, progress.ToJson(), err
 		} else {
 			if result == nil {
@@ -86,7 +86,7 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 		}
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		if data, err := worker.app.Srv().Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
+		if data, err := worker.srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
 			return false, progress.ToJson(), err
 		} else {
 			if data == nil {

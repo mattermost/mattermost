@@ -24,13 +24,15 @@ type Context struct {
 	siteURLHeader string
 }
 
-// LogAuditRec logs an audit record using default RestLevel.
+// LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
-	c.LogAuditRecWithLevel(rec, app.RestLevel)
+	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
 // LogAuditRec logs an audit record using specified Level.
-func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
+// If the context is flagged with a permissions error then `level`
+// is ignored and the audit record is emitted with `LevelPerms`.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
 	if rec == nil {
 		return
 	}
@@ -38,7 +40,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		rec.AddMeta("err", c.Err.Id)
 		rec.AddMeta("code", c.Err.StatusCode)
 		if c.Err.Id == "api.context.permissions.app_error" {
-			level = app.RestPermsLevel
+			level = app.LevelPerms
 		}
 		rec.Fail()
 	}
@@ -65,7 +67,8 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *audit.Rec
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session().UserId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
+		appErr := model.NewAppError("LogAudit", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogError(appErr)
 	}
 }
 
@@ -77,7 +80,8 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress(), Action: c.App.Path(), ExtraInfo: extraInfo, SessionId: c.App.Session().Id}
 	if err := c.App.Srv().Store.Audit().Save(audit); err != nil {
-		c.LogError(err)
+		appErr := model.NewAppError("LogAuditWithUserId", "app.audit.save.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.LogError(appErr)
 	}
 }
 
@@ -141,7 +145,7 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 
@@ -150,35 +154,36 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session().UserId); err != nil {
-		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
 		return
-	} else {
-		if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
-			return
-		}
-		// Only required for email and ldap accounts
-		if user.AuthService != "" &&
-			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
-			user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-			return
-		}
+	}
 
-		// Special case to let user get themself
-		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
-			return
-		}
+	if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+		return
+	}
+	// Only required for email and ldap accounts
+	if user.AuthService != "" &&
+		user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
+		user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return
+	}
 
-		// Bots are exempt
-		if user.IsBot {
-			return
-		}
+	// Special case to let user get themself
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+	if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
+		return
+	}
 
-		if !user.MfaActive {
-			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
-			return
-		}
+	// Bots are exempt
+	if user.IsBot {
+		return
+	}
+
+	if !user.MfaActive {
+		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
+		return
 	}
 }
 
@@ -274,7 +279,7 @@ func (c *Context) RequireUserId() *Context {
 		c.Params.UserId = c.App.Session().UserId
 	}
 
-	if len(c.Params.UserId) != 26 {
+	if !model.IsValidId(c.Params.UserId) {
 		c.SetInvalidUrlParam("user_id")
 	}
 	return c
@@ -285,8 +290,19 @@ func (c *Context) RequireTeamId() *Context {
 		return c
 	}
 
-	if len(c.Params.TeamId) != 26 {
+	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidUrlParam("team_id")
+	}
+	return c
+}
+
+func (c *Context) RequireCategoryId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.CategoryId) != 26 {
+		c.SetInvalidUrlParam("category_id")
 	}
 	return c
 }
@@ -307,7 +323,7 @@ func (c *Context) RequireTokenId() *Context {
 		return c
 	}
 
-	if len(c.Params.TokenId) != 26 {
+	if !model.IsValidId(c.Params.TokenId) {
 		c.SetInvalidUrlParam("token_id")
 	}
 	return c
@@ -318,7 +334,7 @@ func (c *Context) RequireChannelId() *Context {
 		return c
 	}
 
-	if len(c.Params.ChannelId) != 26 {
+	if !model.IsValidId(c.Params.ChannelId) {
 		c.SetInvalidUrlParam("channel_id")
 	}
 	return c
@@ -341,7 +357,7 @@ func (c *Context) RequirePostId() *Context {
 		return c
 	}
 
-	if len(c.Params.PostId) != 26 {
+	if !model.IsValidId(c.Params.PostId) {
 		c.SetInvalidUrlParam("post_id")
 	}
 	return c
@@ -352,7 +368,7 @@ func (c *Context) RequireAppId() *Context {
 		return c
 	}
 
-	if len(c.Params.AppId) != 26 {
+	if !model.IsValidId(c.Params.AppId) {
 		c.SetInvalidUrlParam("app_id")
 	}
 	return c
@@ -363,7 +379,7 @@ func (c *Context) RequireFileId() *Context {
 		return c
 	}
 
-	if len(c.Params.FileId) != 26 {
+	if !model.IsValidId(c.Params.FileId) {
 		c.SetInvalidUrlParam("file_id")
 	}
 
@@ -399,7 +415,7 @@ func (c *Context) RequireReportId() *Context {
 		return c
 	}
 
-	if len(c.Params.ReportId) != 26 {
+	if !model.IsValidId(c.Params.ReportId) {
 		c.SetInvalidUrlParam("report_id")
 	}
 	return c
@@ -410,7 +426,7 @@ func (c *Context) RequireEmojiId() *Context {
 		return c
 	}
 
-	if len(c.Params.EmojiId) != 26 {
+	if !model.IsValidId(c.Params.EmojiId) {
 		c.SetInvalidUrlParam("emoji_id")
 	}
 	return c
@@ -507,7 +523,7 @@ func (c *Context) RequireHookId() *Context {
 		return c
 	}
 
-	if len(c.Params.HookId) != 26 {
+	if !model.IsValidId(c.Params.HookId) {
 		c.SetInvalidUrlParam("hook_id")
 	}
 
@@ -519,7 +535,7 @@ func (c *Context) RequireCommandId() *Context {
 		return c
 	}
 
-	if len(c.Params.CommandId) != 26 {
+	if !model.IsValidId(c.Params.CommandId) {
 		c.SetInvalidUrlParam("command_id")
 	}
 	return c
@@ -530,7 +546,7 @@ func (c *Context) RequireJobId() *Context {
 		return c
 	}
 
-	if len(c.Params.JobId) != 26 {
+	if !model.IsValidId(c.Params.JobId) {
 		c.SetInvalidUrlParam("job_id")
 	}
 	return c
@@ -552,7 +568,7 @@ func (c *Context) RequireRoleId() *Context {
 		return c
 	}
 
-	if len(c.Params.RoleId) != 26 {
+	if !model.IsValidId(c.Params.RoleId) {
 		c.SetInvalidUrlParam("role_id")
 	}
 	return c
@@ -563,7 +579,7 @@ func (c *Context) RequireSchemeId() *Context {
 		return c
 	}
 
-	if len(c.Params.SchemeId) != 26 {
+	if !model.IsValidId(c.Params.SchemeId) {
 		c.SetInvalidUrlParam("scheme_id")
 	}
 	return c
@@ -586,7 +602,7 @@ func (c *Context) RequireGroupId() *Context {
 		return c
 	}
 
-	if len(c.Params.GroupId) != 26 {
+	if !model.IsValidId(c.Params.GroupId) {
 		c.SetInvalidUrlParam("group_id")
 	}
 	return c
@@ -608,7 +624,7 @@ func (c *Context) RequireSyncableId() *Context {
 		return c
 	}
 
-	if len(c.Params.SyncableId) != 26 {
+	if !model.IsValidId(c.Params.SyncableId) {
 		c.SetInvalidUrlParam("syncable_id")
 	}
 	return c
@@ -630,7 +646,7 @@ func (c *Context) RequireBotUserId() *Context {
 		return c
 	}
 
-	if len(c.Params.BotUserId) != 26 {
+	if !model.IsValidId(c.Params.BotUserId) {
 		c.SetInvalidUrlParam("bot_user_id")
 	}
 	return c

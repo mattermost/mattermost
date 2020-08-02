@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type PluginAPI struct {
@@ -70,6 +71,20 @@ func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
 	return nil
 }
 
+func (api *PluginAPI) ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error) {
+	user, appErr := api.app.GetUser(commandArgs.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+	commandArgs.T = utils.GetUserTranslations(user.Locale)
+	commandArgs.SiteURL = api.app.GetSiteURL()
+	response, appErr := api.app.ExecuteCommand(commandArgs)
+	if appErr != nil {
+		return response, appErr
+	}
+	return response, nil
+}
+
 func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	session, err := api.app.GetSessionById(sessionId)
 
@@ -117,7 +132,7 @@ func (api *PluginAPI) GetBundlePath() (string, error) {
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
-	return api.app.License()
+	return api.app.Srv().License()
 }
 
 func (api *PluginAPI) GetServerVersion() string {
@@ -125,7 +140,7 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
-	return api.app.getSystemInstallDate()
+	return api.app.Srv().getSystemInstallDate()
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
@@ -247,6 +262,18 @@ func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError) {
+	return api.app.GetPreferencesForUser(userId)
+}
+
+func (api *PluginAPI) UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.UpdatePreferences(userId, preferences)
+}
+
+func (api *PluginAPI) DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError {
+	return api.app.DeletePreferences(userId, preferences)
+}
+
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
 }
@@ -347,7 +374,7 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 }
 
 func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
-	channels, err := api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	channels, err := api.app.GetChannelsForUser(teamId, userId, includeDeleted, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -401,6 +428,40 @@ func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.Searc
 		return nil, err
 	}
 	return postList.ToSlice(), nil
+}
+
+func (api *PluginAPI) SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
+	var terms string
+	if searchParams.Terms != nil {
+		terms = *searchParams.Terms
+	}
+
+	timeZoneOffset := 0
+	if searchParams.TimeZoneOffset != nil {
+		timeZoneOffset = *searchParams.TimeZoneOffset
+	}
+
+	isOrSearch := false
+	if searchParams.IsOrSearch != nil {
+		isOrSearch = *searchParams.IsOrSearch
+	}
+
+	page := 0
+	if searchParams.Page != nil {
+		page = *searchParams.Page
+	}
+
+	perPage := 100
+	if searchParams.PerPage != nil {
+		perPage = *searchParams.PerPage
+	}
+
+	includeDeletedChannels := false
+	if searchParams.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *searchParams.IncludeDeletedChannels
+	}
+
+	return api.app.SearchPostsInTeamForUser(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -460,7 +521,7 @@ func (api *PluginAPI) GetGroup(groupId string) (*model.Group, *model.AppError) {
 }
 
 func (api *PluginAPI) GetGroupByName(name string) (*model.Group, *model.AppError) {
-	return api.app.GetGroupByName(name)
+	return api.app.GetGroupByName(name, model.GroupSearchOpts{})
 }
 
 func (api *PluginAPI) GetGroupsForUser(userId string) ([]*model.Group, *model.AppError) {
@@ -658,7 +719,7 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
 	}
 
-	return api.app.sendNotificationMail(to, subject, htmlBody)
+	return api.app.Srv().EmailService.sendNotificationMail(to, subject, htmlBody)
 }
 
 // Plugin Section
@@ -838,6 +899,10 @@ func (api *PluginAPI) DeleteBotIconImage(userId string) *model.AppError {
 	return api.app.DeleteBotIconImage(userId)
 }
 
+func (api *PluginAPI) PublishUserTyping(userId, channelId, parentId string) *model.AppError {
+	return api.app.PublishUserTyping(userId, channelId, parentId)
+}
+
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
@@ -848,6 +913,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}
 	destinationPluginId := split[1]
 	newURL, err := url.Parse("/" + split[2])
+	newURL.RawQuery = request.URL.Query().Encode()
 	request.URL = newURL
 	if destinationPluginId == "" || err != nil {
 		message := "No plugin specified. Form of URL should be /<pluginid>/*"
@@ -862,4 +928,111 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	responseTransfer := &PluginResponseWriter{}
 	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
+}
+
+func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
+	cmd.CreatorId = ""
+	cmd.PluginId = api.id
+
+	cmd, appErr := api.app.createCommand(cmd)
+
+	if appErr != nil {
+		return cmd, appErr
+	}
+
+	return cmd, nil
+}
+
+func (api *PluginAPI) ListCommands(teamID string) ([]*model.Command, error) {
+	ret := make([]*model.Command, 0)
+
+	cmds, err := api.ListPluginCommands(teamID)
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	cmds, err = api.ListBuiltInCommands()
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	cmds, err = api.ListCustomCommands(teamID)
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, cmds...)
+
+	return ret, nil
+}
+
+func (api *PluginAPI) ListCustomCommands(teamID string) ([]*model.Command, error) {
+	// Plugins are allowed to bypass the a.Config().ServiceSettings.EnableCommands setting.
+	return api.app.Srv().Store.Command().GetByTeam(teamID)
+}
+
+func (api *PluginAPI) ListPluginCommands(teamID string) ([]*model.Command, error) {
+	commands := make([]*model.Command, 0)
+	seen := make(map[string]bool)
+
+	for _, cmd := range api.app.PluginCommandsForTeam(teamID) {
+		if !seen[cmd.Trigger] {
+			seen[cmd.Trigger] = true
+			commands = append(commands, cmd)
+		}
+	}
+
+	return commands, nil
+}
+
+func (api *PluginAPI) ListBuiltInCommands() ([]*model.Command, error) {
+	commands := make([]*model.Command, 0)
+	seen := make(map[string]bool)
+
+	for _, value := range commandProviders {
+		if cmd := value.GetCommand(api.app, utils.T); cmd != nil {
+			cpy := *cmd
+			if cpy.AutoComplete && !seen[cpy.Trigger] {
+				cpy.Sanitize()
+				seen[cpy.Trigger] = true
+				commands = append(commands, &cpy)
+			}
+		}
+	}
+
+	return commands, nil
+}
+
+func (api *PluginAPI) GetCommand(commandID string) (*model.Command, error) {
+	return api.app.Srv().Store.Command().Get(commandID)
+}
+
+func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
+	oldCmd, err := api.GetCommand(commandID)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedCmd.Trigger = strings.ToLower(updatedCmd.Trigger)
+	updatedCmd.Id = oldCmd.Id
+	updatedCmd.Token = oldCmd.Token
+	updatedCmd.CreateAt = oldCmd.CreateAt
+	updatedCmd.UpdateAt = model.GetMillis()
+	updatedCmd.DeleteAt = oldCmd.DeleteAt
+	updatedCmd.PluginId = api.id
+	if updatedCmd.TeamId == "" {
+		updatedCmd.TeamId = oldCmd.TeamId
+	}
+
+	return api.app.Srv().Store.Command().Update(updatedCmd)
+}
+
+func (api *PluginAPI) DeleteCommand(commandID string) error {
+	err := api.app.Srv().Store.Command().Delete(commandID, model.GetMillis())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

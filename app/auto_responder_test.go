@@ -12,7 +12,7 @@ import (
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -51,7 +51,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 }
 
 func TestDisableAutoResponder(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -190,7 +190,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
-		false)
+		false, true)
 
 	sent, err := th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
 
@@ -230,7 +230,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
-		false)
+		false, true)
 
 	sent, err := th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
 

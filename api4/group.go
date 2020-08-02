@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -51,9 +52,17 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
 		api.ApiSessionRequired(patchGroupSyncable)).Methods("PUT")
 
+	// GET /api/v4/groups/:group_id/stats
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
+		api.ApiSessionRequired(getGroupStats)).Methods("GET")
+
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
 		api.ApiSessionRequired(getGroupMembers)).Methods("GET")
+
+	// GET /api/v4/users/:user_id/groups?page=0&per_page=100
+	api.BaseRoutes.Users.Handle("/{user_id:[A-Za-z0-9]+}/groups",
+		api.ApiSessionRequired(getGroupsByUserId)).Methods("GET")
 
 	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
@@ -74,7 +83,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -114,7 +123,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -132,12 +141,32 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("group", group)
 
 	if groupPatch.AllowReference != nil && *groupPatch.AllowReference {
-		tmp := model.NewId()
 		if groupPatch.Name == nil {
-			tmp = strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
+			tmp := strings.ReplaceAll(strings.ToLower(group.DisplayName), " ", "-")
+			groupPatch.Name = &tmp
+		} else {
+			if *groupPatch.Name == model.USER_NOTIFY_ALL || *groupPatch.Name == model.CHANNEL_MENTIONS_NOTIFY_PROP || *groupPatch.Name == model.USER_NOTIFY_HERE {
+				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_reserved_name_error", nil, "", http.StatusNotImplemented)
+				return
+			}
+			//check if a user already has this group name
+			user, _ := c.App.GetUserByUsername(*groupPatch.Name)
+			if user != nil {
+				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_user_name_error", nil, "", http.StatusNotImplemented)
+				return
+			}
+			//check if a mentionable group already has this name
+			searchOpts := model.GroupSearchOpts{
+				FilterAllowReference: true,
+			}
+			existingGroup, _ := c.App.GetGroupByName(*groupPatch.Name, searchOpts)
+			if existingGroup != nil {
+				c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.existing_group_name_error", nil, "", http.StatusNotImplemented)
+				return
+			}
 		}
-		groupPatch.Name = &tmp
 	}
+
 	group.Patch(groupPatch)
 
 	group, err = c.App.UpdateGroup(group)
@@ -194,7 +223,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -217,9 +246,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	w.WriteHeader(http.StatusCreated)
 
@@ -250,7 +279,7 @@ func getGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -287,7 +316,7 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -349,7 +378,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.ldap_groups.license_error", nil, "",
 			http.StatusNotImplemented)
 		return
@@ -378,9 +407,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
 	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
@@ -415,7 +444,7 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("syncable_id", syncableID)
 	auditRec.AddMeta("syncable_type", syncableType)
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -432,9 +461,9 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
-	// persists the execution status to the jobs table.
-	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+	c.App.Srv().Go(func() {
+		c.App.SyncRolesAndMembership(syncableID, syncableType)
+	})
 
 	auditRec.Success()
 
@@ -474,7 +503,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupMembers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -505,13 +534,79 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupStats", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupID := c.Params.GroupId
+	count, err := c.App.GetGroupMemberCount(groupID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(model.GroupStats{
+		GroupID:          groupID,
+		TotalMemberCount: count,
+	})
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupStats", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsByUserId(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupsByUserId", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	groups, err := c.App.GetGroupsByUserId(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groups)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByUserId", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
 func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -569,7 +664,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -611,7 +706,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -646,7 +741,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 }
 
 func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -661,9 +756,10 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	opts := model.GroupSearchOpts{
-		Q:                    c.Params.Q,
-		IncludeMemberCount:   c.Params.IncludeMemberCount,
-		FilterAllowReference: c.Params.FilterAllowReference,
+		Q:                         c.Params.Q,
+		IncludeMemberCount:        c.Params.IncludeMemberCount,
+		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 	}
 
 	if teamID != "" {
@@ -693,6 +789,16 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.NotAssociatedToChannel = channelID
+	}
+
+	sinceString := r.URL.Query().Get("since")
+	if len(sinceString) > 0 {
+		since, parseError := strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+		opts.Since = since
 	}
 
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)

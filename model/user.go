@@ -25,6 +25,7 @@ import (
 const (
 	ME                                 = "me"
 	USER_NOTIFY_ALL                    = "all"
+	USER_NOTIFY_HERE                   = "here"
 	USER_NOTIFY_MENTION                = "mention"
 	USER_NOTIFY_NONE                   = "none"
 	DESKTOP_NOTIFY_PROP                = "desktop"
@@ -123,6 +124,7 @@ type UserForIndexing struct {
 	Nickname    string   `json:"nickname"`
 	FirstName   string   `json:"first_name"`
 	LastName    string   `json:"last_name"`
+	Roles       string   `json:"roles"`
 	CreateAt    int64    `json:"create_at"`
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`
@@ -237,7 +239,7 @@ func (u *User) DeepCopy() *User {
 // correctly.
 func (u *User) IsValid() *AppError {
 
-	if len(u.Id) != 26 {
+	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
 

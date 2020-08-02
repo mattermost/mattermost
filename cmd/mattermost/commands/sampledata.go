@@ -143,7 +143,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	seed, err := command.Flags().GetInt64("seed")
 	if err != nil {
@@ -563,9 +563,18 @@ func createChannelMembership(channelName string, guest bool) app.UserChannelImpo
 	}
 }
 
+func getSampleTeamName(idx int) string {
+	for {
+		name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+		if !model.IsReservedTeamName(name) {
+			return name
+		}
+	}
+}
+
 func createTeam(idx int) app.LineImportData {
 	displayName := fake.Word()
-	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+	name := getSampleTeamName(idx)
 	allowOpenInvite := rand.Intn(2) == 0
 
 	description := fake.Paragraph()

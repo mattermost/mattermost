@@ -107,7 +107,7 @@ func SchemesFromJson(data io.Reader) []*Scheme {
 }
 
 func (scheme *Scheme) IsValid() bool {
-	if len(scheme.Id) != 26 {
+	if !IsValidId(scheme.Id) {
 		return false
 	}
 

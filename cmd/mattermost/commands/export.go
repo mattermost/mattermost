@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -87,7 +88,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if !*a.Config().MessageExportSettings.EnableExport {
 		return errors.New("ERROR: The message export feature is not enabled")
@@ -144,10 +145,11 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
+		license := a.Srv().License()
 		if err != nil {
 			return err
 		}
-		defer a.Shutdown()
+		defer a.Srv().Shutdown()
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -157,15 +159,19 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
-		if a.MessageExport() == nil {
+		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
-		err2 := a.MessageExport().RunExport(format, startTime)
-		if err2 != nil {
-			return err2
+		warningsCount, appErr := a.MessageExport().RunExport(format, startTime)
+		if appErr != nil {
+			return appErr
 		}
-		CommandPrettyPrintln("SUCCESS: Your data was exported.")
+		if warningsCount == 0 {
+			CommandPrettyPrintln("SUCCESS: Your data was exported.")
+		} else {
+			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
+		}
 
 		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
 		auditRec.AddMeta("format", format)
@@ -181,7 +187,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {

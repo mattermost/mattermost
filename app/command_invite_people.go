@@ -41,11 +41,11 @@ func (me *InvitePeopleProvider) GetCommand(a *App, T goi18n.TranslateFunc) *mode
 }
 
 func (me *InvitePeopleProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.SessionHasPermissionToTeam(args.Session, args.TeamId, model.PERMISSION_INVITE_USER) {
+	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_INVITE_USER) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if !a.SessionHasPermissionToTeam(args.Session, args.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+	if !a.HasPermissionToTeam(args.UserId, args.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

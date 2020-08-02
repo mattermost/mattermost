@@ -895,109 +895,139 @@ func TestImportValidateReplyImportData(t *testing.T) {
 func TestImportValidatePostImportData(t *testing.T) {
 	maxPostSize := 10000
 
-	// Test with minimum required valid properties.
-	data := PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err := validatePostImportData(&data, maxPostSize)
-	require.Nil(t, err, "Validation failed but should have been valid.")
+	t.Run("Test with minimum required valid properties", func(t *testing.T) {
+		data := PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.Nil(t, err, "Validation failed but should have been valid.")
+	})
 
-	// Test with missing required properties.
-	data = PostImportData{
-		Channel:  ptrStr("channelname"),
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to missing required property.")
+	t.Run("Test with missing required properties", func(t *testing.T) {
+		data := PostImportData{
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.team_missing.error")
 
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to missing required property.")
+		data = PostImportData{
+			Team:     ptrStr("teamname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err = validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.channel_missing.error")
 
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to missing required property.")
+		data = PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err = validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.user_missing.error")
 
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
-		User:     ptrStr("username"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to missing required property.")
+		data = PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err = validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_missing.error")
 
-	data = PostImportData{
-		Team:    ptrStr("teamname"),
-		Channel: ptrStr("channelname"),
-		User:    ptrStr("username"),
-		Message: ptrStr("message"),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to missing required property.")
+		data = PostImportData{
+			Team:    ptrStr("teamname"),
+			Channel: ptrStr("channelname"),
+			User:    ptrStr("username"),
+			Message: ptrStr("message"),
+		}
+		err = validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to missing required property.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_missing.error")
+	})
 
-	// Test with invalid message.
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
-		User:     ptrStr("username"),
-		Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to too long message.")
+	t.Run("Test with invalid message", func(t *testing.T) {
+		data := PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr(strings.Repeat("0", maxPostSize+1)),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to too long message.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.message_length.error")
+	})
 
-	// Test with invalid CreateAt
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(0),
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+	t.Run("Test with invalid CreateAt", func(t *testing.T) {
+		data := PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(0),
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to 0 create-at value.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.create_at_zero.error")
+	})
 
-	// Test with valid all optional parameters.
-	reactions := []ReactionImportData{{
-		User:      ptrStr("username"),
-		EmojiName: ptrStr("emoji"),
-		CreateAt:  ptrInt64(model.GetMillis()),
-	}}
+	t.Run("Test with valid all optional parameters", func(t *testing.T) {
+		reactions := []ReactionImportData{{
+			User:      ptrStr("username"),
+			EmojiName: ptrStr("emoji"),
+			CreateAt:  ptrInt64(model.GetMillis()),
+		}}
 
-	replies := []ReplyImportData{{
-		User:     ptrStr("username"),
-		Message:  ptrStr("message"),
-		CreateAt: ptrInt64(model.GetMillis()),
-	}}
+		replies := []ReplyImportData{{
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			CreateAt: ptrInt64(model.GetMillis()),
+		}}
 
-	data = PostImportData{
-		Team:      ptrStr("teamname"),
-		Channel:   ptrStr("channelname"),
-		User:      ptrStr("username"),
-		Message:   ptrStr("message"),
-		CreateAt:  ptrInt64(model.GetMillis()),
-		Reactions: &reactions,
-		Replies:   &replies,
-	}
-	err = validatePostImportData(&data, maxPostSize)
-	require.Nil(t, err, "Should have succeeded.")
+		data := PostImportData{
+			Team:      ptrStr("teamname"),
+			Channel:   ptrStr("channelname"),
+			User:      ptrStr("username"),
+			Message:   ptrStr("message"),
+			CreateAt:  ptrInt64(model.GetMillis()),
+			Reactions: &reactions,
+			Replies:   &replies,
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.Nil(t, err, "Should have succeeded.")
+	})
+
+	t.Run("Test with props too large", func(t *testing.T) {
+		props := model.StringInterface{
+			"attachment": strings.Repeat("a", model.POST_PROPS_MAX_RUNES),
+		}
+
+		data := PostImportData{
+			Team:     ptrStr("teamname"),
+			Channel:  ptrStr("channelname"),
+			User:     ptrStr("username"),
+			Message:  ptrStr("message"),
+			Props:    &props,
+			CreateAt: ptrInt64(model.GetMillis()),
+		}
+		err := validatePostImportData(&data, maxPostSize)
+		require.NotNil(t, err, "Should have failed due to long props.")
+		assert.Equal(t, err.Id, "app.import.validate_post_import_data.props_too_large.error")
+	})
 }
 
 func TestImportValidateDirectChannelImportData(t *testing.T) {

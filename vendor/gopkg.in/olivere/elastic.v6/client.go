@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "6.2.30"
+	Version = "6.2.33"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -500,6 +500,12 @@ func SetURL(urls ...string) ClientOptionFunc {
 			c.urls = []string{DefaultURL}
 		default:
 			c.urls = urls
+		}
+		// Check URLs
+		for _, urlStr := range c.urls {
+			if _, err := url.Parse(urlStr); err != nil {
+				return err
+			}
 		}
 		return nil
 	}

@@ -489,7 +489,8 @@ CREATE TABLE public.sessions (
     deviceid character varying(512),
     roles character varying(64),
     isoauth boolean,
-    props character varying(1000)
+    expirednotify boolean,
+    props character varying(1000),
 );
 
 
@@ -825,7 +826,7 @@ COPY public.schemes (id, name, displayname, description, createat, updateat, del
 -- Data for Name: sessions; Type: TABLE DATA; Schema: public; Owner: mmuser
 --
 
-COPY public.sessions (id, token, createat, expiresat, lastactivityat, userid, deviceid, roles, isoauth, props) FROM stdin;
+COPY public.sessions (id, token, createat, expiresat, lastactivityat, userid, deviceid, roles, isoauth, expirednotify, props) FROM stdin;
 \.
 
 

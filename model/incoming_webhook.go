@@ -65,7 +65,7 @@ func IncomingWebhookListFromJson(data io.Reader) []*IncomingWebhook {
 
 func (o *IncomingWebhook) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.id.app_error", nil, "", http.StatusBadRequest)
 
 	}
@@ -78,15 +78,15 @@ func (o *IncomingWebhook) IsValid() *AppError {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.TeamId) != 26 {
+	if !IsValidId(o.TeamId) {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

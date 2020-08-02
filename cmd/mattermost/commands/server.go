@@ -73,8 +73,9 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 	}
 
 	api := api4.Init(server, server.AppOptions, server.Router)
-	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
+	wsapi.Init(server)
 	web.New(server, server.AppOptions, server.Router)
+	api4.InitLocal(server, server.AppOptions, server.LocalRouter)
 
 	serverErr := server.Start()
 	if serverErr != nil {
@@ -91,7 +92,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
 
 	return nil

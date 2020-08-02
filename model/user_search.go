@@ -13,16 +13,20 @@ const USER_SEARCH_DEFAULT_LIMIT = 100
 
 // UserSearch captures the parameters provided by a client for initiating a user search.
 type UserSearch struct {
-	Term             string `json:"term"`
-	TeamId           string `json:"team_id"`
-	NotInTeamId      string `json:"not_in_team_id"`
-	InChannelId      string `json:"in_channel_id"`
-	NotInChannelId   string `json:"not_in_channel_id"`
-	GroupConstrained bool   `json:"group_constrained"`
-	AllowInactive    bool   `json:"allow_inactive"`
-	WithoutTeam      bool   `json:"without_team"`
-	Limit            int    `json:"limit"`
-	Role             string `json:"role"`
+	Term             string   `json:"term"`
+	TeamId           string   `json:"team_id"`
+	NotInTeamId      string   `json:"not_in_team_id"`
+	InChannelId      string   `json:"in_channel_id"`
+	NotInChannelId   string   `json:"not_in_channel_id"`
+	InGroupId        string   `json:"in_group_id"`
+	GroupConstrained bool     `json:"group_constrained"`
+	AllowInactive    bool     `json:"allow_inactive"`
+	WithoutTeam      bool     `json:"without_team"`
+	Limit            int      `json:"limit"`
+	Role             string   `json:"role"`
+	Roles            []string `json:"roles"`
+	ChannelRoles     []string `json:"channel_roles"`
+	TeamRoles        []string `json:"team_roles"`
 }
 
 // ToJson convert a User to a json string
@@ -60,6 +64,12 @@ type UserSearchOptions struct {
 	Limit int
 	// Filters for the given role
 	Role string
+	// Filters for users that have any of the given system roles
+	Roles []string
+	// Filters for users that have the given channel roles to be used when searching in a channel
+	ChannelRoles []string
+	// Filters for users that have the given team roles to be used when searching in a team
+	TeamRoles []string
 	// Restrict to search in a list of teams and channels
 	ViewRestrictions *ViewUsersRestrictions
 	// List of allowed channels

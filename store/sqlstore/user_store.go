@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 
@@ -329,21 +328,44 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) *model.AppErr
 }
 
 func (us SqlUserStore) Get(id string) (*model.User, *model.AppError) {
-	query := us.usersQuery.Where("Id = ?", id)
+	failure := func(err error, id string, statusCode int) *model.AppError {
+		details := "user_id=" + id + ", " + err.Error()
+		return model.NewAppError("SqlUserStore.Get", id, nil, details, statusCode)
+	}
 
+	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	row := us.GetReplica().Db.QueryRow(queryString, args...)
+
+	var user model.User
+	var props, notifyProps, timezone []byte
+	err = row.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username,
+		&user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified,
+		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
+		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
+		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret,
+		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, failure(err, store.MISSING_ACCOUNT_ERROR, http.StatusNotFound)
+		}
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+
+	}
+	if err = json.Unmarshal(props, &user.Props); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
+	}
+	if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
+		return nil, failure(err, "store.sql_user.get.app_error", http.StatusInternalServerError)
 	}
 
-	user := &model.User{}
-	if err := us.GetReplica().SelectOne(user, queryString, args...); err == sql.ErrNoRows {
-		return nil, model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
-	} else if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
-	}
-
-	return user, nil
+	return &user, nil
 }
 
 func (us SqlUserStore) GetAll() ([]*model.User, *model.AppError) {
@@ -400,6 +422,8 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -432,6 +456,121 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	roleParam := fmt.Sprintf("%%%s%%", sanitizeSearchTerm(role, "*"))
 
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
+}
+
+func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string) sq.SelectBuilder {
+	queryString := ""
+	if len(roles) > 0 && roles[0] != "" {
+		schemeGuest := false
+		schemeAdmin := false
+		schemeUser := false
+
+		for _, role := range roles {
+			switch role {
+			case model.SYSTEM_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.SYSTEM_USER_ROLE_ID:
+				schemeUser = true
+			case model.SYSTEM_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if schemeAdmin && schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' OR u.Roles LIKE '%system_admin%') `
+			} else if schemeAdmin {
+				queryString += `(u.Roles LIKE '%system_admin%') `
+			} else if schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
+			}
+
+			if schemeGuest {
+				if queryString != "" {
+					queryString += "OR "
+				}
+				queryString += `(u.Roles LIKE '%system_guest%') `
+			}
+		}
+	}
+
+	if len(channelRoles) > 0 && channelRoles[0] != "" {
+		schemeGuest := false
+		schemeAdmin := false
+		schemeUser := false
+		for _, channelRole := range channelRoles {
+			switch channelRole {
+			case model.CHANNEL_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.CHANNEL_USER_ROLE_ID:
+				schemeUser = true
+			case model.CHANNEL_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if queryString != "" {
+				queryString += "OR "
+			}
+			if schemeAdmin && schemeUser {
+				queryString += `(cm.SchemeUser = true AND u.Roles = 'system_user')`
+			} else if schemeAdmin {
+				queryString += `(cm.SchemeAdmin = true AND u.Roles = 'system_user')`
+			} else if schemeUser {
+				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false AND u.Roles = 'system_user')`
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
+				queryString += `(cm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			}
+		}
+	}
+
+	if len(teamRoles) > 0 && teamRoles[0] != "" {
+		schemeAdmin := false
+		schemeUser := false
+		schemeGuest := false
+		for _, teamRole := range teamRoles {
+			switch teamRole {
+			case model.TEAM_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.TEAM_USER_ROLE_ID:
+				schemeUser = true
+			case model.TEAM_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if queryString != "" {
+				queryString += "OR "
+			}
+			if schemeAdmin && schemeUser {
+				queryString += `(tm.SchemeUser = true AND u.Roles = 'system_user')`
+			} else if schemeAdmin {
+				queryString += `(tm.SchemeAdmin = true AND u.Roles = 'system_user')`
+			} else if schemeUser {
+				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false AND u.Roles = 'system_user')`
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
+				queryString += `(tm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			}
+		}
+	}
+
+	if queryString != "" {
+		query = query.Where("(" + queryString + ")")
+	}
+
+	return query
 }
 
 func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {
@@ -501,9 +640,12 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -689,6 +831,8 @@ func (us SqlUserStore) GetProfilesWithoutTeam(options *model.UserGetOptions) ([]
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
 	}
 
 	queryString, args, err := query.ToSql()
@@ -809,7 +953,7 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetB
 		OrderBy("u.Username ASC")
 
 	if options.Since > 0 {
-		query = query.Where(squirrel.Gt(map[string]interface{}{
+		query = query.Where(sq.Gt(map[string]interface{}{
 			"u.UpdateAt": options.Since,
 		}))
 	}
@@ -978,7 +1122,7 @@ func (us SqlUserStore) GetAllNotInAuthService(authServices []string) ([]*model.U
 
 	var users []*model.User
 	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetAllUsingAuthService", "store.sql_user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlUserStore.GetAllNotInAuthService", "store.sql_user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return users, nil
@@ -1051,6 +1195,7 @@ func (us SqlUserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 	if !options.IncludeDeleted {
@@ -1071,10 +1216,13 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 
 	if options.TeamId != "" {
 		query = query.LeftJoin("TeamMembers AS tm ON u.Id = tm.UserId").Where("tm.TeamId = ? AND tm.DeleteAt = 0", options.TeamId)
+	} else if options.ChannelId != "" {
+		query = query.LeftJoin("ChannelMembers AS cm ON u.Id = cm.UserId").Where("cm.ChannelId = ?", options.ChannelId)
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if isPostgreSQL {
 		query = query.PlaceholderFormat(sq.Dollar)
 	}
 
@@ -1218,6 +1366,15 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
+func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("GroupMembers gm ON ( gm.UserId = u.Id AND gm.GroupId = ? )", groupID).
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
+
+	return us.performSearch(query, term, options)
+}
+
 var spaceFulltextSearchChar = []string{
 	"<",
 	">",
@@ -1272,6 +1429,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")
@@ -1496,6 +1654,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			Nickname:    user.Nickname,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,
+			Roles:       user.Roles,
 			CreateAt:    user.CreateAt,
 			DeleteAt:    user.DeleteAt,
 			TeamsIds:    []string{},

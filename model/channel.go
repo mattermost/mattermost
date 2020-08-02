@@ -120,12 +120,18 @@ type ChannelModeratedRolesPatch struct {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	IncludeDeleted         bool
-	ExcludeChannelNames    []string
-	Page                   *int
-	PerPage                *int
+	NotAssociatedToGroup    string
+	ExcludeDefaultChannels  bool
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
 }
 
 type ChannelMemberCountByGroup struct {
@@ -198,7 +204,7 @@ func (o *Channel) Etag() string {
 }
 
 func (o *Channel) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

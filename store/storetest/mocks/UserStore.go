@@ -1164,6 +1164,31 @@ func (_m *UserStore) SearchInChannel(channelId string, term string, options *mod
 	return r0, r1
 }
 
+// SearchInGroup provides a mock function with given fields: groupID, term, options
+func (_m *UserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(groupID, term, options)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
+		r0 = rf(groupID, term, options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(groupID, term, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options
 func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(teamId, channelId, term, options)

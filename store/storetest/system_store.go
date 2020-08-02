@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,6 +18,9 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 	t.Run("", func(t *testing.T) { testSystemStore(t, ss) })
 	t.Run("SaveOrUpdate", func(t *testing.T) { testSystemStoreSaveOrUpdate(t, ss) })
 	t.Run("PermanentDeleteByName", func(t *testing.T) { testSystemStorePermanentDeleteByName(t, ss) })
+	t.Run("InsertIfExists", func(t *testing.T) {
+		testInsertIfExists(t, ss)
+	})
 }
 
 func testSystemStore(t *testing.T, ss store.Store) {
@@ -83,4 +87,43 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 
 	_, err = ss.System().GetByName(s2.Name)
 	assert.NotNil(t, err)
+}
+
+func testInsertIfExists(t *testing.T, ss store.Store) {
+	t.Run("Serial", func(t *testing.T) {
+		s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "somekey"}
+
+		s2, err := ss.System().InsertIfExists(s1)
+		require.Nil(t, err)
+		assert.Equal(t, s1.Value, s2.Value)
+
+		s1New := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "anotherKey"}
+
+		s3, err := ss.System().InsertIfExists(s1New)
+		require.Nil(t, err)
+		assert.Equal(t, s1.Value, s3.Value)
+	})
+
+	t.Run("Concurrent", func(t *testing.T) {
+		var s2, s3 *model.System
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "firstKey"}
+			var err *model.AppError
+			s2, err = ss.System().InsertIfExists(s1)
+			require.Nil(t, err)
+		}()
+
+		go func() {
+			defer wg.Done()
+			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "secondKey"}
+			var err *model.AppError
+			s3, err = ss.System().InsertIfExists(s1)
+			require.Nil(t, err)
+		}()
+		wg.Wait()
+		assert.Equal(t, s2.Value, s3.Value)
+	})
 }
