@@ -5,10 +5,8 @@ package api4
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -85,20 +83,24 @@ func TestCreateUserInputFilter(t *testing.T) {
 
 	t.Run("DomainRestriction", func(t *testing.T) {
 
+		enableAPIUserDeletion := th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.EnableOpenServer = true
 			*cfg.TeamSettings.EnableUserCreation = true
 			*cfg.TeamSettings.RestrictCreationToDomains = "mattermost.com"
+			*cfg.ServiceSettings.EnableAPIUserDeletion = true
 		})
 
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
+			*cfg.ServiceSettings.EnableAPIUserDeletion = *enableAPIUserDeletion
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testdomainrestriction@mattermost.com"
-			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername()}
-			_, resp := client.CreateUser(user)
+			user := &model.User{Email: "foobar+testdomainrestriction@mattermost.com", Password: "Password1", Username: GenerateTestUsername()}
+			u, resp := client.CreateUser(user) // we need the returned created user to use its Id for deletion.
+			CheckNoError(t, resp)
+			_, resp = client.PermanentDeleteUser(u.Id)
 			CheckNoError(t, resp)
 		}, "ValidUser")
 
@@ -116,7 +118,9 @@ func TestCreateUserInputFilter(t *testing.T) {
 					AuthService: "ldap",
 					AuthData:    model.NewString("999099"),
 				}
-				_, resp := th.SystemAdminClient.CreateUser(user)
+				u, resp := th.SystemAdminClient.CreateUser(user)
+				CheckNoError(t, resp)
+				_, resp = th.SystemAdminClient.PermanentDeleteUser(u.Id)
 				CheckNoError(t, resp)
 			})
 			t.Run("LocalClient", func(t *testing.T) {
@@ -126,7 +130,9 @@ func TestCreateUserInputFilter(t *testing.T) {
 					AuthService: "ldap",
 					AuthData:    model.NewString("999100"),
 				}
-				_, resp := th.LocalClient.CreateUser(user)
+				u, resp := th.LocalClient.CreateUser(user)
+				CheckNoError(t, resp)
+				_, resp = th.LocalClient.PermanentDeleteUser(u.Id)
 				CheckNoError(t, resp)
 			})
 		})
@@ -143,16 +149,19 @@ func TestCreateUserInputFilter(t *testing.T) {
 			*cfg.TeamSettings.EnableOpenServer = true
 			*cfg.TeamSettings.EnableUserCreation = true
 			*cfg.TeamSettings.RestrictCreationToDomains = ""
+			*cfg.ServiceSettings.EnableAPIUserDeletion = true
 		})
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-			emailAddr := strconv.Itoa(rand.Intn(1000)) + "+testinvalidrole@mattermost.com"
+			emailAddr := "foobar+testinvalidrole@mattermost.com"
 			user := &model.User{Email: emailAddr, Password: "Password1", Username: GenerateTestUsername(), Roles: "system_user system_admin"}
 			_, resp := client.CreateUser(user)
 			CheckNoError(t, resp)
 			ruser, err := th.App.GetUserByEmail(emailAddr)
 			require.Nil(t, err)
 			assert.NotEqual(t, ruser.Roles, "system_user system_admin")
+			_, resp = client.PermanentDeleteUser(ruser.Id)
+			CheckNoError(t, resp)
 		}, "InvalidRole")
 	})
 

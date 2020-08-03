@@ -128,6 +128,12 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+		ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) openldap
+	endif
+endif
+
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
 	@echo CI Build: skipping docker start
@@ -317,7 +323,7 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: check-prereqs-enterprise go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
