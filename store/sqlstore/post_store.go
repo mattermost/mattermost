@@ -260,20 +260,14 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	}
 
 	time := model.GetMillis()
-	if _, nErr := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId}); nErr != nil {
-		return nil, errors.Wrap(nErr, "failed to update Channels")
-	}
+	s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
 	if len(newPost.RootId) > 0 {
-		if _, nErr := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId}); nErr != nil {
-			return nil, errors.Wrap(nErr, "failed to update Posts")
-		}
+		s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 	}
 
 	// mark the old post as deleted
-	if nErr := s.GetMaster().Insert(oldPost); nErr != nil {
-		return nil, errors.Wrap(nErr, "failed to mark old Post as deleted")
-	}
+	s.GetMaster().Insert(oldPost)
 
 	return newPost, nil
 }
