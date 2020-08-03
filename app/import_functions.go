@@ -1295,12 +1295,12 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			var invErr *store.ErrInvalidInput
 			var retErr *model.AppError
 			switch {
-			case errors.As(err, &appErr):
+			case errors.As(nErr, &appErr):
 				retErr = appErr
-			case errors.As(err, &invErr):
+			case errors.As(nErr, &invErr):
 				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
 			default:
-				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 			}
 
 			if idx != -1 && idx < len(postsForCreateList) {
