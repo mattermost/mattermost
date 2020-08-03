@@ -91,7 +91,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	// Permissions Check
 	switch channelToJoin.Type {
 	case model.CHANNEL_OPEN:
-		if !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 			return &model.CommandResponse{
 				Text: args.T("api.command_invite.permission.app_error", map[string]interface{}{
 					"User":    userProfile.Username,
@@ -101,7 +101,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 			}
 		}
 	case model.CHANNEL_PRIVATE:
-		if !a.SessionHasPermissionToChannel(args.Session, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+		if !a.HasPermissionToChannel(args.UserId, channelToJoin.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 			if _, err = a.GetChannelMember(channelToJoin.Id, args.UserId); err == nil {
 				// User doing the inviting is a member of the channel.
 				return &model.CommandResponse{
@@ -139,7 +139,7 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, ""); err != nil {
+	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.UserId, ""); err != nil {
 		var text string
 		if err.Id == "api.channel.add_members.user_denied" {
 			text = args.T("api.command_invite.group_constrained_user_denied")

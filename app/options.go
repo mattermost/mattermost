@@ -105,11 +105,8 @@ func ServerConnector(s *Server) AppOption {
 		a.compliance = s.Compliance
 		a.dataRetention = s.DataRetention
 		a.searchEngine = s.SearchEngine
-		a.ldap = s.Ldap
 		a.messageExport = s.MessageExport
 		a.metrics = s.Metrics
-		a.notification = s.Notification
-		a.saml = s.Saml
 
 		a.httpService = s.HTTPService
 		a.imageProxy = s.ImageProxy

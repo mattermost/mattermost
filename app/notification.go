@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -250,7 +250,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			sendPushNotifications = false
 		} else {
@@ -343,6 +343,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
+	message.Add("set_online", setOnline)
 
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
@@ -736,7 +737,7 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
-	if license := a.License(); license == nil || !*license.Features.LDAPGroups {
+	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
 		return false
 	}
 

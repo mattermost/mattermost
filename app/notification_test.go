@@ -29,7 +29,7 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
@@ -44,13 +44,13 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.InvalidateAllCaches()
+	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
 	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
@@ -60,12 +60,12 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
 }
@@ -1004,7 +1004,7 @@ func TestAllowGroupMentions(t *testing.T) {
 		assert.False(t, allowGroupMentions)
 	})
 
-	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
@@ -2220,7 +2220,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {

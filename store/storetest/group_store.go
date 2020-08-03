@@ -148,7 +148,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	require.Nil(t, g5.IsValidForCreate())
 
 	g5.Name = model.NewString(*g5.Name + "x")
-	require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.app_error")
+	require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
 	g5.Name = model.NewString(model.NewId())
 	require.Nil(t, g5.IsValidForCreate())
 
@@ -1664,16 +1664,16 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// No result if Channel deleted
-	err = ss.Channel().Delete(channel.Id, model.GetMillis())
-	require.Nil(t, err)
+	nErr = ss.Channel().Delete(channel.Id, model.GetMillis())
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, channelMembers)
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	_, err = ss.Channel().Update(channel)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().Update(channel)
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
@@ -1707,22 +1707,22 @@ func testChannelMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// Adding Channel (ChannelMemberHistory) should stop returning result
-	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
-	require.Nil(t, err)
+	nErr = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, channelMembers)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
-	require.Nil(t, err)
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, channelMembers)
 
 	// Purging ChannelMemberHistory re-returns the result
-	_, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
-	require.Nil(t, err)
+	_, nErr = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
+	require.Nil(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
@@ -2994,14 +2994,15 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 func testGetGroups(t *testing.T, ss store.Store) {
 	// Create Team1
 	team1 := &model.Team{
-		DisplayName:     "Team1",
-		Description:     model.NewId(),
-		CompanyName:     model.NewId(),
-		AllowOpenInvite: false,
-		InviteId:        model.NewId(),
-		Name:            "zz" + model.NewId(),
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName:      "Team1",
+		Description:      model.NewId(),
+		CompanyName:      model.NewId(),
+		AllowOpenInvite:  false,
+		InviteId:         model.NewId(),
+		Name:             "zz" + model.NewId(),
+		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:             model.TEAM_OPEN,
+		GroupConstrained: model.NewBool(true),
 	}
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
@@ -3082,6 +3083,16 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	channel2, nErr = ss.Channel().Save(channel2, 9999)
 	require.Nil(t, nErr)
 
+	// Create Channel3
+	channel3 := &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel3",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	channel3, nErr = ss.Channel().Save(channel3, 9999)
+	require.Nil(t, nErr)
+
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
 		Name:           model.NewString(model.NewId() + "-group-3"),
@@ -3151,6 +3162,29 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	group2NameSubstring := "group-2"
 
 	endCreateTime := u2Update.New.UpdateAt + 1
+
+	// Create Team3
+	team3 := &model.Team{
+		DisplayName:     "Team3",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            "zz" + model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_INVITE,
+	}
+	team3, err = ss.Team().Save(team3)
+	require.Nil(t, err)
+
+	channel4 := &model.Channel{
+		TeamId:      team3.Id,
+		DisplayName: "Channel4",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	channel4, nErr = ss.Channel().Save(channel4, 9999)
+	require.Nil(t, nErr)
 
 	testCases := []struct {
 		Name    string
@@ -3333,6 +3367,42 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
 				return len(groups) == 0
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained teams",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 2 && groups[0].Id == group1.Id && groups[1].Id == group2.Id
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained page 0",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return groups[0].Id == group1.Id
+			},
+		},
+		{
+			Name:    "Filter groups from group-constrained page 1",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel3.Id, FilterParentTeamPermitted: true},
+			Page:    1,
+			PerPage: 1,
+			Resultf: func(groups []*model.Group) bool {
+				return groups[0].Id == group2.Id
+			},
+		},
+		{
+			Name:    "Non-group constrained team with no associated groups still returns groups for the child channel",
+			Opts:    model.GroupSearchOpts{NotAssociatedToChannel: channel4.Id, FilterParentTeamPermitted: true},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) > 0
 			},
 		},
 	}

@@ -78,7 +78,7 @@ pipeline {
 			}
 
 			steps {
-				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -98,7 +98,7 @@ pipeline {
 			}
 
 			steps {
-				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+				withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 					ansiColor('xterm') {
 						sh """
 							cd /go/src/github.com/mattermost/mattermost-server
@@ -286,7 +286,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server
@@ -333,7 +333,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server
@@ -404,7 +404,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server
@@ -448,7 +448,7 @@ pipeline {
 							}
 						}
 
-						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:20200322_golang-1.14.1') {
+						withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src-copy:/go/src/", image: 'mattermost/mattermost-build-server:20200731_golang-1.14.6') {
 							ansiColor('xterm') {
 								sh """
 									cd /go/src/github.com/mattermost/mattermost-server

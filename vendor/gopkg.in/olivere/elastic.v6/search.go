@@ -630,19 +630,28 @@ func (s *SearchService) Do(ctx context.Context) (*SearchResult, error) {
 
 // SearchResult is the result of a search in Elasticsearch.
 type SearchResult struct {
-	Header          http.Header    `json:"-"`
-	TookInMillis    int64          `json:"took,omitempty"`             // search time in milliseconds
-	TerminatedEarly bool           `json:"terminated_early,omitempty"` // request terminated early
-	NumReducePhases int            `json:"num_reduce_phases,omitempty"`
-	ScrollId        string         `json:"_scroll_id,omitempty"`   // only used with Scroll and Scan operations
-	Hits            *SearchHits    `json:"hits,omitempty"`         // the actual search hits
-	Suggest         SearchSuggest  `json:"suggest,omitempty"`      // results from suggesters
-	Aggregations    Aggregations   `json:"aggregations,omitempty"` // results from aggregations
-	TimedOut        bool           `json:"timed_out,omitempty"`    // true if the search timed out
-	Error           *ErrorDetails  `json:"error,omitempty"`        // only used in MultiGet
-	Profile         *SearchProfile `json:"profile,omitempty"`      // profiling results, if optional Profile API was active for this search
-	Shards          *ShardsInfo    `json:"_shards,omitempty"`      // shard information
-	Status          int            `json:"status,omitempty"`       // used in MultiSearch
+	Header          http.Header          `json:"-"`
+	TookInMillis    int64                `json:"took,omitempty"`             // search time in milliseconds
+	TerminatedEarly bool                 `json:"terminated_early,omitempty"` // request terminated early
+	NumReducePhases int                  `json:"num_reduce_phases,omitempty"`
+	Clusters        *SearchResultCluster `json:"_clusters,omitempty"`    // 6.1.0+
+	ScrollId        string               `json:"_scroll_id,omitempty"`   // only used with Scroll and Scan operations
+	Hits            *SearchHits          `json:"hits,omitempty"`         // the actual search hits
+	Suggest         SearchSuggest        `json:"suggest,omitempty"`      // results from suggesters
+	Aggregations    Aggregations         `json:"aggregations,omitempty"` // results from aggregations
+	TimedOut        bool                 `json:"timed_out,omitempty"`    // true if the search timed out
+	Error           *ErrorDetails        `json:"error,omitempty"`        // only used in MultiGet
+	Profile         *SearchProfile       `json:"profile,omitempty"`      // profiling results, if optional Profile API was active for this search
+	Shards          *ShardsInfo          `json:"_shards,omitempty"`      // shard information
+	Status          int                  `json:"status,omitempty"`       // used in MultiSearch
+}
+
+// SearchResultCluster holds information about a search response
+// from a cluster.
+type SearchResultCluster struct {
+	Successful int `json:"successful,omitempty"`
+	Total      int `json:"total,omitempty"`
+	Skipped    int `json:"skipped,omitempty"`
 }
 
 // TotalHits is a convenience function to return the number of hits for

@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/disintegration/imaging"
+	_ "github.com/oov/psd"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
 	_ "golang.org/x/image/tiff"
@@ -434,8 +435,13 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 
 // UploadFile uploads a single file in form of a completely constructed byte array for a channel.
 func (a *App) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
-	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
+	_, err := a.GetChannel(channelId)
+	if err != nil && channelId != "" {
+		return nil, model.NewAppError("UploadFile", "api.file.upload_file.incorrect_channelId.app_error",
+			map[string]interface{}{"channelId": channelId}, "", http.StatusBadRequest)
+	}
 
+	info, _, appError := a.DoUploadFileExpectModification(time.Now(), "noteam", channelId, "nouser", filename, data)
 	if appError != nil {
 		return nil, appError
 	}

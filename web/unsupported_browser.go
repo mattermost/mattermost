@@ -46,7 +46,7 @@ type SystemBrowser struct {
 
 func renderUnsupportedBrowser(app app.AppIface, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
-	page := utils.NewHTMLTemplate(app.HTMLTemplates(), "unsupported_browser")
+	page := utils.NewHTMLTemplate(app.Srv().HTMLTemplates(), "unsupported_browser")
 
 	// User Agent info
 	ua := uasurfer.Parse(r.UserAgent())

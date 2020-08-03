@@ -207,7 +207,11 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
+	sessions, err := a.GetSessions(args.UserId)
+	if err != nil || len(sessions) == 0 {
+		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
+	client.SetToken(sessions[0].Token)
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -318,7 +322,11 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
+	sessions, err := a.GetSessions(args.UserId)
+	if err != nil || len(sessions) == 0 {
+		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
+	client.SetToken(sessions[0].Token)
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
 	channelCreator.CreateTestChannels(channelsr)
@@ -339,12 +347,16 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
+	sessions, err := a.GetSessions(args.UserId)
+	if err != nil || len(sessions) == 0 {
+		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
+	client.MockSession(sessions[0].Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
-	rpost, err := testPoster.CreateRandomPost()
-	if err != nil {
+	rpost, err2 := testPoster.CreateRandomPost()
+	if err2 != nil {
 		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
 	for i := 0; i < 1000; i++ {
@@ -388,7 +400,11 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
+	sessions, err := a.GetSessions(args.UserId)
+	if err != nil || len(sessions) == 0 {
+		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
+	client.SetToken(sessions[0].Token)
 	testPoster := NewAutoPostCreator(client, args.ChannelId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames

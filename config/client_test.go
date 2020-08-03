@@ -165,6 +165,19 @@ func TestGetClientConfig(t *testing.T) {
 				"IsDefaultMarketplace": "false",
 			},
 		},
+		{
+			"enable ShowFullName prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					ShowFullName: bToP(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"ShowFullName": "true",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -221,6 +234,27 @@ func TestGetLimitedClientConfig(t *testing.T) {
 				"WebsocketURL":                     "ws://mattermost.example.com:8065",
 				"WebsocketPort":                    "80",
 				"WebsocketSecurePort":              "443",
+			},
+		},
+		{
+			"password settings",
+			&model.Config{
+				PasswordSettings: model.PasswordSettings{
+					MinimumLength: iToP(15),
+					Lowercase:     bToP(true),
+					Uppercase:     bToP(true),
+					Number:        bToP(true),
+					Symbol:        bToP(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"PasswordMinimumLength":    "15",
+				"PasswordRequireLowercase": "true",
+				"PasswordRequireUppercase": "true",
+				"PasswordRequireNumber":    "true",
+				"PasswordRequireSymbol":    "false",
 			},
 		},
 	}

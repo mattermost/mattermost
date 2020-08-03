@@ -4,7 +4,7 @@
 package storetest
 
 import (
-	"net/http"
+	"errors"
 	"testing"
 	"time"
 
@@ -19,7 +19,7 @@ import (
 var linkMetadataTimestamp int64 = 1546300800000
 
 func getNextLinkMetadataTimestamp() int64 {
-	linkMetadataTimestamp += int64(time.Hour) / 1000
+	linkMetadataTimestamp += int64(time.Hour) / (1000 * 1000)
 	return linkMetadataTimestamp
 }
 
@@ -153,7 +153,8 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		_, err = ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
 
 		require.NotNil(t, err)
-		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		var nfErr *store.ErrNotFound
+		assert.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("should return not found with incorrect timestamp", func(t *testing.T) {
@@ -170,7 +171,8 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		_, err = ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
 
 		require.NotNil(t, err)
-		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+		var nfErr *store.ErrNotFound
+		assert.True(t, errors.As(err, &nfErr))
 	})
 }
 

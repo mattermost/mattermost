@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -26,7 +26,7 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -40,7 +40,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 }
 
 func TestGetGroupsByType(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	th.CreateGroup()
 	th.CreateGroup()
@@ -56,7 +56,7 @@ func TestGetGroupsByType(t *testing.T) {
 }
 
 func TestCreateGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -77,7 +77,7 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestUpdateGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
@@ -88,7 +88,7 @@ func TestUpdateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -156,6 +156,33 @@ func TestUpsertGroupSyncable(t *testing.T) {
 	gs, err = th.App.UpsertGroupSyncable(gs)
 	require.Nil(t, err)
 	require.Equal(t, int64(0), gs.DeleteAt)
+}
+
+func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	team := th.CreateTeam()
+	team.GroupConstrained = model.NewBool(true)
+	team, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
+
+	channel := th.CreateChannel(team)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group2.Id, channel.Id, false))
+	require.NotNil(t, err)
+	require.Equal(t, err.Id, "group_not_associated_to_synced_team")
+
+	gs, err := th.App.GetGroupSyncable(group2.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, gs)
+	require.NotNil(t, err)
+
+	_, err = th.App.UpsertGroupSyncable(model.NewGroupChannel(group1.Id, channel.Id, false))
+	require.Nil(t, err)
 }
 
 func TestGetGroupSyncable(t *testing.T) {
@@ -311,7 +338,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 }
 
 func TestGetGroups(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	group := th.CreateGroup()
 

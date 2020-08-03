@@ -15,7 +15,7 @@ type SchemeStore struct {
 }
 
 // CountByScope provides a mock function with given fields: scope
-func (_m *SchemeStore) CountByScope(scope string) (int64, *model.AppError) {
+func (_m *SchemeStore) CountByScope(scope string) (int64, error) {
 	ret := _m.Called(scope)
 
 	var r0 int64
@@ -25,20 +25,18 @@ func (_m *SchemeStore) CountByScope(scope string) (int64, *model.AppError) {
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(scope)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // CountWithoutPermission provides a mock function with given fields: scope, permissionID, roleScope, roleType
-func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError) {
+func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error) {
 	ret := _m.Called(scope, permissionID, roleScope, roleType)
 
 	var r0 int64
@@ -48,20 +46,18 @@ func (_m *SchemeStore) CountWithoutPermission(scope string, permissionID string,
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, model.RoleScope, model.RoleType) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, model.RoleScope, model.RoleType) error); ok {
 		r1 = rf(scope, permissionID, roleScope, roleType)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Delete provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	ret := _m.Called(schemeId)
 
 	var r0 *model.Scheme
@@ -73,20 +69,18 @@ func (_m *SchemeStore) Delete(schemeId string) (*model.Scheme, *model.AppError) 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Get provides a mock function with given fields: schemeId
-func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	ret := _m.Called(schemeId)
 
 	var r0 *model.Scheme
@@ -98,20 +92,18 @@ func (_m *SchemeStore) Get(schemeId string) (*model.Scheme, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeId)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetAllPage provides a mock function with given fields: scope, offset, limit
-func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error) {
 	ret := _m.Called(scope, offset, limit)
 
 	var r0 []*model.Scheme
@@ -123,20 +115,18 @@ func (_m *SchemeStore) GetAllPage(scope string, offset int, limit int) ([]*model
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(scope, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetByName provides a mock function with given fields: schemeName
-func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, error) {
 	ret := _m.Called(schemeName)
 
 	var r0 *model.Scheme
@@ -148,36 +138,32 @@ func (_m *SchemeStore) GetByName(schemeName string) (*model.Scheme, *model.AppEr
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(schemeName)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // PermanentDeleteAll provides a mock function with given fields:
-func (_m *SchemeStore) PermanentDeleteAll() *model.AppError {
+func (_m *SchemeStore) PermanentDeleteAll() error {
 	ret := _m.Called()
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Save provides a mock function with given fields: scheme
-func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	ret := _m.Called(scheme)
 
 	var r0 *model.Scheme
@@ -189,13 +175,11 @@ func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, *model.AppErro
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Scheme) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Scheme) error); ok {
 		r1 = rf(scheme)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

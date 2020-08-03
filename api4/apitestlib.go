@@ -102,7 +102,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
@@ -131,7 +131,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
 	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	wsapi.Init(th.App.Srv())
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -146,9 +146,9 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
@@ -170,6 +170,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.tempWorkspace = tempWorkspace
 	}
 
+	th.App.InitServer()
+
 	return th
 }
 
@@ -186,7 +188,9 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -202,7 +206,9 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -218,7 +224,9 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -265,7 +273,7 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 
 	me.ShutdownApp()
@@ -281,7 +289,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) InitLogin() *TestHelper {
 	me.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
@@ -316,9 +324,21 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser.Password = "Pa$$word11"
 	me.BasicUser2.Password = "Pa$$word11"
 
-	me.LoginSystemAdmin()
-	me.LoginTeamAdmin()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		me.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		me.LoginTeamAdmin()
+		wg.Done()
+	}()
+	wg.Wait()
+	return me
+}
 
+func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()

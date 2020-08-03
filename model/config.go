@@ -47,6 +47,7 @@ const (
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
 	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
+	MM_SUPPORT_ADDRESS              = "support@mattermost.com"
 	FULL_NOTIFICATION               = "full"
 	ID_LOADED_NOTIFICATION          = "id_loaded"
 
@@ -322,10 +323,12 @@ type ServiceSettings struct {
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
 	ExperimentalChannelSidebarOrganization            *string
+	ExperimentalDataPrefetch                          *bool
 	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
+	EnableAPIUserDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
@@ -678,6 +681,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalChannelSidebarOrganization = NewString("disabled")
 	}
 
+	if s.ExperimentalDataPrefetch == nil {
+		s.ExperimentalDataPrefetch = NewBool(true)
+	}
+
 	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
 		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
@@ -692,6 +699,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAPITeamDeletion == nil {
 		s.EnableAPITeamDeletion = NewBool(false)
+	}
+
+	if s.EnableAPIUserDeletion == nil {
+		s.EnableAPIUserDeletion = NewBool(false)
 	}
 
 	if s.ExperimentalEnableHardenedMode == nil {
@@ -740,20 +751,21 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 }
 
 type ClusterSettings struct {
-	Enable                      *bool   `restricted:"true"`
-	ClusterName                 *string `restricted:"true"`
-	OverrideHostname            *string `restricted:"true"`
-	NetworkInterface            *string `restricted:"true"`
-	BindAddress                 *string `restricted:"true"`
-	AdvertiseAddress            *string `restricted:"true"`
-	UseIpAddress                *bool   `restricted:"true"`
-	UseExperimentalGossip       *bool   `restricted:"true"`
-	ReadOnlyConfig              *bool   `restricted:"true"`
-	GossipPort                  *int    `restricted:"true"`
-	StreamingPort               *int    `restricted:"true"`
-	MaxIdleConns                *int    `restricted:"true"`
-	MaxIdleConnsPerHost         *int    `restricted:"true"`
-	IdleConnTimeoutMilliseconds *int    `restricted:"true"`
+	Enable                             *bool   `restricted:"true"`
+	ClusterName                        *string `restricted:"true"`
+	OverrideHostname                   *string `restricted:"true"`
+	NetworkInterface                   *string `restricted:"true"`
+	BindAddress                        *string `restricted:"true"`
+	AdvertiseAddress                   *string `restricted:"true"`
+	UseIpAddress                       *bool   `restricted:"true"`
+	UseExperimentalGossip              *bool   `restricted:"true"`
+	EnableExperimentalGossipEncryption *bool   `restricted:"true"`
+	ReadOnlyConfig                     *bool   `restricted:"true"`
+	GossipPort                         *int    `restricted:"true"`
+	StreamingPort                      *int    `restricted:"true"`
+	MaxIdleConns                       *int    `restricted:"true"`
+	MaxIdleConnsPerHost                *int    `restricted:"true"`
+	IdleConnTimeoutMilliseconds        *int    `restricted:"true"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -787,6 +799,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.UseExperimentalGossip == nil {
 		s.UseExperimentalGossip = NewBool(false)
+	}
+
+	if s.EnableExperimentalGossipEncryption == nil {
+		s.EnableExperimentalGossipEncryption = NewBool(false)
 	}
 
 	if s.ReadOnlyConfig == nil {
@@ -1052,6 +1068,7 @@ type LogSettings struct {
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
 	EnableSentry           *bool   `restricted:"true"`
+	AdvancedLoggingConfig  *string `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -1094,55 +1111,24 @@ func (s *LogSettings) SetDefaults() {
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 type ExperimentalAuditSettings struct {
-	SysLogEnabled      *bool   `restricted:"true"`
-	SysLogIP           *string `restricted:"true"`
-	SysLogPort         *int    `restricted:"true"`
-	SysLogTag          *string `restricted:"true"`
-	SysLogCert         *string `restricted:"true"`
-	SysLogInsecure     *bool   `restricted:"true"`
-	SysLogMaxQueueSize *int    `restricted:"true"`
-
-	FileEnabled      *bool   `restricted:"true"`
-	FileName         *string `restricted:"true"`
-	FileMaxSizeMB    *int    `restricted:"true"`
-	FileMaxAgeDays   *int    `restricted:"true"`
-	FileMaxBackups   *int    `restricted:"true"`
-	FileCompress     *bool   `restricted:"true"`
-	FileMaxQueueSize *int    `restricted:"true"`
+	FileEnabled           *bool   `restricted:"true"`
+	FileName              *string `restricted:"true"`
+	FileMaxSizeMB         *int    `restricted:"true"`
+	FileMaxAgeDays        *int    `restricted:"true"`
+	FileMaxBackups        *int    `restricted:"true"`
+	FileCompress          *bool   `restricted:"true"`
+	FileMaxQueueSize      *int    `restricted:"true"`
+	AdvancedLoggingConfig *string `restricted:"true"`
 }
 
 func (s *ExperimentalAuditSettings) SetDefaults() {
-	if s.SysLogEnabled == nil {
-		s.SysLogEnabled = NewBool(false)
-	}
-
-	if s.SysLogIP == nil {
-		s.SysLogIP = NewString("localhost")
-	}
-
-	if s.SysLogPort == nil {
-		s.SysLogPort = NewInt(6514)
-	}
-
-	if s.SysLogTag == nil {
-		s.SysLogTag = NewString("")
-	}
-
-	if s.SysLogCert == nil {
-		s.SysLogCert = NewString("")
-	}
-
-	if s.SysLogInsecure == nil {
-		s.SysLogInsecure = NewBool(false)
-	}
-
-	if s.SysLogMaxQueueSize == nil {
-		s.SysLogMaxQueueSize = NewInt(1000)
-	}
-
 	if s.FileEnabled == nil {
 		s.FileEnabled = NewBool(false)
 	}
@@ -1170,16 +1156,21 @@ func (s *ExperimentalAuditSettings) SetDefaults() {
 	if s.FileMaxQueueSize == nil {
 		s.FileMaxQueueSize = NewInt(1000)
 	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
+	}
 }
 
 type NotificationLogSettings struct {
-	EnableConsole *bool   `restricted:"true"`
-	ConsoleLevel  *string `restricted:"true"`
-	ConsoleJson   *bool   `restricted:"true"`
-	EnableFile    *bool   `restricted:"true"`
-	FileLevel     *string `restricted:"true"`
-	FileJson      *bool   `restricted:"true"`
-	FileLocation  *string `restricted:"true"`
+	EnableConsole         *bool   `restricted:"true"`
+	ConsoleLevel          *string `restricted:"true"`
+	ConsoleJson           *bool   `restricted:"true"`
+	EnableFile            *bool   `restricted:"true"`
+	FileLevel             *string `restricted:"true"`
+	FileJson              *bool   `restricted:"true"`
+	FileLocation          *string `restricted:"true"`
+	AdvancedLoggingConfig *string `restricted:"true"`
 }
 
 func (s *NotificationLogSettings) SetDefaults() {
@@ -1209,6 +1200,10 @@ func (s *NotificationLogSettings) SetDefaults() {
 
 	if s.FileJson == nil {
 		s.FileJson = NewBool(true)
+	}
+
+	if s.AdvancedLoggingConfig == nil {
+		s.AdvancedLoggingConfig = NewString("")
 	}
 }
 
@@ -1255,6 +1250,7 @@ type FileSettings struct {
 	AmazonS3AccessKeyId     *string `restricted:"true"`
 	AmazonS3SecretAccessKey *string `restricted:"true"`
 	AmazonS3Bucket          *string `restricted:"true"`
+	AmazonS3PathPrefix      *string `restricted:"true"`
 	AmazonS3Region          *string `restricted:"true"`
 	AmazonS3Endpoint        *string `restricted:"true"`
 	AmazonS3SSL             *bool   `restricted:"true"`
@@ -1319,6 +1315,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.AmazonS3Bucket = NewString("")
 	}
 
+	if s.AmazonS3PathPrefix == nil {
+		s.AmazonS3PathPrefix = NewString("")
+	}
+
 	if s.AmazonS3Region == nil {
 		s.AmazonS3Region = NewString("")
 	}
@@ -1367,6 +1367,7 @@ type EmailSettings struct {
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
+	PushNotificationBuffer            *int
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
@@ -1465,6 +1466,10 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.PushNotificationContents == nil {
 		s.PushNotificationContents = NewString(FULL_NOTIFICATION)
+	}
+
+	if s.PushNotificationBuffer == nil {
+		s.PushNotificationBuffer = NewInt(1000)
 	}
 
 	if s.EnableEmailBatching == nil {
@@ -1576,6 +1581,7 @@ type SupportSettings struct {
 	SupportEmail                           *string
 	CustomTermsOfServiceEnabled            *bool
 	CustomTermsOfServiceReAcceptancePeriod *int
+	EnableAskCommunityLink                 *bool
 }
 
 func (s *SupportSettings) SetDefaults() {
@@ -1629,6 +1635,10 @@ func (s *SupportSettings) SetDefaults() {
 
 	if s.CustomTermsOfServiceReAcceptancePeriod == nil {
 		s.CustomTermsOfServiceReAcceptancePeriod = NewInt(SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD)
+	}
+
+	if s.EnableAskCommunityLink == nil {
+		s.EnableAskCommunityLink = NewBool(true)
 	}
 }
 
@@ -2120,6 +2130,7 @@ type SamlSettings struct {
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
 	IdpMetadataUrl              *string
+	ServiceProviderIdentifier   *string
 	AssertionConsumerServiceURL *string
 
 	SignatureAlgorithm *string
@@ -2195,6 +2206,14 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.IdpDescriptorUrl == nil {
 		s.IdpDescriptorUrl = NewString("")
+	}
+
+	if s.ServiceProviderIdentifier == nil {
+		if s.IdpDescriptorUrl != nil {
+			s.ServiceProviderIdentifier = NewString(*s.IdpDescriptorUrl)
+		} else {
+			s.ServiceProviderIdentifier = NewString("")
+		}
 	}
 
 	if s.IdpMetadataUrl == nil {
@@ -2570,10 +2589,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 }
 
 type GlobalRelayMessageExportSettings struct {
-	CustomerType *string // must be either A9 or A10, dictates SMTP server url
-	SmtpUsername *string
-	SmtpPassword *string
-	EmailAddress *string // the address to send messages to
+	CustomerType      *string // must be either A9 or A10, dictates SMTP server url
+	SmtpUsername      *string
+	SmtpPassword      *string
+	EmailAddress      *string // the address to send messages to
+	SMTPServerTimeout *int
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -2589,14 +2609,18 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	if s.EmailAddress == nil {
 		s.EmailAddress = NewString("")
 	}
+	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
+		s.SMTPServerTimeout = NewInt(1800)
+	}
 }
 
 type MessageExportSettings struct {
-	EnableExport        *bool
-	ExportFormat        *string
-	DailyRunTime        *string
-	ExportFromTimestamp *int64
-	BatchSize           *int
+	EnableExport          *bool
+	DownloadExportResults *bool
+	ExportFormat          *string
+	DailyRunTime          *string
+	ExportFromTimestamp   *int64
+	BatchSize             *int
 
 	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
 	GlobalRelaySettings *GlobalRelayMessageExportSettings
@@ -2605,6 +2629,10 @@ type MessageExportSettings struct {
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
+	}
+
+	if s.DownloadExportResults == nil {
+		s.DownloadExportResults = NewBool(false)
 	}
 
 	if s.ExportFormat == nil {
@@ -3111,6 +3139,10 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_username_attribute.app_error", nil, "", http.StatusBadRequest)
 		}
 
+		if len(*s.ServiceProviderIdentifier) == 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.saml_spidentifier_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if *s.Verify {
 			if len(*s.AssertionConsumerServiceURL) == 0 || !IsValidHttpUrl(*s.AssertionConsumerServiceURL) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.saml_assertion_consumer_service_url.app_error", nil, "", http.StatusBadRequest)
@@ -3429,8 +3461,6 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.SqlSettings.DataSource = FAKE_SETTING
-	o.SqlSettings.DataSourceReplicas = []string{FAKE_SETTING}
-	o.SqlSettings.DataSourceSearchReplicas = []string{FAKE_SETTING}
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
 	*o.ElasticsearchSettings.Password = FAKE_SETTING
