@@ -17,7 +17,7 @@ import (
 )
 
 func TestConfigListener(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	originalSiteName := th.App.Config().TeamSettings.SiteName
@@ -142,7 +142,7 @@ func TestEnsureInstallationDate(t *testing.T) {
 				})
 			}
 
-			err := th.App.ensureInstallationDate()
+			err := th.App.Srv().ensureInstallationDate()
 
 			if tc.ExpectedInstallationDate == nil {
 				assert.Error(t, err)

@@ -21,6 +21,7 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/convert_to_user", api.ApiSessionRequired(convertBotToUser)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
 
 	api.BaseRoutes.Bot.Handle("/icon", api.ApiSessionRequiredTrustRequester(getBotIconImage)).Methods("GET")
@@ -115,11 +116,11 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	botUserId := c.Params.BotUserId
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
 
-	bot, err := c.App.GetBot(botUserId, includeDeleted)
-	if err != nil {
-		c.Err = err
+	bot, appErr := c.App.GetBot(botUserId, includeDeleted)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -148,8 +149,8 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
-	onlyOrphaned := r.URL.Query().Get("only_orphaned") == "true"
+	includeDeleted, _ := strconv.ParseBool(r.URL.Query().Get("include_deleted"))
+	onlyOrphaned, _ := strconv.ParseBool(r.URL.Query().Get("only_orphaned"))
 
 	var OwnerId string
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHERS_BOTS) {
@@ -163,15 +164,15 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bots, err := c.App.GetBots(&model.BotGetOptions{
+	bots, appErr := c.App.GetBots(&model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
 		OwnerId:        OwnerId,
 		IncludeDeleted: includeDeleted,
 		OnlyOrphaned:   onlyOrphaned,
 	})
-	if err != nil {
-		c.Err = err
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -377,4 +378,47 @@ func deleteBotIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	ReturnStatusOK(w)
+}
+
+func convertBotToUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireBotUserId()
+	if c.Err != nil {
+		return
+	}
+
+	bot, err := c.App.GetBot(c.Params.BotUserId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	userPatch := model.UserPatchFromJson(r.Body)
+	if userPatch == nil || userPatch.Password == nil || *userPatch.Password == "" {
+		c.SetInvalidParam("userPatch")
+		return
+	}
+
+	systemAdmin, _ := strconv.ParseBool(r.URL.Query().Get("set_system_admin"))
+
+	auditRec := c.MakeAuditRecord("convertBotToUser", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("bot", bot)
+	auditRec.AddMeta("userPatch", userPatch)
+	auditRec.AddMeta("set_system_admin", systemAdmin)
+
+	if c.Params.UserId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	user, err := c.App.ConvertBotToUser(bot, userPatch, systemAdmin)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("convertedTo", user)
+
+	w.Write([]byte(user.ToJson()))
 }

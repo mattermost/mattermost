@@ -12,10 +12,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"google.golang.org/protobuf/internal/genname"
+	"google.golang.org/protobuf/internal/genid"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	pref "google.golang.org/protobuf/reflect/protoreflect"
-	piface "google.golang.org/protobuf/runtime/protoiface"
 )
 
 // MessageInfo provides protobuf related functionality for a given Go type
@@ -109,7 +108,7 @@ func (mi *MessageInfo) getPointer(m pref.Message) (p pointer, ok bool) {
 
 type (
 	SizeCache       = int32
-	WeakFields      = map[int32]piface.MessageV1
+	WeakFields      = map[int32]protoreflect.ProtoMessage
 	UnknownFields   = []byte
 	ExtensionFields = map[int32]ExtensionField
 )
@@ -149,19 +148,19 @@ func (mi *MessageInfo) makeStructInfo(t reflect.Type) structInfo {
 fieldLoop:
 	for i := 0; i < t.NumField(); i++ {
 		switch f := t.Field(i); f.Name {
-		case genname.SizeCache, genname.SizeCacheA:
+		case genid.SizeCache_goname, genid.SizeCacheA_goname:
 			if f.Type == sizecacheType {
 				si.sizecacheOffset = offsetOf(f, mi.Exporter)
 			}
-		case genname.WeakFields, genname.WeakFieldsA:
+		case genid.WeakFields_goname, genid.WeakFieldsA_goname:
 			if f.Type == weakFieldsType {
 				si.weakOffset = offsetOf(f, mi.Exporter)
 			}
-		case genname.UnknownFields, genname.UnknownFieldsA:
+		case genid.UnknownFields_goname, genid.UnknownFieldsA_goname:
 			if f.Type == unknownFieldsType {
 				si.unknownOffset = offsetOf(f, mi.Exporter)
 			}
-		case genname.ExtensionFields, genname.ExtensionFieldsA, genname.ExtensionFieldsB:
+		case genid.ExtensionFields_goname, genid.ExtensionFieldsA_goname, genid.ExtensionFieldsB_goname:
 			if f.Type == extensionFieldsType {
 				si.extensionOffset = offsetOf(f, mi.Exporter)
 			}

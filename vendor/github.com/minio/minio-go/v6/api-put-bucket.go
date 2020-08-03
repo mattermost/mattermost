@@ -51,17 +51,27 @@ type ServerSideEncryptionConfiguration struct {
 /// Bucket operations
 
 func (c Client) makeBucket(ctx context.Context, bucketName string, location string, objectLockEnabled bool) (err error) {
+	// Validate the input arguments.
+	if err := s3utils.CheckValidBucketNameStrict(bucketName); err != nil {
+		return err
+	}
+
+	err = c.doMakeBucket(ctx, bucketName, location, objectLockEnabled)
+	if err != nil && (location == "" || location == "us-east-1") {
+		if resp, ok := err.(ErrorResponse); ok && resp.Code == "AuthorizationHeaderMalformed" && resp.Region != "" {
+			err = c.doMakeBucket(ctx, bucketName, resp.Region, objectLockEnabled)
+		}
+	}
+	return err
+}
+
+func (c Client) doMakeBucket(ctx context.Context, bucketName string, location string, objectLockEnabled bool) (err error) {
 	defer func() {
 		// Save the location into cache on a successful makeBucket response.
 		if err == nil {
 			c.bucketLocCache.Set(bucketName, location)
 		}
 	}()
-
-	// Validate the input arguments.
-	if err := s3utils.CheckValidBucketNameStrict(bucketName); err != nil {
-		return err
-	}
 
 	// If location is empty, treat is a default region 'us-east-1'.
 	if location == "" {

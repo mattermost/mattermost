@@ -464,10 +464,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 
 	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -508,11 +505,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
-
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
@@ -591,11 +584,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
-
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err

@@ -1296,6 +1296,7 @@ func TestAllPushNotifications(t *testing.T) {
 	defer pushServer.Close()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationContents = model.GENERIC_NOTIFICATION
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 	})
 

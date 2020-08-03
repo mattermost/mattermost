@@ -45,14 +45,14 @@ func (me *PurposeProvider) DoCommand(a *App, args *model.CommandArgs, message st
 
 	switch channel.Type {
 	case model.CHANNEL_OPEN:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 			}
 		}
 	case model.CHANNEL_PRIVATE:
-		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+		if !a.HasPermissionToChannel(args.UserId, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
 				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

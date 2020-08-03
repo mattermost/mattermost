@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -231,8 +232,8 @@ func (s *SqlGroupStore) Update(group *model.Group) (*model.Group, *model.AppErro
 		}
 		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if rowsChanged != 1 {
-		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.no_rows_changed", nil, "", http.StatusInternalServerError)
+	if rowsChanged > 1 {
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.more_than_one_row_changed", nil, "", http.StatusInternalServerError)
 	}
 
 	return group, nil
@@ -426,8 +427,8 @@ func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.Grou
 		if rowsChanged, err = s.GetMaster().Update(member); err != nil {
 			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.update_error", nil, "group_id="+member.GroupId+", user_id="+member.UserId+", "+err.Error(), http.StatusInternalServerError)
 		}
-		if rowsChanged != 1 {
-			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.no_rows_changed", nil, "", http.StatusInternalServerError)
+		if rowsChanged > 1 {
+			return nil, model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.more_than_one_row_changed", nil, "", http.StatusInternalServerError)
 		}
 	}
 
@@ -480,7 +481,13 @@ func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
 		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("CreateGroupSyncable", "store.sql_channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CreateGroupSyncable", "store.sql_channel.get.find.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
@@ -1216,6 +1223,38 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 		`, opts.NotAssociatedToChannel)
 	}
 
+	if opts.FilterParentTeamPermitted && len(opts.NotAssociatedToChannel) == 26 {
+		groupsQuery = groupsQuery.Where(`
+			CASE
+			WHEN (
+				SELECT
+					Teams.GroupConstrained
+				FROM
+					Teams
+					JOIN Channels ON Channels.TeamId = Teams.Id
+				WHERE
+					Channels.Id = ?
+			) THEN g.Id IN (
+				SELECT
+					GroupId
+				FROM
+					GroupTeams
+				WHERE
+					GroupTeams.DeleteAt = 0
+					AND GroupTeams.TeamId = (
+						SELECT
+							TeamId
+						FROM
+							Channels
+						WHERE
+							Id = ?
+					)
+			)
+			ELSE TRUE
+		END
+		`, opts.NotAssociatedToChannel, opts.NotAssociatedToChannel)
+	}
+
 	queryString, args, err := groupsQuery.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1443,15 +1482,23 @@ func (s *SqlGroupStore) GroupMemberCount() (int64, *model.AppError) {
 }
 
 func (s *SqlGroupStore) DistinctGroupMemberCount() (int64, *model.AppError) {
-	return s.countTableWithSelect("COUNT(DISTINCT UserId)", "GroupMembers")
+	return s.countTableWithSelectAndWhere("COUNT(DISTINCT UserId)", "GroupMembers", nil)
+}
+
+func (s *SqlGroupStore) GroupCountWithAllowReference() (int64, *model.AppError) {
+	return s.countTableWithSelectAndWhere("COUNT(*)", "UserGroups", sq.Eq{"AllowReference": true, "DeleteAt": 0})
 }
 
 func (s *SqlGroupStore) countTable(tableName string) (int64, *model.AppError) {
-	return s.countTableWithSelect("COUNT(*)", tableName)
+	return s.countTableWithSelectAndWhere("COUNT(*)", tableName, nil)
 }
 
-func (s *SqlGroupStore) countTableWithSelect(selectStr, tableName string) (int64, *model.AppError) {
-	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(sq.Eq{"DeleteAt": 0})
+func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string, whereStmt map[string]interface{}) (int64, *model.AppError) {
+	if whereStmt == nil {
+		whereStmt = sq.Eq{"DeleteAt": 0}
+	}
+
+	query := s.getQueryBuilder().Select(selectStr).From(tableName).Where(whereStmt)
 
 	sql, args, err := query.ToSql()
 	if err != nil {

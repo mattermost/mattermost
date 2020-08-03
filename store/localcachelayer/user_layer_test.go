@@ -21,7 +21,11 @@ func TestUserStore(t *testing.T) {
 
 func TestUserStoreCache(t *testing.T) {
 	fakeUserIds := []string{"123"}
-	fakeUser := []*model.User{{Id: "123", AuthData: model.NewString("")}}
+	fakeUser := []*model.User{{
+		Id:          "123",
+		AuthData:    model.NewString("authData"),
+		AuthService: "authService",
+	}}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
@@ -181,7 +185,11 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 
 func TestUserStoreGetCache(t *testing.T) {
 	fakeUserId := "123"
-	fakeUser := &model.User{Id: "123", AuthData: model.NewString("")}
+	fakeUser := &model.User{
+		Id:          "123",
+		AuthData:    model.NewString("authData"),
+		AuthService: "authService",
+	}
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore()
 		mockCacheProvider := getMockCacheProvider()

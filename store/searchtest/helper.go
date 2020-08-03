@@ -29,6 +29,12 @@ type SearchTestHelper struct {
 }
 
 func (th *SearchTestHelper) SetupBasicFixtures() error {
+	// Remove users from previous tests
+	err := th.cleanAllUsers()
+	if err != nil {
+		return err
+	}
+
 	// Create teams
 	team, err := th.createTeam("searchtest-team", "Searchtest team", model.TEAM_OPEN)
 	if err != nil {
@@ -132,17 +138,7 @@ func (th *SearchTestHelper) CleanFixtures() error {
 		return err
 	}
 
-	err = th.deleteUser(th.User)
-	if err != nil {
-		return err
-	}
-
-	err = th.deleteUser(th.User2)
-	if err != nil {
-		return err
-	}
-
-	err = th.deleteUser(th.UserAnotherTeam)
+	err = th.cleanAllUsers()
 	if err != nil {
 		return err
 	}
@@ -196,10 +192,43 @@ func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName s
 	return user, nil
 }
 
+func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName string) (*model.User, error) {
+	user, appError := th.Store.User().Save(&model.User{
+		Username:  username,
+		Password:  username,
+		Nickname:  nickname,
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     th.makeEmail(),
+		Roles:     model.SYSTEM_GUEST_ROLE_ID,
+	})
+	if appError != nil {
+		return nil, errors.New(appError.Error())
+	}
+
+	return user, nil
+}
+
 func (th *SearchTestHelper) deleteUser(user *model.User) error {
 	appError := th.Store.User().PermanentDelete(user.Id)
 	if appError != nil {
 		return errors.New(appError.Error())
+	}
+
+	return nil
+}
+
+func (th *SearchTestHelper) cleanAllUsers() error {
+	users, apperr := th.Store.User().GetAll()
+	if apperr != nil {
+		return apperr
+	}
+
+	for _, u := range users {
+		err := th.deleteUser(u)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -218,10 +247,10 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 	}
 
 	botModel.UserId = user.Id
-	bot, apperr := th.Store.Bot().Save(botModel)
-	if apperr != nil {
+	bot, err := th.Store.Bot().Save(botModel)
+	if err != nil {
 		th.Store.User().PermanentDelete(bot.UserId)
-		return nil, errors.New(apperr.Error())
+		return nil, errors.New(err.Error())
 	}
 
 	return bot, nil
@@ -317,9 +346,9 @@ func (th *SearchTestHelper) deleteChannel(channel *model.Channel) error {
 		return errors.New(appError.Error())
 	}
 
-	appError = th.Store.Channel().PermanentDelete(channel.Id)
-	if appError != nil {
-		return errors.New(appError.Error())
+	err := th.Store.Channel().PermanentDelete(channel.Id)
+	if err != nil {
+		return err
 	}
 
 	return nil

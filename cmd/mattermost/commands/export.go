@@ -88,7 +88,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if !*a.Config().MessageExportSettings.EnableExport {
 		return errors.New("ERROR: The message export feature is not enabled")
@@ -145,10 +145,11 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 func buildExportCmdF(format string) func(command *cobra.Command, args []string) error {
 	return func(command *cobra.Command, args []string) error {
 		a, err := InitDBCommandContextCobra(command)
+		license := a.Srv().License()
 		if err != nil {
 			return err
 		}
-		defer a.Shutdown()
+		defer a.Srv().Shutdown()
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -158,7 +159,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("exportFrom must be a positive integer")
 		}
 
-		if a.MessageExport() == nil {
+		if a.MessageExport() == nil || license == nil || !*license.Features.MessageExport {
 			return errors.New("message export feature not available")
 		}
 
@@ -186,7 +187,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {

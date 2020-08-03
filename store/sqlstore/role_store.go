@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -107,10 +109,10 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
 			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		defer finalizeTransaction(transaction)
-		createdRole, appErr := s.createRole(role, transaction)
-		if appErr != nil {
+		createdRole, err := s.createRole(role, transaction)
+		if err != nil {
 			transaction.Rollback()
-			return nil, appErr
+			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if err := transaction.Commit(); err != nil {
 			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save_role.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -128,10 +130,10 @@ func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
 	return dbRole.ToModel(), nil
 }
 
-func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transaction) (*model.Role, *model.AppError) {
+func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transaction) (*model.Role, error) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
-		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Role", "<any>", fmt.Sprintf("%v", role))
 	}
 
 	dbRole := NewRoleFromModel(role)
@@ -141,7 +143,7 @@ func (s *SqlRoleStore) createRole(role *model.Role, transaction *gorp.Transactio
 	dbRole.UpdateAt = dbRole.CreateAt
 
 	if err := transaction.Insert(dbRole); err != nil {
-		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to save Role")
 	}
 
 	return dbRole.ToModel(), nil

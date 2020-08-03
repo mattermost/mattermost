@@ -76,6 +76,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
 			AmazonS3Region:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3PathPrefix:      model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 			AmazonS3SSE:             model.NewBool(encrypt),
 		},

@@ -35,6 +35,12 @@ type Command struct {
 	DisplayName      string `json:"display_name"`
 	Description      string `json:"description"`
 	URL              string `json:"url"`
+	// PluginId records the id of the plugin that created this Command. If it is blank, the Command
+	// was not created by a plugin.
+	PluginId         string            `json:"plugin_id"`
+	AutocompleteData *AutocompleteData `db:"-" json:"autocomplete_data,omitempty"`
+	// AutocompleteIconData is a base64 encoded svg
+	AutocompleteIconData string `db:"-" json:"autocomplete_icon_data,omitempty"`
 }
 
 func (o *Command) ToJson() string {
@@ -77,8 +83,18 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.update_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(o.CreatorId) {
+	// If the CreatorId is blank, this should be a command created by a plugin.
+	if o.CreatorId == "" && !IsValidPluginId(o.PluginId) {
+		return NewAppError("Command.IsValid", "model.command.is_valid.plugin_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// If the PluginId is blank, this should be a command associated with a userId.
+	if o.PluginId == "" && !IsValidId(o.CreatorId) {
 		return NewAppError("Command.IsValid", "model.command.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.CreatorId != "" && o.PluginId != "" {
+		return NewAppError("Command.IsValid", "model.command.is_valid.plugin_id.app_error", nil, "command cannot have both a CreatorId and a PluginId", http.StatusBadRequest)
 	}
 
 	if !IsValidId(o.TeamId) {
@@ -107,6 +123,12 @@ func (o *Command) IsValid() *AppError {
 
 	if len(o.Description) > 128 {
 		return NewAppError("Command.IsValid", "model.command.is_valid.description.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.AutocompleteData != nil {
+		if err := o.AutocompleteData.IsValid(); err != nil {
+			return NewAppError("Command.IsValid", "model.command.is_valid.autocomplete_data.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	return nil

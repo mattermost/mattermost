@@ -22,20 +22,21 @@ func TestInvitePeopleProvider(t *testing.T) {
 
 	cmd := InvitePeopleProvider{}
 
+	notTeamUser := th.CreateUser()
+
 	// Test without required permissions
 	args := &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
-		UserId:    th.BasicUser.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    notTeamUser.Id,
 	}
 
 	actual := cmd.DoCommand(th.App, args, model.NewId()+"@simulator.amazonses.com")
 	assert.Equal(t, "api.command_invite_people.permission.app_error", actual.Text)
 
 	// Test with required permissions.
-	args.Session.TeamMembers[0].Roles = model.TEAM_USER_ROLE_ID
+	args.UserId = th.BasicUser.Id
 	actual = cmd.DoCommand(th.App, args, model.NewId()+"@simulator.amazonses.com")
 	assert.Equal(t, "api.command.invite_people.sent", actual.Text)
 }

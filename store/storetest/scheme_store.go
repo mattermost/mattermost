@@ -450,8 +450,8 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Scheme().Delete(d5.Id)
 	assert.Nil(t, err)
 
-	c6, err := ss.Channel().Get(c5.Id, true)
-	assert.Nil(t, err)
+	c6, nErr := ss.Channel().Get(c5.Id, true)
+	assert.Nil(t, nErr)
 	assert.Equal(t, "", *c6.SchemeId)
 }
 
