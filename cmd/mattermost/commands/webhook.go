@@ -92,7 +92,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	var teams []*model.Team
 	if len(args) < 1 {
@@ -116,17 +116,17 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		incomingResult := make(chan store.StoreResult, 1)
 		go func() {
 			incomingHooks, err := app.Srv().Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
+			incomingResult <- store.StoreResult{Data: incomingHooks, NErr: err}
 			close(incomingResult)
 		}()
 		outgoingResult := make(chan store.StoreResult, 1)
 		go func() {
 			outgoingHooks, err := app.Srv().Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
-			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, NErr: err}
 			close(outgoingResult)
 		}()
 
-		if result := <-incomingResult; result.Err == nil {
+		if result := <-incomingResult; result.NErr == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
 			hooks := result.Data.([]*model.IncomingWebhook)
 			for _, hook := range hooks {
@@ -136,7 +136,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
 		}
 
-		if result := <-outgoingResult; result.Err == nil {
+		if result := <-outgoingResult; result.NErr == nil {
 			hooks := result.Data.([]*model.OutgoingWebhook)
 			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range hooks {
@@ -154,7 +154,7 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	channelArg, errChannel := command.Flags().GetString("channel")
 	if errChannel != nil || channelArg == "" {
@@ -209,7 +209,7 @@ func modifyIncomingWebhookCmdF(command *cobra.Command, args []string) (cmdError 
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -267,7 +267,7 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	teamArg, errTeam := command.Flags().GetString("team")
 	if errTeam != nil || teamArg == "" {
@@ -361,7 +361,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -451,7 +451,7 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("WebhookID is not specified")
@@ -477,7 +477,7 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	webhookId := args[0]
 	if incomingWebhook, err := app.GetIncomingWebhook(webhookId); err == nil {
@@ -497,7 +497,7 @@ func moveOutgoingWebhookCmd(command *cobra.Command, args []string) (cmdError err
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
+	defer app.Srv().Shutdown()
 
 	newTeamId := args[0]
 	_, teamError := app.GetTeam(newTeamId)
