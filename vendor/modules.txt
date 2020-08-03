@@ -157,7 +157,6 @@ github.com/golang/snappy
 # github.com/google/btree v1.0.0
 github.com/google/btree
 # github.com/google/uuid v1.1.1
-## explicit
 github.com/google/uuid
 # github.com/gopherjs/gopherjs v0.0.0-20190910122728-9d188e94fb99
 github.com/gopherjs/gopherjs/js
@@ -316,15 +315,19 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.0
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v6 v6.0.57
+# github.com/minio/minio-go/v7 v7.0.2
 ## explicit
-github.com/minio/minio-go/v6
-github.com/minio/minio-go/v6/pkg/credentials
-github.com/minio/minio-go/v6/pkg/encrypt
-github.com/minio/minio-go/v6/pkg/s3utils
-github.com/minio/minio-go/v6/pkg/set
-github.com/minio/minio-go/v6/pkg/signer
-github.com/minio/minio-go/v6/pkg/tags
+github.com/minio/minio-go/v7
+github.com/minio/minio-go/v7/pkg/credentials
+github.com/minio/minio-go/v7/pkg/encrypt
+github.com/minio/minio-go/v7/pkg/lifecycle
+github.com/minio/minio-go/v7/pkg/notification
+github.com/minio/minio-go/v7/pkg/replication
+github.com/minio/minio-go/v7/pkg/s3utils
+github.com/minio/minio-go/v7/pkg/set
+github.com/minio/minio-go/v7/pkg/signer
+github.com/minio/minio-go/v7/pkg/sse
+github.com/minio/minio-go/v7/pkg/tags
 # github.com/minio/sha256-simd v0.1.1
 github.com/minio/sha256-simd
 # github.com/mitchellh/go-homedir v1.1.0
@@ -738,7 +741,6 @@ google.golang.org/protobuf/types/known/timestamppb
 ## explicit
 gopkg.in/alexcesaro/quotedprintable.v3
 # gopkg.in/ini.v1 v1.57.0
-## explicit
 gopkg.in/ini.v1
 # gopkg.in/mail.v2 v2.3.1
 ## explicit
