@@ -6788,7 +6788,7 @@
   },
   {
     "id": "store.sql_channel.direct_channels_for_user.app_error",
-    "translation": "Failed to retrieve direct messages channel for the user."
+    "translation": "failed to retrieve direct messages channel for the user."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
