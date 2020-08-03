@@ -23,7 +23,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args := &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: th.BasicChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	for msg, expected := range map[string]string{
@@ -40,7 +40,6 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: th.BasicChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual := pp.DoCommand(th.App, args, "hello").Text
@@ -54,7 +53,7 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: privateChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = pp.DoCommand(th.App, args, "hello").Text
@@ -66,7 +65,6 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: privateChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual = pp.DoCommand(th.App, args, "hello").Text
@@ -81,7 +79,6 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: groupChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual = pp.DoCommand(th.App, args, "hello").Text
@@ -93,7 +90,6 @@ func TestPurposeProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: directChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
 	}
 
 	actual = pp.DoCommand(th.App, args, "hello").Text

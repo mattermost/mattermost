@@ -60,7 +60,7 @@ func TestInviteProvider(t *testing.T) {
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	userAndWrongChannel := "@" + th.BasicUser2.Username + " wrongchannel1"
@@ -197,7 +197,7 @@ func TestInviteGroup(t *testing.T) {
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: th.BasicChannel.Id,
 		TeamId:    th.BasicTeam.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: model.TEAM_USER_ROLE_ID}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	tests := []struct {

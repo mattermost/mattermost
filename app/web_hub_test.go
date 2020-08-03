@@ -15,13 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		mlog.Debug("dummyWebsocketHandler")
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -72,17 +70,17 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 // block the caller indefinitely.
 func TestHubStopRaceCondition(t *testing.T) {
 	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
+	// We do not call TearDown because th.TearDown shuts down the hub again. And hub close is not idempotent.
+	// Making it idempotent is not really important to the server because close only happens once.
+	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
 	th.App.HubStart()
 	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
 	defer wc1.Close()
 
-	hub := th.App.Srv().GetHubs()[0]
+	hub := th.App.Srv().hubs[0]
 	th.App.HubStop()
-	time.Sleep(5 * time.Second)
 
 	done := make(chan bool)
 	go func() {
@@ -111,7 +109,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 }
 
 func TestHubConnIndex(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	connIndex := newHubConnectionIndex()
@@ -185,6 +183,34 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubIsRegistered(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	th.App.HubStart()
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
+	defer wc1.Close()
+	defer wc2.Close()
+	defer wc3.Close()
+
+	session1 := wc1.session.Load().(*model.Session)
+
+	assert.True(t, th.App.SessionIsRegistered(*session1))
+	assert.True(t, th.App.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
+	assert.True(t, th.App.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
+
+	session4, appErr := th.App.CreateSession(&model.Session{
+		UserId: th.BasicUser2.Id,
+	})
+	require.Nil(t, appErr)
+	assert.False(t, th.App.SessionIsRegistered(*session4))
+}
+
 // Always run this with -benchtime=0.1s
 // See: https://github.com/golang/go/issues/27217.
 func BenchmarkHubConnIndex(b *testing.B) {
@@ -229,30 +255,16 @@ func BenchmarkHubConnIndex(b *testing.B) {
 	})
 }
 
-func TestHubIsRegistered(t *testing.T) {
-	th := Setup(t).InitBasic()
+var hubSink *Hub
+
+func BenchmarkGetHubForUserId(b *testing.B) {
+	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
 	th.App.HubStart()
-	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc2 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	wc3 := registerDummyWebConn(t, th.App, s.Listener.Addr(), th.BasicUser.Id)
-	defer wc1.Close()
-	defer wc2.Close()
-	defer wc3.Close()
 
-	session1 := wc1.session.Load().(*model.Session)
-
-	assert.True(t, th.App.SessionIsRegistered(*session1))
-	assert.True(t, th.App.SessionIsRegistered(*wc2.session.Load().(*model.Session)))
-	assert.True(t, th.App.SessionIsRegistered(*wc3.session.Load().(*model.Session)))
-
-	session4, appErr := th.App.CreateSession(&model.Session{
-		UserId: th.BasicUser2.Id,
-	})
-	require.Nil(t, appErr)
-	assert.False(t, th.App.SessionIsRegistered(*session4))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		hubSink = th.Server.GetHubForUserId(th.BasicUser.Id)
+	}
 }

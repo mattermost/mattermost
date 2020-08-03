@@ -23,6 +23,7 @@ type Tree struct {
 	values    map[string]interface{} // string -> *tomlValue, *Tree, []*Tree
 	comment   string
 	commented bool
+	inline    bool
 	position  Position
 }
 
@@ -311,6 +312,7 @@ func (t *Tree) createSubTree(keys []string, pos Position) error {
 		if !exists {
 			tree := newTreeWithPosition(Position{Line: t.position.Line + i, Col: t.position.Col})
 			tree.position = pos
+			tree.inline = subtree.inline
 			subtree.values[intermediateKey] = tree
 			nextTree = tree
 		}

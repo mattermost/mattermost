@@ -353,7 +353,11 @@ func newAuditGroup(g *Group) auditGroup {
 	var group auditGroup
 	if g != nil {
 		group.ID = g.Id
-		group.Name = g.Name
+		if g.Name == nil {
+			group.Name = ""
+		} else {
+			group.Name = *g.Name
+		}
 		group.DisplayName = g.DisplayName
 		group.Description = g.Description
 	}

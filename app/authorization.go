@@ -44,6 +44,9 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	if channelId == "" {
 		return false
 	}
+	if session.IsUnrestricted() {
+		return true
+	}
 
 	ids, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(session.UserId, true, true)
 
@@ -86,9 +89,20 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	return a.SessionHasPermissionTo(session, permission)
 }
 
+func (a *App) SessionHasPermissionToCategory(session model.Session, userId, teamId, categoryId string) bool {
+	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+		return true
+	}
+	category, err := a.GetSidebarCategory(categoryId)
+	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userId && category.TeamId == teamId
+}
+
 func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
 	if userId == "" {
 		return false
+	}
+	if session.IsUnrestricted() {
+		return true
 	}
 
 	if session.UserId == userId {
@@ -103,6 +117,9 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 }
 
 func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+	if session.IsUnrestricted() {
+		return true
+	}
 	if a.SessionHasPermissionToUser(session, userId) {
 		return true
 	}
@@ -129,18 +146,10 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 	if teamId == "" || askingUserId == "" {
 		return false
 	}
-
-	teamMember, err := a.GetTeamMember(teamId, askingUserId)
-	if err != nil {
-		return false
+	teamMember, _ := a.GetTeamMember(teamId, askingUserId)
+	if teamMember != nil && teamMember.DeleteAt == 0 {
+		return a.RolesGrantPermission(teamMember.GetRoles(), permission.Id)
 	}
-
-	roles := teamMember.GetRoles()
-
-	if a.RolesGrantPermission(roles, permission.Id) {
-		return true
-	}
-
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
@@ -224,6 +233,9 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 	existingBot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return err
+	}
+	if session.IsUnrestricted() {
+		return nil
 	}
 
 	if existingBot.OwnerId == session.UserId {

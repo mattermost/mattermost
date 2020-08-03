@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetClusterStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("as system user", func(t *testing.T) {

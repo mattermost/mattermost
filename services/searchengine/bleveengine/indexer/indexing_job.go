@@ -46,6 +46,9 @@ type BleveIndexerWorker struct {
 }
 
 func (bi *BleveIndexerInterfaceImpl) MakeWorker() model.Worker {
+	if bi.Server.SearchEngine.BleveEngine == nil {
+		return nil
+	}
 	return &BleveIndexerWorker{
 		name:      "BleveIndexer",
 		stop:      make(chan bool, 1),

@@ -40,8 +40,9 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 		return s.TeamStore.GetUserTeamIds(userID, allowFromCache)
 	}
 
-	if userTeamIds := s.rootStore.doStandardReadCache(s.rootStore.teamAllTeamIdsForUserCache, userID); userTeamIds != nil {
-		return userTeamIds.([]string), nil
+	var userTeamIds []string
+	if err := s.rootStore.doStandardReadCache(s.rootStore.teamAllTeamIdsForUserCache, userID, &userTeamIds); err == nil {
+		return userTeamIds, nil
 	}
 
 	userTeamIds, err := s.TeamStore.GetUserTeamIds(userID, allowFromCache)

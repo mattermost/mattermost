@@ -80,6 +80,10 @@ func teamMemberToSlice(member *model.TeamMember) []interface{} {
 	return resultSlice
 }
 
+func wildcardSearchTerm(term string) string {
+	return strings.ToLower("%" + term + "%")
+}
+
 type rolesInfo struct {
 	roles         []string
 	explicitRoles []string
@@ -299,6 +303,9 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
+// Get returns from the database the team that matches the id provided as parameter.
+// If the team doesn't exist it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	obj, err := s.GetReplica().Get(model.Team{}, id)
 	if err != nil {
@@ -311,6 +318,9 @@ func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
 	return obj.(*model.Team), nil
 }
 
+// GetByInviteId returns from the database the team that matches the inviteId provided as parameter.
+// If the parameter provided is empty or if there is no match in the database, it returns a model.AppError
+// with a http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
 	team := model.Team{}
 
@@ -329,6 +339,9 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppErr
 	return &team, nil
 }
 
+// GetByName returns from the database the team that matches the name provided as parameter.
+// If there is no match in the database, it returns a model.AppError with a
+// http.StatusNotFound in the StatusCode field.
 func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
 	team := model.Team{}
@@ -369,18 +382,94 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
-func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
+func (s SqlTeamStore) teamSearchQuery(term string, opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
+	var selectStr string
+	if countQuery {
+		selectStr = "count(*)"
+	} else {
+		selectStr = "*"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("Teams as t")
+
+	// Don't order or limit if getting count
+	if !countQuery {
+		query = query.OrderBy("t.DisplayName")
+
+		if opts.IsPaginated() {
+			query = query.Limit(uint64(*opts.PerPage)).Offset(uint64(*opts.Page * *opts.PerPage))
+		}
+	}
+
+	if len(term) > 0 {
+		term = sanitizeSearchTerm(term, "\\")
+		term = wildcardSearchTerm(term)
+
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
+		}
+
+		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
+	}
+
+	var teamFilters sq.Sqlizer
+	var openInviteFilter sq.Sqlizer
+	if opts.AllowOpenInvite != nil {
+		if *opts.AllowOpenInvite {
+			openInviteFilter = sq.Eq{"AllowOpenInvite": true}
+		} else {
+			openInviteFilter = sq.And{
+				sq.Or{
+					sq.NotEq{"AllowOpenInvite": true},
+					sq.Eq{"AllowOpenInvite": nil},
+				},
+				sq.Or{
+					sq.NotEq{"GroupConstrained": true},
+					sq.Eq{"GroupConstrained": nil},
+				},
+			}
+		}
+
+		teamFilters = openInviteFilter
+	}
+
+	var groupConstrainedFilter sq.Sqlizer
+	if opts.GroupConstrained != nil {
+		if *opts.GroupConstrained {
+			groupConstrainedFilter = sq.Eq{"GroupConstrained": true}
+		} else {
+			groupConstrainedFilter = sq.Or{
+				sq.NotEq{"GroupConstrained": true},
+				sq.Eq{"GroupConstrained": nil},
+			}
+		}
+
+		if teamFilters == nil {
+			teamFilters = groupConstrainedFilter
+		} else {
+			teamFilters = sq.Or{teamFilters, groupConstrainedFilter}
+		}
+	}
+
+	query = query.Where(teamFilters)
+
+	return query
+}
+
+// SearchAll returns from the database a list of teams that match the Name or DisplayName
+// passed as the term search parameter.
+func (s SqlTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
-	term = sanitizeSearchTerm(term, "\\")
-
-	query, args, err := s.teamsQuery.Where(sq.Or{sq.Like{"Name": term + "%"}, sq.Like{"DisplayName": term + "%"}}).ToSql()
-
+	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchAll", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
@@ -388,34 +477,23 @@ func (s SqlTeamStore) SearchAll(term string) ([]*model.Team, *model.AppError) {
 }
 
 // SearchAllPaged returns a teams list and the total count of teams that matched the search.
-func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*model.Team, int64, *model.AppError) {
+func (s SqlTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	var teams []*model.Team
 	var totalCount int64
-	offset := page * perPage
 
-	term = sanitizeSearchTerm(term, "\\")
-
-	query, args, err := s.teamsQuery.
-		Where(sq.Or{sq.Like{"Name": term + "%"}, sq.Like{"DisplayName": term + "%"}}).
-		OrderBy("DisplayName", "Name").
-		Limit(uint64(perPage)).
-		Offset(uint64(offset)).ToSql()
-
+	queryString, args, err := s.teamSearchQuery(term, opts, false).ToSql()
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	query, args, err = s.getQueryBuilder().
-		Select("COUNT(*)").
-		From("Teams").
-		Where(sq.Or{sq.Like{"Name": term + "%"}, sq.Like{"DisplayName": term + "%"}}).ToSql()
+	queryString, args, err = s.teamSearchQuery(term, opts, true).ToSql()
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	totalCount, err = s.GetReplica().SelectInt(query, args...)
+	totalCount, err = s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
 		return nil, 0, model.NewAppError("SqlTeamStore.SearchAllPage", "store.sql_team.search_all_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
@@ -423,39 +501,52 @@ func (s SqlTeamStore) SearchAllPaged(term string, page int, perPage int) ([]*mod
 	return teams, totalCount, nil
 }
 
+// SearchOpen returns from the database a list of public teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
+	term = wildcardSearchTerm(term)
+	query := s.teamsQuery.Where(sq.Eq{"Type": "O", "AllowOpenInvite": true})
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = query.Where(sq.Or{sq.Like{"Name": term}, sq.Like{"DisplayName": term}})
+	} else {
+		query = query.Where(sq.Or{sq.ILike{"Name": term}, sq.ILike{"DisplayName": term}})
+	}
 
-	query, args, err := s.teamsQuery.
-		Where(sq.Eq{"Type": "O", "AllowOpenInvite": true}).
-		Where(sq.Or{sq.Like{"Name": term + "%"}, sq.Like{"DisplayName": term + "%"}}).ToSql()
-
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return teams, nil
 }
 
+// SearchPrivate returns from the database a list of private teams that match the Name or DisplayName
+// passed as the term search parameter.
 func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 
 	term = sanitizeSearchTerm(term, "\\")
+	term = wildcardSearchTerm(term)
+	query := s.teamsQuery.Where(sq.Eq{"Type": "O", "AllowOpenInvite": false})
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		query = query.Where(sq.Or{sq.Like{"Name": term}, sq.Like{"DisplayName": term}})
+	} else {
+		query = query.Where(sq.Or{sq.ILike{"Name": term}, sq.ILike{"DisplayName": term}})
+	}
 
-	query, args, err := s.teamsQuery.
-		Where(sq.Or{sq.NotEq{"Type": "O"}, sq.Eq{"AllowOpenInvite": false}}).
-		Where(sq.Or{sq.Like{"Name": term + "%"}, sq.Like{"DisplayName": term + "%"}}).ToSql()
-
+	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err = s.GetReplica().Select(&teams, query, args...); err != nil {
+	if _, err = s.GetReplica().Select(&teams, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
@@ -498,6 +589,7 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 	return teams, nil
 }
 
+// GetTeamsByUserId returns from the database all teams that userId belongs to.
 func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
 	var teams []*model.Team
 	query, args, err := s.teamsQuery.
@@ -602,6 +694,8 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
+// PermanentDelete permanently deletes from the database the team entry that matches the teamId passed as parameter.
+// To soft-delete the team you can Update it with the DeleteAt field set to the current millisecond using model.GetMillis()
 func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
 		Delete("Teams").
@@ -1133,10 +1227,12 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppE
 	return nil
 }
 
+// RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
 	return s.RemoveMembers(teamId, []string{userId})
 }
 
+// RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
 		Delete("TeamMembers").
@@ -1152,6 +1248,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
 	return nil
 }
 
+// RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
 func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
 	sql, args, err := s.getQueryBuilder().
 		Delete("TeamMembers").
@@ -1181,6 +1278,8 @@ func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *mo
 	return nil
 }
 
+// GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
+// a total limit passed as paramater and paginated by offset number passed as parameter.
 func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"SchemeId": schemeId}).
 		OrderBy("DisplayName").

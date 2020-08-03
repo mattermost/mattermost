@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 )
 
@@ -26,7 +26,9 @@ const (
 	MAX_SERVER_BUSY_SECONDS      = 86400
 )
 
-var redirectLocationDataCache = lru.New(REDIRECT_LOCATION_CACHE_SIZE)
+var redirectLocationDataCache = cache.NewLRU(&cache.LRUOptions{
+	Size: REDIRECT_LOCATION_CACHE_SIZE,
+})
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -52,6 +54,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
+
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -106,7 +111,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
-		license := c.App.License()
+		license := c.App.Srv().License()
 		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
 		if appErr == nil {
 			appErr = backend.TestConnection()
@@ -238,7 +243,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.InvalidateAllCaches()
+	err := c.App.Srv().InvalidateAllCaches()
 	if err != nil {
 		c.Err = err
 		return
@@ -377,7 +382,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	license := c.App.License()
+	license := c.App.Srv().License()
 	backend, appErr := filesstore.NewFileBackend(&cfg.FileSettings, license != nil && *license.Features.Compliance)
 	if appErr == nil {
 		appErr = backend.TestConnection()
@@ -405,8 +410,9 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if location, ok := redirectLocationDataCache.Get(url); ok {
-		m["location"] = location.(string)
+	var location string
+	if err := redirectLocationDataCache.Get(url, &location); err == nil {
+		m["location"] = location
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
@@ -419,7 +425,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	res, err := client.Head(url)
 	if err != nil {
 		// Cache failures to prevent retries.
-		redirectLocationDataCache.AddWithExpiresInSecs(url, "", 3600) // Expires after 1 hour
+		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
 		w.Write([]byte(model.MapToJson(m)))
 		return
@@ -429,8 +435,8 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		res.Body.Close()
 	}()
 
-	location := res.Header.Get("Location")
-	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
+	location = res.Header.Get("Location")
+	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
@@ -540,4 +546,62 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
+}
+
+func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	license := c.App.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip.")
+		return
+	}
+
+	status, err := c.App.GetWarnMetricsStatus()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
+}
+
+func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("sendWarnMetricAckEmail", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	license := c.App.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip.")
+		return
+	}
+
+	user, appErr := c.App.GetUser(c.App.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ack := model.SendWarnMetricAckFromJson(r.Body)
+	if ack == nil {
+		c.SetInvalidParam("ack")
+		return
+	}
+
+	appErr = c.App.NotifyAndSetWarnMetricAck(c.Params.WarnMetricId, user, ack.ForceAck, false)
+	if appErr != nil {
+		c.Err = appErr
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
