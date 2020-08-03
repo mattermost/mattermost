@@ -268,13 +268,15 @@ func TestUserDeleteUpdateDirectChannelDeleted(t *testing.T) {
 	defer th.TearDown()
 
 	th.CreateDmChannel(th.BasicUser2)
-	basicUser3 := th.CreateUser()
-	th.CreateDmChannel(basicUser3)
+	user := th.CreateUser()
+	th.CreateDmChannel(user)
 
 	th.App.UpdateActive(th.BasicUser, false)
 	require.NotZero(t, th.BasicUser.DeleteAt)
 
-	directChannels, _ := th.App.Srv().Store.Channel().GetDirectChannelsForUser(th.BasicUser.Id)
+	directChannels, err := th.App.Srv().Store.Channel().GetDirectChannelsForUser(th.BasicUser.Id)
+	require.Nil(t, err)
+
 	for _, channel := range directChannels {
 		require.NotZero(t, channel.DeleteAt)
 	}

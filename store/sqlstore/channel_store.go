@@ -3522,7 +3522,7 @@ func (s SqlChannelStore) GetDirectChannelsForUser(userId string) ([]*model.Chann
 	var channels model.ChannelList
 
 	if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userId}); err != nil {
-		return nil, errors.Wrap(err, "GetDirectChannelsForUser: Failed to retrieve direct channels for the given user")
+		return nil, errors.Wrap(err, "GetDirectChannelsForUser: failed to retrieve direct channels for the given user")
 	}
 
 	return channels, nil
