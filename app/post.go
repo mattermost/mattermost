@@ -295,12 +295,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		switch {
-		case errors.As(err, &appErr):
+		case errors.As(nErr, &appErr):
 			return nil, appErr
-		case errors.As(err, &invErr):
+		case errors.As(nErr, &invErr):
 			return nil, model.NewAppError("CreatePost", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
-			return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
