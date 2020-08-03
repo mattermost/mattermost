@@ -184,6 +184,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
 	pluginsEnvironment = a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		mlog.Info("Plugins environment not found, server is likely shutting down")
+		return
+	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
 	// Sync plugin active state when config changes. Also notify plugins.
