@@ -7403,6 +7403,10 @@
     "translation": "We could not get all private teams."
   },
   {
+    "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+    "translation": "We could not get all private teams in page."
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "We could not get all teams."
   },
