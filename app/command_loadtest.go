@@ -339,7 +339,9 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	}
 	channelCreator := NewAutoChannelCreator(client, team)
 	channelCreator.Fuzzy = doFuzz
-	channelCreator.CreateTestChannels(channelsr)
+	if _, err := channelCreator.CreateTestChannels(channelsr); err != nil {
+		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
 }
