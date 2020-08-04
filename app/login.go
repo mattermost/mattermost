@@ -132,7 +132,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	session.GenerateCSRF()
 
 	if len(deviceId) > 0 {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
@@ -140,11 +140,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 			return err
 		}
 	} else if isMobile {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 	} else if isOAuth || isSaml {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthSSOInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	} else {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthWebInDays)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
