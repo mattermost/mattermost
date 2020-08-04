@@ -366,7 +366,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SESSION_PROP_PLATFORM, appName)
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
