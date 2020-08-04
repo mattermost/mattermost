@@ -4939,6 +4939,10 @@
     "translation": "Message retention must be one day or longer."
   },
   {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Invalid Local Storage Directory. Must be a non-empty string."
+  },
+  {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
     "translation": "The custom URL scheme {{.Scheme}} is invalid. Custom URL schemes must start with a letter and contain only letters, numbers, plus (+), period (.) and hyphen (-)."
   },
