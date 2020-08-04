@@ -4366,7 +4366,7 @@ func (s *TimerLayerPostStore) GetEtag(channelId string, allowFromCache bool) str
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPosts(userId, offset, limit)
@@ -4382,7 +4382,7 @@ func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
@@ -4398,7 +4398,7 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
@@ -4478,7 +4478,7 @@ func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostAfterTime(channelId, time)
@@ -4494,7 +4494,7 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostIdAfterTime(channelId, time)
@@ -4510,7 +4510,7 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostIdBeforeTime(channelId, time)
@@ -4542,7 +4542,7 @@ func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsAfter(options)
@@ -4574,7 +4574,7 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsBefore(options)
@@ -4622,7 +4622,7 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetPostsSince(options, allowFromCache)

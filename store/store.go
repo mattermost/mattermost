@@ -258,16 +258,16 @@ type PostStore interface {
 	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
-	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error)
 	// @openTracingParams userId, teamId, offset, limit
-	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError)
-	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError)
-	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
-	GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError)
-	GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError)
+	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error)
+	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error)
+	GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error)
+	GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error)
+	GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error)
+	GetPostAfterTime(channelId string, time int64) (*model.Post, error)
+	GetPostIdAfterTime(channelId string, time int64) (string, error)
+	GetPostIdBeforeTime(channelId string, time int64) (string, error)
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError)
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
