@@ -4299,6 +4299,34 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.role.get.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Unable to get roles."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Unable to save new role."
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "The role was not valid."
+  },
+  {
     "id": "app.save_config.app_error",
     "translation": "An error occurred saving the configuration."
   },
@@ -7257,50 +7285,6 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role."
-  },
-  {
-    "id": "store.sql_role.get.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
-    "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Unable to get roles."
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles."
-  },
-  {
-    "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role."
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid."
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role."
-  },
-  {
-    "id": "store.sql_role.save.update.app_error",
-    "translation": "Unable to update role."
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role."
   },
   {
     "id": "store.sql_status.get.app_error",
