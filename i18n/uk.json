@@ -5164,96 +5164,8 @@
         "translation": "Виникла помилка при спробі прочитати файл"
     },
     {
-        "id": "store.sql_cluster_discovery.cleanup.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.delete.app_error",
-        "translation": "Не вдалося видалити"
-    },
-    {
-        "id": "store.sql_cluster_discovery.exists.app_error",
-        "translation": "Не вдалося перевірити існування"
-    },
-    {
-        "id": "store.sql_cluster_discovery.get_all.app_error",
-        "translation": "Не вдалося отримати всі рядки відкриття"
-    },
-    {
-        "id": "store.sql_cluster_discovery.save.app_error",
-        "translation": "Не вдалося зберегти рядок ClusterDiscovery"
-    },
-    {
-        "id": "store.sql_cluster_discovery.set_last_ping.app_error",
-        "translation": "Не вдалося оновити останній ping у"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Неможливо видалити команду"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Неможливо видалити команду"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Не вдається отримати команду"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Не вдається отримати команди"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Не вдається зберегти команду"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Ви не можете переписати існуючу команду"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Не вдається оновити команду"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Неможливо використовувати веб-ключ"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Не вдається зберегти команду Webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "Ви не можете оновити існуючий CommandWebhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Неправильний веб-хокс"
-    },
-    {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Виникла помилка при спробі прочитати файл"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Не вдалося вибрати дані експорту повідомлення"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Виникла помилка при спробі прочитати файл"
     },
     {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5304,10 +5216,6 @@
         "translation": "no matching group found"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "no rows changed"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Команда з таким ім'ям вже існує"
     },
@@ -5344,102 +5252,6 @@
         "translation": "Не вдається оновити схему"
     },
     {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Не вдається здійснити транзакцію"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Неможливо відкрити транзакцію для видалення додатка OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Під час видалення додатка OAuth2 сталася помилка"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Виникла помилка під час пошуку токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Виникла помилка під час знаходження всіх токенів доступу"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Не вдалося знайти потрібний додаток"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Виникла помилка під час знаходження додатку"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Не вдалося знайти дійсну команду для оновлення"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Під час пошуку додатків OAuth2 сталася помилка"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Не вдалося знайти дійсний код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Виникла помилка при пошуку коду авторизації"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "У нас виникла помилка під час пошуку токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Не вдалося видалити код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Неможливо видалити маркер доступу"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Не вдалося видалити код авторизації"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Необхідно викликати оновлення наявної програми"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Не вдається зберегти додаток."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Не вдалося зберегти код авторизації."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Ми виявили помилку під час оновлення токену доступу"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Неможливо знайти існуючу програму для оновлення"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Виникла помилка під час пошуку додатоку"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Не вдається оновити додаток"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Виникла помилка під час оновлення додатка"
-    },
-    {
         "id": "store.sql_plugin_store.delete.app_error",
         "translation": "Не вдалося видалити значення клавіші плагіна"
     },
@@ -5462,10 +5274,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Неможливо отримати кількість користувачів із повідомленнями"
-    },
-    {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Ми не змогли отримати відповідні експортні повідомлення."
     },
     {
         "id": "store.sql_post.delete.app_error",
@@ -5560,70 +5368,6 @@
         "translation": "Не вдається оновити повідомлення"
     },
     {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Виникла помилка при видаленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Виникла помилка при пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Виникла помилка при пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Виникла помилка під час пошуку налаштувань"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Налаштування з таким ідентифікатором користувача, категорією і ім'ям вже існує"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Не вдається зберегти налаштування"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Виникла помилка при видаленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Неможливо зафіксувати транзакцію по збереженню налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Виникла помилка при оновленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Неможливо розпочати транзакцію по збереженню налаштувань"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Виникла помилка при оновленні налаштувань"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Не вдається зберегти налаштування"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Неможливо видалити токен"
-    },
-    {
-        "id": "store.sql_recover.get_by_code.app_error",
-        "translation": "Неможливо отримати токен із цим кодом"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Неможливо видалити роль"
     },
@@ -5662,50 +5406,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Не вдалося здійснити транзакцію для збереження ролі"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Не вдається підрахувати сеанси"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Виникла помилка при пошуку сесії"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Виникла помилка при пошуку сесій користувача"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Невдала спроба видалити всі сесії користувача"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Не вдається видалити сеанс"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Не вдається видалити всі сеанси"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Не вдається зберегти сеанс"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Неможливо оновити існуючий сеанс"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Неможливо оновити ідентифікатор пристрою"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Не вдається оновити last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Не вдається оновити ролі"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6116,122 +5816,6 @@
         "translation": "Неможливо оновити поле перевірки електронної пошти"
     },
     {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Не вдалося видалити персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Не вдалося отримати персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Не можливо отримати всі токени особистого доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Не вдалося отримати персональний токен доступу по токену"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Не вдалося отримати персональні токени доступу для користувача"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Неможливо зберегти персональний токен доступу"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Ми виявили помилку пошуку токенів доступу користувача"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Неможливо зберегти токен"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа "
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Не вдається зберегти вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Не вдається зберегти Outgoing Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Неможливо оновити вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Неможливо оновити веб-ключа"
-    },
-    {
         "id": "store.update_error",
         "translation": "update error"
     },
@@ -6306,10 +5890,6 @@
     {
         "id": "web.command_webhook.command.app_error",
         "translation": "Не вдалося знайти команду"
-    },
-    {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Невірний вебхук"
     },
     {
         "id": "web.command_webhook.parse.app_error",
@@ -6592,20 +6172,8 @@
         "translation": "Не вдалося здійснити транзакцію бази даних"
     },
     {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Unable to update session props."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
-    },
-    {
         "id": "store.sql_role.get_all.app_error",
         "translation": "Неможливо отримати всі канали"
-    },
-    {
-        "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-        "translation": "Unable to remove all the tokens of a type."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7764,18 +7332,6 @@
         "translation": "Не вдається здійснити транзакцію"
     },
     {
-        "id": "sidebar.category.dm",
-        "translation": "Особисті повідомлення"
-    },
-    {
-        "id": "sidebar.category.channels",
-        "translation": "Канали"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Не вдалося перемістити через недійсні дані про перебіг."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
     },
@@ -7810,5 +7366,381 @@
     {
         "id": "app.audit.get.finding.app_error",
         "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Не вдається отримати команди"
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Неправильний веб-хокс"
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Неможливо проаналізувати вхідні дані"
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Неможливо використовувати веб-ключ"
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Неможливо використовувати веб-ключ"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Не вдається зберегти команду Webhook"
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Ви не можете оновити існуючий CommandWebhook"
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Виникла помилка під час оновлення додатка"
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Неможливо знайти існуючу програму для оновлення"
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Не вдається зберегти додаток."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Необхідно викликати оновлення наявної програми"
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Неможливо видалити маркер доступу"
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Не вдалося видалити код авторизації"
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Під час пошуку додатків OAuth2 сталася помилка"
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Не вдалося знайти дійсну команду для оновлення"
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Виникла помилка під час знаходження додатку"
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Не вдалося знайти потрібний додаток"
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Виникла помилка під час знаходження всіх токенів доступу"
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Під час видалення додатка OAuth2 сталася помилка"
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Неможливо видалити токен"
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Неможливо видалити токен"
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Неможливо оновити ідентифікатор пристрою"
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Неможливо оновити існуючий сеанс"
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Не вдається зберегти сеанс"
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Не вдається видалити всі сеанси"
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Не вдається видалити сеанс"
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Невдала спроба видалити всі сесії користувача"
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Виникла помилка при пошуку сесій користувача"
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Виникла помилка при пошуку сесії"
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Не вдається підрахувати сеанси"
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Не вдається оновити команду"
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Не вдається зберегти команду"
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Не вдається отримати команди"
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Не вдається отримати схему"
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Неможливо видалити команду"
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Не вдається зберегти команду"
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Неможливо зберегти токен"
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Неможливо видалити токен"
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Неможливо отримати всі канали"
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Не вдалося видалити публікацію"
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Не вдалося видалити публікацію"
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Не вдалося видалити публікацію"
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Не вдалося видалити публікацію"
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "Неможливо видалити схему"
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Неможливо видалити канали прямого або групового повідомлення"
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "Не вдалося отримати користувачів у каналі протягом певного періоду часу"
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "Не вдалося очистити записи"
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "Не вдається зберегти смайли"
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "Не вдається оновити канал"
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "Не вдається видалити канал"
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "Неможливо отримати всі канали"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Неможливо зберегти токен"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Неможливо зберегти токен"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Ми виявили помилку пошуку токенів доступу користувача"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Неможливо зберегти персональний токен доступу"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Не вдалося отримати персональні токени доступу для користувача"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Не можливо отримати всі токени особистого доступу"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Не вдалося видалити персональний токен доступу"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Потрібно SMTP сервер"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Не вдалося вибрати дані експорту повідомлення"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Виникла помилка при спробі прочитати файл"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Неможливо скопіювати вкладення у файл zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Ми зіткнулися з помилкою, очищаючи партію прапорів"
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Виникла помилка при оновленні налаштувань"
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Виникла помилка при видаленні налаштувань"
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Виникла помилка при пошуку налаштувань"
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Виникла помилка при видаленні налаштувань"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Адреса сайту:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Усього активних користувачів"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Адреса електронної пошти:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Неможливо оновити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Неможливо оновити вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Не вдається зберегти Outgoing Webhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Не вдається зберегти вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
     }
 ]

@@ -1128,13 +1128,13 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	go func() {
 		webhooks, err := a.Srv().Store.Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.StoreResult{Data: webhooks, Err: err}
+		ihc <- store.StoreResult{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.StoreResult{Data: outgoingHooks, Err: err}
+		ohc <- store.StoreResult{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -1148,13 +1148,13 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	}
 
 	ihcresult := <-ihc
-	if ihcresult.Err != nil {
-		return ihcresult.Err
+	if ihcresult.NErr != nil {
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_incoming_by_channel.app_error", nil, ihcresult.NErr.Error(), http.StatusInternalServerError)
 	}
 
 	ohcresult := <-ohc
-	if ohcresult.Err != nil {
-		return ohcresult.Err
+	if ohcresult.NErr != nil {
+		return model.NewAppError("DeleteChannel", "app.webhooks.get_outgoing_by_channel.app_error", nil, ohcresult.NErr.Error(), http.StatusInternalServerError)
 	}
 
 	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
@@ -1554,8 +1554,8 @@ func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeD
 	return result, nil
 }
 
-func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted)
+func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError) {
+	list, err := a.Srv().Store.Channel().GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2192,11 +2192,17 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
 	storeOpts := store.ChannelSearchOpts{
-		ExcludeChannelNames:  opts.ExcludeChannelNames,
-		NotAssociatedToGroup: opts.NotAssociatedToGroup,
-		IncludeDeleted:       opts.IncludeDeleted,
-		Page:                 opts.Page,
-		PerPage:              opts.PerPage,
+		ExcludeChannelNames:     opts.ExcludeChannelNames,
+		NotAssociatedToGroup:    opts.NotAssociatedToGroup,
+		IncludeDeleted:          opts.IncludeDeleted,
+		Deleted:                 opts.Deleted,
+		TeamIds:                 opts.TeamIds,
+		GroupConstrained:        opts.GroupConstrained,
+		ExcludeGroupConstrained: opts.ExcludeGroupConstrained,
+		Public:                  opts.Public,
+		Private:                 opts.Private,
+		Page:                    opts.Page,
+		PerPage:                 opts.PerPage,
 	}
 
 	term = strings.TrimSpace(term)
@@ -2334,11 +2340,11 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_incoming_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
@@ -2373,6 +2379,15 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 
 		if len(teamMembers) != len(*channelMembers) {
+			teamMembersMap := make(map[string]*model.TeamMember, len(teamMembers))
+			for _, teamMember := range teamMembers {
+				teamMembersMap[teamMember.UserId] = teamMember
+			}
+			for _, channelMember := range *channelMembers {
+				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
+					mlog.Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+				}
+			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
 		}
 	}
@@ -2427,7 +2442,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 	}
 
-	if err := a.removeUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
+	if err := a.RemoveUsersFromChannelNotMemberOfTeam(user, channel, team); err != nil {
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
@@ -2457,7 +2472,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 	return nil
 }
 
-func (a *App) removeUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
+func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError {
 	channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000)
 	if err != nil {
 		return err
@@ -2580,7 +2595,7 @@ func (a *App) ClearChannelMembersCache(channelID string) {
 	page := 0
 
 	for {
-		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page, perPage)
+		channelMembers, err := a.Srv().Store.Channel().GetMembers(channelID, page*perPage, perPage)
 		if err != nil {
 			a.Log().Warn("error clearing cache for channel members", mlog.String("channel_id", channelID))
 			break

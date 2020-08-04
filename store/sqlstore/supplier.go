@@ -1184,8 +1184,8 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	results := make(chan store.IntegrityCheckResult)
+func (ss *SqlSupplier) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
 }
