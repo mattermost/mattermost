@@ -98,43 +98,43 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, err := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
@@ -155,43 +155,43 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
@@ -285,43 +285,43 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, err := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
@@ -342,43 +342,43 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, *data.Scope, scheme.Scope)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
 	assert.True(t, role.SchemeManaged)
 
-	role, err = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 	assert.False(t, role.BuiltIn)
@@ -412,8 +412,8 @@ func TestImportImportRole(t *testing.T) {
 	err := th.App.importRole(&data, true, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Role().GetByName(rid1)
-	require.NotNil(t, err, "Should have failed to import.")
+	_, nErr := th.App.Srv().Store.Role().GetByName(rid1)
+	require.NotNil(t, nErr, "Should have failed to import.")
 
 	// Try importing the valid role in dryRun mode.
 	data.DisplayName = ptrStr("display name")
@@ -421,8 +421,8 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, true, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	_, err = th.App.Srv().Store.Role().GetByName(rid1)
-	require.NotNil(t, err, "Role should not have imported as we are in dry run mode.")
+	_, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	require.NotNil(t, nErr, "Role should not have imported as we are in dry run mode.")
 
 	// Try importing an invalid role.
 	data.DisplayName = nil
@@ -430,8 +430,8 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, false)
 	require.NotNil(t, err, "Should have failed to import.")
 
-	_, err = th.App.Srv().Store.Role().GetByName(rid1)
-	require.NotNil(t, err, "Role should not have imported.")
+	_, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	require.NotNil(t, nErr, "Role should not have imported.")
 
 	// Try importing a valid role with all params set.
 	data.DisplayName = ptrStr("display name")
@@ -441,8 +441,8 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, err := th.App.Srv().Store.Role().GetByName(rid1)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr := th.App.Srv().Store.Role().GetByName(rid1)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
 	assert.Equal(t, *data.DisplayName, role.DisplayName)
@@ -459,8 +459,8 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data, false, true)
 	require.Nil(t, err, "Should have succeeded. %v", err)
 
-	role, err = th.App.Srv().Store.Role().GetByName(rid1)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data.Name, role.Name)
 	assert.Equal(t, *data.DisplayName, role.DisplayName)
@@ -478,8 +478,8 @@ func TestImportImportRole(t *testing.T) {
 	err = th.App.importRole(&data2, false, false)
 	require.Nil(t, err, "Should have succeeded.")
 
-	role, err = th.App.Srv().Store.Role().GetByName(rid1)
-	require.Nil(t, err, "Should have found the imported role.")
+	role, nErr = th.App.Srv().Store.Role().GetByName(rid1)
+	require.Nil(t, nErr, "Should have found the imported role.")
 
 	assert.Equal(t, *data2.Name, role.Name)
 	assert.Equal(t, *data2.DisplayName, role.DisplayName)
