@@ -5816,86 +5816,6 @@
         "translation": "Imposibil de actualizat câmpul de confirmare a e-mailului"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Imposibil de numărare a cârligelor de intrare"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Imposibil de numărare a cârligelor web de ieșire"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Imposibil de șters webhook"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Imposibil de șters webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "În imposibilitatea de a obține webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "În imposibilitatea de a obține webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "În imposibilitatea de a obține webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "În imposibilitatea de a obține webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "În imposibilitatea de a obține webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "În imposibilitatea de a obține webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "În imposibilitatea de a șterge webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "În imposibilitatea de a șterge webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "În imposibilitatea de a șterge webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "În imposibilitatea de a șterge webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "În imposibilitatea de a salva IncomingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Nu puteți suprascrie un IncomingWebhook existent"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "În imposibilitatea de a salva OutgoingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Nu aveți posibilitatea să înlocuiți un OutgoingWebhook existent"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Imposibilitatea de a actualiza IncomingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Imposibilitatea de a actualiza webhook"
-    },
-    {
         "id": "store.update_error",
         "translation": "eroare de actualizare"
     },
@@ -8038,5 +7958,85 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Imposibil de obținut utilizator din sesiunea UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Imposibilitatea de a actualiza webhook"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Imposibilitatea de a actualiza IncomingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Nu aveți posibilitatea să înlocuiți un OutgoingWebhook existent"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "În imposibilitatea de a salva OutgoingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Nu puteți suprascrie un IncomingWebhook existent"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "În imposibilitatea de a salva IncomingWebhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "În imposibilitatea de a obține webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "În imposibilitatea de a obține webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "În imposibilitatea de a obține webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "În imposibilitatea de a obține webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "În imposibilitatea de a obține webhooks"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "În imposibilitatea de a obține webhook"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "În imposibilitatea de a șterge webhook"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Imposibil de numărare a cârligelor web de ieșire"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Imposibil de numărare a cârligelor de intrare"
     }
 ]

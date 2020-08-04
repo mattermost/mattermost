@@ -5811,86 +5811,6 @@
         "translation": "Não foi possível verificar o campo email"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Não foi possível contar os wehooks de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Não foi possível contar os webhooks de saída"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Não foi possível salvar o webhook de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Você não pode sobrescrever um existente Webhook Entrada"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Não foi possível salvar o webhook de saída"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Você não pode sobrescrever um existente Webhook de Saída"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Não foi possível atualizar o webhook de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Não foi possível atualizar o webhook"
-    },
-    {
         "id": "store.update_error",
         "translation": "erro ao atualizar"
     },
@@ -7833,5 +7753,85 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Não foi possível obter o usuário da sessão UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Não foi possível atualizar o webhook"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Não foi possível atualizar o webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Você não pode sobrescrever um existente Webhook de Saída"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Não foi possível salvar o webhook de saída"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Você não pode sobrescrever um existente Webhook Entrada"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Não foi possível salvar o webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Não foi possível contar os webhooks de saída"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Não foi possível contar os wehooks de entrada"
     }
 ]
