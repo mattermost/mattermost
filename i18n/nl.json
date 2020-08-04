@@ -8033,5 +8033,9 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "Ongeldige plugin id."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "We konden niet alle private teams op de pagina krijgen."
     }
 ]
