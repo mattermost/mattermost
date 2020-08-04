@@ -146,23 +146,10 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 	if teamId == "" || askingUserId == "" {
 		return false
 	}
-
-	teamMember, err := a.GetTeamMember(teamId, askingUserId)
-	if err != nil {
-		return false
+	teamMember, _ := a.GetTeamMember(teamId, askingUserId)
+	if teamMember != nil && teamMember.DeleteAt == 0 {
+		return a.RolesGrantPermission(teamMember.GetRoles(), permission.Id)
 	}
-
-	// If the team member has been deleted, they don't have permission.
-	if teamMember.DeleteAt != 0 {
-		return false
-	}
-
-	roles := teamMember.GetRoles()
-
-	if a.RolesGrantPermission(roles, permission.Id) {
-		return true
-	}
-
 	return a.HasPermissionTo(askingUserId, permission)
 }
 

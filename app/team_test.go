@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -256,8 +258,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
@@ -356,8 +358,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		require.Nil(t, err, "Should add user to the team")
 
-		_, err = th.App.Srv().Store.Token().GetByToken(token.Token)
-		require.NotNil(t, err, "The token must be deleted after be used")
+		_, nErr := th.App.Srv().Store.Token().GetByToken(token.Token)
+		require.NotNil(t, nErr, "The token must be deleted after be used")
 
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
@@ -710,7 +712,7 @@ func TestSanitizeTeams(t *testing.T) {
 }
 
 func TestJoinUserToTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -1094,7 +1096,7 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t1 := model.Token{
@@ -1135,4 +1137,25 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 
 	_, err = th.App.Srv().Store.Token().GetByToken(t3.Token)
 	require.Nil(t, err)
+}
+
+func TestClearTeamMembersCache(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+	mockTeamStore := mocks.TeamStore{}
+	tms := []*model.TeamMember{}
+	for i := 0; i < 200; i++ {
+		tms = append(tms, &model.TeamMember{
+			TeamId: "1",
+		})
+	}
+	mockTeamStore.On("GetMembers", "teamID", 0, 100, mock.Anything).Return(tms, nil)
+	mockTeamStore.On("GetMembers", "teamID", 100, 100, mock.Anything).Return([]*model.TeamMember{{
+		TeamId: "1",
+	}}, nil)
+	mockStore.On("Team").Return(&mockTeamStore)
+
+	th.App.ClearTeamMembersCache("teamID")
 }

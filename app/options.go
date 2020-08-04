@@ -100,16 +100,12 @@ func ServerConnector(s *Server) AppOption {
 		a.log = s.Log
 		a.notificationsLog = s.NotificationsLog
 
-		a.accountMigration = s.AccountMigration
 		a.cluster = s.Cluster
 		a.compliance = s.Compliance
 		a.dataRetention = s.DataRetention
 		a.searchEngine = s.SearchEngine
 		a.messageExport = s.MessageExport
 		a.metrics = s.Metrics
-		a.ldap = s.Ldap
-		a.saml = s.Saml
-		a.notification = s.Notification
 
 		a.httpService = s.HTTPService
 		a.imageProxy = s.ImageProxy

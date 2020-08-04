@@ -116,7 +116,7 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -191,7 +191,7 @@ func showCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	slashCommand := getCommandFromCommandArg(a, args[0])
 	if slashCommand == nil {
@@ -209,7 +209,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Enter the destination team and at least one command to move.")
@@ -249,7 +249,7 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	var teams []*model.Team
 	if len(args) < 1 {
@@ -285,7 +285,7 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	slashCommand := getCommandFromCommandArg(a, args[0])
 	if slashCommand == nil {
@@ -310,7 +310,7 @@ func modifyCommandCmdF(command *cobra.Command, args []string) (cmdError error) {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	oldCommand := getCommandFromCommandArg(a, args[0])
 	if oldCommand == nil {

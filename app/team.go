@@ -653,7 +653,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return err
 	}
 
-	if err := a.createInitialSidebarCategories(user, team); err != nil {
+	if err := a.createInitialSidebarCategories(user.Id, team.Id); err != nil {
 		mlog.Error(
 			"Encountered an issue creating default sidebar categories.",
 			mlog.String("user_id", user.Id),
@@ -763,9 +763,9 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 // SearchAllTeams returns a team list and the total count of the results
 func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	if searchOpts.IsPaginated() {
-		return a.Srv().Store.Team().SearchAllPaged(searchOpts.Term, *searchOpts.Page, *searchOpts.PerPage)
+		return a.Srv().Store.Team().SearchAllPaged(searchOpts.Term, searchOpts)
 	}
-	results, err := a.Srv().Store.Team().SearchAll(searchOpts.Term)
+	results, err := a.Srv().Store.Team().SearchAll(searchOpts.Term, searchOpts)
 	return results, int64(len(results)), err
 }
 
@@ -984,7 +984,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
 	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
-		return err
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -1003,7 +1003,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	var channelList *model.ChannelList
 
 	var nErr error
-	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
@@ -1384,7 +1384,7 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteTeam", "app.team.permanentdeleteteam.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Team().PermanentDelete(team.Id); err != nil {
@@ -1643,7 +1643,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, nil)
+		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page*perPage, perPage, nil)
 		if err != nil {
 			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
