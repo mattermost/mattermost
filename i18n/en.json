@@ -1,9 +1,5 @@
 [
   {
-    "id": "",
-    "translation": ""
-  },
-  {
     "id": "April",
     "translation": "April"
   },
@@ -4357,6 +4353,10 @@
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Unable to convert bot to user."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
