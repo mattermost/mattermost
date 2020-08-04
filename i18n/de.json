@@ -5159,72 +5159,8 @@
         "translation": "Es trat ein Fehler beim Aktualisieren der Kanalmitglieder auf"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Konnte die Anzahl der Befehle nicht abrufen."
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Konnte den Befehl nicht abrufen."
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Konnte den Befehl nicht löschen."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Konnte den Befehl nicht löschen."
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Konnte den Befehl nicht abrufen."
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Konnte den Befehl nicht abrufen."
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Konnte den Befehl nicht speichern."
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Sie können keinen existierenden Befehl überschreiben"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Konnte den Befehl nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Konnte den CommandWebhook nicht speichern."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "Sie können einen existierenden CommandWebhook nicht aktualisieren"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Kann den Webhook nicht verwenden"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Ungültiger Webhook"
-    },
-    {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
     },
     {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5275,10 +5211,6 @@
         "translation": "Keine passende Gruppe gefunden"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "Keine Reihen geändert"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Eine Gruppe mit diesem Namen existiert bereits"
     },
@@ -5315,102 +5247,6 @@
         "translation": "Konnte den Job nicht aktualisieren."
     },
     {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Konnte die Transaktion nicht ausführen"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Konnte die Transaktion nicht öffnen um die OAuth2 App zu entfernen"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Es ist ein Fehler beim Löschen der OAuth2 App aufgetreten"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Konnte die angeforderte Anwendung nicht finden."
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Es trat ein Fehler beim Auffinden der App auf"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Konnte keine existierende Anwendung finden."
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Es ist ein Fehler beim Suchen nach der OAuth2 App aufgetreten"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Konnte den existierenden Authorisationscode nicht finden."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Es trat ein Fehler auf den Authorisationscode zu finden"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Konnte den Autorisationscode nicht entfernen."
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Konnte das Zugriffstoken nicht entfernen."
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Konnte den Authorisationscode nicht entfernen."
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Konnte das Zugriffstoken nicht speichern."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Es muss Update für existierende App aufgerufen werden"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Konnte die Anwendung nicht speichern."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Konnte den Autorisationcode nicht speichern."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Beim Aktualisieren des Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Konnte die zu aktualisierende bestehende App nicht finden."
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Wir konnte die App nicht finden"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Konnte die Anwendung nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
-    },
-    {
         "id": "store.sql_plugin_store.delete.app_error",
         "translation": "Konnte Plugin-Key-Value nicht löschen"
     },
@@ -5433,10 +5269,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
-    },
-    {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Konnte die Compliance-Export-Nachrichten nicht abrufen."
     },
     {
         "id": "store.sql_post.delete.app_error",
@@ -5531,58 +5363,6 @@
         "translation": "Konnte die Nachricht nicht aktualisieren."
     },
     {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Es trat ein Fehler beim Sichen der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach den Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Eine Einstellung mit dieser Benutzer-ID, Kategorie und Name existiert bereits"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Konnte die Einstellung nicht speichern."
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Konnte Transaktion zum Speichern der Einstellungen nicht ausführen"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Öffnen der Transaktion zum Speichern der Einstellungen nicht möglich"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Konnte die Einstellung nicht aktualisieren."
-    },
-    {
         "id": "store.sql_role.delete.update.app_error",
         "translation": "Konnte die Rolle nicht löschen"
     },
@@ -5621,50 +5401,6 @@
     {
         "id": "store.sql_role.save_role.commit_transaction.app_error",
         "translation": "Konnte Transaktion zum Speichern der Rolle nicht ausführen"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Es trat ein Fehler beim Suchen nach Sitzungen auf"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Es trat ein Fehler beim Finden von Benutzersitzungen auf"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Konnte nicht alle Sitzungen des Benutzers entfernen."
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Konnte die Sitzung nicht entfernen."
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Konnte nicht alle Sitzungen entfernen."
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Konnte die Sitzung nicht speichern."
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Konnte existierende Sitzung nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Konnte die Geräte-ID nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Konnte last_activity_at nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Konnte die Rollen nicht aktualisieren."
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6075,122 +5811,6 @@
         "translation": "Es konnte das E-Mail-Adresse bestätigt Feld nicht aktualisiert werden"
     },
     {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Token abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Konnte das Zugriffs-Token nicht aktivieren."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Konnte die Webhooks nicht abrufen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Konnte den Webhook nicht löschen."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Konnte den eingehenden Webhook nicht speichern."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Konnte den ausgehenden Webhook nicht speichern."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Konnte den Webhook nicht aktualisieren."
-    },
-    {
         "id": "store.update_error",
         "translation": "Aktualisierungsfehler"
     },
@@ -6265,10 +5885,6 @@
     {
         "id": "web.command_webhook.command.app_error",
         "translation": "Der Befehl konnte nicht gefunden werden"
-    },
-    {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Ungültiger Webhook"
     },
     {
         "id": "web.command_webhook.parse.app_error",
@@ -6605,14 +6221,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Konnte Sitzungseinstellungen nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Unable to update expires_at."
     },
     {
         "id": "store.sql_role.get_all.app_error",
@@ -7719,10 +7327,6 @@
         "translation": "Konnte die Transaktion nicht ausführen."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "Migration aufgrund ungültiger Fortschrittsdaten fehlgeschlagen ."
-    },
-    {
         "id": "ent.data_retention.reactions_batch.internal_error",
         "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
     },
@@ -7757,5 +7361,401 @@
     {
         "id": "app.audit.get.finding.app_error",
         "translation": "Es trat ein Fehler beim Suchen nach den Audits auf"
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Konnte den Befehl nicht abrufen."
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Ungültiger Webhook."
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Konnte den Webhook nicht verwenden."
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Konnte eingehende Daten nicht verarbeiten."
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Konnte den CommandWebhook nicht speichern."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Sie können einen existierenden CommandWebhook nicht aktualisieren."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Es trat ein Fehler beim Aktualisieren der App auf."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Konnte die zu aktualisierende bestehende App nicht finden."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Konnte die Anwendung nicht speichern."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Es muss Update für existierende App aufgerufen werden."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Konnte das Zugangs-Token nicht entfernen."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Konnte den Autorisationscode nicht entfernen."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Es ist ein Fehler beim Suchen nach der OAuth2-App aufgetreten."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Konnte keine existierende Anwendung finden."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Es trat ein Fehler beim Auffinden der App auf."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Konnte die angeforderte Anwendung nicht finden."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Beim Suchen des Zugangs-Tokens wurde ein Fehler festgestellt."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Es ist ein Fehler beim Löschen der OAuth2-App aufgetreten."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Konnte Token nicht löschen."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Konnte Token nicht löschen."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Konnte die Geräte-ID nicht aktualisieren."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Konnte existierende Sitzung nicht aktualisieren."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Konnte die Sitzung nicht speichern."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Konnte nicht alle Sitzungen entfernen."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Konnte die Sitzung nicht entfernen."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Konnte nicht alle Sitzungen des Benutzers entfernen."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Es trat ein Fehler beim Finden von Benutzersitzungen auf."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Es trat ein Fehler beim Suchen nach Sitzungen auf."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Konnte die Anzahl der Sitzungen nicht abrufen."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Konnte den Befehl nicht aktualisieren."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Konnte den Befehl nicht speichern."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Konnte den Befehl nicht abrufen."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Konnte den Befehl nicht abrufen."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Konnte den Befehl nicht löschen."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Konnte den Befehl nicht speichern."
+    },
+    {
+        "id": "app.recover.save.app_error",
+        "translation": "Konnte den Token nicht speichern."
+    },
+    {
+        "id": "app.recover.delete.app_error",
+        "translation": "Konnte Token nicht löschen."
+    },
+    {
+        "id": "store.sql_channel.get_private_channels.get.app_error",
+        "translation": "Konnte nicht alle Kanäle abrufen."
+    },
+    {
+        "id": "ent.elasticsearch.delete_user_posts.error",
+        "translation": "Fehler beim Löschen der Nachricht."
+    },
+    {
+        "id": "ent.elasticsearch.delete_channel_posts.error",
+        "translation": "Fehler beim Löschen der Nachricht."
+    },
+    {
+        "id": "bleveengine.delete_user_posts.error",
+        "translation": "Fehler beim Löschen der Nachricht."
+    },
+    {
+        "id": "bleveengine.delete_channel_posts.error",
+        "translation": "Fehler beim Löschen der Nachricht."
+    },
+    {
+        "id": "app.scheme.delete.app_error",
+        "translation": "Konnte das Schema nicht löschen."
+    },
+    {
+        "id": "api.channel.move_channel.type.invalid",
+        "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen."
+    },
+    {
+        "id": "ent.get_users_in_channel_during",
+        "translation": "Fehler beim Abrufen der Mitglieder im Kanals während der spezifizierten Zeitperiode."
+    },
+    {
+        "id": "ent.data_retention.channel_member_history_batch.internal_error",
+        "translation": "Fehler beim Leeren der Datensätze."
+    },
+    {
+        "id": "app.emoji.create.internal_error",
+        "translation": "Konnte das Emoji nicht speichern."
+    },
+    {
+        "id": "app.channel.update_channel.internal_error",
+        "translation": "Konnte den Kanal nicht aktualisieren."
+    },
+    {
+        "id": "app.channel.restore.app_error",
+        "translation": "Konnte den Kanal nicht löschen."
+    },
+    {
+        "id": "app.channel.get_all_channels_count.app_error",
+        "translation": "Konnte nicht alle Kanäle abrufen."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Konnte das Zugriffs-Token nicht aktivieren."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Konnte das Zugriffs-Token nicht deaktivieren."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Beim Suchen von Zugangs-Tokens wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht speichern."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht über den Benutzer abrufen."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Konnte nicht alle persönlichen Zugriffs-Token abrufen."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Konnte das persönliche Zugriffs-Token nicht löschen."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP-Server wird benötigt"
+    },
+    {
+        "id": "api.emoji.create.internal_error",
+        "translation": "server_error: Es ist ein Interner Serverfehler beim Erstellen des Emojis aufgetreten."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Konnte Warnmetrik nicht finden."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Fehler beim Senden der Administrator Bestätigungs-E-Mail"
+    },
+    {
+        "id": "api.config.update_config.clear_siteurl.app_error",
+        "translation": "Site URL kann nicht leer sein."
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Beim Speichern des Compliance-Berichtes wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Konnte den Anhang nicht in die ZIP-Datei kopieren."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Markierungen aufgetreten."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Es trat ein Fehler beim Aktualisieren der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Es trat ein Fehler beim Löschen von Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Es trat ein Fehler beim Sichern der Einstellungen auf."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf."
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Warnmetrik konnte nicht gefunden werden."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Seiten-URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Gesamte aktive Benutzer"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-Mail:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht aktualisieren."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Konnte den eingehenden Webhook nicht aktualisieren."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Sie können keinen existierenden OutgoingWebhook überschreiben"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Konnte den ausgehenden Webhook nicht speichern."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Sie können keinen existierenden IncomingWebhook überschreiben"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Konnte den eingehenden Webhook nicht speichern."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Konnte die Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Konnte den Webhook nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Konnte den Webhook nicht löschen."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Konnte die Anzahl der ausgehenden Webhooks nicht abrufen."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
     }
 ]

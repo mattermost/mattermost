@@ -443,33 +443,33 @@ type SystemStore interface {
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
-	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
-	GetIncomingListByUser(userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
-	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
-	GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
-	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
-	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
-	DeleteIncoming(webhookId string, time int64) *model.AppError
-	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
-	PermanentDeleteIncomingByUser(userId string) *model.AppError
+	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error)
+	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, error)
+	GetIncomingListByUser(userId string, offset, limit int) ([]*model.IncomingWebhook, error)
+	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, error)
+	GetIncomingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.IncomingWebhook, error)
+	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error)
+	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error)
+	DeleteIncoming(webhookId string, time int64) error
+	PermanentDeleteIncomingByChannel(channelId string) error
+	PermanentDeleteIncomingByUser(userId string) error
 
-	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingListByUser(userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	DeleteOutgoing(webhookId string, time int64) *model.AppError
-	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
-	PermanentDeleteOutgoingByUser(userId string) *model.AppError
-	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
+	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, error)
+	GetOutgoing(id string) (*model.OutgoingWebhook, error)
+	GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, error)
+	GetOutgoingByChannelByUser(channelId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, error)
+	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, error)
+	GetOutgoingListByUser(userId string, offset, limit int) ([]*model.OutgoingWebhook, error)
+	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, error)
+	GetOutgoingByTeamByUser(teamId string, userId string, offset, limit int) ([]*model.OutgoingWebhook, error)
+	DeleteOutgoing(webhookId string, time int64) error
+	PermanentDeleteOutgoingByChannel(channelId string) error
+	PermanentDeleteOutgoingByUser(userId string) error
+	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error)
 
-	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
-	AnalyticsOutgoingCount(teamId string) (int64, *model.AppError)
+	AnalyticsIncomingCount(teamId string) (int64, error)
+	AnalyticsOutgoingCount(teamId string) (int64, error)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
 }
