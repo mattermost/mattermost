@@ -104,11 +104,12 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 		// HTTPS connection.
 		hashAlgos, hashSums := c.hashMaterials(opts.SendContentMd5)
 
-		length, rErr := io.ReadFull(reader, buf)
-		if rErr == io.EOF {
+		length, rErr := readFull(reader, buf)
+		if rErr == io.EOF && partNumber > 1 {
 			break
 		}
-		if rErr != nil && rErr != io.ErrUnexpectedEOF {
+
+		if rErr != nil && rErr != io.ErrUnexpectedEOF && rErr != io.EOF {
 			return UploadInfo{}, rErr
 		}
 

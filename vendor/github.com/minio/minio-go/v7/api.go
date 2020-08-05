@@ -108,7 +108,7 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v7.0.2"
+	libraryVersion = "v7.0.3"
 )
 
 // User Agent should always following the below style.
@@ -513,7 +513,7 @@ var successStatus = []int{
 // request upon any error up to maxRetries attempts in a binomially
 // delayed manner using a standard back off algorithm.
 func (c Client) executeMethod(ctx context.Context, method string, metadata requestMetadata) (res *http.Response, err error) {
-	var isRetryable bool     // Indicates if request can be retried.
+	var retryable bool       // Indicates if request can be retried.
 	var bodySeeker io.Seeker // Extracted seeker from io.Reader.
 	var reqRetry = MaxRetry  // Indicates how many times we can retry the request
 
@@ -526,13 +526,13 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 
 	if metadata.contentBody != nil {
 		// Check if body is seekable then it is retryable.
-		bodySeeker, isRetryable = metadata.contentBody.(io.Seeker)
+		bodySeeker, retryable = metadata.contentBody.(io.Seeker)
 		switch bodySeeker {
 		case os.Stdin, os.Stdout, os.Stderr:
-			isRetryable = false
+			retryable = false
 		}
 		// Retry only when reader is seekable
-		if !isRetryable {
+		if !retryable {
 			reqRetry = 1
 		}
 
@@ -559,7 +559,7 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 		// error until maxRetries have been exhausted, retry attempts are
 		// performed after waiting for a given period of time in a
 		// binomial fashion.
-		if isRetryable {
+		if retryable {
 			// Seek back to beginning for each attempt.
 			if _, err = bodySeeker.Seek(0, 0); err != nil {
 				// If seek failed, no need to retry.

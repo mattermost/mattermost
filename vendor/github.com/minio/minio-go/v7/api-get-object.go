@@ -102,7 +102,7 @@ func (c Client) GetObject(ctx context.Context, bucketName, objectName string, op
 						etag = objectInfo.ETag
 						// Read at least firstReq.Buffer bytes, if not we have
 						// reached our EOF.
-						size, err := io.ReadFull(httpReader, req.Buffer)
+						size, err := readFull(httpReader, req.Buffer)
 						if size > 0 && err == io.ErrUnexpectedEOF {
 							// If an EOF happens after reading some but not
 							// all the bytes ReadFull returns ErrUnexpectedEOF
@@ -192,8 +192,8 @@ func (c Client) GetObject(ctx context.Context, bucketName, objectName string, op
 
 					// Read at least req.Buffer bytes, if not we have
 					// reached our EOF.
-					size, err := io.ReadFull(httpReader, req.Buffer)
-					if err == io.ErrUnexpectedEOF {
+					size, err := readFull(httpReader, req.Buffer)
+					if size > 0 && err == io.ErrUnexpectedEOF {
 						// If an EOF happens after reading some but not
 						// all the bytes ReadFull returns ErrUnexpectedEOF
 						err = io.EOF

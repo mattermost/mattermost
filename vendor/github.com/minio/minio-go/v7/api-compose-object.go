@@ -454,7 +454,7 @@ func (c Client) ComposeObject(ctx context.Context, dst CopyDestOptions, srcs ...
 	for i, src := range srcs {
 		var h = make(http.Header)
 		src.Marshal(h)
-		if dst.Encryption != nil {
+		if dst.Encryption != nil && dst.Encryption.Type() == encrypt.SSEC {
 			dst.Encryption.Marshal(h)
 		}
 

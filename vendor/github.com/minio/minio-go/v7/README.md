@@ -248,8 +248,5 @@ The full API Reference is available here.
 ## Contribute
 [Contributors Guide](https://github.com/minio/minio-go/blob/master/CONTRIBUTING.md)
 
-[![Build Status](https://travis-ci.org/minio/minio-go.svg)](https://travis-ci.org/minio/minio-go)
-[![Build status](https://ci.appveyor.com/api/projects/status/1d05e6nvxcelmrak?svg=true)](https://ci.appveyor.com/project/harshavardhana/minio-go)
-
 ## License
 This SDK is distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](./LICENSE) and [NOTICE](./NOTICE) for more information.

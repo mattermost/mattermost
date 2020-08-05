@@ -709,7 +709,7 @@ func extractString(source io.Reader, lenBytes int) (string, error) {
 // extractUint32 extracts a 4 byte integer from the byte array.
 func extractUint32(r io.Reader) (uint32, error) {
 	buf := make([]byte, 4)
-	_, err := io.ReadFull(r, buf)
+	_, err := readFull(r, buf)
 	if err != nil {
 		return 0, err
 	}
@@ -719,7 +719,7 @@ func extractUint32(r io.Reader) (uint32, error) {
 // extractUint16 extracts a 2 byte integer from the byte array.
 func extractUint16(r io.Reader) (uint16, error) {
 	buf := make([]byte, 2)
-	_, err := io.ReadFull(r, buf)
+	_, err := readFull(r, buf)
 	if err != nil {
 		return 0, err
 	}
@@ -729,7 +729,7 @@ func extractUint16(r io.Reader) (uint16, error) {
 // extractUint8 extracts a 1 byte integer from the byte array.
 func extractUint8(r io.Reader) (uint8, error) {
 	buf := make([]byte, 1)
-	_, err := io.ReadFull(r, buf)
+	_, err := readFull(r, buf)
 	if err != nil {
 		return 0, err
 	}

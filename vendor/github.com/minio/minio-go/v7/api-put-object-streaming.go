@@ -146,9 +146,15 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 		uploadPartsCh <- uploadPartReq{PartNum: p}
 	}
 	close(uploadPartsCh)
+
+	var partsBuf = make([][]byte, opts.getNumThreads())
+	for i := range partsBuf {
+		partsBuf[i] = make([]byte, partSize)
+	}
+
 	// Receive each part number from the channel allowing three parallel uploads.
 	for w := 1; w <= opts.getNumThreads(); w++ {
-		go func(partSize int64) {
+		go func(w int, partSize int64) {
 			// Each worker will draw from the part channel and upload in parallel.
 			for uploadReq := range uploadPartsCh {
 
@@ -164,12 +170,21 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 					partSize = lastPartSize
 				}
 
+				n, rerr := readFull(io.NewSectionReader(reader, readOffset, partSize), partsBuf[w-1][:partSize])
+				if rerr != nil && rerr != io.ErrUnexpectedEOF && err != io.EOF {
+					uploadedPartsCh <- uploadedPartRes{
+						Error: rerr,
+					}
+					// Exit the goroutine.
+					return
+				}
+
 				// Get a section reader on a particular offset.
-				sectionReader := newHook(io.NewSectionReader(reader, readOffset, partSize), opts.Progress)
+				hookReader := newHook(bytes.NewReader(partsBuf[w-1][:n]), opts.Progress)
 
 				// Proceed to upload the part.
-				objPart, err := c.uploadPart(ctx, bucketName, objectName, uploadID,
-					sectionReader, uploadReq.PartNum,
+				objPart, err := c.uploadPart(ctx, bucketName, objectName,
+					uploadID, hookReader, uploadReq.PartNum,
 					"", "", partSize, opts.ServerSideEncryption)
 				if err != nil {
 					uploadedPartsCh <- uploadedPartRes{
@@ -189,7 +204,7 @@ func (c Client) putObjectMultipartStreamFromReadAt(ctx context.Context, bucketNa
 					Part:    uploadReq.Part,
 				}
 			}
-		}(partSize)
+		}(w, partSize)
 	}
 
 	// Gather the responses as they occur and update any
@@ -279,13 +294,15 @@ func (c Client) putObjectMultipartStreamOptionalChecksum(ctx context.Context, bu
 		}
 
 		if opts.SendContentMd5 {
-			length, rerr := io.ReadFull(reader, buf)
+			length, rerr := readFull(reader, buf)
 			if rerr == io.EOF && partNumber > 1 {
 				break
 			}
-			if rerr != nil && rerr != io.ErrUnexpectedEOF && rerr != io.EOF {
+
+			if rerr != nil && rerr != io.ErrUnexpectedEOF && err != io.EOF {
 				return UploadInfo{}, rerr
 			}
+
 			// Calculate md5sum.
 			hash := c.md5Hasher()
 			hash.Write(buf[:length])
@@ -389,8 +406,8 @@ func (c Client) putObject(ctx context.Context, bucketName, objectName string, re
 		// Create a buffer.
 		buf := make([]byte, size)
 
-		length, rErr := io.ReadFull(reader, buf)
-		if rErr != nil && rErr != io.ErrUnexpectedEOF {
+		length, rErr := readFull(reader, buf)
+		if rErr != nil && rErr != io.ErrUnexpectedEOF && rErr != io.EOF {
 			return UploadInfo{}, rErr
 		}
 

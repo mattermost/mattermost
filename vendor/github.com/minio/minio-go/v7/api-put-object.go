@@ -230,6 +230,7 @@ func (c Client) putObjectCommon(ctx context.Context, bucketName, objectName stri
 		}
 		return c.putObjectMultipart(ctx, bucketName, objectName, reader, size, opts)
 	}
+
 	if size < 0 {
 		return c.putObjectMultipartStreamNoLength(ctx, bucketName, objectName, reader, opts)
 	}
@@ -284,10 +285,11 @@ func (c Client) putObjectMultipartStreamNoLength(ctx context.Context, bucketName
 	buf := make([]byte, partSize)
 
 	for partNumber <= totalPartsCount {
-		length, rerr := io.ReadFull(reader, buf)
+		length, rerr := readFull(reader, buf)
 		if rerr == io.EOF && partNumber > 1 {
 			break
 		}
+
 		if rerr != nil && rerr != io.ErrUnexpectedEOF && rerr != io.EOF {
 			return UploadInfo{}, rerr
 		}
