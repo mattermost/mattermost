@@ -38,16 +38,12 @@ type App struct {
 	userAgent      string
 	acceptLanguage string
 
-	accountMigration einterfaces.AccountMigrationInterface
-	cluster          einterfaces.ClusterInterface
-	compliance       einterfaces.ComplianceInterface
-	dataRetention    einterfaces.DataRetentionInterface
-	searchEngine     *searchengine.Broker
-	ldap             einterfaces.LdapInterface
-	messageExport    einterfaces.MessageExportInterface
-	metrics          einterfaces.MetricsInterface
-	notification     einterfaces.NotificationInterface
-	saml             einterfaces.SamlInterface
+	cluster       einterfaces.ClusterInterface
+	compliance    einterfaces.ComplianceInterface
+	dataRetention einterfaces.DataRetentionInterface
+	searchEngine  *searchengine.Broker
+	messageExport einterfaces.MessageExportInterface
+	metrics       einterfaces.MetricsInterface
 
 	httpService httpservice.HTTPService
 	imageProxy  *imageproxy.ImageProxy
@@ -69,10 +65,6 @@ func New(options ...AppOption) *App {
 func (a *App) InitServer() {
 	a.srv.AppInitializedOnce.Do(func() {
 		a.initEnterprise()
-		a.accountMigration = a.srv.AccountMigration
-		a.ldap = a.srv.Ldap
-		a.notification = a.srv.Notification
-		a.saml = a.srv.Saml
 
 		a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 			if *oldConfig.GuestAccountsSettings.Enable && !*newConfig.GuestAccountsSettings.Enable {
@@ -116,10 +108,6 @@ func (a *App) InitServer() {
 		}
 		a.srv.RunJobs()
 	})
-	a.accountMigration = a.srv.AccountMigration
-	a.ldap = a.srv.Ldap
-	a.notification = a.srv.Notification
-	a.saml = a.srv.Saml
 }
 
 func (a *App) initJobs() {
@@ -469,7 +457,7 @@ func (a *App) AcceptLanguage() string {
 	return a.acceptLanguage
 }
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
-	return a.accountMigration
+	return a.srv.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
 	return a.cluster
@@ -484,7 +472,7 @@ func (a *App) SearchEngine() *searchengine.Broker {
 	return a.searchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
-	return a.ldap
+	return a.srv.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.messageExport
@@ -493,10 +481,10 @@ func (a *App) Metrics() einterfaces.MetricsInterface {
 	return a.metrics
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
-	return a.notification
+	return a.srv.Notification
 }
 func (a *App) Saml() einterfaces.SamlInterface {
-	return a.saml
+	return a.srv.Saml
 }
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.httpService
