@@ -108,7 +108,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 	return ruser, nil
 }
 
-func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -139,27 +139,27 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 
 	a.AddDirectChannels(team.Id, ruser)
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Error("Failed to send welcome email on create user with inviteId", mlog.Err(err))
 	}
 
 	return ruser, nil
 }
 
-func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError) {
 	ruser, err := a.CreateUser(user)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Error("Failed to send welcome email on create admin user", mlog.Err(err))
 	}
 
 	return ruser, nil
 }
 
-func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
+func (a *App) CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
@@ -176,7 +176,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 		return nil, err
 	}
 
-	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL()); err != nil {
+	if err := a.Srv().EmailService.sendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, a.GetSiteURL(), redirect); err != nil {
 		mlog.Error("Failed to send welcome email on create user from signup", mlog.Err(err))
 	}
 
@@ -966,7 +966,7 @@ func (a *App) invalidateUserChannelMembersCaches(userId string) *model.AppError 
 	}
 
 	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, userId, false)
+		channelsForUser, err := a.GetChannelsForUser(team.Id, userId, false, 0)
 		if err != nil {
 			return err
 		}
@@ -1159,7 +1159,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		if userUpdate.New.Email != userUpdate.Old.Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv().Go(func() {
-					if err := a.SendEmailVerification(userUpdate.New, newEmail); err != nil {
+					if err := a.SendEmailVerification(userUpdate.New, newEmail, ""); err != nil {
 						mlog.Error("Failed to send email verification", mlog.Err(err))
 					}
 				})
@@ -1457,19 +1457,19 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.UserAccessToken().DeleteAllForUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.oauth.permanent_delete_auth_data_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_incoming_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.webhooks.permanent_delete_outgoing_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Command().PermanentDeleteByUser(user.Id); err != nil {
@@ -1477,7 +1477,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Preference().PermanentDeleteByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
@@ -1567,14 +1567,14 @@ func (a *App) PermanentDeleteAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
+func (a *App) SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError {
 	token, err := a.Srv().EmailService.CreateVerifyEmailToken(user.Id, newEmail)
 	if err != nil {
 		return err
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
-		return a.Srv().EmailService.sendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
+		return a.Srv().EmailService.sendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token, redirect)
 	}
 	return a.Srv().EmailService.sendEmailChangeVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
 }
@@ -2172,7 +2172,7 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 
 	appErr := a.Srv().Store.Bot().PermanentDelete(bot.UserId)
 	if appErr != nil {
-		return nil, model.NewAppError("ConvertBotToUser", "", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("ConvertBotToUser", "app.user.convert_bot_to_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil

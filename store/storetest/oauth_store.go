@@ -20,6 +20,7 @@ func TestOAuthStore(t *testing.T, ss store.Store) {
 	t.Run("OAuthUpdateAccessData", func(t *testing.T) { testOAuthUpdateAccessData(t, ss) })
 	t.Run("GetAccessData", func(t *testing.T) { testOAuthStoreGetAccessData(t, ss) })
 	t.Run("RemoveAccessData", func(t *testing.T) { testOAuthStoreRemoveAccessData(t, ss) })
+	t.Run("RemoveAllAccessData", func(t *testing.T) { testOAuthStoreRemoveAllAccessData(t, ss) })
 	t.Run("SaveAuthData", func(t *testing.T) { testOAuthStoreSaveAuthData(t, ss) })
 	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, ss) })
 	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, ss) })
@@ -213,7 +214,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func TestOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -302,8 +303,8 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	err = ss.Preference().Save(&model.Preferences{p})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, nErr)
 
 	apps, err = ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)
@@ -325,8 +326,8 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	err = ss.Preference().Save(&model.Preferences{p})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, nErr)
 
 	apps, err := ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)

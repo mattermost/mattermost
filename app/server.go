@@ -36,8 +36,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
-	"github.com/mattermost/mattermost-server/v5/services/cache/lru"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/imageproxy"
@@ -50,6 +48,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -110,9 +109,9 @@ type Server struct {
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            cache2.Cache
-	seenPendingPostIdsCache cache2.Cache
-	statusCache             cache2.Cache
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -162,8 +161,6 @@ type Server struct {
 	Saml             einterfaces.SamlInterface
 
 	CacheProvider cache.Provider
-
-	CacheProvider2 cache2.Provider
 
 	tracer                      *tracing.Tracer
 	timestampLastDiagnosticSent time.Time
@@ -247,22 +244,18 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// at the moment we only have this implementation
 	// in the future the cache provider will be built based on the loaded config
-	s.CacheProvider = new(lru.CacheProvider)
-
-	s.CacheProvider.Connect()
-
-	s.CacheProvider2 = cache2.NewProvider()
-	if err := s.CacheProvider2.Connect(); err != nil {
+	s.CacheProvider = cache.NewProvider()
+	if err := s.CacheProvider.Connect(); err != nil {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.sessionCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: model.SESSION_CACHE_SIZE,
 	})
-	s.seenPendingPostIdsCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PENDING_POST_IDS_CACHE_SIZE,
 	})
-	s.statusCache = s.CacheProvider2.NewCache(&cache2.CacheOptions{
+	s.statusCache = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: model.STATUS_CACHE_SIZE,
 	})
 
@@ -303,7 +296,7 @@ func NewServer(options ...Option) (*Server, error) {
 					s.sqlStore,
 					s.Metrics,
 					s.Cluster,
-					s.CacheProvider2,
+					s.CacheProvider,
 				),
 				s.SearchEngine,
 				s.Config(),
@@ -318,7 +311,7 @@ func NewServer(options ...Option) (*Server, error) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return store.NewTimerLayer(
+			return timerlayer.New(
 				searchStore,
 				s.Metrics,
 			)
@@ -467,13 +460,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ReloadConfig()
 
+	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		s.configureAudit(s.Audit)
+		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+			mlog.Error("Error configuring audit", mlog.Err(err))
+		}
 	}
 
-	if license == nil || !*license.Features.AdvancedLogging {
+	if !allowAdvancedLogging {
 		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelCtx()
 		mlog.Info("Shutting down advanced logging")
@@ -645,7 +642,6 @@ func (s *Server) Shutdown() error {
 	defer sentry.Flush(2 * time.Second)
 
 	s.HubStop()
-	s.StopPushNotificationsHubWorkers()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
@@ -663,6 +659,8 @@ func (s *Server) Shutdown() error {
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
+	// Push notification hub needs to be shutdown after HTTP server
+	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
 
@@ -702,11 +700,7 @@ func (s *Server) Shutdown() error {
 	}
 
 	if s.CacheProvider != nil {
-		s.CacheProvider.Close()
-	}
-
-	if s.CacheProvider2 != nil {
-		if err = s.CacheProvider2.Close(); err != nil {
+		if err = s.CacheProvider.Close(); err != nil {
 			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
@@ -1098,6 +1092,13 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
+func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
+	doCheckNumberOfActiveUsersWarnMetricStatus(a)
+	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
+		doCheckNumberOfActiveUsersWarnMetricStatus(a)
+	}, time.Hour*24)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1123,6 +1124,58 @@ const (
 
 func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+}
+
+func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
+	license := a.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip this check")
+		return
+	}
+
+	numberOfActiveUsers, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error to get active registered users.", mlog.Err(err))
+	}
+
+	warnMetrics := []model.WarnMetric{}
+	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit {
+		return
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+	} else {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+	}
+
+	for _, warnMetric := range warnMetrics {
+		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+			mlog.Debug("This metric warning has already been acked or should only run once")
+			continue
+		}
+
+		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+			continue
+		}
+		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
+
+		if !warnMetric.IsBotOnly {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
+			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
+			a.Publish(message)
+		}
+
+		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		}
+
+		if warnMetric.IsRunOnce {
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
+		}
+	}
 }
 
 func doLicenseExpirationCheck(a *App) {

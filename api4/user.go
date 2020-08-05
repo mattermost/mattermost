@@ -98,6 +98,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -135,12 +136,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
-		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
+		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(user)
+		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(user)
+		ruser, err = c.App.CreateUserFromSignup(user, redirect)
 	}
 
 	if err != nil {
@@ -1192,7 +1193,16 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if _, err = c.App.UpdateActive(user, false); err != nil {
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+			err = c.App.PermanentDeleteUser(user)
+		} else {
+			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		}
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1853,7 +1863,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.App.Session().UserId)
-	c.App.Session().SetExpireInDays(*c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInDays(c.App.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
@@ -1952,6 +1962,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("email")
 		return
 	}
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1965,7 +1976,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
+	if err = c.App.SendEmailVerification(user, user.Email, redirect); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)
