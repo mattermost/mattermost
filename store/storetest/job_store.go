@@ -308,6 +308,18 @@ func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
 	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{model.NewId(), model.NewId()}, model.NewId())
 	assert.Nil(t, err)
 	assert.Nil(t, received)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status2}, jobType2)
+	assert.Nil(t, err)
+	assert.Nil(t, received)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status1}, jobType2)
+	assert.Nil(t, err)
+	assert.EqualValues(t, jobs[2].Id, received.Id)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{}, jobType1)
+	assert.Nil(t, err)
+	assert.Nil(t, received)
 }
 
 func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
