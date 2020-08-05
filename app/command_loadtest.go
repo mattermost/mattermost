@@ -207,16 +207,6 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 	client := model.NewAPIv4Client(args.SiteURL)
-	sessions, err := a.GetSessions(args.UserId)
-	if err != nil || len(sessions) == 0 {
-		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	}
-	for _, session := range sessions {
-		if !session.IsExpired() {
-			client.SetToken(session.Token)
-			break
-		}
-	}
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -326,18 +316,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	sessions, err := a.GetSessions(args.UserId)
-	if err != nil || len(sessions) == 0 {
-		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	}
-	for _, session := range sessions {
-		if !session.IsExpired() {
-			client.SetToken(session.Token)
-			break
-		}
-	}
-	channelCreator := NewAutoChannelCreator(client, team)
+	channelCreator := NewAutoChannelCreator(a, team)
 	channelCreator.Fuzzy = doFuzz
 	if _, err := channelCreator.CreateTestChannels(channelsr); err != nil {
 		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
@@ -358,23 +337,12 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 		}
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	sessions, err := a.GetSessions(args.UserId)
-	if err != nil || len(sessions) == 0 {
-		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	}
-	for _, session := range sessions {
-		if !session.IsExpired() {
-			client.MockSession(session.Token)
-			break
-		}
-	}
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
+	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
 	rpost, err2 := testPoster.CreateRandomPost()
 	if err2 != nil {
-		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err2
 	}
 	for i := 0; i < 1000; i++ {
 		testPoster.CreateRandomPostNested(rpost.Id, rpost.Id)
@@ -416,18 +384,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	sessions, err := a.GetSessions(args.UserId)
-	if err != nil || len(sessions) == 0 {
-		return &model.CommandResponse{Text: "Failed to get sessions.", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
-	}
-	for _, session := range sessions {
-		if !session.IsExpired() {
-			client.MockSession(session.Token)
-			break
-		}
-	}
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
+	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames
 
