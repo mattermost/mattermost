@@ -856,6 +856,7 @@ type ExperimentalSettings struct {
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
+	CloudUserLimit					*int64 `restricted:"true"`
 	UseNewSAMLLibrary               *bool
 }
 
