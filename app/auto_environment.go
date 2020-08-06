@@ -65,7 +65,7 @@ func CreateTestEnvironmentInTeam(a *App, client *model.Client4, team *model.Team
 		usernames[i] = user.Username
 	}
 
-	channelCreator := NewAutoChannelCreator(client, team)
+	channelCreator := NewAutoChannelCreator(a, team, users[0].Id)
 	channelCreator.Fuzzy = fuzzy
 	channels, err := channelCreator.CreateTestChannels(rangeChannels)
 	if err != nil {
@@ -97,7 +97,7 @@ func CreateTestEnvironmentInTeam(a *App, client *model.Client4, team *model.Team
 		}
 
 		for i, channel := range channels {
-			postCreator := NewAutoPostCreator(client, channel.Id)
+			postCreator := NewAutoPostCreator(a, channel.Id, user.Id)
 			postCreator.HasImage = i < numImages
 			postCreator.Users = usernames
 			postCreator.Fuzzy = fuzzy
