@@ -59,9 +59,9 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, error) {
 		return nil, err
 	}
 
-	fileResp, err := cfg.a.UploadFile(data.Bytes(), cfg.channelid, filename)
-	if err != nil {
-		return nil, err
+	fileResp, err2 := cfg.a.UploadFile(data.Bytes(), cfg.channelid, filename)
+	if err2 != nil {
+		return nil, err2
 	}
 
 	return []string{fileResp.Id}, nil
