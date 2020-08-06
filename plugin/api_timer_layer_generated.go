@@ -1036,3 +1036,59 @@ func (api *apiTimerLayer) PublishUserTyping(userId, channelId, parentId string) 
 	api.recordTime(startTime, "PublishUserTyping", _returnsA == nil)
 	return _returnsA
 }
+
+func (api *apiTimerLayer) CreateCommand(cmd *model.Command) (*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CreateCommand(cmd)
+	api.recordTime(startTime, "CreateCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListCommands(teamID string) ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListCommands(teamID)
+	api.recordTime(startTime, "ListCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListCustomCommands(teamID string) ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListCustomCommands(teamID)
+	api.recordTime(startTime, "ListCustomCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListPluginCommands(teamID string) ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListPluginCommands(teamID)
+	api.recordTime(startTime, "ListPluginCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) ListBuiltInCommands() ([]*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.ListBuiltInCommands()
+	api.recordTime(startTime, "ListBuiltInCommands", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetCommand(commandID string) (*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetCommand(commandID)
+	api.recordTime(startTime, "GetCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.UpdateCommand(commandID, updatedCmd)
+	api.recordTime(startTime, "UpdateCommand", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteCommand(commandID string) error {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteCommand(commandID)
+	api.recordTime(startTime, "DeleteCommand", _returnsA == nil)
+	return _returnsA
+}

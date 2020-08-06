@@ -67,7 +67,7 @@ func fixConfig(cfg *model.Config) bool {
 
 	// Ensure the directory for a local file store has a trailing slash.
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
+		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
 			changed = true
 		}
