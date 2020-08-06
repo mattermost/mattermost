@@ -848,4 +848,11 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 			patch.Props = nil
 		})
 	}
+
+	t.Run("TestNilMessage", func(t *testing.T) {
+		patch.Message = nil
+		patch.DisableMentionHighlights()
+		// Useless assertion to prevent compiler elision.
+		assert.Nil(t, patch.Message)
+	})
 }
