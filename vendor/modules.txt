@@ -520,6 +520,8 @@ github.com/willf/bitset
 github.com/xtgo/uuid
 # github.com/ziutek/mymysql v1.5.4
 ## explicit
+# github.com/zmb3/gogetdoc v0.0.0-20190228002656-b37376c5da6a
+## explicit
 # go.etcd.io/bbolt v1.3.5
 ## explicit
 go.etcd.io/bbolt
@@ -618,7 +620,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20200626171337-aa94e735be7f
+# golang.org/x/tools v0.0.0-20200806022845-90696ccdc692
 ## explicit
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
@@ -636,7 +638,8 @@ golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typesinternal
-# golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
+## explicit
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/appengine v1.6.6
