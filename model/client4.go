@@ -3860,6 +3860,9 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 		appErr := NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return nil, BuildErrorResponse(r, appErr)
 	}
+	for i := range responseData.Groups {
+		responseData.Groups[i].DisplayName = *responseData.Groups[i].Name
+	}
 
 	return responseData.Groups, BuildResponse(r)
 }
