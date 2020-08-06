@@ -318,6 +318,7 @@ jobs:
       - run:
           name: MySQL schema migration validation
           command: |
+            pwd
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             cd mattermost-server/build
