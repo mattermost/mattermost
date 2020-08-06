@@ -65,6 +65,51 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
+func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+	botUser, appErr := a.GetUserByUsername(botDef.Username)
+	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound {
+			mlog.Error(appErr.Error())
+			return nil, appErr
+		}
+
+		// cannot find this bot user, save the user
+		user, err := a.Srv().Store.User().Save(model.UserFromBot(botDef))
+		if err != nil {
+			mlog.Error(err.Error())
+			return nil, err
+		}
+		botDef.UserId = user.Id
+
+		//save the bot
+		savedBot, nErr := a.Srv().Store.Bot().Save(botDef)
+		if nErr != nil {
+			a.Srv().Store.User().PermanentDelete(savedBot.UserId)
+			var nAppErr *model.AppError
+			switch {
+			case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
+				return nil, nAppErr
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+		}
+		return savedBot, nil
+	}
+
+	if botUser == nil {
+		return nil, model.NewAppError("getOrCreateWarnMetricsBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError)
+	}
+
+	//return the bot for this user
+	savedBot, appErr := a.GetBot(botUser.Id, false)
+	if appErr != nil {
+		mlog.Error(appErr.Error())
+		return nil, appErr
+	}
+
+	return savedBot, nil
+}
+
 // PatchBot applies the given patch to the bot and corresponding user.
 func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	bot, err := a.GetBot(botUserId, true)
