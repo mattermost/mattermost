@@ -1281,7 +1281,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(FILE_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
@@ -3017,6 +3017,10 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.PublicLinkSalt != "" && len(*s.PublicLinkSalt) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
