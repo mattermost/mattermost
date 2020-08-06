@@ -1158,6 +1158,18 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(data)))
 }
 
+func genEmailInviteWithErrorList(emailList []string) []*model.EmailInviteWithError {
+	var invitesNotSent []*model.EmailInviteWithError
+	for i := range emailList {
+		invite := &model.EmailInviteWithError{
+			Email: emailList[i],
+			Error: model.NewAppError("inviteUsersToTeam", "api.team.invite_members.limit_reached.app_error", map[string]interface{}{"Addresses": emailList[i]}, "", http.StatusBadRequest),
+		}
+		invitesNotSent = append(invitesNotSent, invite)
+	}
+	return invitesNotSent
+}
+
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
 
@@ -1177,6 +1189,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailList := model.ArrayFromJson(r.Body)
+
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
@@ -1193,7 +1206,42 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
-		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+
+		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+		// If the cloudUserLimit is > 0, then we have to check the user limit
+		var invitesNotSent []*model.EmailInviteWithError
+		if cloudUserLimit > 0 && c.IsSystemAdmin() {
+			systemUserCount, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
+			if err != nil {
+				return
+			}
+			remainingUsers := cloudUserLimit - systemUserCount
+			if remainingUsers <= 0 {
+				// No remaining users so all fail
+				invitesNotSent = genEmailInviteWithErrorList(emailList)
+				emailList = nil
+			} else {
+				// Trim the email list to only invite as many users as are remaining in subscription
+				// Set graceful errors for the remaining email addresses
+				emailsAboveLimit := emailList[(remainingUsers):]
+				invitesNotSent = genEmailInviteWithErrorList(emailsAboveLimit)
+				// If 1 user remaining we have to prevent 0:0 reslicing
+				if remainingUsers == 1 {
+					email := emailList[0]
+					emailList = nil
+					emailList = append(emailList, email)
+				} else {
+					emailList = emailList[:(remainingUsers - 1)]
+				}
+			}
+		}
+		var invitesWithError []*model.EmailInviteWithError
+		var err *model.AppError
+		if emailList != nil {
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		}
+		// Add the EmailInviteWithError's we have from user's over the limit
+		invitesWithError = append(invitesWithError, invitesNotSent...)
 		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {

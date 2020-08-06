@@ -2219,6 +2219,10 @@
     "translation": "No one to invite."
   },
   {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "You've reached the user limit of your current tier"
+  },
+  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },

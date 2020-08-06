@@ -96,6 +96,8 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
+	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
 	props["ExperimentalTownSquareIsReadOnly"] = "false"
