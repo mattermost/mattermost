@@ -15,7 +15,7 @@ func (api *API) InitChannelLocal() {
 	api.BaseRoutes.Channels.Handle("", api.ApiLocal(localCreateChannel)).Methods("POST")
 	api.BaseRoutes.Channel.Handle("", api.ApiLocal(getChannel)).Methods("GET")
 	api.BaseRoutes.ChannelByName.Handle("", api.ApiLocal(getChannelByName)).Methods("GET")
-	api.BaseRoutes.Channel.Handle("", api.ApiLocal(deleteChannel)).Methods("DELETE")
+	api.BaseRoutes.Channel.Handle("", api.ApiLocal(localDeleteChannel)).Methods("DELETE")
 	api.BaseRoutes.Channel.Handle("/patch", api.ApiLocal(localPatchChannel)).Methods("PUT")
 
 	api.BaseRoutes.ChannelMember.Handle("", api.ApiLocal(localRemoveChannelMember)).Methods("DELETE")
@@ -205,4 +205,41 @@ func localPatchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("patch", rchannel)
 
 	w.Write([]byte(rchannel.ToJson()))
+}
+
+func localDeleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("localDeleteChannel", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("channeld", channel)
+
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+		c.Err = model.NewAppError("localDeleteChannel", "api.channel.delete_channel.type.invalid", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if c.Params.Permanent {
+		err = c.App.PermanentDeleteChannel(channel)
+	} else {
+		err = c.App.DeleteChannel(channel, "")
+	}
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("name=" + channel.Name)
+
+	ReturnStatusOK(w)
 }
