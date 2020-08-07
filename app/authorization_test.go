@@ -51,7 +51,8 @@ func TestHasPermissionToTeam(t *testing.T) {
 
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
 
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
+	// This should be true because system admins have all permissions
+	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
 
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
