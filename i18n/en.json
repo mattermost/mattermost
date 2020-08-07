@@ -2000,7 +2000,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise Edition and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise Edition and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\r\n\r\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -2008,7 +2008,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise Edition.\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise Edition.\r\n\r\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -2016,7 +2016,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise Edition, which offers features such as user management, server clustering, and performance monitoring."
+    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise Edition, which offers features such as user management, server clustering, and performance monitoring.\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
