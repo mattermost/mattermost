@@ -16,7 +16,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -1219,12 +1218,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			remainingUsers := cloudUserLimit - systemUserCount
 			if remainingUsers <= 0 {
-				mlog.Info("RemainingUsers <= 0")
 				// No remaining users so all fail
 				invitesNotSent = genEmailInviteWithErrorList(emailList)
 				emailList = nil
 			} else if remainingUsers < int64(len(emailList)) {
-				mlog.Info("remainingUsers < length of emailList")
 				// Trim the email list to only invite as many users as are remaining in subscription
 				// Set graceful errors for the remaining email addresses
 				emailsAboveLimit := emailList[remainingUsers:]
@@ -1252,8 +1249,6 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
 				if inv.Error != nil {
-					mlog.Info("ERROR")
-					mlog.Error(inv.Error.Message)
 					errList = append(errList, model.EmailInviteWithErrorToString(inv))
 				}
 			}
