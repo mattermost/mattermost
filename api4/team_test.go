@@ -2705,6 +2705,48 @@ func TestImportTeam(t *testing.T) {
 	})
 }
 
+func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
+	// th := Setup(t).InitBasic()
+	// defer th.TearDown()
+	// th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+	// th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.CloudUserLimit = 5 })
+	// s := ""
+	// th.App.UpdateConfig(func(cfg *model.Config) { cfg.GuestAccountsSettings.RestrictCreationToDomains = &s })
+	// th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+	// 	emails := []string{"test@invalid.com", "test2@invalid.com"}
+	// 	invitesWithErrors, resp := client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emails)
+	// 	CheckNoError(t, resp)
+	// 	// fmt.Printf("%v", invitesWithErrors)
+	// 	require.Nil(t, invitesWithErrors[0].Error)
+	// 	t.Log(invitesWithErrors[1].Error)
+	// 	require.NotNil(t, invitesWithErrors[1].Error)
+	// 	emails = append(emails, "test3@test.com")
+	// 	// invitesWithErrors, resp = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emails)
+	// })
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	email1 := th.GenerateTestEmail()
+	email2 := th.GenerateTestEmail()
+	email3 := th.GenerateTestEmail()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.ExperimentalSettings.CloudUserLimit = 2
+	})
+	// System admin
+	invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+	CheckNoError(t, resp)
+	require.Len(t, invitesWithErrors, 2)
+	require.NotNil(t, invitesWithErrors[0].Error)
+	assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the user limit of your current tier")
+	require.NotNil(t, invitesWithErrors[1].Error)
+	assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
+	// Regular user
+	invitesWithErrors, resp = th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email3})
+	CheckNoError(t, resp)
+	require.Len(t, invitesWithErrors, 1)
+	assert.Nil(t, invitesWithErrors[0].Error)
+}
+
 func TestInviteUsersToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2817,18 +2859,6 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.NotNil(t, invitesWithErrors[0].Error)
 		require.Nil(t, invitesWithErrors[1].Error)
 	}, "override restricted domains")
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.CloudUserLimit = 2 })
-	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		emailList := []string{"test@test.com", "test2@test.com"}
-		invitesWithErrors, resp := client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
-		CheckNoError(t, resp)
-		require.Len(t, invitesWithErrors, 0)
-		emailList = append(emailList, "test3@test.com")
-		invitesWithErrors, resp = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
-		require.Len(t, invitesWithErrors, 1)
-		require.NotNil(t, invitesWithErrors[0].Error)
-	})
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {

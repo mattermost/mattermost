@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -1208,6 +1209,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if graceful {
 
 		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+
 		// If the cloudUserLimit is > 0, then we have to check the user limit
 		var invitesNotSent []*model.EmailInviteWithError
 		if cloudUserLimit > 0 && c.IsSystemAdmin() {
@@ -1217,10 +1219,12 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			remainingUsers := cloudUserLimit - systemUserCount
 			if remainingUsers <= 0 {
+				mlog.Info("RemainingUsers <= 0")
 				// No remaining users so all fail
 				invitesNotSent = genEmailInviteWithErrorList(emailList)
 				emailList = nil
 			} else if remainingUsers < int64(len(emailList)) {
+				mlog.Info("remainingUsers < length of emailList")
 				// Trim the email list to only invite as many users as are remaining in subscription
 				// Set graceful errors for the remaining email addresses
 				emailsAboveLimit := emailList[remainingUsers:]
@@ -1241,11 +1245,15 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
 		}
 		// Add the EmailInviteWithError's we have from user's over the limit
-		invitesWithError = append(invitesWithError, invitesNotSent...)
+		if len(invitesNotSent) > 0 {
+			invitesWithError = append(invitesWithError, invitesNotSent...)
+		}
 		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
 				if inv.Error != nil {
+					mlog.Info("ERROR")
+					mlog.Error(inv.Error.Message)
 					errList = append(errList, model.EmailInviteWithErrorToString(inv))
 				}
 			}
