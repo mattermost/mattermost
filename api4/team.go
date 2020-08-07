@@ -1220,10 +1220,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 				// No remaining users so all fail
 				invitesNotSent = genEmailInviteWithErrorList(emailList)
 				emailList = nil
-			} else {
+			} else if remainingUsers < int64(len(emailList)) {
 				// Trim the email list to only invite as many users as are remaining in subscription
 				// Set graceful errors for the remaining email addresses
-				emailsAboveLimit := emailList[(remainingUsers):]
+				emailsAboveLimit := emailList[remainingUsers:]
 				invitesNotSent = genEmailInviteWithErrorList(emailsAboveLimit)
 				// If 1 user remaining we have to prevent 0:0 reslicing
 				if remainingUsers == 1 {

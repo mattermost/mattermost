@@ -2818,7 +2818,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.Nil(t, invitesWithErrors[1].Error)
 	}, "override restricted domains")
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.CloudUserLimit = 100 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.CloudUserLimit = 2 })
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		emailList := []string{"test@test.com", "test2@test.com"}
 		invitesWithErrors, resp := client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
