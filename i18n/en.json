@@ -2755,6 +2755,10 @@
     "translation": "The signup link does not appear to be valid."
   },
   {
+    "id": "api.user.delete_channel.not_enabled.app_error",
+    "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
   },
