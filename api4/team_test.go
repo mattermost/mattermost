@@ -613,7 +613,6 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		originalInviteId    string
 	}{
 		{name: "bad privacy", team: teamPublic, privacy: "blap", errChecker: CheckBadRequestStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
-		{name: "bad team", team: &model.Team{Id: model.NewId()}, privacy: model.TEAM_OPEN, errChecker: CheckForbiddenStatus, wantType: model.TEAM_OPEN, wantOpenInvite: true},
 		{name: "public to private", team: teamPublic, privacy: model.TEAM_INVITE, errChecker: nil, wantType: model.TEAM_INVITE, wantOpenInvite: false, originalInviteId: teamPublic.InviteId, wantInviteIdChanged: true},
 		{name: "private to public", team: teamPrivate, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPrivate.InviteId, wantInviteIdChanged: false},
 		{name: "public to public", team: teamPublic2, privacy: model.TEAM_OPEN, errChecker: nil, wantType: model.TEAM_OPEN, wantOpenInvite: true, originalInviteId: teamPublic2.InviteId, wantInviteIdChanged: false},
@@ -622,23 +621,30 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			team, resp := Client.UpdateTeamPrivacy(test.team.Id, test.privacy)
-			if test.errChecker != nil {
-				test.errChecker(t, resp)
-				return
-			} else {
-				CheckNoError(t, resp)
-				CheckOKStatus(t, resp)
-			}
-			require.Equal(t, test.wantType, team.Type)
-			require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
-			if test.wantInviteIdChanged {
-				require.NotEqual(t, test.originalInviteId, team.InviteId)
-			} else {
-				require.Equal(t, test.originalInviteId, team.InviteId)
-			}
+			th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+				team, resp := client.UpdateTeamPrivacy(test.team.Id, test.privacy)
+				if test.errChecker != nil {
+					test.errChecker(t, resp)
+					return
+				} else {
+					CheckNoError(t, resp)
+					CheckOKStatus(t, resp)
+				}
+				require.Equal(t, test.wantType, team.Type)
+				require.Equal(t, test.wantOpenInvite, team.AllowOpenInvite)
+				if test.wantInviteIdChanged {
+					require.NotEqual(t, test.originalInviteId, team.InviteId)
+				} else {
+					require.Equal(t, test.originalInviteId, team.InviteId)
+				}
+			})
 		})
 	}
+
+	t.Run("non-existent team", func(t *testing.T) {
+		_, resp := Client.UpdateTeamPrivacy(model.NewId(), model.TEAM_INVITE)
+		CheckForbiddenStatus(t, resp)
+	})
 
 	t.Run("not logged in", func(t *testing.T) {
 		Client.Logout()
