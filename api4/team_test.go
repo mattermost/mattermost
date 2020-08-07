@@ -2716,7 +2716,7 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 2
 	})
 
-	// System admin
+	// System admin, invite when at limit should fail
 	invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
 	CheckNoError(t, resp)
 	require.Len(t, invitesWithErrors, 2)
@@ -2724,13 +2724,13 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 	assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the user limit of your current tier")
 	require.NotNil(t, invitesWithErrors[1].Error)
 	assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
-	// Regular user
+	// Regular user, invite when at limit should succeed
 	invitesWithErrors, resp = th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email3})
 	CheckNoError(t, resp)
 	require.Len(t, invitesWithErrors, 1)
 	assert.Nil(t, invitesWithErrors[0].Error)
 
-	// 1 remaining user, insert 2
+	// 1 remaining user, attempt to invite more than one users as admin, only one invite sent
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 5
 	})
@@ -2741,7 +2741,14 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 	require.NotNil(t, invitesWithErrors[1].Error)
 	assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
 
-	// User count is below user limit
+	// 1 remaining user, attempt to invite 2 users as admin, both invites sent
+	invitesWithErrors, resp = th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+	CheckNoError(t, resp)
+	require.Len(t, invitesWithErrors, 2)
+	assert.Nil(t, invitesWithErrors[0].Error)
+	assert.Nil(t, invitesWithErrors[1].Error)
+
+	// User count is well below limit
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 100
 	})
