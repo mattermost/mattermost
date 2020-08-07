@@ -2495,11 +2495,12 @@ func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel
 			for _, teamMember := range teamMembers {
 				delete(channelMemberMap, teamMember.UserId)
 			}
+
+			var removerId string
+			if remover != nil {
+				removerId = remover.Id
+			}
 			for userId := range channelMemberMap {
-				var removerId string
-				if remover != nil {
-					removerId = remover.Id
-				}
 				if err := a.removeUserFromChannel(userId, removerId, channel); err != nil {
 					return err
 				}
