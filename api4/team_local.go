@@ -22,6 +22,7 @@ func (api *API) InitTeamLocal() {
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/privacy", api.ApiLocal(updateTeamPrivacy)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/restore", api.ApiLocal(restoreTeam)).Methods("POST")
 
 	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")

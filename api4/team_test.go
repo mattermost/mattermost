@@ -507,29 +507,29 @@ func TestRestoreTeam(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("restore archived public team", func(t *testing.T) {
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := createTeam(t, true, model.TEAM_OPEN)
-		team, resp := Client.RestoreTeam(team.Id)
+		team, resp := client.RestoreTeam(team.Id)
 		CheckOKStatus(t, resp)
 		require.Zero(t, team.DeleteAt)
 		require.Equal(t, model.TEAM_OPEN, team.Type)
-	})
+	}, "restore archived public team")
 
-	t.Run("restore archived private team", func(t *testing.T) {
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := createTeam(t, true, model.TEAM_INVITE)
-		team, resp := Client.RestoreTeam(team.Id)
+		team, resp := client.RestoreTeam(team.Id)
 		CheckOKStatus(t, resp)
 		require.Zero(t, team.DeleteAt)
 		require.Equal(t, model.TEAM_INVITE, team.Type)
-	})
+	}, "restore archived private team")
 
-	t.Run("restore active public team", func(t *testing.T) {
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		team := createTeam(t, false, model.TEAM_OPEN)
-		team, resp := Client.RestoreTeam(team.Id)
+		team, resp := client.RestoreTeam(team.Id)
 		CheckOKStatus(t, resp)
 		require.Zero(t, team.DeleteAt)
 		require.Equal(t, model.TEAM_OPEN, team.Type)
-	})
+	}, "restore active public team")
 
 	t.Run("not logged in", func(t *testing.T) {
 		Client.Logout()
@@ -541,6 +541,11 @@ func TestRestoreTeam(t *testing.T) {
 		th.LoginBasic2()
 		_, resp := Client.RestoreTeam(teamPublic.Id)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.RestoreTeam(teamPublic.Id)
+		CheckOKStatus(t, resp)
 	})
 }
 
