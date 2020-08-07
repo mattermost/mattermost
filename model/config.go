@@ -3476,4 +3476,6 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
+
+	*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 }
