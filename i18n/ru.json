@@ -8030,5 +8030,9 @@
     {
         "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
         "translation": "Не удалось найти предупреждение метрики."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Неверный каталог локального хранилища. Должна быть непустая строка."
     }
 ]

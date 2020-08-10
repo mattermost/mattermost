@@ -8021,5 +8021,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Fout bij verzenden van admin bevestigingse-mail"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Ongeldige lokale opslagmap. Moet niet leeg zijn."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Kan bot niet converteren naar gebruiker."
     }
 ]

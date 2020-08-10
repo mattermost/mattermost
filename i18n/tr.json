@@ -8021,5 +8021,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Yönetici onayı e-postası gönderilemedi"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Yerel depolama klasörü geçersiz. Boş olmayan bir dizge olmalıdır."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Bot kullanıcıya dönüştürülemedi."
     }
 ]

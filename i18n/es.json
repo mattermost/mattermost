@@ -8021,5 +8021,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Error al enviar correo electrónico al administrador"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Directorio de Almacenamiento Local nulo. Tiene que ser una serie no vacía."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Incapaz de convertir bot a usuario."
     }
 ]

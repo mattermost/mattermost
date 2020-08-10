@@ -8030,5 +8030,13 @@
     {
         "id": "app.system.warn_metric.store.app_error",
         "translation": "Nu a reușit să stocheze valoarea pentru {{.WarnMetricName}}"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Director de stocare local invalid. Trebuie să fie un șir care nu este gol."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Imposibil de convertit botul în utilizator."
     }
 ]
