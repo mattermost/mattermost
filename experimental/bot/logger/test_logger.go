@@ -11,6 +11,7 @@ type testLogger struct {
 	logContext LogContext
 }
 
+// NewTestLogger creates a logger for testing purposes.
 func NewTestLogger() Logger {
 	return &testLogger{}
 }
@@ -24,6 +25,10 @@ func (l *testLogger) With(logContext LogContext) Logger {
 		newl.logContext[k] = v
 	}
 	return &newl
+}
+
+func (l *testLogger) Context() LogContext {
+	return l.logContext
 }
 
 func (l *testLogger) Timed() Logger {

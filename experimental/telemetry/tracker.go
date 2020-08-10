@@ -1,13 +1,15 @@
 package telemetry
 
-import "github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
+import (
+	"github.com/pkg/errors"
+)
 
 // Tracker defines a telemetry tracker
 type Tracker interface {
 	// TrackEvent registers an event through the configured telemetry client
-	TrackEvent(event string, properties map[string]interface{})
+	TrackEvent(event string, properties map[string]interface{}) error
 	// TrackUserEvent registers an event through the configured telemetry client associated to a user
-	TrackUserEvent(event string, userID string, properties map[string]interface{})
+	TrackUserEvent(event string, userID string, properties map[string]interface{}) error
 }
 
 // Client defines a telemetry client
@@ -33,7 +35,6 @@ type tracker struct {
 	pluginVersion      string
 	telemetryShortName string
 	enabled            bool
-	logger             logger.Logger
 }
 
 // NewTracker creates a default Tracker
@@ -54,7 +55,6 @@ func NewTracker(
 	pluginVersion,
 	telemetryShortName string,
 	enableDiagnostics bool,
-	l logger.Logger,
 ) Tracker {
 	if telemetryShortName == "" {
 		telemetryShortName = pluginID
@@ -67,13 +67,12 @@ func NewTracker(
 		pluginID:           pluginID,
 		pluginVersion:      pluginVersion,
 		enabled:            enableDiagnostics,
-		logger:             l,
 	}
 }
 
-func (t *tracker) TrackEvent(event string, properties map[string]interface{}) {
+func (t *tracker) TrackEvent(event string, properties map[string]interface{}) error {
 	if !t.enabled || t.client == nil {
-		return
+		return nil
 	}
 
 	event = t.telemetryShortName + "_" + event
@@ -88,11 +87,13 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) {
 	})
 
 	if err != nil {
-		t.logger.Warnf("cannot enqueue telemetry event, err=%s", err.Error())
+		return errors.Wrap(err, "cannot enqueue the track")
 	}
+
+	return nil
 }
 
-func (t *tracker) TrackUserEvent(event, userID string, properties map[string]interface{}) {
+func (t *tracker) TrackUserEvent(event, userID string, properties map[string]interface{}) error {
 	properties["UserActualID"] = userID
-	t.TrackEvent(event, properties)
+	return t.TrackEvent(event, properties)
 }

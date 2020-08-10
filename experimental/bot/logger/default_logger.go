@@ -7,29 +7,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/common"
-
-	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 type defaultLogger struct {
-	Config
-	admin      Admin
 	logContext LogContext
-	pluginAPI  plugin.API
+	logAPI     common.LogAPI
 }
 
-func NewLogger(c Config, api plugin.API, p poster.DMer, adminUserIDs string) Logger {
-	var loggerAdmin Admin = nil
-	if p != nil {
-		loggerAdmin = NewAdmin(adminUserIDs, p)
+/*
+New creates a new logger.
+
+- api: LogAPI implementation
+
+*/
+func New(api common.LogAPI) Logger {
+	l := &defaultLogger{
+		logAPI: api,
 	}
-	return &defaultLogger{
-		Config:    c,
-		admin:     loggerAdmin,
-		pluginAPI: api,
-	}
+	return l
 }
 
 func (l *defaultLogger) With(logContext LogContext) Logger {
@@ -43,6 +39,10 @@ func (l *defaultLogger) With(logContext LogContext) Logger {
 	return &newLogger
 }
 
+func (l *defaultLogger) Context() LogContext {
+	return l.logContext
+}
+
 func (l *defaultLogger) Timed() Logger {
 	return l.With(LogContext{
 		timed: time.Now(),
@@ -52,46 +52,23 @@ func (l *defaultLogger) Timed() Logger {
 func (l *defaultLogger) Debugf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.pluginAPI.LogDebug(message, toKeyValuePairs(l.logContext)...)
-	if level(l.AdminLogLevel) >= 4 {
-		l.logToAdmins("DEBUG", message)
-	}
+	l.logAPI.Debug(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Errorf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.pluginAPI.LogError(message, toKeyValuePairs(l.logContext)...)
-	if level(l.AdminLogLevel) >= 1 {
-		l.logToAdmins("ERROR", message)
-	}
+	l.logAPI.Error(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Infof(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.pluginAPI.LogInfo(message, toKeyValuePairs(l.logContext)...)
-	if level(l.AdminLogLevel) >= 3 {
-		l.logToAdmins("INFO", message)
-	}
+	l.logAPI.Info(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Warnf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.pluginAPI.LogWarn(message, toKeyValuePairs(l.logContext)...)
-	if level(l.AdminLogLevel) >= 2 {
-		l.logToAdmins("WARN", message)
-	}
-}
-
-func (l *defaultLogger) logToAdmins(level, message string) {
-	if l.admin == nil {
-		return
-	}
-
-	if l.AdminLogVerbose && len(l.logContext) > 0 {
-		message += "\n" + common.JSONBlock(l.logContext)
-	}
-	_ = l.admin.DMAdmins("(log " + level + ") " + message)
+	l.logAPI.Warn(message, toKeyValuePairs(l.logContext)...)
 }
