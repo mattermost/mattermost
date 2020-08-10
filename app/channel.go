@@ -2444,8 +2444,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
-	if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
-		mlog.Warn("error while posting move channel message", mlog.Err(err))
+	if user != nil {
+		if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
+			mlog.Warn("error while posting move channel message", mlog.Err(err))
+		}
 	}
 
 	return nil
@@ -2493,8 +2495,13 @@ func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel
 			for _, teamMember := range teamMembers {
 				delete(channelMemberMap, teamMember.UserId)
 			}
+
+			var removerId string
+			if remover != nil {
+				removerId = remover.Id
+			}
 			for userId := range channelMemberMap {
-				if err := a.removeUserFromChannel(userId, remover.Id, channel); err != nil {
+				if err := a.removeUserFromChannel(userId, removerId, channel); err != nil {
 					return err
 				}
 			}
