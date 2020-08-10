@@ -7777,7 +7777,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Mattermost Корпоративный E20, который предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности."
+        "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Корпоративной редакции Mattermost, которая предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности.\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -7785,7 +7785,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7793,7 +7793,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",
@@ -8001,30 +8001,38 @@
     },
     {
         "id": "app.role.save.invalid_role.app_error",
-        "translation": "Роль была недействительной."
+        "translation": "Роль не была действительной."
     },
     {
         "id": "app.role.save.insert.app_error",
-        "translation": "Не удалось сохранить новую роль."
+        "translation": "Невозможно сохранить новую роль."
     },
     {
         "id": "app.role.permanent_delete_all.app_error",
-        "translation": "Мы не можем безвозвратно удалить все роли."
+        "translation": "Мы не смогли окончательно удалить все роли."
     },
     {
         "id": "app.role.get_by_names.app_error",
-        "translation": "Не удалось получить все роли."
+        "translation": "Невозможно получить роли."
     },
     {
         "id": "app.role.get_by_name.app_error",
-        "translation": "Не удалось получить роль."
+        "translation": "Невозможно получить роль."
     },
     {
         "id": "app.role.get_all.app_error",
-        "translation": "Не удалось получить все роли."
+        "translation": "Невозможно получить все роли."
     },
     {
         "id": "app.role.get.app_error",
-        "translation": "Не удалось получить роль."
+        "translation": "Невозможно получить роль."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Неверный каталог локального хранилища. Должна быть непустая строка."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Невозможно преобразовать бота в пользователя."
     }
 ]
