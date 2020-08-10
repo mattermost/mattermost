@@ -7893,5 +7893,13 @@
     {
         "id": "api.job.unable_to_download_job",
         "translation": "Não foi possível esta tarefa"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Solicitação de contato"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
     }
 ]
