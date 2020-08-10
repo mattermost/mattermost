@@ -7737,5 +7737,37 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Impossible de compter les webhooks entrants"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Impossible de récupérer toutes les équipes privées."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Le rôle est invalide."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Impossible d'enregistrer le nouveau rôle."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Impossible de supprimer définitivement tous les rôles."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Impossible de récupérer les rôles."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Impossible de récupérer le rôle."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Impossible de récupérer tous les rôles."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Impossible de récupérer le rôle."
     }
 ]

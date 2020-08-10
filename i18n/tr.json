@@ -8033,5 +8033,9 @@
     {
         "id": "app.webhooks.delete_outgoing.app_error",
         "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Tüm özel takımlar alınamadı."
     }
 ]

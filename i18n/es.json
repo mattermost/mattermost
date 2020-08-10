@@ -8029,5 +8029,49 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "No se puede contabilizar los webhooks de entrada"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Directorio de Almacenamiento Local nulo. Tiene que ser una serie no vacía."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Incapaz de convertir bot a usuario."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "No podríamos coger todos los equipos  privados en página."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Nulo plugin id."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "El rol no es válido."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "No se pudo guardar el nuevo rol."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "No se pudo eliminar permanentemente todos los roles."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "No se pudo obtener los roles."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "No se pudo obtener el rol."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "No se pudo obtener todos los roles."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "No se pudo obtener el rol."
     }
 ]

@@ -8028,5 +8028,37 @@
     {
         "id": "api.templates.warn_metric_ack.footer",
         "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "全ての非公開チームを取得できませんでした。"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "役割が不正です。"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "新しい役割を保存できませんでした。"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "すべての役割を完全に削除できませんでした。"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "役割を取得できませんでした。"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "役割を取得できませんでした。"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "全役割を取得できませんでした。"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "役割を取得できませんでした。"
     }
 ]

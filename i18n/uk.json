@@ -7742,5 +7742,9 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Не вдалося отримати всі команди"
     }
 ]

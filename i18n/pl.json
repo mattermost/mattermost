@@ -7754,5 +7754,37 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Nie można policzyć przychodzących webhooków"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rola była niepoprawna"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Nie można zapisać nowej roli"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Nie można trwale usunąć wszystkich ról"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Nie można uzyskać ról"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Nie można uzyskać roli"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Nie udało się pobrać wszystkich ról"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Nie można uzyskać roli"
     }
 ]

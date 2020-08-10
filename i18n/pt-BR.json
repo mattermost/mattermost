@@ -7833,5 +7833,41 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Não foi possível contar os wehooks de entrada"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Não foi possível obter todas as equipes privadas."
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "A função não é válida."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Não foi possível salvar a função."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Não podemos apagar permanentemente todas as funções."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Não foi possível obter os papeis."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Não foi possível obter a função."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Não é possível obter todos os papéis."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Não foi possível obter a função."
     }
 ]

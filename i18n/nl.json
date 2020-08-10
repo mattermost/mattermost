@@ -8037,5 +8037,33 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "We konden niet alle private teams op de pagina krijgen."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "De rol is niet geldig."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Nieuwe rol kan niet worden bewaard."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "We konden niet permanent alle rollen verwijderen."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Rollen kunnen niet worden opgehaald."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Rol kan niet worden opgehaald."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Alle rollen kunnen niet worden opgehaald."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Rol kan niet worden opgehaald."
     }
 ]

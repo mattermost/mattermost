@@ -7984,5 +7984,37 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "We could not get all teams"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "역할이 유효하지 않습니다"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "모든 역할을 영구적으로 삭제할 수 없습니다"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "채널을 불러올 수 없습니다."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "내용을 가져올수 없습니다."
     }
 ]

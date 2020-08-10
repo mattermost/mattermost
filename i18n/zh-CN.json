@@ -7908,5 +7908,9 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "无法获得传入的 webhook 数"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "我们无法获取所有私有团队。"
     }
 ]

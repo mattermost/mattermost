@@ -7757,5 +7757,37 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Konnte die Anzahl der eingehenden Webhooks nicht abrufen."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Konnte nicht alle privaten Teams abrufen."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Die Rolle war ungültig."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Konnte die neue Rolle nicht speichern."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Es konnten nicht alle Rollen permanent gelöscht werden."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Konnte die Rollen nicht abrufen."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Konnte die Rolle nicht abrufen."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Konnte nicht alle Rollen abrufen."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Konnte die Rolle nicht abrufen."
     }
 ]

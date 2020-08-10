@@ -8008,5 +8008,9 @@
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
         "translation": "整合 AD/LDAP"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "無法取得全部的私人團隊"
     }
 ]

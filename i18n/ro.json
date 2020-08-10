@@ -8042,5 +8042,9 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "ID-ul pluginului este invalid."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Nu am putut obține toate echipele private."
     }
 ]
