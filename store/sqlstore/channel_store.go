@@ -907,8 +907,8 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
 
-	if count != 1 {
-		return nil, fmt.Errorf("the expected number of channels to be updated is 1 but was %d", count)
+	if count > 1 {
+		return nil, fmt.Errorf("the expected number of channels to be updated is <=1 but was %d", count)
 	}
 
 	return channel, nil
