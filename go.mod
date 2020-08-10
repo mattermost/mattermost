@@ -79,6 +79,7 @@ require (
 	github.com/olivere/elastic v6.2.33+incompatible // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
+	github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.8.0 // indirect

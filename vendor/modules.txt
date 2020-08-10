@@ -159,6 +159,8 @@ github.com/google/btree
 # github.com/google/uuid v1.1.1
 ## explicit
 github.com/google/uuid
+# github.com/gopherjs/gopherjs v0.0.0-20190910122728-9d188e94fb99
+github.com/gopherjs/gopherjs/js
 # github.com/gorilla/handlers v1.4.2
 ## explicit
 github.com/gorilla/handlers
@@ -360,6 +362,10 @@ github.com/olivere/elastic/uritemplates
 ## explicit
 # github.com/onsi/gomega v1.9.0
 ## explicit
+# github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
+## explicit
+github.com/oov/psd
+github.com/oov/psd/color
 # github.com/opentracing/opentracing-go v1.1.0
 ## explicit
 github.com/opentracing/opentracing-go
