@@ -9,7 +9,8 @@ import (
 )
 
 type AutoChannelCreator struct {
-	client             *model.Client4
+	a                  *App
+	userId             string
 	team               *model.Team
 	Fuzzy              bool
 	DisplayNameLen     utils.Range
@@ -19,10 +20,11 @@ type AutoChannelCreator struct {
 	ChannelType        string
 }
 
-func NewAutoChannelCreator(client *model.Client4, team *model.Team) *AutoChannelCreator {
+func NewAutoChannelCreator(a *App, team *model.Team, userId string) *AutoChannelCreator {
 	return &AutoChannelCreator{
-		client:             client,
+		a:                  a,
 		team:               team,
+		userId:             userId,
 		Fuzzy:              false,
 		DisplayNameLen:     CHANNEL_DISPLAY_NAME_LEN,
 		DisplayNameCharset: utils.ALPHANUMERIC,
@@ -45,12 +47,13 @@ func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, error) {
 		TeamId:      cfg.team.Id,
 		DisplayName: displayName,
 		Name:        name,
-		Type:        cfg.ChannelType}
+		Type:        cfg.ChannelType,
+		CreatorId:   cfg.userId,
+	}
 
-	println(cfg.client.GetTeamRoute(cfg.team.Id))
-	channel, resp := cfg.client.CreateChannel(channel)
-	if resp.Error != nil {
-		return nil, resp.Error
+	channel, err := cfg.a.CreateChannel(channel, true)
+	if err != nil {
+		return nil, err
 	}
 	return channel, nil
 }

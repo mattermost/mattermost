@@ -603,6 +603,10 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		return nil, model.NewAppError("CreateCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	return a.createCommand(cmd)
+}
+
+func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(cmd.TeamId)
@@ -667,6 +671,7 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.UpdateAt = model.GetMillis()
 	updatedCmd.DeleteAt = oldCmd.DeleteAt
 	updatedCmd.CreatorId = oldCmd.CreatorId
+	updatedCmd.PluginId = oldCmd.PluginId
 	updatedCmd.TeamId = oldCmd.TeamId
 
 	command, err := a.Srv().Store.Command().Update(updatedCmd)
