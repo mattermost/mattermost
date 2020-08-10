@@ -7453,7 +7453,7 @@
     },
     {
         "id": "store.sql_role.get_all.app_error",
-        "translation": "Не удалось получить все роли."
+        "translation": "Невозможно получить все роли."
     },
     {
         "id": "store.sql_team.analytics_private_team_count.app_error",
@@ -7973,7 +7973,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Mattermost Корпоративный E20, который предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности."
+        "translation": "Mattermost настоятельно рекомендует, чтобы при развертывании более 500 пользователей было произведено обновление до Корпоративной редакции Mattermost, которая предлагает такие функции, как управление пользователями, кластеризация серверов и мониторинг производительности.\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -7981,7 +7981,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Ваша система Mattermost теперь имеет 400 пользователей. Когда вы подключаете Mattermost к провайдеру единой регистрации в своей организации, пользователи могут получить доступ к Mattermost без повторного ввода своих учетных данных. Обратитесь в службу поддержки, чтобы узнать больше об интеграции с SAML 2.0, доступной в Mattermost Корпоративный E20.\n\n[Подробнее об интеграции с SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее] (https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7989,7 +7989,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Ваша система Mattermost теперь насчитывает 200 пользователей. По мере роста вашей пользовательской базы подготовка новых учетных записей может занять много времени. Мы рекомендуем вам перейти на Mattermost Корпоративный E10 и интегрировать Active Directory/LDAP вашей организации, что позволит любому, имеющему учетную запись, получить доступ к Mattermost. Пользователи могут входить в систему без необходимости создавать новые имена пользователей и пароли, а администраторы экономят время на подготовку учетных записей и управление ими.\n\n[Подробнее об интеграции с AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nПри обращении в службу поддержки ваши контактные данные будут отправлены в Mattermost, Inc. [Подробнее](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",
