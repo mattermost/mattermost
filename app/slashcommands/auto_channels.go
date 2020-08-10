@@ -4,12 +4,13 @@
 package slashcommands
 
 import (
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type AutoChannelCreator struct {
-	a                  *App
+	a                  *app.App
 	userId             string
 	team               *model.Team
 	Fuzzy              bool
@@ -20,7 +21,7 @@ type AutoChannelCreator struct {
 	ChannelType        string
 }
 
-func NewAutoChannelCreator(a *App, team *model.Team, userId string) *AutoChannelCreator {
+func NewAutoChannelCreator(a *app.App, team *model.Team, userId string) *AutoChannelCreator {
 	return &AutoChannelCreator{
 		a:                  a,
 		team:               team,

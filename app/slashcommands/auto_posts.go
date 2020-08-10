@@ -9,13 +9,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 type AutoPostCreator struct {
-	a              *App
+	a              *app.App
 	channelid      string
 	userid         string
 	Fuzzy          bool
@@ -28,7 +29,7 @@ type AutoPostCreator struct {
 }
 
 // Automatic poster used for testing
-func NewAutoPostCreator(a *App, channelid, userid string) *AutoPostCreator {
+func NewAutoPostCreator(a *app.App, channelid, userid string) *AutoPostCreator {
 	return &AutoPostCreator{
 		a:              a,
 		channelid:      channelid,
