@@ -680,7 +680,7 @@
     },
     {
         "id": "api.command_invite.name",
-        "translation": "invite"
+        "translation": "uitnodigen"
     },
     {
         "id": "api.command_invite.permission.app_error",
@@ -740,7 +740,7 @@
     },
     {
         "id": "api.command_leave.name",
-        "translation": "leave"
+        "translation": "verlaten"
     },
     {
         "id": "api.command_logout.desc",
@@ -804,7 +804,7 @@
     },
     {
         "id": "api.command_mute.name",
-        "translation": "mute"
+        "translation": "dempen"
     },
     {
         "id": "api.command_mute.no_channel.error",
@@ -868,7 +868,7 @@
     },
     {
         "id": "api.command_remove.hint",
-        "translation": "@[username]"
+        "translation": "@[gebruikersnaam]"
     },
     {
         "id": "api.command_remove.message.app_error",
@@ -880,7 +880,7 @@
     },
     {
         "id": "api.command_remove.name",
-        "translation": "remove"
+        "translation": "verwijderen"
     },
     {
         "id": "api.command_remove.permission.app_error",
@@ -900,7 +900,7 @@
     },
     {
         "id": "api.command_search.name",
-        "translation": "search"
+        "translation": "zoeken"
     },
     {
         "id": "api.command_search.unsupported.app_error",
@@ -1000,7 +1000,7 @@
     },
     {
         "id": "api.email_batching.render_batched_post.date",
-        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+        "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
     },
     {
         "id": "api.email_batching.render_batched_post.direct_message",
@@ -1194,11 +1194,11 @@
     },
     {
         "id": "api.file.upload_file.read_form_value.app_error",
-        "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+        "translation": "Fout bij het opladen van bestand(-en). Fout bij het lezen van de waarde van {{.Formname}}."
     },
     {
         "id": "api.file.upload_file.read_request.app_error",
-        "translation": "Unable to upload file(s). Error reading or parsing request data."
+        "translation": "Fout bij het opladen van bestand(-en). Fout bij het lezen of verwerken van de request data."
     },
     {
         "id": "api.file.upload_file.storage.app_error",
@@ -1206,7 +1206,7 @@
     },
     {
         "id": "api.file.upload_file.too_large_detailed.app_error",
-        "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+        "translation": "Fout bij het opladen van bestand {{.Filename}}. {{.Length}} bytes overschrijdt het maximum aantal {{.Limit}} bytes."
     },
     {
         "id": "api.file.write_file.s3.app_error",
@@ -1234,11 +1234,11 @@
     },
     {
         "id": "api.ldap_group.not_found",
-        "translation": "ldap group not found"
+        "translation": "ldap group niet gevonden"
     },
     {
         "id": "api.ldap_groups.license_error",
-        "translation": "your license does not support ldap groups"
+        "translation": "Je licentie ondersteunt geen ldap-groepen"
     },
     {
         "id": "api.license.add_license.array.app_error",
@@ -1278,11 +1278,11 @@
     },
     {
         "id": "api.license.client.old_format.app_error",
-        "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+        "translation": "Nieuw formaat voor de clientlicentie wordt nog niet ondersteund. Gelieve format=oud te specificeren in de querystring."
     },
     {
         "id": "api.marshal_error",
-        "translation": "marshal error"
+        "translation": "schikkingsfout"
     },
     {
         "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1354,7 +1354,7 @@
     },
     {
         "id": "api.oauth.invalid_state_token.app_error",
-        "translation": "Invalid state token."
+        "translation": "Ongeldige statustoken."
     },
     {
         "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1426,7 +1426,7 @@
     },
     {
         "id": "api.post.create_post.town_square_read_only",
-        "translation": "This channel is read-only. Only members with permission can post here."
+        "translation": "Dit kanaal is alleen-lezen. Alleen leden met toestemming kunnen hier posten."
     },
     {
         "id": "api.post.create_webhook_post.creating.app_error",
@@ -1434,27 +1434,27 @@
     },
     {
         "id": "api.post.deduplicate_create_post.failed_to_get",
-        "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+        "translation": "Kon het originele bericht niet ophalen na het ontdubbelen van een cliënt die hetzelfde verzoek heeft herhaald."
     },
     {
         "id": "api.post.deduplicate_create_post.pending",
-        "translation": "Rejected post since another client is making the same request."
+        "translation": "Bericht geweigerd omdat een andere client het zelfde verzoek maakt."
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": "Kan geen bericht verwijderen uit een verwijderd kanaal."
     },
     {
         "id": "api.post.disabled_all",
-        "translation": "@all has been disabled because the channel has more than {{.Users}} users."
+        "translation": "@all is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
     },
     {
         "id": "api.post.disabled_channel",
-        "translation": "@channel has been disabled because the channel has more than {{.Users}} users."
+        "translation": "@channel is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
     },
     {
         "id": "api.post.disabled_here",
-        "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+        "translation": "@here is uitgeschakeld in dit kanaal omdat dit kanaal meer dan {{.Users}} gebruikers bevat."
     },
     {
         "id": "api.post.do_action.action_id.app_error",
@@ -1484,23 +1484,23 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
-        "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
+        "translation": "Dit kanaal is alleen-lezen. Enkel leden met voldoende rechten kunnen berichten vast- of losmaken hier."
     },
     {
         "id": "api.post.send_notification_and_forget.push_channel_mention",
-        "translation": " notified the channel."
+        "translation": " verwittigde het kanaal."
     },
     {
         "id": "api.post.send_notification_and_forget.push_comment_on_post",
-        "translation": " commented on your post."
+        "translation": " gaf een commentaar op jouw bericht."
     },
     {
         "id": "api.post.send_notification_and_forget.push_comment_on_thread",
-        "translation": " commented on a thread you participated in."
+        "translation": " gaf een commentaar in een draadje waar je in deelnam."
     },
     {
         "id": "api.post.send_notifications_and_forget.push_explicit_mention",
@@ -1508,19 +1508,19 @@
     },
     {
         "id": "api.post.send_notifications_and_forget.push_general_message",
-        "translation": " posted a message."
+        "translation": " plaatste een bericht."
     },
     {
         "id": "api.post.send_notifications_and_forget.push_image_only",
-        "translation": " attached a file."
+        "translation": " voegde een bestand toe."
     },
     {
         "id": "api.post.send_notifications_and_forget.push_message",
-        "translation": "sent you a message."
+        "translation": "stuurde je een bericht."
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Kan geen bericht bijwerken in een verwijderd kanaal."
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1532,7 +1532,7 @@
     },
     {
         "id": "api.post.update_post.permissions_time_limit.app_error",
-        "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your System Administrator for details."
+        "translation": "Een bericht bewerken is enkel toegelaten binnen de {{.timeLimit}} seconden. Contacteer je systeembeheerder voor meer informatie."
     },
     {
         "id": "api.post.update_post.system_message.app_error",
@@ -1544,67 +1544,67 @@
     },
     {
         "id": "api.preference.delete_preferences.delete.app_error",
-        "translation": "Unable to delete user preferences."
+        "translation": "Kan gebruikersvoorkeuren niet verwijderen."
     },
     {
         "id": "api.preference.preferences_category.get.app_error",
-        "translation": "Unable to get user preferences."
+        "translation": "Kan de gebruikersvoorkeuren niet ophalen."
     },
     {
         "id": "api.preference.update_preferences.set.app_error",
-        "translation": "Unable to set user preferences."
+        "translation": "Kan de gebruikersvoorkeuren niet instellen."
     },
     {
         "id": "api.reaction.delete.archived_channel.app_error",
-        "translation": "You cannot remove a reaction in an archived channel."
+        "translation": "Je kan geen reactie verwijderen in een gearchiveerd kanaal."
     },
     {
         "id": "api.reaction.save.archived_channel.app_error",
-        "translation": "You cannot react in an archived channel."
+        "translation": "Je kan niet reageren in een gearchiveerd kanaal."
     },
     {
         "id": "api.reaction.save_reaction.invalid.app_error",
-        "translation": "Reaction is not valid."
+        "translation": "Reactie is niet geldig."
     },
     {
         "id": "api.reaction.save_reaction.user_id.app_error",
-        "translation": "You cannot save reaction for the other user."
+        "translation": "Je kan de reactie voor de andere gebruiker niet bewaren."
     },
     {
         "id": "api.reaction.town_square_read_only",
-        "translation": "Reacting to posts is not possible in read-only channels."
+        "translation": "Reageren op berichten is niet mogelijk in alleen-lezen kanalen."
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": "Deze actie kan niet worden uitgevoerd door een systeembeheerder met beperkte rechten."
     },
     {
         "id": "api.roles.patch_roles.license.error",
-        "translation": "Your license does not support advanced permissions."
+        "translation": "Je licentie ondersteunt geen geavanceerde toegangsrechten."
     },
     {
         "id": "api.scheme.create_scheme.license.error",
-        "translation": "Your license does not support creating permissions schemes."
+        "translation": "Je licentie ondersteunt niet het aanmaken van toegangsrechtenschema's."
     },
     {
         "id": "api.scheme.delete_scheme.license.error",
-        "translation": "Your license not support delete permissions schemes"
+        "translation": "Je licentie ondersteunt niet het verwijderen van toegangsrechtenschema's"
     },
     {
         "id": "api.scheme.get_channels_for_scheme.scope.error",
-        "translation": "Unable to get the channels for scheme because the supplied scheme is not a channel scheme."
+        "translation": "Kan de kanalen voor het schema niet ophalen omdat het schema geen kanaalschema is."
     },
     {
         "id": "api.scheme.get_teams_for_scheme.scope.error",
-        "translation": "Unable to get the teams for scheme because the supplied scheme is not a team scheme."
+        "translation": "Kan de teams voor het schema niet ophalen omdat het schema geen teamschema is."
     },
     {
         "id": "api.scheme.patch_scheme.license.error",
-        "translation": "Your license does not support update permissions schemes"
+        "translation": "Je licentie ondersteunt niet het bijwerken van toegangsrechtenschema's"
     },
     {
         "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-        "translation": "Must enable Forward80To443 when using LetsEncrypt"
+        "translation": "Je moet Forward80To443 inschakelen als je LetsEncrypt gebruikt"
     },
     {
         "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
@@ -7940,7 +7940,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers upgraden naar Mattermost Enterprise E20, die functies biedt zoals gebruikersbeheer, serverclustering en prestatiemonitoring."
+        "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers upgraden naar Mattermost Enterprise Edition, die functies biedt zoals gebruikersbeheer, serverclustering en prestatiemonitoring.\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -7948,7 +7948,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise E20.\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7956,7 +7956,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise E10 en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",
@@ -8021,5 +8021,13 @@
     {
         "id": "api.email.send_warn_metric_ack.failure.app_error",
         "translation": "Fout bij verzenden van admin bevestigingse-mail"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Ongeldige lokale opslagmap. Moet niet leeg zijn."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Kan bot niet converteren naar gebruiker."
     }
 ]

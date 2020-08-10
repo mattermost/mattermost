@@ -8000,10 +8000,6 @@
         "translation": "Eșecul de a trimite un e-mail de confirmare a administratorului"
     },
     {
-        "id": "",
-        "translation": " "
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "S-au schimbat mai multe rânduri."
     },
@@ -8030,5 +8026,13 @@
     {
         "id": "app.system.warn_metric.store.app_error",
         "translation": "Nu a reușit să stocheze valoarea pentru {{.WarnMetricName}}"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Director de stocare local invalid. Trebuie să fie un șir care nu este gol."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Imposibil de convertit botul în utilizator."
     }
 ]
