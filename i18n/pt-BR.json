@@ -7925,5 +7925,13 @@
     {
         "id": "api.preference.delete_preferences.update_sidebar.app_error",
         "translation": "Não foi possível atualizar a barra lateral para corresponder às preferências excluídas"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Solicitação de contato"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
     }
 ]
