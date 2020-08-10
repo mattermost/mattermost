@@ -7857,5 +7857,9 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "Email:"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
     }
 ]
