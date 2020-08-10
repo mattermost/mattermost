@@ -8006,5 +8006,33 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Imposibil de convertit botul în utilizator."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rolul nu era valabil."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Imposibil de salvat un nou rol."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Nu am putut șterge definitiv toate rolurile."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Imposibil de obținut roluri."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Imposibil de a primi rol."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Imposibil de obținut toate rolurile."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Imposibil de a primi rol."
     }
 ]

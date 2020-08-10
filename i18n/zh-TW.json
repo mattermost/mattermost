@@ -7968,5 +7968,33 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "無法取得全部的私人團隊"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "該角色無效"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "無法儲存新角色"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "無法永久刪除所有的角色"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "無法取得角色"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "無法取得角色"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "無法取得角色"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "無法取得角色"
     }
 ]

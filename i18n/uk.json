@@ -7702,5 +7702,33 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "Не вдалося отримати всі команди"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Роль не була дійсною"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Не вдається зберегти нову роль"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Ми не змогли назавжди видалити всі ролі"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Неможливо отримати всі канали"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Неможливо отримати роль"
     }
 ]

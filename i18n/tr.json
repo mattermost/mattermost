@@ -7993,5 +7993,33 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "Tüm özel takımlar alınamadı."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rol geçersiz."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Yeni rol kaydedilemedi."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Tüm roller kalıcı olarak silinemedi."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Roller alınamadı."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Rol alınamadı."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Rollerin tümü alınamadı."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Rol alınamadı."
     }
 ]

@@ -7998,5 +7998,33 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "Мы не могли получить все приватные команды на странице."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Роль была недействительной."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Не удалось сохранить новую роль."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Мы не можем безвозвратно удалить все роли."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Не удалось получить все роли."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Не удалось получить роль."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Не удалось получить все роли."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Не удалось получить роль."
     }
 ]
