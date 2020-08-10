@@ -949,6 +949,18 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 5, len(channels))
+
+		// Should return all channels including basicDeleted.
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
+
+		// Should stil return all channels including basicDeleted.
+		now := time.Now().Add(-time.Minute).Unix() * 1000
+		Client.GetChannelsForTeamAndUserWithLastDeleteAt(th.BasicTeam.Id, th.BasicUser.Id,
+			true, int(now), "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
 	})
 }
 
@@ -956,15 +968,6 @@ func TestGetAllChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	Client := th.Client
-
-	var originalConfigVal bool
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		originalConfigVal = *cfg.TeamSettings.ExperimentalViewArchivedChannels
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
-	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = originalConfigVal
-	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, resp := client.GetAllChannels(0, 20, "")
@@ -1252,10 +1255,6 @@ func TestSearchAllChannels(t *testing.T) {
 		TeamId:           team.Id,
 	})
 	CheckNoError(t, groupErr)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
 
 	testCases := []struct {
 		Description        string
@@ -3984,10 +3983,6 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
 		}
 
-		t.Log("UserId=" + th.BasicUser.Id)
-		t.Log("TeamId=" + th.BasicTeam.Id)
-		t.Log("category=" + channelsCategory.Id)
-
 		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
 		assert.Nil(t, resp.Error)
 		assert.Equal(t, channelsCategory.Id, received.Id)
@@ -4063,5 +4058,34 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		assert.Nil(t, resp.Error)
 		assert.Equal(t, customCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
+	})
+
+	t.Run("should update the channel order of the category even if it contains archived channels", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+		require.Len(t, channelsCategory.Channels, 5) // Town Square, Off Topic, and the 3 channels created by InitBasic
+
+		// Delete one of the channels
+		_, resp = th.Client.DeleteChannel(th.BasicChannel.Id)
+		require.Nil(t, resp.Error)
+
+		// Should still be able to reorder the channels
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.Channels, received.Channels)
 	})
 }

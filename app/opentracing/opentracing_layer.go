@@ -4650,7 +4650,7 @@ func (a *OpenTracingAppLayer) GetChannelsForSchemePage(scheme *model.Scheme, pag
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsForUser")
 
@@ -4662,7 +4662,7 @@ func (a *OpenTracingAppLayer) GetChannelsForUser(teamId string, userId string, i
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	resultVar0, resultVar1 := a.app.GetChannelsForUser(teamId, userId, includeDeleted, lastDeleteAt)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -13216,6 +13216,21 @@ func (a *OpenTracingAppLayer) SetSearchEngine(se *searchengine.Broker) {
 
 	defer span.Finish()
 	a.app.SetSearchEngine(se)
+}
+
+func (a *OpenTracingAppLayer) SetSessionExpireInDays(session *model.Session, days int) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetSessionExpireInDays")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.SetSessionExpireInDays(session, days)
 }
 
 func (a *OpenTracingAppLayer) SetStatusAwayIfNeeded(userId string, manual bool) {

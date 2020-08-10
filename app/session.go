@@ -346,6 +346,9 @@ func (a *App) ExtendSessionExpiryIfNeeded(session *model.Session) bool {
 	session.ExpiresAt = newExpiry
 	a.AddSessionToCache(session)
 
+	mlog.Debug("Session extended", mlog.String("user_id", session.UserId), mlog.String("session_id", session.Id),
+		mlog.Int64("newExpiry", newExpiry), mlog.Int64("session_length", sessionLength))
+
 	auditRec.Success()
 	auditRec.AddMeta("extended_session", session)
 	return true
@@ -367,6 +370,17 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 		days = *a.Config().ServiceSettings.SessionLengthWebInDays
 	}
 	return int64(days * 24 * 60 * 60 * 1000)
+}
+
+// SetSessionExpireInDays sets the session's expiry the specified number of days
+// relative to either the session creation date or the current time, depending
+// on the `ExtendSessionOnActivity` config setting.
+func (a *App) SetSessionExpireInDays(session *model.Session, days int) {
+	if session.CreateAt == 0 || *a.Config().ServiceSettings.ExtendSessionLengthWithActivity {
+		session.ExpiresAt = model.GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
+	} else {
+		session.ExpiresAt = session.CreateAt + (1000 * 60 * 60 * 24 * int64(days))
+	}
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -444,7 +458,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	} else {
 		session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 	}
-	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
+	a.SetSessionExpireInDays(session, model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
 	session, nErr = a.Srv().Store.Session().Save(session)
 	if nErr != nil {
