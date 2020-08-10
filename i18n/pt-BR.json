@@ -7825,5 +7825,73 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Não foi possível obter a função."
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Envie-nos um email"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Contatando-Nos"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Contate-Nos"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Obrigado por entrar em contato com a Mattermost. Entraremos em contato com você em breve."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "Mensagem não pode ser enviada."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Envie um email."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost Solicitação de contato"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "Site URL: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Total de Usuários Ativos: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "Email: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "ID de Diagnóstico: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "Contato: {{.Contact}}"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Não foi possível atualizar a barra lateral para corresponder às preferências atualizadas"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Não foi possível atualizar a barra lateral para corresponder às preferências excluídas"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Não foi possível esta tarefa"
     }
 ]
