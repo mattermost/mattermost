@@ -5368,46 +5368,6 @@
         "translation": "Невозможно обновить сообщение."
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Невозможно удалить роль."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Невозможно получить роль."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Невозможно получить роль."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Невозможно получить роли."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Мы не смогли окончательно удалить все роли."
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Невозможно сохранить новую роль."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Роль не была действительной."
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Не удалось открыть транзакцию для сохранения роли."
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Невозможно обновить роль."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию для сохранения роли."
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Возникла ошибка при получении статуса."
     },
@@ -7244,10 +7204,6 @@
         "translation": "Невозможно получить количество ответов на сообщение"
     },
     {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Не удалось получить все роли."
-    },
-    {
         "id": "store.sql_team.analytics_private_team_count.app_error",
         "translation": "Не удалось подсчитать приватные команды."
     },
@@ -7694,10 +7650,6 @@
     {
         "id": "app.team.permanentdeleteteam.internal_error",
         "translation": "Невозможно удалить команду."
-    },
-    {
-        "id": "",
-        "translation": "  "
     },
     {
         "id": "api.user.delete_user.not_enabled.app_error",

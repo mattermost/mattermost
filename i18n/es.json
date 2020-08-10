@@ -5363,46 +5363,6 @@
         "translation": "No se puede actualizar el mensaje"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "No se puede eliminar el rol"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "No se pudo obtener el rol"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "No se pudo obtener el rol"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "No se pudo obtener los roles"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "No se pudo eliminar permanentemente todos los roles"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "No se pudo guardar el nuevo rol"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "El rol no es válido"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "No se pudo abrir la transacción para guardar el rol"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "No se pudo actualizar el rol"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "No se pudo confirmar la transacción para guardar el rol"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Detectado un error al recuperar el estado"
     },
@@ -6173,10 +6133,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "No se pudo confirmar la transacción de base de datos"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "No se pudo obtener todos los roles."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

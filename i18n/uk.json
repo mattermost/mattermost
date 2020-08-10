@@ -5368,46 +5368,6 @@
         "translation": "Не вдається оновити повідомлення"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Неможливо видалити роль"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Ми не змогли назавжди видалити всі ролі"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Не вдається зберегти нову роль"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Роль не була дійсною"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Не вдалося відкрити транзакцію, щоб зберегти роль"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Неможливо оновити роль"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Не вдалося здійснити транзакцію для збереження ролі"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Виникла помилка при отриманні статусу"
     },
@@ -6170,10 +6130,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Не вдалося здійснити транзакцію бази даних"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Неможливо отримати всі канали"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

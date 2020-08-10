@@ -5363,46 +5363,6 @@
         "translation": "Konnte die Nachricht nicht aktualisieren."
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Konnte die Rolle nicht löschen"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Konnte die Rolle nicht abrufen."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Konnte die Rolle nicht abrufen."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Konnte die Rollen nicht abrufen."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Es konnten nicht alle Rollen permanent gelöscht werden"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Konnte die neue Rolle nicht speichern"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Die Rolle war ungültig"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Konnte die Transaktion nicht öffnen, um die Rolle zu speichern"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Konnte die Rolle nicht aktualisieren"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Konnte Transaktion zum Speichern der Rolle nicht ausführen"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
     },
@@ -6221,10 +6181,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Konnte nicht alle Rollen abrufen."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

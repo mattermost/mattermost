@@ -5363,46 +5363,6 @@
         "translation": "Não foi possível atualizar a Publicação"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Não foi possível excluir a função"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Não foi possível obter a função"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Não foi possível obter a função"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Não foi possível obter as funções"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Não podemos apagar permanentemente todas as funções"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Não foi possível salvar a função"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "A função não é válida"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Falha ao abrir a transação para salvar a função"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Não foi possível atualizar a função"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Falha ao confirmar a transação para salvar a função"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Encontrado um erro ao obter o status"
     },
@@ -6165,10 +6125,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Falha ao confirmar a transação do banco de dados"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Não é possível obter todos os papéis."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

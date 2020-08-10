@@ -5358,46 +5358,6 @@
         "translation": "無法更新訊息"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "無法刪除角色"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "無法取得角色"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "無法取得角色"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "無法取得角色"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "無法永久刪除所有的角色"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "無法儲存新角色"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "該角色無效"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "開啟交易以儲存角色時失敗"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "無法更新角色"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "認可交易以儲存角色時失敗"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "嘗試取得狀態時遇到錯誤"
     },
@@ -6160,10 +6120,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "認可資料庫交易時失敗"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "無法取得角色"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

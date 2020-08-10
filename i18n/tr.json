@@ -5363,46 +5363,6 @@
         "translation": "İleti güncellenemedi."
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Rol silinemedi."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Roller alınamadı."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Tüm roller kalıcı olarak silinemedi."
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Yeni rol kaydedilemedi."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rol geçersiz."
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem açılamadı."
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Rol güncellenemedi."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem yapılamadı."
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Durum alınırken bir sorun çıktı."
     },
@@ -7209,10 +7169,6 @@
     {
         "id": "store.sql_post.get_post_id_around.app_error",
         "translation": "İlgili gönderim civarı süresi alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Rollerin tümü alınamadı."
     },
     {
         "id": "store.sql_system.save.commit_transaction.app_error",

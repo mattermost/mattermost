@@ -5363,46 +5363,6 @@
         "translation": "Impossible de modifier le message"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Impossible de supprimer le rôle"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Impossible de récupérer le rôle"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Impossible de récupérer le rôle"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Impossible de récupérer les rôles"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Impossible de supprimer définitivement tous les rôles"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Impossible de sauvegarder le nouveau rôle"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Le rôle est invalide"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Impossible d'ouvrir la transaction pour enregistrer le rôle"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Impossible de modifier le rôle"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction pour enregistrer le rôle"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Une erreur s'est produite lors de la récupération du statut"
     },
@@ -6165,10 +6125,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Impossible de valider la transaction de la base de données"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Impossible de récupérer tous les rôles."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

@@ -5358,46 +5358,6 @@
         "translation": "投稿を更新できませんでした。"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "役割を削除できませんでした。"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "役割を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "役割を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "役割を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "すべての役割を完全に削除できませんでした。"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "新しい役割を保存できませんでした。"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "役割が不正です。"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "役割を保存するためのトランザクションを開ませんでした。"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "役割を更新できませんでした。"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "役割を保存するためのトランザクションをコミットできませんでした。"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "状態を取得する際にエラーが発生しました。"
     },
@@ -6160,10 +6120,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "データベーストランザクションをコミットできませんでした。"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "全役割を取得できませんでした。"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

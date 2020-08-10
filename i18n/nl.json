@@ -5363,46 +5363,6 @@
         "translation": "Bericht kan niet opgehaald worden"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Fout bij het verwijderen van de rol."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Fout bij het ophalen van de rol."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Fout bij het ophalen van de rol."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Fout bij het ophalen van de rollen."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "We konden niet alle rollen definitief verwijderen."
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Fout bij het opslaan van de nieuwe rol."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Ongeldige rol."
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Fout bij het openen van de transactie om de rol op te slaan."
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Fout bij het bijwerken van de rol."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Failed to commit the transaction to save the role"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Er is een probleem opgetreden tijdens het ophalen van de status"
     },
@@ -6189,10 +6149,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Fout bij het ophalen van alle rollen."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",

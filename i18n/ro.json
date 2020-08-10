@@ -5368,46 +5368,6 @@
         "translation": "Imposibil de actualizat Postarea"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Imposibil de șters rolul"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Imposibilitatea de a obţine rolul"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Imposibilitatea de a obţine rolul"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Imposibilitatea de a obţine roluri"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Am putut şterge permanent toate rolurile"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Imposibil de salvat noul rol"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rolul nu a fost valid"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Nu a reuşit să deschidă tranzacţie pentru a salva rolul"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Imposibil de actualizat rolul"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Nu a reuşit să se angajeze tranzacţie pentru a salva rolul"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "A apărut o eroare la preluarea stării"
     },
@@ -6170,10 +6130,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Nu s-a efectuat tranzacția bazei de date"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Imposibil de obținut toate rolurile."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7894,10 +7850,6 @@
     {
         "id": "app.preference.delete.app_error",
         "translation": "Am întâlnit o eroare la ștergerea preferințelor."
-    },
-    {
-        "id": "",
-        "translation": " "
     },
     {
         "id": "store.sql_group.more_than_one_row_changed",
