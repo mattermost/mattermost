@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/services/marketplace"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
@@ -65,6 +67,7 @@ const (
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
 	TRACK_CHANNEL_MODERATION        = "channel_moderation"
+	TRACK_WARN_METRICS              = "warn_metrics"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -75,6 +78,7 @@ const (
 type ServerIface interface {
 	Config() *model.Config
 	IsLeader() bool
+	HttpService() httpservice.HTTPService
 	GetPluginsEnvironment() *plugin.Environment
 	License() *model.License
 	GetRoleByName(string) (*model.Role, *model.AppError)
@@ -135,6 +139,7 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 		ts.trackElasticsearch()
 		ts.trackGroups()
 		ts.trackChannelModeration()
+		ts.trackWarnMetrics()
 	}
 }
 
@@ -457,15 +462,13 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_AUDIT, map[string]interface{}{
-		"syslog_enabled":        *cfg.ExperimentalAuditSettings.SysLogEnabled,
-		"syslog_insecure":       *cfg.ExperimentalAuditSettings.SysLogInsecure,
-		"syslog_max_queue_size": *cfg.ExperimentalAuditSettings.SysLogMaxQueueSize,
-		"file_enabled":          *cfg.ExperimentalAuditSettings.FileEnabled,
-		"file_max_size_mb":      *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
-		"file_max_age_days":     *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
-		"file_max_backups":      *cfg.ExperimentalAuditSettings.FileMaxBackups,
-		"file_compress":         *cfg.ExperimentalAuditSettings.FileCompress,
-		"file_max_queue_size":   *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"file_enabled":            *cfg.ExperimentalAuditSettings.FileEnabled,
+		"file_max_size_mb":        *cfg.ExperimentalAuditSettings.FileMaxSizeMB,
+		"file_max_age_days":       *cfg.ExperimentalAuditSettings.FileMaxAgeDays,
+		"file_max_backups":        *cfg.ExperimentalAuditSettings.FileMaxBackups,
+		"file_compress":           *cfg.ExperimentalAuditSettings.FileCompress,
+		"file_max_queue_size":     *cfg.ExperimentalAuditSettings.FileMaxQueueSize,
+		"advanced_logging_config": *cfg.ExperimentalAuditSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
@@ -476,6 +479,7 @@ func (ts *TelemetryService) trackConfig() {
 		"file_level":              *cfg.NotificationLogSettings.FileLevel,
 		"file_json":               *cfg.NotificationLogSettings.FileJson,
 		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
+		"advanced_logging_config": *cfg.NotificationLogSettings.AdvancedLoggingConfig != "",
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_PASSWORD, map[string]interface{}{
@@ -637,13 +641,14 @@ func (ts *TelemetryService) trackConfig() {
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_CLUSTER, map[string]interface{}{
-		"enable":                  *cfg.ClusterSettings.Enable,
-		"network_interface":       isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
-		"bind_address":            isDefault(*cfg.ClusterSettings.BindAddress, ""),
-		"advertise_address":       isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
-		"use_ip_address":          *cfg.ClusterSettings.UseIpAddress,
-		"use_experimental_gossip": *cfg.ClusterSettings.UseExperimentalGossip,
-		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
+		"enable":                                *cfg.ClusterSettings.Enable,
+		"network_interface":                     isDefault(*cfg.ClusterSettings.NetworkInterface, ""),
+		"bind_address":                          isDefault(*cfg.ClusterSettings.BindAddress, ""),
+		"advertise_address":                     isDefault(*cfg.ClusterSettings.AdvertiseAddress, ""),
+		"use_ip_address":                        *cfg.ClusterSettings.UseIpAddress,
+		"use_experimental_gossip":               *cfg.ClusterSettings.UseExperimentalGossip,
+		"enable_experimental_gossip_encryption": *cfg.ClusterSettings.EnableExperimentalGossipEncryption,
+		"read_only_config":                      *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_METRICS, map[string]interface{}{
@@ -699,58 +704,7 @@ func (ts *TelemetryService) trackConfig() {
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
-	pluginConfigData := map[string]interface{}{
-		"enable_antivirus":              pluginActivated(cfg.PluginSettings.PluginStates, "antivirus"),
-		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
-		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
-		"enable_confluence":             pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.confluence"),
-		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
-		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
-		"enable_gitlab":                 pluginActivated(cfg.PluginSettings.PluginStates, "com.github.manland.mattermost-plugin-gitlab"),
-		"enable_jenkins":                pluginActivated(cfg.PluginSettings.PluginStates, "jenkins"),
-		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
-		"enable_jitsi":                  pluginActivated(cfg.PluginSettings.PluginStates, "jitsi"),
-		"enable_mscalendar":             pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.mscalendar"),
-		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_skype4business":         pluginActivated(cfg.PluginSettings.PluginStates, "skype4business"),
-		"enable_todo":                   pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.plugin-todo"),
-		"enable_webex":                  pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.webex"),
-		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
-		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
-		"enable":                        *cfg.PluginSettings.Enable,
-		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
-		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
-		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
-		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
-		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
-		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
-		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
-	}
-
-	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
-	if pluginsEnvironment != nil {
-		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-			mlog.Error("Unable to add plugin versions to telemetry", mlog.Err(appErr))
-		} else {
-			pluginConfigData["version_antivirus"] = pluginVersion(plugins, "antivirus")
-			pluginConfigData["version_autolink"] = pluginVersion(plugins, "mattermost-autolink")
-			pluginConfigData["version_aws_sns"] = pluginVersion(plugins, "com.mattermost.aws-sns")
-			pluginConfigData["version_custom_user_attributes"] = pluginVersion(plugins, "com.mattermost.custom-attributes")
-			pluginConfigData["version_github"] = pluginVersion(plugins, "github")
-			pluginConfigData["version_gitlab"] = pluginVersion(plugins, "com.github.manland.mattermost-plugin-gitlab")
-			pluginConfigData["version_jenkins"] = pluginVersion(plugins, "jenkins")
-			pluginConfigData["version_jira"] = pluginVersion(plugins, "jira")
-			pluginConfigData["version_nps"] = pluginVersion(plugins, "com.mattermost.nps")
-			pluginConfigData["version_webex"] = pluginVersion(plugins, "com.mattermost.webex")
-			pluginConfigData["version_welcome_bot"] = pluginVersion(plugins, "com.mattermost.welcomebot")
-			pluginConfigData["version_zoom"] = pluginVersion(plugins, "zoom")
-		}
-	}
-
-	ts.sendTelemetry(TRACK_CONFIG_PLUGIN, pluginConfigData)
+	ts.trackPluginConfig(cfg, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL)
 
 	ts.sendTelemetry(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
@@ -1200,4 +1154,125 @@ func (ts *TelemetryService) Shutdown() error {
 		return ts.rudderClient.Close()
 	}
 	return nil
+}
+
+func (ts *TelemetryService) trackWarnMetrics() {
+	systemDataList, appErr := ts.dbStore.System().Get()
+	if appErr != nil {
+		return
+	}
+	for key, value := range systemDataList {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if _, ok := model.WarnMetricsTable[key]; ok {
+				ts.sendTelemetry(TRACK_WARN_METRICS, map[string]interface{}{
+					key: value != "false",
+				})
+			}
+		}
+	}
+}
+
+func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL string) {
+	pluginConfigData := map[string]interface{}{
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
+		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
+		"enable_marketplace":            *cfg.PluginSettings.EnableMarketplace,
+		"require_pluginSignature":       *cfg.PluginSettings.RequirePluginSignature,
+		"enable_remote_marketplace":     *cfg.PluginSettings.EnableRemoteMarketplace,
+		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
+		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
+		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
+	}
+
+	// knownPluginIDs lists all known plugin IDs in the Marketplace
+	knownPluginIDs := []string{
+		"antivirus",
+		"com.github.manland.mattermost-plugin-gitlab",
+		"com.github.moussetc.mattermost.plugin.giphy",
+		"com.github.phillipahereza.mattermost-plugin-digitalocean",
+		"com.mattermost.aws-sns",
+		"com.mattermost.confluence",
+		"com.mattermost.custom-attributes",
+		"com.mattermost.mscalendar",
+		"com.mattermost.nps",
+		"com.mattermost.plugin-incident-response",
+		"com.mattermost.plugin-todo",
+		"com.mattermost.webex",
+		"com.mattermost.welcomebot",
+		"github",
+		"jenkins",
+		"jira",
+		"jitsi",
+		"mattermost-autolink",
+		"memes",
+		"skype4business",
+		"zoom",
+	}
+
+	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
+	if err != nil {
+		mlog.Info("Failed to fetch marketplace plugins for telemetry. Using predefined list.", mlog.Err(err))
+
+		for _, id := range knownPluginIDs {
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	} else {
+		for _, p := range marketplacePlugins {
+			id := p.Manifest.Id
+
+			pluginConfigData["enable_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+		}
+	}
+
+	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
+	if pluginsEnvironment != nil {
+		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
+			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+		} else {
+			// If marketplace request failed, use predefined list
+			if marketplacePlugins == nil {
+				for _, id := range knownPluginIDs {
+					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+				}
+			} else {
+				for _, p := range marketplacePlugins {
+					id := p.Manifest.Id
+
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
+				}
+			}
+		}
+	}
+
+	ts.sendTelemetry(TRACK_CONFIG_PLUGIN, pluginConfigData)
+}
+
+func (ts *TelemetryService) getAllMarketplaceplugins(marketplaceURL string) ([]*model.BaseMarketplacePlugin, error) {
+	marketplaceClient, err := marketplace.NewClient(
+		marketplaceURL,
+		ts.srv.HttpService(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch all plugins from marketplace.
+	filter := &model.MarketplacePluginFilter{
+		PerPage:       -1,
+		ServerVersion: model.CurrentVersion,
+	}
+
+	license := ts.srv.License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	return marketplaceClient.GetPlugins(filter)
 }

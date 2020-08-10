@@ -4,6 +4,7 @@
 package telemetry
 
 import (
+	"crypto/ecdsa"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -17,14 +18,26 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry/mocks"
 	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
-func initializeMocks(config *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T)) {
+type FakeConfigService struct {
+	cfg *model.Config
+}
+
+func (fcs *FakeConfigService) Config() *model.Config                                       { return fcs.cfg }
+func (fcs *FakeConfigService) AddConfigListener(f func(old, current *model.Config)) string { return "" }
+func (fcs *FakeConfigService) RemoveConfigListener(key string)                             {}
+func (fcs *FakeConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey                     { return nil }
+
+func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T)) {
 	serverIfaceMock := &mocks.ServerIface{}
-	serverIfaceMock.On("Config").Return(config)
+
+	configService := &FakeConfigService{cfg}
+	serverIfaceMock.On("Config").Return(cfg)
 	serverIfaceMock.On("IsLeader").Return(true)
 	serverIfaceMock.On("GetPluginsEnvironment").Return(nil, nil)
 	serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
@@ -38,6 +51,7 @@ func initializeMocks(config *model.Config) (*mocks.ServerIface, *storeMocks.Stor
 	serverIfaceMock.On("GetRoleByName", "channel_user").Return(&model.Role{Permissions: []string{"cu-test1", "cu-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
+	serverIfaceMock.On("HttpService").Return(httpservice.MakeHTTPService(configService))
 
 	storeMock := &storeMocks.Store{}
 	storeMock.On("GetDbVersion").Return("5.24.0", nil)
@@ -168,6 +182,14 @@ func TestRudderTelemetry(t *testing.T) {
 		t.SkipNow()
 	}
 
+	type batch struct {
+		MessageId  string
+		UserId     string
+		Event      string
+		Timestamp  time.Time
+		Properties map[string]interface{}
+	}
+
 	type payload struct {
 		MessageId string
 		SentAt    time.Time
@@ -199,14 +221,29 @@ func TestRudderTelemetry(t *testing.T) {
 	}))
 	defer server.Close()
 
+	marketplaceServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{
+					Id: "testplugin",
+				},
+			},
+		}})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+
+	defer func() { marketplaceServer.Close() }()
+
 	telemetryID := "test-telemetry-id-12345"
 
-	config := &model.Config{}
-	config.SetDefaults()
-	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(config)
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(cfg)
 	defer deferredAssertions(t)
 
-	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(config, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
+	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
 	telemetryService.initRudder(server.URL)
@@ -237,6 +274,19 @@ func TestRudderTelemetry(t *testing.T) {
 			case result := <-data:
 				assertPayload(t, result, "", nil)
 				*info = append(*info, result.Batch[0].Event)
+			case <-time.After(time.Second * 1):
+				return
+			}
+		}
+	}
+
+	collectBatches := func(info *[]batch) {
+		t.Helper()
+		for {
+			select {
+			case result := <-data:
+				assertPayload(t, result, "", nil)
+				*info = append(*info, result.Batch[0])
 			case <-time.After(time.Second * 1):
 				return
 			}
@@ -300,7 +350,7 @@ func TestRudderTelemetry(t *testing.T) {
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
-			// TRACK_PLUGINS,
+			TRACK_PLUGINS,
 		} {
 			require.Contains(t, info, item)
 		}
@@ -342,9 +392,44 @@ func TestRudderTelemetry(t *testing.T) {
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
 			TRACK_CONFIG_MESSAGE_EXPORT,
-			// TRACK_PLUGINS,
+			TRACK_PLUGINS,
 		} {
 			require.Contains(t, info, item)
+		}
+	})
+	t.Run("Telemetry for Marketplace plugins is returned", func(t *testing.T) {
+		telemetryService.trackPluginConfig(telemetryService.srv.Config(), marketplaceServer.URL)
+
+		var batches []batch
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_CONFIG_PLUGIN {
+				assert.Contains(t, b.Properties, "enable_testplugin")
+				assert.Contains(t, b.Properties, "version_testplugin")
+
+				// Confirm known plugins are not present
+				assert.NotContains(t, b.Properties, "enable_jira")
+				assert.NotContains(t, b.Properties, "version_jira")
+			}
+		}
+	})
+
+	t.Run("Telemetry for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
+		telemetryService.trackPluginConfig(telemetryService.srv.Config(), "http://some.random.invalid.url")
+
+		var batches []batch
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_CONFIG_PLUGIN {
+				assert.NotContains(t, b.Properties, "enable_testplugin")
+				assert.NotContains(t, b.Properties, "version_testplugin")
+
+				// Confirm known plugins are present
+				assert.Contains(t, b.Properties, "enable_jira")
+				assert.Contains(t, b.Properties, "version_jira")
+			}
 		}
 	})
 
@@ -360,9 +445,9 @@ func TestRudderTelemetry(t *testing.T) {
 	})
 
 	t.Run("SendDailyTelemetryDisabled", func(t *testing.T) {
-		*config.LogSettings.EnableDiagnostics = false
+		*cfg.LogSettings.EnableDiagnostics = false
 		defer func() {
-			*config.LogSettings.EnableDiagnostics = true
+			*cfg.LogSettings.EnableDiagnostics = true
 		}()
 
 		telemetryService.sendDailyTelemetry(true)

@@ -1193,7 +1193,16 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if _, err = c.App.UpdateActive(user, false); err != nil {
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+			err = c.App.PermanentDeleteUser(user)
+		} else {
+			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		}
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1854,7 +1863,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.App.Session().UserId)
-	c.App.Session().SetExpireInDays(*c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInDays(c.App.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 

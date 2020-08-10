@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -12,7 +14,7 @@ import (
 )
 
 func TestCreateJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -39,7 +41,7 @@ func TestCreateJob(t *testing.T) {
 }
 
 func TestGetJob(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	job := &model.Job{
@@ -68,7 +70,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -115,7 +117,7 @@ func TestGetJobs(t *testing.T) {
 }
 
 func TestGetJobsByType(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobType := model.NewId()
@@ -172,8 +174,70 @@ func TestGetJobsByType(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
-func TestCancelJob(t *testing.T) {
+func TestDownloadJob(t *testing.T) {
 	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	jobName := model.NewId()
+	job := &model.Job{
+		Id:   jobName,
+		Type: model.JOB_TYPE_MESSAGE_EXPORT,
+		Data: map[string]string{
+			"export_type": "csv",
+		},
+		Status: model.JOB_STATUS_SUCCESS,
+	}
+
+	// DownloadExportResults is not set to true so we should get a not implemented error status
+	_, resp := th.Client.DownloadJob(job.Id)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.DownloadExportResults = true
+	})
+
+	// Normal user cannot download the results of these job (Doesn't have permission)
+	_, resp = th.Client.DownloadJob(job.Id)
+	CheckForbiddenStatus(t, resp)
+
+	// System admin trying to download the results of a non-existant job
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckNotFoundStatus(t, resp)
+
+	// Here we have a job that exist in our database but the results do not exist therefore when we try to download the results
+	// as a system admin, we should get a not found status.
+	_, err := th.App.Srv().Store.Job().Save(job)
+	require.Nil(t, err)
+	defer th.App.Srv().Store.Job().Delete(job.Id)
+
+	filePath := "./data/export/" + job.Id + "/testdat.txt"
+	mkdirAllErr := os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.Nil(t, mkdirAllErr)
+	os.Create(filePath)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckBadRequestStatus(t, resp)
+
+	job.Data["is_downloadable"] = "true"
+	updateStatus, err := th.App.Srv().Store.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS)
+	require.True(t, updateStatus)
+	require.Nil(t, err)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	CheckNotFoundStatus(t, resp)
+
+	// Now we stub the results of the job into the same directory and try to download it again
+	// This time we should successfully retrieve the results without any error
+	filePath = "./data/export/" + job.Id + "/csv_export.zip"
+	mkdirAllErr = os.MkdirAll(filepath.Dir(filePath), 0770)
+	require.Nil(t, mkdirAllErr)
+	os.Create(filePath)
+
+	_, resp = th.SystemAdminClient.DownloadJob(job.Id)
+	require.Nil(t, resp.Error)
+}
+
+func TestCancelJob(t *testing.T) {
+	th := Setup(t)
 	defer th.TearDown()
 
 	jobs := []*model.Job{
