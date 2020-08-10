@@ -8046,5 +8046,13 @@
     {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "Nu am putut obține toate echipele private."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Director de stocare local invalid. Trebuie să fie un șir care nu este gol."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Imposibil de convertit botul în utilizator."
     }
 ]
