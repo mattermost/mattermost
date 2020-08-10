@@ -7852,10 +7852,6 @@
         "translation": "Канал, указанный в запросе, не принадлежит пользователю"
     },
     {
-        "id": "",
-        "translation": "  "
-    },
-    {
         "id": "store.sql_command.update.missing.app_error",
         "translation": "Команда не существует."
     },

@@ -8000,10 +8000,6 @@
         "translation": "Eșecul de a trimite un e-mail de confirmare a administratorului"
     },
     {
-        "id": "",
-        "translation": " "
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "S-au schimbat mai multe rânduri."
     },
