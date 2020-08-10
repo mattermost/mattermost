@@ -5085,7 +5085,7 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.AllChannelSchemeRoles()
@@ -5101,7 +5101,7 @@ func (s *TimerLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.App
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
+func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
@@ -5117,7 +5117,7 @@ func (s *TimerLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string)
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
@@ -5133,7 +5133,7 @@ func (s *TimerLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*mod
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.Delete(roleId)
@@ -5149,7 +5149,7 @@ func (s *TimerLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppErro
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.Get(roleId)
@@ -5165,7 +5165,7 @@ func (s *TimerLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) 
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.GetAll()
@@ -5181,7 +5181,7 @@ func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.GetByName(name)
@@ -5197,7 +5197,7 @@ func (s *TimerLayerRoleStore) GetByName(name string) (*model.Role, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.GetByNames(names)
@@ -5213,7 +5213,7 @@ func (s *TimerLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) PermanentDeleteAll() *model.AppError {
+func (s *TimerLayerRoleStore) PermanentDeleteAll() error {
 	start := timemodule.Now()
 
 	err := s.RoleStore.PermanentDeleteAll()
@@ -5229,7 +5229,7 @@ func (s *TimerLayerRoleStore) PermanentDeleteAll() *model.AppError {
 	return err
 }
 
-func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (s *TimerLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	start := timemodule.Now()
 
 	result, err := s.RoleStore.Save(role)
@@ -8069,7 +8069,7 @@ func (s *TimerLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.AnalyticsIncomingCount(teamId)
@@ -8085,7 +8085,7 @@ func (s *TimerLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *model.AppError) {
+func (s *TimerLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.AnalyticsOutgoingCount(teamId)
@@ -8116,7 +8116,7 @@ func (s *TimerLayerWebhookStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+func (s *TimerLayerWebhookStore) DeleteIncoming(webhookId string, time int64) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.DeleteIncoming(webhookId, time)
@@ -8132,7 +8132,7 @@ func (s *TimerLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *m
 	return err
 }
 
-func (s *TimerLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) *model.AppError {
+func (s *TimerLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.DeleteOutgoing(webhookId, time)
@@ -8148,7 +8148,7 @@ func (s *TimerLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) *m
 	return err
 }
 
-func (s *TimerLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncoming(id, allowFromCache)
@@ -8164,7 +8164,7 @@ func (s *TimerLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*m
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncomingByChannel(channelId)
@@ -8180,7 +8180,7 @@ func (s *TimerLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*mode
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
@@ -8196,7 +8196,7 @@ func (s *TimerLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, li
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
@@ -8212,7 +8212,7 @@ func (s *TimerLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId s
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncomingList(offset, limit)
@@ -8228,7 +8228,7 @@ func (s *TimerLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*mode
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetIncomingListByUser(userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetIncomingListByUser(userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
@@ -8244,7 +8244,7 @@ func (s *TimerLayerWebhookStore) GetIncomingListByUser(userId string, offset int
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoing(id)
@@ -8260,7 +8260,7 @@ func (s *TimerLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook,
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingByChannel(channelId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingByChannel(channelId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
@@ -8276,7 +8276,7 @@ func (s *TimerLayerWebhookStore) GetOutgoingByChannel(channelId string, offset i
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
@@ -8292,7 +8292,7 @@ func (s *TimerLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, us
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
@@ -8308,7 +8308,7 @@ func (s *TimerLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, li
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
@@ -8324,7 +8324,7 @@ func (s *TimerLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId s
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingList(offset, limit)
@@ -8340,7 +8340,7 @@ func (s *TimerLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*mode
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
@@ -8371,7 +8371,7 @@ func (s *TimerLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 	}
 }
 
-func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
+func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId string) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
@@ -8387,7 +8387,7 @@ func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId stri
 	return err
 }
 
-func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
+func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
@@ -8403,7 +8403,7 @@ func (s *TimerLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) *m
 	return err
 }
 
-func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *model.AppError {
+func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
@@ -8419,7 +8419,7 @@ func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId stri
 	return err
 }
 
-func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) *model.AppError {
+func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) error {
 	start := timemodule.Now()
 
 	err := s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
@@ -8435,7 +8435,7 @@ func (s *TimerLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) *m
 	return err
 }
 
-func (s *TimerLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.SaveIncoming(webhook)
@@ -8451,7 +8451,7 @@ func (s *TimerLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.SaveOutgoing(webhook)
@@ -8467,7 +8467,7 @@ func (s *TimerLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.UpdateIncoming(webhook)
@@ -8483,7 +8483,7 @@ func (s *TimerLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	return result, err
 }
 
-func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
 	start := timemodule.Now()
 
 	result, err := s.WebhookStore.UpdateOutgoing(hook)

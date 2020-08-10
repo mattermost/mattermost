@@ -40,6 +40,7 @@ func newSqlCommandStore(sqlStore SqlStore) store.CommandStore {
 		tableo.ColMap("AutoCompleteHint").SetMaxSize(1024)
 		tableo.ColMap("DisplayName").SetMaxSize(64)
 		tableo.ColMap("Description").SetMaxSize(128)
+		tableo.ColMap("PluginId").SetMaxSize(190)
 	}
 
 	return s
