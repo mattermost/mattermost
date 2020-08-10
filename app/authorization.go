@@ -148,7 +148,9 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 	}
 	teamMember, _ := a.GetTeamMember(teamId, askingUserId)
 	if teamMember != nil && teamMember.DeleteAt == 0 {
-		return a.RolesGrantPermission(teamMember.GetRoles(), permission.Id)
+		if a.RolesGrantPermission(teamMember.GetRoles(), permission.Id) {
+			return true
+		}
 	}
 	return a.HasPermissionTo(askingUserId, permission)
 }
