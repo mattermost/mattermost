@@ -1,10 +1,10 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/5.23.1/mattermost-5.23.1-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/5.25.2/mattermost-5.25.2-linux-amd64.tar.gz?src=docker"
 
 
 # Install some needed packages

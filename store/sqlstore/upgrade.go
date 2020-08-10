@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_24_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	VERSION_5_27_0           = "5.27.0"
 	VERSION_5_26_0           = "5.26.0"
 	VERSION_5_25_0           = "5.25.0"
 	VERSION_5_24_0           = "5.24.0"
@@ -183,6 +184,8 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion524(sqlStore)
 	upgradeDatabaseToVersion525(sqlStore)
 	upgradeDatabaseToVersion526(sqlStore)
+	upgradeDatabaseToVersion527(sqlStore)
+
 	return nil
 }
 
@@ -809,17 +812,24 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion525(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.25
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
-	//saveSchemaVersion(sqlStore, VERSION_5_25_0)
-	//}
+	if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_25_0)
+	}
 }
 
 func upgradeDatabaseToVersion526(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
 
-	//saveSchemaVersion(sqlStore, VERSION_5_26_0)
-	//}
+		saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	}
+}
+
+func upgradeDatabaseToVersion527(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	// }
 }

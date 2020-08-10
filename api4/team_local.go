@@ -18,13 +18,42 @@ func (api *API) InitTeamLocal() {
 
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.ApiLocal(updateTeam)).Methods("PUT")
-	api.BaseRoutes.Team.Handle("", api.ApiLocal(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("", api.ApiLocal(localDeleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiLocal(localInviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiLocal(patchTeam)).Methods("PUT")
 
 	api.BaseRoutes.TeamByName.Handle("", api.ApiLocal(getTeamByName)).Methods("GET")
 	api.BaseRoutes.TeamMembers.Handle("", api.ApiLocal(addTeamMember)).Methods("POST")
 	api.BaseRoutes.TeamMember.Handle("", api.ApiLocal(removeTeamMember)).Methods("DELETE")
+}
+
+func localDeleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("localDeleteTeam", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if team, err := c.App.GetTeam(c.Params.TeamId); err == nil {
+		auditRec.AddMeta("team", team)
+	}
+
+	var err *model.AppError
+	if c.Params.Permanent {
+		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+	} else {
+		err = c.App.SoftDeleteTeam(c.Params.TeamId)
+	}
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -84,7 +113,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		auditRec.AddMeta("errors", errList)
 		if len(goodEmails) > 0 {
-			c.App.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL)
+			c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), goodEmails, *c.App.Config().ServiceSettings.SiteURL)
 		}
 		// in graceful mode we return both the successful ones and the failed ones
 		w.Write([]byte(model.EmailInviteWithErrorToJson(invitesWithErrors)))
@@ -101,7 +130,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
-		c.App.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL)
+		c.App.Srv().EmailService.SendInviteEmails(team, "Administrator", "mmctl "+model.NewId(), emailList, *c.App.Config().ServiceSettings.SiteURL)
 		ReturnStatusOK(w)
 	}
 	auditRec.Success()

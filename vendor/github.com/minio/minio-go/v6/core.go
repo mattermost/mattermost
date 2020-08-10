@@ -21,7 +21,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/minio/minio-go/v6/pkg/encrypt"
 )
@@ -85,34 +84,13 @@ func (c Core) CopyObjectPart(srcBucket, srcObject, destBucket, destObject string
 }
 
 // PutObjectWithContext - Upload object. Uploads using single PUT call.
-func (c Core) PutObjectWithContext(ctx context.Context, bucket, object string, data io.Reader, size int64, md5Base64, sha256Hex string, metadata map[string]string, sse encrypt.ServerSide) (ObjectInfo, error) {
-	opts := PutObjectOptions{}
-	m := make(map[string]string)
-	for k, v := range metadata {
-		if strings.ToLower(k) == "content-encoding" {
-			opts.ContentEncoding = v
-		} else if strings.ToLower(k) == "content-disposition" {
-			opts.ContentDisposition = v
-		} else if strings.ToLower(k) == "content-language" {
-			opts.ContentLanguage = v
-		} else if strings.ToLower(k) == "content-type" {
-			opts.ContentType = v
-		} else if strings.ToLower(k) == "cache-control" {
-			opts.CacheControl = v
-		} else if strings.EqualFold(k, amzWebsiteRedirectLocation) {
-			opts.WebsiteRedirectLocation = v
-		} else {
-			m[k] = metadata[k]
-		}
-	}
-	opts.UserMetadata = m
-	opts.ServerSideEncryption = sse
+func (c Core) PutObjectWithContext(ctx context.Context, bucket, object string, data io.Reader, size int64, md5Base64, sha256Hex string, opts PutObjectOptions) (ObjectInfo, error) {
 	return c.putObjectDo(ctx, bucket, object, data, md5Base64, sha256Hex, size, opts)
 }
 
 // PutObject - Upload object. Uploads using single PUT call.
-func (c Core) PutObject(bucket, object string, data io.Reader, size int64, md5Base64, sha256Hex string, metadata map[string]string, sse encrypt.ServerSide) (ObjectInfo, error) {
-	return c.PutObjectWithContext(context.Background(), bucket, object, data, size, md5Base64, sha256Hex, metadata, sse)
+func (c Core) PutObject(bucket, object string, data io.Reader, size int64, md5Base64, sha256Hex string, opts PutObjectOptions) (ObjectInfo, error) {
+	return c.PutObjectWithContext(context.Background(), bucket, object, data, size, md5Base64, sha256Hex, opts)
 }
 
 // NewMultipartUpload - Initiates new multipart upload and returns the new uploadID.

@@ -5,15 +5,17 @@ package app
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDownloadFromURL(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	app := th.App
