@@ -969,15 +969,6 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	var originalConfigVal bool
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		originalConfigVal = *cfg.TeamSettings.ExperimentalViewArchivedChannels
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
-	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = originalConfigVal
-	})
-
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		channels, resp := client.GetAllChannels(0, 20, "")
 		CheckNoError(t, resp)
@@ -1264,10 +1255,6 @@ func TestSearchAllChannels(t *testing.T) {
 		TeamId:           team.Id,
 	})
 	CheckNoError(t, groupErr)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-	})
 
 	testCases := []struct {
 		Description        string
@@ -3945,35 +3932,35 @@ func TestMoveChannel(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 
-	t.Run("Should fail to move channel due to a member not member of target team", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		publicChannel := th.CreatePublicChannel()
 		user := th.BasicUser
 
-		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
 		CheckNoError(t, resp)
 
-		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
+		_, resp = client.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		_, resp = th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
+		_, resp = client.MoveChannel(publicChannel.Id, team2.Id, false)
 		require.NotNil(t, resp.Error)
 		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
-	})
+	}, "Should fail to move channel due to a member not member of target team")
 
-	t.Run("Should be able to (force) move channel by a member that is not member of target team", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		publicChannel := th.CreatePublicChannel()
 		user := th.BasicUser
 
-		_, resp := th.SystemAdminClient.RemoveTeamMember(team2.Id, user.Id)
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
 		CheckNoError(t, resp)
 
-		_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user.Id)
+		_, resp = client.AddChannelMember(publicChannel.Id, user.Id)
 		CheckNoError(t, resp)
 
-		newChannel, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, true)
+		newChannel, resp := client.MoveChannel(publicChannel.Id, team2.Id, true)
 		require.Nil(t, resp.Error)
 		require.Equal(t, team2.Id, newChannel.TeamId)
-	})
+	}, "Should be able to (force) move channel by a member that is not member of target team")
 }
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
