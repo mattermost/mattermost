@@ -5167,8 +5167,10 @@ func TestMigrateAuthToLDAP(t *testing.T) {
 	_, err := th.Client.MigrateAuthToLdap("email", "a", false)
 	CheckForbiddenStatus(t, err)
 
-	_, err = th.SystemAdminClient.MigrateAuthToLdap("email", "a", false)
-	CheckNotImplementedStatus(t, err)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToLdap("email", "a", false)
+		CheckNotImplementedStatus(t, err)
+	})
 }
 
 func TestMigrateAuthToSAML(t *testing.T) {
@@ -5178,6 +5180,8 @@ func TestMigrateAuthToSAML(t *testing.T) {
 	_, err := th.Client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
 	CheckForbiddenStatus(t, err)
 
-	_, err = th.SystemAdminClient.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
-	CheckNotImplementedStatus(t, err)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+		CheckNotImplementedStatus(t, err)
+	})
 }
