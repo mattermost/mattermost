@@ -43,7 +43,7 @@ require (
 	github.com/hashicorp/go-hclog v0.14.1
 	github.com/hashicorp/go-immutable-radix v1.2.0 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
-	github.com/hashicorp/go-multierror v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
@@ -63,6 +63,7 @@ require (
 	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+	github.com/mattermost/logr v1.0.5
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-colorable v0.1.7 // indirect
@@ -78,6 +79,7 @@ require (
 	github.com/olivere/elastic v6.2.33+incompatible // indirect
 	github.com/onsi/ginkgo v1.12.0 // indirect
 	github.com/onsi/gomega v1.9.0 // indirect
+	github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.8.0 // indirect
@@ -108,7 +110,6 @@ require (
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.1
-	github.com/wiggin77/logr v1.0.4
 	github.com/wiggin77/merror v1.0.2
 	github.com/wiggin77/srslog v1.0.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect

@@ -5,11 +5,13 @@ package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlTokenStore struct {
@@ -32,33 +34,33 @@ func newSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 func (s SqlTokenStore) createIndexesIfNotExists() {
 }
 
-func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
+func (s SqlTokenStore) Save(token *model.Token) error {
 	if err := token.IsValid(); err != nil {
 		return err
 	}
 
 	if err := s.GetMaster().Insert(token); err != nil {
-		return model.NewAppError("SqlTokenStore.Save", "store.sql_recover.save.app_error", nil, "", http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to save Token")
 	}
 	return nil
 }
 
-func (s SqlTokenStore) Delete(token string) *model.AppError {
+func (s SqlTokenStore) Delete(token string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-		return model.NewAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "", http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete Token with value %s", token)
 	}
 	return nil
 }
 
-func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, *model.AppError) {
+func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	token := &model.Token{}
 
 	if err := s.GetReplica().SelectOne(token, "SELECT * FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
 
-		return nil, model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
 	}
 
 	return token, nil
@@ -72,9 +74,9 @@ func (s SqlTokenStore) Cleanup() {
 	}
 }
 
-func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) *model.AppError {
+func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Type = :TokenType", map[string]interface{}{"TokenType": tokenType}); err != nil {
-		return model.NewAppError("SqlTokenStore.RemoveAllTokensByType", "store.sql_recover.remove_all_tokens_by_type.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to remove all Tokens with Type=%s", tokenType)
 	}
 	return nil
 }

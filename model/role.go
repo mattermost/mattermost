@@ -364,6 +364,23 @@ func (r *Role) IsValidWithoutId() bool {
 	return true
 }
 
+func CleanRoleNames(roleNames []string) ([]string, bool) {
+	var cleanedRoleNames []string
+	for _, roleName := range roleNames {
+		if strings.TrimSpace(roleName) == "" {
+			continue
+		}
+
+		if !IsValidRoleName(roleName) {
+			return roleNames, false
+		}
+
+		cleanedRoleNames = append(cleanedRoleNames, roleName)
+	}
+
+	return cleanedRoleNames, true
+}
+
 func IsValidRoleName(roleName string) bool {
 	if len(roleName) <= 0 || len(roleName) > ROLE_NAME_MAX_LENGTH {
 		return false

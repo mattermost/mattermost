@@ -275,7 +275,7 @@ func userActivateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -322,7 +322,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -338,7 +338,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
@@ -556,7 +556,7 @@ func userConvertCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	toBot, err := command.Flags().GetBool("bot")
 	if err != nil {
@@ -589,7 +589,7 @@ func userInviteCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
@@ -623,7 +623,7 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 		return fmt.Errorf("Email invites are disabled.")
 	}
 
-	a.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
+	a.Srv().EmailService.SendInviteEmails(team, "Administrator", "Mattermost CLI "+model.NewId(), invites, *a.Config().ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
 	auditRec := a.MakeAuditRecord("inviteUser", audit.Success)
@@ -639,7 +639,7 @@ func resetUserPasswordCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
 		return errors.New("Expected two arguments. See help text for details.")
@@ -667,7 +667,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) != 2 {
 		return errors.New("Expected two arguments. See help text for details.")
@@ -707,7 +707,7 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -736,7 +736,7 @@ func deleteUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -789,7 +789,7 @@ func deleteAllUsersCommandF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) > 0 {
 		return errors.New("Expected zero arguments.")
@@ -834,7 +834,7 @@ func migrateAuthToLdapCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	fromAuth := args[0]
 	matchField := args[2]
@@ -878,7 +878,7 @@ func migrateAuthToSamlCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	dryRunFlag, _ := command.Flags().GetBool("dryRun")
 	autoFlag, _ := command.Flags().GetBool("auto")
@@ -939,7 +939,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -965,7 +965,7 @@ func searchUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")

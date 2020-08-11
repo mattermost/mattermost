@@ -19,7 +19,7 @@ import (
 var linkMetadataTimestamp int64 = 1546300800000
 
 func getNextLinkMetadataTimestamp() int64 {
-	linkMetadataTimestamp += int64(time.Hour) / 1000
+	linkMetadataTimestamp += int64(time.Hour) / (1000 * 1000)
 	return linkMetadataTimestamp
 }
 
