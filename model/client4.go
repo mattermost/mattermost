@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -116,6 +117,19 @@ func (c *Client4) Must(result interface{}, resp *Response) interface{} {
 
 func NewAPIv4Client(url string) *Client4 {
 	return &Client4{url, url + API_URL_SUFFIX, &http.Client{}, "", "", map[string]string{}, "", ""}
+}
+
+func NewAPIv4SocketClient(socketPath string) *Client4 {
+	tr := &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", socketPath)
+		},
+	}
+
+	client := NewAPIv4Client("http://_")
+	client.HttpClient = &http.Client{Transport: tr}
+
+	return client
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
@@ -1224,6 +1238,40 @@ func (c *Client4) DeleteUser(userId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// PermanentDeleteUser deletes a user in the system based on the provided user id string.
+func (c *Client4) PermanentDeleteUser(userId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetUserRoute(userId) + "?permanent=" + c.boolString(true))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// ConvertUserToBot converts a user to a bot user.
+func (c *Client4) ConvertUserToBot(userId string) (*Bot, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/convert_to_bot", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// ConvertBotToUser converts a bot user to a user.
+func (c *Client4) ConvertBotToUser(userId string, userPatch *UserPatch, setSystemAdmin bool) (*User, *Response) {
+	var query string
+	if setSystemAdmin {
+		query = "?set_system_admin=true"
+	}
+	r, err := c.DoApiPost(c.GetBotRoute(userId)+"/convert_to_user"+query, userPatch.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserFromJson(r.Body), BuildResponse(r)
 }
 
 // PermanentDeleteAll permanently deletes all users in the system. This is a local only endpoint
@@ -2442,6 +2490,18 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
+// GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
+func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
@@ -2503,11 +2563,12 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 }
 
 // MoveChannel moves the channel to the destination team.
-func (c *Client4) MoveChannel(channelId, teamId string) (*Channel, *Response) {
-	requestBody := map[string]string{
+func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response) {
+	requestBody := map[string]interface{}{
 		"team_id": teamId,
+		"force":   force,
 	}
-	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", MapToJson(requestBody))
+	r, err := c.DoApiPost(c.GetChannelRoute(channelId)+"/move", StringInterfaceToJson(requestBody))
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -3833,6 +3894,18 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
+// MigrateIdLdap migrates the LDAP enabled users to given attribute
+func (c *Client4) MigrateIdLdap(toAttribute string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetLdapRoute()+"/migrateid", MapToJson(map[string]string{
+		"toAttribute": toAttribute,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
 func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*GroupWithSchemeAdmin, int, *Response) {
 	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v&filter_allow_reference=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount, opts.FilterAllowReference)
@@ -4638,6 +4711,21 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DownloadJob downloads the results of the job
+func (c *Client4) DownloadJob(jobId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
 // Roles Section
 
 // GetRole gets a single role by ID.
@@ -5308,4 +5396,19 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 	}
 
 	return cat, BuildResponse(r)
+}
+
+// CheckIntegrity performs a database integrity check.
+func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
+	r, err := c.DoApiPost("/integrity", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var results []IntegrityCheckResult
+	if err := json.NewDecoder(r.Body).Decode(&results); err != nil {
+		appErr := NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	return results, BuildResponse(r)
 }

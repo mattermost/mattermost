@@ -159,6 +159,8 @@ github.com/google/btree
 # github.com/google/uuid v1.1.1
 ## explicit
 github.com/google/uuid
+# github.com/gopherjs/gopherjs v0.0.0-20190910122728-9d188e94fb99
+github.com/gopherjs/gopherjs/js
 # github.com/gorilla/handlers v1.4.2
 ## explicit
 github.com/gorilla/handlers
@@ -283,6 +285,11 @@ github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 ## explicit
 github.com/mattermost/ldap
+# github.com/mattermost/logr v1.0.5
+## explicit
+github.com/mattermost/logr
+github.com/mattermost/logr/format
+github.com/mattermost/logr/target
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 ## explicit
 github.com/mattermost/rsc/gf256
@@ -355,6 +362,10 @@ github.com/olivere/elastic/uritemplates
 ## explicit
 # github.com/onsi/gomega v1.9.0
 ## explicit
+# github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
+## explicit
+github.com/oov/psd
+github.com/oov/psd/color
 # github.com/opentracing/opentracing-go v1.1.0
 ## explicit
 github.com/opentracing/opentracing-go
@@ -496,11 +507,6 @@ github.com/vmihailenco/tagparser/internal/parser
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
 github.com/wiggin77/cfg/timeconv
-# github.com/wiggin77/logr v1.0.4
-## explicit
-github.com/wiggin77/logr
-github.com/wiggin77/logr/format
-github.com/wiggin77/logr/target
 # github.com/wiggin77/merror v1.0.2
 ## explicit
 github.com/wiggin77/merror

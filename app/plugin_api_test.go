@@ -250,7 +250,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 			assert.Equal(t, "0", pref.Value)
 		} else {
 			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
-			assert.Equal(t, string(newTheme), preferences[0].Value)
+			assert.Equal(t, string(newTheme), pref.Value)
 		}
 	}
 }
@@ -343,7 +343,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -847,7 +847,7 @@ func TestInstallPlugin(t *testing.T) {
 		}, pluginDir
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// start an http server to serve plugin's tarball to the test.
@@ -1070,7 +1070,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1166,7 +1166,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1274,7 +1274,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1311,7 +1311,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1360,7 +1360,7 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginApiTest(t,
@@ -1460,7 +1460,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestApiMetrics(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
@@ -1584,7 +1584,7 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 }
 
 func TestPluginHTTPConnHijack(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
@@ -1619,7 +1619,7 @@ func TestPluginHTTPConnHijack(t *testing.T) {
 }
 
 func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
@@ -1729,4 +1729,89 @@ func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
 			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
 		})
 	}
+}
+
+func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+		cmds, appErr := listXCommand(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		for _, cmd := range cmds {
+			if cmd.Trigger == "testcmd" {
+				return true
+			}
+		}
+		return false
+	}
+
+	require.False(t, foundCommand(api.ListCommands))
+
+	cmd := &model.Command{
+		TeamId:  th.BasicTeam.Id,
+		Trigger: "testcmd",
+		Method:  "G",
+		URL:     "http://test.com/testcmd",
+	}
+
+	cmd, appErr := api.CreateCommand(cmd)
+	require.Nil(t, appErr)
+
+	newCmd, appErr := api.GetCommand(cmd.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.Equal(t, "", newCmd.CreatorId)
+	require.True(t, foundCommand(api.ListCommands))
+	require.True(t, foundCommand(api.ListCustomCommands))
+	require.False(t, foundCommand(api.ListPluginCommands))
+}
+
+func TestPluginAPIUpdateCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	cmd := &model.Command{
+		TeamId:  th.BasicTeam.Id,
+		Trigger: "testcmd",
+		Method:  "G",
+		URL:     "http://test.com/testcmd",
+	}
+
+	cmd, appErr := api.CreateCommand(cmd)
+	require.Nil(t, appErr)
+
+	newCmd, appErr := api.GetCommand(cmd.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.Equal(t, "", newCmd.CreatorId)
+
+	newCmd.Trigger = "NewTrigger"
+	newCmd.PluginId = "CannotChangeMe"
+	newCmd2, appErr := api.UpdateCommand(newCmd.Id, newCmd)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd2.PluginId)
+	require.Equal(t, "newtrigger", newCmd2.Trigger)
+
+	team1 := th.CreateTeam()
+
+	newCmd2.PluginId = "CannotChangeMe"
+	newCmd2.Trigger = "anotherNewTrigger"
+	newCmd2.TeamId = team1.Id
+	newCmd3, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd3.PluginId)
+	require.Equal(t, "anothernewtrigger", newCmd3.Trigger)
+	require.Equal(t, team1.Id, newCmd3.TeamId)
+
+	newCmd3.Trigger = "anotherNewTriggerAgain"
+	newCmd3.TeamId = ""
+	newCmd4, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
+	require.Nil(t, appErr)
+	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
+	require.Equal(t, team1.Id, newCmd4.TeamId)
+
 }
