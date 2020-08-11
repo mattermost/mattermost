@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
-	"github.com/mattermost/mattermost-server/v5/services/cache2"
+	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
@@ -121,7 +121,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	// it hasn't previously been seen.
 	var postId string
 	nErr := a.Srv().seenPendingPostIdsCache.Get(post.PendingPostId, &postId)
-	if nErr == cache2.ErrKeyNotFound {
+	if nErr == cache.ErrKeyNotFound {
 		a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
 		return nil, nil
 	}

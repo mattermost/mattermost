@@ -70,8 +70,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr := th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
@@ -88,8 +88,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -103,8 +103,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -121,8 +121,8 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
-	err = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
-	require.Nil(t, err)
+	nErr = th.App.Srv().Store.Session().UpdateLastActivityAt(session.Id, time)
+	require.Nil(t, nErr)
 	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
@@ -343,10 +343,62 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			require.Equal(t, session.ExpiresAt, cachedSession.ExpiresAt)
 
 			// check database was updated.
-			storedSession, err := th.App.Srv().Store.Session().Get(session.Token)
-			require.Nil(t, err)
+			storedSession, nErr := th.App.Srv().Store.Session().Get(session.Token)
+			require.Nil(t, nErr)
 			require.Equal(t, session.ExpiresAt, storedSession.ExpiresAt)
 		})
 	}
 
+}
+
+const (
+	dayInMillis = 86400000
+	grace       = 5 * 1000
+	thirtyDays  = dayInMillis * 30
+)
+
+func TestApp_SetSessionExpireInDays(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	now := model.GetMillis()
+	createAt := now - (dayInMillis * 20)
+
+	tests := []struct {
+		name   string
+		extend bool
+		create bool
+		days   int
+		want   int64
+	}{
+		{name: "zero days, extend", extend: true, create: true, days: 0, want: now},
+		{name: "zero days, extend", extend: true, create: false, days: 0, want: now},
+		{name: "zero days, no extend", extend: false, create: true, days: 0, want: createAt},
+		{name: "zero days, no extend", extend: false, create: false, days: 0, want: now},
+		{name: "thirty days, extend", extend: true, create: true, days: 30, want: now + thirtyDays},
+		{name: "thirty days, extend", extend: true, create: false, days: 30, want: now + thirtyDays},
+		{name: "thirty days, no extend", extend: false, create: true, days: 30, want: createAt + thirtyDays},
+		{name: "thirty days, no extend", extend: false, create: false, days: 30, want: now + thirtyDays},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.ExtendSessionLengthWithActivity = tt.extend
+			})
+			var create int64
+			if tt.create {
+				create = createAt
+			}
+
+			session := &model.Session{
+				CreateAt:  create,
+				ExpiresAt: model.GetMillis() + dayInMillis,
+			}
+			th.App.SetSessionExpireInDays(session, tt.days)
+
+			// must be within 5 seconds of expected time.
+			require.GreaterOrEqual(t, session.ExpiresAt, tt.want-grace)
+			require.LessOrEqual(t, session.ExpiresAt, tt.want+grace)
+		})
+	}
 }

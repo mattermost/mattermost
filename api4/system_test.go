@@ -21,7 +21,7 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("basic ping", func(t *testing.T) {
@@ -67,7 +67,7 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -95,7 +95,7 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -162,7 +162,7 @@ func TestEmailTest(t *testing.T) {
 }
 
 func TestSiteURLTest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -203,7 +203,7 @@ func TestSiteURLTest(t *testing.T) {
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -226,7 +226,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -252,7 +252,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	for i := 0; i < 20; i++ {
@@ -286,7 +286,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -395,7 +395,7 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -464,7 +464,7 @@ func TestS3TestConnection(t *testing.T) {
 }
 
 func TestSupportedTimezones(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -487,7 +487,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	mockBitlyLink := testServer.URL
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
@@ -532,7 +532,7 @@ func TestRedirectLocation(t *testing.T) {
 }
 
 func TestSetServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	const secs = 30
@@ -544,31 +544,31 @@ func TestSetServerBusy(t *testing.T) {
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.SetServerBusy(secs)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.SetServerBusy(secs)
 		CheckNoError(t, resp)
 		require.True(t, ok, "should set server busy successfully")
 		require.True(t, th.App.Srv().Busy.IsBusy(), "server should be marked busy")
-	})
+	}, "as system admin")
 }
 
 func TestSetServerBusyInvalidParam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
-	t.Run("as system admin, invalid param", func(t *testing.T) {
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MAX_SERVER_BUSY_SECONDS + 1}
 		for _, p := range params {
-			ok, resp := th.SystemAdminClient.SetServerBusy(p)
+			ok, resp := c.SetServerBusy(p)
 			CheckBadRequestStatus(t, resp)
 			require.False(t, ok, "should not set server busy due to invalid param ", p)
 			require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy due to invalid param ", p)
 		}
-	})
+	}, "as system admin, invalid param")
 }
 
 func TestClearServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -580,16 +580,16 @@ func TestClearServerBusy(t *testing.T) {
 	})
 
 	th.App.Srv().Busy.Set(time.Second * 30)
-	t.Run("as system admin", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.ClearServerBusy()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.ClearServerBusy()
 		CheckNoError(t, resp)
 		require.True(t, ok, "should clear server busy flag successfully")
 		require.False(t, th.App.Srv().Busy.IsBusy(), "server should not be marked busy")
-	})
+	}, "as system admin")
 }
 
 func TestGetServerBusy(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -599,16 +599,16 @@ func TestGetServerBusy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		sbs, resp := th.SystemAdminClient.GetServerBusy()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		sbs, resp := c.GetServerBusy()
 		expires := time.Unix(sbs.Expires, 0)
 		CheckNoError(t, resp)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
-	})
+	}, "as system admin")
 }
 
 func TestGetServerBusyExpires(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -618,15 +618,15 @@ func TestGetServerBusyExpires(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("as system admin", func(t *testing.T) {
-		expires, resp := th.SystemAdminClient.GetServerBusyExpires()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		expires, resp := c.GetServerBusyExpires()
 		CheckNoError(t, resp)
 		require.Greater(t, expires.Unix(), time.Now().Unix())
-	})
+	}, "as system admin")
 }
 
 func TestServerBusy503(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.Srv().Busy.Set(time.Second * 30)
@@ -665,7 +665,7 @@ func TestServerBusy503(t *testing.T) {
 }
 
 func TestPushNotificationAck(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	api := Init(th.Server, th.Server.AppOptions, th.Server.Router)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	defer th.TearDown()
