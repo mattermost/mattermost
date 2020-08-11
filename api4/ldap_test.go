@@ -12,7 +12,7 @@ import (
 )
 
 func TestTestLdap(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -37,7 +37,7 @@ func TestTestLdap(t *testing.T) {
 }
 
 func TestSyncLdap(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -59,7 +59,7 @@ func TestSyncLdap(t *testing.T) {
 }
 
 func TestGetLdapGroups(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	_, resp := th.Client.GetLdapGroups()
@@ -74,7 +74,7 @@ func TestGetLdapGroups(t *testing.T) {
 func TestLinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	_, resp := th.Client.LinkLdapGroup(entryUUID)
@@ -87,7 +87,7 @@ func TestLinkLdapGroup(t *testing.T) {
 func TestUnlinkLdapGroup(t *testing.T) {
 	const entryUUID string = "foo"
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	_, resp := th.Client.UnlinkLdapGroup(entryUUID)
@@ -95,4 +95,20 @@ func TestUnlinkLdapGroup(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.UnlinkLdapGroup(entryUUID)
 	CheckNotImplementedStatus(t, resp)
+}
+
+func TestMigrateIdLdap(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	_, resp := th.Client.MigrateIdLdap("objectGUID")
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.MigrateIdLdap("")
+		CheckBadRequestStatus(t, resp)
+
+		_, resp = client.MigrateIdLdap("objectGUID")
+		CheckNotImplementedStatus(t, resp)
+	})
 }

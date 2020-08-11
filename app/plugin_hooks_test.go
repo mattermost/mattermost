@@ -788,7 +788,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -834,7 +834,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 }
 
 func TestErrorString(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("errors.New", func(t *testing.T) {
@@ -963,7 +963,7 @@ func TestHookContext(t *testing.T) {
 }
 
 func TestActiveHooks(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
@@ -1034,7 +1034,7 @@ func TestActiveHooks(t *testing.T) {
 }
 
 func TestHookMetrics(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {

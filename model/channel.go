@@ -120,12 +120,18 @@ type ChannelModeratedRolesPatch struct {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	IncludeDeleted         bool
-	ExcludeChannelNames    []string
-	Page                   *int
-	PerPage                *int
+	NotAssociatedToGroup    string
+	ExcludeDefaultChannels  bool
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
 }
 
 type ChannelMemberCountByGroup struct {

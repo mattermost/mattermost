@@ -24,13 +24,15 @@ type Context struct {
 	siteURLHeader string
 }
 
-// LogAuditRec logs an audit record using default RestLevel.
+// LogAuditRec logs an audit record using default LevelAPI.
 func (c *Context) LogAuditRec(rec *audit.Record) {
-	c.LogAuditRecWithLevel(rec, app.RestLevel)
+	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
 
 // LogAuditRec logs an audit record using specified Level.
-func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
+// If the context is flagged with a permissions error then `level`
+// is ignored and the audit record is emitted with `LevelPerms`.
+func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel) {
 	if rec == nil {
 		return
 	}
@@ -38,7 +40,7 @@ func (c *Context) LogAuditRecWithLevel(rec *audit.Record, level audit.Level) {
 		rec.AddMeta("err", c.Err.Id)
 		rec.AddMeta("code", c.Err.StatusCode)
 		if c.Err.Id == "api.context.permissions.app_error" {
-			level = app.RestPermsLevel
+			level = app.LevelPerms
 		}
 		rec.Fail()
 	}
@@ -152,35 +154,36 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session().UserId); err != nil {
-		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
 		return
-	} else {
-		if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
-			return
-		}
-		// Only required for email and ldap accounts
-		if user.AuthService != "" &&
-			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
-			user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-			return
-		}
+	}
 
-		// Special case to let user get themself
-		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
-			return
-		}
+	if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+		return
+	}
+	// Only required for email and ldap accounts
+	if user.AuthService != "" &&
+		user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
+		user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return
+	}
 
-		// Bots are exempt
-		if user.IsBot {
-			return
-		}
+	// Special case to let user get themself
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+	if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
+		return
+	}
 
-		if !user.MfaActive {
-			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
-			return
-		}
+	// Bots are exempt
+	if user.IsBot {
+		return
+	}
+
+	if !user.MfaActive {
+		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
+		return
 	}
 }
 
@@ -289,6 +292,17 @@ func (c *Context) RequireTeamId() *Context {
 
 	if !model.IsValidId(c.Params.TeamId) {
 		c.SetInvalidUrlParam("team_id")
+	}
+	return c
+}
+
+func (c *Context) RequireCategoryId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.CategoryId) != 26 {
+		c.SetInvalidUrlParam("category_id")
 	}
 	return c
 }
