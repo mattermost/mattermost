@@ -4343,6 +4343,18 @@
     "translation": "We could not permanently delete the schemes."
   },
   {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Rate limiter is not set up."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Error occurred in the rate limiter."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Invite emails rate limit exceeded."
+  },
+  {
     "id": "app.scheme.save.app_error",
     "translation": "Unable to create the scheme."
   },
