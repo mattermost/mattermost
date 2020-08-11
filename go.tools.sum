@@ -54,13 +54,10 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
-github.com/mattermost/mattermost-utilities v0.0.0-20200521071950-1be063e1b2fe h1:J3mFBH2bVwqNAdg2OFVP68wJ6jYyNu9FBHH+xBSTV5k=
-github.com/mattermost/mattermost-utilities v0.0.0-20200521071950-1be063e1b2fe/go.mod h1:B4cClV5qPUzy0eAaEDkfb/bq5I+5dyTgqTlnLPQdkcg=
-github.com/mattermost/mattermost-utilities v0.0.0-20200720080147-779d19605c57 h1:skF0+Bx/jTJRSHB8y4pviychv609+shlm8RbJQjSpWQ=
-github.com/mattermost/mattermost-utilities v0.0.0-20200720080147-779d19605c57/go.mod h1:B4cClV5qPUzy0eAaEDkfb/bq5I+5dyTgqTlnLPQdkcg=
-github.com/mattermost/mattermost-utilities v1.0.0 h1:sSFG2jvud8yJAKAhmuljBgQG/Z5C++bFJJF5U3clJv8=
-github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200720080147-779d19605c57 h1:CMaXZflqgFvajZGLJ7mV7kjLCmQe5S9Lc7sj3irmtO8=
-github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200720080147-779d19605c57/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200721093743-053c38dcd293 h1:N9FaqZD58xkAIJGFGY5qdKXGlY2aNMaYQ9KkVEXv8xE=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200721093743-053c38dcd293/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200730135456-e2334fe87160 h1:+JXFDXEkbMieBt54Rihj3ppnZ/Pm1kZxkLOD0hrWFzs=
+github.com/mattermost/mattermost-utilities/mmgotool v0.0.0-20200730135456-e2334fe87160/go.mod h1:3gKozJI8n2Y/vW37GfnFWAdehGXe5yZlt+HykK6Y3DM=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=

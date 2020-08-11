@@ -143,7 +143,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	seed, err := command.Flags().GetInt64("seed")
 	if err != nil {
