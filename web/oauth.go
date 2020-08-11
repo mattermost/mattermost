@@ -144,7 +144,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !oauthApp.IsValidRedirectURL(authRequest.RedirectUri) {
 		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
+			url.Values{
+				"type":    []string{"oauth_invalid_redirect_url"},
+				"message": []string{utils.T("api.oauth.allow_oauth.redirect_callback.app_error")},
+			}, c.App.AsymmetricSigningKey())
 		return
 	}
 
@@ -306,7 +310,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		if parseErr != nil {
 			mlog.Error("Error parsing boolean property from props", mlog.Err(parseErr))
 		}
-		err = c.App.DoLogin(w, r, user, "", isMobile, true, false)
+		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
 			c.Err = err

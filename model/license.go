@@ -81,6 +81,7 @@ type Features struct {
 	IDLoadedPushNotifications *bool `json:"id_loaded"`
 	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display"`
 	EnterprisePlugins         *bool `json:"enterprise_plugins"`
+	AdvancedLogging           *bool `json:"advanced_logging"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -108,6 +109,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"id_loaded":                   *f.IDLoadedPushNotifications,
 		"lock_teammate_name_display":  *f.LockTeammateNameDisplay,
 		"enterprise_plugins":          *f.EnterprisePlugins,
+		"advanced_logging":            *f.AdvancedLogging,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -211,6 +213,10 @@ func (f *Features) SetDefaults() {
 
 	if f.EnterprisePlugins == nil {
 		f.EnterprisePlugins = NewBool(*f.FutureFeatures)
+	}
+
+	if f.AdvancedLogging == nil {
+		f.AdvancedLogging = NewBool(*f.FutureFeatures)
 	}
 }
 

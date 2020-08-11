@@ -4,7 +4,9 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"regexp"
 	"strings"
 	"testing"
@@ -266,8 +268,14 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 		TimeZone: zone,
 	}
 
+	tmp, err := template.New("foo").Parse(`{{.}}`)
+	require.NoError(t, err)
+	var text bytes.Buffer
+	err = tmp.Execute(&text, fmt.Sprintf("sender - %s:%s %s, %s %s", formattedTime.Hour, formattedTime.Minute, formattedTime.TimeZone, formattedTime.Month, formattedTime.Day))
+	require.NoError(t, err)
+
 	body := th.App.getNotificationEmailBody(recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc)
-	postTimeLine := fmt.Sprintf("sender - %s:%s %s, %s %s", formattedTime.Hour, formattedTime.Minute, formattedTime.TimeZone, formattedTime.Month, formattedTime.Day)
+	postTimeLine := text.String()
 	require.Contains(t, body, postTimeLine, fmt.Sprintf("Expected email text '%s'. Got %s", postTimeLine, body))
 }
 

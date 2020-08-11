@@ -102,3 +102,16 @@ func (e *ErrOutOfBounds) Error() string {
 func NewErrOutOfBounds(value int) *ErrOutOfBounds {
 	return &ErrOutOfBounds{value: value}
 }
+
+// ErrNotImplemented indicates that some feature or requirement is not implemented yet.
+type ErrNotImplemented struct {
+	detail string
+}
+
+func (e *ErrNotImplemented) Error() string {
+	return e.detail
+}
+
+func NewErrNotImplemented(detail string) *ErrNotImplemented {
+	return &ErrNotImplemented{detail: detail}
+}
