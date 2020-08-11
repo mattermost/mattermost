@@ -306,7 +306,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		if parseErr != nil {
 			mlog.Error("Error parsing boolean property from props", mlog.Err(parseErr))
 		}
-		err = c.App.DoLogin(w, r, user, "", isMobile, true, false)
+		err = c.App.DoLogin(w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.App.T)
 			c.Err = err
