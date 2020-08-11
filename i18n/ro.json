@@ -5368,46 +5368,6 @@
         "translation": "Imposibil de actualizat Postarea"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Imposibil de șters rolul"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Imposibilitatea de a obţine rolul"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Imposibilitatea de a obţine rolul"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Imposibilitatea de a obţine roluri"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Am putut şterge permanent toate rolurile"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Imposibil de salvat noul rol"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rolul nu a fost valid"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Nu a reuşit să deschidă tranzacţie pentru a salva rolul"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Imposibil de actualizat rolul"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Nu a reuşit să se angajeze tranzacţie pentru a salva rolul"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "A apărut o eroare la preluarea stării"
     },
@@ -6170,10 +6130,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Nu s-a efectuat tranzacția bazei de date"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Imposibil de obținut toate rolurile."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7896,10 +7852,6 @@
         "translation": "Am întâlnit o eroare la ștergerea preferințelor."
     },
     {
-        "id": "",
-        "translation": " "
-    },
-    {
         "id": "store.sql_group.more_than_one_row_changed",
         "translation": "S-au schimbat mai multe rânduri."
     },
@@ -8042,5 +7994,45 @@
     {
         "id": "model.command.is_valid.plugin_id.app_error",
         "translation": "ID-ul pluginului este invalid."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Nu am putut obține toate echipele private."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Director de stocare local invalid. Trebuie să fie un șir care nu este gol."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Imposibil de convertit botul în utilizator."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rolul nu era valabil."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Imposibil de salvat un nou rol."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Nu am putut șterge definitiv toate rolurile."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Imposibil de obținut roluri."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Imposibil de a primi rol."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Imposibil de obținut toate rolurile."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Imposibil de a primi rol."
     }
 ]
