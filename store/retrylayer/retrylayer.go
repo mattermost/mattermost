@@ -3024,57 +3024,183 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 
 }
 
-func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 
-	return s.PluginStore.CompareAndDelete(keyVal, oldValue)
-
-}
-
-func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
-
-	return s.PluginStore.CompareAndSet(keyVal, oldValue)
-
-}
-
-func (s *RetryLayerPluginStore) Delete(pluginId string, key string) *model.AppError {
-
-	return s.PluginStore.Delete(pluginId, key)
-
-}
-
-func (s *RetryLayerPluginStore) DeleteAllExpired() *model.AppError {
-
-	return s.PluginStore.DeleteAllExpired()
+	tries := 0
+	for {
+		result, err := s.PluginStore.CompareAndDelete(keyVal, oldValue)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
+func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 
-	return s.PluginStore.DeleteAllForPlugin(PluginId)
-
-}
-
-func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
-
-	return s.PluginStore.Get(pluginId, key)
-
-}
-
-func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, *model.AppError) {
-
-	return s.PluginStore.List(pluginId, page, perPage)
-
-}
-
-func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
-
-	return s.PluginStore.SaveOrUpdate(keyVal)
+	tries := 0
+	for {
+		result, err := s.PluginStore.CompareAndSet(keyVal, oldValue)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (s *RetryLayerPluginStore) Delete(pluginId string, key string) error {
 
-	return s.PluginStore.SetWithOptions(pluginId, key, value, options)
+	tries := 0
+	for {
+		err := s.PluginStore.Delete(pluginId, key)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) DeleteAllExpired() error {
+
+	tries := 0
+	for {
+		err := s.PluginStore.DeleteAllExpired()
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) error {
+
+	tries := 0
+	for {
+		err := s.PluginStore.DeleteAllForPlugin(PluginId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.Get(pluginId, key)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.List(pluginId, page, perPage)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.SaveOrUpdate(keyVal)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.SetWithOptions(pluginId, key, value, options)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
