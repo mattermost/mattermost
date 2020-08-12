@@ -15,7 +15,7 @@ type ReactionStore struct {
 }
 
 // BulkGetForPosts provides a mock function with given fields: postIds
-func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	ret := _m.Called(postIds)
 
 	var r0 []*model.Reaction
@@ -27,20 +27,18 @@ func (_m *ReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
 		r1 = rf(postIds)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Delete provides a mock function with given fields: reaction
-func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)
 
 	var r0 *model.Reaction
@@ -52,36 +50,32 @@ func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Reaction) error); ok {
 		r1 = rf(reaction)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // DeleteAllWithEmojiName provides a mock function with given fields: emojiName
-func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+func (_m *ReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	ret := _m.Called(emojiName)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(emojiName)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // GetForPost provides a mock function with given fields: postId, allowFromCache
-func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error) {
 	ret := _m.Called(postId, allowFromCache)
 
 	var r0 []*model.Reaction
@@ -93,20 +87,18 @@ func (_m *ReactionStore) GetForPost(postId string, allowFromCache bool) ([]*mode
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(postId, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
-func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	ret := _m.Called(endTime, limit)
 
 	var r0 int64
@@ -116,20 +108,18 @@ func (_m *ReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64) error); ok {
 		r1 = rf(endTime, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // Save provides a mock function with given fields: reaction
-func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)
 
 	var r0 *model.Reaction
@@ -141,13 +131,11 @@ func (_m *ReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Reaction) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Reaction) error); ok {
 		r1 = rf(reaction)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

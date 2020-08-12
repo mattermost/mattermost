@@ -953,8 +953,14 @@ func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun 
 		EmojiName: *data.EmojiName,
 		CreateAt:  *data.CreateAt,
 	}
-	if _, err = a.Srv().Store.Reaction().Save(reaction); err != nil {
-		return err
+	if _, nErr := a.Srv().Store.Reaction().Save(reaction); nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("importReaction", "app.reaction.save.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
@@ -1422,8 +1428,14 @@ func (a *App) importDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 	}
 
 	if err := a.Srv().Store.Preference().Save(&preferences); err != nil {
-		err.StatusCode = http.StatusBadRequest
-		return err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			appErr.StatusCode = http.StatusBadRequest
+			return appErr
+		default:
+			return model.NewAppError("importDirectChannel", "app.preference.save.updating.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
 	}
 
 	if data.Header != nil {

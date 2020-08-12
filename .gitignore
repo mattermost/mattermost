@@ -36,7 +36,6 @@ imports/imports.go
 # Folders
 _obj
 _test
-.vscode
 testfiles
 
 # Architecture specific extensions/prefixes
@@ -72,6 +71,10 @@ app/workdir
 Session.vim
 .netrwhist
 *~
+
+# VSCode project files
+.vscode
+*.code-workspace
 
 # Gogland project files
 mattermost-server.iml
@@ -110,3 +113,4 @@ client
 __debug_bin
 report.xml
 go.*.orig
+config.override.mk

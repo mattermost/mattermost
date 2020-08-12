@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 	"testing"
@@ -892,6 +893,18 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 
 			time.Sleep(time.Millisecond)
 		}
+
+		t.Run("should return error if negative Page/PerPage options are passed", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: 0, PerPage: -1})
+			assert.Nil(t, postList)
+			assert.Error(t, err)
+			assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+
+			postList, err = ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: -1, PerPage: 10})
+			assert.Nil(t, postList)
+			assert.Error(t, err)
+			assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		})
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {
 			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: 0, PerPage: 10})
@@ -1889,8 +1902,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.Nil(t, err)
@@ -1905,8 +1918,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
 	require.Nil(t, err)
@@ -1933,8 +1946,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&preferences)
+	require.Nil(t, nErr)
 
 	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
 	require.Nil(t, err)
@@ -1987,20 +2000,20 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
 	require.Nil(t, err)
 	require.Len(t, r.Order, 1, "should have 1 post")
 
 	preference.Name = o2.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	preference.Name = o3.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
 	require.Nil(t, err)
@@ -2019,8 +2032,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 2, "should have 2 posts")
 
 	preference.Name = o4.Id
-	err = ss.Preference().Save(&model.Preferences{preference})
-	require.Nil(t, err)
+	nErr = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
 	require.Nil(t, err)

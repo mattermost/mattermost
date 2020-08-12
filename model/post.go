@@ -64,6 +64,7 @@ const (
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
 	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
+	POST_SYSTEM_WARN_METRIC_STATUS        = "warn_metric_status"
 )
 
 var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
@@ -312,7 +313,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_CHANNEL_RESTORED,
 		POST_CHANGE_CHANNEL_PRIVACY,
 		POST_ME,
-		POST_ADD_BOT_TEAMS_CHANNELS:
+		POST_ADD_BOT_TEAMS_CHANNELS,
+		POST_SYSTEM_WARN_METRIC_STATUS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -521,6 +523,9 @@ func (o *Post) DisableMentionHighlights() string {
 
 // DisableMentionHighlights disables mention highlighting for a post patch if required.
 func (o *PostPatch) DisableMentionHighlights() {
+	if o.Message == nil {
+		return
+	}
 	if _, hasMentions := findAtChannelMention(*o.Message); hasMentions {
 		if o.Props == nil {
 			o.Props = &StringInterface{}

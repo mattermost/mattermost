@@ -215,7 +215,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if count != 1 {
+	if count > 1 {
 		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count), http.StatusInternalServerError)
 	}
 
@@ -458,6 +458,121 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
 
+func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string) sq.SelectBuilder {
+	queryString := ""
+	if len(roles) > 0 && roles[0] != "" {
+		schemeGuest := false
+		schemeAdmin := false
+		schemeUser := false
+
+		for _, role := range roles {
+			switch role {
+			case model.SYSTEM_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.SYSTEM_USER_ROLE_ID:
+				schemeUser = true
+			case model.SYSTEM_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if schemeAdmin && schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' OR u.Roles LIKE '%system_admin%') `
+			} else if schemeAdmin {
+				queryString += `(u.Roles LIKE '%system_admin%') `
+			} else if schemeUser {
+				queryString += `(u.Roles LIKE '%system_user%' AND u.Roles NOT LIKE '%system_admin%') `
+			}
+
+			if schemeGuest {
+				if queryString != "" {
+					queryString += "OR "
+				}
+				queryString += `(u.Roles LIKE '%system_guest%') `
+			}
+		}
+	}
+
+	if len(channelRoles) > 0 && channelRoles[0] != "" {
+		schemeGuest := false
+		schemeAdmin := false
+		schemeUser := false
+		for _, channelRole := range channelRoles {
+			switch channelRole {
+			case model.CHANNEL_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.CHANNEL_USER_ROLE_ID:
+				schemeUser = true
+			case model.CHANNEL_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if queryString != "" {
+				queryString += "OR "
+			}
+			if schemeAdmin && schemeUser {
+				queryString += `(cm.SchemeUser = true AND u.Roles = 'system_user')`
+			} else if schemeAdmin {
+				queryString += `(cm.SchemeAdmin = true AND u.Roles = 'system_user')`
+			} else if schemeUser {
+				queryString += `(cm.SchemeUser = true AND cm.SchemeAdmin = false AND u.Roles = 'system_user')`
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
+				queryString += `(cm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			}
+		}
+	}
+
+	if len(teamRoles) > 0 && teamRoles[0] != "" {
+		schemeAdmin := false
+		schemeUser := false
+		schemeGuest := false
+		for _, teamRole := range teamRoles {
+			switch teamRole {
+			case model.TEAM_ADMIN_ROLE_ID:
+				schemeAdmin = true
+			case model.TEAM_USER_ROLE_ID:
+				schemeUser = true
+			case model.TEAM_GUEST_ROLE_ID:
+				schemeGuest = true
+			}
+		}
+
+		if schemeAdmin || schemeUser || schemeGuest {
+			if queryString != "" {
+				queryString += "OR "
+			}
+			if schemeAdmin && schemeUser {
+				queryString += `(tm.SchemeUser = true AND u.Roles = 'system_user')`
+			} else if schemeAdmin {
+				queryString += `(tm.SchemeAdmin = true AND u.Roles = 'system_user')`
+			} else if schemeUser {
+				queryString += `(tm.SchemeUser = true AND tm.SchemeAdmin = false AND u.Roles = 'system_user')`
+			}
+
+			if schemeGuest {
+				if queryString != "" && queryString[len(queryString)-3:] != "OR " {
+					queryString += "OR "
+				}
+				queryString += `(tm.SchemeGuest = true AND u.Roles = 'system_guest')`
+			}
+		}
+	}
+
+	if queryString != "" {
+		query = query.Where("(" + queryString + ")")
+	}
+
+	return query
+}
+
 func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {
 	if channelId == "" {
 		return query
@@ -525,6 +640,7 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) ([]*model.User
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if options.Inactive {
 		query = query.Where("u.DeleteAt != 0")
@@ -1079,6 +1195,7 @@ func (us SqlUserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppError) {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	query := us.getQueryBuilder().Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 	if !options.IncludeDeleted {
@@ -1099,10 +1216,13 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, *model.AppE
 
 	if options.TeamId != "" {
 		query = query.LeftJoin("TeamMembers AS tm ON u.Id = tm.UserId").Where("tm.TeamId = ? AND tm.DeleteAt = 0", options.TeamId)
+	} else if options.ChannelId != "" {
+		query = query.LeftJoin("ChannelMembers AS cm ON u.Id = cm.UserId").Where("cm.ChannelId = ?", options.ChannelId)
 	}
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	if isPostgreSQL {
 		query = query.PlaceholderFormat(sq.Dollar)
 	}
 
@@ -1309,6 +1429,7 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 
 	query = applyRoleFilter(query, options.Role, isPostgreSQL)
+	query = applyMultiRoleFilters(query, options.Roles, options.TeamRoles, options.ChannelRoles)
 
 	if !options.AllowInactive {
 		query = query.Where("u.DeleteAt = 0")
