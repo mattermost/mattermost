@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/gorp"
@@ -297,7 +299,7 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
-	if count != 1 {
+	if count > 1 {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 	}
 
@@ -869,7 +871,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 
 		_, err = transaction.Select(&counters, sqlCountQuery, argsCount...)
 		if err != nil {
-			return nil, errors.Wrap(err, "member_count_select")
+			return nil, errors.Wrap(err, "failed to count users in the teams of the memberships")
 		}
 
 		for teamId, newMembers := range newTeamMembers {
@@ -880,7 +882,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 				}
 			}
 			if existingMembers+newMembers > maxUsersPerTeam {
-				return nil, store.NewErrLimitExceeded("TeamMember", existingMembers+newMembers, "team members limit exeeded")
+				return nil, store.NewErrLimitExceeded("TeamMember", existingMembers+newMembers, "team members limit exceeded")
 			}
 		}
 	}

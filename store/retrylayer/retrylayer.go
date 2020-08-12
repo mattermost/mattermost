@@ -3102,15 +3102,43 @@ func (s *RetryLayerPostStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
+func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID string) error {
 
-	return s.PostStore.Delete(postId, time, deleteByID)
+	tries := 0
+	for {
+		err := s.PostStore.Delete(postId, time, deleteByID)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 
-	return s.PostStore.Get(id, skipFetchThreads)
+	tries := 0
+	for {
+		result, err := s.PostStore.Get(id, skipFetchThreads)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3234,9 +3262,23 @@ func (s *RetryLayerPostStore) GetRepliesForExport(parentId string) ([]*model.Rep
 
 }
 
-func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, error) {
 
-	return s.PostStore.GetSingle(id)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetSingle(id)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3264,27 +3306,83 @@ func (s *RetryLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 
-	return s.PostStore.PermanentDeleteByChannel(channelId)
+	tries := 0
+	for {
+		err := s.PostStore.PermanentDeleteByChannel(channelId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *RetryLayerPostStore) PermanentDeleteByUser(userId string) error {
 
-	return s.PostStore.PermanentDeleteByUser(userId)
+	tries := 0
+	for {
+		err := s.PostStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 
-	return s.PostStore.Save(post)
+	tries := 0
+	for {
+		result, err := s.PostStore.Save(post)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
+func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 
-	return s.PostStore.SaveMultiple(posts)
+	tries := 0
+	for {
+		result, resultVar1, err := s.PostStore.SaveMultiple(posts)
+		if err == nil {
+			return result, resultVar1, err
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+	}
 
 }
 
@@ -3300,9 +3398,23 @@ func (s *RetryLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.Searc
 
 }
 
-func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 
-	return s.PostStore.Update(newPost, oldPost)
+	tries := 0
+	for {
+		result, err := s.PostStore.Update(newPost, oldPost)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 

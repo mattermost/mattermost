@@ -23,8 +23,8 @@ func cleanupStoreState(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "failed cleaning up test user %s", u.Username)
 
 		//remove all posts by this user
-		err = ss.Post().PermanentDeleteByUser(u.Id)
-		require.Nil(t, err, "failed cleaning all posts of test user %s", u.Username)
+		nErr := ss.Post().PermanentDeleteByUser(u.Id)
+		require.Nil(t, nErr, "failed cleaning all posts of test user %s", u.Username)
 	}
 
 	//remove existing channels
@@ -135,32 +135,32 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
 	o1.Message = "zz" + model.NewId() + "b"
-	o1, err = ss.Post().Save(o1)
-	require.Nil(t, err)
+	o1, nErr = ss.Post().Save(o1)
+	require.Nil(t, nErr)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o1a)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(o1a)
+	require.Nil(t, nErr)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(o2)
+	require.Nil(t, nErr)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a, err = ss.Post().Save(o2a)
-	require.Nil(t, err)
+	o2a, nErr = ss.Post().Save(o2a)
+	require.Nil(t, nErr)
 
 	time.Sleep(100 * time.Millisecond)
 
@@ -246,40 +246,40 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	o1.UserId = u1.Id
 	o1.CreateAt = model.GetMillis()
 	o1.Message = "zz" + model.NewId() + "b"
-	o1, err = ss.Post().Save(o1)
-	require.Nil(t, err)
+	o1, nErr = ss.Post().Save(o1)
+	require.Nil(t, nErr)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = u1.Id
 	o1a.CreateAt = o1.CreateAt + 10
 	o1a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o1a)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(o1a)
+	require.Nil(t, nErr)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u1.Id
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(o2)
+	require.Nil(t, nErr)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
 	o2a.UserId = u2.Id
 	o2a.CreateAt = o1.CreateAt + 30
 	o2a.Message = "zz" + model.NewId() + "b"
-	_, err = ss.Post().Save(o2a)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(o2a)
+	require.Nil(t, nErr)
 
 	o3 := &model.Post{}
 	o3.ChannelId = cDM.Id
 	o3.UserId = u1.Id
 	o3.CreateAt = o1.CreateAt + 40
 	o3.Message = "zz" + model.NewId() + "b"
-	o3, err = ss.Post().Save(o3)
-	require.Nil(t, err)
+	o3, nErr = ss.Post().Save(o3)
+	require.Nil(t, nErr)
 
 	time.Sleep(100 * time.Millisecond)
 

@@ -71,7 +71,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	pchan := make(chan store.StoreResult, 1)
 	go func() {
 		post, err := a.Srv().Store.Post().GetSingle(postId)
-		pchan <- store.StoreResult{Data: post, Err: err}
+		pchan <- store.StoreResult{Data: post, NErr: err}
 		close(pchan)
 	}()
 
@@ -90,16 +90,22 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	}()
 
 	result := <-pchan
-	if result.Err != nil {
+	if result.NErr != nil {
 		if cookie == nil {
-			return "", result.Err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(result.NErr, &nfErr):
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
+			}
 		}
 		if cookie.Integration == nil {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
 		}
 
 		if postId != cookie.PostId {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
 		channel, err := a.Srv().Store.Channel().Get(cookie.ChannelId, true)
