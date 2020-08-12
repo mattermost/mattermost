@@ -4279,6 +4279,26 @@
     "translation": "Unable to get the post."
   },
   {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Unable to get the flagged posts."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Unable to delete the posts by channel."
   },
@@ -7243,10 +7263,6 @@
     "translation": "Unable to get direct posts."
   },
   {
-    "id": "app.post.get_flagged_posts.app_error",
-    "translation": "Unable to get the flagged posts."
-  },
-  {
     "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
     "translation": "Unable to get the oldest entitiy creation time."
   },
@@ -7255,24 +7271,8 @@
     "translation": "Unable to get the parent post for the channel."
   },
   {
-    "id": "app.post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound."
-  },
-  {
-    "id": "app.post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound."
-  },
-  {
     "id": "store.sql_post.get_posts.app_error",
     "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "app.post.get_posts_around.get.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Unable to get the parent posts for the channel."
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -7284,10 +7284,6 @@
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
