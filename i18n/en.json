@@ -3367,6 +3367,18 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Rate limiter is not set up."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Invite emails rate limit exceeded."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Error occurred in the rate limiter."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -4341,18 +4353,6 @@
   {
     "id": "app.scheme.permanent_delete_all.app_error",
     "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "app.email.no_rate_limiter.app_error",
-    "translation": "Rate limiter is not set up."
-  },
-  {
-    "id": "app.email.setup_rate_limiter.app_error",
-    "translation": "Error occurred in the rate limiter."
-  },
-  {
-    "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Invite emails rate limit exceeded."
   },
   {
     "id": "app.scheme.save.app_error",
