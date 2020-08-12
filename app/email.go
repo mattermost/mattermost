@@ -334,7 +334,7 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 
 	if rateLimited {
 		return model.NewAppError("SendInviteEmails",
-			"app.email.rate_limit_exceeded.app_error", nil,
+			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
 			fmt.Sprintf("user_id=%s, team_id=%s, retry_after_secs=%f, reset_after_secs=%f",
 				senderUserId, team.Id, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
 			http.StatusRequestEntityTooLarge)
@@ -393,7 +393,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 
 	if rateLimited {
 		return model.NewAppError("SendInviteEmails",
-			"app.email.rate_limit_exceeded.app_error", nil,
+			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
 			fmt.Sprintf("user_id=%s, team_id=%s, retry_after_secs=%f, reset_after_secs=%f",
 				senderUserId, team.Id, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
 			http.StatusRequestEntityTooLarge)

@@ -3372,7 +3372,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Invite emails rate limit exceeded."
+    "translation": "Invite emails rate limit exceeded. Timer will be reset after {{.ResetAfter}} seconds. Please retry after {{.RetryAfter}} seconds."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
