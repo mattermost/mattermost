@@ -178,9 +178,9 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 }
 
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
-	systemDataList, appErr := a.Srv().Store.System().Get()
-	if appErr != nil {
-		return nil, appErr
+	systemDataList, nErr := a.Srv().Store.System().Get()
+	if nErr != nil {
+		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	result := map[string]*model.WarnMetricStatus{}
@@ -345,8 +345,8 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 
 func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
-		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if err == nil && data != nil && data.Value == model.WARN_METRIC_STATUS_ACK {
+		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if nErr == nil && data != nil && data.Value == model.WARN_METRIC_STATUS_ACK {
 			mlog.Debug("This metric warning has already been acknowledged")
 			return nil
 		}
@@ -384,14 +384,14 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			subject := T("api.templates.warn_metric_ack.subject")
 			bodyPage.Props["Title"] = warnMetricDisplayTexts.EmailBody
 
-			if err = mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
+			if err := mailservice.SendMailUsingConfig(model.MM_SUPPORT_ADDRESS, subject, bodyPage.Render(), a.Config(), false, sender.Email); err != nil {
 				mlog.Error("Error while sending email", mlog.String("destination email", model.MM_SUPPORT_ADDRESS), mlog.Err(err))
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.failure.app_error", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 			}
 		}
 
 		mlog.Debug("Disable the monitoring of all warn metrics")
-		err = a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK)
+		err := a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK)
 		if err != nil {
 			return err
 		}
