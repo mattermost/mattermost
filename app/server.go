@@ -392,6 +392,7 @@ func NewServer(options ...Option) (*Server, error) {
 		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
+	s.WebSocketRouter.app = fakeApp
 
 	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
 		mlog.Error("Mail server connection test is failed: " + appErr.Message)
