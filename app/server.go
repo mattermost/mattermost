@@ -46,8 +46,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
+	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -292,7 +294,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					s.sqlStore,
+					retrylayer.New(s.sqlStore),
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider,
@@ -310,7 +312,7 @@ func NewServer(options ...Option) (*Server, error) {
 				s.sqlStore.UpdateLicense(newLicense)
 			})
 
-			return store.NewTimerLayer(
+			return timerlayer.New(
 				searchStore,
 				s.Metrics,
 			)
@@ -391,6 +393,7 @@ func NewServer(options ...Option) (*Server, error) {
 		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
+	s.WebSocketRouter.app = fakeApp
 
 	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
 		mlog.Error("Mail server connection test is failed: " + appErr.Message)
@@ -459,13 +462,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ReloadConfig()
 
+	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		s.configureAudit(s.Audit)
+		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+			mlog.Error("Error configuring audit", mlog.Err(err))
+		}
 	}
 
-	if license == nil || !*license.Features.AdvancedLogging {
+	if !allowAdvancedLogging {
 		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancelCtx()
 		mlog.Info("Shutting down advanced logging")
@@ -637,7 +644,6 @@ func (s *Server) Shutdown() error {
 	defer sentry.Flush(2 * time.Second)
 
 	s.HubStop()
-	s.StopPushNotificationsHubWorkers()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
@@ -655,6 +661,8 @@ func (s *Server) Shutdown() error {
 
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
+	// Push notification hub needs to be shutdown after HTTP server
+	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
 
@@ -1086,6 +1094,13 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
+func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
+	doCheckNumberOfActiveUsersWarnMetricStatus(a)
+	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
+		doCheckNumberOfActiveUsersWarnMetricStatus(a)
+	}, time.Hour*24)
+}
+
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
 }
@@ -1111,6 +1126,58 @@ const (
 
 func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+}
+
+func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
+	license := a.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip this check")
+		return
+	}
+
+	numberOfActiveUsers, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error to get active registered users.", mlog.Err(err))
+	}
+
+	warnMetrics := []model.WarnMetric{}
+	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit {
+		return
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
+	} else {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+	}
+
+	for _, warnMetric := range warnMetrics {
+		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+			mlog.Debug("This metric warning has already been acked or should only run once")
+			continue
+		}
+
+		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+			continue
+		}
+		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
+
+		if !warnMetric.IsBotOnly {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
+			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
+			a.Publish(message)
+		}
+
+		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		}
+
+		if warnMetric.IsRunOnce {
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
+		}
+	}
 }
 
 func doLicenseExpirationCheck(a *App) {

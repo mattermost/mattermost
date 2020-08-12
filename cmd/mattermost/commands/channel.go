@@ -172,7 +172,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -231,7 +231,7 @@ func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	allUsers, _ := command.Flags().GetBool("all-users")
 
@@ -291,7 +291,7 @@ func addChannelUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -326,7 +326,7 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
@@ -350,7 +350,7 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -390,7 +390,7 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -469,7 +469,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
@@ -501,7 +501,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
@@ -531,7 +531,7 @@ func modifyChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil || username == "" {
@@ -584,7 +584,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -616,7 +616,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to InitDBCommandContextCobra")
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	var channel *model.Channel
 

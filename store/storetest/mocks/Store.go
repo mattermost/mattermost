@@ -7,8 +7,10 @@ package mocks
 import (
 	context "context"
 
-	store "github.com/mattermost/mattermost-server/v5/store"
+	model "github.com/mattermost/mattermost-server/v5/model"
 	mock "github.com/stretchr/testify/mock"
+
+	store "github.com/mattermost/mattermost-server/v5/store"
 
 	time "time"
 )
@@ -83,15 +85,15 @@ func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 }
 
 // CheckIntegrity provides a mock function with given fields:
-func (_m *Store) CheckIntegrity() <-chan store.IntegrityCheckResult {
+func (_m *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	ret := _m.Called()
 
-	var r0 <-chan store.IntegrityCheckResult
-	if rf, ok := ret.Get(0).(func() <-chan store.IntegrityCheckResult); ok {
+	var r0 <-chan model.IntegrityCheckResult
+	if rf, ok := ret.Get(0).(func() <-chan model.IntegrityCheckResult); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(<-chan store.IntegrityCheckResult)
+			r0 = ret.Get(0).(<-chan model.IntegrityCheckResult)
 		}
 	}
 
