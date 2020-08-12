@@ -296,7 +296,7 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
-	if count != 1 {
+	if count > 1 {
 		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 	}
 
