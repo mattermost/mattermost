@@ -323,7 +323,7 @@ func extractBinary(executablePath string, filename string) error {
 
 		if header.Typeflag == tar.TypeReg && header.Name == "mattermost/bin/mattermost" {
 			permissions := getFilePermissionsOrDefault(executablePath, 0755)
-			tmpFile, err := ioutil.TempFile("", "*")
+			tmpFile, err := ioutil.TempFile(path.Dir(executablePath), "*")
 			if err != nil {
 				return err
 			}
@@ -336,7 +336,7 @@ func extractBinary(executablePath string, filename string) error {
 			outFile, err := os.Create(executablePath)
 			if err != nil {
 				err2 := os.Rename(tmpFileName, executablePath)
-				if err != nil {
+				if err2 != nil {
 					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
