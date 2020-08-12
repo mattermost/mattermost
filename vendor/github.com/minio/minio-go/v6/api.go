@@ -20,10 +20,8 @@ package minio
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
 	"errors"
 	"fmt"
-	"hash"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -38,13 +36,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/minio/sha256-simd"
-
-	"golang.org/x/net/publicsuffix"
-
+	md5simd "github.com/minio/md5-simd"
 	"github.com/minio/minio-go/v6/pkg/credentials"
 	"github.com/minio/minio-go/v6/pkg/s3utils"
 	"github.com/minio/minio-go/v6/pkg/signer"
+	"golang.org/x/net/publicsuffix"
 )
 
 // Client implements Amazon S3 compatible methods.
@@ -90,6 +86,10 @@ type Client struct {
 	// lookup indicates type of url lookup supported by server. If not specified,
 	// default to Auto.
 	lookup BucketLookupType
+
+	// Factory for MD5 hash functions.
+	md5Hasher    func() md5simd.Hasher
+	sha256Hasher func() md5simd.Hasher
 }
 
 // Options for New method
@@ -98,13 +98,16 @@ type Options struct {
 	Secure       bool
 	Region       string
 	BucketLookup BucketLookupType
-	// Add future fields here
+
+	// Custom hash routines. Leave nil to use standard.
+	CustomMD5    func() md5simd.Hasher
+	CustomSHA256 func() md5simd.Hasher
 }
 
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.55"
+	libraryVersion = "v6.0.57"
 )
 
 // User Agent should always following the below style.
@@ -129,8 +132,11 @@ const (
 // NewV2 - instantiate minio client with Amazon S3 signature version
 // '2' compatibility.
 func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV2(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
+	clnt, err := privateNew(endpoint, Options{
+		Creds:        credentials.NewStaticV2(accessKeyID, secretAccessKey, ""),
+		Secure:       secure,
+		BucketLookup: BucketLookupAuto,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +147,11 @@ func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 // NewV4 - instantiate minio client with Amazon S3 signature version
 // '4' compatibility.
 func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
+	clnt, err := privateNew(endpoint, Options{
+		Creds:        credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure:       secure,
+		BucketLookup: BucketLookupAuto,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +161,11 @@ func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 
 // New - instantiate minio client, adds automatic verification of signature.
 func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
+	clnt, err := privateNew(endpoint, Options{
+		Creds:        credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),
+		Secure:       secure,
+		BucketLookup: BucketLookupAuto,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +184,12 @@ func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, e
 // for retrieving credentials from various credentials provider such as
 // IAM, File, Env etc.
 func NewWithCredentials(endpoint string, creds *credentials.Credentials, secure bool, region string) (*Client, error) {
-	return privateNew(endpoint, creds, secure, region, BucketLookupAuto)
+	return privateNew(endpoint, Options{
+		Creds:        creds,
+		Secure:       secure,
+		BucketLookup: BucketLookupAuto,
+		Region:       region,
+	})
 }
 
 // NewWithRegion - instantiate minio client, with region configured. Unlike New(),
@@ -180,12 +197,20 @@ func NewWithCredentials(endpoint string, creds *credentials.Credentials, secure 
 // Use this function when if your application deals with single region.
 func NewWithRegion(endpoint, accessKeyID, secretAccessKey string, secure bool, region string) (*Client, error) {
 	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	return privateNew(endpoint, creds, secure, region, BucketLookupAuto)
+	return privateNew(endpoint, Options{
+		Creds:        creds,
+		Secure:       secure,
+		Region:       region,
+		BucketLookup: BucketLookupAuto,
+	})
 }
 
 // NewWithOptions - instantiate minio client with options
 func NewWithOptions(endpoint string, opts *Options) (*Client, error) {
-	return privateNew(endpoint, opts.Creds, opts.Secure, opts.Region, opts.BucketLookup)
+	if opts == nil {
+		return nil, errors.New("no options provided")
+	}
+	return privateNew(endpoint, *opts)
 }
 
 // EndpointURL returns the URL of the S3 endpoint.
@@ -277,9 +302,9 @@ func (c *Client) redirectHeaders(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func privateNew(endpoint string, creds *credentials.Credentials, secure bool, region string, lookup BucketLookupType) (*Client, error) {
+func privateNew(endpoint string, opts Options) (*Client, error) {
 	// construct endpoint.
-	endpointURL, err := getEndpointURL(endpoint, secure)
+	endpointURL, err := getEndpointURL(endpoint, opts.Secure)
 	if err != nil {
 		return nil, err
 	}
@@ -295,15 +320,15 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 	clnt := new(Client)
 
 	// Save the credentials.
-	clnt.credsProvider = creds
+	clnt.credsProvider = opts.Creds
 
 	// Remember whether we are using https or not
-	clnt.secure = secure
+	clnt.secure = opts.Secure
 
 	// Save endpoint URL, user agent for future uses.
 	clnt.endpointURL = endpointURL
 
-	transport, err := DefaultTransport(secure)
+	transport, err := DefaultTransport(opts.Secure)
 	if err != nil {
 		return nil, err
 	}
@@ -316,10 +341,10 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 	}
 
 	// Sets custom region, if region is empty bucket location cache is used automatically.
-	if region == "" {
-		region = s3utils.GetRegionFromURL(*clnt.endpointURL)
+	if opts.Region == "" {
+		opts.Region = s3utils.GetRegionFromURL(*clnt.endpointURL)
 	}
-	clnt.region = region
+	clnt.region = opts.Region
 
 	// Instantiate bucket location cache.
 	clnt.bucketLocCache = newBucketLocationCache()
@@ -327,9 +352,18 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 	// Introduce a new locked random seed.
 	clnt.random = rand.New(&lockedRandSource{src: rand.NewSource(time.Now().UTC().UnixNano())})
 
+	// Add default md5 hasher.
+	clnt.md5Hasher = opts.CustomMD5
+	clnt.sha256Hasher = opts.CustomSHA256
+	if clnt.md5Hasher == nil {
+		clnt.md5Hasher = newMd5Hasher
+	}
+	if clnt.sha256Hasher == nil {
+		clnt.sha256Hasher = newSHA256Hasher
+	}
 	// Sets bucket lookup style, whether server accepts DNS or Path lookup. Default is Auto - determined
 	// by the SDK. When Auto is specified, DNS lookup is used for Amazon/Google cloud endpoints and Path for all other endpoints.
-	clnt.lookup = lookup
+	clnt.lookup = opts.BucketLookup
 	// Return.
 	return clnt, nil
 }
@@ -413,22 +447,22 @@ func (c *Client) SetS3TransferAccelerate(accelerateEndpoint string) {
 //  - For signature v4 request if the connection is insecure compute only sha256.
 //  - For signature v4 request if the connection is secure compute only md5.
 //  - For anonymous request compute md5.
-func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]hash.Hash, hashSums map[string][]byte) {
+func (c *Client) hashMaterials(isMd5Requested bool) (hashAlgos map[string]md5simd.Hasher, hashSums map[string][]byte) {
 	hashSums = make(map[string][]byte)
-	hashAlgos = make(map[string]hash.Hash)
+	hashAlgos = make(map[string]md5simd.Hasher)
 	if c.overrideSignerType.IsV4() {
 		if c.secure {
-			hashAlgos["md5"] = md5.New()
+			hashAlgos["md5"] = c.md5Hasher()
 		} else {
-			hashAlgos["sha256"] = sha256.New()
+			hashAlgos["sha256"] = c.sha256Hasher()
 		}
 	} else {
 		if c.overrideSignerType.IsAnonymous() {
-			hashAlgos["md5"] = md5.New()
+			hashAlgos["md5"] = c.md5Hasher()
 		}
 	}
 	if isMd5Requested {
-		hashAlgos["md5"] = md5.New()
+		hashAlgos["md5"] = c.md5Hasher()
 	}
 	return hashAlgos, hashSums
 }
@@ -683,7 +717,7 @@ func (c Client) executeMethod(ctx context.Context, method string, metadata reque
 				// handle this appropriately.
 				if metadata.bucketName != "" {
 					// Gather Cached location only if bucketName is present.
-					if _, cachedOk := c.bucketLocCache.Get(metadata.bucketName); cachedOk {
+					if location, cachedOk := c.bucketLocCache.Get(metadata.bucketName); cachedOk && location != errResponse.Region {
 						c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 						continue // Retry.
 					}

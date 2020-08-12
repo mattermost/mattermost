@@ -155,7 +155,7 @@ func TestCopyEmojiImages(t *testing.T) {
 }
 
 func TestExportCustomEmoji(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	filePath := "../demo.json"
@@ -173,7 +173,7 @@ func TestExportCustomEmoji(t *testing.T) {
 }
 
 func TestExportAllUsers(t *testing.T) {
-	th1 := Setup(t).InitBasic()
+	th1 := Setup(t)
 	defer th1.TearDown()
 
 	// Adding a user and deactivating it to check whether it gets included in bulk export
@@ -388,14 +388,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "aa" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p1, dmChannel, false)
+	th1.App.CreatePost(p1, dmChannel, false, true)
 
 	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p2, dmChannel, false)
+	th1.App.CreatePost(p2, dmChannel, false, true)
 
 	// GM posts
 	p3 := &model.Post{
@@ -403,14 +403,14 @@ func TestExportDMandGMPost(t *testing.T) {
 		Message:   "cc" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p3, gmChannel, false)
+	th1.App.CreatePost(p3, gmChannel, false, true)
 
 	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
 		UserId:    th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p4, gmChannel, false)
+	th1.App.CreatePost(p4, gmChannel, false, true)
 
 	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)
@@ -473,7 +473,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p1, dmChannel, false)
+	th1.App.CreatePost(p1, dmChannel, false, true)
 
 	p2 := &model.Post{
 		ChannelId: gmChannel.Id,
@@ -483,7 +483,7 @@ func TestExportPostWithProps(t *testing.T) {
 		},
 		UserId: th1.BasicUser.Id,
 	}
-	th1.App.CreatePost(p2, gmChannel, false)
+	th1.App.CreatePost(p2, gmChannel, false, true)
 
 	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	require.Nil(t, err)

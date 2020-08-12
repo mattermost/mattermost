@@ -30,27 +30,31 @@ func stopOnError(err LineImportWorkerError) bool {
 }
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
-	posts := []*PostImportData{}
-	directPosts := []*DirectPostImportData{}
+	postLines := []LineImportWorkerData{}
+	directPostLines := []LineImportWorkerData{}
 	for line := range lines {
 		switch {
 		case line.LineImportData.Type == "post":
-			posts = append(posts, line.Post)
+			postLines = append(postLines, line)
 			if line.Post == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(posts) >= importMultiplePostsThreshold {
-				a.importMultiplePosts(posts, dryRun)
-				posts = []*PostImportData{}
+			if len(postLines) >= importMultiplePostsThreshold {
+				if errLine, err := a.importMultiplePostLines(postLines, dryRun); err != nil {
+					errors <- LineImportWorkerError{err, errLine}
+				}
+				postLines = []LineImportWorkerData{}
 			}
 		case line.LineImportData.Type == "direct_post":
-			directPosts = append(directPosts, line.DirectPost)
+			directPostLines = append(directPostLines, line)
 			if line.DirectPost == nil {
 				errors <- LineImportWorkerError{model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), line.LineNumber}
 			}
-			if len(directPosts) >= importMultiplePostsThreshold {
-				a.importMultipleDirectPosts(directPosts, dryRun)
-				directPosts = []*DirectPostImportData{}
+			if len(directPostLines) >= importMultiplePostsThreshold {
+				if errLine, err := a.importMultipleDirectPostLines(directPostLines, dryRun); err != nil {
+					errors <- LineImportWorkerError{err, errLine}
+				}
+				directPostLines = []LineImportWorkerData{}
 			}
 		default:
 			if err := a.importLine(line.LineImportData, dryRun); err != nil {
@@ -59,11 +63,15 @@ func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan Lin
 		}
 	}
 
-	if len(posts) > 0 {
-		a.importMultiplePosts(posts, dryRun)
+	if len(postLines) > 0 {
+		if errLine, err := a.importMultiplePostLines(postLines, dryRun); err != nil {
+			errors <- LineImportWorkerError{err, errLine}
+		}
 	}
-	if len(directPosts) > 0 {
-		a.importMultipleDirectPosts(directPosts, dryRun)
+	if len(directPostLines) > 0 {
+		if errLine, err := a.importMultipleDirectPostLines(directPostLines, dryRun); err != nil {
+			errors <- LineImportWorkerError{err, errLine}
+		}
 	}
 	wg.Done()
 }

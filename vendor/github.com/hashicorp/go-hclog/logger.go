@@ -52,6 +52,18 @@ func Fmt(str string, args ...interface{}) Format {
 	return append(Format{str}, args...)
 }
 
+// A simple shortcut to format numbers in hex when displayed with the normal
+// text output. For example: L.Info("header value", Hex(17))
+type Hex int
+
+// A simple shortcut to format numbers in octal when displayed with the normal
+// text output. For example: L.Info("perms", Octal(17))
+type Octal int
+
+// A simple shortcut to format numbers in binary when displayed with the normal
+// text output. For example: L.Info("bits", Binary(17))
+type Binary int
+
 // ColorOption expresses how the output should be colored, if at all.
 type ColorOption uint8
 
@@ -218,9 +230,19 @@ type LoggerOptions struct {
 	// The time format to use instead of the default
 	TimeFormat string
 
+	// Control whether or not to display the time at all. This is required
+	// because setting TimeFormat to empty assumes the default format.
+	DisableTime bool
+
 	// Color the output. On Windows, colored logs are only avaiable for io.Writers that
 	// are concretely instances of *os.File.
 	Color ColorOption
+
+	// A function which is called with the log information and if it returns true the value
+	// should not be logged.
+	// This is useful when interacting with a system that you wish to suppress the log
+	// message for (because it's too noisy, etc)
+	Exclude func(level Level, msg string, args ...interface{}) bool
 }
 
 // InterceptLogger describes the interface for using a logger

@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -25,12 +26,19 @@ var (
 	outputFile         string
 	inputFile          string
 	outputFileTemplate string
+	basicTypes         = map[string]bool{"int": true, "string": true, "float": true, "bool": true, "byte": true, "int64": true, "error": true}
+	textRegexp         = regexp.MustCompile(`\w+$`)
 )
 
 const (
 	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
 	APP_ERROR_TYPE             = "*model.AppError"
+	ERROR_TYPE                 = "error"
 )
+
+func isError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
+}
 
 func init() {
 	flag.StringVar(&inputFile, "in", path.Join("..", "app_iface.go"), "App interface file")
@@ -72,6 +80,22 @@ type storeMetadata struct {
 	Methods map[string]methodData
 }
 
+func fixTypeName(t string) string {
+	// don't want to dive into AST to parse this, add exception
+	if t == "...func(*UploadFileTask)" {
+		t = "...func(*app.UploadFileTask)"
+	}
+	if strings.Contains(t, ".") || strings.Contains(t, "{}") {
+		return t
+	}
+	typeOnly := textRegexp.FindString(t)
+
+	if _, basicType := basicTypes[typeOnly]; !basicType {
+		t = t[:len(t)-len(typeOnly)] + "app." + typeOnly
+	}
+	return t
+}
+
 func formatNode(src []byte, node ast.Expr) string {
 	return string(src[node.Pos()-1 : node.End()-1])
 }
@@ -95,7 +119,7 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 	if e.Params != nil {
 		for _, param := range e.Params.List {
 			for _, paramName := range param.Names {
-				paramType := (formatNode(src, param.Type))
+				paramType := fixTypeName(formatNode(src, param.Type))
 				params = append(params, methodParam{Name: paramName.Name, Type: paramType})
 			}
 		}
@@ -103,7 +127,8 @@ func extractMethodMetadata(method *ast.Field, src []byte) methodData {
 
 	if e.Results != nil {
 		for _, r := range e.Results.List {
-			typeStr := formatNode(src, r.Type)
+			typeStr := fixTypeName(formatNode(src, r.Type))
+
 			if len(r.Names) > 0 {
 				for _, k := range r.Names {
 					results = append(results, fmt.Sprintf("%s %s", k.Name, typeStr))
@@ -199,7 +224,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorToBoolean": func(results []string) string {
 			for i, typeName := range results {
-				if strings.Contains(typeName, APP_ERROR_TYPE) {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
@@ -207,7 +232,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {
-				if strings.Contains(typeName, APP_ERROR_TYPE) {
+				if isError(typeName) {
 					return true
 				}
 			}
@@ -215,7 +240,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorVar": func(results []string) string {
 			for i, typeName := range results {
-				if strings.Contains(typeName, APP_ERROR_TYPE) {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d", i)
 				}
 			}

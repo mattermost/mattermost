@@ -126,14 +126,14 @@ func TestDeleteUserBotUser(t *testing.T) {
 	user, err := th.App.Srv().Store.User().Save(model.UserFromBot(bot))
 	require.Nil(t, err)
 	bot.UserId = user.Id
-	bot, err = th.App.Srv().Store.Bot().Save(bot)
-	require.Nil(t, err)
+	bot, nErr := th.App.Srv().Store.Bot().Save(bot)
+	require.Nil(t, nErr)
 
 	th.CheckCommand(t, "user", "delete", bot.Username, "--confirm")
 	_, err = th.App.Srv().Store.User().Get(user.Id)
 	require.Error(t, err)
-	_, err = th.App.Srv().Store.Bot().Get(user.Id, true)
-	require.Error(t, err)
+	_, nErr = th.App.Srv().Store.Bot().Get(user.Id, true)
+	require.Error(t, nErr)
 }
 
 func TestConvertUser(t *testing.T) {

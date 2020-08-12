@@ -70,9 +70,9 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 			// to the overlay.
 			continue
 		}
-		// if all the overlay files belong to a different package, change the package
-		// name to that package. Otherwise leave it alone; there will be an error message.
-		maybeFixPackageName(pkgName, pkgOfDir, dir)
+		// If all the overlay files belong to a different package, change the
+		// package name to that package.
+		maybeFixPackageName(pkgName, isTestFile, pkgOfDir[dir])
 	nextPackage:
 		for _, p := range response.dr.Packages {
 			if pkgName != p.Name && p.ID != "command-line-arguments" {
@@ -113,24 +113,35 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 			if !ok {
 				break
 			}
+			var forTest string // only set for x tests
 			isXTest := strings.HasSuffix(pkgName, "_test")
 			if isXTest {
+				forTest = pkgPath
 				pkgPath += "_test"
 			}
 			id := pkgPath
-			if isTestFile && !isXTest {
-				id = fmt.Sprintf("%s [%s.test]", pkgPath, pkgPath)
+			if isTestFile {
+				if isXTest {
+					id = fmt.Sprintf("%s [%s.test]", pkgPath, forTest)
+				} else {
+					id = fmt.Sprintf("%s [%s.test]", pkgPath, pkgPath)
+				}
 			}
-			// Try to reclaim a package with the same id if it exists in the response.
+			// Try to reclaim a package with the same ID, if it exists in the response.
 			for _, p := range response.dr.Packages {
 				if reclaimPackage(p, id, opath, contents) {
 					pkg = p
 					break
 				}
 			}
-			// Otherwise, create a new package
+			// Otherwise, create a new package.
 			if pkg == nil {
-				pkg = &Package{PkgPath: pkgPath, ID: id, Name: pkgName, Imports: make(map[string]*Package)}
+				pkg = &Package{
+					PkgPath: pkgPath,
+					ID:      id,
+					Name:    pkgName,
+					Imports: make(map[string]*Package),
+				}
 				response.addPackage(pkg)
 				havePkgs[pkg.PkgPath] = id
 				// Add the production package's sources for a test variant.
@@ -142,6 +153,9 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 					for k, v := range testVariantOf.Imports {
 						pkg.Imports[k] = &Package{ID: v.ID}
 					}
+				}
+				if isXTest {
+					pkg.forTest = forTest
 				}
 			}
 		}
@@ -158,6 +172,8 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 			continue
 		}
 		for _, imp := range imports {
+			// TODO(rstambler): If the package is an x test and the import has
+			// a test variant, make sure to replace it.
 			if _, found := pkg.Imports[imp]; found {
 				continue
 			}
@@ -415,24 +431,35 @@ func commonDir(a []string) string {
 // package name, and they all have the same package name, then that name becomes
 // the package name.
 // It returns true if it changes the package name, false otherwise.
-func maybeFixPackageName(newName string, pkgOfDir map[string][]*Package, dir string) bool {
+func maybeFixPackageName(newName string, isTestFile bool, pkgsOfDir []*Package) {
 	names := make(map[string]int)
-	for _, p := range pkgOfDir[dir] {
+	for _, p := range pkgsOfDir {
 		names[p.Name]++
 	}
 	if len(names) != 1 {
 		// some files are in different packages
-		return false
+		return
 	}
-	oldName := ""
+	var oldName string
 	for k := range names {
 		oldName = k
 	}
 	if newName == oldName {
-		return false
+		return
 	}
-	for _, p := range pkgOfDir[dir] {
+	// We might have a case where all of the package names in the directory are
+	// the same, but the overlay file is for an x test, which belongs to its
+	// own package. If the x test does not yet exist on disk, we may not yet
+	// have its package name on disk, but we should not rename the packages.
+	//
+	// We use a heuristic to determine if this file belongs to an x test:
+	// The test file should have a package name whose package name has a _test
+	// suffix or looks like "newName_test".
+	maybeXTest := strings.HasPrefix(oldName+"_test", newName) || strings.HasSuffix(newName, "_test")
+	if isTestFile && maybeXTest {
+		return
+	}
+	for _, p := range pkgsOfDir {
 		p.Name = newName
 	}
-	return true
 }

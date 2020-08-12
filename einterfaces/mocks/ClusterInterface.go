@@ -153,6 +153,20 @@ func (_m *ClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.Ap
 	return r0, r1
 }
 
+// HealthScore provides a mock function with given fields:
+func (_m *ClusterInterface) HealthScore() int {
+	ret := _m.Called()
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	return r0
+}
+
 // IsLeader provides a mock function with given fields:
 func (_m *ClusterInterface) IsLeader() bool {
 	ret := _m.Called()

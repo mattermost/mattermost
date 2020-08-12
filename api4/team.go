@@ -367,8 +367,12 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
+			err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		} else {
+			err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
+		}
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
@@ -996,11 +1000,6 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(props.Term) == 0 {
-		c.SetInvalidParam("term")
-		return
-	}
-
 	var teams []*model.Team
 	var totalCount int64
 	var err *model.AppError
@@ -1138,6 +1137,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("from", importFrom)
 
 	var log *bytes.Buffer
+	data := map[string]string{}
 	switch importFrom {
 	case "slack":
 		var err *model.AppError
@@ -1145,12 +1145,14 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 		}
+		data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
+	default:
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.unknown_import_from.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	data := map[string]string{}
-	data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
 	if c.Err != nil {
 		w.WriteHeader(c.Err.StatusCode)
+		return
 	}
 	auditRec.Success()
 	w.Write([]byte(model.MapToJson(data)))
@@ -1220,7 +1222,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
-	if c.App.License() == nil {
+	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invate_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1455,7 +1457,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateTeamScheme", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if c.App.License() == nil {
+	if c.App.Srv().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateTeamScheme", "api.team.update_team_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}

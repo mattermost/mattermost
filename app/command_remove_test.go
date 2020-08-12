@@ -42,7 +42,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args := &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: publicChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual := rp.DoCommand(th.App, args, targetUser.Username).Text
@@ -53,7 +53,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: publicChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
@@ -63,7 +63,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: privateChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
@@ -74,7 +74,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: privateChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, targetUser.Username).Text
@@ -89,7 +89,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: groupChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, user1.Username).Text
@@ -101,7 +101,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: directChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, user1.Username).Text
@@ -116,7 +116,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 	args = &model.CommandArgs{
 		T:         func(s string, args ...interface{}) string { return s },
 		ChannelId: publicChannel.Id,
-		Session:   model.Session{UserId: th.BasicUser.Id, TeamMembers: []*model.TeamMember{{TeamId: th.BasicTeam.Id, Roles: ""}}},
+		UserId:    th.BasicUser.Id,
 	}
 
 	actual = rp.DoCommand(th.App, args, deactivatedUser.Username).Text

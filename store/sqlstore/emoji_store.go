@@ -6,11 +6,12 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlEmojiStore struct {
@@ -43,28 +44,28 @@ func (es SqlEmojiStore) createIndexesIfNotExists() {
 	es.CreateIndexIfNotExists("idx_emoji_name", "Emoji", "Name")
 }
 
-func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	emoji.PreSave()
 	if err := emoji.IsValid(); err != nil {
 		return nil, err
 	}
 
 	if err := es.GetMaster().Insert(emoji); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "error saving emoji")
 	}
 
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, error) {
 	return es.getBy("Id", id, allowFromCache)
 }
 
-func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, error) {
 	return es.getBy("Name", name, allowFromCache)
 }
 
-func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, error) {
 	keys, params := MapStringsToQueryParams(names, "Emoji")
 
 	var emojis []*model.Emoji
@@ -77,12 +78,12 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *mode
 		WHERE
 			Name IN `+keys+`
 			AND DeleteAt = 0`, params); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "error getting emoji by names %v", names)
 	}
 	return emojis, nil
 }
 
-func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, error) {
 	var emoji []*model.Emoji
 
 	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
@@ -94,12 +95,12 @@ func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji,
 	query += " LIMIT :Limit OFFSET :Offset"
 
 	if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "could not get list of emojis")
 	}
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
+func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	if sqlResult, err := es.GetMaster().Exec(
 		`UPDATE
 			Emoji
@@ -109,15 +110,15 @@ func (es SqlEmojiStore) Delete(emoji *model.Emoji, time int64) *model.AppError {
 		WHERE
 			Id = :Id
 			AND DeleteAt = 0`, map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": emoji.Id}); err != nil {
-		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.app_error", nil, "id="+emoji.Id+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "could not delete emoji")
 	} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-		return model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusBadRequest)
+		return store.NewErrNotFound("Emoji", emoji.Id)
 	}
 
 	return nil
 }
 
-func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, error) {
 	var emojis []*model.Emoji
 
 	name = sanitizeSearchTerm(name, "\\")
@@ -139,13 +140,13 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 			AND DeleteAt = 0
 			ORDER BY Name
 			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "could not search emojis by name %s", name)
 	}
 	return emojis, nil
 }
 
 // getBy returns one active (not deleted) emoji, found by any one column (what/key).
-func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*model.Emoji, *model.AppError) {
+func (es SqlEmojiStore) getBy(what, key string, addToCache bool) (*model.Emoji, error) {
 	var emoji *model.Emoji
 
 	err := es.GetReplica().SelectOne(&emoji,
@@ -155,15 +156,13 @@ func (es SqlEmojiStore) getBy(what string, key interface{}, addToCache bool) (*m
 			Emoji
 		WHERE
 			`+what+` = :Key
-			AND DeleteAt = 0`, map[string]interface{}{"Key": key})
+			AND DeleteAt = 0`, map[string]string{"Key": key})
 	if err != nil {
-		var status int
 		if err == sql.ErrNoRows {
-			status = http.StatusNotFound
-		} else {
-			status = http.StatusInternalServerError
+			return nil, store.NewErrNotFound("Emoji", fmt.Sprintf("%s=%s", what, key))
 		}
-		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get.app_error", nil, "key="+fmt.Sprintf("%v", key)+", "+err.Error(), status)
+
+		return nil, errors.Wrapf(err, "could not get emoji by %s with value %s", what, key)
 	}
 
 	return emoji, nil

@@ -30,12 +30,12 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
 		Fn:   testAutocompleteChannelByNameSplittedWithUnderscoreChar,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its display name when has parts splitted by whitespace character",
 		Fn:   testAutocompleteChannelByDisplayNameSplittedByWhitespaces,
-		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH, ENGINE_BLEVE},
 	},
 	{
 		Name: "Should be able to autocomplete retrieving all channels if the term is empty",
@@ -113,6 +113,7 @@ func testAutocompleteChannelByNameSplittedWithUnderscoreChar(t *testing.T, th *S
 func testAutocompleteChannelByDisplayNameSplittedByWhitespaces(t *testing.T, th *SearchTestHelper) {
 	alternate, err := th.createChannel(th.Team.Id, "channel-alternate", "Channel Alternate", "", model.CHANNEL_OPEN, false)
 	require.Nil(t, err)
+
 	defer th.deleteChannel(alternate)
 	res, apperr := th.Store.Channel().AutocompleteInTeam(th.Team.Id, "Channel A", false)
 	require.Nil(t, apperr)

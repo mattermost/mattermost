@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 const (
@@ -31,7 +32,7 @@ var groupSourcesRequiringRemoteID = []GroupSource{
 
 type Group struct {
 	Id             string      `json:"id"`
-	Name           string      `json:"name"`
+	Name           *string     `json:"name,omitempty"`
 	DisplayName    string      `json:"display_name"`
 	Description    string      `json:"description"`
 	Source         GroupSource `json:"source"`
@@ -80,6 +81,12 @@ type GroupSearchOpts struct {
 	FilterAllowReference   bool
 	PageOpts               *PageOpts
 	Since                  int64
+
+	// FilterParentTeamPermitted filters the groups to the intersect of the
+	// set associated to the parent team and those returned by the query.
+	// If the parent team is not group-constrained or if NotAssociatedToChannel
+	// is not set then this option is ignored.
+	FilterParentTeamPermitted bool
 }
 
 type PageOpts struct {
@@ -87,9 +94,14 @@ type PageOpts struct {
 	PerPage int
 }
 
+type GroupStats struct {
+	GroupID          string `json:"group_id"`
+	TotalMemberCount int64  `json:"total_member_count"`
+}
+
 func (group *Group) Patch(patch *GroupPatch) {
 	if patch.Name != nil {
-		group.Name = *patch.Name
+		group.Name = patch.Name
 	}
 	if patch.DisplayName != nil {
 		group.DisplayName = *patch.DisplayName
@@ -103,8 +115,9 @@ func (group *Group) Patch(patch *GroupPatch) {
 }
 
 func (group *Group) IsValidForCreate() *AppError {
-	if l := len(group.Name); l == 0 || l > GroupNameMaxLength {
-		return NewAppError("Group.IsValidForCreate", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+	err := group.IsValidName()
+	if err != nil {
+		return err
 	}
 
 	if l := len(group.DisplayName); l == 0 || l > GroupDisplayNameMaxLength {
@@ -158,6 +171,31 @@ func (group *Group) IsValidForUpdate() *AppError {
 	return nil
 }
 
+func (group *Group) ToJson() string {
+	b, _ := json.Marshal(group)
+	return string(b)
+}
+
+var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
+
+func (group *Group) IsValidName() *AppError {
+
+	if group.Name == nil {
+		if group.AllowReference {
+			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
+	} else {
+		if l := len(*group.Name); l == 0 || l > GroupNameMaxLength {
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_length.app_error", map[string]interface{}{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)
+		}
+
+		if !validGroupnameChars.MatchString(*group.Name) {
+			return NewAppError("Group.IsValidName", "model.group.name.invalid_chars.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+	return nil
+}
+
 func GroupFromJson(data io.Reader) *Group {
 	var group *Group
 	json.NewDecoder(data).Decode(&group)
@@ -174,4 +212,10 @@ func GroupPatchFromJson(data io.Reader) *GroupPatch {
 	var groupPatch *GroupPatch
 	json.NewDecoder(data).Decode(&groupPatch)
 	return groupPatch
+}
+
+func GroupStatsFromJson(data io.Reader) *GroupStats {
+	var groupStats *GroupStats
+	json.NewDecoder(data).Decode(&groupStats)
+	return groupStats
 }

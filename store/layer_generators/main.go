@@ -18,7 +18,15 @@ import (
 	"text/template"
 )
 
-const OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+const (
+	OPEN_TRACING_PARAMS_MARKER = "@openTracingParams"
+	APP_ERROR_TYPE             = "*model.AppError"
+	ERROR_TYPE                 = "error"
+)
+
+func isError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
+}
 
 func main() {
 	if err := buildTimerLayer(); err != nil {
@@ -39,7 +47,7 @@ func buildTimerLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("timer_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
 }
 
 func buildOpenTracingLayer() error {
@@ -52,7 +60,7 @@ func buildOpenTracingLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("opentracing_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
 }
 
 type methodParam struct {
@@ -212,7 +220,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorToBoolean": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d == nil", i)
 				}
 			}
@@ -220,7 +228,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return true
 				}
 			}
@@ -228,7 +236,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"errorVar": func(results []string) string {
 			for i, typeName := range results {
-				if typeName == "*model.AppError" {
+				if isError(typeName) {
 					return fmt.Sprintf("resultVar%d", i)
 				}
 			}
@@ -244,7 +252,13 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
+				} else if param.Type == "*UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				} else {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				}
 			}
 			return strings.Join(paramsWithType, ", ")
 		},

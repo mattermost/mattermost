@@ -15,8 +15,9 @@ import (
 )
 
 type AutoPostCreator struct {
-	client         *model.Client4
+	a              *App
 	channelid      string
+	userid         string
 	Fuzzy          bool
 	TextLength     utils.Range
 	HasImage       bool
@@ -27,10 +28,11 @@ type AutoPostCreator struct {
 }
 
 // Automatic poster used for testing
-func NewAutoPostCreator(client *model.Client4, channelid string) *AutoPostCreator {
+func NewAutoPostCreator(a *App, channelid, userid string) *AutoPostCreator {
 	return &AutoPostCreator{
-		client:         client,
+		a:              a,
 		channelid:      channelid,
+		userid:         userid,
 		Fuzzy:          false,
 		TextLength:     utils.Range{Begin: 100, End: 200},
 		HasImage:       false,
@@ -57,12 +59,12 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, error) {
 		return nil, err
 	}
 
-	fileResp, resp := cfg.client.UploadFile(data.Bytes(), cfg.channelid, filename)
-	if resp.Error != nil {
-		return nil, resp.Error
+	fileResp, err2 := cfg.a.UploadFile(data.Bytes(), cfg.channelid, filename)
+	if err2 != nil {
+		return nil, err2
 	}
 
-	return []string{fileResp.FileInfos[0].Id}, nil
+	return []string{fileResp.Id}, nil
 }
 
 func (cfg *AutoPostCreator) CreateRandomPost() (*model.Post, error) {
@@ -88,13 +90,15 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(parentId, rootId string) (*mo
 
 	post := &model.Post{
 		ChannelId: cfg.channelid,
+		UserId:    cfg.userid,
 		ParentId:  parentId,
 		RootId:    rootId,
 		Message:   postText,
-		FileIds:   fileIds}
-	rpost, resp := cfg.client.CreatePost(post)
-	if resp.Error != nil {
-		return nil, resp.Error
+		FileIds:   fileIds,
+	}
+	rpost, err := cfg.a.CreatePostMissingChannel(post, true)
+	if err != nil {
+		return nil, err
 	}
 	return rpost, nil
 }
