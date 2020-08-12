@@ -304,10 +304,6 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().Update(&o1)
 	require.NotNil(t, err, "Update should have failed because of missing key")
 
-	o1.Id = model.NewId()
-	_, err = ss.Channel().Update(&o1)
-	require.NotNil(t, err, "update should have failed because id change")
-
 	o2.Name = o1.Name
 	_, err = ss.Channel().Update(&o2)
 	require.NotNil(t, err, "update should have failed because of existing name")
