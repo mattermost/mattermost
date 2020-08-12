@@ -4742,7 +4742,7 @@ func (s *OpenTracingLayerPostStore) ClearCaches() {
 
 }
 
-func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
+func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -4760,7 +4760,7 @@ func (s *OpenTracingLayerPostStore) Delete(postId string, time int64, deleteByID
 	return resultVar0
 }
 
-func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -5136,7 +5136,7 @@ func (s *OpenTracingLayerPostStore) GetRepliesForExport(parentId string) ([]*mod
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetSingle(id string) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetSingle")
 	s.Root.Store.SetContext(newCtx)
@@ -5221,7 +5221,7 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteBatch(endTime int64, limit in
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteByChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -5239,7 +5239,7 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByChannel(channelId string) *
 	return resultVar0
 }
 
-func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.PermanentDeleteByUser")
 	s.Root.Store.SetContext(newCtx)
@@ -5257,7 +5257,7 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(userId string) *model.
 	return resultVar0
 }
 
-func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -5275,7 +5275,7 @@ func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, *model.
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
+func (s *OpenTracingLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.SaveMultiple")
 	s.Root.Store.SetContext(newCtx)
@@ -5329,7 +5329,7 @@ func (s *OpenTracingLayerPostStore) SearchPostsInTeamForUser(paramsList []*model
 	return resultVar0, resultVar1
 }
 
-func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Update")
 	s.Root.Store.SetContext(newCtx)
