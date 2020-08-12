@@ -4247,6 +4247,34 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.post.delete.app_error",
+    "translation": "Unable to delete the post."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Unable to delete the posts by channel."
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Unable to select the posts to delete for the user."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Unable to save the Post."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Unable to update the Post."
+  },
+  {
     "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },
@@ -7175,14 +7203,6 @@
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Unable to get the post."
-  },
-  {
     "id": "store.sql_post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
@@ -7243,48 +7263,16 @@
     "translation": "Unable to overwrite the Post."
   },
   {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Unable to delete the comments for user."
-  },
-  {
     "id": "store.sql_post.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Unable to delete the posts by channel."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Unable to select the posts to delete for the user (too many), please re-run."
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Unable to save the Post."
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "You cannot update an existing Post."
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Unable to update the Post."
   },
   {
     "id": "store.sql_status.get.app_error",

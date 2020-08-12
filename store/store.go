@@ -249,14 +249,14 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
-	Save(post *model.Post) (*model.Post, *model.AppError)
-	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
-	GetSingle(id string) (*model.Post, *model.AppError)
-	Delete(postId string, time int64, deleteByID string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	PermanentDeleteByChannel(channelId string) *model.AppError
+	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	Save(post *model.Post) (*model.Post, error)
+	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
+	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	GetSingle(id string) (*model.Post, error)
+	Delete(postId string, time int64, deleteByID string) error
+	PermanentDeleteByUser(userId string) error
+	PermanentDeleteByChannel(channelId string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	// @openTracingParams userId, teamId, offset, limit
