@@ -77,7 +77,7 @@
     },
     {
         "id": "api.admin.remove_certificate.delete.app_error",
-        "translation": "Ocorreu um erro ao deletar o App OAuth2"
+        "translation": "Ocorreu um erro ao excluir o certificado."
     },
     {
         "id": "api.admin.saml.metadata.app_error",
@@ -109,15 +109,15 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.admin.upload_brand_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.admin.upload_brand_image.storage.app_error",
@@ -5159,72 +5159,8 @@
         "translation": "Encontramos um erro ao atualizar o membro do canal"
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Não foi possível contar os comandos"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Não foi possível obter o comando"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Não foi possível excluir o comando"
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Não foi possível excluir o comando"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Não foi possível obter o comando"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Não foi possível obter os comandos"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Não foi possível salvar o Comando"
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Você não pode sobrescrever um Comando existente"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Não foi possível atualizar o comando"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Não foi possível salvar o CommandWebhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "Você não pode atualizar o CommandWebhook existente"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Não foi possível utilizar o webhook"
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Webhook inválido"
-    },
-    {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Encontramos um erro ao obter o relatório de conformidade"
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "Falha ao selecionar dados de exportação de mensagens"
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Encontramos um erro ao salvar o relatório de conformidade"
     },
     {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5275,10 +5211,6 @@
         "translation": "nenhum grupo correspondente encontrado"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "nenhuma linha alterada"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "Já existe um grupo com este nome"
     },
@@ -5315,102 +5247,6 @@
         "translation": "Não foi possível atualizar o job"
     },
     {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Não é possível confirmar a transação"
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "Não foi possível abrir a transação para deletar o app OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "Ocorreu um erro ao deletar o App OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Encontramos um erro ao procurar o token de acesso"
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Encontramos um erro ao procurar todos os token de acesso"
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "Não foi possível encontrar o app requisitado"
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "Encontramos um erro ao procurar o app"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Não foi possível encontrar nenhum app existente"
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "Ocorreu um erro ao encontrar os Apps OAuth2"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Não foi possível localizar o código de autorização"
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Encontramos um erro ao procurar o código de autorização"
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Encontramos um erro ao procurar o token de acesso"
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Não conseguimos remover o código de autorização"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Não foi possível remover o token de acesso"
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Não conseguimos remover o código de autorização"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Não foi possível salvar o token de acesso."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Deve chamar atualização para aplicação existente"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Não foi possível salvar o app."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Não foi possível salvar o código de autorização."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Encontramos um erro ao enviar o token de acesso"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Não foi possível encontrar o app existente para atualizar"
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "Encontramos um erro ao procurar o app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Não foi possível atualizar o app"
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Encontramos um erro ao atualizar o app"
-    },
-    {
         "id": "store.sql_plugin_store.delete.app_error",
         "translation": "Não foi possível excluir o valor da chave do plugin"
     },
@@ -5433,10 +5269,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Não é possível obter contagens de usuários com publicações"
-    },
-    {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Não foi possível obter os posts de compliance export."
     },
     {
         "id": "store.sql_post.delete.app_error",
@@ -5529,142 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "Não foi possível atualizar a Publicação"
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "Encontramos um erro ao limpar o lote de flags"
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Encontramos um erro enquanto deletava as preferências"
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Encontramos um erro ao procurar as preferências"
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Encontramos um erro ao procurar as preferências"
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Encontramos um erro ao procurar as preferências"
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Uma preferencia com este id de usuário, categoria, e nome já existe"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Não foi possível salvar a preferencia"
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Encontramos um erro enquanto deletava as preferências"
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Não é possível confirmar a transação para salvar as preferências"
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Encontramos um erro enquanto atualizava as preferências"
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Não foi possível abrir a transação para salvar as preferências"
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Encontramos um erro enquanto atualizava as preferências"
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Não foi possível atualizar a preferencia"
-    },
-    {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Não foi possível excluir a função"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Não foi possível obter a função"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Não foi possível obter a função"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Não foi possível obter as funções"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Não podemos apagar permanentemente todas as funções"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Não foi possível salvar a função"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "A função não é válida"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Falha ao abrir a transação para salvar a função"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Não foi possível atualizar a função"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Falha ao confirmar a transação para salvar a função"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Não foi possível contar as sessões"
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Encontramos um erro ao procurar a sessão"
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Encontramos um erro enquanto procurava a sessão do usuário"
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Não foi possível remover todas as sessões do usuário"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Não foi possível remover a sessão"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Não foi possível remover todas as sessões"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Não foi possível salvar a sessão"
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Não foi possível atualizar a sessão existente"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Não foi possível atualizar o id do dispositivo"
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Não foi possível atualizar last_activity_at"
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Não foi possível atualizar as funções"
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6075,122 +5771,6 @@
         "translation": "Não foi possível verificar o campo email"
     },
     {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Não foi possível remover o token de acesso individual"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Não foi possível obter o token de acesso individual"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Não foi possível obter todos os tokens de acesso individual"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Não foi possível obter o token de acesso inidividual pelo token"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Não foi possível obter o token de acesso individual pelo usuário"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Não foi possível salvar o token de acesso individual"
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Encontramos um erro ao procurar os tokens de acesso"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Não foi possível desativar o token de acesso"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Não foi possível habilitar o token de acesso"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Não foi possível contar os wehooks de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Não foi possível contar os webhooks de saída"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Não foi possível obter o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Não foi possível obter os webhooks"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Não foi possível excluir o webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Não foi possível salvar o webhook de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Você não pode sobrescrever um existente Webhook Entrada"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Não foi possível salvar o webhook de saída"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Você não pode sobrescrever um existente Webhook de Saída"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Não foi possível atualizar o webhook de entrada"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Não foi possível atualizar o webhook"
-    },
-    {
         "id": "store.update_error",
         "translation": "erro ao atualizar"
     },
@@ -6265,10 +5845,6 @@
     {
         "id": "web.command_webhook.command.app_error",
         "translation": "Não foi possível encontrar o comando"
-    },
-    {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Webhook inválido"
     },
     {
         "id": "web.command_webhook.parse.app_error",
@@ -6549,18 +6125,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Falha ao confirmar a transação do banco de dados"
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Não foi possível atualizar as propriedades da sessão."
-    },
-    {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Não é possível atualizar expires_at."
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Não é possível obter todos os papéis."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7640,19 +7204,19 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.parse.app_error",
-        "translation": "Não foi possível processar o formulário multipart"
+        "translation": "Não foi possível processar o formulário multipart."
     },
     {
         "id": "api.bot.set_bot_icon_image.open.app_error",
-        "translation": "Não foi possível abrir arquivo de imagem"
+        "translation": "Não foi possível abrir arquivo de imagem."
     },
     {
         "id": "api.bot.set_bot_icon_image.no_file.app_error",
-        "translation": "Nenhum arquivo em 'image' no pedido"
+        "translation": "Nenhum arquivo em 'image' no pedido."
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "Matriz vazia em 'image' na requisição"
+        "translation": "Matriz vazia em 'image' na requisição."
     },
     {
         "id": "api.bot.set_bot_icon_image.app_error",
@@ -7700,11 +7264,11 @@
     },
     {
         "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado"
+        "translation": "Falha encontrada enquanto analisam as informações de metadados recebidas do Provedor de Identidade a um certificado."
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-        "translation": "Falha ao obter metadados da URL do Provedor de Identidade"
+        "translation": "Falha ao obter metadados da URL do Provedor de Identidade."
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
@@ -7721,10 +7285,6 @@
     {
         "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
         "translation": "Não é possível confirmar a transação"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "A migração falhou devido a dados de progresso inválidos."
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",
@@ -7763,10 +7323,6 @@
         "translation": "Encontramos um erro ao procurar o audits"
     },
     {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Não foi possível atualizar expired_notify."
-    },
-    {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
         "translation": "Não foi possível obter o horário de criação da entidade mais antiga."
     },
@@ -7785,10 +7341,6 @@
     {
         "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
         "translation": "É necessário o Identificador do Provedor de Serviços"
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Falha na migração devido a erro no banco de dados."
     },
     {
         "id": "ent.elasticsearch.delete_user_posts.error",
@@ -7909,5 +7461,573 @@
     {
         "id": "ent.get_users_in_channel_during",
         "translation": " "
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Não foi possível obter os comandos."
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Webhook inválido."
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Não foi possível utilizar o webhook."
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Não é possível processar os dados de entrada."
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Não foi possível obter o webhook."
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Não foi possível obter o webhook."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "Não foi possível salvar o CommandWebhook."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Você não pode atualizar o CommandWebhook existente."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Encontramos um erro ao atualizar o app."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Não foi possível encontrar o app existente para atualizar."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Não foi possível salvar o app."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Deve chamar atualização para aplicação existente."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Não foi possível remover o token de acesso."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Não conseguimos remover o código de autorização."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "Ocorreu um erro ao encontrar os Apps OAuth2."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Não foi possível encontrar nenhum app existente."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "Encontramos um erro ao procurar o app."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "Não foi possível encontrar o app requisitado."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Encontramos um erro ao procurar todos os token de acesso."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "Ocorreu um erro ao excluir o App OAuth2."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Não é possível excluir o token."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Não é possível excluir o token."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Não foi possível atualizar o id do dispositivo."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Não foi possível atualizar a sessão existente."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Não foi possível salvar a sessão."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Não foi possível remover todas as sessões."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Não foi possível remover a sessão."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Não foi possível remover todas as sessões do usuário."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Encontramos um erro enquanto procurava a sessão do usuário."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Encontramos um erro ao procurar a sessão."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Não foi possível contar as sessões."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Não foi possível atualizar o comando."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Não foi possível obter os comandos."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Não foi possível obter o comando."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Não foi possível excluir o comando."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Não foi possível salvar o Comando."
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Não foi possível habilitar o token de acesso"
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Não foi possível desativar o token de acesso"
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Encontramos um erro ao procurar os tokens de acesso"
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Não foi possível salvar o token de acesso individual"
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Não foi possível obter o token de acesso individual pelo usuário"
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Não foi possível obter todos os tokens de acesso individual"
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Não foi possível remover o token de acesso individual"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "Servidor SMTP é obrigatório"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "Falha ao selecionar dados de exportação de mensagens"
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Encontramos um erro ao salvar o relatório de conformidade"
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Encontramos um erro ao obter o relatório de conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Não é possível copiar o anexo para um arquivo zip."
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "Encontramos um erro ao limpar o lote de flags."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Encontramos um erro enquanto atualizava as preferências."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Encontramos um erro enquanto excluía as preferências."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Encontramos um erro ao procurar as preferências."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Encontramos um erro enquanto excluía as preferências."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site URL:"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Total Usuários Ativos"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "Email:"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Falha ao enviar email de confirmação do administrador"
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Não foi possível obter o usuário da sessão UserID."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Não foi possível atualizar o webhook"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Não foi possível atualizar o webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Você não pode sobrescrever um existente Webhook de Saída"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Não foi possível salvar o webhook de saída"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Você não pode sobrescrever um existente Webhook Entrada"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Não foi possível salvar o webhook de entrada"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Não foi possível obter os webhooks"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Não foi possível obter o webhook"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Não foi possível excluir o webhook"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Não foi possível contar os webhooks de saída"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Não foi possível contar os wehooks de entrada"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Não foi possível obter todas as equipes privadas."
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Não foi possível encontrar a métrica de aviso."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "A função não é válida."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Não foi possível salvar a função."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Não podemos apagar permanentemente todas as funções."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Não foi possível obter os papeis."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Não foi possível obter a função."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Não é possível obter todos os papéis."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Não foi possível obter a função."
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Envie-nos um email"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Contatando-Nos"
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Contate-Nos"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Obrigado por entrar em contato com a Mattermost. Entraremos em contato com você em breve."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "Mensagem não pode ser enviada."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Envie um email."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost Solicitação de contato"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "Site URL: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Total de Usuários Ativos: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "Email: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "ID de Diagnóstico: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "Contato: {{.Contact}}"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Não foi possível atualizar a barra lateral para corresponder às preferências atualizadas"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Não foi possível atualizar a barra lateral para corresponder às preferências excluídas"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Não foi possível esta tarefa"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost Solicitação de contato"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Se você tiver outras dúvidas, entre em contato com support@mattermost.com"
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Mais de uma linha alterada."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Comando não existe."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Comando não existe."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Diretório de Armazenamento Local inválido. Deve ser uma sequência não vazia."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Plugin id inválido."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "não foi possível migrar."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Ocorreu um erro ao gravar o arquivo XML de conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Ocorreu um erro ao criar o arquivo XML de conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Ocorreu um erro ao gravar no arquivo xml da conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Ocorreu um erro ao criar o arquivo de texto de aviso de conformidade"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Ocorreu um erro ao criar o arquivo XML de conformidade"
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Não foi possível converte bot para usuário."
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "Falha ao armazenar valor para {{.WarnMetricName}}"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "A lista de administradores está vazia."
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Advisor"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Saiba mais sobre o Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "DownloadExportResults em config.json é falso. Defina como true para baixar os resultados deste trabalho."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Não foi possível executar o comando personalizado."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Não foi possível gerar novamente o token de comando."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Não foi possível listar os comandos de preenchimento automático."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "Não foi possível obter a análise."
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "O recurso de exclusão permanente do usuário não está ativado. Entre em contato com o Administrador do Sistema."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "O recurso de exclusão permanente da equipe não está ativado. Entre em contato com o Administrador do Sistema."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermos Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "ID de Diagnóstico: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "Contato: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Atualizar para Mattermost Enterprise edition"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "A Mattermost recomenda enfaticamente que as implantações de mais de 500 usuários atualizem para o Mattermost Enterprise Edition, que oferece recursos como gerenciamento de usuários, cluster de servidores e monitoramento de desempenho.\n\nEntre em contato com o suporte e envie suas informações de contato para Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "Integrar SAML 2.0"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "Seu sistema Mattermost agora possui 400 usuários. Quando você conecta o Mattermost ao provedor de login único da sua organização, os usuários podem acessar o Mattermost sem precisar redigitar suas credenciais. Entre em contato com o suporte para saber mais sobre a integração com o SAML 2.0, disponível no Mattermost Enterprise Edition.\n\n[Saiba mais sobre a integração com o SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nEntre em contato com o suporte e envie suas informações de contato para Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "Integrar AD/LDAP"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "Seu sistema Mattermost agora tem 200 usuários. À medida que sua base de usuários cresce, o provisionamento de novas contas pode consumir muito tempo. Recomendamos que você atualize para o Mattermost Enterprise Edition e integre o Active Directory/LDAP da sua organização, o que permitirá que qualquer pessoa com uma conta acesse o Mattermost. Os usuários podem efetuar login sem precisar criar novos nomes de usuário e senhas, e os administradores economizam tempo em provisionar e gerenciar contas.\n\n[Saiba mais sobre a integração com o AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nEntre em contato com o suporte e envie suas informações de contato para a Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
     }
 ]

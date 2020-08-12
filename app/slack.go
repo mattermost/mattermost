@@ -4,14 +4,37 @@
 package app
 
 import (
+	"bytes"
+	"mime/multipart"
 	"regexp"
 
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/slackimport"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
+
+func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+	actions := slackimport.Actions{
+		UpdateActive:           a.UpdateActive,
+		AddUserToChannel:       a.AddUserToChannel,
+		JoinUserToTeam:         a.JoinUserToTeam,
+		CreateDirectChannel:    a.createDirectChannel,
+		CreateGroupChannel:     a.createGroupChannel,
+		CreateChannel:          a.CreateChannel,
+		DoUploadFile:           a.DoUploadFile,
+		GenerateThumbnailImage: a.generateThumbnailImage,
+		GeneratePreviewImage:   a.generatePreviewImage,
+		InvalidateAllCaches:    func() { a.srv.InvalidateAllCaches() },
+		MaxPostSize:            func() int { return a.srv.MaxPostSize() },
+		PrepareImage:           prepareImage,
+	}
+
+	importer := slackimport.New(a.srv.Store, actions, a.Config())
+	return importer.SlackImport(fileData, fileSize, teamID)
+}
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)

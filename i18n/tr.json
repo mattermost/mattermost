@@ -5159,72 +5159,8 @@
         "translation": "Kanal üyesi güncellenirken bir sorun çıktı."
     },
     {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Komutlar sayılamadı."
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Komut alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Komut silinemedi."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Komut silinemedi."
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Komut alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Komutlar alınamadı."
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Komut kaydedilemedi."
-    },
-    {
-        "id": "store.sql_command.save.saving_overwrite.app_error",
-        "translation": "Var olan bir komutun üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Komut güncellenemedi."
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Komut web bağlantısı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_command_webhooks.save.existing.app_error",
-        "translation": "Var olan bir KomutWebBağlantısını güncelleyemezsiniz."
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Web bağlantısı kullanılamaz."
-    },
-    {
-        "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-        "translation": "Web bağlantısı geçersiz."
-    },
-    {
-        "id": "store.sql_compliance.get.finding.app_error",
-        "translation": "Uygunluk raporları alınırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_compliance.message_export.app_error",
-        "translation": "İleti dışa aktarma verisi seçilemedi."
-    },
-    {
-        "id": "store.sql_compliance.save.saving.app_error",
-        "translation": "Uygunluk raporu kaydedilirken bir sorun çıktı."
     },
     {
         "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5275,10 +5211,6 @@
         "translation": "eşleşen bir grup bulunamadı"
     },
     {
-        "id": "store.sql_group.no_rows_changed",
-        "translation": "herhangi bir satır değiştirilmedi"
-    },
-    {
         "id": "store.sql_group.unique_constraint",
         "translation": "aynı adlı bir takım zaten var"
     },
@@ -5315,102 +5247,6 @@
         "translation": "Görev güncellenemedi."
     },
     {
-        "id": "store.sql_oauth.delete.commit_transaction.app_error",
-        "translation": "Hareket işlenemedi."
-    },
-    {
-        "id": "store.sql_oauth.delete.open_transaction.app_error",
-        "translation": "OAuth2 uygulamasını silme işlemi açılamadı."
-    },
-    {
-        "id": "store.sql_oauth.delete_app.app_error",
-        "translation": "OAuth2 uygulaması silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_access_data.app_error",
-        "translation": "Erişim kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Tüm erişim kodları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_app.find.app_error",
-        "translation": "İstenilen uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_app.finding.app_error",
-        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Var olan herhangi bir uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_apps.find.app_error",
-        "translation": "OAuth2 uygulamaları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.find.app_error",
-        "translation": "Var olan kimlik doğrulama kodu bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.get_auth_data.finding.app_error",
-        "translation": "Kimlik doğrulama kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.get_previous_access_data.app_error",
-        "translation": "Erişim kodu aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Kimlik doğrulama kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Erişim kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.remove_auth_data.app_error",
-        "translation": "Kimlik doğrulama kodu silinemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Erişim kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_app.existing.app_error",
-        "translation": "Güncelleme var olan uygulama için çağrılmalı."
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Uygulama kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.save_auth_data.app_error",
-        "translation": "Kimlik doğrulama kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_oauth.update_access_data.app_error",
-        "translation": "Erişim kodu güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Güncellenecek var olan uygulama bulunamadı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.finding.app_error",
-        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Uygulama güncellenemedi."
-    },
-    {
-        "id": "store.sql_oauth.update_app.updating.app_error",
-        "translation": "Uygulama güncellenirken bir sorun çıktı."
-    },
-    {
         "id": "store.sql_plugin_store.delete.app_error",
         "translation": "Uygulama eki anahtarı değeri silinemedi."
     },
@@ -5433,10 +5269,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "İletilerin kullanıcı sayıları alınamadı."
-    },
-    {
-        "id": "store.sql_post.compliance_export.app_error",
-        "translation": "Dışa aktarılan uygunluk iletileri alınamadı."
     },
     {
         "id": "store.sql_post.delete.app_error",
@@ -5529,142 +5361,6 @@
     {
         "id": "store.sql_post.update.app_error",
         "translation": "İleti güncellenemedi."
-    },
-    {
-        "id": "store.sql_preference.cleanup_flags_batch.app_error",
-        "translation": "İşaretler toplu olarak temizlenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.delete.app_error",
-        "translation": "Ayarlar silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get_all.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.get_category.app_error",
-        "translation": "Ayarlar aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.insert.exists.app_error",
-        "translation": "Bu kullanıcı kodu, kategori ve adı taşıyan bir ayar zaten var."
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Ayar kaydedilemedi."
-    },
-    {
-        "id": "store.sql_preference.permanent_delete_by_user.app_error",
-        "translation": "Ayarlar silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.save.commit_transaction.app_error",
-        "translation": "Ayarlar kaydedilirken işlem tamamlanamadı."
-    },
-    {
-        "id": "store.sql_preference.save.missing_driver.app_error",
-        "translation": "Ayarlar güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.save.open_transaction.app_error",
-        "translation": "Ayarlar kaydedilirken işlem açılamadı."
-    },
-    {
-        "id": "store.sql_preference.save.updating.app_error",
-        "translation": "Ayarlar güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Ayar güncellenemedi."
-    },
-    {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Rol silinemedi."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Roller alınamadı."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Tüm roller kalıcı olarak silinemedi."
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Yeni rol kaydedilemedi."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rol geçersiz."
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem açılamadı."
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Rol güncellenemedi."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem yapılamadı."
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Oturumlar sayılamadı."
-    },
-    {
-        "id": "store.sql_session.get.app_error",
-        "translation": "Oturum aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_session.get_sessions.app_error",
-        "translation": "Kullanıcı oturumları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-        "translation": "Kullanıcının tüm oturumları silinemedi."
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Oturum silinemedi."
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Tüm oturumlar silinemedi."
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Oturum kaydedilemedi."
-    },
-    {
-        "id": "store.sql_session.save.existing.app_error",
-        "translation": "Var olan oturum güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Aygıt kodu güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_last_activity.app_error",
-        "translation": "Son işlem zamanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Roller güncellenemedi."
     },
     {
         "id": "store.sql_status.get.app_error",
@@ -6075,122 +5771,6 @@
         "translation": "E-posta doğrulama alanı güncellenemedi."
     },
     {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Kişisel erişim kodu silinemedi."
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Kişisel erişim kodu alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Tüm kişisel erişim kodları alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Koda göre kişisel erişim kodu alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Kişisel erişim kodu kaydedilemedi."
-    },
-    {
-        "id": "store.sql_user_access_token.search.app_error",
-        "translation": "Kullanıcı erişim kodları aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Erişim kodu devre dışı bırakılamadı."
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Erişim kodu etkinleştirilemedi."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Gelen web bağlantıları sayılamadı."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Giden web bağlantıları sayılamadı."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Gelen web bağlantısı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Giden web bağlantısı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Gelen web bağlantısı güncellenemedi."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Web bağlantısı güncellenemedi."
-    },
-    {
         "id": "store.update_error",
         "translation": "güncelleme sorunu"
     },
@@ -6265,10 +5845,6 @@
     {
         "id": "web.command_webhook.command.app_error",
         "translation": "Komut bulunamadı."
-    },
-    {
-        "id": "web.command_webhook.invalid.app_error",
-        "translation": "Web bağlantısı geçersiz."
     },
     {
         "id": "web.command_webhook.parse.app_error",
@@ -7143,14 +6719,6 @@
         "translation": "İleti yanıtları sayısı alınamadı"
     },
     {
-        "id": "store.sql_session.update_expires_at.app_error",
-        "translation": "Sona erme süresi güncellenemedi."
-    },
-    {
-        "id": "store.sql_session.update_props.app_error",
-        "translation": "Oturum özellikleri güncellenemedi."
-    },
-    {
         "id": "store.sql_team.get_all_private_team_listing.app_error",
         "translation": "Tüm özel takımlar alınamadı."
     },
@@ -7204,7 +6772,7 @@
     },
     {
         "id": "ent.data_retention.channel_member_history_batch.internal_error",
-        "translation": " "
+        "translation": "Kayıtlar silinemedi."
     },
     {
         "id": "app.bot.permenent_delete.bad_id",
@@ -7564,7 +7132,7 @@
     },
     {
         "id": "ent.get_users_in_channel_during",
-        "translation": " "
+        "translation": "Kanaldaki kullanıcılar belirtilen zaman aralığında alınamadı."
     },
     {
         "id": "model.guest.is_valid.email.app_error",
@@ -7603,10 +7171,6 @@
         "translation": "İlgili gönderim civarı süresi alınamadı."
     },
     {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Rollerin tümü alınamadı."
-    },
-    {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Veritabanı işlemi yapılamadı."
     },
@@ -7633,10 +7197,6 @@
     {
         "id": "store.sql_team.get_by_names.missing.app_error",
         "translation": "İstenilen takımların bazıları bulunamadı"
-    },
-    {
-        "id": "store.sql_session.update_expired_notify.app_error",
-        "translation": "Sona erme bildirimi güncellenemedi."
     },
     {
         "id": "store.sql_team.search_private_team.app_error",
@@ -7879,20 +7439,12 @@
         "translation": "İşlem tamamlanamadı."
     },
     {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.invalid_progress",
-        "translation": "İşlenen verilerin geçersiz olması nedeniyle aktarım tamamlanamadı."
-    },
-    {
         "id": "store.sql_channel.sidebar_categories.delete_invalid.app_error",
         "translation": "Özel olmayan kategori silinemedi."
     },
     {
         "id": "store.sql_channel.sidebar_categories.app_error",
         "translation": "Kayıt veritabanına eklenemedi."
-    },
-    {
-        "id": "migrations.worker.run_sidebar_categories_phase_2_migration.internal_error",
-        "translation": "Veritabanı sorunu nedeniyle aktarılamadı."
     },
     {
         "id": "app.channel.create_initial_sidebar_categories.internal_error",
@@ -7909,5 +7461,573 @@
     {
         "id": "app.recover.delete.app_error",
         "translation": "Kod silinemedi."
+    },
+    {
+        "id": "app.command.listteamcommands.internal_error",
+        "translation": "Takım komutları listelenemedi."
+    },
+    {
+        "id": "app.command_webhook.try_use.invalid",
+        "translation": "Web bağlantısı geçersiz."
+    },
+    {
+        "id": "app.command_webhook.try_use.internal_error",
+        "translation": "Web bağlantısı kullanılamaz."
+    },
+    {
+        "id": "app.command_webhook.handle_command_webhook.parse",
+        "translation": "Alınan veriler işlenemedi."
+    },
+    {
+        "id": "app.command_webhook.get.missing",
+        "translation": "Web bağlantısı bulunamadı."
+    },
+    {
+        "id": "app.command_webhook.get.internal_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.internal_error",
+        "translation": "KomutWebBağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.command_webhook.create_command_webhook.existing",
+        "translation": "Var olan bir KomutWebBağlantısını güncelleyemezsiniz."
+    },
+    {
+        "id": "app.oauth.update_app.updating.app_error",
+        "translation": "Uygulama güncellenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.update_app.find.app_error",
+        "translation": "Var olan güncellenecek uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.save_app.save.app_error",
+        "translation": "Uygulama kaydedilemedi."
+    },
+    {
+        "id": "app.oauth.save_app.existing.app_error",
+        "translation": "Güncelleme var olan uygulama için çağrılmalı."
+    },
+    {
+        "id": "app.oauth.remove_access_data.app_error",
+        "translation": "Erişim kodu silinemedi."
+    },
+    {
+        "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
+        "translation": "Kimlik doğrulama kodu silinemedi."
+    },
+    {
+        "id": "app.oauth.get_apps.find.app_error",
+        "translation": "OAuth2 uygulamaları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.get_app_by_user.find.app_error",
+        "translation": "Var olan herhangi bir uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.get_app.finding.app_error",
+        "translation": "İstenilen uygulama aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.get_app.find.app_error",
+        "translation": "İstenilen uygulama bulunamadı."
+    },
+    {
+        "id": "app.oauth.get_access_data_by_user_for_app.app_error",
+        "translation": "Tüm erişim kodları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.oauth.delete_app.app_error",
+        "translation": "OAuth2 uygulaması silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.user.permanentdeleteuser.internal_error",
+        "translation": "Kullanıcı silinemedi."
+    },
+    {
+        "id": "app.team.permanentdeleteteam.internal_error",
+        "translation": "Takım silinemedi."
+    },
+    {
+        "id": "app.session.update_device_id.app_error",
+        "translation": "Aygıt kodu güncellenemedi."
+    },
+    {
+        "id": "app.session.save.existing.app_error",
+        "translation": "Var olan oturum güncellenemedi."
+    },
+    {
+        "id": "app.session.save.app_error",
+        "translation": "Oturum kaydedilemedi."
+    },
+    {
+        "id": "app.session.remove_all_sessions_for_team.app_error",
+        "translation": "Tüm oturumlar silinemedi."
+    },
+    {
+        "id": "app.session.remove.app_error",
+        "translation": "Oturum silinemedi."
+    },
+    {
+        "id": "app.session.permanent_delete_sessions_by_user.app_error",
+        "translation": "Kullanıcının tüm oturumları silinemedi."
+    },
+    {
+        "id": "app.session.get_sessions.app_error",
+        "translation": "Kullanıcı oturumları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.session.get.app_error",
+        "translation": "Oturum aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.session.analytics_session_count.app_error",
+        "translation": "Oturumlar sayılamadı."
+    },
+    {
+        "id": "app.command.updatecommand.internal_error",
+        "translation": "Komut güncellenemedi."
+    },
+    {
+        "id": "app.command.movecommand.internal_error",
+        "translation": "Komut taşınamadı."
+    },
+    {
+        "id": "app.command.listallcommands.internal_error",
+        "translation": "Komutlar listelenemedi."
+    },
+    {
+        "id": "app.command.getcommand.internal_error",
+        "translation": "Komut alınamadı."
+    },
+    {
+        "id": "app.command.deletecommand.internal_error",
+        "translation": "Komut silinemedi."
+    },
+    {
+        "id": "app.command.createcommand.internal_error",
+        "translation": "Komut kaydedilemedi."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Birden çok satır değiştirildi."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Komut bulunamadı."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "aktarılamadı."
+    },
+    {
+        "id": "app.command.tryexecutecustomcommand.internal_error",
+        "translation": "Özel komut yürütülemedi."
+    },
+    {
+        "id": "app.command.regencommandtoken.internal_error",
+        "translation": "Komut kodu üretilemedi."
+    },
+    {
+        "id": "app.command.listautocompletecommands.internal_error",
+        "translation": "Otomatik tamamlama komutları listelenemedi."
+    },
+    {
+        "id": "app.analytics.getanalytics.internal_error",
+        "translation": "İstatistikler alınamadı."
+    },
+    {
+        "id": "api.user.delete_team.not_enabled.app_error",
+        "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    },
+    {
+        "id": "api.user.delete_user.not_enabled.app_error",
+        "translation": "Kullanıcıları kalıcı olarak silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk güncellenmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "Yan çubuk silinmiş ayarlara göre güncellenemedi"
+    },
+    {
+        "id": "app.user_access_token.update_token_enable.app_error",
+        "translation": "Erişim kodu etkinleştirilemedi."
+    },
+    {
+        "id": "app.user_access_token.update_token_disable.app_error",
+        "translation": "Erişim kodu devre dışı bırakılamadı."
+    },
+    {
+        "id": "app.user_access_token.search.app_error",
+        "translation": "Kullanıcı erişim kodları aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.user_access_token.save.app_error",
+        "translation": "Kişisel erişim kodu kaydedilemedi."
+    },
+    {
+        "id": "app.user_access_token.get_by_user.app_error",
+        "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı."
+    },
+    {
+        "id": "app.user_access_token.get_all.app_error",
+        "translation": "Tüm kişisel erişim kodları alınamadı."
+    },
+    {
+        "id": "app.user_access_token.delete.app_error",
+        "translation": "Kişisel erişim kodu silinemedi."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.missing_server.app_error",
+        "translation": "SMTP sunucusu zorunludur"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Danışmanı"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Mattermost Danışmanı hakkında ayrıntılı bilgi alın](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özellikler sunan Mattermost Enterprise sürümünün kullanılmasını önerir.\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "{{.WarnMetricName}} değeri kaydedilemedi"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "Ölçüt bulunamadı."
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "Yönetici listesi boş."
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost ile iletişim kurma isteği"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.site_url_header",
+        "translation": "Site adresi: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.registered_users_header",
+        "translation": "Etkin Kullanıcı Toplamı: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
+        "translation": "Tanı kodu: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_name_header",
+        "translation": "İlgili: "
+    },
+    {
+        "id": "api.templates.warn_metric_ack.body.contact_email_header",
+        "translation": "E-posta: "
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
+        "translation": "Mattermost Enterprise sürümüne yükseltin"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
+        "translation": "SAML 2.0 ile bütünleştirin"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
+        "translation": "AD/LDAP ile bütünleştirin"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "Bize e-posta gönderin"
+    },
+    {
+        "id": "api.server.warn_metric.contacting_us",
+        "translation": "Bizimle iletişim kurmak"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum.\n"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost ile iletişim kurma isteği. Takımım {{.Limit}} kullanıcıya ulaştı ve Mattermost Enterprise sürümüne geçmeyi düşünüyorum."
+    },
+    {
+        "id": "api.server.warn_metric.contact_us",
+        "translation": "Bizimle iletişim kurun"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_success.message",
+        "translation": "Mattermost ile iletişim kurduğunuz için teşekkür ederiz. Kısa süre içinde size yazacağız."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.message",
+        "translation": "İleti gönderilemedi."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "Lütfen bize e-posta gönderin."
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost ile iletişim kurma isteği"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
+        "translation": "Site adresi: {{.SiteUrl}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "Etkin Kullanıcı Toplamı: {{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "Sorularınız için lütfen support@mattermost.com adresine yazın"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_email_header",
+        "translation": "E-posta: {{.Email}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
+        "translation": "Tanı kodu: {{.DiagnosticId}}"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_contact_header",
+        "translation": "İlgili: {{.Contact}}"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "Uyarı ölçütü bulunamadı."
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "Yönetici onayı e-postası gönderilemedi"
+    },
+    {
+        "id": "ent.message_export.run_export.app_error",
+        "translation": "İleti dışa aktarma verisi seçilemedi."
+    },
+    {
+        "id": "app.compliance.save.saving.app_error",
+        "translation": "Uygunluk raporu kaydedilirken bir sorun çıktı."
+    },
+    {
+        "id": "app.compliance.get.finding.app_error",
+        "translation": "Uygunluk raporları alınırken bir sorun çıktı."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Actiance XML dosyasına yazılırken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Actiance uyarı metin dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Actiance XML dosyası oluşturulurken bir sorun çıktı"
+    },
+    {
+        "id": "ent.compliance.actiance.attachment.copy.appError",
+        "translation": "Ek dosya zip dosyasına kopyalanamadı."
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "config.json içindeki DownloadExportResults seçeneği false olarak ayarlanmış. Bu görevin sonuçlarını indirmek için bu seçeneği true olarak ayarlayın."
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Bu görev indirilemedi"
+    },
+    {
+        "id": "ent.data_retention.flags_batch.internal_error",
+        "translation": "İşaretler toplu olarak temizlenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.save.updating.app_error",
+        "translation": "Ayarlar güncellenirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.permanent_delete_by_user.app_error",
+        "translation": "Ayarlar silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get_category.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get_all.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.get.app_error",
+        "translation": "Ayarlar aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.preference.delete.app_error",
+        "translation": "Ayarlar silinirken bir sorun çıktı."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Kullanıcı oturum kullanıcı kodundan bulunamadı."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Uygulama eki kodu geçersiz."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Giden web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Gelen web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Gelen web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Giden web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Gelen web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Tüm özel takımlar alınamadı."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rol geçersiz."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Yeni rol kaydedilemedi."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Tüm roller kalıcı olarak silinemedi."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Roller alınamadı."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Rol alınamadı."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Rollerin tümü alınamadı."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Rol alınamadı."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Yerel depolama klasörü geçersiz. Boş olmayan bir dizge olmalıdır."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Bot kullanıcıya dönüştürülemedi."
     }
 ]

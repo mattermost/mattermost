@@ -215,8 +215,8 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 		Value:    authRequest.Scope,
 	}
 
-	if err = a.Srv().Store.Preference().Save(&model.Preferences{authorizedApp}); err != nil {
-		mlog.Error("error saving store prefrence", mlog.Err(err))
+	if nErr := a.Srv().Store.Preference().Save(&model.Preferences{authorizedApp}); nErr != nil {
+		mlog.Error("error saving store preference", mlog.Err(nErr))
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -366,7 +366,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	// Set new token an session
 	session := &model.Session{UserId: user.Id, Roles: user.Roles, IsOAuth: true}
 	session.GenerateCSRF()
-	session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthSSOInDays)
+	a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	session.AddProp(model.SESSION_PROP_PLATFORM, appName)
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
@@ -487,7 +487,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
 
 	// Deauthorize the app
 	if err := a.Srv().Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
-		return err
+		return model.NewAppError("DeauthorizeOAuthAppForUser", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
