@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package slackimport
 
 import (
 	"os"
@@ -12,10 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
-	assert.EqualValues(t, SlackConvertTimeStamp("1469785419.000033"), 1469785419000)
+	assert.EqualValues(t, slackConvertTimeStamp("1469785419.000033"), 1469785419000)
 }
 
 func TestSlackConvertChannelName(t *testing.T) {
@@ -31,17 +32,17 @@ func TestSlackConvertChannelName(t *testing.T) {
 		{"a", "C0G05DLQH", "slack-channel-a"},
 		{"случайный", "C0G05DLQD", "c0g05dlqd"},
 	} {
-		assert.Equal(t, SlackConvertChannelName(tc.nameInput, tc.idInput), tc.output, "nameInput = %v", tc.nameInput)
+		assert.Equal(t, slackConvertChannelName(tc.nameInput, tc.idInput), tc.output, "nameInput = %v", tc.nameInput)
 	}
 }
 
 func TestSlackConvertUserMentions(t *testing.T) {
-	users := []SlackUser{
+	users := []slackUser{
 		{Id: "U00000A0A", Username: "firstuser"},
 		{Id: "U00000B1B", Username: "seconduser"},
 	}
 
-	posts := map[string][]SlackPost{
+	posts := map[string][]slackPost{
 		"test-channel": {
 			{
 				Text: "<!channel>: Hi guys.",
@@ -58,7 +59,7 @@ func TestSlackConvertUserMentions(t *testing.T) {
 		},
 	}
 
-	expectedPosts := map[string][]SlackPost{
+	expectedPosts := map[string][]slackPost{
 		"test-channel": {
 			{
 				Text: "@channel: Hi guys.",
@@ -75,16 +76,16 @@ func TestSlackConvertUserMentions(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedPosts, SlackConvertUserMentions(users, posts))
+	assert.Equal(t, expectedPosts, slackConvertUserMentions(users, posts))
 }
 
 func TestSlackConvertChannelMentions(t *testing.T) {
-	channels := []SlackChannel{
+	channels := []slackChannel{
 		{Id: "C000AA00A", Name: "one"},
 		{Id: "C000BB11B", Name: "two"},
 	}
 
-	posts := map[string][]SlackPost{
+	posts := map[string][]slackPost{
 		"test-channel": {
 			{
 				Text: "Go to <#C000AA00A>.",
@@ -96,7 +97,7 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 		},
 	}
 
-	expectedPosts := map[string][]SlackPost{
+	expectedPosts := map[string][]slackPost{
 		"test-channel": {
 			{
 				Text: "Go to ~one.",
@@ -108,7 +109,7 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedPosts, SlackConvertChannelMentions(channels, posts))
+	assert.Equal(t, expectedPosts, slackConvertChannelMentions(channels, posts))
 }
 
 func TestSlackParseChannels(t *testing.T) {
@@ -116,7 +117,7 @@ func TestSlackParseChannels(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := SlackParseChannels(file, "O")
+	channels, err := slackParseChannels(file, "O")
 	require.NoError(t, err)
 	assert.Equal(t, 6, len(channels))
 }
@@ -126,7 +127,7 @@ func TestSlackParseDirectMessages(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := SlackParseChannels(file, "D")
+	channels, err := slackParseChannels(file, "D")
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(channels))
 }
@@ -136,7 +137,7 @@ func TestSlackParsePrivateChannels(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := SlackParseChannels(file, "P")
+	channels, err := slackParseChannels(file, "P")
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(channels))
 }
@@ -146,7 +147,7 @@ func TestSlackParseGroupDirectMessages(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	channels, err := SlackParseChannels(file, "G")
+	channels, err := slackParseChannels(file, "G")
 	require.NoError(t, err)
 	assert.Equal(t, 3, len(channels))
 }
@@ -156,7 +157,7 @@ func TestSlackParseUsers(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	users, err := SlackParseUsers(file)
+	users, err := slackParseUsers(file)
 	require.NoError(t, err)
 	assert.Equal(t, 11, len(users))
 }
@@ -166,7 +167,7 @@ func TestSlackParsePosts(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	posts, err := SlackParsePosts(file)
+	posts, err := slackParsePosts(file)
 	require.NoError(t, err)
 	assert.Equal(t, 9, len(posts))
 }
@@ -176,7 +177,7 @@ func TestSlackParseMultipleAttachments(t *testing.T) {
 	require.NoError(t, err)
 	defer file.Close()
 
-	posts, err := SlackParsePosts(file)
+	posts, err := slackParsePosts(file)
 	require.NoError(t, err)
 	assert.Equal(t, 2, len(posts[8].Files))
 }
@@ -189,7 +190,7 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 		Header:      "The channel header",
 	}
 
-	c1s := SlackSanitiseChannelProperties(c1)
+	c1s := slackSanitiseChannelProperties(c1)
 	assert.Equal(t, c1, c1s)
 
 	c2 := model.Channel{
@@ -199,7 +200,7 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 		Header:      strings.Repeat("0123456789", 120),
 	}
 
-	c2s := SlackSanitiseChannelProperties(c2)
+	c2s := slackSanitiseChannelProperties(c2)
 	assert.Equal(t, model.Channel{
 		DisplayName: strings.Repeat("abcdefghij", 6) + "abcd",
 		Name:        strings.Repeat("abcdefghij", 6) + "abcd",
@@ -209,8 +210,8 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 }
 
 func TestSlackConvertPostsMarkup(t *testing.T) {
-	input := make(map[string][]SlackPost)
-	input["test"] = []SlackPost{
+	input := make(map[string][]slackPost)
+	input["test"] = []slackPost{
 		{
 			Text: "This message contains a link to <https://google.com|Google>.",
 		},
@@ -259,8 +260,8 @@ third`,
 		},
 	}
 
-	expectedOutput := make(map[string][]SlackPost)
-	expectedOutput["test"] = []SlackPost{
+	expectedOutput := make(map[string][]slackPost)
+	expectedOutput["test"] = []slackPost{
 		{
 			Text: "This message contains a link to [Google](https://google.com).",
 		},
@@ -309,53 +310,79 @@ in this~.`,
 		},
 	}
 
-	assert.Equal(t, expectedOutput, SlackConvertPostsMarkup(input))
+	assert.Equal(t, expectedOutput, slackConvertPostsMarkup(input))
 }
 
 func TestOldImportChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	u1 := &model.User{
+		Id:       model.NewId(),
+		Username: "test-user-1",
+	}
+	u2 := &model.User{
+		Id:       model.NewId(),
+		Username: "test-user-2",
+	}
+	store := &mocks.Store{}
+	config := &model.Config{}
+	config.SetDefaults()
 
-	u1 := th.CreateUser()
-	u2 := th.CreateUser()
 	t.Run("No panic on direct channel", func(t *testing.T) {
-		ch := th.CreateDmChannel(u1)
-		users := map[string]*model.User{
-			th.BasicUser.Id: th.BasicUser,
+		//ch := th.CreateDmChannel(u1)
+		ch := &model.Channel{
+			Type: model.CHANNEL_DIRECT,
+			Name: "test-channel",
 		}
-		sCh := SlackChannel{
+		users := map[string]*model.User{
+			u2.Id: u2,
+		}
+		sCh := slackChannel{
 			Id:      "someid",
 			Members: []string{u1.Id, "randomID"},
 			Creator: "randomID2",
 		}
 
-		_ = th.App.oldImportChannel(ch, sCh, users)
+		actions := Actions{}
+
+		importer := New(store, actions, config)
+		_ = importer.oldImportChannel(ch, sCh, users)
 	})
 
 	t.Run("No panic on direct channel with 1 member", func(t *testing.T) {
-		ch := th.CreateDmChannel(u1)
-		users := map[string]*model.User{
-			th.BasicUser.Id: th.BasicUser,
+		ch := &model.Channel{
+			Type: model.CHANNEL_DIRECT,
+			Name: "test-channel",
 		}
-		sCh := SlackChannel{
+		users := map[string]*model.User{
+			u1.Id: u1,
+		}
+		sCh := slackChannel{
 			Id:      "someid",
-			Members: []string{th.BasicUser.Id},
+			Members: []string{u1.Id},
 			Creator: "randomID2",
 		}
 
-		_ = th.App.oldImportChannel(ch, sCh, users)
+		actions := Actions{}
+
+		importer := New(store, actions, config)
+		_ = importer.oldImportChannel(ch, sCh, users)
 	})
 
 	t.Run("No panic on group channel", func(t *testing.T) {
-		ch := th.CreateGroupChannel(u1, u2)
-		users := map[string]*model.User{
-			th.BasicUser.Id: th.BasicUser,
+		ch := &model.Channel{
+			Type: model.CHANNEL_GROUP,
+			Name: "test-channel",
 		}
-		sCh := SlackChannel{
+		users := map[string]*model.User{
+			u1.Id: u1,
+		}
+		sCh := slackChannel{
 			Id:      "someid",
-			Members: []string{th.BasicUser.Id},
+			Members: []string{u1.Id},
 			Creator: "randomID2",
 		}
-		_ = th.App.oldImportChannel(ch, sCh, users)
+		actions := Actions{}
+
+		importer := New(store, actions, config)
+		_ = importer.oldImportChannel(ch, sCh, users)
 	})
 }
