@@ -7,7 +7,7 @@
 # Possible options: mysql, postgres, minio, inbucket, openldap, dejavu,
 # keycloak and elasticsearch
 #
-# Must be space spearated names.
+# Must be space separated names.
 #
 # Example: mysql postgres elasticsearch
 ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
