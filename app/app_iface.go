@@ -7,7 +7,6 @@
 package app
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -49,8 +48,6 @@ type AppIface interface {
 	AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int)
 	// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 	AddPublicKey(name string, key io.Reader) *model.AppError
-	// Basic test team and user so you always know one
-	CreateBasicUser(client *model.Client4) *model.AppError
 	// Caller must close the first return value
 	FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -83,10 +80,6 @@ type AppIface interface {
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 	// Creates and stores FileInfos for a post created before the FileInfos table existed.
 	MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo
-	// DO NOT CALL THIS.
-	// This is to avoid having to change all the code in cmd/mattermost/commands/* for now
-	// shutdown should be called directly on the server
-	Shutdown()
 	// DefaultChannelNames returns the list of system-wide default channel names.
 	//
 	// By default the list will be (not necessarily in this order):
@@ -218,14 +211,20 @@ type AppIface interface {
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
 	LimitedClientConfigWithComputed() map[string]string
-	// LogAuditRec logs an audit record using default CLILevel.
+	// LogAuditRec logs an audit record using default LvlAuditCLI.
 	LogAuditRec(rec *audit.Record, err error)
 	// LogAuditRecWithLevel logs an audit record using specified Level.
-	LogAuditRecWithLevel(rec *audit.Record, level audit.Level, err error)
+	LogAuditRecWithLevel(rec *audit.Record, level mlog.LogLevel, err error)
 	// MakeAuditRecord creates a audit record pre-populated with defaults.
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// MentionsToPublicChannels returns all the mentions to public channels,
+	// linking them to their channels
+	MentionsToPublicChannels(message, teamId string) model.ChannelMentionMap
+	// MentionsToTeamMembers returns all the @ mentions found in message that
+	// belong to users in the specified team, linking them to their users
+	MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
 	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
@@ -279,6 +278,10 @@ type AppIface interface {
 	SetBotIconImage(botUserId string, file io.ReadSeeker) *model.AppError
 	// SetBotIconImageFromMultiPartFile sets LHS icon for a bot.
 	SetBotIconImageFromMultiPartFile(botUserId string, imageData *multipart.FileHeader) *model.AppError
+	// SetSessionExpireInDays sets the session's expiry the specified number of days
+	// relative to either the session creation date or the current time, depending
+	// on the `ExtendSessionOnActivity` config setting.
+	SetSessionExpireInDays(session *model.Session, days int)
 	// SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
 	// status to away if needed. Used by the WS to set status to away if an 'online' device disconnects
 	// while an 'away' device is still connected
@@ -458,10 +461,11 @@ type AppIface interface {
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
+	DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError)
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError)
-	DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile, isOAuth, isSaml bool) *model.AppError
+	DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile, isOAuthUser, isSaml bool) *model.AppError
 	DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError)
 	DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
@@ -517,7 +521,7 @@ type AppIface interface {
 	GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)
-	GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	GetChannelsForUser(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, *model.AppError)
 	GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetClusterId() string
 	GetClusterStatus() []*model.ClusterInfo
@@ -696,6 +700,7 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError)
+	GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	Handle404(w http.ResponseWriter, r *http.Request)
 	HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
@@ -757,6 +762,7 @@ type AppIface interface {
 	NewPluginAPI(manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
+	NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
 	OriginChecker() func(*http.Request) bool
 	PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError)
@@ -903,12 +909,7 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
-	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
-	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
-	SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User
 	SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
-	SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool)
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)

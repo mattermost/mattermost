@@ -114,7 +114,8 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 				cmh.*,
 				u.Email,
 				u.Username,
-			    Bots.UserId IS NOT NULL AS IsBot
+				Bots.UserId IS NOT NULL AS IsBot,
+				u.DeleteAt AS UserDeleteAt
 			FROM ChannelMemberHistory cmh
 			INNER JOIN Users u ON cmh.UserId = u.Id
 			LEFT JOIN Bots ON Bots.UserId = u.Id
@@ -139,8 +140,8 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 			ch.UserId,
 			u.Email,
 			u.Username,
-		    Bots.UserId IS NOT NULL AS IsBot
-
+		    Bots.UserId IS NOT NULL AS IsBot,
+			u.DeleteAt AS UserDeleteAt
 		FROM ChannelMembers AS ch
 		INNER JOIN Users AS u ON ch.UserId = u.id
 		LEFT JOIN Bots ON Bots.UserId = u.Id

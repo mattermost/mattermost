@@ -591,10 +591,21 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv().Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		var tmr *model.TeamMember
-		tmr, err = a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
-		if err != nil {
-			return nil, false, err
+		tmr, nErr := a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if nErr != nil {
+			var appErr *model.AppError
+			var conflictErr *store.ErrConflict
+			var limitExeededErr *store.ErrLimitExceeded
+			switch {
+			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+				return nil, false, appErr
+			case errors.As(nErr, &conflictErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			case errors.As(nErr, &limitExeededErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 		return tmr, false, nil
 	}
@@ -763,9 +774,9 @@ func (a *App) GetAllPublicTeamsPageWithCount(offset int, limit int) (*model.Team
 // SearchAllTeams returns a team list and the total count of the results
 func (a *App) SearchAllTeams(searchOpts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
 	if searchOpts.IsPaginated() {
-		return a.Srv().Store.Team().SearchAllPaged(searchOpts.Term, *searchOpts.Page, *searchOpts.PerPage)
+		return a.Srv().Store.Team().SearchAllPaged(searchOpts.Term, searchOpts)
 	}
-	results, err := a.Srv().Store.Team().SearchAll(searchOpts.Term)
+	results, err := a.Srv().Store.Team().SearchAll(searchOpts.Term, searchOpts)
 	return results, int64(len(results)), err
 }
 
@@ -984,7 +995,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
 	if err := a.Srv().Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
-		return err
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -1003,7 +1014,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	var channelList *model.ChannelList
 
 	var nErr error
-	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true); nErr != nil {
+	if channelList, nErr = a.Srv().Store.Channel().GetChannels(team.Id, user.Id, true, 0); nErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(nErr, &nfErr) {
 			channelList = &model.ChannelList{}
@@ -1469,7 +1480,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+		if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -1643,7 +1654,7 @@ func (a *App) ClearTeamMembersCache(teamID string) {
 	page := 0
 
 	for {
-		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page, perPage, nil)
+		teamMembers, err := a.Srv().Store.Team().GetMembers(teamID, page*perPage, perPage, nil)
 		if err != nil {
 			a.Log().Warn("error clearing cache for team members", mlog.String("team_id", teamID), mlog.String("err", err.Error()))
 			break
