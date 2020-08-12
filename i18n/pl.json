@@ -5368,46 +5368,6 @@
         "translation": "Nie można zaktualizować wpisu"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Nie można usunąć roli"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Nie można uzyskać roli"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Nie można uzyskać roli"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Nie można uzyskać ról"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Nie można trwale usunąć wszystkich ról"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Nie można zapisać nowej roli"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rola była niepoprawna"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Nie można otworzyć transakcji, aby zapisać rolę"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Nie można zaktualizować roli"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Nie udało się zatwierdzić transakcji, aby zapisać rolę"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Wystąpił błąd w trakcie pobierania statusu"
     },
@@ -6170,10 +6130,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Nie udało się pobrać wszystkich ról"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7754,5 +7710,37 @@
     {
         "id": "app.webhooks.analytics_incoming_count.app_error",
         "translation": "Nie można policzyć przychodzących webhooków"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rola była niepoprawna"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Nie można zapisać nowej roli"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Nie można trwale usunąć wszystkich ról"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Nie można uzyskać ról"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Nie można uzyskać roli"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Nie udało się pobrać wszystkich ról"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Nie można uzyskać roli"
     }
 ]

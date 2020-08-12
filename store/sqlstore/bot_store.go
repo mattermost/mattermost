@@ -205,7 +205,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 
 	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {
 		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)
-	} else if count != 1 {
+	} else if count > 1 {
 		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
 	}
 
