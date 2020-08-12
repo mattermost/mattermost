@@ -1152,14 +1152,14 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	}
 
 	for _, warnMetric := range warnMetrics {
-		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
 			mlog.Debug("This metric warning has already been acked or should only run once")
 			continue
 		}
 
-		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
-			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+		if nErr = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); nErr != nil {
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(nErr))
 			continue
 		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
