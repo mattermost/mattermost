@@ -54,7 +54,7 @@ func buildRetryLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("retry_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -233,15 +233,21 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		},
 		"genResultsVars": func(results []string) string {
 			vars := []string{}
-			for i := range results {
-				vars = append(vars, fmt.Sprintf("resultVar%d", i))
+			for i, typeName := range results {
+				if isError(typeName) {
+					vars = append(vars, "err")
+				} else if i == 0 {
+					vars = append(vars, "result")
+				} else {
+					vars = append(vars, fmt.Sprintf("resultVar%d", i))
+				}
 			}
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d == nil", i)
+					return fmt.Sprintf("err == nil")
 				}
 			}
 			return "true"
@@ -263,9 +269,9 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return false
 		},
 		"errorVar": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d", i)
+					return "err"
 				}
 			}
 			return ""
@@ -278,6 +284,19 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return strings.Join(paramsNames, ", ")
 		},
 		"joinParamsWithType": func(params []methodParam) string {
+			paramsWithType := []string{}
+			for _, param := range params {
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
+				} else if param.Type == "*UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				} else {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				}
+			}
+			return strings.Join(paramsWithType, ", ")
+		},
+		"joinParamsWithTypeOutsideStore": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
 				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {

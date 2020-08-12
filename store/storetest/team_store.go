@@ -1258,14 +1258,12 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, -1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
 	})
 
 	t.Run("too many members", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
 		_, nErr := ss.Team().SaveMember(member, 0)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
 	})
 
 	t.Run("too many members because previous existing members", func(t *testing.T) {
@@ -1276,7 +1274,6 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		_, nErr = ss.Team().SaveMember(m2, 1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
@@ -1287,7 +1284,6 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		_, nErr = ss.Team().SaveMember(m2, -1)
 		require.NotNil(t, nErr)
-		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
 	})
 
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
