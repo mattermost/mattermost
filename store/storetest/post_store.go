@@ -2774,7 +2774,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 		p1.UserId = u1.Id
 		p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 		p1.CreateAt = 1000
-		p1, nErr := ss.Post().Save(p1)
+		p1, nErr = ss.Post().Save(p1)
 		require.Nil(t, nErr)
 		postIds = append(postIds, p1.Id)
 	}
