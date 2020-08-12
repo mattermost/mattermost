@@ -237,8 +237,10 @@ func TestApp_GetSessionLengthInMillis(t *testing.T) {
 
 	t.Run("get session length SSO", func(t *testing.T) {
 		session := &model.Session{
-			UserId:  model.NewId(),
-			IsOAuth: true,
+			UserId: model.NewId(),
+			Props: map[string]string{
+				model.USER_AUTH_SERVICE_IS_OAUTH: "true",
+			},
 		}
 		session, err := th.App.CreateSession(session)
 		require.Nil(t, err)
