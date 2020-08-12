@@ -123,7 +123,7 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	path, err := command.Flags().GetString("path")
 	if err != nil {
@@ -264,7 +264,7 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 			auditRec.AddMeta("setting", configSetting)
 			auditRec.AddMeta("new_value", newVal)
 			a.LogAuditRec(auditRec, nil)
-			a.Shutdown()
+			a.Srv().Shutdown()
 		}
 	*/
 
@@ -480,7 +480,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		if errInit == nil {
 			auditRec := a.MakeAuditRecord("configReset", audit.Success)
 			a.LogAuditRec(auditRec, nil)
-			a.Shutdown()
+			a.Srv().Shutdown()
 		}
 	*/
 

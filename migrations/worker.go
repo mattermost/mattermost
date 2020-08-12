@@ -150,8 +150,6 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	var err *model.AppError
 
 	switch key {
-	case model.MIGRATION_KEY_SIDEBAR_CATEGORIES_PHASE_2:
-		done, progress, err = worker.runSidebarCategoriesPhase2Migration(lastDone)
 	case model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2:
 		done, progress, err = worker.runAdvancedPermissionsPhase2Migration(lastDone)
 	default:

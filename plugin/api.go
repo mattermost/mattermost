@@ -972,6 +972,65 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.26
 	PublishUserTyping(userId, channelId, parentId string) *model.AppError
+
+	// CreateCommand creates a server-owned slash command that is not handled by the plugin
+	// itself, and which will persist past the life of the plugin. The command will have its
+	// CreatorId set to "" and its PluginId set to the id of the plugin that created it.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	CreateCommand(cmd *model.Command) (*model.Command, error)
+
+	// ListCommands returns the list of all slash commands for teamID. E.g., custom commands
+	// (those created through the integrations menu, the REST api, or the plugin api CreateCommand),
+	// plugin commands (those created with plugin api RegisterCommand), and builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCommands(teamID string) ([]*model.Command, error)
+
+	// ListCustomCommands returns the list of slash commands for teamID that where created
+	// through the integrations menu, the REST api, or the plugin api CreateCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCustomCommands(teamID string) ([]*model.Command, error)
+
+	// ListPluginCommands returns the list of slash commands for teamID that were created
+	// with the plugin api RegisterCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListPluginCommands(teamID string) ([]*model.Command, error)
+
+	// ListBuiltInCommands returns the list of slash commands that are builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListBuiltInCommands() ([]*model.Command, error)
+
+	// GetCommand returns the command definition based on a command id string.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	GetCommand(commandID string) (*model.Command, error)
+
+	// UpdateCommand updates a single command (commandID) with the information provided in the
+	// updatedCmd model.Command struct. The following fields in the command cannot be updated:
+	// Id, Token, CreateAt, DeleteAt, and PluginId. If updatedCmd.TeamId is blank, it
+	// will be set to commandID's TeamId.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error)
+
+	// DeleteCommand deletes a slash command (commandID).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	DeleteCommand(commandID string) error
 }
 
 var handshake = plugin.HandshakeConfig{

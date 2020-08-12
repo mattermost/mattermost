@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -128,6 +128,20 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
+start-docker-check:
+ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
+endif
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+  endif
+  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  endif
+endif
+ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
+
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
 	@echo CI Build: skipping docker start
@@ -249,6 +263,11 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/prereq-check-enterprise.sh
+endif
+
 check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
@@ -261,7 +280,7 @@ test-te-race: ## Checks for race conditions in the team edition.
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race: ## Checks for race conditions in the enterprise edition.
+test-ee-race: check-prereqs-enterprise ## Checks for race conditions in the enterprise edition.
 	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -312,15 +331,27 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+  ifneq ($(IS_CI),true)
+    ifneq ($(MM_NO_DOCKER),true)
+      ifneq ($(TEMP_DOCKER_SERVICES),)
+	      @echo Stopping temporary docker services
+	      docker-compose stop $(TEMP_DOCKER_SERVICES)
+      endif
+    endif
+  endif
 
-test-server-quick: ## Runs only quick tests.
+test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
+	@echo Running only EE tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
