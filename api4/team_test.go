@@ -651,6 +651,11 @@ func TestUpdateTeamPrivacy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.UpdateTeamPrivacy(model.NewId(), model.TEAM_INVITE)
+		CheckNotFoundStatus(t, resp)
+	}, "non-existent team for admins")
+
 	t.Run("not logged in", func(t *testing.T) {
 		Client.Logout()
 		_, resp := Client.UpdateTeamPrivacy(teamPublic.Id, model.TEAM_INVITE)
