@@ -4302,7 +4302,7 @@ func (s *TimerLayerPostStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
+func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PostStore.Delete(postId, time, deleteByID)
@@ -4318,7 +4318,7 @@ func (s *TimerLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.Get(id, skipFetchThreads)
@@ -4654,7 +4654,7 @@ func (s *TimerLayerPostStore) GetRepliesForExport(parentId string) ([]*model.Rep
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetSingle(id string) (*model.Post, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.GetSingle(id)
@@ -4733,7 +4733,7 @@ func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PostStore.PermanentDeleteByChannel(channelId)
@@ -4749,7 +4749,7 @@ func (s *TimerLayerPostStore) PermanentDeleteByChannel(channelId string) *model.
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *TimerLayerPostStore) PermanentDeleteByUser(userId string) error {
 	start := timemodule.Now()
 
 	resultVar0 := s.PostStore.PermanentDeleteByUser(userId)
@@ -4765,7 +4765,7 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(userId string) *model.AppErr
 	return resultVar0
 }
 
-func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.Save(post)
@@ -4781,7 +4781,7 @@ func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, *model.AppErr
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
+func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1, resultVar2 := s.PostStore.SaveMultiple(posts)
@@ -4829,7 +4829,7 @@ func (s *TimerLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.Searc
 	return resultVar0, resultVar1
 }
 
-func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	start := timemodule.Now()
 
 	resultVar0, resultVar1 := s.PostStore.Update(newPost, oldPost)
