@@ -4384,39 +4384,123 @@ func (s *RetryLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 
 }
 
-func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, error) {
 
-	return s.StatusStore.Get(userId)
-
-}
-
-func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
-
-	return s.StatusStore.GetByIds(userIds)
-
-}
-
-func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
-
-	return s.StatusStore.GetTotalActiveUsersCount()
-
-}
-
-func (s *RetryLayerStatusStore) ResetAll() *model.AppError {
-
-	return s.StatusStore.ResetAll()
+	tries := 0
+	for {
+		result, err := s.StatusStore.Get(userId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 
-	return s.StatusStore.SaveOrUpdate(status)
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetByIds(userIds)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 
-	return s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetTotalActiveUsersCount()
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerStatusStore) ResetAll() error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.ResetAll()
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.SaveOrUpdate(status)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
