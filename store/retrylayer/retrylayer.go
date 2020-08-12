@@ -4708,15 +4708,43 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppErr
 
 }
 
-func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 
-	return s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	tries := 0
+	for {
+		result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
 
-	return s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
+	tries := 0
+	for {
+		result, err := s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 

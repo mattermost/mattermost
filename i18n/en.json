@@ -3407,6 +3407,18 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Unable to create default team memberships"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Unable to create default team membership because they already exists"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Unable to create default team membership because no more members are allowed in that team"
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3585,6 +3597,18 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Unable to import the new team membership because it already exists"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Unable to import team memberships"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Unable to import team membership because no more members are allowed in that team"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -4497,6 +4521,18 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Unable to create the new team membership"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Unable to create the new team membership because it already exists"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
     "id": "app.team.permanentdeleteteam.internal_error",
@@ -7745,10 +7781,6 @@
   {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
