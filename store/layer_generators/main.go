@@ -247,7 +247,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"errorToBoolean": func(results []string) string {
 			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("err == nil")
+					return "err == nil"
 				}
 			}
 			return "true"
