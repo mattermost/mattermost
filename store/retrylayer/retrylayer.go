@@ -2150,9 +2150,23 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 
 }
 
-func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
+func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 
-	return s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+	tries := 0
+	for {
+		err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -2162,39 +2176,123 @@ func (s *RetryLayerFileInfoStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (s *RetryLayerFileInfoStore) DeleteForPost(postId string) (string, error) {
 
-	return s.FileInfoStore.DeleteForPost(postId)
-
-}
-
-func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
-
-	return s.FileInfoStore.Get(id)
-
-}
-
-func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
-
-	return s.FileInfoStore.GetByPath(path)
-
-}
-
-func (s *RetryLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
-
-	return s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.DeleteForPost(postId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 
-	return s.FileInfoStore.GetForUser(userId)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.Get(id)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 
-	return s.FileInfoStore.GetWithOptions(page, perPage, opt)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetByPath(path)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetForUser(userId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
+
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.GetWithOptions(page, perPage, opt)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -2204,27 +2302,83 @@ func (s *RetryLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string,
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (s *RetryLayerFileInfoStore) PermanentDelete(fileId string) error {
 
-	return s.FileInfoStore.PermanentDelete(fileId)
+	tries := 0
+	for {
+		err := s.FileInfoStore.PermanentDelete(fileId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 
-	return s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 
-	return s.FileInfoStore.PermanentDeleteByUser(userId)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.PermanentDeleteByUser(userId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 
-	return s.FileInfoStore.Save(info)
+	tries := 0
+	for {
+		result, err := s.FileInfoStore.Save(info)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
