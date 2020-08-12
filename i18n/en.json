@@ -1,9 +1,5 @@
 [
   {
-    "id": "",
-    "translation": ""
-  },
-  {
     "id": "April",
     "translation": "April"
   },
@@ -2004,7 +2000,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise E10 and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise Edition and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\r\n\r\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -2012,7 +2008,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise E20.\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise Edition.\r\n\r\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -2020,7 +2016,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise E20, which offers features such as user management, server clustering, and performance monitoring."
+    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise Edition, which offers features such as user management, server clustering, and performance monitoring.\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -3371,6 +3367,18 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Unable to create default team memberships"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Unable to create default team membership because they already exists"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Unable to create default team membership because no more members are allowed in that team"
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3549,6 +3557,18 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Unable to import the new team membership because it already exists"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Unable to import team memberships"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Unable to import team membership because no more members are allowed in that team"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -4251,6 +4271,34 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.post.delete.app_error",
+    "translation": "Unable to delete the post."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Unable to delete the posts by channel."
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Unable to select the posts to delete for the user."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Unable to save the Post."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Unable to update the Post."
+  },
+  {
     "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },
@@ -4301,6 +4349,34 @@
   {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Unable to get roles."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Unable to save new role."
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "The role was not valid."
   },
   {
     "id": "app.save_config.app_error",
@@ -4407,6 +4483,18 @@
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Unable to create the new team membership"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Unable to create the new team membership because it already exists"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Unable to create the new team membership because the team has reached the limit of members"
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
@@ -4433,6 +4521,10 @@
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Unable to convert bot to user."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -5721,6 +5813,10 @@
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
     "translation": "Message retention must be one day or longer."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -7143,14 +7239,6 @@
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Unable to get the post."
-  },
-  {
     "id": "store.sql_post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
@@ -7211,92 +7299,16 @@
     "translation": "Unable to overwrite the Post."
   },
   {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Unable to delete the comments for user."
-  },
-  {
     "id": "store.sql_post.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Unable to delete the posts by channel."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Unable to select the posts to delete for the user (too many), please re-run."
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Unable to save the Post."
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "You cannot update an existing Post."
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role."
-  },
-  {
-    "id": "store.sql_role.get.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
-    "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Unable to get roles."
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles."
-  },
-  {
-    "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role."
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid."
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role."
-  },
-  {
-    "id": "store.sql_role.save.update.app_error",
-    "translation": "Unable to update role."
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role."
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -7729,10 +7741,6 @@
   {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
