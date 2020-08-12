@@ -304,10 +304,6 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().Update(&o1)
 	require.NotNil(t, err, "Update should have failed because of missing key")
 
-	o1.Id = model.NewId()
-	_, err = ss.Channel().Update(&o1)
-	require.NotNil(t, err, "update should have failed because id change")
-
 	o2.Name = o1.Name
 	_, err = ss.Channel().Update(&o2)
 	require.NotNil(t, err, "update should have failed because of existing name")
@@ -4315,12 +4311,12 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, nErr := ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
 	require.Nil(t, err, err)

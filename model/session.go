@@ -175,8 +175,21 @@ func (me *Session) IsSaml() bool {
 	return isSaml
 }
 
+func (me *Session) IsOAuthUser() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_OAUTH]
+	if !ok {
+		return false
+	}
+	isOAuthUser, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isOAuthUser
+}
+
 func (me *Session) IsSSOLogin() bool {
-	return me.IsOAuth || me.IsSaml()
+	return me.IsOAuthUser() || me.IsSaml()
 }
 
 func (me *Session) GetUserRoles() []string {
