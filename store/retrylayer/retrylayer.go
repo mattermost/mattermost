@@ -3606,63 +3606,203 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
-func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, *model.AppError) {
+func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 
-	return s.RoleStore.AllChannelSchemeRoles()
-
-}
-
-func (s *RetryLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, *model.AppError) {
-
-	return s.RoleStore.ChannelHigherScopedPermissions(roleNames)
-
-}
-
-func (s *RetryLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, *model.AppError) {
-
-	return s.RoleStore.ChannelRolesUnderTeamRole(roleName)
-
-}
-
-func (s *RetryLayerRoleStore) Delete(roleId string) (*model.Role, *model.AppError) {
-
-	return s.RoleStore.Delete(roleId)
+	tries := 0
+	for {
+		result, err := s.RoleStore.AllChannelSchemeRoles()
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+func (s *RetryLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string) (map[string]*model.RolePermissions, error) {
 
-	return s.RoleStore.Get(roleId)
-
-}
-
-func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, *model.AppError) {
-
-	return s.RoleStore.GetAll()
-
-}
-
-func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
-
-	return s.RoleStore.GetByName(name)
-
-}
-
-func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
-
-	return s.RoleStore.GetByNames(names)
+	tries := 0
+	for {
+		result, err := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerRoleStore) PermanentDeleteAll() *model.AppError {
+func (s *RetryLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*model.Role, error) {
 
-	return s.RoleStore.PermanentDeleteAll()
+	tries := 0
+	for {
+		result, err := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+func (s *RetryLayerRoleStore) Delete(roleId string) (*model.Role, error) {
 
-	return s.RoleStore.Save(role)
+	tries := 0
+	for {
+		result, err := s.RoleStore.Delete(roleId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) Get(roleId string) (*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.Get(roleId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetAll()
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetByName(name)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.GetByNames(names)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) PermanentDeleteAll() error {
+
+	tries := 0
+	for {
+		err := s.RoleStore.PermanentDeleteAll()
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
+
+	tries := 0
+	for {
+		result, err := s.RoleStore.Save(role)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -5330,15 +5470,43 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 
 }
 
-func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
+func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, error) {
 
-	return s.WebhookStore.AnalyticsIncomingCount(teamId)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.AnalyticsIncomingCount(teamId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *model.AppError) {
+func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, error) {
 
-	return s.WebhookStore.AnalyticsOutgoingCount(teamId)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.AnalyticsOutgoingCount(teamId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -5348,93 +5516,303 @@ func (s *RetryLayerWebhookStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+func (s *RetryLayerWebhookStore) DeleteIncoming(webhookId string, time int64) error {
 
-	return s.WebhookStore.DeleteIncoming(webhookId, time)
-
-}
-
-func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) *model.AppError {
-
-	return s.WebhookStore.DeleteOutgoing(webhookId, time)
-
-}
-
-func (s *RetryLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetIncoming(id, allowFromCache)
-
-}
-
-func (s *RetryLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetIncomingByChannel(channelId)
+	tries := 0
+	for {
+		err := s.WebhookStore.DeleteIncoming(webhookId, time)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) error {
 
-	return s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
-
-}
-
-func (s *RetryLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
-
-}
-
-func (s *RetryLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetIncomingList(offset, limit)
-
-}
-
-func (s *RetryLayerWebhookStore) GetIncomingListByUser(userId string, offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
+	tries := 0
+	for {
+		err := s.WebhookStore.DeleteOutgoing(webhookId, time)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {
 
-	return s.WebhookStore.GetOutgoing(id)
-
-}
-
-func (s *RetryLayerWebhookStore) GetOutgoingByChannel(channelId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
-
-}
-
-func (s *RetryLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
-
-}
-
-func (s *RetryLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
-
-	return s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncoming(id, allowFromCache)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, error) {
 
-	return s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingByChannel(channelId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
 
-	return s.WebhookStore.GetOutgoingList(offset, limit)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
 
-	return s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingList(offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetIncomingListByUser(userId string, offset int, limit int) ([]*model.IncomingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoing(id)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingByChannel(channelId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingList(offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int, limit int) ([]*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -5444,51 +5822,163 @@ func (s *RetryLayerWebhookStore) InvalidateWebhookCache(webhook string) {
 
 }
 
-func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
+func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId string) error {
 
-	return s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
-
-}
-
-func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
-
-	return s.WebhookStore.PermanentDeleteIncomingByUser(userId)
-
-}
-
-func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *model.AppError {
-
-	return s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
-
-}
-
-func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) *model.AppError {
-
-	return s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
+	tries := 0
+	for {
+		err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) error {
 
-	return s.WebhookStore.SaveIncoming(webhook)
+	tries := 0
+	for {
+		err := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) error {
 
-	return s.WebhookStore.SaveOutgoing(webhook)
+	tries := 0
+	for {
+		err := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) error {
 
-	return s.WebhookStore.UpdateIncoming(webhook)
+	tries := 0
+	for {
+		err := s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+func (s *RetryLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
 
-	return s.WebhookStore.UpdateOutgoing(hook)
+	tries := 0
+	for {
+		result, err := s.WebhookStore.SaveIncoming(webhook)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.SaveOutgoing(webhook)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.UpdateIncoming(webhook)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, error) {
+
+	tries := 0
+	for {
+		result, err := s.WebhookStore.UpdateOutgoing(hook)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
