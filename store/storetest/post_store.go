@@ -4,8 +4,8 @@
 package storetest
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"sort"
 	"strings"
 	"testing"
@@ -898,12 +898,13 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: 0, PerPage: -1})
 			assert.Nil(t, postList)
 			assert.Error(t, err)
-			assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+			var invErr *store.ErrInvalidInput
+			assert.True(t, errors.As(err, &invErr))
 
 			postList, err = ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelId, PostId: posts[0].Id, Page: -1, PerPage: 10})
 			assert.Nil(t, postList)
 			assert.Error(t, err)
-			assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+			assert.True(t, errors.As(err, &invErr))
 		})
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {

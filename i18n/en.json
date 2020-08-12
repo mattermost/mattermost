@@ -7243,7 +7243,7 @@
     "translation": "Unable to get direct posts."
   },
   {
-    "id": "store.sql_post.get_flagged_posts.app_error",
+    "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
   },
   {
@@ -7255,11 +7255,11 @@
     "translation": "Unable to get the parent post for the channel."
   },
   {
-    "id": "store.sql_post.get_post_after_time.app_error",
+    "id": "app.post.get_post_after_time.app_error",
     "translation": "Unable to get post after time bound."
   },
   {
-    "id": "store.sql_post.get_post_id_around.app_error",
+    "id": "app.post.get_post_id_around.app_error",
     "translation": "Unable to get post around time bound."
   },
   {
@@ -7267,7 +7267,7 @@
     "translation": "Limit exceeded for paging."
   },
   {
-    "id": "store.sql_post.get_posts_around.get.app_error",
+    "id": "app.post.get_posts_around.get.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
@@ -7287,7 +7287,7 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "store.sql_post.get_posts_since.app_error",
+    "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {

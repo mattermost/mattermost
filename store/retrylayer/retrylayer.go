@@ -3154,21 +3154,63 @@ func (s *RetryLayerPostStore) GetEtag(channelId string, allowFromCache bool) str
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 
-	return s.PostStore.GetFlaggedPosts(userId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetFlaggedPosts(userId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 
-	return s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 
-	return s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3196,21 +3238,63 @@ func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 
 }
 
-func (s *RetryLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 
-	return s.PostStore.GetPostAfterTime(channelId, time)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostAfterTime(channelId, time)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 
-	return s.PostStore.GetPostIdAfterTime(channelId, time)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostIdAfterTime(channelId, time)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 
-	return s.PostStore.GetPostIdBeforeTime(channelId, time)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostIdBeforeTime(channelId, time)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3220,9 +3304,23 @@ func (s *RetryLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 
 }
 
-func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 
-	return s.PostStore.GetPostsAfter(options)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsAfter(options)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3232,9 +3330,23 @@ func (s *RetryLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 
 }
 
-func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 
-	return s.PostStore.GetPostsBefore(options)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsBefore(options)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -3250,9 +3362,23 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 
 }
 
-func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 
-	return s.PostStore.GetPostsSince(options, allowFromCache)
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsSince(options, allowFromCache)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
