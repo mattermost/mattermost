@@ -9,11 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-
-	"github.com/go-sql-driver/mysql"
-	"github.com/pkg/errors"
 )
 
 type StoreResult struct {
@@ -249,14 +245,14 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
-	Save(post *model.Post) (*model.Post, *model.AppError)
-	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
-	GetSingle(id string) (*model.Post, *model.AppError)
-	Delete(postId string, time int64, deleteByID string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	PermanentDeleteByChannel(channelId string) *model.AppError
+	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	Save(post *model.Post) (*model.Post, error)
+	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
+	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	GetSingle(id string) (*model.Post, error)
+	Delete(postId string, time int64, deleteByID string) error
+	PermanentDeleteByUser(userId string) error
+	PermanentDeleteByChannel(channelId string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	// @openTracingParams userId, teamId, offset, limit
@@ -774,32 +770,4 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-const mySQLDeadlockCode = uint16(1213)
-
-// WithDeadlockRetry retries a given f if it throws a deadlock error.
-// It breaks after a threshold and propagates the error upwards.
-// TODO: This can be a separate retry layer in itself where transaction retries
-// are automatically applied.
-func WithDeadlockRetry(f func() error) error {
-	var err error
-	for i := 0; i < 3; i++ {
-		err = f()
-		if err == nil {
-			// No error, return nil.
-			return nil
-		}
-		// XXX: Possibly add check for postgres deadlocks later.
-		// But deadlocks are very rarely seen in postgres.
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
-			mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
-			// This is a deadlock, retry.
-			continue
-		}
-		// Some other error, return as-is.
-		return err
-	}
-	return errors.Wrap(err, "giving up after 3 consecutive deadlocks")
 }

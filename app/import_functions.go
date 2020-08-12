@@ -1051,7 +1051,16 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 
 	if len(postsForCreateList) > 0 {
 		if _, _, err := a.Srv().Store.Post().SaveMultiple(postsForCreateList); err != nil {
-			return err
+			var appErr *model.AppError
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &appErr):
+				return appErr
+			case errors.As(err, &invErr):
+				return model.NewAppError("importReplies", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("importReplies", "app.post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
@@ -1242,9 +1251,9 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		user := users[*line.Post.User]
 
 		// Check if this post already exists.
-		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
-		if err != nil {
-			return line.LineNumber, err
+		posts, appErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
+		if appErr != nil {
+			return line.LineNumber, appErr
 		}
 
 		var post *model.Post
@@ -1269,9 +1278,9 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 			post.Props = *line.Post.Props
 		}
 
-		fileIds, err := a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
-		if err != nil {
-			return line.LineNumber, err
+		fileIds, appErr := a.uploadAttachments(line.Post.Attachments, post, team.Id, dryRun)
+		if appErr != nil {
+			return line.LineNumber, appErr
 		}
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIds[fileID]; !ok {
@@ -1294,14 +1303,26 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 	}
 
 	if len(postsForCreateList) > 0 {
-		if _, idx, err := a.Srv().Store.Post().SaveMultiple(postsForCreateList); err != nil {
+		if _, idx, nErr := a.Srv().Store.Post().SaveMultiple(postsForCreateList); nErr != nil {
+			var appErr *model.AppError
+			var invErr *store.ErrInvalidInput
+			var retErr *model.AppError
+			switch {
+			case errors.As(nErr, &appErr):
+				retErr = appErr
+			case errors.As(nErr, &invErr):
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
+
 			if idx != -1 && idx < len(postsForCreateList) {
 				post := postsForCreateList[idx]
 				if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
-					return lineNumber, err
+					return lineNumber, retErr
 				}
 			}
-			return 0, err
+			return 0, retErr
 		}
 	}
 
@@ -1579,13 +1600,25 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 
 	if len(postsForCreateList) > 0 {
 		if _, idx, err := a.Srv().Store.Post().SaveMultiple(postsForCreateList); err != nil {
+			var appErr *model.AppError
+			var invErr *store.ErrInvalidInput
+			var retErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				retErr = appErr
+			case errors.As(err, &invErr):
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				retErr = model.NewAppError("importMultiplePostLines", "app.post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
 			if idx != -1 && idx < len(postsForCreateList) {
 				post := postsForCreateList[idx]
 				if lineNumber, ok := postsForCreateMap[getPostStrID(post)]; ok {
-					return lineNumber, err
+					return lineNumber, retErr
 				}
 			}
-			return 0, err
+			return 0, retErr
 		}
 	}
 	if _, idx, err := a.Srv().Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {

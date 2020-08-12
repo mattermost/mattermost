@@ -2042,8 +2042,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p1.Message = "this is a message for @" + u2.Username
 
 	// Post one message with mention to open channel
-	_, err = ss.Post().Save(&p1)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(&p1)
+	require.Nil(t, nErr)
 	err = ss.Channel().IncrementMentionCount(c1.Id, u2.Id)
 	require.Nil(t, err)
 
@@ -2053,8 +2053,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p2.UserId = u1.Id
 	p2.Message = "first message"
 
-	_, err = ss.Post().Save(&p2)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(&p2)
+	require.Nil(t, nErr)
 	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
 	require.Nil(t, err)
 
@@ -2062,8 +2062,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p3.ChannelId = c2.Id
 	p3.UserId = u1.Id
 	p3.Message = "second message"
-	_, err = ss.Post().Save(&p3)
-	require.Nil(t, err)
+	_, nErr = ss.Post().Save(&p3)
+	require.Nil(t, nErr)
 
 	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
 	require.Nil(t, err)

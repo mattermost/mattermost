@@ -12,6 +12,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -99,14 +101,14 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
+func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	channelNewPosts := make(map[string]int)
 	maxDateNewPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
 	for idx, post := range posts {
 		if len(post.Id) > 0 {
-			return nil, idx, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
 		}
 		post.PreSave()
 		maxPostSize := s.GetMaxPostSize()
@@ -147,17 +149,17 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *m
 		}
 	}
 
-	query := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
+	builder := s.getQueryBuilder().Insert("Posts").Columns(postSliceColumns()...)
 	for _, post := range posts {
-		query = query.Values(postToSlice(post)...)
+		builder = builder.Values(postToSlice(post)...)
 	}
-	sql, args, err := query.ToSql()
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, -1, errors.Wrap(err, "post_tosql")
 	}
 
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return nil, -1, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		return nil, -1, errors.Wrap(err, "failed to save Post")
 	}
 
 	for channelId, count := range channelNewPosts {
@@ -193,7 +195,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, *m
 	return posts, -1, nil
 }
 
-func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s *SqlPostStore) Save(post *model.Post) (*model.Post, error) {
 	posts, _, err := s.SaveMultiple([]*model.Post{post})
 	if err != nil {
 		return nil, err
@@ -237,7 +239,7 @@ func (s *SqlPostStore) populateReplyCount(posts []*model.Post) *model.AppError {
 	return nil
 }
 
-func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	newPost.UpdateAt = model.GetMillis()
 	newPost.PreCommit()
 
@@ -254,7 +256,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 	}
 
 	if _, err := s.GetMaster().Update(newPost); err != nil {
-		return nil, model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to update Post with id=%s", newPost.Id)
 	}
 
 	time := model.GetMillis()
@@ -396,18 +398,22 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	return pl, nil
 }
 
-func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	if len(id) == 0 {
-		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
 
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = :Id AND p.DeleteAt = 0"
 	err := s.GetReplica().SelectOne(&post, postFetchQuery, map[string]interface{}{"Id": id})
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
 	pl.AddPost(&post)
 	pl.AddOrder(id)
@@ -419,13 +425,13 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 		}
 
 		if len(rootId) == 0 {
-			return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
 		var posts []*model.Post
 		_, err = s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
 		if err != nil {
-			return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "failed to find Posts")
 		}
 
 		for _, p := range posts {
@@ -436,11 +442,15 @@ func (s *SqlPostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (s *SqlPostStore) GetSingle(id string) (*model.Post, error) {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", id)
+		}
+
+		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
 	return &post, nil
 }
@@ -466,45 +476,44 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
 	return result
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
-
-	appErr := func(errMsg string) *model.AppError {
-		return model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+errMsg, http.StatusInternalServerError)
-	}
-
+func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) error {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
 	if err != nil {
-		return appErr(err.Error())
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("Post", postId)
+		}
+
+		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 
 	post.AddProp(model.POST_PROPS_DELETE_BY, deleteByID)
 
 	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.GetProps())})
 	if err != nil {
-		return appErr(err.Error())
+		return errors.Wrap(err, "failed to update Posts")
 	}
 
 	return nil
 }
 
-func (s *SqlPostStore) permanentDelete(postId string) *model.AppError {
+func (s *SqlPostStore) permanentDelete(postId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
 	if err != nil {
-		return model.NewAppError("SqlPostStore.Delete", "store.sql_post.permanent_delete.app_error", nil, "id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 	return nil
 }
 
-func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) *model.AppError {
+func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
 	if err != nil {
-		return model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "store.sql_post.permanent_delete_all_comments_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete Posts with userId=%s", userId)
 	}
 	return nil
 }
 
-func (s *SqlPostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (s *SqlPostStore) PermanentDeleteByUser(userId string) error {
 	// First attempt to delete all the comments for a user
 	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
 		return err
@@ -519,13 +528,13 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) *model.AppError {
 		var ids []string
 		_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			return model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "store.sql_post.permanent_delete_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+			return errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
 		}
 
 		found = false
 		for _, id := range ids {
 			found = true
-			if err := s.permanentDelete(id); err != nil {
+			if err = s.permanentDelete(id); err != nil {
 				return err
 			}
 		}
@@ -533,16 +542,16 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) *model.AppError {
 		// This is a fail safe, give up if more than 10k messages
 		count++
 		if count >= 10 {
-			return model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "store.sql_post.permanent_delete_by_user.too_many.app_error", nil, "userId="+userId, http.StatusInternalServerError)
+			return errors.Wrapf(err, "too many Posts to delete with userId=%s", userId)
 		}
 	}
 
 	return nil
 }
 
-func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
-		return model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete Posts with channelId=%s", channelId)
 	}
 	return nil
 }
@@ -1541,7 +1550,7 @@ func (s *SqlPostStore) GetOldest() (*model.Post, *model.AppError) {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetOldest", "store.sql_post.get.app_error", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewAppError("SqlPostStore.GetOldest", "app.post.get.app_error", nil, err.Error(), http.StatusNotFound)
 	}
 
 	return &post, nil
