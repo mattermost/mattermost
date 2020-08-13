@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -22,6 +23,7 @@ type storeType struct {
 }
 
 var storeTypes []*storeType
+var storeTypesBench []*storeType
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
@@ -74,6 +76,48 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 			}
 			f(t, st.Store, st.SqlSupplier)
 		})
+	}
+}
+
+func StoreBenchWithSqlSupplier(b *testing.B, f func(*testing.B, store.Store)) {
+	for _, st := range storeTypesBench {
+		st := st
+		fmt.Println("Running benchmark on: ", *st.SqlSettings.DataSource)
+		b.Run(st.Name, func(b *testing.B) {
+			f(b, st.Store)
+		})
+	}
+}
+
+func initStoresForBench() {
+	driver := model.DATABASE_DRIVER_MYSQL
+	dataSource := "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" // XXX Point me to the right DB
+	settings := &model.SqlSettings{
+		DriverName:                  &driver,
+		DataSource:                  &dataSource,
+		DataSourceReplicas:          []string{},
+		DataSourceSearchReplicas:    []string{},
+		MaxIdleConns:                new(int),
+		ConnMaxLifetimeMilliseconds: new(int),
+		MaxOpenConns:                new(int),
+		Trace:                       model.NewBool(false),
+		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
+		QueryTimeout:                new(int),
+	}
+	*settings.MaxIdleConns = 10
+	*settings.ConnMaxLifetimeMilliseconds = 3600000
+	*settings.MaxOpenConns = 100
+	*settings.QueryTimeout = 60
+
+	storeTypesBench = append(storeTypesBench, &storeType{
+		Name:        "MySQL",
+		SqlSettings: settings,
+	})
+
+	for _, st := range storeTypesBench {
+		st := st
+		st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil)
+		st.Store = st.SqlSupplier
 	}
 }
 

@@ -10,3 +10,7 @@ func InitTest() {
 func TearDownTest() {
 	tearDownStores()
 }
+
+func InitBench() {
+	initStoresForBench()
+}

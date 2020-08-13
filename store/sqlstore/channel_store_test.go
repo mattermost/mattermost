@@ -16,6 +16,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
+func BenchmarkChannelStoreAutoComplete(b *testing.B) {
+	StoreBenchWithSqlSupplier(b, storetest.BenchChannelStore)
+}
+
 func TestChannelStore(t *testing.T) {
 	StoreTestWithSqlSupplier(t, storetest.TestChannelStore)
 }

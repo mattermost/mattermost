@@ -35,6 +35,16 @@ func cleanupChannels(t *testing.T, ss store.Store) {
 	}
 }
 
+func BenchChannelStore(b *testing.B, ss store.Store) {
+	b.Run("AutoCompleteInTeam", func(b *testing.B) {
+		search := ss.Channel().AutocompleteInTeam
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			search("96fjfwa1pjrdpexnaheawx3cho", "to", false)
+		}
+	})
+}
+
 func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	createDefaultRoles(t, ss)
 

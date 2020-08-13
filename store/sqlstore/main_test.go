@@ -4,9 +4,9 @@
 package sqlstore_test
 
 import (
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
 
@@ -17,6 +17,7 @@ func TestMain(m *testing.M) {
 	defer mainHelper.Close()
 
 	sqlstore.InitTest()
+	sqlstore.InitBench()
 
 	mainHelper.Main(m)
 	sqlstore.TearDownTest()
