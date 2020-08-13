@@ -103,7 +103,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/throttled/throttled v2.2.4+incompatible
-	github.com/tinylib/msgp v1.1.2 // indirect
+	github.com/tinylib/msgp v1.1.2
+	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
