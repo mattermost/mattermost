@@ -75,7 +75,7 @@ func (s SearchPostStore) deleteUserPostsIndex(userID string) {
 	}
 }
 
-func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, error) {
 	post, err := s.PostStore.Update(newPost, oldPost)
 
 	if err == nil {
@@ -92,7 +92,7 @@ func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppEr
 	return post, err
 }
 
-func (s SearchPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (s SearchPostStore) Save(post *model.Post) (*model.Post, error) {
 	npost, err := s.PostStore.Save(post)
 
 	if err == nil {
@@ -101,7 +101,7 @@ func (s SearchPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	return npost, err
 }
 
-func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *model.AppError {
+func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) error {
 	err := s.PostStore.Delete(postId, date, deletedByID)
 
 	if err == nil {
@@ -115,7 +115,7 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) *
 	return err
 }
 
-func (s SearchPostStore) PermanentDeleteByUser(userID string) *model.AppError {
+func (s SearchPostStore) PermanentDeleteByUser(userID string) error {
 	err := s.PostStore.PermanentDeleteByUser(userID)
 	if err == nil {
 		s.deleteUserPostsIndex(userID)
@@ -123,7 +123,7 @@ func (s SearchPostStore) PermanentDeleteByUser(userID string) *model.AppError {
 	return err
 }
 
-func (s SearchPostStore) PermanentDeleteByChannel(channelID string) *model.AppError {
+func (s SearchPostStore) PermanentDeleteByChannel(channelID string) error {
 	err := s.PostStore.PermanentDeleteByChannel(channelID)
 	if err == nil {
 		s.deleteChannelPostsIndex(channelID)

@@ -591,10 +591,21 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv().Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		var tmr *model.TeamMember
-		tmr, err = a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
-		if err != nil {
-			return nil, false, err
+		tmr, nErr := a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if nErr != nil {
+			var appErr *model.AppError
+			var conflictErr *store.ErrConflict
+			var limitExeededErr *store.ErrLimitExceeded
+			switch {
+			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+				return nil, false, appErr
+			case errors.As(nErr, &conflictErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			case errors.As(nErr, &limitExeededErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 		return tmr, false, nil
 	}
