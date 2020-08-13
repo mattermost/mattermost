@@ -3379,6 +3379,18 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Rate limiter is not set up."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Invite emails rate limit exceeded. Timer will be reset after {{.ResetAfter}} seconds. Please retry after {{.RetryAfter}} seconds."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Error occurred in the rate limiter."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
