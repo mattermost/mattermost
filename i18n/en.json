@@ -4295,6 +4295,22 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Could not get plugin key value."
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys."
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
@@ -4465,6 +4481,14 @@
   {
     "id": "app.session.update_device_id.app_error",
     "translation": "Unable to update the device id."
+  },
+  {
+    "id": "app.status.get.app_error",
+    "translation": "Encountered an error retrieving the status."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "No entry for that status exists."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -7199,30 +7223,6 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Could not delete plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Could not get plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys."
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Could not save or update plugin key value."
-  },
-  {
     "id": "store.sql_post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
@@ -7305,34 +7305,6 @@
   {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_status.get.app_error",
-    "translation": "Encountered an error retrieving the status."
-  },
-  {
-    "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists."
-  },
-  {
-    "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "We could not count the active users."
-  },
-  {
-    "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encountered an error resetting all the statuses."
-  },
-  {
-    "id": "store.sql_status.save.app_error",
-    "translation": "Encountered an error saving the status."
-  },
-  {
-    "id": "store.sql_status.update.app_error",
-    "translation": "Encountered an error updating the status."
-  },
-  {
-    "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user."
   },
   {
     "id": "store.sql_system.get.app_error",
