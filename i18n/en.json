@@ -3219,12 +3219,28 @@
     "translation": "Channel does not exist."
   },
   {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Unable to get the channel counts."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Unable to get channels by ids."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
@@ -3235,8 +3251,20 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Unable to get the channel for the given post."
+  },
+  {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Unable to get public channels."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3269,6 +3297,10 @@
   {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
   },
   {
     "id": "app.channel.update.bad_id",
@@ -6903,28 +6935,8 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
     "translation": "Unable to get the channels batch for indexing."
-  },
-  {
-    "id": "app.channel.get_channels_by_ids.app_error",
-    "translation": "Unable to get channels by ids."
-  },
-  {
-    "id": "app.channel.get_channels_by_ids.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "app.channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found."
-  },
-  {
-    "id": "app.channel.get_for_post.app_error",
-    "translation": "Unable to get the channel for the given post."
   },
   {
     "id": "store.sql_channel.get_member.app_error",
@@ -6953,14 +6965,6 @@
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
-  },
-  {
-    "id": "app.channel.get_private_channels.get.app_error",
-    "translation": "Unable to get private channels."
-  },
-  {
-    "id": "app.channel.get_public_channels.get.app_error",
-    "translation": "Unable to get public channels."
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -7057,10 +7061,6 @@
   {
     "id": "store.sql_channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
-  },
-  {
-    "id": "app.channel.sidebar_categories.app_error",
-    "translation": "Failed to insert record to database."
   },
   {
     "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
