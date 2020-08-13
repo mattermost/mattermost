@@ -471,7 +471,14 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
+github.com/tinylib/msgp
+github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
+github.com/tinylib/msgp/parse
+github.com/tinylib/msgp/printer
+# github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
+## explicit
+github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
