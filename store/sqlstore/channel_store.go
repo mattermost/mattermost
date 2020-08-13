@@ -736,28 +736,25 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	}
 
 	var newChannel *model.Channel
-	err := store.WithDeadlockRetry(func() error {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			return errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
 
-		newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-		if err != nil {
-			return err
-		}
+	newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if err != nil {
+		return newChannel, err
+	}
 
-		// Additionally propagate the write to the PublicChannels table.
-		if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-			return errors.Wrap(err, "upsert_public_channel")
-		}
+	// Additionally propagate the write to the PublicChannels table.
+	if err = s.upsertPublicChannelT(transaction, newChannel); err != nil {
+		return nil, errors.Wrap(err, "upsert_public_channel")
+	}
 
-		if err := transaction.Commit(); err != nil {
-			return errors.Wrap(err, "commit_transaction")
-		}
-		return nil
-	})
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
 	// There are cases when in case of conflict, the original channel value is returned.
 	// So we return both and let the caller do the checks.
 	return newChannel, err
@@ -907,8 +904,8 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
 
-	if count != 1 {
-		return nil, fmt.Errorf("the expected number of channels to be updated is 1 but was %d", count)
+	if count > 1 {
+		return nil, fmt.Errorf("the expected number of channels to be updated is <=1 but was %d", count)
 	}
 
 	return channel, nil

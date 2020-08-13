@@ -232,14 +232,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		iHookChan := make(chan store.StoreResult, 1)
 		go func() {
 			c, err2 := a.Srv().Store.Webhook().AnalyticsIncomingCount(teamId)
-			iHookChan <- store.StoreResult{Data: c, Err: err2}
+			iHookChan <- store.StoreResult{Data: c, NErr: err2}
 			close(iHookChan)
 		}()
 
 		oHookChan := make(chan store.StoreResult, 1)
 		go func() {
 			c, err2 := a.Srv().Store.Webhook().AnalyticsOutgoingCount(teamId)
-			oHookChan <- store.StoreResult{Data: c, Err: err2}
+			oHookChan <- store.StoreResult{Data: c, NErr: err2}
 			close(oHookChan)
 		}()
 
@@ -297,14 +297,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 
 		r := <-iHookChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.webhooks.analytics_incoming_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[2].Value = float64(r.Data.(int64))
 
 		r = <-oHookChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.webhooks.analytics_outgoing_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[3].Value = float64(r.Data.(int64))
 
