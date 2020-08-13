@@ -1,0 +1,10 @@
+_generated/generated.go
+_generated/generated_test.go
+_generated/*_gen.go
+_generated/*_gen_test.go
+_generated/embeddedStruct/*_gen.go
+_generated/embeddedStruct/*_gen_test.go
+msgp/defgen_test.go
+msgp/cover.out
+*~
+*.coverprofile
