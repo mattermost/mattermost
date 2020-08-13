@@ -4095,7 +4095,7 @@ func (s *TimerLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.CompareAndDelete(keyVal, oldValue)
@@ -4111,7 +4111,7 @@ func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, o
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *TimerLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.CompareAndSet(keyVal, oldValue)
@@ -4127,7 +4127,7 @@ func (s *TimerLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldV
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) Delete(pluginId string, key string) *model.AppError {
+func (s *TimerLayerPluginStore) Delete(pluginId string, key string) error {
 	start := timemodule.Now()
 
 	err := s.PluginStore.Delete(pluginId, key)
@@ -4143,7 +4143,7 @@ func (s *TimerLayerPluginStore) Delete(pluginId string, key string) *model.AppEr
 	return err
 }
 
-func (s *TimerLayerPluginStore) DeleteAllExpired() *model.AppError {
+func (s *TimerLayerPluginStore) DeleteAllExpired() error {
 	start := timemodule.Now()
 
 	err := s.PluginStore.DeleteAllExpired()
@@ -4159,7 +4159,7 @@ func (s *TimerLayerPluginStore) DeleteAllExpired() *model.AppError {
 	return err
 }
 
-func (s *TimerLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
+func (s *TimerLayerPluginStore) DeleteAllForPlugin(PluginId string) error {
 	start := timemodule.Now()
 
 	err := s.PluginStore.DeleteAllForPlugin(PluginId)
@@ -4175,7 +4175,7 @@ func (s *TimerLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppEr
 	return err
 }
 
-func (s *TimerLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
+func (s *TimerLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.Get(pluginId, key)
@@ -4191,7 +4191,7 @@ func (s *TimerLayerPluginStore) Get(pluginId string, key string) (*model.PluginK
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, *model.AppError) {
+func (s *TimerLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.List(pluginId, page, perPage)
@@ -4207,7 +4207,7 @@ func (s *TimerLayerPluginStore) List(pluginId string, page int, perPage int) ([]
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.SaveOrUpdate(keyVal)
@@ -4223,7 +4223,7 @@ func (s *TimerLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 	return result, err
 }
 
-func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.PluginStore.SetWithOptions(pluginId, key, value, options)
