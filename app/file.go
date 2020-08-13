@@ -291,12 +291,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result, err := a.Srv().Store.Post().Get(post.Id, false)
-	if err != nil {
-		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(err), mlog.String("post_id", post.Id))
+	result, nErr := a.Srv().Store.Post().Get(post.Id, false)
+	if nErr != nil {
+		mlog.Error("Unable to get post when migrating post to use FileInfos", mlog.Err(nErr), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 
+	var err *model.AppError
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
@@ -337,13 +338,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if _, err = a.Srv().Store.Post().Update(newPost, post); err != nil {
+	if _, nErr = a.Srv().Store.Post().Update(newPost, post); nErr != nil {
 		mlog.Error(
 			"Unable to save migrated post when migrating to use FileInfos",
 			mlog.String("new_file_ids", strings.Join(newPost.FileIds, ",")),
 			mlog.String("old_filenames", strings.Join(post.Filenames, ",")),
 			mlog.String("post_id", post.Id),
-			mlog.Err(err),
+			mlog.Err(nErr),
 		)
 		return []*model.FileInfo{}
 	}
