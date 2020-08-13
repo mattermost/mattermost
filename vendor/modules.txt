@@ -157,8 +157,9 @@ github.com/golang/snappy
 # github.com/google/btree v1.0.0
 github.com/google/btree
 # github.com/google/uuid v1.1.1
-## explicit
 github.com/google/uuid
+# github.com/gopherjs/gopherjs v0.0.0-20190910122728-9d188e94fb99
+github.com/gopherjs/gopherjs/js
 # github.com/gorilla/handlers v1.4.2
 ## explicit
 github.com/gorilla/handlers
@@ -243,8 +244,7 @@ github.com/jmoiron/sqlx/reflectx
 github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
-# github.com/klauspost/cpuid v1.3.0
-## explicit
+# github.com/klauspost/cpuid v1.3.1
 github.com/klauspost/cpuid
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
@@ -314,15 +314,19 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.0
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v6 v6.0.57
+# github.com/minio/minio-go/v7 v7.0.3
 ## explicit
-github.com/minio/minio-go/v6
-github.com/minio/minio-go/v6/pkg/credentials
-github.com/minio/minio-go/v6/pkg/encrypt
-github.com/minio/minio-go/v6/pkg/s3utils
-github.com/minio/minio-go/v6/pkg/set
-github.com/minio/minio-go/v6/pkg/signer
-github.com/minio/minio-go/v6/pkg/tags
+github.com/minio/minio-go/v7
+github.com/minio/minio-go/v7/pkg/credentials
+github.com/minio/minio-go/v7/pkg/encrypt
+github.com/minio/minio-go/v7/pkg/lifecycle
+github.com/minio/minio-go/v7/pkg/notification
+github.com/minio/minio-go/v7/pkg/replication
+github.com/minio/minio-go/v7/pkg/s3utils
+github.com/minio/minio-go/v7/pkg/set
+github.com/minio/minio-go/v7/pkg/signer
+github.com/minio/minio-go/v7/pkg/sse
+github.com/minio/minio-go/v7/pkg/tags
 # github.com/minio/sha256-simd v0.1.1
 github.com/minio/sha256-simd
 # github.com/mitchellh/go-homedir v1.1.0
@@ -360,6 +364,10 @@ github.com/olivere/elastic/uritemplates
 ## explicit
 # github.com/onsi/gomega v1.9.0
 ## explicit
+# github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
+## explicit
+github.com/oov/psd
+github.com/oov/psd/color
 # github.com/opentracing/opentracing-go v1.1.0
 ## explicit
 github.com/opentracing/opentracing-go
@@ -401,6 +409,8 @@ github.com/prometheus/procfs/internal/util
 # github.com/rs/cors v1.7.0
 ## explicit
 github.com/rs/cors
+# github.com/rs/xid v1.2.1
+github.com/rs/xid
 # github.com/rudderlabs/analytics-go v3.2.1+incompatible
 ## explicit
 github.com/rudderlabs/analytics-go
@@ -461,7 +471,14 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
+github.com/tinylib/msgp
+github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
+github.com/tinylib/msgp/parse
+github.com/tinylib/msgp/printer
+# github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
+## explicit
+github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
@@ -529,7 +546,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+# golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 ## explicit
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
@@ -566,7 +583,7 @@ golang.org/x/image/webp
 ## explicit
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200625001655-4c5254603344
+# golang.org/x/net v0.0.0-20200707034311-ab3426394381
 ## explicit
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -584,7 +601,7 @@ golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
+# golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
@@ -732,7 +749,6 @@ google.golang.org/protobuf/types/known/timestamppb
 ## explicit
 gopkg.in/alexcesaro/quotedprintable.v3
 # gopkg.in/ini.v1 v1.57.0
-## explicit
 gopkg.in/ini.v1
 # gopkg.in/mail.v2 v2.3.1
 ## explicit

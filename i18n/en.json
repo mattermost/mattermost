@@ -1,9 +1,5 @@
 [
   {
-    "id": "",
-    "translation": ""
-  },
-  {
     "id": "April",
     "translation": "April"
   },
@@ -1131,6 +1127,10 @@
     "translation": "Sorry, we could not find the page."
   },
   {
+    "id": "api.context.get_user.app_error",
+    "translation": "Unable to get user from session UserID."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body."
   },
@@ -1451,6 +1451,10 @@
   {
     "id": "api.io_error",
     "translation": "input/output error"
+  },
+  {
+    "id": "api.job.unable_to_download_job",
+    "translation": "Unable to download this job"
   },
   {
     "id": "api.ldap_group.not_found",
@@ -1996,7 +2000,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise E10 and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+    "translation": "Your Mattermost system now has 200 users. As your user base grows, provisioning new accounts can become time-consuming. We recommend that you upgrade to Mattermost Enterprise Edition and integrate your organization’s Active Directory/LDAP, which will allow anyone with an account to access Mattermost. Users can log in without having to create new usernames and passwords, and administrators save time provisioning and managing accounts.\r\n\r\n[Learn more about integrating with AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -2004,7 +2008,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise E20.\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+    "translation": "Your Mattermost system now has 400 users. When you connect Mattermost with your organization's single sign-on provider, users can access Mattermost without having to re-enter their credentials. Contact support to learn more about integrating with SAML 2.0, available in Mattermost Enterprise Edition.\r\n\r\n[Learn more about integrating with SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -2012,7 +2016,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise E20, which offers features such as user management, server clustering, and performance monitoring."
+    "translation": "Mattermost strongly recommends that deployments of over 500 users upgrade to Mattermost Enterprise Edition, which offers features such as user management, server clustering, and performance monitoring.\r\n\r\nContacting support sends your contact information to Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
@@ -3355,6 +3359,26 @@
     "translation": "Invalid webhook."
   },
   {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "We encountered an error retrieving the compliance reports."
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "We encountered an error saving the compliance report."
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Unable to create default team memberships"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Unable to create default team membership because they already exists"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Unable to create default team membership because no more members are allowed in that team"
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3533,6 +3557,18 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Unable to import the new team membership because it already exists"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Unable to import team memberships"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Unable to import team membership because no more members are allowed in that team"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -3947,6 +3983,10 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "app.job.download_export_results_not_enabled",
+    "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -4231,6 +4271,74 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Could not get plugin key value."
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys."
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value."
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "Unable to delete the post."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Unable to delete the posts by channel."
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Unable to select the posts to delete for the user."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Unable to save the Post."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Unable to update the Post."
+  },
+  {
+    "id": "app.preference.delete.app_error",
+    "translation": "We encountered an error while deleting preferences."
+  },
+  {
+    "id": "app.preference.get.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_all.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.get_category.app_error",
+    "translation": "We encountered an error while finding preferences."
+  },
+  {
+    "id": "app.preference.permanent_delete_by_user.app_error",
+    "translation": "We encountered an error while deleteing preferences."
+  },
+  {
+    "id": "app.preference.save.updating.app_error",
+    "translation": "We encountered an error while updating preferences."
+  },
+  {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -4257,6 +4365,34 @@
   {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
+  },
+  {
+    "id": "app.role.get.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_all.app_error",
+    "translation": "Unable to get all the roles."
+  },
+  {
+    "id": "app.role.get_by_name.app_error",
+    "translation": "Unable to get role."
+  },
+  {
+    "id": "app.role.get_by_names.app_error",
+    "translation": "Unable to get roles."
+  },
+  {
+    "id": "app.role.permanent_delete_all.app_error",
+    "translation": "We could not permanently delete all the roles."
+  },
+  {
+    "id": "app.role.save.insert.app_error",
+    "translation": "Unable to save new role."
+  },
+  {
+    "id": "app.role.save.invalid_role.app_error",
+    "translation": "The role was not valid."
   },
   {
     "id": "app.save_config.app_error",
@@ -4323,6 +4459,14 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.status.get.app_error",
+    "translation": "Encountered an error retrieving the status."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "No entry for that status exists."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -4363,6 +4507,18 @@
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Unable to create the new team membership"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Unable to create the new team membership because it already exists"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Unable to create the new team membership because the team has reached the limit of members"
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
@@ -4389,6 +4545,10 @@
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Unable to complete SAML login with an empty email address."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Unable to convert bot to user."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -4445,6 +4605,86 @@
   {
     "id": "app.user_terms_of_service.save.app_error",
     "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Unable to count the incoming webhooks."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Unable to count the outgoing webhooks."
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Unable to save the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "You cannot overwrite an existing IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Unable to save the OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "You cannot overwrite an existing OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Unable to update the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Unable to update the webhook."
   },
   {
     "id": "bleveengine.already_started.error",
@@ -4627,6 +4867,30 @@
     "translation": "Timed out waiting for cluster response"
   },
   {
+    "id": "ent.compliance.actiance.attachment.copy.appError",
+    "translation": "Unable to copy the attachment into the zip file."
+  },
+  {
+    "id": "ent.compliance.actiance.file.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.creation.appError",
+    "translation": "There was an error creating actiance warning text file"
+  },
+  {
+    "id": "ent.compliance.actiance.warning.write.appError",
+    "translation": "There was an error writing to the actiance xml file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.creation.appError",
+    "translation": "There was an error creating actiance XML file"
+  },
+  {
+    "id": "ent.compliance.actiance.xml.write.appError",
+    "translation": "There was an error writing to the actiance XML file"
+  },
+  {
     "id": "ent.compliance.bad_export_type.appError",
     "translation": "Unknown output format {{.ExportType}}"
   },
@@ -4697,6 +4961,10 @@
   {
     "id": "ent.data_retention.channel_member_history_batch.internal_error",
     "translation": "Failed to purge records."
+  },
+  {
+    "id": "ent.data_retention.flags_batch.internal_error",
+    "translation": "We encountered an error cleaning up the batch of flags."
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -5049,6 +5317,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.run_export.app_error",
+    "translation": "Failed to select message export data."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -5439,6 +5711,10 @@
     "translation": "Invalid Method."
   },
   {
+    "id": "model.command.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin id."
+  },
+  {
     "id": "model.command.is_valid.team_id.app_error",
     "translation": "Invalid team ID."
   },
@@ -5561,6 +5837,10 @@
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
     "translation": "Message retention must be one day or longer."
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Invalid Local Storage Directory. Must be a non-empty string."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -6847,18 +7127,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "We encountered an error retrieving the compliance reports."
-  },
-  {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data."
-  },
-  {
-    "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "We encountered an error saving the compliance report."
-  },
-  {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
     "translation": "Unable to delete attachments of the user."
   },
@@ -6959,30 +7227,6 @@
     "translation": "Unable to update the job."
   },
   {
-    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Could not delete plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Could not get plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys."
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Could not save or update plugin key value."
-  },
-  {
     "id": "store.sql_post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
@@ -6993,18 +7237,6 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.compliance_export.app_error",
-    "translation": "Unable to get the compliance export posts."
-  },
-  {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Unable to get the post."
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
@@ -7067,172 +7299,16 @@
     "translation": "Unable to overwrite the Post."
   },
   {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Unable to delete the comments for user."
-  },
-  {
     "id": "store.sql_post.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Unable to delete the posts by channel."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Unable to select the posts to delete for the user (too many), please re-run."
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Unable to save the Post."
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "You cannot update an existing Post."
-  },
-  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags."
-  },
-  {
-    "id": "store.sql_preference.delete.app_error",
-    "translation": "We encountered an error while deleting preferences."
-  },
-  {
-    "id": "store.sql_preference.get.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.get_all.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.get_category.app_error",
-    "translation": "We encountered an error while finding preferences."
-  },
-  {
-    "id": "store.sql_preference.insert.exists.app_error",
-    "translation": "A preference with that user id, category, and name already exists."
-  },
-  {
-    "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference."
-  },
-  {
-    "id": "store.sql_preference.permanent_delete_by_user.app_error",
-    "translation": "We encountered an error while deleteing preferences."
-  },
-  {
-    "id": "store.sql_preference.save.commit_transaction.app_error",
-    "translation": "Unable to commit transaction to save preferences."
-  },
-  {
-    "id": "store.sql_preference.save.missing_driver.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Unable to open transaction to save preferences."
-  },
-  {
-    "id": "store.sql_preference.save.updating.app_error",
-    "translation": "We encountered an error while updating preferences."
-  },
-  {
-    "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference."
-  },
-  {
-    "id": "store.sql_role.delete.update.app_error",
-    "translation": "Unable to delete the role."
-  },
-  {
-    "id": "store.sql_role.get.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_all.app_error",
-    "translation": "Unable to get all the roles."
-  },
-  {
-    "id": "store.sql_role.get_by_name.app_error",
-    "translation": "Unable to get role."
-  },
-  {
-    "id": "store.sql_role.get_by_names.app_error",
-    "translation": "Unable to get roles."
-  },
-  {
-    "id": "store.sql_role.permanent_delete_all.app_error",
-    "translation": "We could not permanently delete all the roles."
-  },
-  {
-    "id": "store.sql_role.save.insert.app_error",
-    "translation": "Unable to save new role."
-  },
-  {
-    "id": "store.sql_role.save.invalid_role.app_error",
-    "translation": "The role was not valid."
-  },
-  {
-    "id": "store.sql_role.save.open_transaction.app_error",
-    "translation": "Failed to open the transaction to save the role."
-  },
-  {
-    "id": "store.sql_role.save.update.app_error",
-    "translation": "Unable to update role."
-  },
-  {
-    "id": "store.sql_role.save_role.commit_transaction.app_error",
-    "translation": "Failed to commit the transaction to save the role."
-  },
-  {
-    "id": "store.sql_status.get.app_error",
-    "translation": "Encountered an error retrieving the status."
-  },
-  {
-    "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists."
-  },
-  {
-    "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "We could not count the active users."
-  },
-  {
-    "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encountered an error resetting all the statuses."
-  },
-  {
-    "id": "store.sql_status.save.app_error",
-    "translation": "Encountered an error saving the status."
-  },
-  {
-    "id": "store.sql_status.update.app_error",
-    "translation": "Encountered an error updating the status."
-  },
-  {
-    "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user."
   },
   {
     "id": "store.sql_system.get.app_error",
@@ -7309,6 +7385,10 @@
   {
     "id": "store.sql_team.get_all_private_team_listing.app_error",
     "translation": "We could not get all private teams."
+  },
+  {
+    "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+    "translation": "We could not get all private teams in page."
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -7635,10 +7715,6 @@
     "translation": "Must call update for existing user."
   },
   {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
-  },
-  {
     "id": "store.sql_user.save.member_count.app_error",
     "translation": "Failed to get current team member count."
   },
@@ -7729,86 +7805,6 @@
   {
     "id": "store.sql_user.verify_email.app_error",
     "translation": "Unable to update verify email field."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Unable to count the incoming webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Unable to count the outgoing webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Unable to save the IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_incoming.existing.app_error",
-    "translation": "You cannot overwrite an existing IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Unable to save the OutgoingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.save_outgoing.override.app_error",
-    "translation": "You cannot overwrite an existing OutgoingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "Unable to update the IncomingWebhook."
-  },
-  {
-    "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Unable to update the webhook."
   },
   {
     "id": "store.update_error",

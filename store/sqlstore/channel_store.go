@@ -736,28 +736,25 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	}
 
 	var newChannel *model.Channel
-	err := store.WithDeadlockRetry(func() error {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			return errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
 
-		newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-		if err != nil {
-			return err
-		}
+	newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if err != nil {
+		return newChannel, err
+	}
 
-		// Additionally propagate the write to the PublicChannels table.
-		if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-			return errors.Wrap(err, "upsert_public_channel")
-		}
+	// Additionally propagate the write to the PublicChannels table.
+	if err = s.upsertPublicChannelT(transaction, newChannel); err != nil {
+		return nil, errors.Wrap(err, "upsert_public_channel")
+	}
 
-		if err := transaction.Commit(); err != nil {
-			return errors.Wrap(err, "commit_transaction")
-		}
-		return nil
-	})
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
 	// There are cases when in case of conflict, the original channel value is returned.
 	// So we return both and let the caller do the checks.
 	return newChannel, err
@@ -907,8 +904,8 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 		return nil, errors.Wrapf(err, "failed to update channel with id=%s", channel.Id)
 	}
 
-	if count != 1 {
-		return nil, fmt.Errorf("the expected number of channels to be updated is 1 but was %d", count)
+	if count > 1 {
+		return nil, fmt.Errorf("the expected number of channels to be updated is <=1 but was %d", count)
 	}
 
 	return channel, nil
@@ -1134,14 +1131,43 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) *mode
 	return nil
 }
 
-func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, error) {
-	query := "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND DeleteAt = 0 AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
-	if includeDeleted {
-		query = "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
-	}
-	channels := &model.ChannelList{}
-	_, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDeleted bool, lastDeleteAt int) (*model.ChannelList, error) {
+	query := s.getQueryBuilder().
+		Select("Channels.*").
+		From("Channels, ChannelMembers").
+		Where(
+			sq.And{
+				sq.Expr("Id = ChannelId"),
+				sq.Eq{"UserId": userId},
+				sq.Or{
+					sq.Eq{"TeamId": teamId},
+					sq.Eq{"TeamId": ""},
+				},
+			},
+		).
+		OrderBy("DisplayName")
 
+	if includeDeleted {
+		if lastDeleteAt != 0 {
+			// We filter by non-archived, and archived >= a timestamp.
+			query = query.Where(sq.Or{
+				sq.Eq{"DeleteAt": 0},
+				sq.GtOrEq{"DeleteAt": lastDeleteAt},
+			})
+		}
+		// If lastDeleteAt is not set, we include everything. That means no filter is needed.
+	} else {
+		// Don't include archived channels.
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	channels := &model.ChannelList{}
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "getchannels_tosql")
+	}
+
+	_, err = s.GetReplica().Select(channels, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get channels with TeamId=%s and UserId=%s", teamId, userId)
 	}
@@ -3552,19 +3578,56 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	if err = transaction.Insert(category); err != nil {
 		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	var channels []interface{}
-	runningOrder := 0
-	for _, channelID := range newCategory.Channels {
-		channels = append(channels, &model.SidebarChannel{
-			ChannelId:  channelID,
-			CategoryId: newCategoryId,
-			SortOrder:  int64(runningOrder),
-			UserId:     userId,
-		})
-		runningOrder += model.MinimalSidebarSortDistance
-	}
-	if err = transaction.Insert(channels...); err != nil {
-		return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+
+	if len(newCategory.Channels) > 0 {
+		channelIdsKeys, deleteParams := MapStringsToQueryParams(newCategory.Channels, "ChannelId")
+		deleteParams["UserId"] = userId
+		deleteParams["TeamId"] = teamId
+
+		// Remove any channels from their previous categories and add them to the new one
+		var deleteQuery string
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			deleteQuery = `
+				DELETE
+					SidebarChannels
+				FROM
+					SidebarChannels
+				JOIN
+					SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
+				WHERE
+					SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					AND SidebarCategories.TeamId = :TeamId`
+		} else {
+			deleteQuery = `
+				DELETE FROM
+					SidebarChannels
+				USING
+					SidebarCategories
+				WHERE
+					SidebarChannels.CategoryId = SidebarCategories.Id
+					AND SidebarChannels.UserId = :UserId
+					AND SidebarChannels.ChannelId IN ` + channelIdsKeys + `
+					AND SidebarCategories.TeamId = :TeamId`
+		}
+
+		_, err = transaction.Exec(deleteQuery, deleteParams)
+		if err != nil {
+			return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		var channels []interface{}
+		for i, channelID := range newCategory.Channels {
+			channels = append(channels, &model.SidebarChannel{
+				ChannelId:  channelID,
+				CategoryId: newCategoryId,
+				SortOrder:  int64(i * model.MinimalSidebarSortDistance),
+				UserId:     userId,
+			})
+		}
+		if err = transaction.Insert(channels...); err != nil {
+			return nil, model.NewAppError("SqlPostStore.CreateSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// now we re-order the categories according to the new order
@@ -3929,7 +3992,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			for _, channelID := range category.Channels {
 				// This breaks the PreferenceStore abstraction, but it should be safe to assume that everything is a SQL
 				// store in this package.
-				if err := s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
+				if err = s.Preference().(*SqlPreferenceStore).save(transaction, &model.Preference{
 					Name:     channelID,
 					UserId:   userId,
 					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
