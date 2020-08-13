@@ -4513,7 +4513,7 @@ func (s *OpenTracingLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAut
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.CompareAndDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -4531,7 +4531,7 @@ func (s *OpenTracingLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyVa
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.CompareAndSet")
 	s.Root.Store.SetContext(newCtx)
@@ -4549,7 +4549,7 @@ func (s *OpenTracingLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) Delete(pluginId string, key string) *model.AppError {
+func (s *OpenTracingLayerPluginStore) Delete(pluginId string, key string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -4567,7 +4567,7 @@ func (s *OpenTracingLayerPluginStore) Delete(pluginId string, key string) *model
 	return err
 }
 
-func (s *OpenTracingLayerPluginStore) DeleteAllExpired() *model.AppError {
+func (s *OpenTracingLayerPluginStore) DeleteAllExpired() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.DeleteAllExpired")
 	s.Root.Store.SetContext(newCtx)
@@ -4585,7 +4585,7 @@ func (s *OpenTracingLayerPluginStore) DeleteAllExpired() *model.AppError {
 	return err
 }
 
-func (s *OpenTracingLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
+func (s *OpenTracingLayerPluginStore) DeleteAllForPlugin(PluginId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.DeleteAllForPlugin")
 	s.Root.Store.SetContext(newCtx)
@@ -4603,7 +4603,7 @@ func (s *OpenTracingLayerPluginStore) DeleteAllForPlugin(PluginId string) *model
 	return err
 }
 
-func (s *OpenTracingLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -4621,7 +4621,7 @@ func (s *OpenTracingLayerPluginStore) Get(pluginId string, key string) (*model.P
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.List")
 	s.Root.Store.SetContext(newCtx)
@@ -4639,7 +4639,7 @@ func (s *OpenTracingLayerPluginStore) List(pluginId string, page int, perPage in
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.SaveOrUpdate")
 	s.Root.Store.SetContext(newCtx)
@@ -4657,7 +4657,7 @@ func (s *OpenTracingLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue)
 	return result, err
 }
 
-func (s *OpenTracingLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (s *OpenTracingLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PluginStore.SetWithOptions")
 	s.Root.Store.SetContext(newCtx)
@@ -6224,7 +6224,7 @@ func (s *OpenTracingLayerSessionStore) UpdateRoles(userId string, roles string) 
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6242,7 +6242,7 @@ func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, *model.
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.GetByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -6260,7 +6260,7 @@ func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Statu
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.GetTotalActiveUsersCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6278,7 +6278,7 @@ func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) ResetAll() *model.AppError {
+func (s *OpenTracingLayerStatusStore) ResetAll() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.ResetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -6296,7 +6296,7 @@ func (s *OpenTracingLayerStatusStore) ResetAll() *model.AppError {
 	return err
 }
 
-func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.SaveOrUpdate")
 	s.Root.Store.SetContext(newCtx)
@@ -6314,7 +6314,7 @@ func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) *model.
 	return err
 }
 
-func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.UpdateLastActivityAt")
 	s.Root.Store.SetContext(newCtx)
