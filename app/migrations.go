@@ -291,5 +291,8 @@ func (a *App) DoAppMigrations() {
 	a.DoSystemConsoleRolesCreationMigration()
 	// This migration always must be the last, because can be based on previous
 	// migrations. For example, it needs the guest roles migration.
-	a.DoPermissionsMigrations()
+	err := a.DoPermissionsMigrations()
+	if err != nil {
+		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
+	}
 }
