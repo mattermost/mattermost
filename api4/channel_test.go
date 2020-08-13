@@ -1632,6 +1632,8 @@ func TestDeleteChannel2(t *testing.T) {
 func TestConvertChannelToPrivate(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
 	Client := th.Client
 
 	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
@@ -1647,6 +1649,14 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
+
+	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id, model.TEAM_ADMIN_ROLE_ID)
+
 	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
 	CheckOKStatus(t, resp)
 	require.Equal(t, model.CHANNEL_PRIVATE, rchannel.Type, "channel should be converted from public to private")
