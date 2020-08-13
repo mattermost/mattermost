@@ -6224,7 +6224,7 @@ func (s *OpenTracingLayerSessionStore) UpdateRoles(userId string, roles string) 
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6242,7 +6242,7 @@ func (s *OpenTracingLayerStatusStore) Get(userId string) (*model.Status, *model.
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.GetByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -6260,7 +6260,7 @@ func (s *OpenTracingLayerStatusStore) GetByIds(userIds []string) ([]*model.Statu
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.GetTotalActiveUsersCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6278,7 +6278,7 @@ func (s *OpenTracingLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.
 	return result, err
 }
 
-func (s *OpenTracingLayerStatusStore) ResetAll() *model.AppError {
+func (s *OpenTracingLayerStatusStore) ResetAll() error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.ResetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -6296,7 +6296,7 @@ func (s *OpenTracingLayerStatusStore) ResetAll() *model.AppError {
 	return err
 }
 
-func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.SaveOrUpdate")
 	s.Root.Store.SetContext(newCtx)
@@ -6314,7 +6314,7 @@ func (s *OpenTracingLayerStatusStore) SaveOrUpdate(status *model.Status) *model.
 	return err
 }
 
-func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "StatusStore.UpdateLastActivityAt")
 	s.Root.Store.SetContext(newCtx)
