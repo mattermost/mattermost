@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -99,7 +100,13 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 	if err != nil {
 		return record, err
 	}
-	defer emailResponse.Body.Close()
+	defer func() {
+		// To reuse same tcp connection
+		// Response body is read and closed.
+
+		io.Copy(ioutil.Discard, emailResponse.Body)
+		emailResponse.Body.Close()
+	}()
 
 	if err = json.NewDecoder(emailResponse.Body).Decode(&record); err != nil {
 		return record, err
