@@ -544,9 +544,23 @@ func (s *RetryLayerChannelStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) *model.AppError {
+func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) error {
 
-	return s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
+	tries := 0
+	for {
+		err := s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -668,9 +682,23 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 
 }
 
-func (s *RetryLayerChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
+func (s *RetryLayerChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 
-	return s.ChannelStore.GetAll(teamId)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetAll(teamId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -798,9 +826,23 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+func (s *RetryLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error) {
 
-	return s.ChannelStore.GetChannelCounts(teamId, userId)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelCounts(teamId, userId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -848,9 +890,23 @@ func (s *RetryLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, en
 
 }
 
-func (s *RetryLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+func (s *RetryLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error) {
 
-	return s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -900,9 +956,23 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 
 }
 
-func (s *RetryLayerChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
+func (s *RetryLayerChannelStore) GetForPost(postId string) (*model.Channel, error) {
 
-	return s.ChannelStore.GetForPost(postId)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetForPost(postId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -1018,21 +1088,63 @@ func (s *RetryLayerChannelStore) GetPinnedPosts(channelId string) (*model.PostLi
 
 }
 
-func (s *RetryLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *RetryLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 
-	return s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+func (s *RetryLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, error) {
 
-	return s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 
-	return s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -1054,9 +1166,23 @@ func (s *RetryLayerChannelStore) GetSidebarCategoryOrder(userId string, teamId s
 
 }
 
-func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
+func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, error) {
 
-	return s.ChannelStore.GetTeamChannels(teamId)
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetTeamChannels(teamId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -1412,9 +1538,23 @@ func (s *RetryLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamI
 
 }
 
-func (s *RetryLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+func (s *RetryLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error {
 
-	return s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
+	tries := 0
+	for {
+		err := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 

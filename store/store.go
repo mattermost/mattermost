@@ -134,8 +134,8 @@ type ChannelStore interface {
 	CreateDirectChannel(userId *model.User, otherUserId *model.User) (*model.Channel, error)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error)
 	Update(channel *model.Channel) (*model.Channel, error)
-	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError
-	ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError
+	UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error
+	ClearSidebarOnTeamLeave(userId, teamId string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
@@ -154,14 +154,14 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
-	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
-	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
-	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
-	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
-	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
-	GetAll(teamId string) ([]*model.Channel, *model.AppError)
-	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError)
-	GetForPost(postId string) (*model.Channel, *model.AppError)
+	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error)
+	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error)
+	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, error)
+	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error)
+	GetTeamChannels(teamId string) (*model.ChannelList, error)
+	GetAll(teamId string) ([]*model.Channel, error)
+	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
+	GetForPost(postId string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
 	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)

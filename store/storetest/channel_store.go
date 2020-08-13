@@ -3773,7 +3773,8 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
 		_, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
 		require.NotNil(t, err)
-		require.Equal(t, "store.sql_channel.get_channels_by_ids.not_found.app_error", err.Id)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 }
 

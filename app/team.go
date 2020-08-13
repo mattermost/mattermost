@@ -512,7 +512,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
 		channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("AddUserToTeamByToken", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		for _, channel := range channels {
@@ -990,7 +990,7 @@ func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId
 	}
 
 	if err := a.Srv().Store.Channel().ClearSidebarOnTeamLeave(user.Id, teamMember.TeamId); err != nil {
-		return err
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
@@ -1179,7 +1179,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
 		channels, err := a.Srv().Store.Channel().GetChannelsByIds(guestsInvite.Channels, false)
-		cchan <- store.StoreResult{Data: channels, Err: err}
+		cchan <- store.StoreResult{Data: channels, NErr: err}
 		close(cchan)
 	}()
 	uchan := make(chan store.StoreResult, 1)
@@ -1190,8 +1190,8 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 	}()
 
 	result := <-cchan
-	if result.Err != nil {
-		return nil, nil, nil, result.Err
+	if result.NErr != nil {
+		return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "app.channel.get_channels_by_ids.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 	}
 	channels := result.Data.([]*model.Channel)
 
@@ -1209,7 +1209,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 
 	for _, channel := range channels {
 		if channel.TeamId != teamId {
-			return nil, nil, nil, model.NewAppError("InviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 	return user, team, channels, nil
@@ -1217,7 +1217,7 @@ func (a *App) prepareInviteGuestsToChannels(teamId string, guestsInvite *model.G
 
 func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	user, team, channels, err := a.prepareInviteGuestsToChannels(teamId, guestsInvite, senderId)
@@ -1233,7 +1233,7 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 			Error: nil,
 		}
 		if !CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
-			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
+			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
@@ -1381,8 +1381,9 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if channels, err := a.Srv().Store.Channel().GetTeamChannels(team.Id); err != nil {
-		if err.Id != "app.channel.get_channels.not_found.app_error" {
-			return err
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		}
 	} else {
 		for _, c := range *channels {

@@ -78,7 +78,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().GetForPost(postId)
-		cchan <- store.StoreResult{Data: channel, Err: err}
+		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
@@ -133,14 +133,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	} else {
 		post := result.Data.(*model.Post)
 		result = <-cchan
-		if result.Err != nil {
-			return "", result.Err
+		if result.NErr != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 		channel := result.Data.(*model.Channel)
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId

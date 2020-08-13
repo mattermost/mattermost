@@ -6903,7 +6903,7 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
-    "id": "store.sql_channel.get_channel_counts.get.app_error",
+    "id": "app.channel.get_channel_counts.get.app_error",
     "translation": "Unable to get the channel counts."
   },
   {
@@ -6911,19 +6911,19 @@
     "translation": "Unable to get the channels batch for indexing."
   },
   {
-    "id": "store.sql_channel.get_channels_by_ids.app_error",
+    "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Unable to get channels by ids."
   },
   {
-    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
+    "id": "app.channel.get_channels_by_ids.get.app_error",
     "translation": "Unable to get the channels."
   },
   {
-    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
   },
   {
-    "id": "store.sql_channel.get_for_post.app_error",
+    "id": "app.channel.get_for_post.app_error",
     "translation": "Unable to get the channel for the given post."
   },
   {
@@ -6955,11 +6955,11 @@
     "translation": "Unable to get the channel pinned post count."
   },
   {
-    "id": "store.sql_channel.get_private_channels.get.app_error",
+    "id": "app.channel.get_private_channels.get.app_error",
     "translation": "Unable to get private channels."
   },
   {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
+    "id": "app.channel.get_public_channels.get.app_error",
     "translation": "Unable to get public channels."
   },
   {
@@ -7059,7 +7059,7 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
-    "id": "store.sql_channel.sidebar_categories.app_error",
+    "id": "app.channel.sidebar_categories.app_error",
     "translation": "Failed to insert record to database."
   },
   {
