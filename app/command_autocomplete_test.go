@@ -232,6 +232,46 @@ func TestParseNamedArguments(t *testing.T) {
 
 }
 
+func TestParseBoolArgument(t *testing.T) {
+	argument := &model.AutocompleteArg{
+		Name:     "", //positional
+		HelpText: "some_help",
+		Type:     model.AutocompleteArgTypeText,
+		Data:     &model.AutocompleteBoolArg{Hint: "hint", BoolValue: "BoolValue"},
+	}
+
+	found, _, _, suggestion := parseBoolArgument(argument, "", "")
+	assert.True(t, found)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
+
+	found, _, _, suggestion = parseBoolArgument(argument, "", " ")
+	assert.True(t, found)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: " ", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
+
+	found, _, _, suggestion = parseBoolArgument(argument, "", "tru")
+	assert.True(t, found)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "true", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
+
+	found, _, _, suggestion = parseBoolArgument(argument, "", "false")
+	assert.True(t, found)
+	assert.Equal(t, model.AutocompleteSuggestion{Complete: "false", Suggestion: "", Hint: "hint", Description: "some_help"}, suggestion)
+
+	found, parsed, toBeParsed, _ := parseBoolArgument(argument, "", "true test_command")
+	assert.False(t, found)
+	assert.Equal(t, "true ", parsed)
+	assert.Equal(t, "test_command", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseBoolArgument(argument, "", "false test_command")
+	assert.False(t, found)
+	assert.Equal(t, "false ", parsed)
+	assert.Equal(t, "test_command", toBeParsed)
+
+	found, parsed, toBeParsed, _ = parseBoolArgument(argument, "", "abc ")
+	assert.False(t, found)
+	assert.Equal(t, "abc ", parsed)
+	assert.Equal(t, "", toBeParsed)
+}
+
 func TestSuggestions(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
