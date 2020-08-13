@@ -1382,8 +1382,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 
 	if channels, err := a.Srv().Store.Channel().GetTeamChannels(team.Id); err != nil {
 		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
 		for _, c := range *channels {
