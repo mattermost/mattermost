@@ -1297,6 +1297,22 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "File does not exist."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Encountered an error opening the file."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Encountered an error appending to a file in S3."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Encountered an error writing to S3."
+  },
+  {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
   },
