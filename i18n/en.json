@@ -4471,6 +4471,10 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.get.app_error",
+    "translation": "We encountered an error finding the system properties."
+  },
+  {
     "id": "app.system.get_by_name.app_error",
     "translation": "Unable to find the system variable."
   },
