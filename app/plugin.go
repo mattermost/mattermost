@@ -86,6 +86,8 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
+		var wg sync.WaitGroup
+
 		// Deactivate any plugins that have been disabled.
 		for _, plugin := range availablePlugins {
 			// Determine if plugin is enabled
@@ -97,12 +99,16 @@ func (a *App) SyncPluginsActiveState() {
 
 			// If it's not enabled we need to deactivate it
 			if !pluginEnabled {
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
-				if deactivated && plugin.Manifest.HasClient() {
-					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
-					message.Add("manifest", plugin.Manifest.ClientManifest())
-					a.Publish(message)
-				}
+				wg.Add(1)
+				go func(pluginId string) {
+					defer wg.Done()
+					deactivated := pluginsEnvironment.Deactivate(pluginId)
+					if deactivated && plugin.Manifest.HasClient() {
+						message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+						message.Add("manifest", plugin.Manifest.ClientManifest())
+						a.Publish(message)
+					}
+				}(pluginId)
 			}
 		}
 
@@ -122,20 +128,25 @@ func (a *App) SyncPluginsActiveState() {
 
 			// Activate plugin if enabled
 			if pluginEnabled {
-				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
-				if err != nil {
-					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
-					continue
-				}
-
-				if activated {
-					// Notify all cluster clients if ready
-					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
-						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+				wg.Add(1)
+				go func(pluginId string) {
+					defer wg.Done()
+					updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
+					if err != nil {
+						plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
+						return
 					}
-				}
+
+					if activated {
+						// Notify all cluster clients if ready
+						if err := a.notifyPluginEnabled(updatedManifest); err != nil {
+							a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
+						}
+					}
+				}(pluginId)
 			}
 		}
+		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
