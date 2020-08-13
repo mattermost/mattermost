@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -96,7 +97,8 @@ func (o *Command) IsValid() *AppError {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !IsValidHttpUrl(o.URL) {
+	u, err := url.ParseRequestURI(o.URL)
+	if err != nil || !IsValidHttpUrl(o.URL) || u.Scheme == "" || u.Host == "" {
 		return NewAppError("Command.IsValid", "model.command.is_valid.url_http.app_error", nil, "", http.StatusBadRequest)
 	}
 
