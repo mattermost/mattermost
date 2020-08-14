@@ -7,7 +7,21 @@
 REPO_TO_USE=$1
 BRANCH_TO_USE=$2
 
-LATEST_REL=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+BASIC_AUTH=""
+
+# If we find a github username and token, we use that.
+# In CI, these variables are available and useful to avoid rate limits which is
+# much more strict for unauthenticated requests.
+if [[ $GITHUB_USERNAME != "" && $GITHUB_TOKEN != "" ]];
+then
+	BASIC_AUTH="--user $GITHUB_USERNAME:$GITHUB_TOKEN"
+fi
+
+LATEST_REL=$(curl \
+	--silent \
+	$BASIC_AUTH \
+	"https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
+	| grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 # Check if this is a release branch
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -15,9 +29,9 @@ THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ $(echo "$THIS_BRANCH" | grep -c ^"$BRANCH_TO_USE") == 1 ]];
 then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
-    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent --user $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
 else
-    REL_TO_USE=$(echo "$THIS_BRANCH" | sed "s/\(.*\)/$LATEST_REL/")
+    REL_TO_USE=$LATEST_REL
 fi
 
 echo "$REL_TO_USE"
