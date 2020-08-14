@@ -7585,5 +7585,57 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Konnte Benutzer nicht über die Benutzer-ID der Sitzung holen."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Konnte die Nachricht nicht aktualisieren."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Sie können keine existierende Nachricht aktualisieren"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Konnte die Nachricht nicht speichern."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Konnte die Nachrichten nach Kanal nicht löschen."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Konnte die Nachricht nicht abrufen."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Konnte die Nachricht nicht löschen."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Es existiert kein Eintrag für diesen Status"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht abrufen"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht löschen"
     }
 ]

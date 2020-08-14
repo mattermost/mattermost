@@ -7832,5 +7832,33 @@
     {
         "id": "app.role.get.app_error",
         "translation": "無法取得角色"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "無法更新訊息"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "無法更新已存在的訊息"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "無法儲存訊息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "無法選擇該使用者的訊息以刪除"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "無法根據頻道刪除訊息"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "無法取得訊息"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "無法刪除訊息"
     }
 ]

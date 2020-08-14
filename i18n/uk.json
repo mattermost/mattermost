@@ -7566,5 +7566,33 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Не вдається оновити повідомлення"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Ви не можете оновити існуючу публікацію "
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Не вдається зберегти публікацію"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Не вдалося вибрати повідомлення, які потрібно видалити для користувача"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Неможливо видалити повідомлення з каналу"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Не вдається отримати повідомлення"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Неможливо видалити публікацію"
     }
 ]

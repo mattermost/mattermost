@@ -7565,5 +7565,57 @@
     {
         "id": "api.job.unable_to_download_job",
         "translation": "Impossible de télécharger ce travail"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Impossible de modifier le message"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Vous ne pouvez pas mettre à jour un message existant"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Impossible de sauvegarder le message"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Impossible de sélectionner les messages à supprimer pour l'utilisateur spécifié"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Impossible de supprimer les messages par canal"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Impossible de récupérer le message"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Impossible de supprimer le message"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Aucune entrée pour ce statut."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Une erreur s'est produite lors de la récupération du statut"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Impossible de supprimer ou mettre à jour le couple clé-valeur du plugin"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Impossible de lister toutes les clés du plugin."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Impossible de récupérer le couple clé-valeur du plugin"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Impossible de supprimer le couple clé-valeur du plugin"
     }
 ]

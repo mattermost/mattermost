@@ -7578,5 +7578,57 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Nie można uzyskać roli"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Nie można zaktualizować wpisu"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Nie możesz zaktualizować istniejącej wiadomości"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Nie można zapisać wpisu"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Nie można wybrać wpisów do usunięcia dla użytkownika"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Nie można usunąć wpisów według kanałów"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Nie można uzyskać wpisu"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Nie można usunąć wpisu"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Brak wpisu dla tego statusu"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania statusu"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Nie można zapisać ani zaktualizować wartości klucza wtyczki"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Nie można wyświetlić wszystkich kluczy wtyczek"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Nie można uzyskać wartości klucza wtyczki"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Nie można usunąć wartości klucza wtyczki"
     }
 ]

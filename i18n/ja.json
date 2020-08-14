@@ -7860,5 +7860,57 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Botをユーザーへ変換できませんでした。"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "投稿を更新できませんでした。"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "既存の投稿は更新できません。"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "投稿を保存できませんでした。"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "ユーザーの削除すべき投稿を選択できませんでした。"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "チャンネルから投稿を削除できませんでした。"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "投稿を取得できませんでした。"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "役割を削除できませんでした。"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "その状態のエントリは存在しません。"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "状態を取得する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "プラグインのキーを保存、更新できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "全てのプラグインキーを一覧化できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "プラグインのキーを取得できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "プラグインのキーを削除できませんでした。"
     }
 ]

@@ -7865,5 +7865,33 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Bot kullanıcıya dönüştürülemedi."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "İleti güncellenemedi."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Var olan bir iletiyi güncelleyemezsiniz."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "İleti kaydedilemedi."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Kullanıcının silinecek iletileri seçilemedi."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Kanalın iletileri silinemedi."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "İleti alınamadı."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "İleti silinemedi."
     }
 ]

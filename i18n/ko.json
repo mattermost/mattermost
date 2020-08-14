@@ -7808,5 +7808,57 @@
     {
         "id": "app.role.get.app_error",
         "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "You cannot update an existing Post"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "We couldn't select the posts to delete for the user"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "채널 업데이트에 실패하였습니다"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "No entry for that status exists"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Encountered an error retrieving the status"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Could not save or update plugin key value"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "모든 플러그인 키를 나열 할 수 없습니다"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Could not get plugin key value"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Could not delete plugin key value"
     }
 ]
