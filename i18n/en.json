@@ -1119,6 +1119,10 @@
     "translation": ""
   },
   {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Failed to migrate config store."
+  },
+  {
     "id": "api.config.update_config.clear_siteurl.app_error",
     "translation": "Site URL cannot be cleared."
   },

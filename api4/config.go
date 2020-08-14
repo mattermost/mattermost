@@ -32,6 +32,7 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config/environment", api.ApiSessionRequired(getEnvironmentConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiSessionRequired(migrateConfig)).Methods("POST")
 }
 
 func init() {
@@ -314,4 +315,37 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 		// with manage_system, default to allow, otherwise default not-allow
 		return c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	}
+}
+
+func migrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	to, ok := props["to"].(string)
+	if !ok {
+		c.SetInvalidParam("to")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateConfig", audit.Fail)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("to", to)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	err := config.Migrate(from, to)
+	if err != nil {
+		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

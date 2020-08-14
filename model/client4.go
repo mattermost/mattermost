@@ -3364,6 +3364,19 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
 
+// MigrateConfig will migrate existing config to the new one.
+func (c *Client4) MigrateConfig(from, to string) (bool, *Response) {
+	m := make(map[string]string, 2)
+	m["from"] = from
+	m["to"] = to
+	r, err := c.DoApiPost(c.GetConfigRoute()+"/migrate", MapToJson(m))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return true, BuildResponse(r)
+}
+
 // UploadLicenseFile will add a license file to the system.
 func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}
