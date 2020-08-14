@@ -56,7 +56,7 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1, nErr := th.App.Srv().Store.Job().Save(j1)
+	j1, nErr = th.App.Srv().Store.Job().Save(j1)
 	require.Nil(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
