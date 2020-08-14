@@ -133,7 +133,7 @@
     },
     {
         "id": "api.channel.add_user.to.channel.failed.app_error",
-        "translation": "Não foi possível adicionar o usuário no canal"
+        "translation": "Não foi possível adicionar o usuário no canal."
     },
     {
         "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -141,7 +141,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Não foi possível adicionar usuário para este tipo de canal"
+        "translation": "Não foi possível adicionar usuário para este tipo de canal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -161,11 +161,11 @@
     },
     {
         "id": "api.channel.create_channel.direct_channel.app_error",
-        "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas"
+        "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas."
     },
     {
         "id": "api.channel.create_channel.max_channel_limit.app_error",
-        "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual"
+        "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual."
     },
     {
         "id": "api.channel.create_default_channels.off_topic",
