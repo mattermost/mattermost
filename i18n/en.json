@@ -1115,12 +1115,12 @@
     "translation": ""
   },
   {
-    "id": "api.config.patch_config.restricted_merge.app_error",
-    "translation": ""
-  },
-  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": ""
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
