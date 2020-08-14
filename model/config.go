@@ -337,6 +337,7 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool `access:"integrations"`
 	EnableSVGs                                        *bool `access:"site"`
 	EnableLatex                                       *bool `access:"site"`
+	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 }
@@ -703,6 +704,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAPIUserDeletion == nil {
 		s.EnableAPIUserDeletion = NewBool(false)
+	}
+
+	if s.EnableAPIChannelDeletion == nil {
+		s.EnableAPIChannelDeletion = NewBool(false)
 	}
 
 	if s.ExperimentalEnableHardenedMode == nil {
