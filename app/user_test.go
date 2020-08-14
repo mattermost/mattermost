@@ -608,7 +608,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("invalid invite id", func(t *testing.T) {
 		_, err := th.App.CreateUserWithInviteId(&user, "", "")
 		require.NotNil(t, err)
-		require.Contains(t, err.Id, "store.sql_team.get_by_invite_id")
+		require.Contains(t, err.Id, "app.team.get_by_invite_id")
 	})
 
 	t.Run("invalid domain", func(t *testing.T) {
