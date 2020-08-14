@@ -7978,5 +7978,17 @@
     {
         "id": "app.system.get.app_error",
         "translation": "Возникла ошибка при поиске свойств системы."
+    },
+    {
+        "id": "app.email.setup_rate_limiter.app_error",
+        "translation": "Произошла ошибка в ограничителе скорости."
+    },
+    {
+        "id": "app.email.rate_limit_exceeded.app_error",
+        "translation": "Превышен предел количества рассылок по приглашениям. Таймер будет сброшен через {{.ResetAfter}} секунд. Повторите попытку через {{.RetryAfter}} секунд."
+    },
+    {
+        "id": "app.email.no_rate_limiter.app_error",
+        "translation": "Ограничитель скорости не настроен."
     }
 ]
