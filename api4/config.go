@@ -52,15 +52,13 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getConfig", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	cfg := c.App.GetSanitizedConfig()
-
-	cfg, err := config.Merge(&model.Config{}, cfg, &utils.MergeConfig{
+	cfg, err := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
 		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
 			return readFilter(c, structField)
 		},
 	})
 	if err != nil {
-		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("getConfig", "api.config.get_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	auditRec.Success()
@@ -144,7 +142,14 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg = c.App.GetSanitizedConfig()
+	cfg, mergeErr := config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return readFilter(c, structField)
+		},
+	})
+	if mergeErr != nil {
+		c.Err = model.NewAppError("getConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	auditRec.Success()
 	c.LogAudit("updateConfig")
@@ -243,8 +248,17 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
+	cfg, mergeErr = config.Merge(&model.Config{}, c.App.GetSanitizedConfig(), &utils.MergeConfig{
+		StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+			return readFilter(c, structField)
+		},
+	})
+	if mergeErr != nil {
+		c.Err = model.NewAppError("getConfig", "api.config.patch_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(c.App.GetSanitizedConfig().ToJson()))
+	w.Write([]byte(cfg.ToJson()))
 }
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
