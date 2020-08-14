@@ -1435,7 +1435,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.disabled_all",
@@ -1475,7 +1475,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1511,7 +1511,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1567,7 +1567,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": ""
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -6555,7 +6555,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": "Post Props are longer than the maximum permitted length."
+        "translation": ""
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",

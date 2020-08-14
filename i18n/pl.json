@@ -1441,7 +1441,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.disabled_all",
@@ -1485,7 +1485,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1521,7 +1521,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1577,7 +1577,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": ""
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -5913,7 +5913,7 @@
     },
     {
         "id": "store.sql_user.get_known_users.get_users.app_error",
-        "translation": "Unable to get know users from the database."
+        "translation": ""
     },
     {
         "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -5953,7 +5953,7 @@
     },
     {
         "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": "Unable to find some of the requested teams"
+        "translation": ""
     },
     {
         "id": "store.sql_team.get_by_names.app_error",
@@ -5981,7 +5981,7 @@
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
-        "translation": "Unable to get the post replies count"
+        "translation": ""
     },
     {
         "id": "store.sql_post.get_post_id_around.app_error",
@@ -6045,7 +6045,7 @@
     },
     {
         "id": "searchengine.bleve.disabled.error",
-        "translation": "Error purging Bleve indexes: engine is disabled"
+        "translation": ""
     },
     {
         "id": "plugin_api.bot_cant_create_bot",
@@ -6109,7 +6109,7 @@
     },
     {
         "id": "model.post.channel_notifications_disabled_in_channel.message",
-        "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
+        "translation": ""
     },
     {
         "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
@@ -6133,7 +6133,7 @@
     },
     {
         "id": "model.group.name.invalid_chars.app_error",
-        "translation": "invalid characters in the name property for group"
+        "translation": ""
     },
     {
         "id": "model.config.is_valid.saml_signature_algorithm.app_error",
@@ -6173,11 +6173,11 @@
     },
     {
         "id": "model.command.is_valid.autocomplete_data.app_error",
-        "translation": "Invalid AutocompleteData"
+        "translation": ""
     },
     {
         "id": "model.channel.is_valid.name.app_error",
-        "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
+        "translation": ""
     },
     {
         "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -6185,11 +6185,11 @@
     },
     {
         "id": "groups.unsupported_syncable_type",
-        "translation": "Unsupported syncable type '{{.Value}}'."
+        "translation": ""
     },
     {
         "id": "group_not_associated_to_synced_team",
-        "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+        "translation": ""
     },
     {
         "id": "ent.ldap.validate_guest_filter.app_error",
@@ -6213,11 +6213,11 @@
     },
     {
         "id": "ent.elasticsearch.start.parse_server_version.app_error",
-        "translation": "Failed to parse Elasticsearch server version."
+        "translation": ""
     },
     {
         "id": "ent.elasticsearch.start.get_server_version.app_error",
-        "translation": "Failed to get Elasticsearch server version."
+        "translation": ""
     },
     {
         "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -6285,19 +6285,19 @@
     },
     {
         "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-        "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
+        "translation": ""
     },
     {
         "id": "bleveengine.stop_user_index.error",
-        "translation": "Failed to close user index."
+        "translation": ""
     },
     {
         "id": "bleveengine.stop_post_index.error",
-        "translation": "Failed to close post index."
+        "translation": ""
     },
     {
         "id": "bleveengine.stop_channel_index.error",
-        "translation": "Failed to close channel index."
+        "translation": ""
     },
     {
         "id": "bleveengine.search_users_in_team.error",
@@ -6321,15 +6321,15 @@
     },
     {
         "id": "bleveengine.purge_user_index.error",
-        "translation": "Failed to purge user indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.purge_post_index.error",
-        "translation": "Failed to purge post indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.purge_channel_index.error",
-        "translation": "Failed to purge channel indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -6349,19 +6349,19 @@
     },
     {
         "id": "bleveengine.indexer.do_job.engine_inactive",
-        "translation": "Failed to run Bleve index job: engine is inactive."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-        "translation": "Failed to index user batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-        "translation": "Failed to index post batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-        "translation": "Failed to index channel batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.index_user.error",
@@ -6389,19 +6389,19 @@
     },
     {
         "id": "bleveengine.create_user_index.error",
-        "translation": "Error creating the bleve user index."
+        "translation": ""
     },
     {
         "id": "bleveengine.create_post_index.error",
-        "translation": "Error creating the bleve post index."
+        "translation": ""
     },
     {
         "id": "bleveengine.create_channel_index.error",
-        "translation": "Error creating the bleve channel index."
+        "translation": ""
     },
     {
         "id": "bleveengine.already_started.error",
-        "translation": "Bleve is already started."
+        "translation": ""
     },
     {
         "id": "app.user_terms_of_service.save.app_error",
@@ -6545,7 +6545,7 @@
     },
     {
         "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-        "translation": "User AuthService and AuthData are mutually inclusive."
+        "translation": ""
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
@@ -6565,7 +6565,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": "Post Props are longer than the maximum permitted length."
+        "translation": ""
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
@@ -6573,15 +6573,15 @@
     },
     {
         "id": "app.import.import_user_channels.channel_not_found.error",
-        "translation": "Error importing user channels. Channel not found."
+        "translation": ""
     },
     {
         "id": "app.import.get_users_by_username.some_users_not_found.error",
-        "translation": "Some users not found"
+        "translation": ""
     },
     {
         "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-        "translation": "Some teams not found"
+        "translation": ""
     },
     {
         "id": "app.export.export_custom_emoji.copy_emoji_images.error",
@@ -6677,7 +6677,7 @@
     },
     {
         "id": "app.bot.permanent_delete.internal_error",
-        "translation": "Unable to delete the bot permanently."
+        "translation": ""
     },
     {
         "id": "app.bot.patchbot.internal_error",
@@ -6693,7 +6693,7 @@
     },
     {
         "id": "app.bot.get_disable_bot_sysadmin_message",
-        "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
+        "translation": ""
     },
     {
         "id": "app.bot.createbot.internal_error",
@@ -6705,19 +6705,19 @@
     },
     {
         "id": "app.admin.saml.invalid_response_from_idp.app_error",
-        "translation": "Could not read the response received from the Identity Provider."
+        "translation": ""
     },
     {
         "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-        "translation": "Failure encountered when reading the response payload received from the Identity Provider."
+        "translation": ""
     },
     {
         "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-        "translation": "Could not decode the XML metadata information received from the Identity Provider."
+        "translation": ""
     },
     {
         "id": "api.websocket_handler.server_busy.app_error",
-        "translation": "Server is busy, non-critical services are temporarily unavailable."
+        "translation": ""
     },
     {
         "id": "api.user.update_user.accepted_guest_domain.app_error",
@@ -6785,15 +6785,15 @@
     },
     {
         "id": "api.templates.remove_expired_license.subject",
-        "translation": "Mattermost Enterprise license has been disabled."
+        "translation": ""
     },
     {
         "id": "api.templates.remove_expired_license.body.title",
-        "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+        "translation": ""
     },
     {
         "id": "api.templates.remove_expired_license.body.renew_button",
-        "translation": "Renew License"
+        "translation": ""
     },
     {
         "id": "api.templates.invite_guest_subject",
@@ -6869,7 +6869,7 @@
     },
     {
         "id": "api.push_notifications_ack.message.parse.app_error",
-        "translation": "An error occurred building the push notification ack message."
+        "translation": ""
     },
     {
         "id": "api.push_notifications_ack.forward.app_error",
@@ -6877,7 +6877,7 @@
     },
     {
         "id": "api.push_notifications.message.parse.app_error",
-        "translation": "An error occurred building the push notification message."
+        "translation": ""
     },
     {
         "id": "api.push_notification.id_loaded.fetch.app_error",
@@ -6901,7 +6901,7 @@
     },
     {
         "id": "api.post.check_for_out_of_channel_group_users.message.none",
-        "translation": "@{{.GroupName}} has no members on this team"
+        "translation": ""
     },
     {
         "id": "api.plugin.verify_plugin.app_error",
@@ -6921,11 +6921,11 @@
     },
     {
         "id": "api.ldap_groups.existing_user_name_error",
-        "translation": "group name already exists as a user name"
+        "translation": ""
     },
     {
         "id": "api.ldap_groups.existing_reserved_name_error",
-        "translation": "group name already exists as a reserved name"
+        "translation": ""
     },
     {
         "id": "api.ldap_groups.existing_group_name_error",
@@ -6933,7 +6933,7 @@
     },
     {
         "id": "api.image.get.app_error",
-        "translation": "Requested image url cannot be parsed."
+        "translation": ""
     },
     {
         "id": "api.file.upload_file.rejected_by_plugin.app_error",
@@ -6941,11 +6941,11 @@
     },
     {
         "id": "api.context.server_busy.app_error",
-        "translation": "Server is busy, non-critical services are temporarily unavailable."
+        "translation": ""
     },
     {
         "id": "api.context.local_origin_required.app_error",
-        "translation": "This endpoint requires a local request origin."
+        "translation": ""
     },
     {
         "id": "api.config.update_config.restricted_merge.app_error",
@@ -6965,7 +6965,7 @@
     },
     {
         "id": "api.command.execute_command.format.app_error",
-        "translation": "Command trigger word is missing the leading slash character"
+        "translation": ""
     },
     {
         "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -6989,11 +6989,11 @@
     },
     {
         "id": "api.channel.restore_channel.unarchived",
-        "translation": "{{.Username}} unarchived the channel."
+        "translation": ""
     },
     {
         "id": "api.channel.restore_channel.restored.app_error",
-        "translation": "Unable to unarchive channel. The channel is not archived."
+        "translation": ""
     },
     {
         "id": "api.channel.remove_user_from_channel.app_error",
@@ -7077,27 +7077,27 @@
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-        "translation": "Missing content type."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-        "translation": "Invalid content type."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-        "translation": "Invalid certificate text."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-        "translation": "Missing Identity Provider SSO Services node in the XML."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-        "translation": "Missing Identity Provider Key Descriptors node in the XML."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-        "translation": "Missing Identity Provider SSO Descriptors node in the XML."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -7105,11 +7105,11 @@
     },
     {
         "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-        "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
+        "translation": ""
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-        "translation": "Failed to obtain metadata from Identity Provider URL."
+        "translation": ""
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
