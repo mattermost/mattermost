@@ -42,7 +42,7 @@ func TestCreateTeam(t *testing.T) {
 
 		rteam.Id = ""
 		_, resp = client.CreateTeam(rteam)
-		CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
+		CheckErrorMessage(t, resp, "app.team.save.existing.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Name = ""
