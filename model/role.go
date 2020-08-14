@@ -14,17 +14,22 @@ var SysconsoleAncillaryPermissions map[string][]*Permission
 
 var BuiltInSchemeManagedRoleIDs []string
 
+var NewSystemRoleIDs []string
+
 func init() {
-	BuiltInSchemeManagedRoleIDs = []string{
+	NewSystemRoleIDs = []string{
+		SYSTEM_USER_MANAGER_ROLE_ID,
+		SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
+		SYSTEM_MANAGER_ROLE_ID,
+	}
+
+	BuiltInSchemeManagedRoleIDs = append([]string{
 		SYSTEM_GUEST_ROLE_ID,
 		SYSTEM_USER_ROLE_ID,
 		SYSTEM_ADMIN_ROLE_ID,
 		SYSTEM_POST_ALL_ROLE_ID,
 		SYSTEM_POST_ALL_PUBLIC_ROLE_ID,
 		SYSTEM_USER_ACCESS_TOKEN_ROLE_ID,
-		SYSTEM_USER_MANAGER_ROLE_ID,
-		SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
-		SYSTEM_MANAGER_ROLE_ID,
 
 		TEAM_GUEST_ROLE_ID,
 		TEAM_USER_ROLE_ID,
@@ -35,7 +40,7 @@ func init() {
 		CHANNEL_GUEST_ROLE_ID,
 		CHANNEL_USER_ROLE_ID,
 		CHANNEL_ADMIN_ROLE_ID,
-	}
+	}, NewSystemRoleIDs...)
 
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
 		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id: {
