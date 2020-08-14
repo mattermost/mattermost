@@ -7901,5 +7901,61 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Impossibile cancellare il valore della chiave del plugin."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Si è verificato un errore durante il salvataggio della proprietà di sistema."
+    },
+    {
+        "id": "ent.compliance.actiance.xml.write.appError",
+        "translation": "Si è verificato un errore durante la scrittura del file XML di actiance"
+    },
+    {
+        "id": "ent.compliance.actiance.xml.creation.appError",
+        "translation": "Si è verificato un errore durante la creazione del file XML di actiance"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.write.appError",
+        "translation": "Si è verificato un errore durante la scrittura del file XML di actiance"
+    },
+    {
+        "id": "ent.compliance.actiance.warning.creation.appError",
+        "translation": "Si è verificato un errore durante la creazione del file di avviso di actiance"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Si è verificato un errore durante il salvataggio della proprietà di sistema."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Impossibile eliminare in modo permanente la voce nella tabella di sistema."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Impossibile trovare la variabile di sistema."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Si è verificato un errore durante la ricerca delle proprietà di sistema."
+    },
+    {
+        "id": "app.email.setup_rate_limiter.app_error",
+        "translation": "Si è verificato un errore nel limitatore di rate."
+    },
+    {
+        "id": "app.email.rate_limit_exceeded.app_error",
+        "translation": "Quantità massima di e-mails superata. Il timer verrà azzerato dopo {{.ResetAfter}} secondi. Si prega di riprovare dopo {{.RetryAfter}} secondi."
+    },
+    {
+        "id": "app.email.no_rate_limiter.app_error",
+        "translation": "Limitatore di velocità non impostato."
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Impossibile assegnare a un gruppo di lavoro per default per raggiunta capacità del gruppo"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Impossibile assegnare a un gruppo di lavoro per default"
     }
 ]
