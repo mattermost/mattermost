@@ -58,18 +58,19 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	parsedEmail := ParseEmail(email)
 
 	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
-	req, err := http.NewRequest("GET", url, nil)
+	resp, err := http.Get(url)
+
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
+	defer func() {
+		// To reuse same tcp connection
+		// Response body is read and closed.
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
 	if resp.Body == nil {
 		return nil, fmt.Errorf("No Mailbox")
@@ -141,17 +142,10 @@ func downloadAttachment(url string) ([]byte, error) {
 }
 
 func get(url string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
 	return resp, nil
 }
 
