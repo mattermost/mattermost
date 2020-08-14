@@ -34,7 +34,10 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
 	if err != nil {
-		a.Log().Error("Access to route for non-existent plugin", mlog.String("missing_plugin_id", params["plugin_id"]), mlog.Err(err))
+		a.Log().Error("Access to route for non-existent plugin",
+			mlog.String("missing_plugin_id", params["plugin_id"]),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err))
 		http.NotFound(w, r)
 		return
 	}
@@ -58,6 +61,7 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		a.Log().Error("Access to route for non-existent plugin in inter plugin request",
 			mlog.String("source_plugin_id", sourcePluginId),
 			mlog.String("destination_plugin_id", destinationPluginId),
+			mlog.String("url", r.URL.String()),
 			mlog.Err(err),
 		)
 		http.NotFound(w, r)
