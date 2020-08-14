@@ -79,7 +79,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	if *appCfg.ServiceSettings.SiteURL != "" && (cfg.ServiceSettings.SiteURL == nil || *cfg.ServiceSettings.SiteURL == "") {
+	if *appCfg.ServiceSettings.SiteURL != "" && *cfg.ServiceSettings.SiteURL == "" {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

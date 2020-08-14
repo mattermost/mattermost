@@ -175,13 +175,6 @@ func TestUpdateConfig(t *testing.T) {
 		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
-
-		// Check that sending a nil SiteURL returns an error.
-		cfg.ServiceSettings.SiteURL = nil
-		_, resp = th.SystemAdminClient.PatchConfig(cfg)
-		require.NotNil(t, resp.Error)
-		CheckBadRequestStatus(t, resp)
-		assert.Equal(t, "api.config.update_config.clear_siteurl.app_error", resp.Error.Id)
 	})
 }
 
