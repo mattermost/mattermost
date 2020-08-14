@@ -7637,5 +7637,73 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Konnte Plugin-Key-Value nicht löschen"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Konnte die Systemvariable nicht finden."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Es trat ein Fehler beim Finden der Systemeinstellungen auf"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Konnte SAML-Anmeldung nicht mit leerer E-Mail-Adresse durchführen."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster-API-Endpunkt nicht gefunden."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " hat eine Datei hochgeladen."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Konnte Export nicht in XML konvertieren."
     }
 ]

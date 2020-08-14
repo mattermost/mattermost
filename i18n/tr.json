@@ -7945,5 +7945,33 @@
     {
         "id": "app.plugin_store.list.app_error",
         "translation": "Tüm uygulama eki anahtarları listelenemedi."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Sistem özelliği kaydedilirken bir sorun çıktı."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Sistem özelliği kaydedilirken bir sorun çıktı."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Sistem tablosu kaydı kalıcı olarak silinemedi."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Sistem değişkeni bulunamadı."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Sistem özellikleri aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Bu durum için bir kayıt yok."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Durum alınırken bir sorun çıktı."
     }
 ]

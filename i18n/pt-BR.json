@@ -7917,5 +7917,25 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Não foi possível excluir o valor da chave do plugin"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Encontramos um erro ao salvar as propriedades do sistema"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Encontramos um erro ao salvar as propriedades do sistema"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Não podemos apagar permanentemente as entradas da tabela do sistema"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Não foi possível encontrar a variável do sistema"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Encontramos um erro ao procurar as propriedades do sistema"
     }
 ]

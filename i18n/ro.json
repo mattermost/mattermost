@@ -7922,5 +7922,25 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Imposibil de șters valoarea cheii plugin"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Am intalnit o eroare sistem de proprietate de economisire"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Am intalnit o eroare sistem de proprietate de economisire"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Am putea şterge definitiv intrare tabel de sistem"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Imposibil de găsit variabila de sistem."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Am intalnit o eroare găsirea sistem properties"
     }
 ]

@@ -7934,5 +7934,49 @@
     {
         "id": "app.create_basic_user.save_member.app_error",
         "translation": "Невозможно создать членство в команде по умолчанию"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Не существует записи для данного статуса."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Возникла ошибка при получении статуса."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Не получилось сохранить или обновить значение ключа плагина."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Невозможно перечислить все ключи плагинов."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Не удалось получить значение ключа плагина."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Не получилось удалить значение ключа плагина."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Возникла ошибка при сохранении свойства системы."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Возникла ошибка при сохранении свойства системы."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Мы не можем окончательно удалить запись системной таблицы."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Невозможно найти системную переменную."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Возникла ошибка при поиске свойств системы."
     }
 ]

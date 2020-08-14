@@ -7917,5 +7917,73 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "No se puede eliminar el valor de la clave del plugin."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Encontramos un error mientras se guardaban las propiedades del sistema."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Encontramos un error mientras se guardaban las propiedades del sistema."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "No se pudo eliminar permanentemente la entrada en la tabla del sistema."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "No se puede encontrar la variable del sistema."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Encontramos un error buscando las propiedades del sistema."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "No se puede completar el inicio de sesión con SAML con una dirección de correo electrónico vacía."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Esta cuenta no tiene autenticación por SAML. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Una cuenta con ese nombre de usuario ya existe. Por favor contacta a tu Administrador."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Esta cuenta no tiene autenticación por AD/LDAP. Por favor inicia sesión utilizando el correo electrónico y contraseña."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "El tiempo de espera del trabajo de sincronización AD/LDAP fue alcanzado."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "No se pudo interpretar la fecha y hora de inicio de la exportación de mensajes."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "No se pudo interpretar el tamaño de bloque de datos de la exportación de mensajes."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Encontramos un error mientras conectábamos al servidor."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " adjuntó un archivo."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "No se puede convertir la exportación a XML."
     }
 ]

@@ -7594,5 +7594,49 @@
     {
         "id": "app.post.delete.app_error",
         "translation": "Неможливо видалити публікацію"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Не існує запису для даного статусу"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Виникла помилка при отриманні статусу"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Unable to list all the plugin keys."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Не вдалося отримати значення ключа плагіна"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Не вдалося видалити значення клавіші плагіна"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Виникла помилка при збереженні властивості системи"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Виникла помилка при збереженні властивості системи"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Ми не змогли назавжди видалити запис системної таблиці"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Не вдається знайти системну змінну."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Виникла помилка при пошуку властивостей системи"
     }
 ]

@@ -7630,5 +7630,25 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Nie można usunąć wartości klucza wtyczki"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Napotkaliśmy błąd zapisując właściwość systemową"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Napotkaliśmy błąd zapisując właściwość systemową"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Nie można trwale usunąć wpisu tabeli systemowej"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Nie można znaleźć zmiennych systemowych."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Napotkaliśmy błąd podczas wyszukiwania właściwości systemu"
     }
 ]
