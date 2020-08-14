@@ -7957,5 +7957,53 @@
     {
         "id": "app.create_basic_user.save_member.app_error",
         "translation": "Impossibile assegnare a un gruppo di lavoro per default"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Impossibile completare l'autenticazione SAML con un indirizzo email vuoto."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Esiste già un account con quel nome utente. Per favore contatta il tuo Amministratore."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Questo account non utilizza SAML per l'autenticazione. Per favore accedi utilizzando email e password."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Esiste già un account con quel nome utente. Per favore contatta il tuo Amministratore."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Questo account non utilizza AD/LDAP per l'autenticazione. Per favore accedi utilizzando email e password."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Impossibile analizzare il messaggio del lavoro di esportazione ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "E' stato riscontrato un errore durante la connessione al server."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster API non trovate."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " ha allegato un file."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Impossibile convertire l'esportazione in XML."
     }
 ]

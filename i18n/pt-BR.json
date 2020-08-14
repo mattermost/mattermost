@@ -7937,5 +7937,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "Encontramos um erro ao procurar as propriedades do sistema"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Não é possível completar o login SAML com um endereço de email em branco."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Uma conta com este nome de usuário já existe. Por favor contate seu Administrador."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Está conta não usa autenticação SAML. Por favor faça login usando email e senha."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Uma conta com este nome de usuário já existe. Por favor contate seu Administrador."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Está conta não usa autenticação AD/LDAP. Por favor faça login usando email e senha."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Tarefa de sincronização do AD/LDAP alcançou o limite de tempo."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Não foi possível analisar a tarefa de exportação de mensagens ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Não foi possível analisar a tarefa de exportação de mensagens BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Encontramos um erro enquanto conectava ao servidor"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Endpoint Cluster API não encontrado."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " anexou um arquivo."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Não foi possível converter a exportação para XML."
     }
 ]

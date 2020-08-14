@@ -7650,5 +7650,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "Napotkaliśmy błąd podczas wyszukiwania właściwości systemu"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Nie można ukończyć logowania SAML przy użyciu pustego adresu email."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "To konto nie używa protokołu SAML do autoryzacji, zamiast tego użyj maila i hasła."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "To konto nie używa usługi AD/LDAP do autoryzacji, zamiast tego użyj maila i hasła."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Nie można przeanalizować zadania eksportowania komunikatu ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Napotkano błąd podczas podłączania się do serwera"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " załączył plik."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Nie można przekonwertować eksportu do formatu XML."
     }
 ]

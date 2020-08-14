@@ -7973,5 +7973,53 @@
     {
         "id": "app.status.get.app_error",
         "translation": "Durum alınırken bir sorun çıktı."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "E-posta adresi boş olduğundan SAML oturumu açılamadı."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Bu hesap SAML kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Bu hesap AD/LDAP kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Küme API uç noktası bulunamadı."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " bir dosya ekledi."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
     }
 ]

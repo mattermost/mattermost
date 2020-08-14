@@ -7973,5 +7973,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "Er trad een fout op bij het ophalen van de systeemeigenschappen."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Unable to complete SAML login with an empty email address."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Dit account gebruikt geen SAML authenticatie. Log in met e-mail en wachtwoord."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Reached AD/LDAP synchronization job timeout."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Could not parse message export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Could not parse message export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster API endpoint not found."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " voegde een bestand toe."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Kan export niet converteren naar XML."
     }
 ]

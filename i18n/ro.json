@@ -7990,5 +7990,53 @@
     {
         "id": "app.create_basic_user.save_member.app_error",
         "translation": "Imposibil de creat membrii echipei implicite"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Imposibilitatea de a completa SAML login cu o adresă de e-mail gol."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Acest cont nu foloseşte SAML autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Acest cont nu foloseşte AD/LDAP autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Ar putea analiza mesaj export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Am întâmpinat o eroare în timpul conectării la server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Clustering API final nu a fost găsit."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " un fişier ataşat."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Imposibil de convertit exportul în XML."
     }
 ]
