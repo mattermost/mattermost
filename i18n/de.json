@@ -1442,7 +1442,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.disabled_all",
@@ -1484,7 +1484,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1520,7 +1520,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": ""
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1576,7 +1576,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": ""
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -6184,7 +6184,7 @@
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
-        "translation": "Unable to get the post replies count"
+        "translation": ""
     },
     {
         "id": "store.sql_post.get_post_id_around.app_error",
@@ -6260,7 +6260,7 @@
     },
     {
         "id": "searchengine.bleve.disabled.error",
-        "translation": "Error purging Bleve indexes: engine is disabled"
+        "translation": ""
     },
     {
         "id": "plugin_api.bot_cant_create_bot",
@@ -6348,7 +6348,7 @@
     },
     {
         "id": "model.group.name.invalid_chars.app_error",
-        "translation": "invalid characters in the name property for group"
+        "translation": ""
     },
     {
         "id": "model.config.is_valid.saml_signature_algorithm.app_error",
@@ -6388,7 +6388,7 @@
     },
     {
         "id": "model.command.is_valid.autocomplete_data.app_error",
-        "translation": "Invalid AutocompleteData"
+        "translation": ""
     },
     {
         "id": "model.channel.is_valid.name.app_error",
@@ -6404,7 +6404,7 @@
     },
     {
         "id": "group_not_associated_to_synced_team",
-        "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
+        "translation": ""
     },
     {
         "id": "ent.ldap.validate_guest_filter.app_error",
@@ -6504,15 +6504,15 @@
     },
     {
         "id": "bleveengine.stop_user_index.error",
-        "translation": "Failed to close user index."
+        "translation": ""
     },
     {
         "id": "bleveengine.stop_post_index.error",
-        "translation": "Failed to close post index."
+        "translation": ""
     },
     {
         "id": "bleveengine.stop_channel_index.error",
-        "translation": "Failed to close channel index."
+        "translation": ""
     },
     {
         "id": "bleveengine.search_users_in_team.error",
@@ -6536,15 +6536,15 @@
     },
     {
         "id": "bleveengine.purge_user_index.error",
-        "translation": "Failed to purge user indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.purge_post_index.error",
-        "translation": "Failed to purge post indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.purge_channel_index.error",
-        "translation": "Failed to purge channel indexes."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
@@ -6564,19 +6564,19 @@
     },
     {
         "id": "bleveengine.indexer.do_job.engine_inactive",
-        "translation": "Failed to run Bleve index job: engine is inactive."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-        "translation": "Failed to index user batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-        "translation": "Failed to index post batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-        "translation": "Failed to index channel batch."
+        "translation": ""
     },
     {
         "id": "bleveengine.index_user.error",
@@ -6604,19 +6604,19 @@
     },
     {
         "id": "bleveengine.create_user_index.error",
-        "translation": "Error creating the bleve user index."
+        "translation": ""
     },
     {
         "id": "bleveengine.create_post_index.error",
-        "translation": "Error creating the bleve post index."
+        "translation": ""
     },
     {
         "id": "bleveengine.create_channel_index.error",
-        "translation": "Error creating the bleve channel index."
+        "translation": ""
     },
     {
         "id": "bleveengine.already_started.error",
-        "translation": "Bleve is already started."
+        "translation": ""
     },
     {
         "id": "app.user_terms_of_service.save.app_error",
@@ -6760,7 +6760,7 @@
     },
     {
         "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-        "translation": "User AuthService and AuthData are mutually inclusive."
+        "translation": ""
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
@@ -6780,7 +6780,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": "Post Props are longer than the maximum permitted length."
+        "translation": ""
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
@@ -6788,7 +6788,7 @@
     },
     {
         "id": "app.import.import_user_channels.channel_not_found.error",
-        "translation": "Error importing user channels. Channel not found."
+        "translation": ""
     },
     {
         "id": "app.import.get_users_by_username.some_users_not_found.error",
@@ -6892,7 +6892,7 @@
     },
     {
         "id": "app.bot.permanent_delete.internal_error",
-        "translation": "Unable to delete the bot permanently."
+        "translation": ""
     },
     {
         "id": "app.bot.patchbot.internal_error",
@@ -7000,15 +7000,15 @@
     },
     {
         "id": "api.templates.remove_expired_license.subject",
-        "translation": "Mattermost Enterprise license has been disabled."
+        "translation": ""
     },
     {
         "id": "api.templates.remove_expired_license.body.title",
-        "translation": "Enterprise license has expired and some features may be disabled. Please renew."
+        "translation": ""
     },
     {
         "id": "api.templates.remove_expired_license.body.renew_button",
-        "translation": "Renew License"
+        "translation": ""
     },
     {
         "id": "api.templates.invite_guest_subject",
@@ -7116,7 +7116,7 @@
     },
     {
         "id": "api.post.check_for_out_of_channel_group_users.message.none",
-        "translation": "@{{.GroupName}} has no members on this team"
+        "translation": ""
     },
     {
         "id": "api.plugin.verify_plugin.app_error",
@@ -7136,11 +7136,11 @@
     },
     {
         "id": "api.ldap_groups.existing_user_name_error",
-        "translation": "group name already exists as a user name"
+        "translation": ""
     },
     {
         "id": "api.ldap_groups.existing_reserved_name_error",
-        "translation": "group name already exists as a reserved name"
+        "translation": ""
     },
     {
         "id": "api.ldap_groups.existing_group_name_error",
@@ -7148,7 +7148,7 @@
     },
     {
         "id": "api.image.get.app_error",
-        "translation": "Requested image url cannot be parsed."
+        "translation": ""
     },
     {
         "id": "api.file.upload_file.rejected_by_plugin.app_error",
@@ -7160,7 +7160,7 @@
     },
     {
         "id": "api.context.local_origin_required.app_error",
-        "translation": "This endpoint requires a local request origin."
+        "translation": ""
     },
     {
         "id": "api.config.update_config.restricted_merge.app_error",
@@ -7745,5 +7745,9 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Konnte die Rolle nicht abrufen."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Konnte Benutzer nicht über die Benutzer-ID der Sitzung holen."
     }
 ]
