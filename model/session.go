@@ -30,6 +30,11 @@ const (
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
 
+//msgp:tuple Session
+
+// Session contains the user session details.
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`

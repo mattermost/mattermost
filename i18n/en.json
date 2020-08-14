@@ -3379,6 +3379,18 @@
     "translation": "Unable to create default team membership because no more members are allowed in that team"
   },
   {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Rate limiter is not set up."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Invite emails rate limit exceeded. Timer will be reset after {{.ResetAfter}} seconds. Please retry after {{.RetryAfter}} seconds."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Error occurred in the rate limiter."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -4495,6 +4507,22 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
+    "id": "app.system.get.app_error",
+    "translation": "We encountered an error finding the system properties."
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Unable to find the system variable."
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry."
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "We encountered an error saving the system property."
+  },
+  {
     "id": "app.system.warn_metric.bot_description",
     "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
   },
@@ -5525,6 +5553,10 @@
   {
     "id": "mfa.validate_token.authenticate.app_error",
     "translation": "Invalid MFA token."
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "We encountered an error saving the system property."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -7305,30 +7337,6 @@
   {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_system.get.app_error",
-    "translation": "We encountered an error finding the system properties."
-  },
-  {
-    "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Unable to find the system variable."
-  },
-  {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry."
-  },
-  {
-    "id": "store.sql_system.save.app_error",
-    "translation": "We encountered an error saving the system property."
-  },
-  {
-    "id": "store.sql_system.save.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_system.update.app_error",
-    "translation": "We encountered an error updating the system property."
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
