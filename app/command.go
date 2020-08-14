@@ -215,9 +215,9 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-// mentionsToTeamMembers returns all the @ mentions found in message that
+// MentionsToTeamMembers returns all the @ mentions found in message that
 // belong to users in the specified team, linking them to their users
-func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap {
+func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -286,9 +286,9 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	return atMentionMap
 }
 
-// mentionsToPublicChannels returns all the mentions to public channels,
+// MentionsToPublicChannels returns all the mentions to public channels,
 // linking them to their channels
-func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
+func (a *App) MentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -431,12 +431,12 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	p.Set("trigger_id", args.TriggerId)
 
-	userMentionMap := a.mentionsToTeamMembers(message, team.Id)
+	userMentionMap := a.MentionsToTeamMembers(message, team.Id)
 	for key, values := range userMentionMap.ToURLValues() {
 		p[key] = values
 	}
 
-	channelMentionMap := a.mentionsToPublicChannels(message, team.Id)
+	channelMentionMap := a.MentionsToPublicChannels(message, team.Id)
 	for key, values := range channelMentionMap.ToURLValues() {
 		p[key] = values
 	}
@@ -447,10 +447,10 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.doCommandRequest(cmd, p)
+	return a.DoCommandRequest(cmd, p)
 }
 
-func (a *App) doCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Prepare the request
 	var req *http.Request
 	var err error

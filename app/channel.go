@@ -1570,7 +1570,6 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
-	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
@@ -2187,7 +2186,6 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
 func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
-	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
@@ -2332,7 +2330,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSession
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	if err := a.Srv().Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
@@ -2347,9 +2345,17 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	deleteAt := model.GetMillis()
+
 	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+
+	a.invalidateCacheForChannel(channel)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	message.Add("delete_at", deleteAt)
+	a.Publish(message)
 
 	return nil
 }
@@ -2446,8 +2452,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		mlog.Warn("error while removing non-team member users", mlog.Err(err))
 	}
 
-	if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
-		mlog.Warn("error while posting move channel message", mlog.Err(err))
+	if user != nil {
+		if err := a.postChannelMoveMessage(user, channel, previousTeam); err != nil {
+			mlog.Warn("error while posting move channel message", mlog.Err(err))
+		}
 	}
 
 	return nil
@@ -2495,8 +2503,13 @@ func (a *App) RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel
 			for _, teamMember := range teamMembers {
 				delete(channelMemberMap, teamMember.UserId)
 			}
+
+			var removerId string
+			if remover != nil {
+				removerId = remover.Id
+			}
 			for userId := range channelMemberMap {
-				if err := a.removeUserFromChannel(userId, remover.Id, channel); err != nil {
+				if err := a.removeUserFromChannel(userId, removerId, channel); err != nil {
 					return err
 				}
 			}

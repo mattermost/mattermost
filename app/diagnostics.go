@@ -1043,8 +1043,8 @@ func (s *Server) trackChannelModeration() {
 }
 
 func (s *Server) trackWarnMetrics() {
-	systemDataList, appErr := s.Store.System().Get()
-	if appErr != nil {
+	systemDataList, nErr := s.Store.System().Get()
+	if nErr != nil {
 		return
 	}
 	for key, value := range systemDataList {
