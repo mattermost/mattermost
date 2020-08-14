@@ -48,10 +48,6 @@
         "translation": "september"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Kan export niet converteren naar XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
     },
@@ -2539,10 +2535,6 @@
         "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Cluster API endpoint not found."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "An error occurred writing the export data."
     },
@@ -3223,10 +3215,6 @@
         "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Unable to complete SAML login with an empty email address."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
     },
@@ -3687,24 +3675,12 @@
         "translation": "Failed to sign generated trigger ID for interactive dialog."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Could not parse message export job BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Could not parse message export job ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Could not request cancellation for job that is not in a cancelable state."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Failed to set job status to error"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Reached AD/LDAP synchronization job timeout."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3881,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Ongeldige gebruikers id"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5247,18 +5219,6 @@
         "translation": "Bericht kan niet opgehaald worden"
     },
     {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Could not delete plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Could not get plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Could not save or update plugin key value"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Unable to get post counts"
     },
@@ -5269,14 +5229,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Unable to get user counts with posts"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5275,12 @@
         "translation": "Bericht kan niet opgehaald worden"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "We kunnen het bericht voor de gebruiker niet verwijderen"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "We encountered an error permanently deleting the batch of posts"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Kan de kanalen niet ophalen"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "We kunnen de geselecteerde berichten voor de gebruiker niet verwijderen (het zijn er te veel), probeer opnieuw"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Een bestaand bericht kan niet bijwerkt worden"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het ophalen van de status"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Er is niks ingevoerd voor deze status"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "De gebruikers kunnen niet geteld worden"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het resetten van alle statussen."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het opslaan van de status"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Er is een fout opgetreden tijdens het bijwerken van de status"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Unable to update the last activity date and time of the user"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het zoeken van de systeem instellingen"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Unable to find the system variable."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "We could not permanently delete the system table entry"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het opslaan van de systeem instellingen"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het bijwerken van een systeem instelling"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5543,8 @@
         "translation": "Een account met dat e-mail adres bestaat al."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Dit account gebruikt geen SAML authenticatie. Log in met e-mail en wachtwoord."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5553,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Een account met deze gebruikersnaam bestaat al."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Een account met die gebruikersnaam bestaat al. Neem kontakt op met de systeembeheerder."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6147,10 +5999,6 @@
         "translation": "De private teams kunnen niet worden geteld."
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Fout bij het ophalen van het aantal antwoorden op het bericht"
     },
@@ -6165,18 +6013,6 @@
     {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "Directe berichten kunnen niet worden opgehaald."
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Kan niet alle plugin-sleutels oplijsten."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Meer dan 1 rij gevonden op MySQL na KVCompareAndSet met ongewijzigde waarde."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Query voor bestaande rij op MySQL is mislukt na KVCompareAndSet met ongewijzigde waarde."
     },
     {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",

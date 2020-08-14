@@ -48,10 +48,6 @@
         "translation": "Settembre"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Impossibile convertire l'esportazione in XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Nessun file presente nella richiesta alla voce 'certificato'."
     },
@@ -2539,10 +2535,6 @@
         "translation": "%s ha aggiornato il titolo del canale a: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Cluster API non trovate."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Si è verificato un errore scrivendo i dati esportati."
     },
@@ -3223,10 +3215,6 @@
         "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Impossibile completare l'autenticazione SAML con un indirizzo email vuoto."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "I Token di accesso personale sono disattivati su questo server. Per favore contatta l'Amministratore di Sistema per ulteriori dettagli."
     },
@@ -3687,24 +3675,12 @@
         "translation": "Errore durante la firma dell'ID trigger generato per la finestra interattiva."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Impossibile analizzare il messaggio del lavoro di esportazione BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Impossibile analizzare il messaggio del lavoro di esportazione ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "L'attuale stato del lavoro non ne permette la cancellazione."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Impossibile impostare lo stato del lavoro in errore"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Raggiunto timeout nel lavoro di sincronizzazione AD/LDAP."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3881,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Id utente non valido."
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "E' stato riscontrato un errore durante la connessione al server."
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5247,18 +5219,6 @@
         "translation": "Impossibile aggiornare il lavoro."
     },
     {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Impossibile cancellare il valore della chiave del plugin."
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Impossibile ottenere il valore della chiave del plugin."
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Impossibile salvare o aggiornare il valore della chiave del plugin."
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Impossibile ottenere il numero delle pubblicazioni."
     },
@@ -5269,14 +5229,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Impossibile ottenere il numero degli utenti con pubblicazioni."
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Impossibile cancellare la pubblicazione."
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Impossibile recuperare la pubblicazione."
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5275,12 @@
         "translation": "Impossibile sovrascrivere la pubblicazione."
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Impossibile cancellare la pubblicazione."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Non è stato possibile eliminare i commenti dell'utente."
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Si è verifcato un errore durante la cancellazione delle pubblicazioni."
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Impossibile cancellare le pubblicazioni del canale."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Non è stato possibile selezionare le pubblicazioni da eliminare per l'utente."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Non è stato possibile selezionare le pubblicazioni da eliminare per l'utente (troppe pubblicazioni), per favore rilancia."
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Impossibile salvare la pubblicazione."
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Non puoi aggiornare una pubblicazione esistente."
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "La ricerca è stata disabilitata per questo server. Per piacere contatta il tuo Amministratore di Sistema."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Impossibile aggiornare la pubblicazione."
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Errore riscontrato nel recupero dello stato."
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Nessuna voce esistente per quello stato."
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Impossibile effettuare il conteggio di tutti gli utenti attivi."
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Errore riscontrato nella reimpostazione di tutti gli stati."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Errore riscontrato nel salvare lo stato."
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Riscontrato un errore durante l'aggiornamento dello stato."
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Impossibile aggiornare la date e l'ora dell'ultima attività dell'utente."
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Riscontrato un errore nel recupero delle proprietà del sistema."
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Impossibile trovare la variabile di sistema."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Impossibile eliminare definitivamente questa voce dalla tabella di sistema."
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Riscontrato un errore nel salvataggio della proprietà di sistema."
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Riscontrato un errore nel aggiornamento della proprietà di sistema."
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5543,8 @@
         "translation": "È già presente un account con lo stesso indirizzo email."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Questo account non utilizza AD/LDAP per l'autenticazione. Per favore accedi utilizzando email e password."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Questo account non utilizza SAML per l'autenticazione. Per favore accedi utilizzando email e password."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Deve essere chiamato un aggiornamento per l'utente esistente."
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Questo gruppo ha raggiunto il limite massimo di utenti ammessi. Contatta il tuo amministratore di sistema per innalzare il limite."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5553,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Esiste già un account con questo nome utente."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Esiste già un account con questo nome utente. Per favore contatta il tuo Amministratore."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Esiste già un account con quel nome utente. Per favore contatta il tuo Amministratore."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6719,24 +6571,8 @@
         "translation": "Impossibile cancellare i membri del gruppo con UserID \"{{.UserId}}\"."
     },
     {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Errore cercando le righe esistenti in MySQL dopo KVCompareAndSet senza valori modificati."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Trovate più di 1 riga su MySQL con KVCompareAndSet senza valori modificati."
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Impossibile elencare tutte le chiavi plugin."
-    },
-    {
         "id": "store.sql_post.get_post_after_time.app_error",
         "translation": "Impossibile ottenere le pubblicazioni successive alla data specificata."
-    },
-    {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Impossibile confermare la transazione sul database."
     },
     {
         "id": "store.sql_team.analytics_private_team_count.app_error",
