@@ -613,9 +613,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 	t.Run("invalid domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
-		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
-		require.Nil(t, err)
-		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
+		_, nErr := th.App.Srv().Store.Team().Update(th.BasicTeam)
+		require.Nil(t, nErr)
+		_, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
 	})

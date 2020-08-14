@@ -140,7 +140,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 		}
 
 		upstreamRequest.ChannelId = post.ChannelId
@@ -184,7 +184,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		}
 
 		team, err := a.Srv().Store.Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult{Data: team, Err: err}
+		teamChan <- store.StoreResult{Data: team, NErr: err}
 	}()
 
 	ur := <-userChan
@@ -196,8 +196,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	tr, ok := <-teamChan
 	if ok {
-		if tr.Err != nil {
-			return "", tr.Err
+		if tr.NErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(tr.NErr, &nfErr):
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		team := tr.Data.(*model.Team)
@@ -236,7 +242,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 
 	if response.Update != nil {

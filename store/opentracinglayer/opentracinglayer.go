@@ -6476,7 +6476,7 @@ func (s *OpenTracingLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId stri
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) AnalyticsPrivateTeamCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.AnalyticsPrivateTeamCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6494,7 +6494,7 @@ func (s *OpenTracingLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.A
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) AnalyticsPublicTeamCount() (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.AnalyticsPublicTeamCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6512,7 +6512,7 @@ func (s *OpenTracingLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.Ap
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.AnalyticsTeamCount")
 	s.Root.Store.SetContext(newCtx)
@@ -6561,7 +6561,7 @@ func (s *OpenTracingLayerTeamStore) ClearCaches() {
 
 }
 
-func (s *OpenTracingLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) Get(id string) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6597,7 +6597,7 @@ func (s *OpenTracingLayerTeamStore) GetActiveMemberCount(teamId string, restrict
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAll() ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAll() ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -6633,7 +6633,7 @@ func (s *OpenTracingLayerTeamStore) GetAllForExportAfter(limit int, afterId stri
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPage")
 	s.Root.Store.SetContext(newCtx)
@@ -6651,7 +6651,7 @@ func (s *OpenTracingLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPrivateTeamListing")
 	s.Root.Store.SetContext(newCtx)
@@ -6669,7 +6669,7 @@ func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPrivateTeamPageListing")
 	s.Root.Store.SetContext(newCtx)
@@ -6687,7 +6687,7 @@ func (s *OpenTracingLayerTeamStore) GetAllPrivateTeamPageListing(offset int, lim
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllPublicTeamPageListing")
 	s.Root.Store.SetContext(newCtx)
@@ -6705,7 +6705,7 @@ func (s *OpenTracingLayerTeamStore) GetAllPublicTeamPageListing(offset int, limi
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllTeamListing")
 	s.Root.Store.SetContext(newCtx)
@@ -6723,7 +6723,7 @@ func (s *OpenTracingLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.A
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetAllTeamPageListing")
 	s.Root.Store.SetContext(newCtx)
@@ -6741,7 +6741,7 @@ func (s *OpenTracingLayerTeamStore) GetAllTeamPageListing(offset int, limit int)
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetByInviteId")
 	s.Root.Store.SetContext(newCtx)
@@ -6759,7 +6759,7 @@ func (s *OpenTracingLayerTeamStore) GetByInviteId(inviteId string) (*model.Team,
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetByName(name string) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -6777,7 +6777,7 @@ func (s *OpenTracingLayerTeamStore) GetByName(name string) (*model.Team, *model.
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetByNames(name []string) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetByNames(name []string) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetByNames")
 	s.Root.Store.SetContext(newCtx)
@@ -6921,7 +6921,7 @@ func (s *OpenTracingLayerTeamStore) GetTeamsByScheme(schemeId string, offset int
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.GetTeamsByUserId")
 	s.Root.Store.SetContext(newCtx)
@@ -7060,7 +7060,7 @@ func (s *OpenTracingLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUs
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) PermanentDelete(teamId string) *model.AppError {
+func (s *OpenTracingLayerTeamStore) PermanentDelete(teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.PermanentDelete")
 	s.Root.Store.SetContext(newCtx)
@@ -7168,7 +7168,7 @@ func (s *OpenTracingLayerTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return err
 }
 
-func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -7222,7 +7222,7 @@ func (s *OpenTracingLayerTeamStore) SaveMultipleMembers(members []*model.TeamMem
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAll")
 	s.Root.Store.SetContext(newCtx)
@@ -7240,7 +7240,7 @@ func (s *OpenTracingLayerTeamStore) SearchAll(term string, opts *model.TeamSearc
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchAllPaged")
 	s.Root.Store.SetContext(newCtx)
@@ -7258,7 +7258,7 @@ func (s *OpenTracingLayerTeamStore) SearchAllPaged(term string, opts *model.Team
 	return result, resultVar1, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchOpen")
 	s.Root.Store.SetContext(newCtx)
@@ -7276,7 +7276,7 @@ func (s *OpenTracingLayerTeamStore) SearchOpen(term string) ([]*model.Team, *mod
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SearchPrivate")
 	s.Root.Store.SetContext(newCtx)
@@ -7294,7 +7294,7 @@ func (s *OpenTracingLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
+func (s *OpenTracingLayerTeamStore) Update(team *model.Team) (*model.Team, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.Update")
 	s.Root.Store.SetContext(newCtx)

@@ -4,12 +4,15 @@
 package manualtesting
 
 import (
+	"errors"
 	"hash/fnv"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -78,7 +81,16 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 
 		createdTeam, err := c.App.Srv().Store.Team().Save(team)
 		if err != nil {
-			c.Err = err
+			var invErr *store.ErrInvalidInput
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &invErr):
+				c.Err = model.NewAppError("manualTest", "app.team.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			case errors.As(err, &appErr):
+				c.Err = appErr
+			default:
+				c.Err = model.NewAppError("manualTest", "app.team.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 

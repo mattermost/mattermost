@@ -1298,8 +1298,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1449,8 +1449,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1654,8 +1654,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1817,8 +1817,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1981,11 +1981,11 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
-		member, nErr := ss.Team().SaveMember(member, -1)
+		member, nErr = ss.Team().SaveMember(member, -1)
 		require.Nil(t, nErr)
 
 		testCases := []struct {
@@ -2132,8 +2132,8 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		member, nErr = ss.Team().SaveMember(member, -1)
@@ -2288,13 +2288,13 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
 		var members []*model.TeamMember
-		members, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+		members, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
 		require.Nil(t, nErr)
 		require.Len(t, members, 2)
 		member = members[0]
@@ -2872,13 +2872,13 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 	t.Log(s2)
 
-	t2, err := ss.Team().Save(&model.Team{
+	t2, nErr := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s2.Id,
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	defer func() {
 		ss.Team().PermanentDelete(t2.Id)

@@ -495,7 +495,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("NoInviteId", func(t *testing.T) {
@@ -516,7 +516,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
