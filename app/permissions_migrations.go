@@ -63,7 +63,8 @@ const (
 	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
 	PERMISSION_READ_OTHER_USERS_TEAMS            = "read_other_users_teams"
 	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
-	PERMISSION_READ_CHANNEL_GROUPS               = "read_channel_groups"
+	PERMISSION_READ_PUBLIC_CHANNEL_GROUPS        = "read_public_channel_groups"
+	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS       = "read_private_channel_groups"
 	PERMISSION_EDIT_BRAND                        = "edit_brand"
 )
 
@@ -467,13 +468,16 @@ func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) 
 		Add: []string{PERMISSION_READ_OTHER_USERS_TEAMS},
 	})
 
-	// add read_channel_groups to all roles with edit_other_users
+	// add read_public_channel_groups to all roles with manage_public_channel_members
 	transformations = append(transformations, permissionTransformation{
-		On: permissionOr(
-			permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS),
-			permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS),
-		),
-		Add: []string{PERMISSION_READ_CHANNEL_GROUPS},
+		On:  permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS),
+		Add: []string{PERMISSION_READ_PUBLIC_CHANNEL_GROUPS},
+	})
+
+	// add read_private_channel_groups to all roles with manage_private_channel_members
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS),
+		Add: []string{PERMISSION_READ_PRIVATE_CHANNEL_GROUPS},
 	})
 
 	// add edit_brand to all roles with manage_system

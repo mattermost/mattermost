@@ -43,7 +43,8 @@ var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
 var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
-var PERMISSION_READ_CHANNEL_GROUPS *Permission
+var PERMISSION_READ_PUBLIC_CHANNEL_GROUPS *Permission
+var PERMISSION_READ_PRIVATE_CHANNEL_GROUPS *Permission
 var PERMISSION_READ_PUBLIC_CHANNEL *Permission
 var PERMISSION_ADD_REACTION *Permission
 var PERMISSION_REMOVE_REACTION *Permission
@@ -322,10 +323,16 @@ func initializePermissions() {
 		"authentication.permissions.read_channel.description",
 		PermissionScopeChannel,
 	}
-	PERMISSION_READ_CHANNEL_GROUPS = &Permission{
-		"read_channel_groups",
-		"authentication.permissions.read_channel_groups.name",
-		"authentication.permissions.read_channel_groups.description",
+	PERMISSION_READ_PUBLIC_CHANNEL_GROUPS = &Permission{
+		"read_public_channel_groups",
+		"authentication.permissions.read_public_channel_groups.name",
+		"authentication.permissions.read_public_channel_groups.description",
+		PermissionScopeChannel,
+	}
+	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS = &Permission{
+		"read_private_channel_groups",
+		"authentication.permissions.read_private_channel_groups.name",
+		"authentication.permissions.read_private_channel_groups.description",
 		PermissionScopeChannel,
 	}
 	PERMISSION_READ_PUBLIC_CHANNEL = &Permission{
@@ -929,7 +936,8 @@ func initializePermissions() {
 		PERMISSION_DELETE_PUBLIC_CHANNEL,
 		PERMISSION_DELETE_PRIVATE_CHANNEL,
 		PERMISSION_READ_CHANNEL,
-		PERMISSION_READ_CHANNEL_GROUPS,
+		PERMISSION_READ_PUBLIC_CHANNEL_GROUPS,
+		PERMISSION_READ_PRIVATE_CHANNEL_GROUPS,
 		PERMISSION_ADD_REACTION,
 		PERMISSION_REMOVE_REACTION,
 		PERMISSION_REMOVE_OTHERS_REACTIONS,
