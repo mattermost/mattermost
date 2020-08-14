@@ -29,7 +29,7 @@ THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ $(echo "$THIS_BRANCH" | grep -c ^"$BRANCH_TO_USE") == 1 ]];
 then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
-    REL_TO_USE=$(curl --silent --user $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
 else
     REL_TO_USE=$LATEST_REL
 fi
