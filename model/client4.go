@@ -2562,6 +2562,16 @@ func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PermanentDeleteChannel deletes a channel based on the provided channel id string.
+func (c *Client4) PermanentDeleteChannel(channelId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetChannelRoute(channelId) + "?permanent=" + c.boolString(true))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // MoveChannel moves the channel to the destination team.
 func (c *Client4) MoveChannel(channelId, teamId string, force bool) (*Channel, *Response) {
 	requestBody := map[string]interface{}{

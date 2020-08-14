@@ -323,24 +323,21 @@ func (es *EmailService) sendMfaChangeEmail(email string, activated bool, locale,
 	return nil
 }
 
-func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
+func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) *model.AppError {
 	if es.EmailRateLimiter == nil {
-		es.srv.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
-		return
+		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
 	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
-		es.srv.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
-		return
+		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
 
 	if rateLimited {
-		es.srv.Log.Error("Invite emails rate limited.",
-			mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id),
-			mlog.String("retry_after", result.RetryAfter.String()),
-			mlog.Err(err))
-		return
+		return model.NewAppError("SendInviteEmails",
+			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
+			fmt.Sprintf("user_id=%s, team_id=%s, retry_after_secs=%f, reset_after_secs=%f",
+				senderUserId, team.Id, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
+			http.StatusRequestEntityTooLarge)
 	}
 
 	for _, invite := range invites {
@@ -382,26 +379,24 @@ func (es *EmailService) SendInviteEmails(team *model.Team, senderName string, se
 			}
 		}
 	}
+	return nil
 }
 
-func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) {
+func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string) *model.AppError {
 	if es.EmailRateLimiter == nil {
-		es.srv.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
-		return
+		return model.NewAppError("SendInviteEmails", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", senderUserId, team.Id), http.StatusInternalServerError)
 	}
 	rateLimited, result, err := es.EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
-		es.srv.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
-		return
+		return model.NewAppError("SendInviteEmails", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", senderUserId, team.Id, err), http.StatusInternalServerError)
 	}
 
 	if rateLimited {
-		es.srv.Log.Error("Invite emails rate limited.",
-			mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id),
-			mlog.String("retry_after", result.RetryAfter.String()),
-			mlog.Err(err))
-		return
+		return model.NewAppError("SendInviteEmails",
+			"app.email.rate_limit_exceeded.app_error", map[string]interface{}{"RetryAfter": result.RetryAfter.String(), "ResetAfter": result.ResetAfter.String()},
+			fmt.Sprintf("user_id=%s, team_id=%s, retry_after_secs=%f, reset_after_secs=%f",
+				senderUserId, team.Id, result.RetryAfter.Seconds(), result.ResetAfter.Seconds()),
+			http.StatusRequestEntityTooLarge)
 	}
 
 	for _, invite := range invites {
@@ -472,6 +467,7 @@ func (es *EmailService) sendGuestInviteEmails(team *model.Team, channels []*mode
 			}
 		}
 	}
+	return nil
 }
 
 func (es *EmailService) newEmailTemplate(name, locale string) *utils.HTMLTemplate {
