@@ -7484,39 +7484,39 @@
     },
     {
         "id": "app.command_webhook.try_use.invalid",
-        "translation": "Webhook non valido"
+        "translation": "Webhook non valido."
     },
     {
         "id": "app.command_webhook.try_use.internal_error",
-        "translation": "Impossibile utilizzare il webhook"
+        "translation": "Impossibile utilizzare il webhook."
     },
     {
         "id": "app.command_webhook.handle_command_webhook.parse",
-        "translation": "Impossibile analizzare i dati in ingresso"
+        "translation": "Impossibile analizzare i dati in ingresso."
     },
     {
         "id": "app.command_webhook.get.missing",
-        "translation": "Impossibile ottenere il webhook"
+        "translation": "Impossibile ottenere il webhook."
     },
     {
         "id": "app.command_webhook.get.internal_error",
-        "translation": "Impossibile ottenere il webhook"
+        "translation": "Impossibile ottenere il webhook."
     },
     {
         "id": "app.command_webhook.create_command_webhook.internal_error",
-        "translation": "Impossibile salvare il ComandoWebhook"
+        "translation": "Impossibile salvare il ComandoWebhook."
     },
     {
         "id": "app.command_webhook.create_command_webhook.existing",
-        "translation": "Impossibile aggiornare un comando Webhook esistente"
+        "translation": "Impossibile aggiornare un comando Webhook esistente."
     },
     {
         "id": "app.oauth.update_app.updating.app_error",
-        "translation": "Riscontrato un errore nel aggiornamento dell'app"
+        "translation": "Riscontrato un errore nel aggiornamento dell'app."
     },
     {
         "id": "app.oauth.update_app.find.app_error",
-        "translation": "Non è stato possibile trovare l'app da aggiornare"
+        "translation": "Non è stato possibile trovare l'app da aggiornare."
     },
     {
         "id": "app.oauth.save_app.save.app_error",
@@ -7524,39 +7524,39 @@
     },
     {
         "id": "app.oauth.save_app.existing.app_error",
-        "translation": "L'aggiornamento deve essere invocato per le app esistenti"
+        "translation": "L'aggiornamento deve essere invocato per le app esistenti."
     },
     {
         "id": "app.oauth.remove_access_data.app_error",
-        "translation": "Impossibile salvare il token"
+        "translation": "Impossibile rimuovere il token di accesso."
     },
     {
         "id": "app.oauth.permanent_delete_auth_data_by_user.app_error",
-        "translation": "Non è stato possibile rimuovere il codice di autorizzazione"
+        "translation": "Non è stato possibile rimuovere il codice di autorizzazione."
     },
     {
         "id": "app.oauth.get_apps.find.app_error",
-        "translation": "Si è verificato un errore durante la ricerca delle app OAuth2"
+        "translation": "Si è verificato un errore durante la ricerca delle app OAuth2."
     },
     {
         "id": "app.oauth.get_app_by_user.find.app_error",
-        "translation": "Impossibile trovare un'app esistente"
+        "translation": "Impossibile trovare un'app esistente."
     },
     {
         "id": "app.oauth.get_app.finding.app_error",
-        "translation": "Errore riscontrato nel trovare l'app"
+        "translation": "Errore riscontrato nel trovare l'app."
     },
     {
         "id": "app.oauth.get_app.find.app_error",
-        "translation": "Impossibile ottenere l'app richiesta"
+        "translation": "Impossibile ottenere l'app richiesta."
     },
     {
         "id": "app.oauth.get_access_data_by_user_for_app.app_error",
-        "translation": "Si è verificato un errore durante la ricerca del token di accesso"
+        "translation": "Si è verificato un errore durante la ricerca dei token di accesso."
     },
     {
         "id": "app.oauth.delete_app.app_error",
-        "translation": "Si è verificato un errore durante l'eliminazione dell'App OAuth2"
+        "translation": "Si è verificato un errore durante l'eliminazione dell'App OAuth2."
     },
     {
         "id": "app.user.permanentdeleteuser.internal_error",
@@ -7692,7 +7692,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost consiglia caldamente che le installazioni con più di 500 utenti si aggiornino a Mattermost Enterprise E20, che offre funzionalità avanzate come la gestione utenti, il server clustering e il monitore delle performance."
+        "translation": "Mattermost consiglia caldamente che le installazioni con più di 500 utenti si aggiornino a Mattermost Enterprise Edition, che offre funzionalità avanzate come la gestione utenti, il server clustering e il monitore delle performance.\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -7700,11 +7700,11 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Il tuo Mattermost adesso ha 400 utenti. Se colleghi Mattermost al tuo fornitore di autenticazione aziendale gli utenti potranno accedere a Mattermost senza reinserire le credenziali. Contatta il supporto per scoprire come integrare SAML 2.0, disponibile in Mattermost Enterprise E20.\n[Scopri come integrare SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Il tuo Mattermost adesso ha 400 utenti. Se colleghi Mattermost al tuo fornitore di autenticazione aziendale gli utenti potranno accedere a Mattermost senza reinserire le credenziali. Contatta il supporto per scoprire come integrare SAML 2.0, disponibile in Mattermost Enterprise Edition.\n\n[Scopri come integrare SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise E10 e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Il tuo Mattermost adesso ha 200 utenti. Man mano che la tua base di utenti cresce, gestire ulteriori account può richiedere molto tempo. Ti consigliamo di aggiornare il tuo sistema a Mattermost Enterprise Edition e integrarlo nell'Active Directory/LDAP della tua organizzazione, che consentirà a chiunque con un account di accedere a Mattermost. Gli utenti potranno accedere senza dover creare nuovi nomi utente e nuove password e gli amministratori risparmieranno tempo nel gestire gli account.\n\n[Scopri di più su come integrare AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nContattando il servizio clienti, le tue informazioni di contatto verranno inviate a Mattermost, Inc. [Per saperne di più](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7808,27 +7808,27 @@
     },
     {
         "id": "app.preference.save.updating.app_error",
-        "translation": "Errore riscontrato nell'aggiornamento delle preferenze"
+        "translation": "Errore riscontrato nell'aggiornamento delle preferenze."
     },
     {
         "id": "app.preference.permanent_delete_by_user.app_error",
-        "translation": "Errore riscontrato nell'eliminare le preferenze"
+        "translation": "Errore riscontrato nell'eliminare le preferenze."
     },
     {
         "id": "app.preference.get_category.app_error",
-        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+        "translation": "Errore riscontrato durante la ricerca delle preferenze."
     },
     {
         "id": "app.preference.get_all.app_error",
-        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+        "translation": "Errore riscontrato durante la ricerca delle preferenze."
     },
     {
         "id": "app.preference.get.app_error",
-        "translation": "Errore riscontrato durante la ricerca delle preferenze"
+        "translation": "Errore riscontrato durante la ricerca delle preferenze."
     },
     {
         "id": "app.preference.delete.app_error",
-        "translation": "Errore riscontrato durante l'eliminazione delle preferenze"
+        "translation": "Errore riscontrato durante l'eliminazione delle preferenze."
     },
     {
         "id": "app.system.warn_metric.notification.invalid_metric.app_error",
@@ -7836,7 +7836,7 @@
     },
     {
         "id": "api.templates.warn_metric_ack.number_of_active_users.body",
-        "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+        "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost."
     },
     {
         "id": "api.user.delete_user.not_enabled.app_error",
@@ -7953,5 +7953,65 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Impossibile recuperare il ruolo"
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Lavoro impossibile da scaricare"
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Impossibile ottenere l'utente dalla UserID della sessione."
+    },
+    {
+        "id": "app.job.download_export_results_not_enabled",
+        "translation": "DownloadExportResults in config.json è falso. Modificare il valore in \"vero\" per poter scaricare i risultati di questo lavoro."
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Più di una riga è stata modificata."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Comando non esistente."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Comando non esistente."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Nome della cartella di salvataggio locale non valido. Deve essere una stringa non vuota."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Codice plugin invalido."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "Migrazione impossibile."
+    },
+    {
+        "id": "ent.compliance.actiance.file.creation.appError",
+        "translation": "Errore durante la creazione del file XML di actiance"
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Impossibile convertire bot in utente."
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "La lista degli amministratori è vuota."
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[Per saperne di più sul consigliere di Mattermost](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Consigliere di Mattermost"
     }
 ]

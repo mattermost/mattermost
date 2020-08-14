@@ -7725,5 +7725,9 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Impossible de récupérer le rôle."
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Impossible de télécharger ce travail"
     }
 ]
