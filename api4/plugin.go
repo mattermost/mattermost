@@ -183,7 +183,20 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPluginIntegrations(c *Context, w http.ResponseWriter, r *http.Request) {
-	response := c.App.PluginIntegrations()
+	integrations := c.App.PluginIntegrations()
+	response := []*model.PluginIntegration{}
+	if scope := r.URL.Query().Get("scope"); scope != "" {
+		for _, integration := range integrations {
+			for _, integrationScope := range integration.Scope {
+				if scope == integrationScope {
+					response = append(response, integration)
+					continue
+				}
+			}
+		}
+	} else {
+		response = integrations
+	}
 	w.Write([]byte(model.PluginIntegrationListToJson(response)))
 }
 

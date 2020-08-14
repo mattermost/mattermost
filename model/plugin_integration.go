@@ -19,11 +19,25 @@ type PluginIntegration struct {
 	RequestURL string   `json:"request_url"`
 	Scope      []string `json:"scope"`
 	//	Extra    interface{} `json:"extra"`
-	Extra string `json:"extra"` // Should use interface{} to be able to create different extras for different locations
+	Extra struct {
+		Icon string `json:"icon"`
+		Text string `json:"text"`
+	} `json:"extra"` // Should use interface{} to be able to create different extras for different locations
 }
 
 type MobileIntegrationChannelHeader struct {
-	DefaultMessage string `json:"default_message"`
+	Icon string `json:"icon"`
+	Text string `json:"text"`
+}
+
+type MobileIntegrationPostAction struct {
+	Icon string `json:"icon"`
+	Text string `json:"text"`
+}
+
+type MobileIntegrationSettings struct {
+	Icon string `json:"icon"`
+	Text string `json:"text"`
 }
 
 func (o *PluginIntegration) ToJson() string {
