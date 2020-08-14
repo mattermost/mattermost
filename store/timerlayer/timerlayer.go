@@ -6822,81 +6822,81 @@ func (s *TimerLayerTokenStore) Save(recovery *model.Token) error {
 func (s *TimerLayerUploadSessionStore) Delete(id string) error {
 	start := timemodule.Now()
 
-	resultVar0 := s.UploadSessionStore.Delete(id)
+	err := s.UploadSessionStore.Delete(id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar0 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.Delete", success, elapsed)
 	}
-	return resultVar0
+	return err
 }
 
 func (s *TimerLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.UploadSessionStore.Get(id)
+	result, err := s.UploadSessionStore.Get(id)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.Get", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *TimerLayerUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.UploadSessionStore.GetForUser(userId)
+	result, err := s.UploadSessionStore.GetForUser(userId)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.GetForUser", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *TimerLayerUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.UploadSessionStore.Save(session)
+	result, err := s.UploadSessionStore.Save(session)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.Save", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *TimerLayerUploadSessionStore) Update(session *model.UploadSession) error {
 	start := timemodule.Now()
 
-	resultVar0 := s.UploadSessionStore.Update(session)
+	err := s.UploadSessionStore.Update(session)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar0 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UploadSessionStore.Update", success, elapsed)
 	}
-	return resultVar0
+	return err
 }
 
 func (s *TimerLayerUserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {

@@ -7560,13 +7560,13 @@ func (s *OpenTracingLayerUploadSessionStore) Delete(id string) error {
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.UploadSessionStore.Delete(id)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.UploadSessionStore.Delete(id)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
@@ -7578,13 +7578,13 @@ func (s *OpenTracingLayerUploadSessionStore) Get(id string) (*model.UploadSessio
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.UploadSessionStore.Get(id)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.UploadSessionStore.Get(id)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
@@ -7596,13 +7596,13 @@ func (s *OpenTracingLayerUploadSessionStore) GetForUser(userId string) ([]*model
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.UploadSessionStore.GetForUser(userId)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.UploadSessionStore.GetForUser(userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
@@ -7614,13 +7614,13 @@ func (s *OpenTracingLayerUploadSessionStore) Save(session *model.UploadSession) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.UploadSessionStore.Save(session)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.UploadSessionStore.Save(session)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerUploadSessionStore) Update(session *model.UploadSession) error {
@@ -7632,13 +7632,13 @@ func (s *OpenTracingLayerUploadSessionStore) Update(session *model.UploadSession
 	}()
 
 	defer span.Finish()
-	resultVar0 := s.UploadSessionStore.Update(session)
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
+	err := s.UploadSessionStore.Update(session)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0
+	return err
 }
 
 func (s *OpenTracingLayerUserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {

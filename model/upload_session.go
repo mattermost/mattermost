@@ -11,11 +11,18 @@ import (
 
 // UploadSession contains information used to keep track of a file upload.
 type UploadSession struct {
-	Id       string
-	CreateAt int64  `json:"create_at"`
-	UserId   string `json:"user_id"`
+	// The unique identifier of the resource.
+	Id string `json:"id"`
+	// The timestamp of creation.
+	CreateAt int64 `json:"create_at"`
+	// The id of the user performing the upload.
+	UserId string `json:"user_id"`
+	// The id of the channel to upload to.
+	ChannelId string `json:"channel_id"`
+	// The name of the file to upload.
 	Filename string `json:"filename"`
-	Path     string `json:"-"`
+	// The path where the file is stored.
+	Path string `json:"-"`
 	// The size of the file to upload.
 	FileSize int64 `json:"file_size"`
 	// The amount of received data in bytes. If equal to FileSize it means the
@@ -23,11 +30,30 @@ type UploadSession struct {
 	FileOffset int64 `json:"file_offset"`
 }
 
+// ToJson serializes the UploadSession into JSON and returns it as string.
 func (us *UploadSession) ToJson() string {
 	b, _ := json.Marshal(us)
 	return string(b)
 }
 
+// UploadSessionsToJson serializes a list of UploadSession into JSON and
+// returns it as string.
+func UploadSessionsToJson(uss []*UploadSession) string {
+	b, _ := json.Marshal(uss)
+	return string(b)
+}
+
+// UploadSessionsFromJson deserializes a list of UploadSession from JSON data.
+func UploadSessionsFromJson(data io.Reader) []*UploadSession {
+	decoder := json.NewDecoder(data)
+	var uss []*UploadSession
+	if err := decoder.Decode(&uss); err != nil {
+		return nil
+	}
+	return uss
+}
+
+// UploadSessionFromJson deserializes the UploadSession from JSON data.
 func UploadSessionFromJson(data io.Reader) *UploadSession {
 	decoder := json.NewDecoder(data)
 	var us UploadSession
@@ -37,6 +63,7 @@ func UploadSessionFromJson(data io.Reader) *UploadSession {
 	return &us
 }
 
+// PreSave is a utility function used to fill required information.
 func (us *UploadSession) PreSave() {
 	if us.Id == "" {
 		us.Id = NewId()
@@ -47,13 +74,19 @@ func (us *UploadSession) PreSave() {
 	}
 }
 
+// IsValid() validates an UploadSession. It returns an error in case of
+// failure.
 func (us *UploadSession) IsValid() *AppError {
 	if !IsValidId(us.Id) {
-		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !IsValidId(us.UserId) {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.user_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
+	}
+
+	if !IsValidId(us.ChannelId) {
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.channel_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 
 	if us.CreateAt == 0 {

@@ -2635,6 +2635,14 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Invalid Content-Length."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
@@ -2793,6 +2801,10 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Failed to get uploads."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4557,6 +4569,46 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Cannot upload to a deleted channel."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Cannot upload to the specified channel."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Failed to save upload."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Failed to get uploads for user."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Failed to upload data. First part must be at least {{.Size}} MBs."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Failed to read a file."
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Failed to update the upload session."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6681,6 +6733,10 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Invalid token."
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Invalid value for ChannelId."
   },
   {
     "id": "model.upload_session.is_valid.create_at.app_error",

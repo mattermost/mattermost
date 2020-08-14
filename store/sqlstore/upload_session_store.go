@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"database/sql"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -24,6 +26,7 @@ func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
 		table := db.AddTableWithName(model.UploadSession{}, "UploadSessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("UserId").SetMaxSize(26)
+		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("Filename").SetMaxSize(256)
 		table.ColMap("Path").SetMaxSize(512)
 	}
@@ -57,7 +60,10 @@ func (us SqlUploadSessionStore) Update(session *model.UploadSession) error {
 		return errors.Wrap(err, "SqlUploadSessionStore.Update: validation failed")
 	}
 	if _, err := us.GetMaster().Update(session); err != nil {
-		return errors.Wrap(err, "SqlUploadSessionStore.Update: failed to insert")
+		if err == sql.ErrNoRows {
+			return store.NewErrNotFound("UploadSession", session.Id)
+		}
+		return errors.Wrapf(err, "SqlUploadSessionStore.Update: failed to update session with id=%s", session.Id)
 	}
 	return nil
 }
@@ -76,7 +82,10 @@ func (us SqlUploadSessionStore) Get(id string) (*model.UploadSession, error) {
 	}
 	var session model.UploadSession
 	if err := us.GetReplica().SelectOne(&session, queryString, args...); err != nil {
-		return nil, errors.Wrap(err, "SqlUploadSessionStore.Get: failed to select")
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("UploadSession", id)
+		}
+		return nil, errors.Wrapf(err, "SqlUploadSessionStore.Get: failed to select session with id=%s", id)
 	}
 	return &session, nil
 }
@@ -105,5 +114,18 @@ func (us SqlUploadSessionStore) Delete(id string) error {
 	if !model.IsValidId(id) {
 		return errors.New("SqlUploadSessionStore.Delete: id is not valid")
 	}
+
+	query := us.getQueryBuilder().
+		Delete("UploadSessions").
+		Where(sq.Eq{"Id": id})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to build query")
+	}
+
+	if _, err := us.GetMaster().Exec(queryString, args...); err != nil {
+		return errors.Wrap(err, "SqlUploadSessionStore.Delete: failed to delete")
+	}
+
 	return nil
 }

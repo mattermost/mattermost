@@ -313,6 +313,14 @@ func (c *Client4) GetFileRoute(fileId string) string {
 	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
 }
 
+func (c *Client4) GetUploadsRoute() string {
+	return "/uploads"
+}
+
+func (c *Client4) GetUploadRoute(uploadId string) string {
+	return fmt.Sprintf(c.GetUploadsRoute()+"/%s", uploadId)
+}
+
 func (c *Client4) GetPluginsRoute() string {
 	return "/plugins"
 }
@@ -5398,4 +5406,47 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	return results, BuildResponse(r)
+}
+
+// CreateUpload creates a new upload session.
+func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
+	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUpload returns the upload session for the specified uploadId.
+func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUploadRoute(uploadId), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUploadsForUser returns the upload sessions created by the specified
+// userId.
+func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/uploads", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionsFromJson(r.Body), BuildResponse(r)
+}
+
+// UploadData performs an upload. On success it returns
+// a FileInfo object.
+func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
+	url := c.GetUploadRoute(uploadId)
+	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoFromJson(r.Body), BuildResponse(r)
 }

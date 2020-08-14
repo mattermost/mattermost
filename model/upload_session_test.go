@@ -22,6 +22,7 @@ func TestUploadSessionIsValid(t *testing.T) {
 			Id:         NewId(),
 			CreateAt:   GetMillis(),
 			UserId:     NewId(),
+			ChannelId:  NewId(),
 			Filename:   "test",
 			Path:       "/tmp/test",
 			FileSize:   1024,
@@ -53,6 +54,14 @@ func TestUploadSessionIsValid(t *testing.T) {
 		err := us.IsValid()
 		require.NotNil(t, err)
 		require.Equal(t, "model.upload_session.is_valid.user_id.app_error", err.Id)
+	})
+
+	t.Run("invalid ChannelId should fail", func(t *testing.T) {
+		us := session
+		us.ChannelId = "invalid"
+		err := us.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.upload_session.is_valid.channel_id.app_error", err.Id)
 	})
 
 	t.Run("invalid Filename should fail", func(t *testing.T) {

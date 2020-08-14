@@ -85,6 +85,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2529,4 +2531,24 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("convertedTo", bot)
 
 	w.Write(bot.ToJson())
+}
+
+func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId {
+		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UploadSessionsToJson(uss)))
 }

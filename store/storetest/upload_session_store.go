@@ -38,10 +38,11 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 
 	t.Run("saving valid session should succeed", func(t *testing.T) {
 		session = &model.UploadSession{
-			UserId:   model.NewId(),
-			Filename: "test",
-			FileSize: 1024,
-			Path:     "/tmp/test",
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Filename:  "test",
+			FileSize:  1024,
+			Path:      "/tmp/test",
 		}
 		us, err := ss.UploadSession().Save(session)
 		require.NoError(t, err)
@@ -65,10 +66,11 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 
 func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
 	session := &model.UploadSession{
-		UserId:   model.NewId(),
-		Filename: "test",
-		FileSize: 1024,
-		Path:     "/tmp/test",
+		UserId:    model.NewId(),
+		ChannelId: model.NewId(),
+		Filename:  "test",
+		FileSize:  1024,
+		Path:      "/tmp/test",
 	}
 
 	t.Run("updating nil session should fail", func(t *testing.T) {
@@ -108,28 +110,32 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 
 	sessions := []*model.UploadSession{
 		{
-			UserId:   userId,
-			Filename: "test0",
-			FileSize: 1024,
-			Path:     "/tmp/test0",
+			UserId:    userId,
+			ChannelId: model.NewId(),
+			Filename:  "test0",
+			FileSize:  1024,
+			Path:      "/tmp/test0",
 		},
 		{
-			UserId:   model.NewId(),
-			Filename: "test1",
-			FileSize: 1024,
-			Path:     "/tmp/test1",
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Filename:  "test1",
+			FileSize:  1024,
+			Path:      "/tmp/test1",
 		},
 		{
-			UserId:   userId,
-			Filename: "test2",
-			FileSize: 1024,
-			Path:     "/tmp/test2",
+			UserId:    userId,
+			ChannelId: model.NewId(),
+			Filename:  "test2",
+			FileSize:  1024,
+			Path:      "/tmp/test2",
 		},
 		{
-			UserId:   userId,
-			Filename: "test3",
-			FileSize: 1024,
-			Path:     "/tmp/test3",
+			UserId:    userId,
+			ChannelId: model.NewId(),
+			Filename:  "test3",
+			FileSize:  1024,
+			Path:      "/tmp/test3",
 		},
 	}
 
@@ -170,19 +176,16 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 
 func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
 	session := &model.UploadSession{
-		UserId:   model.NewId(),
-		Filename: "test",
-		FileSize: 1024,
-		Path:     "/tmp/test",
+		Id:        model.NewId(),
+		UserId:    model.NewId(),
+		ChannelId: model.NewId(),
+		Filename:  "test",
+		FileSize:  1024,
+		Path:      "/tmp/test",
 	}
 
 	t.Run("deleting invalid id should fail", func(t *testing.T) {
 		err := ss.UploadSession().Delete("invalidId")
-		require.Error(t, err)
-	})
-
-	t.Run("deleting non-existing session should fail", func(t *testing.T) {
-		err := ss.UploadSession().Delete(session.Id)
 		require.Error(t, err)
 	})
 
@@ -194,5 +197,10 @@ func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
 
 		err = ss.UploadSession().Delete(session.Id)
 		require.NoError(t, err)
+
+		us, err = ss.UploadSession().Get(us.Id)
+		require.Error(t, err)
+		require.Nil(t, us)
+		require.IsType(t, &store.ErrNotFound{}, err)
 	})
 }
