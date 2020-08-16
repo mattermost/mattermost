@@ -652,23 +652,23 @@ func TestSyncPluginsActiveState(t *testing.T) {
 	_, appErr := th.App.WriteFile(fileReader, th.App.getBundleStorePath("testplugin"))
 	checkNoError(t, appErr)
 
-	// Sync with file store so the plugin environment has access to this plugin
+	// Sync with file store so the plugin environment has access to this plugin.
 	appErr = th.App.SyncPlugins()
 	checkNoError(t, appErr)
 
-	// Verify plugin was installed and set to deactivated
+	// Verify the plugin was installed and set to deactivated.
 	pluginStatus, err := env.Statuses()
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 1)
 	require.Equal(t, pluginStatus[0].PluginId, "testplugin")
 	require.Equal(t, pluginStatus[0].State, model.PluginStateNotRunning)
 
-	// Enable plugin by setting setting config. This implicitly calls SyncPluginsActiveState
+	// Enable plugin by setting setting config. This implicitly calls SyncPluginsActiveState through a config listener.
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: true}
 	})
 
-	// Verify the plugin was activated due to config change
+	// Verify the plugin was activated due to config change.
 	pluginStatus, err = env.Statuses()
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 1)
@@ -680,7 +680,7 @@ func TestSyncPluginsActiveState(t *testing.T) {
 		cfg.PluginSettings.PluginStates["testplugin"] = &model.PluginState{Enable: false}
 	})
 
-	// Verify the plugin was deactivated due to config change
+	// Verify the plugin was deactivated due to config change.
 	pluginStatus, err = env.Statuses()
 	require.Nil(t, err)
 	require.Len(t, pluginStatus, 1)
