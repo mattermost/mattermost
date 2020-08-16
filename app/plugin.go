@@ -86,65 +86,62 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
-		var wg sync.WaitGroup
-
-		// Deactivate any plugins that have been disabled.
+		// Determine which plugins need to be activated or deactivated.
+		disabledPlugins := []*model.BundleInfo{}
+		enabledPlugins := []*model.BundleInfo{}
 		for _, plugin := range availablePlugins {
-			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to deactivate it
-			if !pluginEnabled {
-				wg.Add(1)
-				go func(pluginId string) {
-					defer wg.Done()
-					deactivated := pluginsEnvironment.Deactivate(pluginId)
-					if deactivated && plugin.Manifest.HasClient() {
-						message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
-						message.Add("manifest", plugin.Manifest.ClientManifest())
-						a.Publish(message)
-					}
-				}(pluginId)
+			if pluginEnabled {
+				enabledPlugins = append(enabledPlugins, plugin)
+			} else {
+				disabledPlugins = append(disabledPlugins, plugin)
 			}
 		}
 
+		// Concurrently activate/deactivate each plugin appropriately.
+		var wg sync.WaitGroup
+
+		// Deactivate any plugins that have been disabled.
+		for _, plugin := range disabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
+
+				pluginId := plugin.Manifest.Id
+				deactivated := pluginsEnvironment.Deactivate(pluginId)
+				if deactivated && plugin.Manifest.HasClient() {
+					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
+					message.Add("manifest", plugin.Manifest.ClientManifest())
+					a.Publish(message)
+				}
+			}(plugin)
+		}
+
 		// Activate any plugins that have been enabled
-		for _, plugin := range availablePlugins {
-			if plugin.Manifest == nil {
-				plugin.WrapLogger(a.Log()).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-				continue
-			}
+		for _, plugin := range enabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
 
-			// Determine if plugin is enabled
-			pluginId := plugin.Manifest.Id
-			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginId]; ok {
-				pluginEnabled = state.Enable
-			}
+				pluginId := plugin.Manifest.Id
+				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
+				if err != nil {
+					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
+					return
+				}
 
-			// Activate plugin if enabled
-			if pluginEnabled {
-				wg.Add(1)
-				go func(pluginId string) {
-					defer wg.Done()
-					updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
-					if err != nil {
-						plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
-						return
+				if activated {
+					// Notify all cluster clients if ready
+					if err := a.notifyPluginEnabled(updatedManifest); err != nil {
+						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
-
-					if activated {
-						// Notify all cluster clients if ready
-						if err := a.notifyPluginEnabled(updatedManifest); err != nil {
-							a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
-						}
-					}
-				}(pluginId)
-			}
+				}
+			}(plugin)
 		}
 		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
