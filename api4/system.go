@@ -178,6 +178,12 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("site_url")
 		return
 	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) && siteURL != *c.App.Config().ServiceSettings.SiteURL {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT)
+		return
+	}
+
 	err := c.App.TestSiteURL(siteURL)
 	if err != nil {
 		c.Err = err
