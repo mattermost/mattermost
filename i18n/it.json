@@ -7989,5 +7989,37 @@
     {
         "id": "api.templates.warn_metric_ack.number_of_active_users.body",
         "translation": "Richiesta di contatto con Mattermost. La mia squadra adesso ha {{.Limit}} utenti e sto considerando l'edizione Enteprise di Mattermost.\n"
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "Più di una riga è stata modificata."
+    },
+    {
+        "id": "store.sql_command.update.missing.app_error",
+        "translation": "Comando non esistente."
+    },
+    {
+        "id": "store.sql_command.get.missing.app_error",
+        "translation": "Comando non esistente."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Nome della cartella di salvataggio locale non valido. Deve essere una stringa non vuota."
+    },
+    {
+        "id": "ent.ldap_id_migrate.app_error",
+        "translation": "Migrazione impossibile."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Impossibile convertire bot in utente."
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "Errore durante il salvataggio del valore di {{.WarnMetricName}}"
+    },
+    {
+        "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
+        "translation": "La lista degli amministratori è vuota."
     }
 ]
