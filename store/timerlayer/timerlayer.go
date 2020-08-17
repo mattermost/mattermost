@@ -3666,17 +3666,17 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetNewestJobByStatusesAndType", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
