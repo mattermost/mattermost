@@ -1116,6 +1116,45 @@ func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User,
 	return user, team, nil
 }
 
+func genEmailInviteWithErrorList(emailList []string) []*model.EmailInviteWithError {
+	var invitesNotSent []*model.EmailInviteWithError
+	for i := range emailList {
+		invite := &model.EmailInviteWithError{
+			Email: emailList[i],
+			Error: model.NewAppError("inviteUsersToTeam", "api.team.invite_members.limit_reached.app_error", map[string]interface{}{"Addresses": emailList[i]}, "", http.StatusBadRequest),
+		}
+		invitesNotSent = append(invitesNotSent, invite)
+	}
+	return invitesNotSent
+}
+
+func (a *App) GetErrorListForEmailsOverLimit(emailList []string, cloudUserLimit int64) ([]string, []*model.EmailInviteWithError, *model.AppError) {
+	var invitesNotSent []*model.EmailInviteWithError
+	if cloudUserLimit > 0 {
+		systemUserCount, _ := a.Srv().Store.User().Count(model.UserCountOptions{})
+		remainingUsers := cloudUserLimit - systemUserCount
+		if remainingUsers <= 0 {
+			// No remaining users so all fail
+			invitesNotSent = genEmailInviteWithErrorList(emailList)
+			emailList = nil
+		} else if remainingUsers < int64(len(emailList)) {
+			// Trim the email list to only invite as many users as are remaining in subscription
+			// Set graceful errors for the remaining email addresses
+			emailsAboveLimit := emailList[remainingUsers:]
+			invitesNotSent = genEmailInviteWithErrorList(emailsAboveLimit)
+			// If 1 user remaining we have to prevent 0:0 reslicing
+			if remainingUsers == 1 {
+				email := emailList[0]
+				emailList = nil
+				emailList = append(emailList, email)
+			} else {
+				emailList = emailList[:(remainingUsers - 1)]
+			}
+		}
+	}
+	return emailList, invitesNotSent, nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1125,7 +1164,6 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
-
 	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
 	if err != nil {
 		return nil, err
