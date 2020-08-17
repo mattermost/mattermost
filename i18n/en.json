@@ -7411,6 +7411,10 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
+    "id": "store.sql_system.get_by_name.app_error",
+    "translation": "Unable to get system data."
+  },
+  {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
     "translation": "Unable to get the channel count for the scheme."
   },
