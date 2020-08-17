@@ -210,6 +210,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	// Path to directory of custom emoji
 	pathToEmojiDir := "data/emoji/"
 
+	customDataDir := a.Config().FileSettings.Directory
+	if customDataDir != nil && *customDataDir != "" {
+		pathToEmojiDir = *customDataDir + "emoji/"
+	}
+
 	// Name of the directory to export custom emoji
 	dirNameToExportEmoji := "exported_emoji"
 

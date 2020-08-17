@@ -100,7 +100,6 @@ func ServerConnector(s *Server) AppOption {
 		a.log = s.Log
 		a.notificationsLog = s.NotificationsLog
 
-		a.accountMigration = s.AccountMigration
 		a.cluster = s.Cluster
 		a.compliance = s.Compliance
 		a.dataRetention = s.DataRetention
