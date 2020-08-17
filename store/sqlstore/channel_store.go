@@ -736,28 +736,25 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	}
 
 	var newChannel *model.Channel
-	err := store.WithDeadlockRetry(func() error {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			return errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(transaction)
 
-		newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-		if err != nil {
-			return err
-		}
+	newChannel, err = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if err != nil {
+		return newChannel, err
+	}
 
-		// Additionally propagate the write to the PublicChannels table.
-		if err := s.upsertPublicChannelT(transaction, newChannel); err != nil {
-			return errors.Wrap(err, "upsert_public_channel")
-		}
+	// Additionally propagate the write to the PublicChannels table.
+	if err = s.upsertPublicChannelT(transaction, newChannel); err != nil {
+		return nil, errors.Wrap(err, "upsert_public_channel")
+	}
 
-		if err := transaction.Commit(); err != nil {
-			return errors.Wrap(err, "commit_transaction")
-		}
-		return nil
-	})
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
 	// There are cases when in case of conflict, the original channel value is returned.
 	// So we return both and let the caller do the checks.
 	return newChannel, err
@@ -2587,7 +2584,7 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 }
 
 func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	deleteFilter := "AND c.DeleteAt = 0"
+	deleteFilter := "AND Channels.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
 	}
@@ -2600,7 +2597,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 		JOIN
 			PublicChannels c ON (c.Id = Channels.Id)
 		WHERE
-			c.TeamId = :TeamId
+			Channels.TeamId = :TeamId
 			` + deleteFilter + `
 			%v
 		LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)

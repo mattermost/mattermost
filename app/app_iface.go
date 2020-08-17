@@ -7,7 +7,6 @@
 package app
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -49,8 +48,6 @@ type AppIface interface {
 	AddCursorIdsForPostList(originalList *model.PostList, afterPost, beforePost string, since int64, page, perPage int)
 	// AddPublicKey will add plugin public key to the config. Overwrites the previous file
 	AddPublicKey(name string, key io.Reader) *model.AppError
-	// Basic test team and user so you always know one
-	CreateBasicUser(client *model.Client4) *model.AppError
 	// Caller must close the first return value
 	FileReader(path string) (filesstore.ReadCloseSeeker, *model.AppError)
 	// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
@@ -222,6 +219,12 @@ type AppIface interface {
 	MakeAuditRecord(event string, initialStatus string) *audit.Record
 	// MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 	MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError)
+	// MentionsToPublicChannels returns all the mentions to public channels,
+	// linking them to their channels
+	MentionsToPublicChannels(message, teamId string) model.ChannelMentionMap
+	// MentionsToTeamMembers returns all the @ mentions found in message that
+	// belong to users in the specified team, linking them to their users
+	MentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	// MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 	// function is only exposed to sysadmins and the possibility of this edge case is realtively small.
 	MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError
@@ -458,6 +461,7 @@ type AppIface interface {
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
+	DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError)
 	DoEmojisPermissionsMigration()
 	DoGuestRolesCreationMigration()
 	DoLocalRequest(rawURL string, body []byte) (*http.Response, *model.AppError)
@@ -907,12 +911,7 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError
 	SetUserAgent(s string)
-	SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User
-	SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[string][]SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel
-	SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User)
-	SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *bytes.Buffer) map[string]*model.User
 	SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
-	SlackUploadFile(slackPostFile *SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool)
 	SoftDeleteTeam(teamId string) *model.AppError
 	Srv() *Server
 	SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)

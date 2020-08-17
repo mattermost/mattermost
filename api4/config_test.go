@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -549,5 +550,28 @@ func TestPatchConfig(t *testing.T) {
 		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+	})
+}
+
+func TestMigrateConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("user is not system admin", func(t *testing.T) {
+		_, response := th.Client.MigrateConfig("from", "to")
+		CheckForbiddenStatus(t, response)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		f, err := config.NewStore("from.json", false)
+		require.NoError(t, err)
+		defer f.RemoveFile("from.json")
+
+		_, err = config.NewStore("to.json", false)
+		require.NoError(t, err)
+		defer f.RemoveFile("to.json")
+
+		_, response := client.MigrateConfig("from.json", "to.json")
+		CheckNoError(t, response)
 	})
 }

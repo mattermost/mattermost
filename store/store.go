@@ -9,11 +9,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-
-	"github.com/go-sql-driver/mysql"
-	"github.com/pkg/errors"
 )
 
 type StoreResult struct {
@@ -95,8 +91,8 @@ type TeamStore interface {
 	AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError)
 	AnalyticsPublicTeamCount() (int64, *model.AppError)
 	AnalyticsPrivateTeamCount() (int64, *model.AppError)
-	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, *model.AppError)
-	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError)
+	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
+	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
@@ -249,14 +245,14 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	SaveMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
-	Save(post *model.Post) (*model.Post, *model.AppError)
-	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
-	Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError)
-	GetSingle(id string) (*model.Post, *model.AppError)
-	Delete(postId string, time int64, deleteByID string) *model.AppError
-	PermanentDeleteByUser(userId string) *model.AppError
-	PermanentDeleteByChannel(channelId string) *model.AppError
+	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	Save(post *model.Post) (*model.Post, error)
+	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
+	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	GetSingle(id string) (*model.Post, error)
+	Delete(postId string, time int64, deleteByID string) error
+	PermanentDeleteByUser(userId string) error
+	PermanentDeleteByChannel(channelId string) error
 	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	// @openTracingParams userId, teamId, offset, limit
@@ -433,13 +429,13 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) *model.AppError
-	SaveOrUpdate(system *model.System) *model.AppError
-	Update(system *model.System) *model.AppError
-	Get() (model.StringMap, *model.AppError)
-	GetByName(name string) (*model.System, *model.AppError)
-	PermanentDeleteByName(name string) (*model.System, *model.AppError)
-	InsertIfExists(system *model.System) (*model.System, *model.AppError)
+	Save(system *model.System) error
+	SaveOrUpdate(system *model.System) error
+	Update(system *model.System) error
+	Get() (model.StringMap, error)
+	GetByName(name string) (*model.System, error)
+	PermanentDeleteByName(name string) (*model.System, error)
+	InsertIfExists(system *model.System) (*model.System, error)
 }
 
 type WebhookStore interface {
@@ -529,12 +525,12 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) *model.AppError
-	Get(userId string) (*model.Status, *model.AppError)
-	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	ResetAll() *model.AppError
-	GetTotalActiveUsersCount() (int64, *model.AppError)
-	UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError
+	SaveOrUpdate(status *model.Status) error
+	Get(userId string) (*model.Status, error)
+	GetByIds(userIds []string) ([]*model.Status, error)
+	ResetAll() error
+	GetTotalActiveUsersCount() (int64, error)
+	UpdateLastActivityAt(userId string, lastActivityAt int64) error
 }
 
 type FileInfoStore interface {
@@ -591,15 +587,15 @@ type UserAccessTokenStore interface {
 }
 
 type PluginStore interface {
-	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
-	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
-	Delete(pluginId, key string) *model.AppError
-	DeleteAllForPlugin(PluginId string) *model.AppError
-	DeleteAllExpired() *model.AppError
-	List(pluginId string, page, perPage int) ([]string, *model.AppError)
+	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error)
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error)
+	Get(pluginId, key string) (*model.PluginKeyValue, error)
+	Delete(pluginId, key string) error
+	DeleteAllForPlugin(PluginId string) error
+	DeleteAllExpired() error
+	List(pluginId string, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {
@@ -774,32 +770,4 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-const mySQLDeadlockCode = uint16(1213)
-
-// WithDeadlockRetry retries a given f if it throws a deadlock error.
-// It breaks after a threshold and propagates the error upwards.
-// TODO: This can be a separate retry layer in itself where transaction retries
-// are automatically applied.
-func WithDeadlockRetry(f func() error) error {
-	var err error
-	for i := 0; i < 3; i++ {
-		err = f()
-		if err == nil {
-			// No error, return nil.
-			return nil
-		}
-		// XXX: Possibly add check for postgres deadlocks later.
-		// But deadlocks are very rarely seen in postgres.
-		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) && mysqlErr.Number == mySQLDeadlockCode {
-			mlog.Warn("A deadlock happened. Retrying.", mlog.Err(err))
-			// This is a deadlock, retry.
-			continue
-		}
-		// Some other error, return as-is.
-		return err
-	}
-	return errors.Wrap(err, "giving up after 3 consecutive deadlocks")
 }
