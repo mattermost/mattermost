@@ -37,7 +37,14 @@ type API interface {
 	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
 
+	// RegisterPluginIntegration registers a custom integration from the plugin.
+	//
+	// Minimum server version: 5.28
 	RegisterPluginIntegration(trigger *model.PluginIntegration) error
+
+	// UnregisterPluginIntegration unregisters a custom integration previously registered via RegisterPluginIntegration.
+	//
+	// Minimum server version: 5.28
 	UnregisterPluginIntegration(location, trigger string) error
 
 	// ExecuteSlashCommand executes a slash command with the given parameters.
