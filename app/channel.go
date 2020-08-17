@@ -82,7 +82,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			case errors.As(err, &nfErr):
 				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 			default:
-				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, err.Error(), http.StatusInternalServerError)
+				err = model.NewAppError("JoinDefaultChannels", "app.channel.get_by_name.existing.app_error", nil, channelErr.Error(), http.StatusInternalServerError)
 			}
 			continue
 		}
