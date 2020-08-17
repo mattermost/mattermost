@@ -1845,6 +1845,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 		AuthService: model.USER_AUTH_SERVICE_GITLAB,
 		AuthData:    &auth,
 	})
+
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
@@ -1886,6 +1887,12 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 		assert.Equal(t, u1, user)
 	})
 
+	t.Run("get u1 by username, check for case issues", func(t *testing.T) {
+		user, err := ss.User().GetForLogin(strings.ToUpper(u1.Username), true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u1, user)
+	})
+
 	t.Run("get u1 by username, allow only email", func(t *testing.T) {
 		_, err := ss.User().GetForLogin(u1.Username, false, true)
 		require.NotNil(t, err)
@@ -1894,6 +1901,12 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 
 	t.Run("get u1 by email, allow both", func(t *testing.T) {
 		user, err := ss.User().GetForLogin(u1.Email, true, true)
+		require.Nil(t, err)
+		assert.Equal(t, u1, user)
+	})
+
+	t.Run("get u1 by email, check for case issues", func(t *testing.T) {
+		user, err := ss.User().GetForLogin(strings.ToUpper(u1.Email), true, true)
 		require.Nil(t, err)
 		assert.Equal(t, u1, user)
 	})
