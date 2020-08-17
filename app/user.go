@@ -48,8 +48,7 @@ const (
 )
 
 func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
-	err := a.IsUserSignUpAllowed()
-	if err != nil {
+	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
