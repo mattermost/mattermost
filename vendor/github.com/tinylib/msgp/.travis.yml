@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - 1.12.x
+  - tip
+
+env:
+  - GIMME_ARCH=amd64
+  - GIMME_ARCH=386
+
+script: "make travis"
