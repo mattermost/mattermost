@@ -838,22 +838,22 @@ func upgradeDatabaseToVersion527(sqlStore SqlStore) {
 
 func upgradeDatabaseToVersion528(sqlStore SqlStore) {
 	// TODO: uncomment when the time arrive to upgrade the DB for 5.28
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
-	if err := precheckMigrationToVersion528(sqlStore); err != nil {
-		mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
-		os.Exit(EXIT_GENERIC_FAILURE)
+	if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
+		if err := precheckMigrationToVersion528(sqlStore); err != nil {
+			mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
+		sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+
+		sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
+		sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
+
+		saveSchemaVersion(sqlStore, VERSION_5_28_0)
 	}
-
-	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
-	sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
-
-	sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
-	sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
-
-	// saveSchemaVersion(sqlStore, VERSION_5_28_0)
-	//}
 }
 
 func precheckMigrationToVersion528(sqlStore SqlStore) error {
