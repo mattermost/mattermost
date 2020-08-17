@@ -359,10 +359,6 @@ github.com/olekukonko/tablewriter
 ## explicit
 github.com/olivere/elastic/config
 github.com/olivere/elastic/uritemplates
-# github.com/onsi/ginkgo v1.12.0
-## explicit
-# github.com/onsi/gomega v1.9.0
-## explicit
 # github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
 ## explicit
 github.com/oov/psd
@@ -468,14 +464,7 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
-github.com/tinylib/msgp
-github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
-github.com/tinylib/msgp/parse
-github.com/tinylib/msgp/printer
-# github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
-## explicit
-github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
