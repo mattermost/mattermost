@@ -5268,6 +5268,12 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 
 }
 
+func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, *model.AppError) {
+
+	return s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
+
+}
+
 func (s *RetryLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
 
 	return s.UserStore.AnalyticsGetGuestCount()

@@ -6828,17 +6828,17 @@ func (s *TimerLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, *model.AppError) {
 	start := timemodule.Now()
 
-	resultVar0, resultVar1 := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
+	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
 		success := "false"
-		if resultVar1 == nil {
+		if err == nil {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsActiveCountForPeriod", success, elapsed)
 	}
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *TimerLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {

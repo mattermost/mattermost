@@ -7568,13 +7568,13 @@ func (s *OpenTracingLayerUserStore) AnalyticsActiveCountForPeriod(startTime int6
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return result, err
 }
 
 func (s *OpenTracingLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
