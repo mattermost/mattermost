@@ -44,3 +44,10 @@ type BeforeTest interface {
 type AfterTest interface {
 	AfterTest(suiteName, testName string)
 }
+
+// WithStats implements HandleStats, a function that will be executed
+// when a test suite is finished. The stats contain information about
+// the execution of that suite and its tests.
+type WithStats interface {
+	HandleStats(suiteName string, stats *SuiteInformation)
+}

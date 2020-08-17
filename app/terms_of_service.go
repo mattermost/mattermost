@@ -23,10 +23,10 @@ func (a *App) CreateTermsOfService(text, userId string) (*model.TermsOfService, 
 
 	var err error
 	if termsOfService, err = a.Srv().Store.TermsOfService().Save(termsOfService); err != nil {
-		var iErr *store.ErrInvalidInput
+		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
-		case errors.As(err, &iErr):
+		case errors.As(err, &invErr):
 			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
 		case errors.As(err, &appErr):
 			return nil, appErr

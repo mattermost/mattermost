@@ -2,6 +2,7 @@ package hclog
 
 import (
 	"bytes"
+	"log"
 	"strings"
 )
 
@@ -71,4 +72,24 @@ func (s *stdlogAdapter) pickLevel(str string) (Level, string) {
 	default:
 		return Info, str
 	}
+}
+
+type logWriter struct {
+	l *log.Logger
+}
+
+func (l *logWriter) Write(b []byte) (int, error) {
+	l.l.Println(string(bytes.TrimRight(b, " \n\t")))
+	return len(b), nil
+}
+
+// Takes a standard library logger and returns a Logger that will write to it
+func FromStandardLogger(l *log.Logger, opts *LoggerOptions) Logger {
+	var dl LoggerOptions = *opts
+
+	// Use the time format that log.Logger uses
+	dl.DisableTime = true
+	dl.Output = &logWriter{l}
+
+	return New(&dl)
 }

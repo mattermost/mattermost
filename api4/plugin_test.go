@@ -30,7 +30,7 @@ import (
 )
 
 func TestPlugin(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -273,7 +273,7 @@ func TestPlugin(t *testing.T) {
 }
 
 func TestNotifyClusterPluginEvent(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testCluster := &testlib.FakeClusterInterface{}
@@ -384,11 +384,11 @@ func TestDisableOnRemove(t *testing.T) {
 		},
 	}
 
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	for _, tc := range testCases {
 		t.Run(tc.Description, func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
-
 			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.PluginSettings.Enable = true
@@ -470,7 +470,7 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -666,7 +666,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("marketplace client returns not-installed plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -728,7 +728,7 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 	})
 
 	t.Run("marketplace client returns installed plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -908,7 +908,7 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	samplePlugins := []*model.MarketplacePlugin{
@@ -1072,7 +1072,7 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	marketplacePlugins := []*model.MarketplacePlugin{
@@ -1369,6 +1369,111 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 
 		appErr = th.App.DeletePublicKey("pub_key")
 		require.Nil(t, appErr)
+	})
+
+	t.Run("verify EnterprisePlugins is false for TE", func(t *testing.T) {
+		requestHandled := false
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
+			require.True(t, ok)
+			require.Len(t, licenseType, 1)
+			require.Equal(t, "false", licenseType[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{samplePlugins[0]})
+			require.NoError(t, err)
+			_, err = res.Write(json)
+			require.NoError(t, err)
+
+			requestHandled = true
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
+		pRequest := &model.InstallMarketplacePluginRequest{}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+		assert.True(t, requestHandled)
+	})
+
+	t.Run("verify EnterprisePlugins is false for E10", func(t *testing.T) {
+		requestHandled := false
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
+			require.True(t, ok)
+			require.Len(t, licenseType, 1)
+			require.Equal(t, "false", licenseType[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			_, err = res.Write(json)
+			require.NoError(t, err)
+
+			requestHandled = true
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.EnableRemoteMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		l := model.NewTestLicense()
+		// model.NewTestLicense generates a E20 license
+		*l.Features.EnterprisePlugins = false
+		th.App.Srv().SetLicense(l)
+
+		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
+		pRequest := &model.InstallMarketplacePluginRequest{}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+		assert.True(t, requestHandled)
+	})
+
+	t.Run("verify EnterprisePlugins is true for E20", func(t *testing.T) {
+		requestHandled := false
+
+		testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			licenseType, ok := req.URL.Query()["enterprise_plugins"]
+			require.True(t, ok)
+			require.Len(t, licenseType, 1)
+			require.Equal(t, "true", licenseType[0])
+
+			res.WriteHeader(http.StatusOK)
+			json, err := json.Marshal([]*model.MarketplacePlugin{})
+			require.NoError(t, err)
+			_, err = res.Write(json)
+			require.NoError(t, err)
+
+			requestHandled = true
+		}))
+		defer func() { testServer.Close() }()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.EnableMarketplace = true
+			*cfg.PluginSettings.MarketplaceUrl = testServer.URL
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicense("enterprise_plugins"))
+
+		// The content of the request is irrelevant. This test only cares about enterprise_plugins.
+		pRequest := &model.InstallMarketplacePluginRequest{}
+		manifest, resp := th.SystemAdminClient.InstallMarketplacePlugin(pRequest)
+		CheckInternalErrorStatus(t, resp)
+		require.Nil(t, manifest)
+		assert.True(t, requestHandled)
 	})
 
 	t.Run("install prepackaged and remote plugins through marketplace", func(t *testing.T) {

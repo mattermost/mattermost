@@ -76,7 +76,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
@@ -320,29 +320,6 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 		Type:        channelType,
 		TeamId:      team.Id,
 		CreatorId:   me.BasicUser.Id,
-	}
-
-	utils.DisableDebugLogForTest()
-	var err *model.AppError
-	if channel, err = me.App.CreateChannel(channel, true); err != nil {
-		mlog.Error(err.Error())
-
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	utils.EnableDebugLogForTest()
-	return channel
-}
-
-func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType, userId string) *model.Channel {
-	id := model.NewId()
-
-	channel := &model.Channel{
-		DisplayName: "dn_" + id,
-		Name:        "name_" + id,
-		Type:        channelType,
-		TeamId:      team.Id,
-		CreatorId:   userId,
 	}
 
 	utils.DisableDebugLogForTest()

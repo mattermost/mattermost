@@ -6,7 +6,10 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strconv"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -27,6 +30,11 @@ const (
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
 
+//msgp:tuple Session
+
+// Session contains the user session details.
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`
@@ -112,6 +120,9 @@ func (me *Session) IsExpired() bool {
 	return false
 }
 
+// Deprecated: SetExpireInDays is deprecated and should not be used.
+//             Use (*App).SetSessionExpireInDays instead which handles the
+//			   cases where the new ExpiresAt is not relative to CreateAt.
 func (me *Session) SetExpireInDays(days int) {
 	if me.CreateAt == 0 {
 		me.ExpiresAt = GetMillis() + (1000 * 60 * 60 * 24 * int64(days))
@@ -140,7 +151,50 @@ func (me *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (me *Session) IsMobileApp() bool {
-	return len(me.DeviceId) > 0
+	return len(me.DeviceId) > 0 || me.IsMobile()
+}
+
+func (me *Session) IsMobile() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_MOBILE]
+	if !ok {
+		return false
+	}
+	isMobile, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isMobile
+}
+
+func (me *Session) IsSaml() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_SAML]
+	if !ok {
+		return false
+	}
+	isSaml, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isSaml
+}
+
+func (me *Session) IsOAuthUser() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_OAUTH]
+	if !ok {
+		return false
+	}
+	isOAuthUser, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isOAuthUser
+}
+
+func (me *Session) IsSSOLogin() bool {
+	return me.IsOAuthUser() || me.IsSaml()
 }
 
 func (me *Session) GetUserRoles() []string {
