@@ -102,6 +102,9 @@ func init() {
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
 	gob.Register(&model.AutocompleteTextArg{})
+	gob.Register(&model.MobileIntegrationChannelHeader{})
+	gob.Register(&model.MobileIntegrationPostAction{})
+	gob.Register(&model.MobileIntegrationSettings{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

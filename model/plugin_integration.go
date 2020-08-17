@@ -14,15 +14,11 @@ const (
 )
 
 type PluginIntegration struct {
-	PluginID   string   `json:"id"`
-	Location   string   `json:"location"`
-	RequestURL string   `json:"request_url"`
-	Scope      []string `json:"scope"`
-	//	Extra    interface{} `json:"extra"`
-	Extra struct {
-		Icon string `json:"icon"`
-		Text string `json:"text"`
-	} `json:"extra"` // Should use interface{} to be able to create different extras for different locations
+	PluginID   string      `json:"id"`
+	Location   string      `json:"location"`
+	RequestURL string      `json:"request_url"`
+	Scope      []string    `json:"scope"`
+	Extra      interface{} `json:"extra"`
 }
 
 type MobileIntegrationChannelHeader struct {
