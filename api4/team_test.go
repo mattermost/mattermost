@@ -2833,6 +2833,25 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.NotNil(t, invitesWithErrors[0].Error)
 		require.Nil(t, invitesWithErrors[1].Error)
 	}, "override restricted domains")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.BasicTeam.AllowedDomains = "common.com"
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nilf(t, err, "%v, Should update the team", err)
+
+		emailList := make([]string, 22)
+		for i := 0; i < 22; i++ {
+			emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
+		}
+		okMsg, resp := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+		require.False(t, okMsg, "should return false")
+		CheckRequestEntityTooLargeStatus(t, resp)
+		CheckErrorMessage(t, resp, "app.email.rate_limit_exceeded.app_error")
+
+		_, resp = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
+		CheckRequestEntityTooLargeStatus(t, resp)
+		CheckErrorMessage(t, resp, "app.email.rate_limit_exceeded.app_error")
+	}, "rate limits")
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
@@ -2941,6 +2960,32 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 		err := th.App.InviteNewUsersToTeam([]string{"user@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.Nil(t, err, "non guest user invites should not be affected by the guest domain restrictions")
+	})
+
+	t.Run("rate limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
+
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nilf(t, err, "%v, Should update the team", err)
+
+		emailList := make([]string, 22)
+		for i := 0; i < 22; i++ {
+			emailList[i] = "test-" + strconv.Itoa(i) + "@guest.com"
+		}
+		invite := &model.GuestsInvite{
+			Emails:   emailList,
+			Channels: []string{th.BasicChannel.Id},
+			Message:  "test message",
+		}
+		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, invite, th.BasicUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
+
+		_, err = th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, invite, th.BasicUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 	})
 }
 

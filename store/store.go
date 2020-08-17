@@ -429,13 +429,13 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) *model.AppError
-	SaveOrUpdate(system *model.System) *model.AppError
-	Update(system *model.System) *model.AppError
-	Get() (model.StringMap, *model.AppError)
-	GetByName(name string) (*model.System, *model.AppError)
-	PermanentDeleteByName(name string) (*model.System, *model.AppError)
-	InsertIfExists(system *model.System) (*model.System, *model.AppError)
+	Save(system *model.System) error
+	SaveOrUpdate(system *model.System) error
+	Update(system *model.System) error
+	Get() (model.StringMap, error)
+	GetByName(name string) (*model.System, error)
+	PermanentDeleteByName(name string) (*model.System, error)
+	InsertIfExists(system *model.System) (*model.System, error)
 }
 
 type WebhookStore interface {
@@ -525,12 +525,12 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) *model.AppError
-	Get(userId string) (*model.Status, *model.AppError)
-	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	ResetAll() *model.AppError
-	GetTotalActiveUsersCount() (int64, *model.AppError)
-	UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError
+	SaveOrUpdate(status *model.Status) error
+	Get(userId string) (*model.Status, error)
+	GetByIds(userIds []string) ([]*model.Status, error)
+	ResetAll() error
+	GetTotalActiveUsersCount() (int64, error)
+	UpdateLastActivityAt(userId string, lastActivityAt int64) error
 }
 
 type FileInfoStore interface {
@@ -587,15 +587,15 @@ type UserAccessTokenStore interface {
 }
 
 type PluginStore interface {
-	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
-	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
-	Delete(pluginId, key string) *model.AppError
-	DeleteAllForPlugin(PluginId string) *model.AppError
-	DeleteAllExpired() *model.AppError
-	List(pluginId string, page, perPage int) ([]string, *model.AppError)
+	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error)
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error)
+	Get(pluginId, key string) (*model.PluginKeyValue, error)
+	Delete(pluginId, key string) error
+	DeleteAllForPlugin(PluginId string) error
+	DeleteAllExpired() error
+	List(pluginId string, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {

@@ -31,7 +31,8 @@ func cleanupChannels(t *testing.T, ss store.Store) {
 	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nilf(t, err, "error cleaning all channels: %v", err)
 	for _, channel := range *list {
-		ss.Channel().PermanentDelete(channel.Id)
+		err = ss.Channel().PermanentDelete(channel.Id)
+		assert.NoError(t, err)
 	}
 }
 
@@ -78,8 +79,8 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
 	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
-	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss, s) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -5114,9 +5115,6 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
 	} {
 		for _, testCase := range testCases {
 			t.Run(name+"/"+testCase.Description, func(t *testing.T) {
-				if name == "AutocompleteInTeam" && testCase.Description == "empty string" && s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-					t.Skip("Skip test for MySQL. TODO: Understand why this test fails in mysql 5.6 in the CI")
-				}
 				channels, err := search(testCase.TeamId, testCase.Term, testCase.IncludeDeleted)
 				require.Nil(t, err)
 
@@ -5376,8 +5374,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	o10 := model.Channel{
 		TeamId:      t1.Id,
-		DisplayName: "B10 The",
-		Name:        "the",
+		DisplayName: "B10 That",
+		Name:        "that",
 		Type:        model.CHANNEL_OPEN,
 	}
 	_, nErr = ss.Channel().Save(&o10, -1)
@@ -5443,7 +5441,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6, &o7, &o8}, 0},
 		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}, 0},
 		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
-		{"the in name", "the", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o10}, 0},
+		{"that in name", "that", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o10}, 0},
 		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o11}, 0},
 		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o12}, 0},
 		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}, 0},
