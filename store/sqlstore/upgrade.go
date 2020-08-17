@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_27_0
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
 	VERSION_5_26_0           = "5.26.0"
@@ -828,11 +828,9 @@ func upgradeDatabaseToVersion526(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion527(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	}
 }
 
 func upgradeDatabaseToVersion528(sqlStore SqlStore) {
