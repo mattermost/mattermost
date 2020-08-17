@@ -31,6 +31,14 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// no sniffing for ports or passwords
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT) {
+		if (*cfg.ElasticsearchSettings.ConnectionUrl != *c.App.Config().ElasticsearchSettings.ConnectionUrl) || (*cfg.ElasticsearchSettings.Password != model.FAKE_SETTING) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT)
+			return
+		}
+	}
+
 	if err := c.App.TestElasticsearch(cfg); err != nil {
 		c.Err = err
 		return
