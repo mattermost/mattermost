@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_25_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	VERSION_5_28_0           = "5.28.0"
+	VERSION_5_27_0           = "5.27.0"
 	VERSION_5_26_0           = "5.26.0"
 	VERSION_5_25_0           = "5.25.0"
 	VERSION_5_24_0           = "5.24.0"
@@ -184,6 +186,9 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion524(sqlStore)
 	upgradeDatabaseToVersion525(sqlStore)
 	upgradeDatabaseToVersion526(sqlStore)
+	upgradeDatabaseToVersion527(sqlStore)
+	upgradeDatabaseToVersion528(sqlStore)
+
 	return nil
 }
 
@@ -816,25 +821,42 @@ func upgradeDatabaseToVersion525(sqlStore SqlStore) {
 }
 
 func upgradeDatabaseToVersion526(sqlStore SqlStore) {
-	// TODO: uncomment when the time arrive to upgrade the DB for 5.26
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
-	if err := precheckMigrationToVersion526(sqlStore); err != nil {
-		mlog.Error("Error upgrading DB schema to 5.26.0", mlog.Err(err))
+	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	}
+}
+
+func upgradeDatabaseToVersion527(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	// }
+}
+
+func upgradeDatabaseToVersion528(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.28
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
+	if err := precheckMigrationToVersion528(sqlStore); err != nil {
+		mlog.Error("Error upgrading DB schema to 5.28.0", mlog.Err(err))
 		os.Exit(EXIT_GENERIC_FAILURE)
 	}
+
+	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
+	sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
 
 	sqlStore.AlterColumnTypeIfExists("Teams", "Type", "VARCHAR(255)", "VARCHAR(255)")
 	sqlStore.AlterColumnTypeIfExists("Teams", "SchemeId", "VARCHAR(26)", "VARCHAR(26)")
 	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
 	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
 
-	sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
-
-	//saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	// saveSchemaVersion(sqlStore, VERSION_5_28_0)
 	//}
 }
 
-func precheckMigrationToVersion526(sqlStore SqlStore) error {
+func precheckMigrationToVersion528(sqlStore SqlStore) error {
 	teamsQuery, _, err := sqlStore.getQueryBuilder().Select(`COALESCE(SUM(CASE
 				WHEN CHAR_LENGTH(SchemeId) > 26 THEN 1
 				ELSE 0

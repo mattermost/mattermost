@@ -22,7 +22,9 @@ import (
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
@@ -199,10 +201,6 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
-	if !*cfg.EmailSettings.SendEmailNotifications {
-		return nil
-	}
-
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
 	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
@@ -221,7 +219,7 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 
 	T := utils.GetUserTranslations(user.Locale)
 	license := a.Srv().License()
-	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
+	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance, ""); err != nil {
 		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 

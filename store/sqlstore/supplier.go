@@ -855,6 +855,10 @@ func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableNa
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
 }
 
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
+}
+
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_FULL_TEXT, false)
 }
@@ -1180,8 +1184,8 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	results := make(chan store.IntegrityCheckResult)
+func (ss *SqlSupplier) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
 }

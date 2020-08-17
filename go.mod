@@ -32,7 +32,6 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.1 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
-	github.com/google/uuid v1.1.1 // indirect
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/schema v1.1.0
@@ -43,7 +42,7 @@ require (
 	github.com/hashicorp/go-hclog v0.14.1
 	github.com/hashicorp/go-immutable-radix v1.2.0 // indirect
 	github.com/hashicorp/go-msgpack v1.1.5 // indirect
-	github.com/hashicorp/go-multierror v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
@@ -54,8 +53,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.1.0
-	github.com/klauspost/cpuid v1.3.0 // indirect
+	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/lib/pq v1.7.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
@@ -63,19 +61,23 @@ require (
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+	github.com/mattermost/logr v1.0.5
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/miekg/dns v1.1.29 // indirect
-	github.com/minio/minio-go/v6 v6.0.57
+	github.com/minio/minio-go/v7 v7.0.3
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/muesli/smartcrop v0.3.0 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/olivere/elastic v6.2.33+incompatible // indirect
+	github.com/onsi/ginkgo v1.12.0 // indirect
+	github.com/onsi/gomega v1.9.0 // indirect
+	github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pborman/uuid v1.2.0
 	github.com/pelletier/go-toml v1.8.0 // indirect
@@ -100,22 +102,22 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/throttled/throttled v2.2.4+incompatible
-	github.com/tinylib/msgp v1.1.2 // indirect
+	github.com/tinylib/msgp v1.1.2
+	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/tylerb/graceful v1.2.15
 	github.com/uber/jaeger-client-go v2.24.0+incompatible
 	github.com/uber/jaeger-lib v2.2.0+incompatible
 	github.com/vmihailenco/msgpack/v5 v5.0.0-beta.1
-	github.com/wiggin77/logr v1.0.4
 	github.com/wiggin77/merror v1.0.2
 	github.com/wiggin77/srslog v1.0.1
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	go.uber.org/zap v1.15.0
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 	golang.org/x/image v0.0.0-20200618115811-c13761719519
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344
-	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381
+	golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd // indirect
 	golang.org/x/text v0.3.3
 	golang.org/x/tools v0.0.0-20200626171337-aa94e735be7f
 	google.golang.org/appengine v1.6.6 // indirect
@@ -123,7 +125,6 @@ require (
 	google.golang.org/grpc v1.30.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/ini.v1 v1.57.0 // indirect
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/olivere/elastic.v6 v6.2.33

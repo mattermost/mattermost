@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -29,8 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
 
-	s3 "github.com/minio/minio-go/v6"
-	"github.com/minio/minio-go/v6/pkg/credentials"
+	s3 "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -98,7 +99,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	if includeCache {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	th := &TestHelper{
@@ -188,7 +189,9 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -204,7 +207,9 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -220,7 +225,9 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -283,7 +290,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) InitLogin() *TestHelper {
 	me.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
@@ -318,9 +325,21 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser.Password = "Pa$$word11"
 	me.BasicUser2.Password = "Pa$$word11"
 
-	me.LoginSystemAdmin()
-	me.LoginTeamAdmin()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		me.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		me.LoginTeamAdmin()
+		wg.Done()
+	}()
+	wg.Wait()
+	return me
+}
 
+func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
@@ -872,7 +891,13 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	} else {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
-	return s3.NewWithCredentials(endpoint, creds, secure, region)
+
+	opts := s3.Options{
+		Creds:  creds,
+		Secure: secure,
+		Region: region,
+	}
+	return s3.New(endpoint, &opts)
 }
 
 func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
@@ -889,18 +914,18 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 			return err
 		}
 		bucket := *cfg.FileSettings.AmazonS3Bucket
-		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
+		if err := s3Clnt.RemoveObject(context.Background(), bucket, info.Path, s3.RemoveObjectOptions{}); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.ThumbnailPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.ThumbnailPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.PreviewPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.PreviewPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
