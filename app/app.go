@@ -103,6 +103,10 @@ func (a *App) InitServer() {
 		if a.Srv().runjobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
+
+				if *a.Config().ServiceSettings.EnableAWSMetering {
+					runReportToAWSMeterJob(a)
+				}
 				runCheckNumberOfActiveUsersWarnMetricStatusJob(a)
 			})
 		}

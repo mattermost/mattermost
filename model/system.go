@@ -23,6 +23,8 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200 = "warn_metric_number_of_active_users_200"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400 = "warn_metric_number_of_active_users_400"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
+	AWS_METERING_REPORT_INTERVAL                  = 3
+	AWS_METERING_DIMENSION_USAGE_HRS              = "UsageHrs"
 )
 
 const (

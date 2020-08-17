@@ -1255,7 +1255,31 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 
 	v, err := us.GetReplica().SelectInt(queryStr, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlUserStore.AnalyticsDailyActiveUsers", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCount", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return v, nil
+}
+
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, *model.AppError) {
+	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > :StartTime AND LastActivityAt <= :EndTime", map[string]interface{}{"StartTime": startTime, "EndTime": endTime})
+
+	if !options.IncludeBotAccounts {
+		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+	}
+
+	queryStr, args, err := query.ToSql()
+
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCountForPeriod", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	v, err := us.GetReplica().SelectInt(queryStr, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCountForPeriod", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return v, nil
 }
