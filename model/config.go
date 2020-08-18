@@ -3482,5 +3482,7 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
+	}
 }
