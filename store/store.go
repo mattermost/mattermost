@@ -573,6 +573,7 @@ type JobStore interface {
 	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
 	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
 	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
+	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError)
 	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
 	Delete(id string) (string, *model.AppError)
 }
