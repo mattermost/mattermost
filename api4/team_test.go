@@ -2773,7 +2773,6 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 
 	})
 
-	// User count is well below limit
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 100
 	})
