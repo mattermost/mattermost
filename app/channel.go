@@ -2345,9 +2345,17 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return model.NewAppError("PermanentDeleteChannel", "app.webhooks.permanent_delete_outgoing_by_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	deleteAt := model.GetMillis()
+
 	if nErr := a.Srv().Store.Channel().PermanentDelete(channel.Id); nErr != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
+
+	a.invalidateCacheForChannel(channel)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
+	message.Add("channel_id", channel.Id)
+	message.Add("delete_at", deleteAt)
+	a.Publish(message)
 
 	return nil
 }

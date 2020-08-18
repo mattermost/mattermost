@@ -78,8 +78,8 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, ss) })
 	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, ss) })
 	t.Run("GetGuestCount", func(t *testing.T) { testGetGuestCount(t, ss) })
-	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss, s) })
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, ss) })
+	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, ss, s) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
@@ -5114,9 +5114,6 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store, s SqlSupplier) {
 	} {
 		for _, testCase := range testCases {
 			t.Run(name+"/"+testCase.Description, func(t *testing.T) {
-				if name == "AutocompleteInTeam" && testCase.Description == "empty string" && s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-					t.Skip("Skip test for MySQL. TODO: Understand why this test fails in mysql 5.6 in the CI")
-				}
 				channels, err := search(testCase.TeamId, testCase.Term, testCase.IncludeDeleted)
 				require.Nil(t, err)
 
