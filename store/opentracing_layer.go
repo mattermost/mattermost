@@ -4035,13 +4035,13 @@ func (s *OpenTracingLayerJobStore) GetNewestJobByStatusesAndType(statuses []stri
 	}()
 
 	defer span.Finish()
-	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
+	resultVar0, resultVar1 := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
 		ext.Error.Set(span, true)
 	}
 
-	return result, err
+	return resultVar0, resultVar1
 }
 
 func (s *OpenTracingLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
