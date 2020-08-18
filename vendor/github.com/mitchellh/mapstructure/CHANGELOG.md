@@ -1,3 +1,7 @@
+## 1.3.3
+
+* Decoding maps from maps creates a settable value for decode hooks [GH-203]
+
 ## 1.3.2
 
 * Decode into interface type with a struct value is supported [GH-187]
