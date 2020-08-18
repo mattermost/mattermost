@@ -749,11 +749,6 @@ func yaml_parser_fetch_next_token(parser *yaml_parser_t) (ok bool) {
 		if !ok {
 			return
 		}
-		if len(parser.tokens) > 0 && parser.tokens[len(parser.tokens)-1].typ == yaml_BLOCK_ENTRY_TOKEN {
-			// Sequence indicators alone have no line comments. It becomes
-			// a head comment for whatever follows.
-			return
-		}
 		if !yaml_parser_scan_line_comment(parser, comment_mark) {
 			ok = false
 			return
@@ -2861,12 +2856,13 @@ func yaml_parser_scan_line_comment(parser *yaml_parser_t, token_mark yaml_mark_t
 						return false
 					}
 					skip_line(parser)
-				} else if parser.mark.index >= seen {
-					if len(text) == 0 {
-						start_mark = parser.mark
-					}
-					text = read(parser, text)
 				} else {
+					if parser.mark.index >= seen {
+						if len(text) == 0 {
+							start_mark = parser.mark
+						}
+						text = append(text, parser.buffer[parser.buffer_pos])
+					}
 					skip(parser)
 				}
 			}
@@ -3003,9 +2999,10 @@ func yaml_parser_scan_comments(parser *yaml_parser_t, scan_mark yaml_mark_t) boo
 					return false
 				}
 				skip_line(parser)
-			} else if parser.mark.index >= seen {
-				text = read(parser, text)
 			} else {
+				if parser.mark.index >= seen {
+					text = append(text, parser.buffer[parser.buffer_pos])
+				}
 				skip(parser)
 			}
 		}
