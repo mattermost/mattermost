@@ -2732,46 +2732,57 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 2
 	})
 
-	// System admin, invite when at limit should fail
-	invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
-	CheckNoError(t, resp)
-	require.Len(t, invitesWithErrors, 2)
-	require.NotNil(t, invitesWithErrors[0].Error)
-	assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the user limit of your current tier")
-	require.NotNil(t, invitesWithErrors[1].Error)
-	assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
-	// Regular user, invite when at limit should succeed
-	invitesWithErrors, resp = th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email3})
-	CheckNoError(t, resp)
-	require.Len(t, invitesWithErrors, 1)
-	assert.Nil(t, invitesWithErrors[0].Error)
+	t.Run("System admin, invite when at limit should fail", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the user limit of your current tier")
+		require.NotNil(t, invitesWithErrors[1].Error)
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
+	})
 
-	// 1 remaining user, attempt to invite more than one users as admin, only one invite sent
+	t.Run("Regular user, invite when at limit should succeed", func(t *testing.T) {
+		invitesWithErrors, resp := th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email3})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 1)
+		assert.Nil(t, invitesWithErrors[0].Error)
+
+	})
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 5
 	})
-	invitesWithErrors, resp = th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
-	CheckNoError(t, resp)
-	require.Len(t, invitesWithErrors, 2)
-	require.Nil(t, invitesWithErrors[0].Error)
-	require.NotNil(t, invitesWithErrors[1].Error)
-	assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
 
-	// 1 remaining user, attempt to invite 2 users as admin, both invites sent
-	invitesWithErrors, resp = th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
-	CheckNoError(t, resp)
-	require.Len(t, invitesWithErrors, 2)
-	assert.Nil(t, invitesWithErrors[0].Error)
-	assert.Nil(t, invitesWithErrors[1].Error)
+	t.Run("With one remaining user inviting more than one user as admin invites only one user", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.Nil(t, invitesWithErrors[0].Error)
+		require.NotNil(t, invitesWithErrors[1].Error)
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
+
+	})
+
+	t.Run("With one remaining user inviting more than one user as a regular user sends all invites", func(t *testing.T) {
+		invitesWithErrors, resp := th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		assert.Nil(t, invitesWithErrors[0].Error)
+		assert.Nil(t, invitesWithErrors[1].Error)
+
+	})
 
 	// User count is well below limit
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.CloudUserLimit = 100
 	})
-	invitesWithErrors, resp = th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
-	CheckNoError(t, resp)
-	require.Len(t, invitesWithErrors, 2)
-	require.Nil(t, invitesWithErrors[0].Error)
+	t.Run("Invited user count is well below limit", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
 }
 
 func TestInviteUsersToTeam(t *testing.T) {
