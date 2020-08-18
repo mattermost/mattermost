@@ -112,8 +112,7 @@ func (a *App) SyncPluginsActiveState() {
 			go func(plugin *model.BundleInfo) {
 				defer wg.Done()
 
-				pluginId := plugin.Manifest.Id
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
+				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
