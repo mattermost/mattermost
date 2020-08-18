@@ -210,6 +210,31 @@ func (_m *JobStore) GetNewestJobByStatusAndType(status string, jobType string) (
 	return r0, r1
 }
 
+// GetNewestJobByStatusesAndType provides a mock function with given fields: statuses, jobType
+func (_m *JobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+	ret := _m.Called(statuses, jobType)
+
+	var r0 *model.Job
+	if rf, ok := ret.Get(0).(func([]string, string) *model.Job); ok {
+		r0 = rf(statuses, jobType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string, string) *model.AppError); ok {
+		r1 = rf(statuses, jobType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: job
 func (_m *JobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 	ret := _m.Called(job)
