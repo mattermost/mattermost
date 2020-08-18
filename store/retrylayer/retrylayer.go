@@ -2680,6 +2680,12 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 
 }
 
+func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+
+	return s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+
+}
+
 func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 
 	return s.JobStore.Save(job)
@@ -3164,57 +3170,183 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 
 }
 
-func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 
-	return s.PluginStore.CompareAndDelete(keyVal, oldValue)
-
-}
-
-func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
-
-	return s.PluginStore.CompareAndSet(keyVal, oldValue)
-
-}
-
-func (s *RetryLayerPluginStore) Delete(pluginId string, key string) *model.AppError {
-
-	return s.PluginStore.Delete(pluginId, key)
-
-}
-
-func (s *RetryLayerPluginStore) DeleteAllExpired() *model.AppError {
-
-	return s.PluginStore.DeleteAllExpired()
+	tries := 0
+	for {
+		result, err := s.PluginStore.CompareAndDelete(keyVal, oldValue)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) *model.AppError {
+func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 
-	return s.PluginStore.DeleteAllForPlugin(PluginId)
-
-}
-
-func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, *model.AppError) {
-
-	return s.PluginStore.Get(pluginId, key)
-
-}
-
-func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, *model.AppError) {
-
-	return s.PluginStore.List(pluginId, page, perPage)
-
-}
-
-func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError) {
-
-	return s.PluginStore.SaveOrUpdate(keyVal)
+	tries := 0
+	for {
+		result, err := s.PluginStore.CompareAndSet(keyVal, oldValue)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError) {
+func (s *RetryLayerPluginStore) Delete(pluginId string, key string) error {
 
-	return s.PluginStore.SetWithOptions(pluginId, key, value, options)
+	tries := 0
+	for {
+		err := s.PluginStore.Delete(pluginId, key)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) DeleteAllExpired() error {
+
+	tries := 0
+	for {
+		err := s.PluginStore.DeleteAllExpired()
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) error {
+
+	tries := 0
+	for {
+		err := s.PluginStore.DeleteAllForPlugin(PluginId)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginKeyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.Get(pluginId, key)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.List(pluginId, page, perPage)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.SaveOrUpdate(keyVal)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PluginStore.SetWithOptions(pluginId, key, value, options)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -4524,81 +4656,263 @@ func (s *RetryLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 
 }
 
-func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, error) {
 
-	return s.StatusStore.Get(userId)
-
-}
-
-func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
-
-	return s.StatusStore.GetByIds(userIds)
-
-}
-
-func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
-
-	return s.StatusStore.GetTotalActiveUsersCount()
-
-}
-
-func (s *RetryLayerStatusStore) ResetAll() *model.AppError {
-
-	return s.StatusStore.ResetAll()
+	tries := 0
+	for {
+		result, err := s.StatusStore.Get(userId)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
 
-	return s.StatusStore.SaveOrUpdate(status)
-
-}
-
-func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
-
-	return s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
-
-}
-
-func (s *RetryLayerSystemStore) Get() (model.StringMap, *model.AppError) {
-
-	return s.SystemStore.Get()
-
-}
-
-func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, *model.AppError) {
-
-	return s.SystemStore.GetByName(name)
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetByIds(userIds)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 
-	return s.SystemStore.InsertIfExists(system)
-
-}
-
-func (s *RetryLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
-
-	return s.SystemStore.PermanentDeleteByName(name)
-
-}
-
-func (s *RetryLayerSystemStore) Save(system *model.System) *model.AppError {
-
-	return s.SystemStore.Save(system)
-
-}
-
-func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppError {
-
-	return s.SystemStore.SaveOrUpdate(system)
+	tries := 0
+	for {
+		result, err := s.StatusStore.GetTotalActiveUsersCount()
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerSystemStore) Update(system *model.System) *model.AppError {
+func (s *RetryLayerStatusStore) ResetAll() error {
 
-	return s.SystemStore.Update(system)
+	tries := 0
+	for {
+		err := s.StatusStore.ResetAll()
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.SaveOrUpdate(status)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
+
+	tries := 0
+	for {
+		err := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) Get() (model.StringMap, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.Get()
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.GetByName(name)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.InsertIfExists(system)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) PermanentDeleteByName(name string) (*model.System, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.PermanentDeleteByName(name)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) Save(system *model.System) error {
+
+	tries := 0
+	for {
+		err := s.SystemStore.Save(system)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) error {
+
+	tries := 0
+	for {
+		err := s.SystemStore.SaveOrUpdate(system)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerSystemStore) Update(system *model.System) error {
+
+	tries := 0
+	for {
+		err := s.SystemStore.Update(system)
+		if err == nil {
+			return err
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
