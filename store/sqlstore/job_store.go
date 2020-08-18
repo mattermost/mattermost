@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -205,8 +206,11 @@ func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppEr
 	}
 	return statuses, nil
 }
-
 func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
+	return jss.GetNewestJobByStatusesAndType([]string{status}, jobType)
+}
+
+func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, *model.AppError) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -219,7 +223,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 
 	var job *model.Job
 	if err = jss.GetReplica().SelectOne(&job, query, args...); err != nil && err != sql.ErrNoRows {
-		return nil, model.NewAppError("SqlJobStore.GetNewestJobByStatusAndType", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlJobStore.GetNewestJobByStatusAndType", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+strings.Join(status, ",")+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return job, nil
 }
