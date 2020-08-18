@@ -62,7 +62,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 				}
 			}
 		} else if nfErr := new(store.ErrNotFound); !errors.As(nErr, &nfErr) {
-			return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, nfErr.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetSession", "app.session.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
