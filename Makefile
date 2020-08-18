@@ -188,6 +188,10 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+	@exit 1
+endif
 # Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
