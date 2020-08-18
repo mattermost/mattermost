@@ -283,7 +283,7 @@ github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 ## explicit
 github.com/mattermost/ldap
-# github.com/mattermost/logr v1.0.5
+# github.com/mattermost/logr v1.0.7
 ## explicit
 github.com/mattermost/logr
 github.com/mattermost/logr/format
@@ -471,14 +471,9 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
-github.com/tinylib/msgp
-github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
-github.com/tinylib/msgp/parse
-github.com/tinylib/msgp/printer
 # github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
 ## explicit
-github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
