@@ -222,7 +222,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.Cloud == nil {
-		f.Cloud = NewBool(*f.FutureFeatures)
+		f.Cloud = NewBool(false)
 	}
 }
 
