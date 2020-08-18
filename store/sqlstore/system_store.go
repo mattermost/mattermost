@@ -6,10 +6,11 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 type SqlSystemStore struct {
@@ -31,38 +32,38 @@ func newSqlSystemStore(sqlStore SqlStore) store.SystemStore {
 func (s SqlSystemStore) createIndexesIfNotExists() {
 }
 
-func (s SqlSystemStore) Save(system *model.System) *model.AppError {
+func (s SqlSystemStore) Save(system *model.System) error {
 	if err := s.GetMaster().Insert(system); err != nil {
-		return model.NewAppError("SqlSystemStore.Save", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
 	}
 	return nil
 }
 
-func (s SqlSystemStore) SaveOrUpdate(system *model.System) *model.AppError {
+func (s SqlSystemStore) SaveOrUpdate(system *model.System) error {
 	if err := s.GetMaster().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
 		if _, err := s.GetMaster().Update(system); err != nil {
-			return model.NewAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
 		}
 	} else {
 		if err := s.GetMaster().Insert(system); err != nil {
-			return model.NewAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
 		}
 	}
 	return nil
 }
 
-func (s SqlSystemStore) Update(system *model.System) *model.AppError {
+func (s SqlSystemStore) Update(system *model.System) error {
 	if _, err := s.GetMaster().Update(system); err != nil {
-		return model.NewAppError("SqlSystemStore.Update", "store.sql_system.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to update system property with name=%s", system.Name)
 	}
 	return nil
 }
 
-func (s SqlSystemStore) Get() (model.StringMap, *model.AppError) {
+func (s SqlSystemStore) Get() (model.StringMap, error) {
 	var systems []model.System
 	props := make(model.StringMap)
 	if _, err := s.GetReplica().Select(&systems, "SELECT * FROM Systems"); err != nil {
-		return nil, model.NewAppError("SqlSystemStore.Get", "store.sql_system.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to system properties")
 	}
 	for _, prop := range systems {
 		props[prop.Name] = prop.Value
@@ -71,19 +72,19 @@ func (s SqlSystemStore) Get() (model.StringMap, *model.AppError) {
 	return props, nil
 }
 
-func (s SqlSystemStore) GetByName(name string) (*model.System, *model.AppError) {
+func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
 	var system model.System
 	if err := s.GetMaster().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-		return nil, model.NewAppError("SqlSystemStore.GetByName", "store.sql_system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 
 	return &system, nil
 }
 
-func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
+func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, error) {
 	var system model.System
 	if _, err := s.GetMaster().Exec("DELETE FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-		return nil, model.NewAppError("SqlSystemStore.PermanentDeleteByName", "store.sql_system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to permanent delete system property with name=%s", system.Name)
 	}
 
 	return &system, nil
@@ -91,12 +92,12 @@ func (s SqlSystemStore) PermanentDeleteByName(name string) (*model.System, *mode
 
 // InsertIfExists inserts a given system value if it does not already exist. If a value
 // already exists, it returns the old one, else returns the new one.
-func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
 	tx, err := s.GetMaster().BeginTx(context.Background(), &sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(tx)
 
@@ -104,7 +105,7 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, *mo
 	if err := tx.SelectOne(&origSystem, `SELECT * FROM Systems
 		WHERE Name = :Name`,
 		map[string]interface{}{"Name": system.Name}); err != nil && err != sql.ErrNoRows {
-		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get system property with name=%s", system.Name)
 	}
 
 	if origSystem.Value != "" {
@@ -114,11 +115,11 @@ func (s SqlSystemStore) InsertIfExists(system *model.System) (*model.System, *mo
 
 	// Key does not exist, need to insert.
 	if err := tx.Insert(system); err != nil {
-		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to save system property with name=%s", system.Name)
 	}
 
 	if err := tx.Commit(); err != nil {
-		return nil, model.NewAppError("SqlSystemStore.InsertIfExists", "store.sql_system.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 	return system, nil
 }

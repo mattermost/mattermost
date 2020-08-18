@@ -30,6 +30,11 @@ const (
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
 
+//msgp:tuple Session
+
+// Session contains the user session details.
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`
@@ -175,8 +180,21 @@ func (me *Session) IsSaml() bool {
 	return isSaml
 }
 
+func (me *Session) IsOAuthUser() bool {
+	val, ok := me.Props[USER_AUTH_SERVICE_IS_OAUTH]
+	if !ok {
+		return false
+	}
+	isOAuthUser, err := strconv.ParseBool(val)
+	if err != nil {
+		mlog.Error("Error parsing boolean property from Session", mlog.Err(err))
+		return false
+	}
+	return isOAuthUser
+}
+
 func (me *Session) IsSSOLogin() bool {
-	return me.IsOAuth || me.IsSaml()
+	return me.IsOAuthUser() || me.IsSaml()
 }
 
 func (me *Session) GetUserRoles() []string {

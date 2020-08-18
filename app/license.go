@@ -31,8 +31,8 @@ func (s *Server) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, err := s.Store.System().Get()
-	if err == nil {
+	props, nErr := s.Store.System().Get()
+	if nErr == nil {
 		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
 	}
 
@@ -41,7 +41,7 @@ func (s *Server) LoadLicense() {
 		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*s.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
-			if _, err = s.SaveLicense(licenseBytes); err != nil {
+			if _, err := s.SaveLicense(licenseBytes); err != nil {
 				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
 			} else {
 				licenseId = license.Id
@@ -184,7 +184,7 @@ func (s *Server) RemoveLicense() *model.AppError {
 	sysVar.Value = ""
 
 	if err := s.Store.System().SaveOrUpdate(sysVar); err != nil {
-		return err
+		return model.NewAppError("RemoveLicense", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	s.SetLicense(nil)
