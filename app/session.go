@@ -95,7 +95,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 			// So moving this to a goroutine has 2 advantages:
 			// 1. We are treating this as a proper asynchronous task.
 			// 2. This also fixes a race condition in the web hub, where GetSession
-			// gets called from (*WebConn).IsAuthenticated and revoking a session involves
+			// gets called from (*WebConn).isMemberOfTeam and revoking a session involves
 			// clearing the webconn cache, which needs the hub again.
 			a.Srv().Go(func() {
 				err := a.RevokeSessionById(session.Id)
