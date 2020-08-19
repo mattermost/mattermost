@@ -13,9 +13,11 @@ import (
 	"github.com/gorilla/websocket"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
@@ -105,6 +107,90 @@ func TestHubStopRaceCondition(t *testing.T) {
 	case <-done:
 	case <-time.After(15 * time.Second):
 		require.FailNow(t, "hub call did not return within 15 seconds after stop")
+	}
+}
+
+func TestHubSessionRevokeRace(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	sess1 := &model.Session{
+		Id:             "id1",
+		UserId:         "user1",
+		DeviceId:       "",
+		Token:          "sesstoken",
+		ExpiresAt:      model.GetMillis() + 300000,
+		LastActivityAt: 10000,
+	}
+
+	mockStore := th.App.Srv().Store.(*mocks.Store)
+
+	mockUserStore := mocks.UserStore{}
+	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
+	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string")).Return(int64(1), nil)
+	mockPostStore := mocks.PostStore{}
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	mockSessionStore := mocks.SessionStore{}
+	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
+	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
+	mockSessionStore.On("Get", "id1").Return(sess1, nil)
+	mockSessionStore.On("Remove", "id1").Return(nil)
+
+	mockStatusStore := mocks.StatusStore{}
+	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.STATUS_ONLINE}, nil)
+	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
+	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
+
+	mockStore.On("Session").Return(&mockSessionStore)
+	mockStore.On("Status").Return(&mockStatusStore)
+	mockStore.On("User").Return(&mockUserStore)
+	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("System").Return(&mockSystemStore)
+
+	// This needs to be false for the condition to trigger
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ExtendSessionLengthWithActivity = false
+	})
+
+	s := httptest.NewServer(dummyWebsocketHandler(t))
+	defer s.Close()
+
+	wc1 := registerDummyWebConn(t, th.App, s.Listener.Addr(), "testid")
+	hub := th.App.Srv().hubs[0]
+	hub.Register(wc1)
+
+	done := make(chan bool)
+
+	time.Sleep(time.Second)
+	// We override the LastActivityAt which happens in NewWebConn.
+	// This is needed to call RevokeSessionById which triggers the race.
+	th.App.AddSessionToCache(sess1)
+
+	go func() {
+		for i := 0; i <= broadcastQueueSize; i++ {
+			hub.Broadcast(model.NewWebSocketEvent("", "teamId", "", "", nil))
+		}
+		close(done)
+	}()
+
+	// This call should happen _after_ !wc.IsAuthenticated() and _before_wc.isMemberOfTeam().
+	// There's no guarantee this will happen. But that's out best bet to trigger this race.
+	wc1.InvalidateCache()
+
+	for i := 0; i < 10; i++ {
+		// If broadcast buffer has not emptied,
+		// we sleep for a second and check again
+		if len(hub.broadcast) > 0 {
+			time.Sleep(time.Second)
+			continue
+		}
+	}
+	if len(hub.broadcast) > 0 {
+		require.Fail(t, "hub is deadlocked")
 	}
 }
 
