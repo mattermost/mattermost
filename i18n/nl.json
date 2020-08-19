@@ -1608,7 +1608,7 @@
     },
     {
         "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-        "translation": "Unable to forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+        "translation": "Kan niet doorsturen van poort 80 naar poort 443 al luisteren op poort %s: schakel Forward80To443 uit als je een proxyserver gebruikt"
     },
     {
         "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1624,11 +1624,11 @@
     },
     {
         "id": "api.slackimport.slack_add_bot_user.email_pwd",
-        "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+        "translation": "De integratie/Slack Bot gebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} werd geïmporteerd.\n"
     },
     {
         "id": "api.slackimport.slack_add_bot_user.unable_import",
-        "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
+        "translation": "Fout bij het importeren van  Integratie /Slack Bot gebruiker {{.Username}}.\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.added",
@@ -1636,15 +1636,15 @@
     },
     {
         "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-        "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+        "translation": "Fout bij het toevoegen aan kanaal van  Slack gebruiker {{.Username}}\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.import_failed",
-        "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+        "translation": "Fout bij het importeren van Slack kanaal {{.DisplayName}}.\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.merge",
-        "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+        "translation": "Het Slack kanaal {{.DisplayName}} bestaat als een actief Mattermost kanal. Beide kanalen werden samgenvoegd.\n"
     },
     {
         "id": "api.slackimport.slack_add_users.created",
@@ -1652,19 +1652,19 @@
     },
     {
         "id": "api.slackimport.slack_add_users.email_pwd",
-        "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+        "translation": "Slack gebruiker met e-mail {{.Email}} en wachtwoord {{.Password}} is geïmporteerd.\n"
     },
     {
         "id": "api.slackimport.slack_add_users.merge_existing",
-        "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+        "translation": "Slack gebruiker is samengevoegd met een bestaande Mattermost gebruiker met hetzelfde e-mailadres {{.Email}} en gebruikersnaam {{.Username}}.\n"
     },
     {
         "id": "api.slackimport.slack_add_users.merge_existing_failed",
-        "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+        "translation": "Slack gebruiker is samengevoegd met een bestaande Mattermost gebruiker met hetzelfde e-mailadres {{.Email}} en gebruikersnaam {{.Username}}, maar kon de gebruiker niet toevoegen aan hun team.\n"
     },
     {
         "id": "api.slackimport.slack_add_users.missing_email_address",
-        "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+        "translation": "Gebruiker {{.Username}} heeft geen e-mailadres in de Slack export. {{.Email}} werd voorlopig gebruikt. De gebruiker moet het e-mailadres wijzigen eens deze inlogt.\n"
     },
     {
         "id": "api.slackimport.slack_add_users.unable_import",
@@ -1684,7 +1684,7 @@
     },
     {
         "id": "api.slackimport.slack_import.note3",
-        "translation": "- Additional errors may be found in the server logs.\r\n"
+        "translation": "- Bijkomende fouten kunnen gevonden worden in de server logfiles.\n"
     },
     {
         "id": "api.slackimport.slack_import.notes",
@@ -1692,7 +1692,7 @@
     },
     {
         "id": "api.slackimport.slack_import.open.app_error",
-        "translation": "Unable to open the file: {{.Filename}}.\r\n"
+        "translation": "Kan het bestand {{.Filename}} niet openen.\n"
     },
     {
         "id": "api.slackimport.slack_import.team_fail",
@@ -1700,7 +1700,7 @@
     },
     {
         "id": "api.slackimport.slack_import.zip.app_error",
-        "translation": "Unable to open the Slack export zip file.\r\n"
+        "translation": "Fout bij het openen van het Slack export zipbestand.\n"
     },
     {
         "id": "api.status.user_not_found.app_error",
@@ -1712,7 +1712,7 @@
     },
     {
         "id": "api.team.add_user_to_team.missing_parameter.app_error",
-        "translation": "Parameter required to add user to team."
+        "translation": "Parameter is vereist om een gebruiker toe te voegen aan het team."
     },
     {
         "id": "api.team.get_invite_info.not_open_team",
@@ -1724,7 +1724,7 @@
     },
     {
         "id": "api.team.get_team_icon.read_file.app_error",
-        "translation": "Unable to read the team icon file."
+        "translation": "Kan het teampictogrambestand niet lezen."
     },
     {
         "id": "api.team.import_team.array.app_error",
@@ -1752,15 +1752,15 @@
     },
     {
         "id": "api.team.import_team.unavailable.app_error",
-        "translation": "Malformed request: filesize field is not present."
+        "translation": "Foutief gevormd request: filesize veld is niet aanwezig."
     },
     {
         "id": "api.team.invite_members.disabled.app_error",
-        "translation": "Email invitations are disabled."
+        "translation": "E-mailuitnodigingen zijn uitgeschakeld."
     },
     {
         "id": "api.team.invite_members.invalid_email.app_error",
-        "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+        "translation": "Het volgend e-mailadres behoort niet tot een toegelaten domein: {{.Addresses}}. Contacteer je systeembeheerder voor meer informatie."
     },
     {
         "id": "api.team.invite_members.no_one.app_error",
@@ -1776,7 +1776,7 @@
     },
     {
         "id": "api.team.join_team.post_and_forget",
-        "translation": "%v joined the team."
+        "translation": "%v werd lid van het team."
     },
     {
         "id": "api.team.join_user_to_team.allowed_domains.app_error",
@@ -1784,7 +1784,7 @@
     },
     {
         "id": "api.team.leave.left",
-        "translation": "%v left the team."
+        "translation": "%v verliet het team."
     },
     {
         "id": "api.team.move_channel.post.error",
@@ -1792,7 +1792,7 @@
     },
     {
         "id": "api.team.move_channel.success",
-        "translation": "This channel has been moved to this team from %v."
+        "translation": "Dit kanaal is verplaatst van dit team naar %v."
     },
     {
         "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1812,31 +1812,31 @@
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
-        "translation": "Could not decode team icon"
+        "translation": "Kan het teampictogram niet decoderen."
     },
     {
         "id": "api.team.set_team_icon.decode_config.app_error",
-        "translation": "Could not decode team icon metadata"
+        "translation": "Kan de metadata van teampictogram niet decoderen."
     },
     {
         "id": "api.team.set_team_icon.encode.app_error",
-        "translation": "Could not encode team icon"
+        "translation": "Kan het teampictogram niet encoderen."
     },
     {
         "id": "api.team.set_team_icon.get_team.app_error",
-        "translation": "An error occurred getting the team"
+        "translation": "Er trad een fout op bij het ophalen van het team."
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Geen bestand bij 'image' in aanvraag"
+        "translation": "Geen bestand bij 'image' in aanvraag."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
-        "translation": "Kan licentie bestand niet openen"
+        "translation": "Kan afbeeldingsbestand niet openen."
     },
     {
         "id": "api.team.set_team_icon.parse.app_error",
-        "translation": "Kan het 'multipart'-formulier niet verwerken"
+        "translation": "Kan het 'multipart'-formulier niet verwerken."
     },
     {
         "id": "api.team.set_team_icon.storage.app_error",
@@ -1848,35 +1848,35 @@
     },
     {
         "id": "api.team.set_team_icon.write_file.app_error",
-        "translation": "Could not save team icon"
+        "translation": "Kan het teampictogram niet bewaren."
     },
     {
         "id": "api.team.team_icon.update.app_error",
-        "translation": "An error occurred updating the team icon"
+        "translation": "Er trad een fout op bij het bijwerken van het teampictogram."
     },
     {
         "id": "api.team.update_member_roles.not_a_member",
-        "translation": "Specified user is not a member of specified team."
+        "translation": "De opgegeven gebruiker is geen lid van het opgegeven team."
     },
     {
         "id": "api.team.update_restricted_domains.mismatch.app_error",
-        "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+        "translation": "Het team beperken tot {{ .Domain }} is niet toegestaan door de systeemconfiguratie. Neem contact op met je systeembeheerder voor meer informatie."
     },
     {
         "id": "api.team.update_team_scheme.license.error",
-        "translation": "Your license does not support updating a team's scheme"
+        "translation": "Je licentie ondersteunt het bijwerken van een teamschema niet"
     },
     {
         "id": "api.team.update_team_scheme.scheme_scope.error",
-        "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+        "translation": "Kan het schema van het team niet instellen omdat het schema geen teamschema is."
     },
     {
         "id": "api.templates.deactivate_body.info",
-        "translation": "You deactivated your account on {{ .SiteURL }}."
+        "translation": "Je deactiveerde je account op {{ .SiteURL }}."
     },
     {
         "id": "api.templates.deactivate_body.title",
-        "translation": "Your account has been deactivated at {{ .ServerURL }}"
+        "translation": "Je account werd gedactiveerd op {{ .ServerURL }}"
     },
     {
         "id": "api.templates.deactivate_body.warning",
@@ -7948,7 +7948,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7956,7 +7956,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",

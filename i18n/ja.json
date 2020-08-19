@@ -8016,5 +8016,13 @@
     {
         "id": "api.templates.warn_metric_ack.footer",
         "translation": "追加の質問がある場合は、support@mattermost.comへお問い合わせください"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "不正なローカルストレージディレクトリです。何か文字を入力してください。"
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Botをユーザーへ変換できませんでした。"
     }
 ]
