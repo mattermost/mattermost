@@ -330,6 +330,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
+	EnableAPIChannelDeletion                          *bool
 	ExperimentalEnableHardenedMode                    *bool
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
@@ -704,6 +705,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAPIUserDeletion == nil {
 		s.EnableAPIUserDeletion = NewBool(false)
+	}
+
+	if s.EnableAPIChannelDeletion == nil {
+		s.EnableAPIChannelDeletion = NewBool(false)
 	}
 
 	if s.ExperimentalEnableHardenedMode == nil {

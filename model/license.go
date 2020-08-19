@@ -83,6 +83,7 @@ type Features struct {
 	EnterprisePlugins         *bool `json:"enterprise_plugins"`
 	CockroachDB               *bool `json:"cockroach_db"`
 	AdvancedLogging           *bool `json:"advanced_logging"`
+	Cloud                     *bool `json:"cloud"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -112,6 +113,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"enterprise_plugins":          *f.EnterprisePlugins,
 		"cockroach_db":                *f.CockroachDB,
 		"advanced_logging":            *f.AdvancedLogging,
+		"cloud":                       *f.Cloud,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -223,6 +225,10 @@ func (f *Features) SetDefaults() {
 
 	if f.AdvancedLogging == nil {
 		f.AdvancedLogging = NewBool(*f.FutureFeatures)
+	}
+
+	if f.Cloud == nil {
+		f.Cloud = NewBool(false)
 	}
 }
 

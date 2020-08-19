@@ -5,6 +5,7 @@ package api4
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -98,18 +99,31 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: model.NewString(""),
 		},
 		EmailSettings: model.EmailSettings{
-			SMTPServer:             model.NewString(""),
-			SMTPPort:               model.NewString(""),
-			SMTPPassword:           model.NewString(""),
-			FeedbackName:           model.NewString(""),
-			FeedbackEmail:          model.NewString(""),
-			ReplyToAddress:         model.NewString(""),
-			SendEmailNotifications: model.NewBool(false),
+			SMTPServer:                        model.NewString(""),
+			SMTPPort:                          model.NewString(""),
+			SMTPPassword:                      model.NewString(""),
+			FeedbackName:                      model.NewString(""),
+			FeedbackEmail:                     model.NewString("some-addr@test.com"),
+			ReplyToAddress:                    model.NewString("some-addr@test.com"),
+			ConnectionSecurity:                model.NewString(""),
+			SMTPUsername:                      model.NewString(""),
+			EnableSMTPAuth:                    model.NewBool(false),
+			SkipServerCertificateVerification: model.NewBool(true),
+			SendEmailNotifications:            model.NewBool(false),
+			SMTPServerTimeout:                 model.NewInt(15),
+		},
+		FileSettings: model.FileSettings{
+			DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
+			Directory:  model.NewString(dir),
 		},
 	}
 
@@ -128,9 +142,9 @@ func TestEmailTest(t *testing.T) {
 			inbucket_host = "localhost"
 		}
 
-		inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+		inbucket_port := os.Getenv("CI_INBUCKET_SMTP_PORT")
 		if inbucket_port == "" {
-			inbucket_port = "9000"
+			inbucket_port = "10025"
 		}
 
 		*config.EmailSettings.SMTPServer = inbucket_host

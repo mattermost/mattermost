@@ -191,6 +191,10 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+	@exit 1
+endif
 # Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
@@ -557,7 +561,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=serialized_gen.go -tFatal"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \
@@ -569,6 +573,13 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
+
+gen-serialized: ## Generates serialization methods for hot structs
+	# This tool only works at a file level, not at a package level.
+	# So you would need to move the structs that need to be serialized temporarily
+	# to session.go and run the tool.
+	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO

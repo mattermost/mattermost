@@ -2615,7 +2615,7 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 }
 
 func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	deleteFilter := "AND c.DeleteAt = 0"
+	deleteFilter := "AND Channels.DeleteAt = 0"
 	if includeDeleted {
 		deleteFilter = ""
 	}
@@ -2628,7 +2628,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 		JOIN
 			PublicChannels c ON (c.Id = Channels.Id)
 		WHERE
-			c.TeamId = :TeamId
+			Channels.TeamId = :TeamId
 			` + deleteFilter + `
 			%v
 		LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
