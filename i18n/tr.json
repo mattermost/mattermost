@@ -5363,46 +5363,6 @@
         "translation": "İleti güncellenemedi."
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Rol silinemedi."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Rol alınamadı."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Roller alınamadı."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Tüm roller kalıcı olarak silinemedi."
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Yeni rol kaydedilemedi."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Rol geçersiz."
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem açılamadı."
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Rol güncellenemedi."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Rolü kaydedecek işlem yapılamadı."
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Durum alınırken bir sorun çıktı."
     },
@@ -5809,86 +5769,6 @@
     {
         "id": "store.sql_user.verify_email.app_error",
         "translation": "E-posta doğrulama alanı güncellenemedi."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Gelen web bağlantıları sayılamadı."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Giden web bağlantıları sayılamadı."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Web bağlantısı alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Web bağlantıları alınamadı."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Web bağlantısı silinemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Gelen web bağlantısı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Giden web bağlantısı kaydedilemedi."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Gelen web bağlantısı güncellenemedi."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Web bağlantısı güncellenemedi."
     },
     {
         "id": "store.update_error",
@@ -7291,10 +7171,6 @@
         "translation": "İlgili gönderim civarı süresi alınamadı."
     },
     {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Rollerin tümü alınamadı."
-    },
-    {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Veritabanı işlemi yapılamadı."
     },
@@ -7816,11 +7692,11 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise E20 sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Mattermost sisteminiz 400 kullanıcıya ulaştı. Mattermost ile kuruluşunuzun tek oturum açma hizmeti sağlayıcısını bütünleştirirseniz, kullanıcılar hesap bilgilerini yeniden yazmadan Mattermost üzerine erişebilir. Mattermost Enterprise sürümünde bulunan SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi almak için destek ile görüşebilirsiniz.\n\n[SAML 2.0 bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise E10 sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Mattermost sisteminiz 200 kullanıcıya ulaştı. Kullanıcı sayınız arttıkça, yeni hesapları ayarlamak zaman alan bir iş haline gelebilir. Mattermost Enterprise sürümüne geçerek, kullanıcı hesaplarını kuruluşunuzun Active Directory/LDAP dizininden otomatik olarak alabilir ve bu dizinlerde bir hesabı olan herkesin Mattermost üzerine erişmesi sağlanabilir. Kullanıcılar, yeni kullanıcı adı ve parola oluşturulmasına gerek kalmadan var olan kullanıcı hesabı bilgileri ile oturum açabilir ve BT yöneticileri hesap açmak ve yönetmek için zaman kaybetmez.\n\n[AD/LDAP bütünleştirmesi hakkında ayrıntılı bilgi alın](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "app.system.warn_metric.bot_displayname",
@@ -7832,7 +7708,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özellikler sunan Mattermost Enterprise E20 sürümünün kullanılmasını önerir."
+        "translation": "Mattermost, 500 üzerinde kullanıcı için, kullanıcı yönetimi, sunucu kümeleme ve başarım izleme gibi özellikler sunan Mattermost Enterprise sürümünün kullanılmasını önerir.\n\nDestek ekibi ile iletişim kurduğunuzda bilgileriniz Mattermost, Inc. tarafına gönderilir. [Ayrıntılı bilgi alın](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "app.system.warn_metric.store.app_error",
@@ -8029,5 +7905,129 @@
     {
         "id": "api.context.get_user.app_error",
         "translation": "Kullanıcı oturum kullanıcı kodundan bulunamadı."
+    },
+    {
+        "id": "model.command.is_valid.plugin_id.app_error",
+        "translation": "Uygulama eki kodu geçersiz."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Giden web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Gelen web bağlantıları sayılamadı."
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Gelen web bağlantısı güncellenemedi."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Var olan bir giden web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Giden web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Var olan bir gelen web bağlantısının üzerine yazılamaz."
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Gelen web bağlantısı kaydedilemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Web bağlantıları alınamadı."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Web bağlantısı alınamadı."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Web bağlantısı silinemedi."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Tüm özel takımlar alınamadı."
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Rol geçersiz."
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Yeni rol kaydedilemedi."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Tüm roller kalıcı olarak silinemedi."
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Roller alınamadı."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Rol alınamadı."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Rollerin tümü alınamadı."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Rol alınamadı."
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "Yerel depolama klasörü geçersiz. Boş olmayan bir dizge olmalıdır."
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Bot kullanıcıya dönüştürülemedi."
     }
 ]

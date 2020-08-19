@@ -5368,46 +5368,6 @@
         "translation": "Не вдається оновити повідомлення"
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Неможливо видалити роль"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Неможливо отримати роль"
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "Ми не змогли назавжди видалити всі ролі"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Не вдається зберегти нову роль"
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "Роль не була дійсною"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Не вдалося відкрити транзакцію, щоб зберегти роль"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Неможливо оновити роль"
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Не вдалося здійснити транзакцію для збереження ролі"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Виникла помилка при отриманні статусу"
     },
@@ -5816,86 +5776,6 @@
         "translation": "Неможливо оновити поле перевірки електронної пошти"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Неможливо використовувати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Не вдається отримати веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа "
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Неможливо видалити веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Не вдається зберегти вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Не вдається зберегти Outgoing Webhook"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Неможливо оновити вхідний веб-ключа"
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Неможливо оновити веб-ключа"
-    },
-    {
         "id": "store.update_error",
         "translation": "update error"
     },
@@ -6250,10 +6130,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Не вдалося здійснити транзакцію бази даних"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Неможливо отримати всі канали"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7742,5 +7618,117 @@
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
         "translation": "Адреса електронної пошти:"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "Неможливо оновити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "Неможливо оновити вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "Ви не можете перезаписати існуючий OutgoingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "Не вдається зберегти Outgoing Webhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "Ви не можете перезаписати існуючий IncomingWebhook"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "Не вдається зберегти вхідний веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "Не вдається отримати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "Неможливо видалити веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "Неможливо використовувати веб-ключа"
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "Не вдалося отримати всі команди"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "Роль не була дійсною"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "Не вдається зберегти нову роль"
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "Ми не змогли назавжди видалити всі ролі"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "Неможливо отримати всі канали"
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "Неможливо отримати роль"
     }
 ]

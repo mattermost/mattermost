@@ -50,22 +50,22 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Purge all roles from the database.
 	if err := a.Srv().Store.Role().PermanentDeleteAll(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.
 	if _, err := a.Srv().Store.System().PermanentDeleteByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Remove the "System" table entry that marks the emoji permissions migration as done.
 	if _, err := a.Srv().Store.System().PermanentDeleteByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Remove the "System" table entry that marks the guest roles permissions migration as done.
 	if _, err := a.Srv().Store.System().PermanentDeleteByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.

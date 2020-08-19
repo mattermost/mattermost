@@ -5358,46 +5358,6 @@
         "translation": "내용을 가져올수 없습니다."
     },
     {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.permanent_delete_all.app_error",
-        "translation": "We could not permanently delete all the roles"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.save.invalid_role.app_error",
-        "translation": "The role was not valid"
-    },
-    {
-        "id": "store.sql_role.save.open_transaction.app_error",
-        "translation": "Failed to open the transaction to save the role"
-    },
-    {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_role.save_role.commit_transaction.app_error",
-        "translation": "Failed to commit the transaction to save the role"
-    },
-    {
         "id": "store.sql_status.get.app_error",
         "translation": "Encountered an error retrieving the status"
     },
@@ -5806,86 +5766,6 @@
         "translation": "Unable to update verify email field"
     },
     {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.existing.app_error",
-        "translation": "기존에 있는 IncomingWebhook을 덮어쓸 수 없습니다"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.override.app_error",
-        "translation": "기존에 있는 OutgoingWebhook을 덮어쓸 수 없습니다"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
         "id": "store.update_error",
         "translation": "update error"
     },
@@ -6240,10 +6120,6 @@
     {
         "id": "store.sql_system.save.commit_transaction.app_error",
         "translation": "Failed to commit the database transaction"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "채널을 불러올 수 없습니다."
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7984,5 +7860,117 @@
     {
         "id": "app.preference.delete.app_error",
         "translation": "We encountered an error while deleting preferences"
+    },
+    {
+        "id": "app.webhooks.update_outgoing.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.update_incoming.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.save_outgoing.override.app_error",
+        "translation": "기존에 있는 OutgoingWebhook을 덮어쓸 수 없습니다"
+    },
+    {
+        "id": "app.webhooks.save_outgoing.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.save_incoming.existing.app_error",
+        "translation": "기존에 있는 IncomingWebhook을 덮어쓸 수 없습니다"
+    },
+    {
+        "id": "app.webhooks.save_incoming.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_team.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_outgoing_by_channel.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_outgoing.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_user.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_incoming_by_channel.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.get_incoming.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.delete_outgoing.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.delete_incoming.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.analytics_outgoing_count.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.webhooks.analytics_incoming_count.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "store.sql_team.get_all_private_team_page_listing.app_error",
+        "translation": "We could not get all teams"
+    },
+    {
+        "id": "app.role.save.invalid_role.app_error",
+        "translation": "역할이 유효하지 않습니다"
+    },
+    {
+        "id": "app.role.save.insert.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.permanent_delete_all.app_error",
+        "translation": "모든 역할을 영구적으로 삭제할 수 없습니다"
+    },
+    {
+        "id": "app.role.get_by_names.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.get_by_name.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.role.get_all.app_error",
+        "translation": "채널을 불러올 수 없습니다."
+    },
+    {
+        "id": "app.role.get.app_error",
+        "translation": "내용을 가져올수 없습니다."
     }
 ]

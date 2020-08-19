@@ -174,5 +174,9 @@ func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.Ap
 }
 
 func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {
-	return srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, jobType)
+	statuses := []string{model.JOB_STATUS_SUCCESS}
+	if jobType == model.JOB_TYPE_MESSAGE_EXPORT {
+		statuses = []string{model.JOB_STATUS_WARNING, model.JOB_STATUS_SUCCESS}
+	}
+	return srv.Store.Job().GetNewestJobByStatusesAndType(statuses, jobType)
 }
