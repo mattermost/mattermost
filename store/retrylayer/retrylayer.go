@@ -2540,6 +2540,12 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 
 }
 
+func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+
+	return s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+
+}
+
 func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 
 	return s.JobStore.Save(job)
