@@ -2223,6 +2223,10 @@
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "You've reached the user limit of your current tier"
+  },
+  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
   },

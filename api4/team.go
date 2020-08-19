@@ -1177,6 +1177,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailList := model.ArrayFromJson(r.Body)
+
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
@@ -1193,7 +1194,21 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
-		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+		var invitesOverLimit []*model.EmailInviteWithError
+		if cloudUserLimit > 0 && c.IsSystemAdmin() {
+			emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+		}
+		var invitesWithError []*model.EmailInviteWithError
+		var err *model.AppError
+		if emailList != nil {
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		}
+
+		if len(invitesOverLimit) > 0 {
+			invitesWithError = append(invitesWithError, invitesOverLimit...)
+		}
+
 		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
