@@ -36,6 +36,8 @@ func newSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		table.ColMap("TeamId").SetMaxSize(26)
 		table.ColMap("DisplayName").SetMaxSize(64)
 		table.ColMap("Description").SetMaxSize(500)
+		table.ColMap("Username").SetMaxSize(255)
+		table.ColMap("IconURL").SetMaxSize(1024)
 
 		tableo := db.AddTableWithName(model.OutgoingWebhook{}, "OutgoingWebhooks").SetKeys(false, "Id")
 		tableo.ColMap("Id").SetMaxSize(26)

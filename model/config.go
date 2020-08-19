@@ -329,6 +329,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	EnableAPIUserDeletion                             *bool
+	EnableAPIChannelDeletion                          *bool
 	ExperimentalEnableHardenedMode                    *bool
 	DisableLegacyMFA                                  *bool `restricted:"true"`
 	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
@@ -703,6 +704,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableAPIUserDeletion == nil {
 		s.EnableAPIUserDeletion = NewBool(false)
+	}
+
+	if s.EnableAPIChannelDeletion == nil {
+		s.EnableAPIChannelDeletion = NewBool(false)
 	}
 
 	if s.ExperimentalEnableHardenedMode == nil {
@@ -1280,7 +1285,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(FILE_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
@@ -3016,6 +3021,10 @@ func (s *FileSettings) isValid() *AppError {
 
 	if *s.PublicLinkSalt != "" && len(*s.PublicLinkSalt) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

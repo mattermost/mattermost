@@ -46,6 +46,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
@@ -293,7 +294,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					s.sqlStore,
+					retrylayer.New(s.sqlStore),
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider,
@@ -392,6 +393,7 @@ func NewServer(options ...Option) (*Server, error) {
 		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
+	s.WebSocketRouter.app = fakeApp
 
 	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
 		mlog.Error("Mail server connection test is failed: " + appErr.Message)
@@ -465,7 +467,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
@@ -486,8 +488,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if appErr = s.Store.Status().ResetAll(); appErr != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(appErr))
+	if err = s.Store.Status().ResetAll(); err != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.startMetrics && s.Metrics != nil {
@@ -1150,14 +1152,14 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	}
 
 	for _, warnMetric := range warnMetrics {
-		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
 			mlog.Debug("This metric warning has already been acked or should only run once")
 			continue
 		}
 
-		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
-			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+		if nErr = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); nErr != nil {
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(nErr))
 			continue
 		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)

@@ -747,8 +747,8 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 	require.Equal(t, 0, len(groupMembers))
 
 	m1 := &model.TeamMember{TeamId: team.Id, UserId: user1.Id}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	// returns single member in team
 	groupMembers, err = ss.Group().GetMemberUsersInTeam(group.Id, team.Id)
@@ -757,10 +757,10 @@ func testGroupGetMemberUsersInTeam(t *testing.T, ss store.Store) {
 
 	m2 := &model.TeamMember{TeamId: team.Id, UserId: user2.Id}
 	m3 := &model.TeamMember{TeamId: team.Id, UserId: user3.Id}
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
+	_, nErr = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, nErr)
 
 	// returns all members when all members are in team
 	groupMembers, err = ss.Group().GetMemberUsersInTeam(group.Id, team.Id)
@@ -843,8 +843,8 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 	require.Equal(t, 0, len(groupMembers))
 
 	m1 := &model.TeamMember{TeamId: team.Id, UserId: user1.Id}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	// returns single member in team and not in channel
 	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
@@ -853,10 +853,10 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, ss store.Store) {
 
 	m2 := &model.TeamMember{TeamId: team.Id, UserId: user2.Id}
 	m3 := &model.TeamMember{TeamId: team.Id, UserId: user3.Id}
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
+	_, nErr = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, nErr)
 
 	// returns all members when all members are in team and not in channel
 	groupMembers, err = ss.Group().GetMemberUsersNotInChannel(group.Id, channel.Id)
@@ -1459,11 +1459,11 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 
 	// adding team membership stops returning result
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
 	}, 999)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, teamMembers)
@@ -1934,18 +1934,18 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, err = ss.Team().SaveMember(&model.TeamMember{
+		_, nErr := ss.Team().SaveMember(&model.TeamMember{
 			TeamId: team1.Id,
 			UserId: user.Id,
 		}, 999)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 	}
 
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team2.Id,
 		UserId: user3.Id,
 	}, 999)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	teamMembers, err := ss.Group().TeamMembersToRemove(nil)
 	require.Nil(t, err)
@@ -2230,11 +2230,11 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	}
 
 	for _, item := range userIDTeamIDs {
-		_, err = ss.Team().SaveMember(&model.TeamMember{
+		_, nErr = ss.Team().SaveMember(&model.TeamMember{
 			UserId: item[0],
 			TeamId: item[1],
 		}, 99)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 	}
 
 	// add users to channels
@@ -3447,8 +3447,8 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
+		require.Nil(t, nErr)
 	}
 
 	// Extra user outside of the group member users.
@@ -3459,8 +3459,8 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 	user, err = ss.User().Save(user)
 	require.Nil(t, err)
 	users = append(users, user)
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: true, SchemeAdmin: false}, 999)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: true, SchemeAdmin: false}, 999)
+	require.Nil(t, nErr)
 
 	for i := 0; i < numberOfGroups; i++ {
 		group := &model.Group{
@@ -4204,12 +4204,12 @@ func groupTestpUpdateMembersRoleTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2, user3} {
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 9999)
+		require.Nil(t, nErr)
 	}
 
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user4.Id, SchemeGuest: true}, 9999)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user4.Id, SchemeGuest: true}, 9999)
+	require.Nil(t, nErr)
 
 	tests := []struct {
 		testName               string
