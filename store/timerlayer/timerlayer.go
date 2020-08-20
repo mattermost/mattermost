@@ -3535,7 +3535,7 @@ func (s *TimerLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Delete(id string) (string, *model.AppError) {
+func (s *TimerLayerJobStore) Delete(id string) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Delete(id)
@@ -3551,7 +3551,7 @@ func (s *TimerLayerJobStore) Delete(id string) (string, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) Get(id string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Get(id)
@@ -3567,7 +3567,7 @@ func (s *TimerLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByStatus(status)
@@ -3583,7 +3583,7 @@ func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByType(jobType)
@@ -3599,7 +3599,7 @@ func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
@@ -3615,7 +3615,7 @@ func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllPage(offset, limit)
@@ -3631,7 +3631,7 @@ func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *m
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError) {
+func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetCountByStatusAndType(status, jobType)
@@ -3647,7 +3647,7 @@ func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType stri
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
@@ -3663,7 +3663,7 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
@@ -3679,7 +3679,7 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Save(job)
@@ -3695,7 +3695,7 @@ func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
@@ -3711,7 +3711,7 @@ func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateStatus(id, status)
@@ -3727,7 +3727,7 @@ func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)

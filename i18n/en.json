@@ -4023,6 +4023,30 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.get.app_error",
+    "translation": "Unable to get the job."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Unable to get the job count by status and type."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Unable to get the newest job by status and type."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Unable to save the job."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Unable to update the job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -7253,34 +7277,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Unable to delete the job."
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Unable to get the job."
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Unable to get the jobs."
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type."
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type."
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Unable to save the job."
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Unable to update the job."
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
