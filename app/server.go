@@ -729,7 +729,7 @@ func (s *Server) Shutdown() error {
 func (s *Server) Restart() error {
 	percentage, err := s.UpgradeToE0Status()
 	if err != nil || percentage != 100 {
-		return errors.Wrap(err, "unable to restart a not upgraded system")
+		return errors.Wrap(err, "Unable to restart. System has not been upgraded.")
 	}
 	s.Shutdown()
 

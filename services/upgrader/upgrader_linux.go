@@ -81,19 +81,19 @@ func verifySignature(filename string, sigfilename string, publicKey string) erro
 
 	mattermost_tar, err := os.Open(filename)
 	if err != nil {
-		mlog.Error("Unable to open the mattermost tar file verify the file signature", mlog.Err(err))
+		mlog.Error("Unable to open the Mattermost .tar file to verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
 	signature, err := os.Open(sigfilename)
 	if err != nil {
-		mlog.Error("Unable to open the mattermost sig file verify the file signature", mlog.Err(err))
+		mlog.Error("Unable to open the Mattermost .sig file verify the file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 
 	_, err = openpgp.CheckDetachedSignature(keyring, mattermost_tar, signature)
 	if err != nil {
-		mlog.Error("Unable to verify the mattermost file signature", mlog.Err(err))
+		mlog.Error("Unable to verify the Mattermost file signature", mlog.Err(err))
 		return NewInvalidSignature()
 	}
 	return nil
@@ -155,16 +155,16 @@ func CanIUpgradeToE0() error {
 		return err
 	}
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Warn("Unable to upgrade from TE to E0 because the server is already in E0")
-		return errors.New("You can't upgrade your code to enterprise because you are already in enterprise code")
+		mlog.Warn("Unable to upgrade from TE to E0. The server is already running E0.")
+		return errors.New("You cannot upgrade your server from TE to E0 because you are already running Mattermost Enterprise Edition.")
 	}
 	return nil
 }
 
 func UpgradeToE0() error {
 	if !atomic.CompareAndSwapInt32(&upgrading, 0, 1) {
-		mlog.Warn("Trying to upgrade while other upgrade is running")
-		return errors.New("One upgrade is already running.")
+		mlog.Warn("Trying to upgrade while another upgrade is running")
+		return errors.New("Another upgrade is already running.")
 	}
 	defer atomic.CompareAndSwapInt32(&upgrading, 1, 0)
 
@@ -175,7 +175,7 @@ func UpgradeToE0() error {
 	if err != nil {
 		upgradePercentage = 0
 		upgradeError = errors.New("error getting the executable path")
-		mlog.Error("Unable to get the mattermost executable path", mlog.Err(err))
+		mlog.Error("Unable to get the path of the Mattermost executable", mlog.Err(err))
 		return err
 	}
 
@@ -185,7 +185,7 @@ func UpgradeToE0() error {
 			os.Remove(filename)
 		}
 		upgradeError = fmt.Errorf("error downloading the new version (percentage: %d)", upgradePercentage)
-		mlog.Error("Unable to download the mattermost server version", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzUrl()), mlog.Err(err))
+		mlog.Error("Unable to download the Mattermost server binary file", mlog.Int64("percentage", upgradePercentage), mlog.String("url", getCurrentVersionTgzUrl()), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
@@ -196,7 +196,7 @@ func UpgradeToE0() error {
 			os.Remove(sigfilename)
 		}
 		upgradeError = errors.New("error downloading the new version signature file")
-		mlog.Error("Unable to download the mattermost server version signature file", mlog.String("url", getCurrentVersionTgzUrl()+".sig"), mlog.Err(err))
+		mlog.Error("Unable to download the signature file of the new Mattermost server", mlog.String("url", getCurrentVersionTgzUrl()+".sig"), mlog.Err(err))
 		upgradePercentage = 0
 		return err
 	}
@@ -205,8 +205,8 @@ func UpgradeToE0() error {
 	err = verifySignature(filename, sigfilename, mattermostBuildPublicKey)
 	if err != nil {
 		upgradePercentage = 0
-		upgradeError = errors.New("Unable to verify downloaded file signature")
-		mlog.Error("Unable to verify downloaded file signature", mlog.Err(err))
+		upgradeError = errors.New("Unable to verify the signature of the downloaded file")
+		mlog.Error("Unable to verify the signature of the downloaded file", mlog.Err(err))
 		return err
 	}
 
@@ -274,7 +274,7 @@ func extractBinary(executablePath string, filename string) error {
 		header, err := tarReader.Next()
 
 		if err == io.EOF {
-			return errors.New("Unable to find mattermost binary in the downloaded version")
+			return errors.New("Unable to find the Mattermost binary in the downloaded version")
 		}
 
 		if err != nil {
@@ -297,7 +297,7 @@ func extractBinary(executablePath string, filename string) error {
 			if err != nil {
 				err2 := os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err
@@ -306,24 +306,24 @@ func extractBinary(executablePath string, filename string) error {
 			if _, err = io.Copy(outFile, tarReader); err != nil {
 				err2 := os.Remove(executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 
 				err2 = os.Rename(tmpFileName, executablePath)
 				if err2 != nil {
-					mlog.Critical("Unable to restore the executable backup. Restore the executable manually.")
+					mlog.Critical("Unable to restore the backup of the executable file. Restore the executable file manually.")
 					return errors.Wrap(err2, "critical error: unable to upgrade the binary or restore the old binary version. Please restore it manually")
 				}
 				return err
 			}
 			err = os.Remove(tmpFileName)
 			if err != nil {
-				mlog.Warn("Unable to unable to clean up the binary backup file.", mlog.Err(err))
+				mlog.Warn("Unable to clean up the binary backup file.", mlog.Err(err))
 			}
 			err = os.Chmod(executablePath, permissions)
 			if err != nil {
-				mlog.Warn("Unable to unable to set the right permissions to the file.", mlog.Err(err))
+				mlog.Warn("Unable to set the correct permissions for the file.", mlog.Err(err))
 			}
 			break
 		}
