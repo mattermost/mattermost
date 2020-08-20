@@ -3663,6 +3663,22 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+	start := timemodule.Now()
+
+	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetNewestJobByStatusesAndType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 	start := timemodule.Now()
 
@@ -5724,7 +5740,7 @@ func (s *TimerLayerStatusStore) UpdateLastActivityAt(userId string, lastActivity
 	return err
 }
 
-func (s *TimerLayerSystemStore) Get() (model.StringMap, *model.AppError) {
+func (s *TimerLayerSystemStore) Get() (model.StringMap, error) {
 	start := timemodule.Now()
 
 	result, err := s.SystemStore.Get()
@@ -5740,7 +5756,7 @@ func (s *TimerLayerSystemStore) Get() (model.StringMap, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, *model.AppError) {
+func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, error) {
 	start := timemodule.Now()
 
 	result, err := s.SystemStore.GetByName(name)
@@ -5756,7 +5772,7 @@ func (s *TimerLayerSystemStore) GetByName(name string) (*model.System, *model.Ap
 	return result, err
 }
 
-func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
 	start := timemodule.Now()
 
 	result, err := s.SystemStore.InsertIfExists(system)
@@ -5772,7 +5788,7 @@ func (s *TimerLayerSystemStore) InsertIfExists(system *model.System) (*model.Sys
 	return result, err
 }
 
-func (s *TimerLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
+func (s *TimerLayerSystemStore) PermanentDeleteByName(name string) (*model.System, error) {
 	start := timemodule.Now()
 
 	result, err := s.SystemStore.PermanentDeleteByName(name)
@@ -5788,7 +5804,7 @@ func (s *TimerLayerSystemStore) PermanentDeleteByName(name string) (*model.Syste
 	return result, err
 }
 
-func (s *TimerLayerSystemStore) Save(system *model.System) *model.AppError {
+func (s *TimerLayerSystemStore) Save(system *model.System) error {
 	start := timemodule.Now()
 
 	err := s.SystemStore.Save(system)
@@ -5804,7 +5820,7 @@ func (s *TimerLayerSystemStore) Save(system *model.System) *model.AppError {
 	return err
 }
 
-func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppError {
+func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	start := timemodule.Now()
 
 	err := s.SystemStore.SaveOrUpdate(system)
@@ -5820,7 +5836,7 @@ func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppErr
 	return err
 }
 
-func (s *TimerLayerSystemStore) Update(system *model.System) *model.AppError {
+func (s *TimerLayerSystemStore) Update(system *model.System) error {
 	start := timemodule.Now()
 
 	err := s.SystemStore.Update(system)
