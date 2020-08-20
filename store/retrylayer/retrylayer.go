@@ -2646,81 +2646,263 @@ func (s *RetryLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 
 }
 
-func (s *RetryLayerJobStore) Delete(id string) (string, *model.AppError) {
+func (s *RetryLayerJobStore) Delete(id string) (string, error) {
 
-	return s.JobStore.Delete(id)
-
-}
-
-func (s *RetryLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
-
-	return s.JobStore.Get(id)
-
-}
-
-func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError) {
-
-	return s.JobStore.GetAllByStatus(status)
-
-}
-
-func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError) {
-
-	return s.JobStore.GetAllByType(jobType)
+	tries := 0
+	for {
+		result, err := s.JobStore.Delete(id)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (s *RetryLayerJobStore) Get(id string) (*model.Job, error) {
 
-	return s.JobStore.GetAllByTypePage(jobType, offset, limit)
-
-}
-
-func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError) {
-
-	return s.JobStore.GetAllPage(offset, limit)
-
-}
-
-func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError) {
-
-	return s.JobStore.GetCountByStatusAndType(status, jobType)
-
-}
-
-func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
-
-	return s.JobStore.GetNewestJobByStatusAndType(status, jobType)
+	tries := 0
+	for {
+		result, err := s.JobStore.Get(id)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 
-	return s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
-
-}
-
-func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
-
-	return s.JobStore.Save(job)
-
-}
-
-func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
-
-	return s.JobStore.UpdateOptimistically(job, currentStatus)
-
-}
-
-func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job, *model.AppError) {
-
-	return s.JobStore.UpdateStatus(id, status)
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByStatus(status)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
+func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 
-	return s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByType(jobType)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetAllPage(offset, limit)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetCountByStatusAndType(status, jobType)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.Save(job)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.UpdateStatus(id, status)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
