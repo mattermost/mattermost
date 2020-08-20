@@ -534,18 +534,18 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
-	Get(id string) (*model.FileInfo, *model.AppError)
-	GetByPath(path string) (*model.FileInfo, *model.AppError)
-	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
-	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
-	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	Save(info *model.FileInfo) (*model.FileInfo, error)
+	Get(id string) (*model.FileInfo, error)
+	GetByPath(path string) (*model.FileInfo, error)
+	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetForUser(userId string) ([]*model.FileInfo, error)
+	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postId string, deleted bool)
-	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
-	DeleteForPost(postId string) (string, *model.AppError)
-	PermanentDelete(fileId string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	PermanentDeleteByUser(userId string) (int64, *model.AppError)
+	AttachToPost(fileId string, postId string, creatorId string) error
+	DeleteForPost(postId string) (string, error)
+	PermanentDelete(fileId string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(userId string) (int64, error)
 	ClearCaches()
 }
 

@@ -2625,7 +2625,7 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
+func (s *TimerLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 	start := timemodule.Now()
 
 	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
@@ -2656,7 +2656,7 @@ func (s *TimerLayerFileInfoStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.DeleteForPost(postId)
@@ -2672,7 +2672,7 @@ func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, *model.A
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.Get(id)
@@ -2688,7 +2688,7 @@ func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetByPath(path)
@@ -2704,7 +2704,7 @@ func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *mode
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
@@ -2720,7 +2720,7 @@ func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool,
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetForUser(userId)
@@ -2736,7 +2736,7 @@ func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetWithOptions(page, perPage, opt)
@@ -2767,7 +2767,7 @@ func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string,
 	}
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) error {
 	start := timemodule.Now()
 
 	err := s.FileInfoStore.PermanentDelete(fileId)
@@ -2783,7 +2783,7 @@ func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError
 	return err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
@@ -2799,7 +2799,7 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.PermanentDeleteByUser(userId)
@@ -2815,7 +2815,7 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.Save(info)
