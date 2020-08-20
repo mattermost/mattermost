@@ -226,7 +226,7 @@ func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType st
 	var job *model.Job
 	if err = jss.GetReplica().SelectOne(&job, query, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Job", fmt.Sprintf("<status, type>=<%s, %s>", status, jobType))
+			return nil, store.NewErrNotFound("Job", fmt.Sprintf("<status, type>=<%s, %s>", strings.Join(status, ","), jobType))
 		}
 		return nil, errors.Wrapf(err, "failed to find Job with statuses=%s and type=%s", strings.Join(status, ","), jobType)
 	}
