@@ -5091,8 +5091,8 @@
     "translation": "Failed to index the user"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database"
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
