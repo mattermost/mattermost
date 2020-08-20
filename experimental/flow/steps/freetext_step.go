@@ -1,6 +1,8 @@
 package steps
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-plugin-api/experimental/bot/poster"
 	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
 
@@ -43,8 +45,9 @@ func NewFreetextStep(
 
 func (s *freetextStep) PostSlackAttachment(flowHandler string, i int) *model.SlackAttachment {
 	sa := model.SlackAttachment{
-		Title: s.Title,
-		Text:  s.Message,
+		Title:    s.Title,
+		Text:     s.Message,
+		Fallback: fmt.Sprintf("%s: %s", s.Title, s.Message),
 	}
 
 	return &sa

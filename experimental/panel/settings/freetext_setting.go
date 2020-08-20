@@ -20,11 +20,13 @@ type freetextSetting struct {
 	ftf           freetextfetcher.FreetextFetcher
 }
 
+// FreetextInfo defines the information needed in the payload for freetext settings
 type FreetextInfo struct {
 	SettingID string
 	UserID    string
 }
 
+// NewFreetextSetting creates a new setting input to add any text
 func NewFreetextSetting(
 	id,
 	title,
@@ -112,9 +114,10 @@ func (s *freetextSetting) GetSlackAttachments(userID, settingHandler string, dis
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
 	sa := model.SlackAttachment{
-		Title:   title,
-		Text:    text,
-		Actions: actions,
+		Title:    title,
+		Text:     text,
+		Fallback: fmt.Sprintf("%s: %s", title, text),
+		Actions:  actions,
 	}
 
 	return &sa, nil

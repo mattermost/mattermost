@@ -6,6 +6,7 @@ import (
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
 )
 
+// FreetextStore defines the behavior needed to store all the data for the FreetextFetcher
 type FreetextStore interface {
 	StartFetching(userID, fetcherID, payload string) error
 	StopFetching(userID string) error
@@ -22,6 +23,7 @@ type storeElement struct {
 	payload   string
 }
 
+// NewFreetextStore creates a new store for the FreetextFetcher
 func NewFreetextStore(apiClient pluginapi.Client, keyPrefix string) FreetextStore {
 	return &freetextStore{
 		client:    apiClient,

@@ -13,6 +13,7 @@ type optionSetting struct {
 	store   SettingStore
 }
 
+// NewOptionSetting creates a new setting input to select from a dropdown
 func NewOptionSetting(id, title, description, dependsOn string, options []string, store SettingStore) Setting {
 	return &optionSetting{
 		baseSetting: baseSetting{
@@ -77,9 +78,10 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
 	sa := model.SlackAttachment{
-		Title:   title,
-		Text:    text,
-		Actions: actions,
+		Title:    title,
+		Text:     text,
+		Fallback: fmt.Sprintf("%s: %s", title, text),
+		Actions:  actions,
 	}
 	return &sa, nil
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+// FreetextFetcher defines the behavior of free text fetchers
 type FreetextFetcher interface {
 	MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, l logger.Logger, botUserID string, pluginURL string)
 	StartFetching(userID string, payload string)
@@ -28,6 +29,7 @@ type freetextFetcher struct {
 	onCancel func(string)
 }
 
+// NewFreetextFetcher creates a new FreetextFetcher
 func NewFreetextFetcher(
 	baseURL string,
 	store FreetextStore,
@@ -146,10 +148,13 @@ func (ftf *freetextFetcher) postConfirmation(userID, message, pluginURL, payload
 		},
 	}
 
+	title := "Confirm input"
+	text := fmt.Sprintf("You have typed `%s`. Is that correct?", message)
 	sa := &model.SlackAttachment{
-		Title:   "Confirm input",
-		Text:    fmt.Sprintf("You have typed `%s`. Is that correct?", message),
-		Actions: []*model.PostAction{&actionConfirm, &actionRetry, &actionCancel},
+		Title:    title,
+		Text:     text,
+		Fallback: fmt.Sprintf("%s: %s", title, text),
+		Actions:  []*model.PostAction{&actionConfirm, &actionRetry, &actionCancel},
 	}
 
 	_, _ = ftf.poster.DMWithAttachments(userID, sa)

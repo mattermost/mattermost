@@ -10,6 +10,7 @@ type emptySetting struct {
 	baseSetting
 }
 
+// NewEmptySetting creates a new panel value with no setting attached
 func NewEmptySetting(id, title, description string) Setting {
 	return &emptySetting{
 		baseSetting: baseSetting{
@@ -23,8 +24,9 @@ func NewEmptySetting(id, title, description string) Setting {
 func (s *emptySetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
 	sa := model.SlackAttachment{
-		Title: title,
-		Text:  s.description,
+		Title:    title,
+		Text:     s.description,
+		Fallback: fmt.Sprintf("%s: %s", title, s.description),
 	}
 
 	return &sa, nil

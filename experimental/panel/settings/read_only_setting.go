@@ -12,6 +12,7 @@ type readOnlySetting struct {
 	store SettingStore
 }
 
+// NewReadOnlySetting creates a new panel value that only read from the setting
 func NewReadOnlySetting(id, title, description, dependsOn string, store SettingStore) Setting {
 	return &readOnlySetting{
 		baseSetting: baseSetting{
@@ -55,8 +56,9 @@ func (s *readOnlySetting) GetSlackAttachments(userID, settingHandler string, dis
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
 	sa := model.SlackAttachment{
-		Title: title,
-		Text:  text,
+		Title:    title,
+		Text:     text,
+		Fallback: fmt.Sprintf("%s: %s", title, text),
 	}
 
 	return &sa, nil

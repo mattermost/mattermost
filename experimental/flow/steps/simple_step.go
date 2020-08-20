@@ -2,6 +2,7 @@ package steps
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/mattermost/mattermost-plugin-api/experimental/freetextfetcher"
 
@@ -74,9 +75,10 @@ func (s *simpleStep) PostSlackAttachment(flowHandler string, i int) *model.Slack
 	}
 
 	sa := model.SlackAttachment{
-		Title:   s.Title,
-		Text:    s.Message,
-		Actions: []*model.PostAction{&actionTrue, &actionFalse},
+		Title:    s.Title,
+		Text:     s.Message,
+		Fallback: fmt.Sprintf("%s: %s", s.Title, s.Message),
+		Actions:  []*model.PostAction{&actionTrue, &actionFalse},
 	}
 
 	return &sa
@@ -91,9 +93,10 @@ func (s *simpleStep) ResponseSlackAttachment(rawValue interface{}) *model.SlackA
 	}
 
 	sa := model.SlackAttachment{
-		Title:   s.Title,
-		Text:    message,
-		Actions: []*model.PostAction{},
+		Title:    s.Title,
+		Text:     message,
+		Fallback: fmt.Sprintf("%s: %s", s.Title, message),
+		Actions:  []*model.PostAction{},
 	}
 
 	return &sa

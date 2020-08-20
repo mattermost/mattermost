@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+// Manager defines the behavior of the freetext manager
 type Manager interface {
 	MessageHasBeenPosted(c *plugin.Context, post *model.Post, api plugin.API, l logger.Logger, botUserID string, pluginURL string)
 	Clear()
@@ -18,6 +19,7 @@ type manager struct {
 
 var ftfManager manager
 
+// GetManager gets the current manager or creates one if none is created
 func GetManager() Manager {
 	if ftfManager.ftfList == nil {
 		ftfManager.ftfList = []FreetextFetcher{}

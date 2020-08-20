@@ -11,13 +11,19 @@ import (
 )
 
 const (
-	ContextActionKey  = "id"
+	// ContextActionKey defines the key used in the context to store the action ID
+	ContextActionKey = "id"
+	// ContextMessageKey defines the key used in the context to store the message
 	ContextMessageKey = "message"
+	// ContextPayloadKey defines the key used in the context to store the payload
 	ContextPayloadKey = "payload"
 
+	// ContextNewMessage defines the key used in the context to store the new message
 	ContextNewMessage = "new_message"
+	// ContextNewPayload defines the key used in the context to store the new payload
 	ContextNewPayload = "new_payload"
 
+	// CancelAction codifies the action to cancel the freetext fetching
 	CancelAction = "cancel"
 )
 

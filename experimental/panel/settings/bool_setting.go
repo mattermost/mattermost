@@ -12,6 +12,7 @@ type boolSetting struct {
 	store SettingStore
 }
 
+// NewBoolSetting creates a new setting input for boolean values
 func NewBoolSetting(id, title, description, dependsOn string, store SettingStore) Setting {
 	return &boolSetting{
 		baseSetting: baseSetting{
@@ -99,9 +100,10 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
 	sa := model.SlackAttachment{
-		Title:   title,
-		Text:    text,
-		Actions: actions,
+		Title:    title,
+		Text:     text,
+		Fallback: fmt.Sprintf("%s: %s", title, text),
+		Actions:  actions,
 	}
 
 	return &sa, nil
