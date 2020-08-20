@@ -19,7 +19,7 @@ import (
 
 const MAX_REPEAT_VIEWINGS = 3
 
-func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string, postCount, userCount int64, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -50,8 +50,9 @@ func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeC
 		}
 	}
 
-	now := time.Now().UTC()
+	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
+		now := time.Now().UTC()
 		c, err := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err != nil {
 			return false, errors.Wrapf(err, "Cannot parse date range %s", *cnd.DisplayDate)
@@ -75,7 +76,6 @@ func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeC
 
 	// check if sku matches our license
 	if cnd.Sku != nil {
-		sku := a.Srv().ClientLicense()["SkuShortName"]
 		if !cnd.Sku.Matches(sku) {
 			return false, nil
 		}
@@ -83,12 +83,24 @@ func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeC
 
 	// check the target audience
 	if cnd.Audience != nil {
-		isAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
-		teamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
-		if !cnd.Audience.Matches(isAdmin, teamAdmin) {
+		if !cnd.Audience.Matches(isSystemAdmin, isTeamAdmin) {
 			return false, nil
 		}
 
+	}
+
+	// check user count condition against previously calculated total user count
+	if cnd.NumberOfUsers != nil && userCount > 0 {
+		if userCount < *cnd.NumberOfUsers {
+			return false, nil
+		}
+	}
+
+	// check post count condition against previously calculated total post count
+	if cnd.NumberOfPosts != nil && postCount > 0 {
+		if postCount < *cnd.NumberOfPosts {
+			return false, nil
+		}
 	}
 
 	// check if our server config matches the notice
@@ -129,6 +141,11 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 		}
 		return nil
 	}
+
+	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
+	sku := a.Srv().ClientLicense()["SkuShortName"]
+
 	for _, notice := range *a.notices {
 		notice := notice // pin
 		// check if the notice has been viewed already
@@ -142,7 +159,18 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a, userId, teamId, client, clientVersion, locale, cachedPostCount, cachedUserCount, &notice)
+		result, err := noticeMatchesConditions(a,
+			userId,
+			teamId,
+			client,
+			clientVersion,
+			locale,
+			cachedPostCount,
+			cachedUserCount,
+			isSystemAdmin,
+			isTeamAdmin,
+			sku,
+			&notice)
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.parsing_failed", nil, err.Error(), http.StatusBadRequest)
 		}

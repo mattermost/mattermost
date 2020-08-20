@@ -33,8 +33,8 @@ type Conditions struct {
 	DisplayDate    *string                `json:"displayDate,omitempty"`    // When to display the notice.; Examples:; "2020-03-01T00:00:00Z" - show on specified date; ">= 2020-03-01T00:00:00Z" - show after specified date; "< 2020-03-01T00:00:00Z" - show before the specified date; "> 2020-03-01T00:00:00Z <= 2020-04-01T00:00:00Z" - show only between the specified dates
 	InstanceType   *NoticeInstanceType    `json:"instanceType,omitempty"`
 	MobileVersion  []string               `json:"mobileVersion,omitempty"` // What mobile client versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
-	NumberOfPosts  *float64               `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
-	NumberOfUsers  *float64               `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
+	NumberOfPosts  *int64                 `json:"numberOfPosts,omitempty"` // Only show the notice when server has more than specified number of posts
+	NumberOfUsers  *int64                 `json:"numberOfUsers,omitempty"` // Only show the notice when server has more than specified number of users
 	ServerConfig   map[string]interface{} `json:"serverConfig,omitempty"`  // Map of mattermost server config paths and their values. Notice will be displayed only if; the values match the target server config; Example: serverConfig: { "PluginSettings.Enable": true, "GuestAccountsSettings.Enable":; false }
 	ServerVersion  []string               `json:"serverVersion,omitempty"` // What server versions does this notice apply to.; Format: semver ranges (https://devhints.io/semver); Example: [">=1.2.3 < ~2.4.x"]; Example: ["<v5.19", "v5.20-v5.22"]
 	Sku            *NoticeSKU             `json:"sku,omitempty"`
@@ -63,6 +63,10 @@ func UnmarshalProductNoticeMessages(data io.Reader) (NoticeMessages, error) {
 
 // User role, i.e. who will see the notice. Defaults to "all"
 type NoticeAudience string
+
+func NewNoticeAudience(s NoticeAudience) *NoticeAudience {
+	return &s
+}
 
 func (a *NoticeAudience) Matches(sysAdmin bool, teamAdmin bool) bool {
 	switch *a {
@@ -138,6 +142,7 @@ const (
 // SKU. Defaults to "all"
 type NoticeSKU string
 
+func NewNoticeSKU(s NoticeSKU) *NoticeSKU { return &s }
 func (c *NoticeSKU) Matches(s string) bool {
 	switch *c {
 	case NoticeSKU_All:
