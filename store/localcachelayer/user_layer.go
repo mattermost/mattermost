@@ -75,7 +75,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	if allowFromCache {
 		var cachedMap map[string]*model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
-			return deepCopyUserMap(cachedMap), nil
+			return cachedMap, nil
 		}
 	}
 
@@ -85,7 +85,7 @@ func (s LocalCacheUserStore) GetAllProfilesInChannel(channelId string, allowFrom
 	}
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, deepCopyUserMap(userMap))
+		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, userMap)
 	}
 
 	return userMap, nil
@@ -107,7 +107,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		var cacheItem *model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
 			if options.Since == 0 || cacheItem.UpdateAt > options.Since {
-				users = append(users, cacheItem.DeepCopy())
+				users = append(users, cacheItem)
 			}
 		} else {
 			remainingUserIds = append(remainingUserIds, userId)
@@ -126,7 +126,7 @@ func (s LocalCacheUserStore) GetProfileByIds(userIds []string, options *store.Us
 		}
 		for _, user := range remainingUsers {
 			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
-			users = append(users, user.DeepCopy())
+			users = append(users, user)
 		}
 	}
 
@@ -143,7 +143,7 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 		if s.rootStore.metrics != nil {
 			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
 		}
-		return cacheItem.DeepCopy(), nil
+		return cacheItem, nil
 	}
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.AddMemCacheMissCounter("Profile By Id", float64(1))
@@ -152,17 +152,6 @@ func (s LocalCacheUserStore) Get(id string) (*model.User, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	u := user.DeepCopy()
-	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, u)
-	return user.DeepCopy(), nil
-}
-
-func deepCopyUserMap(users map[string]*model.User) map[string]*model.User {
-	copyOfUsers := make(map[string]*model.User)
-
-	for id, user := range users {
-		copyOfUsers[id] = user.DeepCopy()
-	}
-
-	return copyOfUsers
+	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
+	return user, nil
 }
