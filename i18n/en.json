@@ -2656,7 +2656,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
-    "translation": "The file signature for the downloaded mattermost doesn't match."
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
