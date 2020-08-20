@@ -2216,7 +2216,7 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the user limit of your current tier"
+    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -5051,10 +5051,6 @@
     "translation": "Failed to purge records."
   },
   {
-    "id": "ent.data_retention.file_infos_batch.internal_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "We encountered an error cleaning up the batch of flags."
   },
@@ -5379,14 +5375,6 @@
     "translation": "unable to migrate."
   },
   {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
-  },
-  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "Unable to add attachment to the Global Relay export."
   },
@@ -5437,10 +5425,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Failed to get file info for a post."
   },
   {
     "id": "ent.message_export.run_export.app_error",
