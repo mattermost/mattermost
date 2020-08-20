@@ -76,7 +76,21 @@ func (worker *Worker) DoJob(job *model.Job) {
 		return
 	}
 
-	if err := worker.app.UpdateProductNotices(); err != nil {
+	postCount, appErr := worker.app.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if appErr != nil {
+		mlog.Error("Worker: Failed to fetch post count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		worker.setJobError(job, appErr)
+		return
+	}
+
+	userCount, appErr := worker.app.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if appErr != nil {
+		mlog.Error("Worker: Failed to fetch user count", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", appErr.Error()))
+		worker.setJobError(job, appErr)
+		return
+	}
+
+	if err := worker.app.UpdateProductNotices(postCount, userCount); err != nil {
 		mlog.Error("Worker: Failed to fetch product notices", mlog.String("worker", worker.name), mlog.String("job_id", job.Id), mlog.String("error", err.Error()))
 		worker.setJobError(job, err)
 		return

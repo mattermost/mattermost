@@ -58,8 +58,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 
-	api.BaseRoutes.ApiRoot.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/notices/viewed", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
+	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {

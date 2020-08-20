@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
+	"io"
 )
 
 type ProductNotices []ProductNotice
@@ -52,6 +53,12 @@ type NoticeMessages []NoticeMessage
 
 func (r *NoticeMessages) Marshal() ([]byte, error) {
 	return json.Marshal(r)
+}
+
+func UnmarshalProductNoticeMessages(data io.Reader) (NoticeMessages, error) {
+	var r NoticeMessages
+	err := json.NewDecoder(data).Decode(&r)
+	return r, err
 }
 
 // User role, i.e. who will see the notice. Defaults to "all"

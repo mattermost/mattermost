@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -13,12 +14,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	date_constraints "github.com/reflog/dateconstraints"
+	"github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
 
-func noticeMatchesConditions(a *App, lastViewed int64, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string, postCount, userCount int64, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -93,7 +94,15 @@ func noticeMatchesConditions(a *App, lastViewed int64, userId, teamId string, cl
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
 		value, found := config.GetConfigValueByPath(a.Config(), strings.Split(k, "."))
-		if !found || value != v {
+		if !found {
+			return false, nil
+		}
+		vt := reflect.ValueOf(value)
+		if vt.Kind() == reflect.Ptr {
+			vt = vt.Elem()
+		}
+		val := vt.Interface()
+		if val != v {
 			return false, nil
 		}
 	}
@@ -133,7 +142,7 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a, lastViewed, userId, teamId, client, clientVersion, locale, &notice)
+		result, err := noticeMatchesConditions(a, userId, teamId, client, clientVersion, locale, cachedPostCount, cachedUserCount, &notice)
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.parsing_failed", nil, err.Error(), http.StatusBadRequest)
 		}
@@ -154,8 +163,13 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 }
 
 var noticesCache = utils.RequestCache{}
+var cachedPostCount int64
+var cachedUserCount int64
 
-func (a *App) UpdateProductNotices() *model.AppError {
+func (a *App) UpdateProductNotices(postCount, userCount int64) *model.AppError {
+	cachedPostCount = postCount
+	cachedUserCount = userCount
+
 	data, err := utils.GetUrlWithCache("https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json", &noticesCache)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_viewed_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
