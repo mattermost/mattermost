@@ -7075,7 +7075,7 @@ func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamId string, offset in
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetProductNotices(lastViewed int64, userId string, teamId string, client model.NoticeClientType, clientVersion string, locale string) ([]model.NoticeMessage, *model.AppError) {
+func (a *OpenTracingAppLayer) GetProductNotices(lastViewed int64, userId string, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProductNotices")
 
