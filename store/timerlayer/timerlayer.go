@@ -3663,7 +3663,7 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)

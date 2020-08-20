@@ -212,7 +212,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 	return jss.GetNewestJobByStatusesAndType([]string{status}, jobType)
 }
 
-func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, *model.AppError) {
+func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, error) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").

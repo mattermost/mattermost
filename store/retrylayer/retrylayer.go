@@ -2652,9 +2652,23 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 
 }
 
-func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
 
-	return s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+	tries := 0
+	for {
+		result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+		if err == nil {
+			return result, err
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
