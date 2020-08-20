@@ -14,11 +14,14 @@ const (
 )
 
 type PluginIntegration struct {
-	PluginID   string      `json:"id"`
-	Location   string      `json:"location"`
-	RequestURL string      `json:"request_url"`
-	Scope      []string    `json:"scope"`
-	Extra      interface{} `json:"extra"`
+	PluginID string `json:"id"`
+	// Location defines where the client should present this integration
+	Location string `json:"location"`
+	// RequestURL defines the URL the client will reach to perform the integration action
+	RequestURL string `json:"request_url"`
+	// Scope defines which clients should show this integration
+	Scope []string    `json:"scope"`
+	Extra interface{} `json:"extra"`
 }
 
 type MobileIntegrationChannelHeader struct {

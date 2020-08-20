@@ -49,16 +49,16 @@ func (api *apiTimerLayer) UnregisterCommand(teamId, trigger string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) RegisterPluginIntegration(trigger *model.PluginIntegration) error {
+func (api *apiTimerLayer) RegisterPluginIntegration(integration *model.PluginIntegration) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.RegisterPluginIntegration(trigger)
+	_returnsA := api.apiImpl.RegisterPluginIntegration(integration)
 	api.recordTime(startTime, "RegisterPluginIntegration", _returnsA == nil)
 	return _returnsA
 }
 
-func (api *apiTimerLayer) UnregisterPluginIntegration(location, trigger string) error {
+func (api *apiTimerLayer) UnregisterPluginIntegration(location, requestURL string) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.UnregisterPluginIntegration(location, trigger)
+	_returnsA := api.apiImpl.UnregisterPluginIntegration(location, requestURL)
 	api.recordTime(startTime, "UnregisterPluginIntegration", _returnsA == nil)
 	return _returnsA
 }

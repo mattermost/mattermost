@@ -531,8 +531,8 @@ type Z_RegisterPluginIntegrationReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) RegisterPluginIntegration(trigger *model.PluginIntegration) error {
-	_args := &Z_RegisterPluginIntegrationArgs{trigger}
+func (g *apiRPCClient) RegisterPluginIntegration(integration *model.PluginIntegration) error {
+	_args := &Z_RegisterPluginIntegrationArgs{integration}
 	_returns := &Z_RegisterPluginIntegrationReturns{}
 	if err := g.client.Call("Plugin.RegisterPluginIntegration", _args, _returns); err != nil {
 		log.Printf("RPC call to RegisterPluginIntegration API failed: %s", err.Error())
@@ -542,7 +542,7 @@ func (g *apiRPCClient) RegisterPluginIntegration(trigger *model.PluginIntegratio
 
 func (s *apiRPCServer) RegisterPluginIntegration(args *Z_RegisterPluginIntegrationArgs, returns *Z_RegisterPluginIntegrationReturns) error {
 	if hook, ok := s.impl.(interface {
-		RegisterPluginIntegration(trigger *model.PluginIntegration) error
+		RegisterPluginIntegration(integration *model.PluginIntegration) error
 	}); ok {
 		returns.A = hook.RegisterPluginIntegration(args.A)
 		returns.A = encodableError(returns.A)
@@ -561,8 +561,8 @@ type Z_UnregisterPluginIntegrationReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) UnregisterPluginIntegration(location, trigger string) error {
-	_args := &Z_UnregisterPluginIntegrationArgs{location, trigger}
+func (g *apiRPCClient) UnregisterPluginIntegration(location, requestURL string) error {
+	_args := &Z_UnregisterPluginIntegrationArgs{location, requestURL}
 	_returns := &Z_UnregisterPluginIntegrationReturns{}
 	if err := g.client.Call("Plugin.UnregisterPluginIntegration", _args, _returns); err != nil {
 		log.Printf("RPC call to UnregisterPluginIntegration API failed: %s", err.Error())
@@ -572,7 +572,7 @@ func (g *apiRPCClient) UnregisterPluginIntegration(location, trigger string) err
 
 func (s *apiRPCServer) UnregisterPluginIntegration(args *Z_UnregisterPluginIntegrationArgs, returns *Z_UnregisterPluginIntegrationReturns) error {
 	if hook, ok := s.impl.(interface {
-		UnregisterPluginIntegration(location, trigger string) error
+		UnregisterPluginIntegration(location, requestURL string) error
 	}); ok {
 		returns.A = hook.UnregisterPluginIntegration(args.A, args.B)
 		returns.A = encodableError(returns.A)

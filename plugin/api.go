@@ -40,12 +40,12 @@ type API interface {
 	// RegisterPluginIntegration registers a custom integration from the plugin.
 	//
 	// Minimum server version: 5.28
-	RegisterPluginIntegration(trigger *model.PluginIntegration) error
+	RegisterPluginIntegration(integration *model.PluginIntegration) error
 
 	// UnregisterPluginIntegration unregisters a custom integration previously registered via RegisterPluginIntegration.
 	//
 	// Minimum server version: 5.28
-	UnregisterPluginIntegration(location, trigger string) error
+	UnregisterPluginIntegration(location, requestURL string) error
 
 	// ExecuteSlashCommand executes a slash command with the given parameters.
 	//
