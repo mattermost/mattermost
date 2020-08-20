@@ -174,7 +174,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	a.SetSession(session)
 
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP && a.Ldap() != nil {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		a.Srv().Go(func() {
 			a.Ldap().UpdateProfilePictureIfNecessary(user, session)
 		})

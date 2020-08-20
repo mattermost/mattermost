@@ -861,6 +861,7 @@ type ExperimentalSettings struct {
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
+	CloudUserLimit                  *int64 `restricted:"true"`
 	UseNewSAMLLibrary               *bool
 }
 
@@ -883,6 +884,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
+	}
+
+	if s.CloudUserLimit == nil {
+		// User limit 0 is treated as no limit
+		s.CloudUserLimit = NewInt64(0)
 	}
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)

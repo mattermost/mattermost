@@ -115,6 +115,7 @@ github.com/dyatlov/go-opengraph/opengraph
 # github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4
 ## explicit
 # github.com/fatih/color v1.9.0
+## explicit
 github.com/fatih/color
 # github.com/fortytw2/leaktest v1.3.0
 ## explicit
@@ -134,8 +135,6 @@ github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.1
 ## explicit
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-gorp/gorp v2.2.0+incompatible
-## explicit
 # github.com/go-sql-driver/mysql v1.5.0
 ## explicit
 github.com/go-sql-driver/mysql
@@ -272,7 +271,7 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
+# github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 ## explicit
 github.com/mattermost/gorp
 # github.com/mattermost/gosaml2 v0.3.2
@@ -360,10 +359,6 @@ github.com/olekukonko/tablewriter
 ## explicit
 github.com/olivere/elastic/config
 github.com/olivere/elastic/uritemplates
-# github.com/onsi/ginkgo v1.12.0
-## explicit
-# github.com/onsi/gomega v1.9.0
-## explicit
 # github.com/oov/psd v0.0.0-20200705094106-99303fb2511f
 ## explicit
 github.com/oov/psd
@@ -386,8 +381,6 @@ github.com/philhofer/fwd
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/poy/onpar v1.0.0
-## explicit
 # github.com/prometheus/client_golang v1.7.1
 ## explicit
 github.com/prometheus/client_golang/prometheus
@@ -471,14 +464,7 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
-github.com/tinylib/msgp
-github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
-github.com/tinylib/msgp/parse
-github.com/tinylib/msgp/printer
-# github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
-## explicit
-github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
@@ -530,6 +516,8 @@ github.com/willf/bitset
 ## explicit
 github.com/xtgo/uuid
 # github.com/ziutek/mymysql v1.5.4
+## explicit
+# github.com/zmb3/gogetdoc v0.0.0-20190228002656-b37376c5da6a
 ## explicit
 # go.etcd.io/bbolt v1.3.5
 ## explicit
@@ -629,7 +617,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20200626171337-aa94e735be7f
+# golang.org/x/tools v0.0.0-20200806022845-90696ccdc692
 ## explicit
 golang.org/x/tools/go/ast/astutil
 golang.org/x/tools/go/gcexportdata
@@ -647,7 +635,8 @@ golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typesinternal
-# golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+# golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
+## explicit
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/appengine v1.6.6
@@ -762,8 +751,7 @@ gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
-# gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
-## explicit
+# gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
 # honnef.co/go/tools v0.0.1-2020.1.3
 ## explicit
