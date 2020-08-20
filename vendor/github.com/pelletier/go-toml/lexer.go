@@ -26,7 +26,7 @@ type tomlLexer struct {
 	currentTokenStart int
 	currentTokenStop  int
 	tokens            []token
-	depth             int
+	brackets          []rune
 	line              int
 	col               int
 	endbufferLine     int
@@ -123,6 +123,8 @@ func (l *tomlLexer) lexVoid() tomlLexStateFn {
 	for {
 		next := l.peek()
 		switch next {
+		case '}': // after '{'
+			return l.lexRightCurlyBrace
 		case '[':
 			return l.lexTableKey
 		case '#':
@@ -138,10 +140,6 @@ func (l *tomlLexer) lexVoid() tomlLexStateFn {
 
 		if isSpace(next) {
 			l.skip()
-		}
-
-		if l.depth > 0 {
-			return l.lexRvalue
 		}
 
 		if isKeyStartChar(next) {
@@ -167,10 +165,8 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 		case '=':
 			return l.lexEqual
 		case '[':
-			l.depth++
 			return l.lexLeftBracket
 		case ']':
-			l.depth--
 			return l.lexRightBracket
 		case '{':
 			return l.lexLeftCurlyBrace
@@ -188,12 +184,10 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 			fallthrough
 		case '\n':
 			l.skip()
-			if l.depth == 0 {
-				return l.lexVoid
+			if len(l.brackets) > 0 && l.brackets[len(l.brackets)-1] == '[' {
+				return l.lexRvalue
 			}
-			return l.lexRvalue
-		case '_':
-			return l.errorf("cannot start number with underscore")
+			return l.lexVoid
 		}
 
 		if l.follow("true") {
@@ -236,10 +230,6 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 			return l.lexNumber
 		}
 
-		if isAlphanumeric(next) {
-			return l.lexKey
-		}
-
 		return l.errorf("no value can start with %c", next)
 	}
 
@@ -250,12 +240,17 @@ func (l *tomlLexer) lexRvalue() tomlLexStateFn {
 func (l *tomlLexer) lexLeftCurlyBrace() tomlLexStateFn {
 	l.next()
 	l.emit(tokenLeftCurlyBrace)
+	l.brackets = append(l.brackets, '{')
 	return l.lexVoid
 }
 
 func (l *tomlLexer) lexRightCurlyBrace() tomlLexStateFn {
 	l.next()
 	l.emit(tokenRightCurlyBrace)
+	if len(l.brackets) == 0 || l.brackets[len(l.brackets)-1] != '{' {
+		return l.errorf("cannot have '}' here")
+	}
+	l.brackets = l.brackets[:len(l.brackets)-1]
 	return l.lexRvalue
 }
 
@@ -302,6 +297,9 @@ func (l *tomlLexer) lexEqual() tomlLexStateFn {
 func (l *tomlLexer) lexComma() tomlLexStateFn {
 	l.next()
 	l.emit(tokenComma)
+	if len(l.brackets) > 0 && l.brackets[len(l.brackets)-1] == '{' {
+		return l.lexVoid
+	}
 	return l.lexRvalue
 }
 
@@ -332,7 +330,26 @@ func (l *tomlLexer) lexKey() tomlLexStateFn {
 		} else if r == '\n' {
 			return l.errorf("keys cannot contain new lines")
 		} else if isSpace(r) {
-			break
+			str := " "
+			// skip trailing whitespace
+			l.next()
+			for r = l.peek(); isSpace(r); r = l.peek() {
+				str += string(r)
+				l.next()
+			}
+			// break loop if not a dot
+			if r != '.' {
+				break
+			}
+			str += "."
+			// skip trailing whitespace after dot
+			l.next()
+			for r = l.peek(); isSpace(r); r = l.peek() {
+				str += string(r)
+				l.next()
+			}
+			growingString += str
+			continue
 		} else if r == '.' {
 			// skip
 		} else if !isValidBareChar(r) {
@@ -361,6 +378,7 @@ func (l *tomlLexer) lexComment(previousState tomlLexStateFn) tomlLexStateFn {
 func (l *tomlLexer) lexLeftBracket() tomlLexStateFn {
 	l.next()
 	l.emit(tokenLeftBracket)
+	l.brackets = append(l.brackets, '[')
 	return l.lexRvalue
 }
 
@@ -512,7 +530,7 @@ func (l *tomlLexer) lexStringAsString(terminator string, discardLeadingNewLine, 
 		} else {
 			r := l.peek()
 
-			if 0x00 <= r && r <= 0x1F && !(acceptNewLines && (r == '\n' || r == '\r')) {
+			if 0x00 <= r && r <= 0x1F && r != '\t' && !(acceptNewLines && (r == '\n' || r == '\r')) {
 				return "", fmt.Errorf("unescaped control character %U", r)
 			}
 			l.next()
@@ -543,7 +561,6 @@ func (l *tomlLexer) lexString() tomlLexStateFn {
 	}
 
 	str, err := l.lexStringAsString(terminator, discardLeadingNewLine, acceptNewLines)
-
 	if err != nil {
 		return l.errorf(err.Error())
 	}
@@ -615,6 +632,10 @@ func (l *tomlLexer) lexInsideTableKey() tomlLexStateFn {
 func (l *tomlLexer) lexRightBracket() tomlLexStateFn {
 	l.next()
 	l.emit(tokenRightBracket)
+	if len(l.brackets) == 0 || l.brackets[len(l.brackets)-1] != '[' {
+		return l.errorf("cannot have ']' here")
+	}
+	l.brackets = l.brackets[:len(l.brackets)-1]
 	return l.lexRvalue
 }
 

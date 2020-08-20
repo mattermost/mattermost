@@ -100,6 +100,47 @@
 //         "address": "123 Maple St.",
 //     }
 //
+// Omit Empty Values
+//
+// When decoding from a struct to any other value, you may use the
+// ",omitempty" suffix on your tag to omit that value if it equates to
+// the zero value. The zero value of all types is specified in the Go
+// specification.
+//
+// For example, the zero type of a numeric type is zero ("0"). If the struct
+// field value is zero and a numeric type, the field is empty, and it won't
+// be encoded into the destination type.
+//
+//     type Source {
+//         Age int `mapstructure:",omitempty"`
+//     }
+//
+// Unexported fields
+//
+// Since unexported (private) struct fields cannot be set outside the package
+// where they are defined, the decoder will simply skip them.
+//
+// For this output type definition:
+//
+//     type Exported struct {
+//         private string // this unexported field will be skipped
+//         Public string
+//     }
+//
+// Using this map as input:
+//
+//     map[string]interface{}{
+//         "private": "I will be ignored",
+//         "Public":  "I made it through!",
+//     }
+//
+// The following struct will be decoded:
+//
+//     type Exported struct {
+//         private: "" // field is left with an empty string (zero value)
+//         Public: "I made it through!"
+//     }
+//
 // Other Configuration
 //
 // mapstructure is highly configurable. See the DecoderConfig struct
@@ -422,7 +463,34 @@ func (d *Decoder) decode(name string, input interface{}, outVal reflect.Value) e
 // value to "data" of that type.
 func (d *Decoder) decodeBasic(name string, data interface{}, val reflect.Value) error {
 	if val.IsValid() && val.Elem().IsValid() {
-		return d.decode(name, data, val.Elem())
+		elem := val.Elem()
+
+		// If we can't address this element, then its not writable. Instead,
+		// we make a copy of the value (which is a pointer and therefore
+		// writable), decode into that, and replace the whole value.
+		copied := false
+		if !elem.CanAddr() {
+			copied = true
+
+			// Make *T
+			copy := reflect.New(elem.Type())
+
+			// *T = elem
+			copy.Elem().Set(elem)
+
+			// Set elem so we decode into it
+			elem = copy
+		}
+
+		// Decode. If we have an error then return. We also return right
+		// away if we're not a copy because that means we decoded directly.
+		if err := d.decode(name, data, elem); err != nil || !copied {
+			return err
+		}
+
+		// If we're a copy, we need to set te final result
+		val.Set(elem.Elem())
+		return nil
 	}
 
 	dataVal := reflect.ValueOf(data)
@@ -799,30 +867,31 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 		}
 
 		tagValue := f.Tag.Get(d.config.TagName)
-		tagParts := strings.Split(tagValue, ",")
-
-		// Determine the name of the key in the map
 		keyName := f.Name
-		if tagParts[0] != "" {
-			if tagParts[0] == "-" {
-				continue
-			}
-			keyName = tagParts[0]
-		}
 
 		// If Squash is set in the config, we squash the field down.
-		squash := d.config.Squash && v.Kind() == reflect.Struct
-		// If "squash" is specified in the tag, we squash the field down.
-		if !squash {
-			for _, tag := range tagParts[1:] {
-				if tag == "squash" {
-					squash = true
-					break
-				}
+		squash := d.config.Squash && v.Kind() == reflect.Struct && f.Anonymous
+		// Determine the name of the key in the map
+		if index := strings.Index(tagValue, ","); index != -1 {
+			if tagValue[:index] == "-" {
+				continue
 			}
+			// If "omitempty" is specified in the tag, it ignores empty values.
+			if strings.Index(tagValue[index+1:], "omitempty") != -1 && isEmptyValue(v) {
+				continue
+			}
+
+			// If "squash" is specified in the tag, we squash the field down.
+			squash = !squash && strings.Index(tagValue[index+1:], "squash") != -1
 			if squash && v.Kind() != reflect.Struct {
 				return fmt.Errorf("cannot squash non-struct type '%s'", v.Type())
 			}
+			keyName = tagValue[:index]
+		} else if len(tagValue) > 0 {
+			if tagValue == "-" {
+				continue
+			}
+			keyName = tagValue
 		}
 
 		switch v.Kind() {
@@ -1145,7 +1214,7 @@ func (d *Decoder) decodeStructFromMap(name string, dataVal, val reflect.Value) e
 			fieldKind := fieldType.Type.Kind()
 
 			// If "squash" is specified in the tag, we squash the field down.
-			squash := d.config.Squash && fieldKind == reflect.Struct
+			squash := d.config.Squash && fieldKind == reflect.Struct && fieldType.Anonymous
 			remain := false
 
 			// We always parse the tags cause we're looking for other tags too
@@ -1173,9 +1242,8 @@ func (d *Decoder) decodeStructFromMap(name string, dataVal, val reflect.Value) e
 			}
 
 			// Build our field
-			fieldCurrent := field{fieldType, structVal.Field(i)}
 			if remain {
-				remainField = &fieldCurrent
+				remainField = &field{fieldType, structVal.Field(i)}
 			} else {
 				// Normal struct field, store it away
 				fields = append(fields, field{fieldType, structVal.Field(i)})
@@ -1292,6 +1360,24 @@ func (d *Decoder) decodeStructFromMap(name string, dataVal, val reflect.Value) e
 	}
 
 	return nil
+}
+
+func isEmptyValue(v reflect.Value) bool {
+	switch getKind(v) {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len() == 0
+	case reflect.Bool:
+		return !v.Bool()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return v.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return v.IsNil()
+	}
+	return false
 }
 
 func getKind(val reflect.Value) reflect.Kind {

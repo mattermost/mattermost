@@ -16,6 +16,7 @@ type webSocketHandler interface {
 }
 
 type WebSocketRouter struct {
+	server   *Server
 	app      *App
 	handlers map[string]webSocketHandler
 }
@@ -25,6 +26,8 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 }
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
+	wr.app.InitServer()
+
 	if r.Action == "" {
 		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		returnWebSocketError(wr.app, conn, r, err)
@@ -54,16 +57,16 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		wr.app.Srv().Go(func() {
-			wr.app.SetStatusOnline(session.UserId, false)
-			wr.app.UpdateLastActivityAtIfNeeded(*session)
-		})
-
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
 
 		wr.app.HubRegister(conn)
+
+		wr.app.Srv().Go(func() {
+			wr.app.SetStatusOnline(session.UserId, false)
+			wr.app.UpdateLastActivityAtIfNeeded(*session)
+		})
 
 		resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 		hub := wr.app.GetHubForUserId(conn.UserId)

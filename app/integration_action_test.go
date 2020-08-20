@@ -6,8 +6,10 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -55,7 +57,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "")
+	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -155,7 +157,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post, err := th.App.CreatePostAsUser(&interactivePost, "")
+			post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 			require.Nil(t, err)
 
 			attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
@@ -192,7 +194,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			post2, err := th.App.CreatePostAsUser(&menuPost, "")
+			post2, err := th.App.CreatePostAsUser(&menuPost, "", true)
 			require.Nil(t, err)
 
 			attachments2, ok := post2.GetProp("attachments").([]*model.SlackAttachment)
@@ -250,7 +252,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "")
+			postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "", true)
 			require.Nil(t, err)
 
 			attachmentsPlugin, ok := postplugin.GetProp("attachments").([]*model.SlackAttachment)
@@ -291,7 +293,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "")
+			postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "", true)
 			require.Nil(t, err)
 
 			attachmentsSiteURL, ok := postSiteURL.GetProp("attachments").([]*model.SlackAttachment)
@@ -333,7 +335,7 @@ func TestPostAction(t *testing.T) {
 				},
 			}
 
-			postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "")
+			postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "", true)
 			require.Nil(t, err)
 
 			attachmentsSubpath, ok := postSubpath.GetProp("attachments").([]*model.SlackAttachment)
@@ -408,7 +410,7 @@ func TestPostActionProps(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, "")
+	post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 	require.Nil(t, err)
 	attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -417,8 +419,8 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	newPost, err := th.App.Srv().Store.Post().GetSingle(post.Id)
-	require.Nil(t, err)
+	newPost, nErr := th.App.Srv().Store.Post().GetSingle(post.Id)
+	require.Nil(t, nErr)
 
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
@@ -489,9 +491,13 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 			plugin.MattermostPlugin
 		}
 
-		func (p *MyPlugin) 	ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-		    response := &model.SubmitDialogResponse{
-				Errors: map[string]string{"name1": "some error"},
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			errReply := "some error"
+ 			if r.URL.Query().Get("abc") == "xyz" {
+				errReply = "some other error"
+			}
+			response := &model.SubmitDialogResponse{
+				Errors: map[string]string{"name1": errReply},
 			}
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write(response.ToJson())
@@ -534,6 +540,12 @@ func TestSubmitInteractiveDialog(t *testing.T) {
 	assert.Nil(t, err)
 	require.NotNil(t, resp)
 	assert.Equal(t, "some error", resp.Errors["name1"])
+
+	submit.URL = "/plugins/myplugin/myaction?abc=xyz"
+	resp, err = th.App.SubmitInteractiveDialog(submit)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "some other error", resp.Errors["name1"])
 }
 
 func TestPostActionRelativeURL(t *testing.T) {
@@ -576,7 +588,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -616,7 +628,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -656,7 +668,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -697,7 +709,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -737,7 +749,7 @@ func TestPostActionRelativeURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -811,7 +823,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -851,7 +863,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -891,7 +903,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -931,7 +943,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 			},
 		}
 
-		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		post, err := th.App.CreatePostAsUser(&interactivePost, "", true)
 		require.Nil(t, err)
 		attachments, ok := post.GetProp("attachments").([]*model.SlackAttachment)
 		require.True(t, ok)
@@ -941,4 +953,110 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 		require.Nil(t, err)
 	})
+}
+
+func TestDoPluginRequest(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"net/http"
+			"reflect"
+			"sort"
+
+			"github.com/mattermost/mattermost-server/v5/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			q := r.URL.Query()
+			if q.Get("abc") != "xyz" {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte("could not find param abc=xyz"))
+				return
+			}
+
+			multiple := q["multiple"]
+			if len(multiple) != 3 {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte("param multiple should have 3 values"))
+				return
+			}
+			sort.Strings(multiple)
+			if !reflect.DeepEqual(multiple, []string{"1 first", "2 second", "3 third"}) {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte("param multiple not correct"))
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("OK"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, `{"id": "myplugin", "backend": {"executable": "backend.exe"}}`, "myplugin", th.App)
+
+	hooks, err2 := th.App.GetPluginsEnvironment().HooksForPlugin("myplugin")
+	require.Nil(t, err2)
+	require.NotNil(t, hooks)
+
+	resp, err := th.App.doPluginRequest("GET", "/plugins/myplugin", nil, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "could not find param abc=xyz", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz", nil, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "param multiple should have 3 values", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin",
+		url.Values{"abc": []string{"xyz"}, "multiple": []string{"1 first", "2 second", "3 third"}}, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "OK", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz&multiple=1%20first",
+		url.Values{"multiple": []string{"2 second", "3 third"}}, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "OK", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?abc=xyz&multiple=1%20first&multiple=3%20third",
+		url.Values{"multiple": []string{"2 second"}}, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "OK", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
+		url.Values{"multiple": []string{"2 second"}, "abc": []string{"xyz"}}, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "OK", string(body))
+
+	resp, err = th.App.doPluginRequest("GET", "/plugins/myplugin?multiple=1%20first&multiple=3%20third",
+		url.Values{"multiple": []string{"4 fourth"}, "abc": []string{"xyz"}}, nil)
+	assert.Nil(t, err)
+	require.NotNil(t, resp)
+	body, _ = ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "param multiple not correct", string(body))
 }

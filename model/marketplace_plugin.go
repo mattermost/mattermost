@@ -74,11 +74,13 @@ func (plugin *BaseMarketplacePlugin) DecodeSignature() (io.ReadSeeker, error) {
 
 // MarketplacePluginFilter describes the parameters to request a list of plugins.
 type MarketplacePluginFilter struct {
-	Page          int
-	PerPage       int
-	Filter        string
-	ServerVersion string
-	LocalOnly     bool
+	Page                 int
+	PerPage              int
+	Filter               string
+	ServerVersion        string
+	BuildEnterpriseReady bool
+	EnterprisePlugins    bool
+	LocalOnly            bool
 }
 
 // ApplyToURL modifies the given url to include query string parameters for the request.
@@ -90,6 +92,8 @@ func (filter *MarketplacePluginFilter) ApplyToURL(u *url.URL) {
 	}
 	q.Add("filter", filter.Filter)
 	q.Add("server_version", filter.ServerVersion)
+	q.Add("build_enterprise_ready", strconv.FormatBool(filter.BuildEnterpriseReady))
+	q.Add("enterprise_plugins", strconv.FormatBool(filter.EnterprisePlugins))
 	q.Add("local_only", strconv.FormatBool(filter.LocalOnly))
 	u.RawQuery = q.Encode()
 }

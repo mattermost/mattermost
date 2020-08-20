@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
 )
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -40,13 +40,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if a.allowGroupMentions(post) {
 		gchan = make(chan store.StoreResult, 1)
 		go func() {
-			groups, err := a.Srv().Store.Group().GetGroups(0, 0, model.GroupSearchOpts{FilterAllowReference: true})
-			groupsMap := make(map[string]*model.Group)
-			if err == nil {
-				for _, group := range groups {
-					groupsMap[group.Name] = group
-				}
-			}
+			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
 			gchan <- store.StoreResult{Data: groupsMap, Err: err}
 			close(gchan)
 		}()
@@ -57,7 +51,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
 			fileInfos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			fchan <- store.StoreResult{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
 	}
@@ -256,7 +250,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+		if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
 			sendPushNotifications = false
 		} else {
@@ -349,13 +343,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	message.Add("channel_name", channel.Name)
 	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
+	message.Add("set_online", setOnline)
 
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
-		if result := <-fchan; result.Err != nil {
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		if result := <-fchan; result.NErr != nil {
+			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
@@ -417,7 +412,7 @@ func (a *App) sendNoUsersNotifiedByGroupInChannel(sender *model.User, post *mode
 		RootId:    post.RootId,
 		ParentId:  post.ParentId,
 		ChannelId: channel.Id,
-		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupDisplayName": group.DisplayName}),
+		Message:   T("api.post.check_for_out_of_channel_group_users.message.none", model.StringInterface{"GroupName": group.Name}),
 	}
 	a.SendEphemeralPost(post.UserId, ephemeralPost)
 }
@@ -664,7 +659,9 @@ func (m *ExplicitMentions) addGroupMention(word string, groups map[string]*model
 		m.GroupMentions = make(map[string]*model.Group)
 	}
 
-	m.GroupMentions[group.Name] = group
+	if group.Name != nil {
+		m.GroupMentions[*group.Name] = group
+	}
 
 	return true
 }
@@ -740,6 +737,10 @@ func (a *App) allowChannelMentions(post *model.Post, numProfiles int) bool {
 
 // allowGroupMentions returns whether or not the group mentions are allowed for the given post.
 func (a *App) allowGroupMentions(post *model.Post) bool {
+	if license := a.Srv().License(); license == nil || !*license.Features.LDAPGroups {
+		return false
+	}
+
 	if !a.HasPermissionToChannel(post.UserId, post.ChannelId, model.PERMISSION_USE_GROUP_MENTIONS) {
 		return false
 	}
@@ -749,6 +750,43 @@ func (a *App) allowGroupMentions(post *model.Post) bool {
 	}
 
 	return true
+}
+
+// getGroupsAllowedForReferenceInChannel returns a map of groups allowed for reference in a given channel and team.
+func (a *App) getGroupsAllowedForReferenceInChannel(channel *model.Channel, team *model.Team) (map[string]*model.Group, *model.AppError) {
+	var err *model.AppError
+	groupsMap := make(map[string]*model.Group)
+	opts := model.GroupSearchOpts{FilterAllowReference: true}
+
+	if channel.IsGroupConstrained() || team.IsGroupConstrained() {
+		var groups []*model.GroupWithSchemeAdmin
+		if channel.IsGroupConstrained() {
+			groups, err = a.Srv().Store.Group().GetGroupsByChannel(channel.Id, opts)
+		} else {
+			groups, err = a.Srv().Store.Group().GetGroupsByTeam(team.Id, opts)
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups {
+			if group.Group.Name != nil {
+				groupsMap[*group.Group.Name] = &group.Group
+			}
+		}
+		return groupsMap, nil
+	}
+
+	groups, err := a.Srv().Store.Group().GetGroups(0, 0, opts)
+	if err != nil {
+		return nil, err
+	}
+	for _, group := range groups {
+		if group.Name != nil {
+			groupsMap[*group.Name] = group
+		}
+	}
+
+	return groupsMap, nil
 }
 
 // Given a map of user IDs to profiles, returns a list of mention

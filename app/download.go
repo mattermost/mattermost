@@ -4,11 +4,15 @@
 package app
 
 import (
+	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+
 	"github.com/pkg/errors"
 )
 
@@ -34,10 +38,26 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 	client := a.HTTPService().MakeClient(true)
 	client.Timeout = HTTP_REQUEST_TIMEOUT
 
-	resp, err := client.Get(downloadURL)
+	var resp *http.Response
+	err = utils.ProgressiveRetry(func() error {
+		resp, err = client.Get(downloadURL)
+
+		if err != nil {
+			return errors.Wrapf(err, "failed to fetch from %s", downloadURL)
+		}
+
+		if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_ = resp.Body.Close()
+			return errors.Errorf("failed to fetch from %s", downloadURL)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to fetch from %s", downloadURL)
+		return nil, errors.Wrap(err, "download failed after multiple retries.")
 	}
+
 	defer resp.Body.Close()
 
 	return ioutil.ReadAll(resp.Body)

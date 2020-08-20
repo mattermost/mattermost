@@ -14,6 +14,7 @@ import (
 
 const (
 	PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW = "direct_channel_show"
+	PREFERENCE_CATEGORY_GROUP_CHANNEL_SHOW  = "group_channel_show"
 	PREFERENCE_CATEGORY_TUTORIAL_STEPS      = "tutorial_step"
 	PREFERENCE_CATEGORY_ADVANCED_SETTINGS   = "advanced_settings"
 	PREFERENCE_CATEGORY_FLAGGED_POST        = "flagged_post"
@@ -68,7 +69,7 @@ func PreferenceFromJson(data io.Reader) *Preference {
 }
 
 func (o *Preference) IsValid() *AppError {
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Preference.IsValid", "model.preference.is_valid.id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)
 	}
 

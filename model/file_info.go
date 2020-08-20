@@ -102,15 +102,15 @@ func (fi *FileInfo) PreSave() {
 }
 
 func (fi *FileInfo) IsValid() *AppError {
-	if len(fi.Id) != 26 {
+	if !IsValidId(fi.Id) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(fi.CreatorId) != 26 && fi.CreatorId != "nouser" {
+	if !IsValidId(fi.CreatorId) && fi.CreatorId != "nouser" {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
-	if len(fi.PostId) != 0 && len(fi.PostId) != 26 {
+	if len(fi.PostId) != 0 && !IsValidId(fi.PostId) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.post_id.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 

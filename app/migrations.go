@@ -25,7 +25,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 
 	mlog.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
-	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.License() != nil)
+	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.Srv().License() != nil)
 
 	allSucceeded := true
 
@@ -122,8 +122,8 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 	if role != nil {
 		role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
-		if _, err = a.Srv().Store.Role().Save(role); err != nil {
-			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
+		if _, nErr := a.Srv().Store.Role().Save(role); nErr != nil {
+			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(nErr))
 			return
 		}
 	}
@@ -134,8 +134,11 @@ func (a *App) DoEmojisPermissionsMigration() {
 		return
 	}
 
-	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
-	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
+	systemAdminRole.Permissions = append(systemAdminRole.Permissions,
+		model.PERMISSION_CREATE_EMOJIS.Id,
+		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
+	)
 	if _, err := a.Srv().Store.Role().Save(systemAdminRole); err != nil {
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.", mlog.Err(err))
 		return

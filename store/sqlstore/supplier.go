@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -113,6 +114,8 @@ type SqlSupplier struct {
 	settings       *model.SqlSettings
 	lockedToMaster bool
 	context        context.Context
+	license        *model.License
+	licenseMutex   sync.Mutex
 }
 
 type TraceOnAdapter struct{}
@@ -327,6 +330,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
+	if ss.license == nil {
+		return ss.GetMaster()
+	}
+
 	if len(ss.settings.DataSourceSearchReplicas) == 0 {
 		return ss.GetReplica()
 	}
@@ -336,7 +343,7 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
 		return ss.GetMaster()
 	}
 
@@ -426,7 +433,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
 		count, err := ss.GetMaster().SelectInt(
-			`SELECT name FROM sqlite_master WHERE type='table' AND name=?`,
+			`SELECT count(name) FROM sqlite_master WHERE type='table' AND name=?`,
 			tableName,
 		)
 
@@ -779,7 +786,8 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 	var currentPrimaryKey string
 	var err error
 	// get the current primary key as a comma separated list of columns
-	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+	switch ss.DriverName() {
+	case model.DATABASE_DRIVER_MYSQL:
 		query := `
 			SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index) AS PK
 		FROM
@@ -791,13 +799,13 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 		GROUP BY
 			index_name`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query, tableName)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+	case model.DATABASE_DRIVER_POSTGRES:
 		query := `
 			SELECT string_agg(a.attname, ',') AS pk
 		FROM
 			pg_constraint AS c
-		CROSS JOIN LATERAL
-			UNNEST(c.conkey) AS cols(colnum)
+		CROSS JOIN
+			(SELECT unnest(conkey) FROM pg_constraint WHERE conrelid='` + strings.ToLower(tableName) + `'::REGCLASS AND contype='p') AS cols(colnum)
 		INNER JOIN
 			pg_attribute AS a ON a.attrelid = c.conrelid
 		AND cols.colnum = a.attnum
@@ -805,7 +813,7 @@ func (ss *SqlSupplier) AlterPrimaryKey(tableName string, columnNames []string) b
 			c.contype = 'p'
 		AND c.conrelid = '` + strings.ToLower(tableName) + `'::REGCLASS`
 		currentPrimaryKey, err = ss.GetMaster().SelectStr(query)
-	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+	case model.DATABASE_DRIVER_SQLITE:
 		// SQLite doesn't support altering primary key
 		return true
 	}
@@ -845,6 +853,10 @@ func (ss *SqlSupplier) CreateIndexIfNotExists(indexName string, tableName string
 
 func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
+}
+
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
 }
 
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
@@ -904,7 +916,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(err))
+			mlog.Critical("Failed to create index", mlog.String("table", tableName), mlog.String("index_name", indexName), mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
@@ -1002,6 +1014,23 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 	copy(all, ss.replicas)
 	all[len(ss.replicas)] = ss.master
 	return all
+}
+
+// RecycleDBConnections closes active connections by setting the max conn lifetime
+// to d, and then resets them back to their original duration.
+func (ss *SqlSupplier) RecycleDBConnections(d time.Duration) {
+	// Get old time.
+	originalDuration := time.Duration(*ss.settings.ConnMaxLifetimeMilliseconds) * time.Millisecond
+	// Set the max lifetimes for all connections.
+	for _, conn := range ss.GetAllConns() {
+		conn.Db.SetConnMaxLifetime(d)
+	}
+	// Wait for that period with an additional 2 seconds of scheduling delay.
+	time.Sleep(d + 2*time.Second)
+	// Reset max lifetime back to original value.
+	for _, conn := range ss.GetAllConns() {
+		conn.Db.SetConnMaxLifetime(originalDuration)
+	}
 }
 
 func (ss *SqlSupplier) Close() {
@@ -1155,10 +1184,16 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	results := make(chan store.IntegrityCheckResult)
+func (ss *SqlSupplier) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
+}
+
+func (ss *SqlSupplier) UpdateLicense(license *model.License) {
+	ss.licenseMutex.Lock()
+	defer ss.licenseMutex.Unlock()
+	ss.license = license
 }
 
 type mattermConverter struct{}

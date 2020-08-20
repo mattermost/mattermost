@@ -106,13 +106,15 @@ func TestCreateChannel(t *testing.T) {
 	_, resp = Client.CreateChannel(private)
 	CheckNoError(t, resp)
 
-	channel.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(channel)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channel.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(channel)
+		CheckNoError(t, resp)
 
-	private.Name = GenerateTestChannelName()
-	_, resp = th.SystemAdminClient.CreateChannel(private)
-	CheckNoError(t, resp)
+		private.Name = GenerateTestChannelName()
+		_, resp = client.CreateChannel(private)
+		CheckNoError(t, resp)
+	})
 
 	// Test posting Garbage
 	r, err := Client.DoApiPost("/channels", "garbage")
@@ -280,11 +282,13 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.PatchChannel(th.BasicChannel.Id, patch)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
-	CheckNoError(t, resp)
+		_, resp = client.PatchChannel(th.BasicPrivateChannel.Id, patch)
+		CheckNoError(t, resp)
+	})
 
 	// Test updating the header of someone else's GM channel.
 	user1 := th.CreateUser()
@@ -428,10 +432,10 @@ func TestCreateDirectChannelAsGuest(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
 	guest := &model.User{
@@ -555,10 +559,10 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
 	guest := &model.User{
@@ -602,21 +606,22 @@ func TestCreateGroupChannelAsGuest(t *testing.T) {
 func TestDeleteGroupChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 	user := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
 
 	userIds := []string{user.Id, user2.Id, user3.Id}
 
-	rgc, resp := Client.CreateGroupChannel(userIds)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-	require.NotNil(t, rgc, "should have created a group channel")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		rgc, resp := th.Client.CreateGroupChannel(userIds)
+		CheckNoError(t, resp)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rgc, "should have created a group channel")
+		deleted, resp := client.DeleteChannel(rgc.Id)
+		CheckErrorMessage(t, resp, "api.channel.delete_channel.type.invalid")
+		require.False(t, deleted, "should not have been able to delete group channel.")
+	})
 
-	deleted, resp := Client.DeleteChannel(rgc.Id)
-	CheckErrorMessage(t, resp, "api.channel.delete_channel.type.invalid")
-	require.False(t, deleted, "should not have been able to delete group channel.")
 }
 
 func TestGetChannel(t *testing.T) {
@@ -652,19 +657,22 @@ func TestGetChannel(t *testing.T) {
 	_, resp = Client.GetChannel(th.BasicChannel.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicChannel.Id, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetChannel(th.BasicChannel.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicPrivateChannel.Id, "")
-	CheckNoError(t, resp)
+		_, resp = client.GetChannel(th.BasicPrivateChannel.Id, "")
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannel(th.BasicUser.Id, "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetChannel(th.BasicUser.Id, "")
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
 	Client := th.Client
 	team := th.BasicTeam
 
@@ -678,16 +686,20 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	publicChannel1 := th.CreatePublicChannel()
 	Client.DeleteChannel(publicChannel1.Id)
 
-	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
-	CheckNoError(t, resp)
-	require.Len(t, channels, numInitialChannelsForTeam+1, "should be 1 deleted channel")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		channels, resp = client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, numInitialChannelsForTeam+1, "should be 1 deleted channel")
+	})
 
 	publicChannel2 := th.CreatePublicChannel()
 	Client.DeleteChannel(publicChannel2.Id)
 
-	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
-	CheckNoError(t, resp)
-	require.Len(t, channels, numInitialChannelsForTeam+2, "should be 2 deleted channels")
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		channels, resp = client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, numInitialChannelsForTeam+2, "should be 2 deleted channels")
+	})
 
 	th.LoginBasic()
 
@@ -710,6 +722,12 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	CheckNoError(t, resp)
 	require.Len(t, channels, numInitialChannelsForTeam+3)
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channels, resp = client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, numInitialChannelsForTeam+2)
+	})
+
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 1, "")
 	CheckNoError(t, resp)
 	require.Len(t, channels, 1, "should be one channel per page")
@@ -717,6 +735,42 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 1, 1, "")
 	CheckNoError(t, resp)
 	require.Len(t, channels, 1, "should be one channel per page")
+}
+
+func TestGetPrivateChannelsForTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+
+	// normal user
+	_, resp := th.Client.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+	CheckForbiddenStatus(t, resp)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		channels, resp := c.GetPrivateChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+		// th.BasicPrivateChannel and th.BasicPrivateChannel2
+		require.Len(t, channels, 2, "wrong number of private channels")
+		for _, c := range channels {
+			// check all channels included are private
+			require.Equal(t, model.CHANNEL_PRIVATE, c.Type, "should include private channels only")
+		}
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 0, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, channels, 1, "should be one channel per page")
+
+		channels, resp = c.GetPrivateChannelsForTeam(team.Id, 10000, 100, "")
+		CheckNoError(t, resp)
+		require.Empty(t, channels, "should be no channel")
+
+		_, resp = c.GetPrivateChannelsForTeam("junk", 0, 100, "")
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
@@ -776,8 +830,10 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	_, resp = Client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetPublicChannelsForTeam(team.Id, 0, 100, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetPublicChannelsForTeam(team.Id, 0, 100, "")
+		CheckNoError(t, resp)
+	})
 }
 
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
@@ -893,6 +949,18 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, false, "")
 		CheckNoError(t, resp)
 		assert.Equal(t, 5, len(channels))
+
+		// Should return all channels including basicDeleted.
+		channels, resp = Client.GetChannelsForTeamForUser(th.BasicTeam.Id, th.BasicUser.Id, true, "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
+
+		// Should stil return all channels including basicDeleted.
+		now := time.Now().Add(-time.Minute).Unix() * 1000
+		Client.GetChannelsForTeamAndUserWithLastDeleteAt(th.BasicTeam.Id, th.BasicUser.Id,
+			true, int(now), "")
+		CheckNoError(t, resp)
+		assert.Equal(t, 7, len(channels))
 	})
 }
 
@@ -901,28 +969,58 @@ func TestGetAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		channels, resp := client.GetAllChannels(0, 20, "")
+		CheckNoError(t, resp)
 
-	// At least, all the not-deleted channels created during the InitBasic
-	require.True(t, len(*channels) >= 3)
-	for _, c := range *channels {
-		require.NotEqual(t, c.TeamId, "")
-	}
+		// At least, all the not-deleted channels created during the InitBasic
+		require.True(t, len(*channels) >= 3)
+		for _, c := range *channels {
+			require.NotEqual(t, c.TeamId, "")
+		}
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
-	CheckNoError(t, resp)
-	require.True(t, len(*channels) >= 3)
+		channels, resp = client.GetAllChannels(0, 10, "")
+		CheckNoError(t, resp)
+		require.True(t, len(*channels) >= 3)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, *channels, 1)
+		channels, resp = client.GetAllChannels(1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, *channels, 1)
 
-	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, *channels)
+		channels, resp = client.GetAllChannels(10000, 10000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, *channels)
 
-	_, resp = Client.GetAllChannels(0, 20, "")
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		require.Nil(t, resp.Error)
+		beforeCount := len(*channels)
+
+		firstChannel := (*channels)[0].Channel
+
+		ok, resp := client.DeleteChannel(firstChannel.Id)
+		require.Nil(t, resp.Error)
+		require.True(t, ok)
+
+		channels, resp = client.GetAllChannels(0, 10000, "")
+		var ids []string
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.Len(t, *channels, beforeCount-1)
+		require.NotContains(t, ids, firstChannel.Id)
+
+		channels, resp = client.GetAllChannelsIncludeDeleted(0, 10000, "")
+		ids = []string{}
+		for _, item := range *channels {
+			ids = append(ids, item.Channel.Id)
+		}
+		require.Nil(t, resp.Error)
+		require.True(t, len(*channels) > beforeCount)
+		require.Contains(t, ids, firstChannel.Id)
+	})
+
+	_, resp := Client.GetAllChannels(0, 20, "")
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1132,29 +1230,162 @@ func TestSearchAllChannels(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+	openChannel, chanErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "SearchAllChannels-FOOBARDISPLAYNAME",
+		Name:        "whatever",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	})
+	CheckNoError(t, chanErr)
 
-	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
+	privateChannel, privErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName: "SearchAllChannels-private1",
+		Name:        "private1",
+		Type:        model.CHANNEL_PRIVATE,
+		TeamId:      th.BasicTeam.Id,
+	})
+	CheckNoError(t, privErr)
+
+	team := th.CreateTeam()
+	groupConstrainedChannel, groupErr := th.SystemAdminClient.CreateChannel(&model.Channel{
+		DisplayName:      "SearchAllChannels-groupConstrained-1",
+		Name:             "groupconstrained1",
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+		TeamId:           team.Id,
+	})
+	CheckNoError(t, groupErr)
+
+	testCases := []struct {
+		Description        string
+		Search             *model.ChannelSearch
+		ExpectedChannelIds []string
+	}{
+		{
+			"Middle of word search",
+			&model.ChannelSearch{Term: "bardisplay"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Prefix search",
+			&model.ChannelSearch{Term: "SearchAllChannels-foobar"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Suffix search",
+			&model.ChannelSearch{Term: "displayname"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Name search",
+			&model.ChannelSearch{Term: "what"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Name suffix search",
+			&model.ChannelSearch{Term: "ever"},
+			[]string{openChannel.Id},
+		},
+		{
+			"Basic channel name middle of word search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name[2:14]},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Upper case search",
+			&model.ChannelSearch{Term: strings.ToUpper(th.BasicChannel.Name)},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Mixed case search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name[0:2] + strings.ToUpper(th.BasicChannel.Name[2:5]) + th.BasicChannel.Name[5:]},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Non mixed case search",
+			&model.ChannelSearch{Term: th.BasicChannel.Name},
+			[]string{th.BasicChannel.Id},
+		},
+		{
+			"Search private channel name",
+			&model.ChannelSearch{Term: th.BasicPrivateChannel.Name},
+			[]string{th.BasicPrivateChannel.Id},
+		},
+		{
+			"Search with private channel filter",
+			&model.ChannelSearch{Private: true},
+			[]string{th.BasicPrivateChannel.Id, th.BasicPrivateChannel2.Id, privateChannel.Id, groupConstrainedChannel.Id},
+		},
+		{
+			"Search with public channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", Public: true},
+			[]string{openChannel.Id},
+		},
+		{
+			"Search with private channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", Private: true},
+			[]string{privateChannel.Id, groupConstrainedChannel.Id},
+		},
+		{
+			"Search with teamIds channel filter",
+			&model.ChannelSearch{Term: "SearchAllChannels", TeamIds: []string{th.BasicTeam.Id}},
+			[]string{openChannel.Id, privateChannel.Id},
+		},
+		{
+			"Search with deleted without IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name},
+			[]string{},
+		},
+		{
+			"Search with deleted IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name, IncludeDeleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search with deleted IncludeDeleted filter",
+			&model.ChannelSearch{Term: th.BasicDeletedChannel.Name, IncludeDeleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search with deleted Deleted filter and empty term",
+			&model.ChannelSearch{Term: "", Deleted: true},
+			[]string{th.BasicDeletedChannel.Id},
+		},
+		{
+			"Search for group constrained",
+			&model.ChannelSearch{Term: "SearchAllChannels", GroupConstrained: true},
+			[]string{groupConstrainedChannel.Id},
+		},
+		{
+			"Search for group constrained and public",
+			&model.ChannelSearch{Term: "SearchAllChannels", GroupConstrained: true, Public: true},
+			[]string{},
+		},
+		{
+			"Search for exclude group constrained",
+			&model.ChannelSearch{Term: "SearchAllChannels", ExcludeGroupConstrained: true},
+			[]string{openChannel.Id, privateChannel.Id},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			channels, resp := th.SystemAdminClient.SearchAllChannels(testCase.Search)
+			CheckNoError(t, resp)
+			assert.Equal(t, len(testCase.ExpectedChannelIds), len(*channels))
+			actualChannelIds := []string{}
+			for _, channelWithTeamData := range *channels {
+				actualChannelIds = append(actualChannelIds, channelWithTeamData.Channel.Id)
+			}
+			assert.ElementsMatch(t, testCase.ExpectedChannelIds, actualChannelIds)
+		})
+	}
+
+	// Searching with no terms returns all default channels
+	allChannels, resp := th.SystemAdminClient.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckNoError(t, resp)
+	assert.True(t, len(*allChannels) >= 3)
 
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicChannel.Id, (*channels)[0].Id)
-
-	search.Term = th.BasicPrivateChannel.Name
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-
-	assert.Len(t, *channels, 1)
-	assert.Equal(t, th.BasicPrivateChannel.Id, (*channels)[0].Id)
-
-	search.Term = ""
-	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
-	CheckNoError(t, resp)
-	// At least, all the not-deleted channels created during the InitBasic
-	assert.True(t, len(*channels) >= 3)
-
-	search.Term = th.BasicChannel.Name
-	_, resp = Client.SearchAllChannels(search)
+	_, resp = Client.SearchAllChannels(&model.ChannelSearch{Term: ""})
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1237,84 +1468,90 @@ func TestSearchGroupChannels(t *testing.T) {
 func TestDeleteChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	c := th.Client
 	team := th.BasicTeam
 	user := th.BasicUser
 	user2 := th.BasicUser2
 
 	// successful delete of public channel
-	publicChannel1 := th.CreatePublicChannel()
-	pass, resp := Client.DeleteChannel(publicChannel1.Id)
-	CheckNoError(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		publicChannel1 := th.CreatePublicChannel()
+		pass, resp := client.DeleteChannel(publicChannel1.Id)
+		CheckNoError(t, resp)
 
-	require.True(t, pass, "should have passed")
+		require.True(t, pass, "should have passed")
 
-	ch, err := th.App.GetChannel(publicChannel1.Id)
-	require.True(t, err != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
+		ch, err := th.App.GetChannel(publicChannel1.Id)
+		require.True(t, err != nil || ch.DeleteAt != 0, "should have failed to get deleted channel, or returned one with a populated DeleteAt.")
 
-	post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
-	_, resp = Client.CreatePost(post1)
-	require.NotNil(t, resp, "expected response to not be nil")
+		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
+		_, resp = client.CreatePost(post1)
+		require.NotNil(t, resp, "expected response to not be nil")
 
-	// successful delete of private channel
-	privateChannel2 := th.CreatePrivateChannel()
-	_, resp = Client.DeleteChannel(privateChannel2.Id)
-	CheckNoError(t, resp)
+		// successful delete of private channel
+		privateChannel2 := th.CreatePrivateChannel()
+		_, resp = client.DeleteChannel(privateChannel2.Id)
+		CheckNoError(t, resp)
 
-	// successful delete of channel with multiple members
-	publicChannel3 := th.CreatePublicChannel()
-	th.App.AddUserToChannel(user, publicChannel3)
-	th.App.AddUserToChannel(user2, publicChannel3)
-	_, resp = Client.DeleteChannel(publicChannel3.Id)
-	CheckNoError(t, resp)
+		// successful delete of channel with multiple members
+		publicChannel3 := th.CreatePublicChannel()
+		th.App.AddUserToChannel(user, publicChannel3)
+		th.App.AddUserToChannel(user2, publicChannel3)
+		_, resp = client.DeleteChannel(publicChannel3.Id)
+		CheckNoError(t, resp)
 
-	// default channel cannot be deleted.
-	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, false)
-	pass, resp = Client.DeleteChannel(defaultChannel.Id)
-	CheckBadRequestStatus(t, resp)
-	require.False(t, pass, "should have failed")
+		// default channel cannot be deleted.
+		defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, false)
+		pass, resp = client.DeleteChannel(defaultChannel.Id)
+		CheckBadRequestStatus(t, resp)
+		require.False(t, pass, "should have failed")
 
-	// check system admin can delete a channel without any appropriate team or channel membership.
-	sdTeam := th.CreateTeamWithClient(Client)
-	sdPublicChannel := &model.Channel{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        GenerateTestChannelName(),
-		Type:        model.CHANNEL_OPEN,
-		TeamId:      sdTeam.Id,
-	}
-	sdPublicChannel, resp = Client.CreateChannel(sdPublicChannel)
-	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.DeleteChannel(sdPublicChannel.Id)
-	CheckNoError(t, resp)
+		// check system admin can delete a channel without any appropriate team or channel membership.
+		sdTeam := th.CreateTeamWithClient(c)
+		sdPublicChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_OPEN,
+			TeamId:      sdTeam.Id,
+		}
+		sdPublicChannel, resp = c.CreateChannel(sdPublicChannel)
+		CheckNoError(t, resp)
+		_, resp = client.DeleteChannel(sdPublicChannel.Id)
+		CheckNoError(t, resp)
 
-	sdPrivateChannel := &model.Channel{
-		DisplayName: "dn_" + model.NewId(),
-		Name:        GenerateTestChannelName(),
-		Type:        model.CHANNEL_PRIVATE,
-		TeamId:      sdTeam.Id,
-	}
-	sdPrivateChannel, resp = Client.CreateChannel(sdPrivateChannel)
-	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.DeleteChannel(sdPrivateChannel.Id)
-	CheckNoError(t, resp)
+		sdPrivateChannel := &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.CHANNEL_PRIVATE,
+			TeamId:      sdTeam.Id,
+		}
+		sdPrivateChannel, resp = c.CreateChannel(sdPrivateChannel)
+		CheckNoError(t, resp)
+		_, resp = client.DeleteChannel(sdPrivateChannel.Id)
+		CheckNoError(t, resp)
+	})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 
-	th.LoginBasic()
-	publicChannel5 := th.CreatePublicChannel()
-	Client.Logout()
+		th.LoginBasic()
+		publicChannel5 := th.CreatePublicChannel()
+		c.Logout()
 
-	Client.Login(user.Id, user.Password)
-	_, resp = Client.DeleteChannel(publicChannel5.Id)
-	CheckUnauthorizedStatus(t, resp)
+		c.Login(user.Id, user.Password)
+		_, resp := c.DeleteChannel(publicChannel5.Id)
+		CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.DeleteChannel("junk")
-	CheckUnauthorizedStatus(t, resp)
+		_, resp = c.DeleteChannel("junk")
+		CheckUnauthorizedStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.DeleteChannel(GenerateTestId())
-	CheckUnauthorizedStatus(t, resp)
+		c.Logout()
+		_, resp = c.DeleteChannel(GenerateTestId())
+		CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
-	CheckNoError(t, resp)
+		_, resp = client.DeleteChannel(publicChannel5.Id)
+		CheckNoError(t, resp)
+
+	})
+
 }
 
 func TestDeleteChannel2(t *testing.T) {
@@ -1390,6 +1627,45 @@ func TestDeleteChannel2(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.Client, model.CHANNEL_PRIVATE)
 	_, resp = Client.DeleteChannel(privateChannel7.Id)
 	CheckForbiddenStatus(t, resp)
+}
+
+func TestPermanentDeleteChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableAPIChannelDeletion := *th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableAPIChannelDeletion = &enableAPIChannelDeletion })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = false })
+
+	publicChannel1 := th.CreatePublicChannel()
+	t.Run("Permanent deletion not available through API if EnableAPIChannelDeletion is not set", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.PermanentDeleteChannel(publicChannel1.Id)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("Permanent deletion available through local mode even if EnableAPIChannelDeletion is not set", func(t *testing.T) {
+		ok, resp := th.LocalClient.PermanentDeleteChannel(publicChannel1.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		publicChannel := th.CreatePublicChannel()
+		ok, resp := c.PermanentDeleteChannel(publicChannel.Id)
+		CheckNoError(t, resp)
+		assert.True(t, ok)
+
+		_, err := th.App.GetChannel(publicChannel.Id)
+		assert.NotNil(t, err)
+
+		ok, resp = c.PermanentDeleteChannel("junk")
+		CheckBadRequestStatus(t, resp)
+		require.False(t, ok, "should have returned false")
+	}, "Permanent deletion with EnableAPIChannelDeletion set")
 }
 
 func TestConvertChannelToPrivate(t *testing.T) {
@@ -1588,8 +1864,10 @@ func TestGetChannelByName(t *testing.T) {
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")
+		CheckNoError(t, resp)
+	})
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
@@ -1630,44 +1908,45 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 func TestGetChannelMembers(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 
-	members, resp := Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 3, "should only be 3 users in channel")
+		members, resp := client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 3, "should only be 3 users in channel")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 2, "should only be 2 users")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 2, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 2, "should only be 2 users")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
-	CheckNoError(t, resp)
-	require.Len(t, *members, 1, "should only be 1 user")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1, 1, "")
+		CheckNoError(t, resp)
+		require.Len(t, *members, 1, "should only be 1 user")
 
-	members, resp = Client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
-	CheckNoError(t, resp)
-	require.Empty(t, *members, "should be 0 users")
+		members, resp = client.GetChannelMembers(th.BasicChannel.Id, 1000, 100000, "")
+		CheckNoError(t, resp)
+		require.Empty(t, *members, "should be 0 users")
 
-	_, resp = Client.GetChannelMembers("", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMembers("junk", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelMembers("junk", 0, 60, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMembers("", 0, 60, "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelMembers(model.NewId(), 0, 60, "")
+		_, resp = client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+		CheckNoError(t, resp)
+	})
+
+	_, resp := th.Client.GetChannelMembers(model.NewId(), 0, 60, "")
 	CheckForbiddenStatus(t, resp)
 
-	Client.Logout()
-	_, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	th.Client.Logout()
+	_, resp = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
+	th.Client.Login(user.Email, user.Password)
+	_, resp = th.Client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
-	CheckNoError(t, resp)
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
@@ -1711,42 +1990,42 @@ func TestGetChannelMembersByIds(t *testing.T) {
 func TestGetChannelMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+	c := th.Client
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		member, resp := client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+		require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
+		require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
 
-	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
-	require.Equal(t, th.BasicChannel.Id, member.ChannelId, "wrong channel id")
-	require.Equal(t, th.BasicUser.Id, member.UserId, "wrong user id")
+		_, resp = client.GetChannelMember("", th.BasicUser.Id, "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelMember("", th.BasicUser.Id, "")
-	CheckNotFoundStatus(t, resp)
+		_, resp = client.GetChannelMember("junk", th.BasicUser.Id, "")
+		CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, "", "")
+		CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.GetChannelMember("junk", th.BasicUser.Id, "")
-	CheckBadRequestStatus(t, resp)
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, "junk", "")
+		CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.GetChannelMember(model.NewId(), th.BasicUser.Id, "")
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
+		CheckNotFoundStatus(t, resp)
+
+		_, resp = client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+	})
+
+	_, resp := c.GetChannelMember(model.NewId(), th.BasicUser.Id, "")
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "", "")
-	CheckNotFoundStatus(t, resp)
-
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, "junk", "")
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, model.NewId(), "")
-	CheckNotFoundStatus(t, resp)
-
-	Client.Logout()
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	c.Logout()
+	_, resp = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckUnauthorizedStatus(t, resp)
 
 	user := th.CreateUser()
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	c.Login(user.Email, user.Password)
+	_, resp = c.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
-	CheckNoError(t, resp)
 }
 
 func TestGetChannelMembersForUser(t *testing.T) {
@@ -2300,11 +2579,13 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user2.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddChannelMember(publicChannel.Id, user2.Id)
+		CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
-	CheckNoError(t, resp)
+		_, resp = client.AddChannelMember(privateChannel.Id, user2.Id)
+		CheckNoError(t, resp)
+	})
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -2342,7 +2623,7 @@ func TestAddChannelMember(t *testing.T) {
 	Client.Logout()
 
 	th.MakeUserChannelAdmin(user, privateChannel)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	Client.Login(user.Username, user.Password)
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
@@ -2354,9 +2635,11 @@ func TestAddChannelMember(t *testing.T) {
 	_, appErr := th.App.UpdateChannel(privateChannel)
 	require.Nil(t, appErr)
 
-	// User is not in associated groups so shouldn't be allowed
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
-	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// User is not in associated groups so shouldn't be allowed
+		_, resp = client.AddChannelMember(privateChannel.Id, user.Id)
+		CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
+	})
 
 	// Associate group to team
 	_, appErr = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -2370,8 +2653,10 @@ func TestAddChannelMember(t *testing.T) {
 	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.AddChannelMember(privateChannel.Id, user.Id)
+		CheckNoError(t, resp)
+	})
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -2579,12 +2864,15 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = Client.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		th.App.AddUserToChannel(th.BasicUser, private)
+		_, resp = client.RemoveUserFromChannel(private.Id, th.BasicUser.Id)
+		CheckNoError(t, resp)
+	})
 
 	th.LoginBasic()
 	th.UpdateUserToNonTeamAdmin(user1, team)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -2594,21 +2882,23 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id, model.CHANNEL_USER_ROLE_ID)
 
-	// Check that a regular channel user can remove other users.
-	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
-	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
-	CheckNoError(t, resp)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Check that a regular channel user can remove other users.
+		privateChannel := th.CreateChannelWithClient(client, model.CHANNEL_PRIVATE)
+		_, resp = client.AddChannelMember(privateChannel.Id, user1.Id)
+		CheckNoError(t, resp)
+		_, resp = client.AddChannelMember(privateChannel.Id, user2.Id)
+		CheckNoError(t, resp)
 
-	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
-	CheckNoError(t, resp)
+		_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+		CheckNoError(t, resp)
+	})
 
 	// Restrict the permission for adding users to Channel Admins
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id, model.CHANNEL_ADMIN_ROLE_ID)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id, model.CHANNEL_USER_ROLE_ID)
 
-	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
@@ -2620,7 +2910,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.MakeUserChannelAdmin(user1, privateChannel)
-	th.App.InvalidateAllCaches()
+	th.App.Srv().InvalidateAllCaches()
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
@@ -2661,11 +2951,10 @@ func TestRemoveChannelMember(t *testing.T) {
 	groupChannel, resp := Client.CreateGroupChannel([]string{user1.Id, user2.Id, user3.Id})
 	CheckNoError(t, resp)
 
-	_, resp = Client.RemoveUserFromChannel(groupChannel.Id, user1.Id)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.RemoveUserFromChannel(groupChannel.Id, user1.Id)
-	CheckBadRequestStatus(t, resp)
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		_, resp = client.RemoveUserFromChannel(groupChannel.Id, user1.Id)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestAutocompleteChannels(t *testing.T) {
@@ -2863,10 +3152,10 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
-		th.App.RemoveLicense()
+		th.App.Srv().RemoveLicense()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	id := model.NewId()
 	guest := &model.User{
@@ -2986,10 +3275,10 @@ func TestAutocompleteChannelsForSearchGuestUsers(t *testing.T) {
 }
 
 func TestUpdateChannelScheme(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
@@ -3046,10 +3335,10 @@ func TestUpdateChannelScheme(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Test that a license is required.
-	th.App.SetLicense(nil)
+	th.App.Srv().SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNotImplementedStatus(t, resp)
-	th.App.SetLicense(model.NewTestLicense(""))
+	th.App.Srv().SetLicense(model.NewTestLicense(""))
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, teamScheme.Id)
@@ -3212,14 +3501,14 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Equal(t, "api.channel.get_channel_moderations.license.error", res.Error.Id)
 	})
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Errors as a non sysadmin", func(t *testing.T) {
 		_, res := th.Client.GetChannelModerations(channel.Id, "")
 		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
 	})
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Returns default moderations with default roles", func(t *testing.T) {
 		moderations, res := th.SystemAdminClient.GetChannelModerations(channel.Id, "")
@@ -3381,14 +3670,14 @@ func TestPatchChannelModerations(t *testing.T) {
 		require.Equal(t, "api.channel.patch_channel_moderations.license.error", res.Error.Id)
 	})
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Errors as a non sysadmin", func(t *testing.T) {
 		_, res := th.Client.PatchChannelModerations(channel.Id, emptyPatch)
 		require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
 	})
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Returns default moderations with empty patch", func(t *testing.T) {
 		moderations, res := th.SystemAdminClient.PatchChannelModerations(channel.Id, emptyPatch)
@@ -3553,7 +3842,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 		require.Equal(t, "api.channel.channel_member_counts_by_group.license.error", res.Error.Id)
 	})
 
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	t.Run("Errors without read permission to the channel", func(t *testing.T) {
 		_, res := th.Client.GetChannelMemberCountsByGroup(model.NewId(), false, "")
@@ -3607,7 +3896,7 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
+		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
@@ -3632,5 +3921,210 @@ func TestGetChannelMemberCountsByGroup(t *testing.T) {
 			},
 		}
 		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
+	})
+}
+
+func TestMoveChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	Client := th.Client
+	team1 := th.BasicTeam
+	team2 := th.CreateTeam()
+
+	t.Run("Should move channel", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		ch, resp := th.SystemAdminClient.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, ch.TeamId)
+	})
+
+	t.Run("Should fail when trying to move a private channel", func(t *testing.T) {
+		channel := th.CreatePrivateChannel()
+		_, resp := Client.MoveChannel(channel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a DM channel", func(t *testing.T) {
+		user := th.CreateUser()
+		dmChannel := th.CreateDmChannel(user)
+		_, resp := Client.MoveChannel(dmChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail when trying to move a group channel", func(t *testing.T) {
+		user := th.CreateUser()
+
+		gmChannel, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, user.Id)
+		require.Nil(t, err)
+		_, resp := Client.MoveChannel(gmChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.channel.move_channel.type.invalid")
+	})
+
+	t.Run("Should fail due to permissions", func(t *testing.T) {
+		publicChannel := th.CreatePublicChannel()
+		_, resp := Client.MoveChannel(publicChannel.Id, team1.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		publicChannel := th.CreatePublicChannel()
+		user := th.BasicUser
+
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.AddChannelMember(publicChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.MoveChannel(publicChannel.Id, team2.Id, false)
+		require.NotNil(t, resp.Error)
+		CheckErrorMessage(t, resp, "app.channel.move_channel.members_do_not_match.error")
+	}, "Should fail to move channel due to a member not member of target team")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		publicChannel := th.CreatePublicChannel()
+		user := th.BasicUser
+
+		_, resp := client.RemoveTeamMember(team2.Id, user.Id)
+		CheckNoError(t, resp)
+
+		_, resp = client.AddChannelMember(publicChannel.Id, user.Id)
+		CheckNoError(t, resp)
+
+		newChannel, resp := client.MoveChannel(publicChannel.Id, team2.Id, true)
+		require.Nil(t, resp.Error)
+		require.Equal(t, team2.Id, newChannel.TeamId)
+	}, "Should be able to (force) move channel by a member that is not member of target team")
+}
+
+func TestUpdateCategoryForTeamForUser(t *testing.T) {
+	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+		require.Len(t, channelsCategory.Channels, 5) // Town Square, Off Topic, and the 3 channels created by InitBasic
+
+		// Should return the correct values from the API
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.Channels, received.Channels)
+
+		// And when requesting the category later
+		received, resp = th.Client.GetSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, "")
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.Channels, received.Channels)
+	})
+
+	t.Run("should update the sort order of the DM category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		dmsCategory := categories.Categories[2]
+		require.Equal(t, model.SidebarCategoryDirectMessages, dmsCategory.Type)
+		require.Equal(t, model.SidebarCategorySortRecent, dmsCategory.Sorting)
+
+		// Should return the correct values from the API
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: dmsCategory.SidebarCategory,
+			Channels:        dmsCategory.Channels,
+		}
+		updatedCategory.Sorting = model.SidebarCategorySortAlphabetical
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, dmsCategory.Id, updatedCategory)
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, dmsCategory.Id, received.Id)
+		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
+
+		// And when requesting the category later
+		received, resp = th.Client.GetSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, dmsCategory.Id, "")
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, dmsCategory.Id, received.Id)
+		assert.Equal(t, model.SidebarCategorySortAlphabetical, received.Sorting)
+	})
+
+	t.Run("should update the display name of a custom category", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		customCategory, resp := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "custom123",
+			},
+		})
+		require.Nil(t, resp.Error)
+		require.Equal(t, "custom123", customCategory.DisplayName)
+
+		// Should return the correct values from the API
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: customCategory.SidebarCategory,
+			Channels:        customCategory.Channels,
+		}
+		updatedCategory.DisplayName = "abcCustom"
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, customCategory.Id, updatedCategory)
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, customCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
+
+		// And when requesting the category later
+		received, resp = th.Client.GetSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, customCategory.Id, "")
+		assert.Nil(t, resp.Error)
+		assert.Equal(t, customCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.DisplayName, received.DisplayName)
+	})
+
+	t.Run("should update the channel order of the category even if it contains archived channels", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+		require.Len(t, channelsCategory.Channels, 5) // Town Square, Off Topic, and the 3 channels created by InitBasic
+
+		// Delete one of the channels
+		_, resp = th.Client.DeleteChannel(th.BasicChannel.Id)
+		require.Nil(t, resp.Error)
+
+		// Should still be able to reorder the channels
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        []string{channelsCategory.Channels[1], channelsCategory.Channels[0], channelsCategory.Channels[4], channelsCategory.Channels[3], channelsCategory.Channels[2]},
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.Equal(t, updatedCategory.Channels, received.Channels)
 	})
 }

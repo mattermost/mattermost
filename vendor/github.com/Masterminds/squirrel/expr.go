@@ -24,7 +24,7 @@ type expr struct {
 //
 // Ex:
 //     Expr("FROM_UNIXTIME(?)", t)
-func Expr(sql string, args ...interface{}) expr {
+func Expr(sql string, args ...interface{}) Sqlizer {
 	return expr{sql: sql, args: args}
 }
 
@@ -134,8 +134,6 @@ func (e aliasExpr) ToSql() (sql string, args []interface{}, err error) {
 }
 
 // Eq is syntactic sugar for use with Where/Having/Set methods.
-// Ex:
-//     .Where(Eq{"id": 1})
 type Eq map[string]interface{}
 
 func (eq Eq) toSQL(useNotOpr bool) (sql string, args []interface{}, err error) {

@@ -39,11 +39,11 @@ type AuthorizeRequest struct {
 // correctly.
 func (ad *AuthData) IsValid() *AppError {
 
-	if len(ad.ClientId) != 26 {
+	if !IsValidId(ad.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(ad.UserId) != 26 {
+	if !IsValidId(ad.UserId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -78,7 +78,7 @@ func (ad *AuthData) IsValid() *AppError {
 // correctly.
 func (ar *AuthorizeRequest) IsValid() *AppError {
 
-	if len(ar.ClientId) != 26 {
+	if !IsValidId(ar.ClientId) {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.client_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

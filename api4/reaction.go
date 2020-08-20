@@ -23,7 +23,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(reaction.UserId) != 26 || len(reaction.PostId) != 26 || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
+	if !model.IsValidId(reaction.UserId) || !model.IsValidId(reaction.PostId) || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

@@ -93,23 +93,21 @@ func (_m *PostStore) ClearCaches() {
 }
 
 // Delete provides a mock function with given fields: postId, time, deleteByID
-func (_m *PostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
+func (_m *PostStore) Delete(postId string, time int64, deleteByID string) error {
 	ret := _m.Called(postId, time, deleteByID)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, int64, string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
 		r0 = rf(postId, time, deleteByID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Get provides a mock function with given fields: id, skipFetchThreads
-func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, error) {
 	ret := _m.Called(id, skipFetchThreads)
 
 	var r0 *model.PostList
@@ -121,13 +119,11 @@ func (_m *PostStore) Get(id string, skipFetchThreads bool) (*model.PostList, *mo
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
 		r1 = rf(id, skipFetchThreads)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -272,6 +268,29 @@ func (_m *PostStore) GetOldest() (*model.Post, *model.AppError) {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetOldestEntityCreationTime provides a mock function with given fields:
+func (_m *PostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
 	}
 
 	var r1 *model.AppError
@@ -583,7 +602,7 @@ func (_m *PostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExpo
 }
 
 // GetSingle provides a mock function with given fields: id
-func (_m *PostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+func (_m *PostStore) GetSingle(id string) (*model.Post, error) {
 	ret := _m.Called(id)
 
 	var r0 *model.Post
@@ -595,13 +614,11 @@ func (_m *PostStore) GetSingle(id string) (*model.Post, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(id)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -638,7 +655,7 @@ func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) 
 }
 
 // OverwriteMultiple provides a mock function with given fields: posts
-func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
 	ret := _m.Called(posts)
 
 	var r0 []*model.Post
@@ -650,16 +667,23 @@ func (_m *PostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, *mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+	var r1 int
+	if rf, ok := ret.Get(1).(func([]*model.Post) int); ok {
 		r1 = rf(posts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		r1 = ret.Get(1).(int)
+	}
+
+	var r2 *model.AppError
+	if rf, ok := ret.Get(2).(func([]*model.Post) *model.AppError); ok {
+		r2 = rf(posts)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0, r1, r2
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit
@@ -686,39 +710,35 @@ func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *m
 }
 
 // PermanentDeleteByChannel provides a mock function with given fields: channelId
-func (_m *PostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+func (_m *PostStore) PermanentDeleteByChannel(channelId string) error {
 	ret := _m.Called(channelId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(channelId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PostStore) PermanentDeleteByUser(userId string) *model.AppError {
+func (_m *PostStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
-		}
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
 // Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Save(post *model.Post) (*model.Post, error) {
 	ret := _m.Called(post)
 
 	var r0 *model.Post
@@ -730,20 +750,18 @@ func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
 		r1 = rf(post)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // SaveMultiple provides a mock function with given fields: posts
-func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.AppError) {
+func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	ret := _m.Called(posts)
 
 	var r0 []*model.Post
@@ -755,16 +773,21 @@ func (_m *PostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, *model.Ap
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]*model.Post) *model.AppError); ok {
+	var r1 int
+	if rf, ok := ret.Get(1).(func([]*model.Post) int); ok {
 		r1 = rf(posts)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Get(1).(int)
 	}
 
-	return r0, r1
+	var r2 error
+	if rf, ok := ret.Get(2).(func([]*model.Post) error); ok {
+		r2 = rf(posts)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Search provides a mock function with given fields: teamId, userId, params
@@ -818,7 +841,7 @@ func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, 
 }
 
 // Update provides a mock function with given fields: newPost, oldPost
-func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
 	ret := _m.Called(newPost, oldPost)
 
 	var r0 *model.Post
@@ -830,13 +853,11 @@ func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Po
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) error); ok {
 		r1 = rf(newPost, oldPost)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
