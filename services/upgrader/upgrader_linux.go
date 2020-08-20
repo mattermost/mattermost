@@ -102,7 +102,7 @@ func verifySignature(filename string, sigfilename string, publicKey string) erro
 func canIWriteTheExecutable() error {
 	executablePath, err := os.Executable()
 	if err != nil {
-		return errors.New("error getting the executable path")
+		return errors.New("error getting the path of the executable")
 	}
 	executableInfo, err := os.Stat(path.Dir(executablePath))
 	if err != nil {
