@@ -1659,6 +1659,8 @@ type AnnouncementSettings struct {
 	BannerColor          *string
 	BannerTextColor      *string
 	AllowBannerDismissal *bool
+	AdminNoticesEnabled  *bool
+	UserNoticesEnabled   *bool
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1680,6 +1682,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 
 	if s.AllowBannerDismissal == nil {
 		s.AllowBannerDismissal = NewBool(true)
+	}
+
+	if s.AdminNoticesEnabled == nil {
+		s.AdminNoticesEnabled = NewBool(true)
+	}
+
+	if s.UserNoticesEnabled == nil {
+		s.UserNoticesEnabled = NewBool(true)
 	}
 }
 

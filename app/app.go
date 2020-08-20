@@ -49,6 +49,7 @@ type App struct {
 	imageProxy  *imageproxy.ImageProxy
 	timezones   *timezones.Timezones
 
+	notices *model.ProductNotices
 	context context.Context
 }
 
@@ -119,6 +120,9 @@ func (a *App) initJobs() {
 	}
 	if jobsExpiryNotifyInterface != nil {
 		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
+	}
+	if productNoticesJobInterface != nil {
+		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
 	}
 
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()

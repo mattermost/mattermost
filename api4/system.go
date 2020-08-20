@@ -57,6 +57,9 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+
+	api.BaseRoutes.ApiRoot.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/notices/viewed", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -602,6 +605,55 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = appErr
 	}
 
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	sinceString := r.URL.Query().Get("lastViewed")
+	var lastViewed int64
+	var parseError error
+	if len(sinceString) > 0 {
+		lastViewed, parseError = strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("lastViewed")
+			return
+		}
+	}
+	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
+	if parseError != nil {
+		c.SetInvalidParam("client")
+		return
+	}
+	clientVersion := r.URL.Query().Get("clientVersion")
+	locale := r.URL.Query().Get("locale")
+
+	notices, err := c.App.GetProductNotices(lastViewed, c.App.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+	result, _ := notices.Marshal()
+	_, _ = w.Write(result)
+}
+
+func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("updateViewedProductNotices", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	ids := model.ArrayFromJson(r.Body)
+	err := c.App.UpdateViewedProductNotices(c.App.Session().UserId, ids)
+	if err != nil {
+		c.Err = err
+		return
+	}
 	auditRec.Success()
 	ReturnStatusOK(w)
 }

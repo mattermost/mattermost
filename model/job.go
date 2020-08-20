@@ -20,6 +20,7 @@ const (
 	JOB_TYPE_MIGRATIONS                     = "migrations"
 	JOB_TYPE_PLUGINS                        = "plugins"
 	JOB_TYPE_EXPIRY_NOTIFY                  = "expiry_notify"
+	JOB_TYPE_PRODUCT_NOTICES                = "product_notices"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -60,6 +61,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_MESSAGE_EXPORT:
 	case JOB_TYPE_MIGRATIONS:
 	case JOB_TYPE_PLUGINS:
+	case JOB_TYPE_PRODUCT_NOTICES:
 	case JOB_TYPE_EXPIRY_NOTIFY:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)

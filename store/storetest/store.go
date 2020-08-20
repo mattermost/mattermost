@@ -46,6 +46,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 }
 
@@ -56,6 +57,7 @@ func (s *Store) Channel() store.ChannelStore                       { return &s.C
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
 func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
+func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
@@ -128,5 +130,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PluginStore,
 		&s.RoleStore,
 		&s.SchemeStore,
+		&s.ProductNoticesStore,
 	)
 }
