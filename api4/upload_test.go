@@ -58,6 +58,7 @@ func TestGetUpload(t *testing.T) {
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
 		CreateAt:  model.GetMillis(),
 		UserId:    th.BasicUser2.Id,
 		ChannelId: th.BasicChannel.Id,
@@ -119,6 +120,7 @@ func TestGetUploadsForUser(t *testing.T) {
 		for i := 0; i < len(uploads); i++ {
 			us := &model.UploadSession{
 				Id:        model.NewId(),
+				Type:      model.UploadTypeAttachment,
 				CreateAt:  model.GetMillis(),
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
@@ -152,6 +154,7 @@ func TestUploadData(t *testing.T) {
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
 		CreateAt:  model.GetMillis(),
 		UserId:    th.BasicUser2.Id,
 		ChannelId: th.BasicChannel.Id,

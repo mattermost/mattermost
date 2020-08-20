@@ -6827,6 +6827,10 @@
     "translation": "Invalid value for Path"
   },
   {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Invalid value for Type"
+  },
+  {
     "id": "model.upload_session.is_valid.user_id.app_error",
     "translation": "Invalid Value for UserId"
   },

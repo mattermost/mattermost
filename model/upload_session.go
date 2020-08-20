@@ -5,14 +5,25 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
 
+// UploadType defines the type of an upload.
+type UploadType string
+
+const (
+	UploadTypeAttachment UploadType = "attachment"
+	UploadTypeImport     UploadType = "import"
+)
+
 // UploadSession contains information used to keep track of a file upload.
 type UploadSession struct {
-	// The unique identifier of the resource.
+	// The unique identifier for the session.
 	Id string `json:"id"`
+	// The type of the upload.
+	Type UploadType `json:"type"`
 	// The timestamp of creation.
 	CreateAt int64 `json:"create_at"`
 	// The id of the user performing the upload.
@@ -74,18 +85,35 @@ func (us *UploadSession) PreSave() {
 	}
 }
 
-// IsValid() validates an UploadSession. It returns an error in case of
+// IsValid validates an UploadType. It returns an error in case of
+// failure.
+func (t UploadType) IsValid() error {
+	switch t {
+	case UploadTypeAttachment:
+		return nil
+	case UploadTypeImport:
+		return nil
+	default:
+	}
+	return fmt.Errorf("invalid UploadType %s", t)
+}
+
+// IsValid validates an UploadSession. It returns an error in case of
 // failure.
 func (us *UploadSession) IsValid() *AppError {
 	if !IsValidId(us.Id) {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if err := us.Type.IsValid(); err != nil {
+		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.type.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
 	if !IsValidId(us.UserId) {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.user_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 
-	if !IsValidId(us.ChannelId) {
+	if us.Type == UploadTypeAttachment && !IsValidId(us.ChannelId) {
 		return NewAppError("UploadSession.IsValid", "model.upload_session.is_valid.channel_id.app_error", nil, "id="+us.Id, http.StatusBadRequest)
 	}
 

@@ -25,6 +25,7 @@ func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.UploadSession{}, "UploadSessions").SetKeys(false, "Id")
 		table.ColMap("Id").SetMaxSize(26)
+		table.ColMap("Type").SetMaxSize(32)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("Filename").SetMaxSize(256)
@@ -34,6 +35,7 @@ func newSqlUploadSessionStore(sqlStore SqlStore) store.UploadSessionStore {
 }
 
 func (us SqlUploadSessionStore) createIndexesIfNotExists() {
+	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "Type")
 	us.CreateIndexIfNotExists("idx_uploadsessions_create_at", "UploadSessions", "CreateAt")
 	us.CreateIndexIfNotExists("idx_uploadsessions_user_id", "UploadSessions", "UserId")
 }

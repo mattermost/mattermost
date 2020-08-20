@@ -22,6 +22,7 @@ func TestCreateUploadSession(t *testing.T) {
 	defer th.TearDown()
 
 	us := &model.UploadSession{
+		Type:      model.UploadTypeAttachment,
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Filename:  "upload",
@@ -95,6 +96,7 @@ func TestUploadData(t *testing.T) {
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Filename:  "upload",

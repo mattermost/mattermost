@@ -318,7 +318,7 @@ func (c *Client4) GetUploadsRoute() string {
 }
 
 func (c *Client4) GetUploadRoute(uploadId string) string {
-	return fmt.Sprintf(c.GetUploadsRoute()+"/%s", uploadId)
+	return fmt.Sprintf("%s/%s", c.GetUploadsRoute(), uploadId)
 }
 
 func (c *Client4) GetPluginsRoute() string {

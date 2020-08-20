@@ -38,6 +38,7 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 
 	t.Run("saving valid session should succeed", func(t *testing.T) {
 		session = &model.UploadSession{
+			Type:      model.UploadTypeAttachment,
 			UserId:    model.NewId(),
 			ChannelId: model.NewId(),
 			Filename:  "test",
@@ -66,6 +67,7 @@ func testUploadSessionStoreSaveGet(t *testing.T, ss store.Store) {
 
 func testUploadSessionStoreUpdate(t *testing.T, ss store.Store) {
 	session := &model.UploadSession{
+		Type:      model.UploadTypeAttachment,
 		UserId:    model.NewId(),
 		ChannelId: model.NewId(),
 		Filename:  "test",
@@ -110,6 +112,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 
 	sessions := []*model.UploadSession{
 		{
+			Type:      model.UploadTypeAttachment,
 			UserId:    userId,
 			ChannelId: model.NewId(),
 			Filename:  "test0",
@@ -117,6 +120,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 			Path:      "/tmp/test0",
 		},
 		{
+			Type:      model.UploadTypeAttachment,
 			UserId:    model.NewId(),
 			ChannelId: model.NewId(),
 			Filename:  "test1",
@@ -124,6 +128,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 			Path:      "/tmp/test1",
 		},
 		{
+			Type:      model.UploadTypeAttachment,
 			UserId:    userId,
 			ChannelId: model.NewId(),
 			Filename:  "test2",
@@ -131,6 +136,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 			Path:      "/tmp/test2",
 		},
 		{
+			Type:      model.UploadTypeAttachment,
 			UserId:    userId,
 			ChannelId: model.NewId(),
 			Filename:  "test3",
@@ -177,6 +183,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, ss store.Store) {
 func testUploadSessionStoreDelete(t *testing.T, ss store.Store) {
 	session := &model.UploadSession{
 		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
 		UserId:    model.NewId(),
 		ChannelId: model.NewId(),
 		Filename:  "test",

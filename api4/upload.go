@@ -40,6 +40,7 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	us.Id = model.NewId()
+	us.Type = model.UploadTypeAttachment
 	us.UserId = c.App.Session().UserId
 	us, err := c.App.CreateUploadSession(us)
 	if err != nil {

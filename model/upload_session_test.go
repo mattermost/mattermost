@@ -20,6 +20,7 @@ func TestUploadSessionIsValid(t *testing.T) {
 	t.Run("valid session should succeed", func(t *testing.T) {
 		session = UploadSession{
 			Id:         NewId(),
+			Type:       UploadTypeAttachment,
 			CreateAt:   GetMillis(),
 			UserId:     NewId(),
 			ChannelId:  NewId(),
@@ -38,6 +39,14 @@ func TestUploadSessionIsValid(t *testing.T) {
 		err := us.IsValid()
 		require.NotNil(t, err)
 		require.Equal(t, "model.upload_session.is_valid.id.app_error", err.Id)
+	})
+
+	t.Run("invalid type should fail", func(t *testing.T) {
+		us := session
+		us.Type = "invalid"
+		err := us.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.upload_session.is_valid.type.app_error", err.Id)
 	})
 
 	t.Run("invalid CreateAt should fail", func(t *testing.T) {
@@ -62,6 +71,14 @@ func TestUploadSessionIsValid(t *testing.T) {
 		err := us.IsValid()
 		require.NotNil(t, err)
 		require.Equal(t, "model.upload_session.is_valid.channel_id.app_error", err.Id)
+	})
+
+	t.Run("ChannelId is not validated if type is not attachment", func(t *testing.T) {
+		us := session
+		us.ChannelId = ""
+		us.Type = UploadTypeImport
+		err := us.IsValid()
+		require.Nil(t, err)
 	})
 
 	t.Run("invalid Filename should fail", func(t *testing.T) {
