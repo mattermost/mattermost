@@ -27,6 +27,7 @@ type Logr struct {
 	shutdown           bool
 	lvlCache           levelCache
 
+	metricsOnce    sync.Once
 	metrics        MetricsCollector
 	queueSizeGauge Gauge
 	loggedCounter  Counter
@@ -158,10 +159,6 @@ func (logr *Logr) AddTarget(target Target) error {
 		}
 		logr.lvlCache.setup()
 		go logr.start()
-
-		if logr.queueSizeGauge != nil {
-			go logr.startMetricsUpdater()
-		}
 	})
 	logr.resetLevelCache()
 	return err

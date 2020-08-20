@@ -1,6 +1,10 @@
 package logr
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/wiggin77/merror"
+)
 
 const (
 	DefMetricsUpdateFreqMillis = 15000 // 15 seconds
@@ -50,11 +54,7 @@ type TargetWithMetrics interface {
 
 // SetMetricsCollector enables metrics collection by supplying a MetricsCollector.
 // The MetricsCollector provides counters and gauges that are updated by log targets.
-// This MUST be called before any log targets are added.
 func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
-	if logr.HasTargets() {
-		return errors.New("Logr.SetMetricsCollector must be called before any targets are added.")
-	}
 	if collector == nil {
 		return errors.New("collector cannot be nil")
 	}
@@ -63,5 +63,22 @@ func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
 	logr.queueSizeGauge, _ = collector.QueueSizeGauge("_logr")
 	logr.loggedCounter, _ = collector.LoggedCounter("_logr")
 	logr.errorCounter, _ = collector.ErrorCounter("_logr")
-	return nil
+
+	logr.metricsOnce.Do(func() {
+		go logr.startMetricsUpdater()
+	})
+
+	merr := merror.New()
+
+	logr.tmux.RLock()
+	defer logr.tmux.RUnlock()
+	for _, target := range logr.targets {
+		if tm, ok := target.(TargetWithMetrics); ok {
+			if err := tm.EnableMetrics(logr.metrics, logr.MetricsUpdateFreqMillis); err != nil {
+				merr.Append(err)
+			}
+		}
+
+	}
+	return merr.ErrorOrNil()
 }

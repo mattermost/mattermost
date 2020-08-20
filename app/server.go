@@ -483,6 +483,14 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	if s.Metrics != nil && allowAdvancedLogging {
+		if err = mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
+			mlog.Debug("Failed to enable advanced logging metrics", mlog.Err(err))
+		} else {
+			mlog.Debug("Advanced logging metrics enabled")
+		}
+	}
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })

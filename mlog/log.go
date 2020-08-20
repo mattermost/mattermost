@@ -262,3 +262,9 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 func (l *Logger) AddTarget(target logr.Target) error {
 	return l.logrLogger.Logr().AddTarget(target)
 }
+
+// EnableMetrics enables metrics collection by supplying a MetricsCollector.
+// The MetricsCollector provides counters and gauges that are updated by log targets.
+func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
+	return l.logrLogger.Logr().SetMetricsCollector(collector)
+}
