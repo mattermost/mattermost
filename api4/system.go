@@ -625,10 +625,10 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 		switch {
 		case errors.As(err, &isErr):
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
 		default:
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Error()}
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
 		}
 	} else {
 		s = map[string]interface{}{"percentage": percentage, "error": nil}
