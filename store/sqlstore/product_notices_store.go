@@ -77,10 +77,10 @@ func (s SqlProductNoticesStore) View(userId string, notices []string) error {
 	now := time.Now().UTC().Unix()
 
 	// update existing records
-	for _, notice := range noticeStates {
-		notice.Viewed += 1
-		notice.Timestamp = now
-		if _, err := transaction.Update(&notice); err != nil {
+	for i := range noticeStates {
+		noticeStates[i].Viewed += 1
+		noticeStates[i].Timestamp = now
+		if _, err := transaction.Update(&noticeStates[i]); err != nil {
 			return errors.Wrapf(err, "failed to update ProductNoticeViewState")
 		}
 	}

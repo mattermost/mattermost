@@ -121,6 +121,7 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 		return nil
 	}
 	for _, notice := range *a.notices {
+		notice := notice // pin
 		// check if the notice has been viewed already
 		view := getViewState(notice.ID)
 		if view != nil {
