@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -208,6 +209,10 @@ func (jss SqlJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 }
 
 func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
+	return jss.GetNewestJobByStatusesAndType([]string{status}, jobType)
+}
+
+func (jss SqlJobStore) GetNewestJobByStatusesAndType(status []string, jobType string) (*model.Job, *model.AppError) {
 	query, args, err := jss.getQueryBuilder().
 		Select("*").
 		From("Jobs").
@@ -223,7 +228,7 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Job", fmt.Sprintf("<status, type>=<%s, %s>", status, jobType))
 		}
-		return nil, errors.Wrapf(err, "failed to find Job with status=%s and type=%s", status, jobType)
+		return nil, errors.Wrapf(err, "failed to find Job with statuses=%s and type=%s", strings.Join(status, ","), jobType)
 	}
 	return job, nil
 }

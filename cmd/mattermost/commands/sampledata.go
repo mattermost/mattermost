@@ -240,6 +240,10 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		return errors.New("You can't have more channel memberships than channels per team.")
 	}
 
+	if users < 6 && groupChannels > 0 {
+		return errors.New("You can't have group channels generation with less than 6 users. Use --group-channels 0 or increase the number of users.")
+	}
+
 	var bulkFile *os.File
 	switch bulk {
 	case "":

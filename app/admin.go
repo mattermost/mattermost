@@ -201,10 +201,6 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
-	if !*cfg.EmailSettings.SendEmailNotifications {
-		return nil
-	}
-
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
 	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
