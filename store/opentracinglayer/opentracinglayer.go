@@ -4037,6 +4037,24 @@ func (s *OpenTracingLayerJobStore) GetNewestJobByStatusAndType(status string, jo
 	return result, err
 }
 
+func (s *OpenTracingLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.GetNewestJobByStatusesAndType")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "JobStore.Save")
@@ -6342,7 +6360,7 @@ func (s *OpenTracingLayerStatusStore) UpdateLastActivityAt(userId string, lastAc
 	return err
 }
 
-func (s *OpenTracingLayerSystemStore) Get() (model.StringMap, *model.AppError) {
+func (s *OpenTracingLayerSystemStore) Get() (model.StringMap, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.Get")
 	s.Root.Store.SetContext(newCtx)
@@ -6360,7 +6378,7 @@ func (s *OpenTracingLayerSystemStore) Get() (model.StringMap, *model.AppError) {
 	return result, err
 }
 
-func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, *model.AppError) {
+func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.GetByName")
 	s.Root.Store.SetContext(newCtx)
@@ -6378,7 +6396,7 @@ func (s *OpenTracingLayerSystemStore) GetByName(name string) (*model.System, *mo
 	return result, err
 }
 
-func (s *OpenTracingLayerSystemStore) InsertIfExists(system *model.System) (*model.System, *model.AppError) {
+func (s *OpenTracingLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.InsertIfExists")
 	s.Root.Store.SetContext(newCtx)
@@ -6396,7 +6414,7 @@ func (s *OpenTracingLayerSystemStore) InsertIfExists(system *model.System) (*mod
 	return result, err
 }
 
-func (s *OpenTracingLayerSystemStore) PermanentDeleteByName(name string) (*model.System, *model.AppError) {
+func (s *OpenTracingLayerSystemStore) PermanentDeleteByName(name string) (*model.System, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.PermanentDeleteByName")
 	s.Root.Store.SetContext(newCtx)
@@ -6414,7 +6432,7 @@ func (s *OpenTracingLayerSystemStore) PermanentDeleteByName(name string) (*model
 	return result, err
 }
 
-func (s *OpenTracingLayerSystemStore) Save(system *model.System) *model.AppError {
+func (s *OpenTracingLayerSystemStore) Save(system *model.System) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -6432,7 +6450,7 @@ func (s *OpenTracingLayerSystemStore) Save(system *model.System) *model.AppError
 	return err
 }
 
-func (s *OpenTracingLayerSystemStore) SaveOrUpdate(system *model.System) *model.AppError {
+func (s *OpenTracingLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.SaveOrUpdate")
 	s.Root.Store.SetContext(newCtx)
@@ -6450,7 +6468,7 @@ func (s *OpenTracingLayerSystemStore) SaveOrUpdate(system *model.System) *model.
 	return err
 }
 
-func (s *OpenTracingLayerSystemStore) Update(system *model.System) *model.AppError {
+func (s *OpenTracingLayerSystemStore) Update(system *model.System) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SystemStore.Update")
 	s.Root.Store.SetContext(newCtx)
