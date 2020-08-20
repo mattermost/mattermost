@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -33,6 +34,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -297,13 +299,12 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	var err *model.AppError
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
 		var fileInfos []*model.FileInfo
-		fileInfos, err = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
-		if err != nil {
-			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(err), mlog.String("post_id", post.Id))
+		fileInfos, nErr = a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, false)
+		if nErr != nil {
+			mlog.Error("Unable to get FileInfos for migrated post", mlog.Err(nErr), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
@@ -316,13 +317,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, err = a.Srv().Store.FileInfo().Save(info); err != nil {
+		if _, nErr = a.Srv().Store.FileInfo().Save(info); nErr != nil {
 			mlog.Error(
 				"Unable to save file info when migrating post to use FileInfos",
 				mlog.String("post_id", post.Id),
 				mlog.String("file_info_id", info.Id),
 				mlog.String("file_info_path", info.Path),
-				mlog.Err(err),
+				mlog.Err(nErr),
 			)
 			continue
 		}
@@ -542,7 +543,7 @@ type UploadFileTask struct {
 	// Testing: overrideable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, *model.AppError)
+	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)
 }
 
 func (t *UploadFileTask) init(a *App) {
@@ -640,7 +641,13 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
-		return nil, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	wg.Wait()
@@ -961,7 +968,13 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	}
 
 	if _, err := a.Srv().Store.FileInfo().Save(info); err != nil {
-		return nil, data, err
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, data, appErr
+		default:
+			return nil, data, model.NewAppError("DoUploadFileExpectModification", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return info, data, nil
@@ -1104,11 +1117,36 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	return a.Srv().Store.FileInfo().Get(fileId)
+	fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetFileInfo", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return fileInfo, nil
 }
 
 func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
+	fileInfos, err := a.Srv().Store.FileInfo().GetWithOptions(page, perPage, opt)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		var ltErr *store.ErrLimitExceeded
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &ltErr):
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, ltErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return fileInfos, nil
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -1133,7 +1171,13 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	for _, fileId := range fileIds {
 		fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
 		if err != nil {
-			return nil, err
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(err, &nfErr):
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		fileInfo.Id = model.NewId()
@@ -1143,7 +1187,13 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 		fileInfo.PostId = ""
 
 		if _, err := a.Srv().Store.FileInfo().Save(fileInfo); err != nil {
-			return newFileIds, err
+			var appErr *model.AppError
+			switch {
+			case errors.As(err, &appErr):
+				return nil, appErr
+			default:
+				return nil, model.NewAppError("CopyFileInfos", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 
 		newFileIds = append(newFileIds, fileInfo.Id)
