@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -69,13 +70,33 @@ const (
 // declaring this as var to allow overriding in tests
 var SENTRY_DSN = "placeholder_sentry_dsn"
 
+type RudderConfig struct {
+	RudderKey    string
+	DataplaneUrl string
+}
+
 func (s *Server) SendDailyDiagnostics() {
 	s.sendDailyDiagnostics(false)
 }
 
+func (s *Server) getRudderConfig() RudderConfig {
+	if !strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder") {
+		return RudderConfig{RUDDER_KEY, RUDDER_DATAPLANE_URL}
+	} else if os.Getenv("RUDDER_KEY") != "" && os.Getenv("RUDDER_DATAPLANE_URL") != "" {
+		return RudderConfig{os.Getenv("RUDDER_KEY"), os.Getenv("RUDDER_DATAPLANE_URL")}
+	} else {
+		return RudderConfig{}
+	}
+}
+
+func (s *Server) diagnosticsEnabled() bool {
+	return *s.Config().LogSettings.EnableDiagnostics && s.IsLeader()
+}
+
 func (s *Server) sendDailyDiagnostics(override bool) {
-	if *s.Config().LogSettings.EnableDiagnostics && s.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		s.initDiagnostics(RUDDER_DATAPLANE_URL)
+	config := s.getRudderConfig()
+	if s.diagnosticsEnabled() && ((config.DataplaneUrl != "" && config.RudderKey != "") || override) {
+		s.initDiagnostics(config.DataplaneUrl, config.RudderKey)
 		s.trackActivity()
 		s.trackConfig()
 		s.trackLicense()
@@ -1043,8 +1064,8 @@ func (s *Server) trackChannelModeration() {
 }
 
 func (s *Server) trackWarnMetrics() {
-	systemDataList, appErr := s.Store.System().Get()
-	if appErr != nil {
+	systemDataList, nErr := s.Store.System().Get()
+	if nErr != nil {
 		return
 	}
 	for key, value := range systemDataList {
