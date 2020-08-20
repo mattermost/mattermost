@@ -559,19 +559,19 @@ type ReactionStore interface {
 }
 
 type JobStore interface {
-	Save(job *model.Job) (*model.Job, *model.AppError)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError)
-	UpdateStatus(id string, status string) (*model.Job, *model.AppError)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError)
-	Get(id string) (*model.Job, *model.AppError)
-	GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByType(jobType string) ([]*model.Job, *model.AppError)
-	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
-	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
-	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError)
-	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
-	Delete(id string) (string, *model.AppError)
+	Save(job *model.Job) (*model.Job, error)
+	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	UpdateStatus(id string, status string) (*model.Job, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	Get(id string) (*model.Job, error)
+	GetAllPage(offset int, limit int) ([]*model.Job, error)
+	GetAllByType(jobType string) ([]*model.Job, error)
+	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(status string) ([]*model.Job, error)
+	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
+	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
+	GetCountByStatusAndType(status string, jobType string) (int64, error)
+	Delete(id string) (string, error)
 }
 
 type UserAccessTokenStore interface {
