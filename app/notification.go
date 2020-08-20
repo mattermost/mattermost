@@ -51,7 +51,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		fchan = make(chan store.StoreResult, 1)
 		go func() {
 			fileInfos, err := a.Srv().Store.FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			fchan <- store.StoreResult{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
 	}
@@ -349,8 +349,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("otherFile", "true")
 
 		var infos []*model.FileInfo
-		if result := <-fchan; result.Err != nil {
-			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		if result := <-fchan; result.NErr != nil {
+			mlog.Warn("Unable to get fileInfo for push notifications.", mlog.String("post_id", post.Id), mlog.Err(result.NErr))
 		} else {
 			infos = result.Data.([]*model.FileInfo)
 		}
