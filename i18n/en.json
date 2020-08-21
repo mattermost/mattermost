@@ -7399,6 +7399,10 @@
     "translation": "Unable to get the post replies count"
   },
   {
+    "id": "store.sql_post.search.app_error",
+    "translation": "Error searching posts"
+  },
+  {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
