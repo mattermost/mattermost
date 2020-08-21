@@ -13,25 +13,26 @@ import (
 )
 
 func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
+	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, ss) })
+	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, ss) })
+	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
+}
+
+func cleanUpTOS(t *testing.T, ss store.Store) {
 	supp, ok := ss.(SqlSupplier)
 	if !ok {
-		t.Fatal("store is not a SqlSupplier type underneath")
+		require.Fail(t, "store is not a SqlSupplier type underneath")
 	}
-	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, ss) })
-
 	// Clearing out the table before starting the test.
 	// Otherwise the row inserted by the previous Save call from testSaveTermsOfService
 	// gets picked up.
 	_, err := supp.GetMaster().Exec(`DELETE FROM TermsOfService`)
 	require.NoError(t, err)
-	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, ss) })
-
-	_, err = supp.GetMaster().Exec(`DELETE FROM TermsOfService`)
-	require.NoError(t, err)
-	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
 }
 
 func testSaveTermsOfService(t *testing.T, ss store.Store) {
+	t.Cleanup(func() { cleanUpTOS(t, ss) })
+
 	u1 := model.User{}
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
@@ -49,6 +50,8 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 }
 
 func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
+	t.Cleanup(func() { cleanUpTOS(t, ss) })
+
 	u1 := model.User{}
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
@@ -67,6 +70,8 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 }
 
 func testGetTermsOfService(t *testing.T, ss store.Store) {
+	t.Cleanup(func() { cleanUpTOS(t, ss) })
+
 	u1 := model.User{}
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
