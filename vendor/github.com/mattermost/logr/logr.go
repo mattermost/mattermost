@@ -28,6 +28,7 @@ type Logr struct {
 	lvlCache           levelCache
 
 	metricsOnce    sync.Once
+	metricsDone    chan struct{}
 	metrics        MetricsCollector
 	queueSizeGauge Gauge
 	loggedCounter  Counter
@@ -303,6 +304,10 @@ func (logr *Logr) panic(err interface{}) {
 // timing out. Use `IsTimeoutError` to determine if the returned error is
 // due to a timeout.
 func (logr *Logr) Flush() error {
+	if !logr.HasTargets() {
+		return nil
+	}
+
 	logr.mux.Lock()
 	defer logr.mux.Unlock()
 
@@ -334,6 +339,10 @@ func (logr *Logr) Shutdown() error {
 	}
 	logr.shutdown = true
 	logr.resetLevelCache()
+	if logr.metricsDone != nil {
+		close(logr.metricsDone)
+		logr.metricsDone = nil
+	}
 	logr.mux.Unlock()
 
 	errs := merror.New()
@@ -455,7 +464,7 @@ func (logr *Logr) startMetricsUpdater() {
 		}
 
 		select {
-		case <-logr.done:
+		case <-logr.metricsDone:
 			return
 		case <-time.After(time.Duration(updateFreq) * time.Millisecond):
 			if logr.queueSizeGauge != nil {

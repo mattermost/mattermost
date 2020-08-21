@@ -38,7 +38,7 @@ type LogTarget struct {
 type LogTargetCfg map[string]*LogTarget
 type LogrCleanup func() error
 
-func newLogr(targets LogTargetCfg) (*logr.Logger, error) {
+func newLogr() *logr.Logger {
 	lgr := &logr.Logr{}
 	lgr.OnExit = func(int) {}
 	lgr.OnPanic = func(interface{}) {}
@@ -46,12 +46,12 @@ func newLogr(targets LogTargetCfg) (*logr.Logger, error) {
 	lgr.OnQueueFull = onQueueFull
 	lgr.OnTargetQueueFull = onTargetQueueFull
 
-	err := logrAddTargets(lgr, targets)
 	logger := lgr.NewLogger()
-	return &logger, err
+	return &logger
 }
 
-func logrAddTargets(lgr *logr.Logr, targets LogTargetCfg) error {
+func logrAddTargets(logger *logr.Logger, targets LogTargetCfg) error {
+	lgr := logger.Logr()
 	var errs error
 	for name, t := range targets {
 		target, err := NewLogrTarget(name, t)
@@ -205,6 +205,10 @@ func checkFileWritable(filename string) error {
 }
 
 func isLevelEnabled(logger *logr.Logger, level logr.Level) bool {
+	if logger == nil || logger.Logr() == nil {
+		return false
+	}
+
 	status := logger.Logr().IsLevelEnabled(level)
 	return status.Enabled
 }

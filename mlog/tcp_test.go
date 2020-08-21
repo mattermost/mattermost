@@ -38,15 +38,16 @@ func TestNewTcpTarget(t *testing.T) {
 
 		data := []string{"I drink your milkshake!", "We don't need no badges!", "You can't fight in here! This is the war room!"}
 
-		logr, err := newLogr(targets)
+		logger := newLogr()
+		err = logrAddTargets(logger, targets)
 		require.NoError(t, err)
 
 		for _, s := range data {
-			logr.Info(s)
+			logger.Info(s)
 		}
-		err = logr.Logr().Flush()
+		err = logger.Logr().Flush()
 		require.NoError(t, err)
-		err = logr.Logr().Shutdown()
+		err = logger.Logr().Shutdown()
 		require.NoError(t, err)
 
 		err = server.waitForAnyConnection()
