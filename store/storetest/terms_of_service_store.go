@@ -13,8 +13,21 @@ import (
 )
 
 func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
+	supp, ok := ss.(SqlSupplier)
+	if !ok {
+		t.Fatal("store is not a SqlSupplier type underneath")
+	}
 	t.Run("TestSaveTermsOfService", func(t *testing.T) { testSaveTermsOfService(t, ss) })
+
+	// Clearing out the table before starting the test.
+	// Otherwise the row inserted by the previous Save call from testSaveTermsOfService
+	// gets picked up.
+	_, err := supp.GetMaster().Exec(`DELETE FROM TermsOfService`)
+	require.NoError(t, err)
 	t.Run("TestGetLatestTermsOfService", func(t *testing.T) { testGetLatestTermsOfService(t, ss) })
+
+	_, err = supp.GetMaster().Exec(`DELETE FROM TermsOfService`)
+	require.NoError(t, err)
 	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
 }
 
@@ -43,7 +56,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	_, appErr := ss.User().Save(&u1)
 	require.Nil(t, appErr)
 
-	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
+	termsOfService := &model.TermsOfService{Text: "terms of service 2", UserId: u1.Id}
 	_, err := ss.TermsOfService().Save(termsOfService)
 	require.Nil(t, err)
 
