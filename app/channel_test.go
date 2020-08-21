@@ -1999,4 +1999,23 @@ func TestGetSidebarCategories(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Len(t, categories.Categories, 3)
 	})
+
+	t.Run("should return a store error if a db table is missing", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Temporarily renaming a table to force a DB error.
+		sqlSupplier := mainHelper.GetSQLSupplier()
+		_, err := sqlSupplier.GetMaster().Exec("ALTER TABLE SidebarCategories RENAME TO SidebarCategoriesTest")
+		require.Nil(t, err)
+		defer func() {
+			_, err := sqlSupplier.GetMaster().Exec("ALTER TABLE SidebarCategoriesTest RENAME TO SidebarCategories")
+			require.Nil(t, err)
+		}()
+
+		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+		assert.Nil(t, categories)
+		assert.NotNil(t, appErr)
+		assert.Equal(t, "store.sql_channel.sidebar_categories.app_error", appErr.Id)
+	})
 }
