@@ -69,3 +69,5 @@ Receive notifications of critical security updates. The sophistication of online
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd)).
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!
+
+change to allow me to open pull request
