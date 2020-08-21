@@ -11,6 +11,66 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCreateCategoryForTeamForUser(t *testing.T) {
+	t.Run("should silently prevent the user from creating a category with an invalid channel ID", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		// Attempt to create the category
+		category := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "test",
+			},
+			Channels: []string{th.BasicChannel.Id, "notachannel", th.BasicChannel2.Id},
+		}
+
+		received, resp := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, category)
+		require.Nil(t, resp.Error)
+		assert.NotContains(t, received.Channels, "notachannel")
+		assert.Equal(t, []string{th.BasicChannel.Id, th.BasicChannel2.Id}, received.Channels)
+	})
+
+	t.Run("should silently prevent the user from creating a category with a channel that they're not a member of", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		// Have another user create a channel that th.BasicUser isn't a part of
+		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "testchannel",
+		})
+		require.Nil(t, resp.Error)
+
+		// Attempt to create the category
+		category := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      th.BasicTeam.Id,
+				DisplayName: "test",
+			},
+			Channels: []string{th.BasicChannel.Id, channel.Id},
+		}
+
+		received, resp := th.Client.CreateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, category)
+		require.Nil(t, resp.Error)
+		assert.NotContains(t, received.Channels, channel.Id)
+		assert.Equal(t, []string{th.BasicChannel.Id}, received.Channels)
+	})
+}
+
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -135,5 +195,121 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		require.Nil(t, resp.Error)
 		assert.Equal(t, channelsCategory.Id, received.Id)
 		assert.Equal(t, updatedCategory.Channels, received.Channels)
+	})
+
+	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        append(channelsCategory.Channels, "notachannel"),
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.NotContains(t, received.Channels, "notachannel")
+		assert.Equal(t, channelsCategory.Channels, received.Channels)
+	})
+
+	t.Run("should silently prevent the user from adding a channel that they're not a member of", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		// Have another user create a channel that th.BasicUser isn't a part of
+		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "testchannel",
+		})
+		require.Nil(t, resp.Error)
+
+		// Attempt to update the category
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        append(channelsCategory.Channels, channel.Id),
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoryForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, channelsCategory.Id, updatedCategory)
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received.Id)
+		assert.NotContains(t, received.Channels, channel.Id)
+		assert.Equal(t, channelsCategory.Channels, received.Channels)
+	})
+}
+
+func TestUpdateCategoriesForTeamForUser(t *testing.T) {
+	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        append(channelsCategory.Channels, "notachannel"),
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received[0].Id)
+		assert.NotContains(t, received[0].Channels, "notachannel")
+		assert.Equal(t, channelsCategory.Channels, received[0].Channels)
+	})
+
+	t.Run("should silently prevent the user from adding a channel that they're not a member of", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		categories, resp := th.Client.GetSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.Nil(t, resp.Error)
+		require.Len(t, categories.Categories, 3)
+		require.Len(t, categories.Order, 3)
+
+		channelsCategory := categories.Categories[1]
+		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
+
+		// Have another user create a channel that th.BasicUser isn't a part of
+		channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
+			TeamId: th.BasicTeam.Id,
+			Type:   model.CHANNEL_OPEN,
+			Name:   "testchannel",
+		})
+		require.Nil(t, resp.Error)
+
+		// Attempt to update the category
+		updatedCategory := &model.SidebarCategoryWithChannels{
+			SidebarCategory: channelsCategory.SidebarCategory,
+			Channels:        append(channelsCategory.Channels, channel.Id),
+		}
+
+		received, resp := th.Client.UpdateSidebarCategoriesForTeamForUser(th.BasicUser.Id, th.BasicTeam.Id, []*model.SidebarCategoryWithChannels{updatedCategory})
+		require.Nil(t, resp.Error)
+		assert.Equal(t, channelsCategory.Id, received[0].Id)
+		assert.NotContains(t, received[0].Channels, channel.Id)
+		assert.Equal(t, channelsCategory.Channels, received[0].Channels)
 	})
 }
