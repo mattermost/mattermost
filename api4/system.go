@@ -13,11 +13,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache2"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 )
 
 const (
@@ -54,7 +57,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(setServerBusy)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(getServerBusyExpires)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/server_busy", api.ApiSessionRequired(clearServerBusy)).Methods("DELETE")
-
+	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise", api.ApiSessionRequired(upgradeToEnterprise)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/upgrade_to_enterprise/status", api.ApiSessionRequired(upgradeToEnterpriseStatus)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/restart", api.ApiSessionRequired(restart)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
 }
@@ -546,6 +551,108 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write([]byte(c.App.Srv().Busy.ToJson()))
+}
+
+func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("upgradeToEnterprise", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.already-enterprise.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
+
+	percentage, _ := c.App.Srv().UpgradeToE0Status()
+
+	if percentage > 0 {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
+	if percentage == 100 {
+		c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.already-done.app_error", nil, "", http.StatusTooManyRequests)
+		return
+	}
+
+	if err := c.App.Srv().CanIUpgradeToE0(); err != nil {
+		var ipErr *upgrader.InvalidPermissions
+		var iaErr *upgrader.InvalidArch
+		switch {
+		case errors.As(err, &ipErr):
+			params := map[string]interface{}{
+				"MattermostUsername": ipErr.MattermostUsername,
+				"FileUsername":       ipErr.FileUsername,
+				"Path":               ipErr.Path,
+			}
+			if ipErr.ErrType == "invalid-user-and-permission" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user-and-permission.app_error", params, err.Error(), http.StatusForbidden)
+			} else if ipErr.ErrType == "invalid-user" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-user.app_error", params, err.Error(), http.StatusForbidden)
+			} else if ipErr.ErrType == "invalid-permission" {
+				c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.invalid-permission.app_error", params, err.Error(), http.StatusForbidden)
+			}
+		case errors.As(err, &iaErr):
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, err.Error(), http.StatusForbidden)
+		default:
+			c.Err = model.NewAppError("upgradeToEnterprise", "api.upgrade_to_enterprise.generic_error.app_error", nil, err.Error(), http.StatusForbidden)
+		}
+		return
+	}
+
+	c.App.Srv().Go(func() {
+		c.App.Srv().UpgradeToE0()
+	})
+
+	auditRec.Success()
+	w.WriteHeader(http.StatusAccepted)
+	ReturnStatusOK(w)
+}
+
+func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	percentage, err := c.App.Srv().UpgradeToE0Status()
+	var s map[string]interface{}
+	if err != nil {
+		var isErr *upgrader.InvalidSignature
+		switch {
+		case errors.As(err, &isErr):
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+		default:
+			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
+			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+		}
+	} else {
+		s = map[string]interface{}{"percentage": percentage, "error": nil}
+	}
+
+	w.Write([]byte(model.StringInterfaceToJson(s)))
+}
+
+func restart(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("restartServer", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+	time.Sleep(1 * time.Second)
+
+	go func() {
+		c.App.Srv().Restart()
+	}()
 }
 
 func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -2611,6 +2611,46 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
