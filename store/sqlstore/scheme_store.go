@@ -234,7 +234,7 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *gorp.Tr
 func filterModerated(permissions []string) []string {
 	filteredPermissions := []string{}
 	for _, perm := range permissions {
-		if _, ok := model.CHANNEL_MODERATED_PERMISSIONS_MAP[perm]; ok {
+		if _, ok := model.ChannelModeratedPermissionsMap[perm]; ok {
 			filteredPermissions = append(filteredPermissions, perm)
 		}
 	}
