@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"errors"
 	"testing"
 
 	"time"
@@ -259,9 +258,7 @@ func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, jobs[0].Id, received.Id)
 
 	received, err = ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
-	assert.NotNil(t, err)
-	var nfErr *store.ErrNotFound
-	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, err)
 	assert.Nil(t, received)
 }
 
@@ -309,14 +306,10 @@ func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, jobs[3].Id, received.Id)
 
 	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{model.NewId(), model.NewId()}, model.NewId())
-	assert.NotNil(t, err)
-	var nfErr *store.ErrNotFound
-	assert.True(t, errors.As(err, &nfErr))
-	assert.Nil(t, received)
+	assert.Nil(t, err)
 
 	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status2}, jobType2)
-	assert.NotNil(t, err)
-	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, err)
 	assert.Nil(t, received)
 
 	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status1}, jobType2)
@@ -324,8 +317,7 @@ func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, jobs[2].Id, received.Id)
 
 	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{}, jobType1)
-	assert.NotNil(t, err)
-	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, err)
 	assert.Nil(t, received)
 }
 
