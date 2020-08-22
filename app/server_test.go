@@ -5,6 +5,7 @@ package app
 
 import (
 	"bufio"
+	"context"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
@@ -312,6 +313,7 @@ func TestPanicLog(t *testing.T) {
 		FileLocation:  tmpfile.Name(),
 		FileLevel:     mlog.LevelInfo,
 	})
+	defer logger.Shutdown(context.Background())
 
 	// Creating a server with logger
 	s, err := NewServer(SetLogger(logger))

@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/mattermost/logr"
+	"github.com/wiggin77/merror"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -55,6 +56,8 @@ type Logger struct {
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
 	logrLogger   *logr.Logger
+
+	closeables []io.Closer
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -88,6 +91,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
 		logrLogger:   newLogr(),
+		closeables:   make([]io.Closer, 0),
 	}
 
 	if config.EnableConsole {
@@ -97,12 +101,14 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableFile {
-		writer := zapcore.AddSync(&lumberjack.Logger{
+		lumber := &lumberjack.Logger{
 			Filename: config.FileLocation,
 			MaxSize:  100,
 			Compress: true,
-		})
+		}
+		logger.closeables = append(logger.closeables, lumber)
 
+		writer := zapcore.AddSync(lumber)
 		core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
 		cores = append(cores, core)
 	}
@@ -222,6 +228,21 @@ func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
 
 func (l *Logger) Flush(cxt context.Context) error {
 	return l.logrLogger.Logr().Flush() // TODO: use context when Logr lib supports it.
+}
+
+// Shutdown stops Zap and Logr and closes any open files.
+func (l *Logger) Shutdown(cxt context.Context) error {
+	errs := merror.New()
+	for _, f := range l.closeables {
+		if err := f.Close(); err != nil {
+			errs.Append(err)
+		}
+	}
+
+	if err := l.ShutdownAdvancedLogging(cxt); err != nil {
+		errs.Append(err)
+	}
+	return errs.ErrorOrNil()
 }
 
 // ShutdownAdvancedLogging stops the logger from accepting new log records and tries to

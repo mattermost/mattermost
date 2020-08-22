@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -57,6 +58,7 @@ func testPluginHealthCheckSuccess(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
+	defer log.Shutdown(context.Background())
 
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
@@ -104,6 +106,7 @@ func testPluginHealthCheckPanic(t *testing.T) {
 		ConsoleLevel:  "error",
 		EnableFile:    false,
 	})
+	defer log.Shutdown(context.Background())
 
 	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)

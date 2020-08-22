@@ -729,20 +729,27 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
+	mlog.Info("Server stopped")
+
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer timeoutCancel()
-	if err := mlog.Flush(timeoutCtx); err != nil {
+	s.shutdownLogging(timeoutCtx)
+
+	return nil
+}
+
+// shutdownLogging shuts down all the loggers created in initLogging
+func (s *Server) shutdownLogging(ctx context.Context) {
+	// flush first
+	if err := mlog.Flush(ctx); err != nil {
 		mlog.Error("Error flushing logs", mlog.Err(err))
 	}
 
-	mlog.Info("Server stopped")
-
-	// this should just write the "server stopped" record, the rest are already flushed.
-	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
-	defer timeoutCancel2()
-	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
+	// shutdown all the loggers.
+	shutdowns := []func(context.Context) error{s.Log.Shutdown, s.NotificationsLog.Shutdown, mlog.Shutdown}
+	for _, s := range shutdowns {
+		_ = s(ctx)
+	}
 }
 
 func (s *Server) Restart() error {

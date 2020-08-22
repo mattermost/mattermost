@@ -66,6 +66,10 @@ func defaultFlush(ctx context.Context) error {
 	return nil
 }
 
+func defaultShutdown(ctx context.Context) error {
+	return nil
+}
+
 func defaultAdvancedConfig(cfg LogTargetCfg) error {
 	// mlog.ConfigAdvancedConfig should not be called until default
 	// logger is replaced with mlog.Logger instance.

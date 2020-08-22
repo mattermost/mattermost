@@ -29,6 +29,7 @@ func InitGlobalLogger(logger *Logger) {
 	Log = globalLogger.Log
 	LogM = globalLogger.LogM
 	Flush = globalLogger.Flush
+	Shutdown = globalLogger.Shutdown
 	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
 	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
 	AddTarget = globalLogger.AddTarget
@@ -66,6 +67,7 @@ var Critical LogFunc = defaultCriticalLog
 var Log LogFuncCustom = defaultCustomLog
 var LogM LogFuncCustomMulti = defaultCustomMultiLog
 var Flush FlushFunc = defaultFlush
+var Shutdown ShutdownFunc = defaultShutdown
 
 var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
 var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
