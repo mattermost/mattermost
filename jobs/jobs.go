@@ -200,11 +200,9 @@ func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *m
 		statuses = []string{model.JOB_STATUS_WARNING, model.JOB_STATUS_SUCCESS}
 	}
 	job, err := srv.Store.Job().GetNewestJobByStatusesAndType(statuses, jobType)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return nil, model.NewAppError("GetLastSuccessfulJobByType", "app.job.get_newest_job_by_status_and_type.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return nil, model.NewAppError("GetLastSuccessfulJobByType", "app.job.get_newest_job_by_status_and_type.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return job, nil
 }
