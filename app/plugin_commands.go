@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -136,6 +137,12 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 		return nil, nil, nil
 	}
 
+	// Checking if plugin is working or not
+	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
+		message := fmt.Sprintf("Plugin for the /%s command is not working. Please contact your system administrator.", trigger)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", message, nil, "err= Plugin failed to start: "+matched.PluginId, http.StatusInternalServerError)
+	}
+
 	pluginHooks, err := pluginsEnvironment.HooksForPlugin(matched.PluginId)
 	if err != nil {
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -150,5 +157,11 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	}
 
 	response, appErr := pluginHooks.ExecuteCommand(a.PluginContext(), args)
+
+	// Checking if plugin crashed after the command.
+	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
+		message := fmt.Sprintf("Plugin for the /%s command crashed the %s plugin. Please contact your system administrator.", trigger, matched.PluginId)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", message, nil, "err= Plugin failed to start: "+matched.PluginId, http.StatusInternalServerError)
+	}
 	return matched.Command, response, appErr
 }

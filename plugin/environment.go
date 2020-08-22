@@ -473,7 +473,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 }
 
 // performHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
-func (env *Environment) performHealthCheck(id string) error {
+func (env *Environment) PerformHealthCheck(id string) error {
 	p, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return nil
