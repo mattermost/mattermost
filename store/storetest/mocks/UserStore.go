@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	mlog "github.com/mattermost/mattermost-server/v5/mlog"
 	model "github.com/mattermost/mattermost-server/v5/model"
 	store "github.com/mattermost/mattermost-server/v5/store"
 	mock "github.com/stretchr/testify/mock"
@@ -39,7 +40,7 @@ func (_m *UserStore) AnalyticsActiveCount(time int64, options model.UserCountOpt
 }
 
 // AnalyticsActiveCountForPeriod provides a mock function with given fields: startTime, endTime, options
-func (_m *UserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, *model.AppError) {
+func (_m *UserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
 	ret := _m.Called(startTime, endTime, options)
 
 	var r0 int64
@@ -49,13 +50,11 @@ func (_m *UserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int6
 		r0 = ret.Get(0).(int64)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int64, int64, model.UserCountOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(int64, int64, model.UserCountOptions) error); ok {
 		r1 = rf(startTime, endTime, options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1

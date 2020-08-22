@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
+	"time"
 )
 
 const (
@@ -156,4 +157,15 @@ func SendWarnMetricAckFromJson(r io.Reader) *SendWarnMetricAck {
 	var swma *SendWarnMetricAck
 	json.NewDecoder(r).Decode(&swma)
 	return swma
+}
+
+type AWSMeterReport struct {
+	Dimension string    `json:"dimension"`
+	Value     int64     `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+func (o *AWSMeterReport) ToJSON() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }

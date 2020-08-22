@@ -13,6 +13,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -1260,7 +1261,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, *model.AppError) {
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > :StartTime AND LastActivityAt <= :EndTime", map[string]interface{}{"StartTime": startTime, "EndTime": endTime})
 
 	if !options.IncludeBotAccounts {
@@ -1274,12 +1275,12 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 	queryStr, args, err := query.ToSql()
 
 	if err != nil {
-		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCountForPeriod", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "Failed to build query.")
 	}
 
 	v, err := us.GetReplica().SelectInt(queryStr, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlUserStore.AnalyticsActiveCountForPeriod", "store.sql_user.analytics_daily_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")
 	}
 	return v, nil
 }

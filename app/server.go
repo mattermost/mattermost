@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -1101,15 +1102,15 @@ func runReportToAWSMeterJob(a *App) {
 }
 
 func doReportUsageToAWSMeteringService(a *App) {
-	awsSvc, err := a.newAWSMeterService()
-	if err != nil {
-		mlog.Error("Cannot obtain instance of AWS Metering Service.", mlog.Err(err))
+	awsMeter := awsmeter.New(a.srv.Store, a.Config())
+	if awsMeter == nil {
+		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
 	}
 
 	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
-	reports := a.getUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-1*time.Hour).UTC())
-	a.reportUserCategoryUsage(awsSvc, reports)
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-1*time.Hour).UTC())
+	awsMeter.ReportUserCategoryUsage(reports)
 }
 
 func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
