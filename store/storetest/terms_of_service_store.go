@@ -18,20 +18,18 @@ func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
 	t.Run("TestGetTermsOfService", func(t *testing.T) { testGetTermsOfService(t, ss) })
 }
 
-func cleanUpTOS(t *testing.T, ss store.Store) {
-	supp, ok := ss.(SqlSupplier)
-	if !ok {
-		require.Fail(t, "store is not a SqlSupplier type underneath")
-	}
+func cleanUpTOS(ss store.Store) {
 	// Clearing out the table before starting the test.
 	// Otherwise the row inserted by the previous Save call from testSaveTermsOfService
 	// gets picked up.
-	_, err := supp.GetMaster().Exec(`DELETE FROM TermsOfService`)
-	require.NoError(t, err)
+	// We call DropAllTables but we actually need to delete only TermsOfService.
+	// However, there is no straightforward way to just clear that table without introducing
+	// new methods. So we use the hammer.
+	ss.DropAllTables()
 }
 
 func testSaveTermsOfService(t *testing.T, ss store.Store) {
-	t.Cleanup(func() { cleanUpTOS(t, ss) })
+	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -50,7 +48,7 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 }
 
 func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
-	t.Cleanup(func() { cleanUpTOS(t, ss) })
+	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -70,7 +68,7 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 }
 
 func testGetTermsOfService(t *testing.T, ss store.Store) {
-	t.Cleanup(func() { cleanUpTOS(t, ss) })
+	t.Cleanup(func() { cleanUpTOS(ss) })
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
