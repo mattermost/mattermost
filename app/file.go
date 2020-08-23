@@ -430,7 +430,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, files 
 		if len(clientIds) > 0 {
 			resStruct.ClientIds = append(resStruct.ClientIds, clientIds[i])
 		}
-		if info.PreviewPath != "" && *a.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+		if info.PreviewPath != "" && *a.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsMMPreviewSupported() {
 			officeFilesList = append(officeFilesList, info)
 		}
 	}
@@ -462,7 +462,7 @@ func (a *App) UploadFile(data []byte, channelId string, filename string) (*model
 		a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
 	}
 
-	if info.PreviewPath != "" && *a.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+	if info.PreviewPath != "" && *a.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsMMPreviewSupported() {
 		a.HandleOfficeFiles([]*model.FileInfo{info})
 	}
 
@@ -645,15 +645,15 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		}()
 	}
 
-	if t.fileinfo.IsUnoconvSupported() {
+	if t.fileinfo.IsMMPreviewSupported() {
 		nameWithoutExtension := t.Name[:strings.LastIndex(t.Name, ".")]
 		t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.pdf"
 	}
 
-	if !t.Raw && *a.Config().ServiceSettings.EnableOfficeFilePreviews && t.fileinfo.IsUnoconvSupported() {
-		unoconvURL := *a.Config().ServiceSettings.UnoconvURL
+	if !t.Raw && *a.Config().ServiceSettings.EnableOfficeFilePreviews && t.fileinfo.IsMMPreviewSupported() {
+		mmpreviewURL := *a.Config().ServiceSettings.MMPreviewURL
 		go func() {
-			previews.GeneratePreview(unoconvURL, t.fileinfo, t.newReader(), t.writeFile)
+			previews.GeneratePreview(mmpreviewURL, t.fileinfo, t.newReader(), t.writeFile)
 		}()
 	}
 
@@ -960,7 +960,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if info.IsUnoconvSupported() {
+	if info.IsMMPreviewSupported() {
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.pdf"
 	}
@@ -1029,7 +1029,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 }
 
 func (a *App) HandleOfficeFiles(infos []*model.FileInfo) error {
-	unoconvURL := *a.Config().ServiceSettings.UnoconvURL
+	mmpreviewURL := *a.Config().ServiceSettings.MMPreviewURL
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -1045,7 +1045,7 @@ func (a *App) HandleOfficeFiles(infos []*model.FileInfo) error {
 				mlog.Error("Unable to generate document preview", mlog.Err(appErr), mlog.String("fileId", info.Id))
 				return
 			}
-			err := previews.GeneratePreview(unoconvURL, info, fileReader, a.WriteFile)
+			err := previews.GeneratePreview(mmpreviewURL, info, fileReader, a.WriteFile)
 			if err != nil {
 				mlog.Error("Unable to generate document preview", mlog.Err(err), mlog.String("fileId", info.Id))
 			}

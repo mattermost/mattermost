@@ -6327,8 +6327,8 @@
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
   {
-    "id": "model.config.is_valid.unoconv_url.app_error",
-    "translation": "Unoconv URL must be a valid URL and start with http:// or https://."
+    "id": "model.config.is_valid.mmpreview_url.app_error",
+    "translation": "MMPreview URL must be a valid URL and start with http:// or https://."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",

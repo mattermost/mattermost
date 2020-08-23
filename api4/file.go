@@ -600,7 +600,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if info.PreviewPath == "" {
-		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsMMPreviewSupported() {
 			pathWithoutExtension := info.Path[:strings.LastIndex(info.Path, ".")]
 			info.PreviewPath = pathWithoutExtension + "_preview.pdf"
 		} else {
@@ -610,13 +610,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	contentType := PREVIEW_IMAGE_TYPE
-	if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+	if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsMMPreviewSupported() {
 		contentType = PREVIEW_PDF_TYPE
 	}
 
 	fileReader, err := c.App.FileReader(info.PreviewPath)
 	if err != nil {
-		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsUnoconvSupported() {
+		if *c.App.Config().ServiceSettings.EnableOfficeFilePreviews && info.IsMMPreviewSupported() {
 			c.App.HandleOfficeFiles([]*model.FileInfo{info})
 			fileReader, err = c.App.FileReader(info.PreviewPath)
 			if err != nil {

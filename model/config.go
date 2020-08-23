@@ -341,7 +341,7 @@ type ServiceSettings struct {
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 	EnableOfficeFilePreviews                          *bool
-	UnoconvURL                                        *string
+	MMPreviewURL                                      *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -760,8 +760,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableOfficeFilePreviews = NewBool(false)
 	}
 
-	if s.UnoconvURL == nil {
-		s.UnoconvURL = NewString("")
+	if s.MMPreviewURL == nil {
+		s.MMPreviewURL = NewString("")
 	}
 }
 
@@ -3323,8 +3323,8 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.EnableOfficeFilePreviews && !IsValidHttpUrl(*s.UnoconvURL) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.unoconv_url.app_error", nil, "", http.StatusBadRequest)
+	if *s.EnableOfficeFilePreviews && !IsValidHttpUrl(*s.MMPreviewURL) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mmpreview_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
