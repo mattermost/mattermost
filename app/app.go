@@ -49,7 +49,6 @@ type App struct {
 	imageProxy  *imageproxy.ImageProxy
 	timezones   *timezones.Timezones
 
-	notices *model.ProductNotices
 	context context.Context
 }
 

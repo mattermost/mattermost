@@ -11,6 +11,10 @@ import (
 
 type ProductNotices []ProductNotice
 
+func (r *ProductNotices) Marshal() ([]byte, error) {
+	return json.Marshal(r)
+}
+
 func UnmarshalProductNotices(data []byte) (ProductNotices, error) {
 	var r ProductNotices
 	err := json.Unmarshal(data, &r)
@@ -20,10 +24,10 @@ func UnmarshalProductNotices(data []byte) (ProductNotices, error) {
 // List of product notices. Order is important and is used to resolve priorities.
 // Each notice will only be show if conditions are met.
 type ProductNotice struct {
-	Conditions        Conditions               `json:"conditions"`
-	ID                string                   `json:"id"`                   // Unique identifier for this notice. Can be a running number. Used for storing 'viewed'; state on the server.
-	LocalizedMessages map[string]NoticeMessage `json:"localizedMessages"`    // Notice message data, organized by locale.; Example:; "localizedMessages": {; "en-US": { "title": "English", description: "English description"},; "fr-FR": { "title": "Frances", description: "French description"}; }
-	Repeatable        *bool                    `json:"repeatable,omitempty"` // Configurable flag if the notice should reappear after it’s seen and dismissed
+	Conditions        Conditions                       `json:"conditions"`
+	ID                string                           `json:"id"`                   // Unique identifier for this notice. Can be a running number. Used for storing 'viewed'; state on the server.
+	LocalizedMessages map[string]NoticeMessageInternal `json:"localizedMessages"`    // Notice message data, organized by locale.; Example:; "localizedMessages": {; "en-US": { "title": "English", description: "English description"},; "fr-FR": { "title": "Frances", description: "French description"}; }
+	Repeatable        *bool                            `json:"repeatable,omitempty"` // Configurable flag if the notice should reappear after it’s seen and dismissed
 }
 
 type Conditions struct {
@@ -41,7 +45,7 @@ type Conditions struct {
 	UserConfig     map[string]interface{} `json:"userConfig,omitempty"` // Map of user's settings and their values. Notice will be displayed only if the values; match the viewing users' config; Example: userConfig: { "new_sidebar.disabled": true }
 }
 
-type NoticeMessage struct {
+type NoticeMessageInternal struct {
 	Action      *NoticeAction `json:"action,omitempty"`      // Optional action to perform on action button click. (defaults to closing the notice)
 	ActionParam *string       `json:"actionParam,omitempty"` // Optional action parameter.; Example: {"action": "url", actionParam: "/console/some-page"}
 	ActionText  *string       `json:"actionText,omitempty"`  // Optional override for the action button text (defaults to OK)
@@ -50,6 +54,11 @@ type NoticeMessage struct {
 	Title       string        `json:"title"` // Notice title. Use {{Mattermost}} instead of plain text to support white-labeling. Text; supports Markdown.
 }
 type NoticeMessages []NoticeMessage
+
+type NoticeMessage struct {
+	NoticeMessageInternal
+	ID string `json:"id"`
+}
 
 func (r *NoticeMessages) Marshal() ([]byte, error) {
 	return json.Marshal(r)
@@ -132,6 +141,17 @@ func NoticeClientTypeFromString(s string) (NoticeClientType, error) {
 
 // Instance type. Defaults to "both"
 type NoticeInstanceType string
+
+func NewNoticeInstanceType(n NoticeInstanceType) *NoticeInstanceType { return &n }
+func (t *NoticeInstanceType) Matches(isCloud bool) bool {
+	if *t == NoticeInstanceType_Both {
+		return true
+	}
+	if *t == NoticeInstanceType_Cloud && !isCloud {
+		return false
+	}
+	return true
+}
 
 const (
 	NoticeInstanceType_Both   NoticeInstanceType = "both"

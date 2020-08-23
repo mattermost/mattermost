@@ -4,9 +4,15 @@
 package app
 
 import (
+	"fmt"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/stretchr/testify/require"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -25,17 +31,17 @@ func TestNoticeValidation(t *testing.T) {
 	defer th.TearDown()
 
 	type args struct {
-		userId, teamId       string
 		client               model.NoticeClientType
 		clientVersion        string
 		locale               string
 		sku                  string
 		postCount, userCount int64
+		cloud                bool
 		teamAdmin            bool
 		systemAdmin          bool
 		notice               *model.ProductNotice
 	}
-	messages := map[string]model.NoticeMessage{
+	messages := map[string]model.NoticeMessageInternal{
 		"enUS": {
 			Description: "descr",
 			Title:       "title",
@@ -50,8 +56,6 @@ func TestNoticeValidation(t *testing.T) {
 		{
 			name: "general notice",
 			args: args{
-				userId:        "userA",
-				teamId:        "teamA",
 				client:        "mobile",
 				clientVersion: "1.2.3",
 
@@ -255,6 +259,31 @@ func TestNoticeValidation(t *testing.T) {
 			wantErr: false,
 			wantOk:  true,
 		},
+		{
+			name: "notice with instance check cloud",
+			args: args{
+				cloud: true,
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Cloud),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with instance check both",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						InstanceType: model.NewNoticeInstanceType(model.NoticeInstanceType_Both),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -262,11 +291,96 @@ func TestNoticeValidation(t *testing.T) {
 			if clientVersion == "" {
 				clientVersion = "1.2.3"
 			}
-			if ok, err := noticeMatchesConditions(th.App, tt.args.userId, tt.args.teamId, tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(th.App, tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)
 			}
 		})
 	}
+}
+
+func TestNoticeFetch(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	notices := model.ProductNotices{model.ProductNotice{
+		Conditions: model.Conditions{},
+		ID:         "123",
+		LocalizedMessages: map[string]model.NoticeMessageInternal{
+			"enUS": {
+				Description: "description",
+				Title:       "title",
+			},
+		},
+		Repeatable: nil,
+	}}
+	noticesBytes, appErr := notices.Marshal()
+	require.NoError(t, appErr)
+
+	notices2 := model.ProductNotices{model.ProductNotice{
+		Conditions: model.Conditions{
+			NumberOfPosts: model.NewInt64(99999),
+		},
+		ID: "333",
+		LocalizedMessages: map[string]model.NoticeMessageInternal{
+			"enUS": {
+				Description: "description",
+				Title:       "title",
+			},
+		},
+		Repeatable: nil,
+	}}
+	noticesBytes2, appErr := notices2.Marshal()
+	require.NoError(t, appErr)
+	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "notices.json") {
+			w.Write(noticesBytes)
+		} else {
+			w.Write(noticesBytes2)
+		}
+	}))
+	defer server1.Close()
+
+	NOTICES_JSON_URL = fmt.Sprintf("http://%s/notices.json", server1.Listener.Addr().String())
+
+	// fetch fake notices
+	appErr = th.App.UpdateProductNotices()
+	require.Nil(t, appErr)
+
+	now := time.Now().UTC().Unix()
+	// get them for specified user
+	messages, appErr := th.App.GetProductNotices(0, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	require.Nil(t, appErr)
+	require.Len(t, messages, 1)
+
+	// mark notices as viewed
+	appErr = th.App.UpdateViewedProductNotices(th.BasicUser.Id, []string{messages[0].ID})
+	require.Nil(t, appErr)
+
+	// get them again, see that none are returned
+	messages, appErr = th.App.GetProductNotices(now, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	require.Nil(t, appErr)
+	require.Len(t, messages, 0)
+
+	// validate views table
+	views, err := th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Len(t, views, 1)
+
+	// fetch another set
+	NOTICES_JSON_URL = fmt.Sprintf("http://%s/notices2.json", server1.Listener.Addr().String())
+
+	// fetch fake notices
+	appErr = th.App.UpdateProductNotices()
+	require.Nil(t, appErr)
+
+	// get them again, since conditions don't match we should be zero
+	messages, appErr = th.App.GetProductNotices(now, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	require.Nil(t, appErr)
+	require.Len(t, messages, 0)
+
+	// even though UpdateViewedProductNotices was called previously, the table should be empty, since there's cleanup done during UpdateProductNotices
+	views, err = th.App.Srv().Store.ProductNotices().GetViews(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Len(t, views, 0)
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
@@ -19,7 +20,20 @@ import (
 
 const MAX_REPEAT_VIEWINGS = 3
 
-func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, sku string, notice *model.ProductNotice) (bool, error) {
+// where to fetch notices from. setting as var to allow overriding during build/test
+var NOTICES_JSON_URL = "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
+
+// http request cache
+var noticesCache = utils.RequestCache{}
+
+// cached counts that are used during notice condition validation
+var cachedPostCount int64
+var cachedUserCount int64
+
+// previously fetched notices
+var cachedNotices model.ProductNotices
+
+func noticeMatchesConditions(a *App, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -105,30 +119,41 @@ func noticeMatchesConditions(a *App, userId, teamId string, client model.NoticeC
 
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
-		value, found := config.GetConfigValueByPath(a.Config(), strings.Split(k, "."))
-		if !found {
-			return false, nil
-		}
-		vt := reflect.ValueOf(value)
-		if vt.Kind() == reflect.Ptr {
-			vt = vt.Elem()
-		}
-		val := vt.Interface()
-		if val != v {
+		if !validateConfigEntry(a, k, v) {
 			return false, nil
 		}
 	}
+
+	// check the type of installation
+	if cnd.InstanceType != nil {
+		if !cnd.InstanceType.Matches(isCloud) {
+			return false, nil
+		}
+	}
+
 	return true, nil
+}
+
+func validateConfigEntry(a *App, path string, expectedValue interface{}) bool {
+	value, found := config.GetConfigValueByPath(a.Config(), strings.Split(path, "."))
+	if !found {
+		return false
+	}
+	vt := reflect.ValueOf(value)
+	if vt.IsNil() {
+		return expectedValue == nil
+	}
+	if vt.Kind() == reflect.Ptr {
+		vt = vt.Elem()
+	}
+	val := vt.Interface()
+	return val == expectedValue
 }
 
 func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	views, err := a.Srv().Store.ProductNotices().GetViews(userId)
 	if err != nil {
 		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	if a.notices == nil { // nothing yet
-		return nil, nil
 	}
 
 	var filteredNotices []model.NoticeMessage
@@ -145,9 +170,9 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
 	sku := a.Srv().ClientLicense()["SkuShortName"]
+	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
 
-	for _, notice := range *a.notices {
-		notice := notice // pin
+	for _, notice := range cachedNotices {
 		// check if the notice has been viewed already
 		view := getViewState(notice.ID)
 		if view != nil {
@@ -158,10 +183,12 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 			if repeatable && view.Viewed > MAX_REPEAT_VIEWINGS {
 				continue
 			}
+			if view.Timestamp < lastViewed {
+				continue
+			}
 		}
+		notice := notice // pin
 		result, err := noticeMatchesConditions(a,
-			userId,
-			teamId,
 			client,
 			clientVersion,
 			locale,
@@ -169,14 +196,18 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 			cachedUserCount,
 			isSystemAdmin,
 			isTeamAdmin,
+			isCloud,
 			sku,
 			&notice)
 		if err != nil {
-			return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.parsing_failed", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}
 		if result {
 			selectedLocale := "enUS"
-			filteredNotices = append(filteredNotices, notice.LocalizedMessages[selectedLocale])
+			filteredNotices = append(filteredNotices, model.NoticeMessage{
+				NoticeMessageInternal: notice.LocalizedMessages[selectedLocale],
+				ID:                    notice.ID,
+			})
 		}
 	}
 
@@ -190,27 +221,29 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 	return nil
 }
 
-var noticesCache = utils.RequestCache{}
-var cachedPostCount int64
-var cachedUserCount int64
-
-func (a *App) UpdateProductNotices(postCount, userCount int64) *model.AppError {
-	cachedPostCount = postCount
-	cachedUserCount = userCount
-
-	data, err := utils.GetUrlWithCache("https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json", &noticesCache)
-	if err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_viewed_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
-	}
-	notices, err := model.UnmarshalProductNotices(data)
-	if err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_viewed_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
+func (a *App) UpdateProductNotices() *model.AppError {
+	var appErr *model.AppError
+	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if appErr != nil {
+		mlog.Error("Failed to fetch post count", mlog.String("error", appErr.Error()))
 	}
 
-	a.notices = &notices
+	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if appErr != nil {
+		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
+	}
 
-	if err := a.Srv().Store.ProductNotices().ClearOldNotices(a.notices); err != nil {
-		return model.NewAppError("UpdateProductNotices", "api.system.update_viewed_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
+	data, err := utils.GetUrlWithCache(NOTICES_JSON_URL, &noticesCache)
+	if err != nil {
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
+	}
+	cachedNotices, err = model.UnmarshalProductNotices(data)
+	if err != nil {
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.parse_failed", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if err := a.Srv().Store.ProductNotices().ClearOldNotices(&cachedNotices); err != nil {
+		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.clear_failed", nil, err.Error(), http.StatusBadRequest)
 	}
 	return nil
 }

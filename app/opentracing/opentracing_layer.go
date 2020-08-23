@@ -14532,7 +14532,7 @@ func (a *OpenTracingAppLayer) UpdatePreferences(userId string, preferences model
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) UpdateProductNotices(postCount int64, userCount int64) *model.AppError {
+func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateProductNotices")
 
@@ -14544,7 +14544,7 @@ func (a *OpenTracingAppLayer) UpdateProductNotices(postCount int64, userCount in
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.UpdateProductNotices(postCount, userCount)
+	resultVar0 := a.app.UpdateProductNotices()
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
