@@ -53,6 +53,10 @@ func desanitize(actual, target *model.Config) {
 	for i := range target.SqlSettings.DataSourceSearchReplicas {
 		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
+
+	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
+		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration, returning true if changed.
@@ -67,7 +71,7 @@ func fixConfig(cfg *model.Config) bool {
 
 	// Ensure the directory for a local file store has a trailing slash.
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
+		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
 			changed = true
 		}

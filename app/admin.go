@@ -22,7 +22,9 @@ import (
 
 func (s *Server) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
-	if s.Cluster != nil && *s.Config().ClusterSettings.Enable {
+
+	license := s.License()
+	if license != nil && *license.Features.Cluster && s.Cluster != nil && *s.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, s.Cluster.GetMyClusterInfo().Hostname)
@@ -197,10 +199,6 @@ func (a *App) TestSiteURL(siteURL string) *model.AppError {
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 	if len(*cfg.EmailSettings.SMTPServer) == 0 {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
-	}
-
-	if !*cfg.EmailSettings.SendEmailNotifications {
-		return nil
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that

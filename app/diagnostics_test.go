@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -73,17 +74,19 @@ func TestRudderDiagnostics(t *testing.T) {
 	})
 	defer th.TearDown()
 
+	type batch struct {
+		MessageId  string
+		UserId     string
+		Event      string
+		Timestamp  time.Time
+		Properties map[string]interface{}
+	}
+
 	type payload struct {
 		MessageId string
 		SentAt    time.Time
-		Batch     []struct {
-			MessageId  string
-			UserId     string
-			Event      string
-			Timestamp  time.Time
-			Properties map[string]interface{}
-		}
-		Context struct {
+		Batch     []batch
+		Context   struct {
 			Library struct {
 				Name    string
 				Version string
@@ -104,9 +107,24 @@ func TestRudderDiagnostics(t *testing.T) {
 	}))
 	defer server.Close()
 
+	marketplaceServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		json, err := json.Marshal([]*model.MarketplacePlugin{{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{
+					Id: "testplugin",
+				},
+			},
+		}})
+		require.NoError(t, err)
+		res.Write(json)
+	}))
+
+	defer func() { marketplaceServer.Close() }()
+
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initDiagnostics(server.URL)
+	th.Server.initDiagnostics(server.URL, RUDDER_KEY)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
@@ -134,6 +152,19 @@ func TestRudderDiagnostics(t *testing.T) {
 			case result := <-data:
 				assertPayload(t, result, "", nil)
 				*info = append(*info, result.Batch[0].Event)
+			case <-time.After(time.Second * 1):
+				return
+			}
+		}
+	}
+
+	collectBatches := func(info *[]batch) {
+		t.Helper()
+		for {
+			select {
+			case result := <-data:
+				assertPayload(t, result, "", nil)
+				*info = append(*info, result.Batch[0])
 			case <-time.After(time.Second * 1):
 				return
 			}
@@ -245,6 +276,42 @@ func TestRudderDiagnostics(t *testing.T) {
 		}
 	})
 
+	t.Run("Diagnostics for Marketplace plugins is returned", func(t *testing.T) {
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), marketplaceServer.URL)
+
+		var batches []batch
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_CONFIG_PLUGIN {
+				assert.Contains(t, b.Properties, "enable_testplugin")
+				assert.Contains(t, b.Properties, "version_testplugin")
+
+				// Confirm known plugins are not present
+				assert.NotContains(t, b.Properties, "enable_jira")
+				assert.NotContains(t, b.Properties, "version_jira")
+			}
+		}
+	})
+
+	t.Run("Diagnostics for known plugins is returned, if request to Marketplace fails", func(t *testing.T) {
+		th.App.Srv().trackPluginConfig(th.App.Srv().Config(), "http://some.random.invalid.url")
+
+		var batches []batch
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_CONFIG_PLUGIN {
+				assert.NotContains(t, b.Properties, "enable_testplugin")
+				assert.NotContains(t, b.Properties, "version_testplugin")
+
+				// Confirm known plugins are present
+				assert.Contains(t, b.Properties, "enable_jira")
+				assert.Contains(t, b.Properties, "version_jira")
+			}
+		}
+	})
+
 	t.Run("SendDailyDiagnosticsNoRudderKey", func(t *testing.T) {
 		th.App.Srv().SendDailyDiagnostics()
 
@@ -267,5 +334,17 @@ func TestRudderDiagnostics(t *testing.T) {
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
+	})
+
+	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
+		os.Setenv("RUDDER_KEY", "abc123")
+		os.Setenv("RUDDER_DATAPLANE_URL", "arudderstackplace")
+		defer os.Unsetenv("RUDDER_KEY")
+		defer os.Unsetenv("RUDDER_DATAPLANE_URL")
+
+		config := th.App.Srv().getRudderConfig()
+
+		assert.Equal(t, "arudderstackplace", config.DataplaneUrl)
+		assert.Equal(t, "abc123", config.RudderKey)
 	})
 }

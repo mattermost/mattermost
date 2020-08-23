@@ -26,13 +26,13 @@ func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
 			"Adds permissions to empty initial permissions list",
 			[]string{},
 			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_ADD_REACTION.Id},
-			[]string{CHANNEL_MODERATED_PERMISSIONS[0], CHANNEL_MODERATED_PERMISSIONS[1]},
+			[]string{ChannelModeratedPermissions[0], ChannelModeratedPermissions[1]},
 		},
 		{
 			"Ignores non moderated permissions in initial permissions list",
 			[]string{PERMISSION_ASSIGN_BOT.Id},
 			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_REMOVE_REACTION.Id},
-			[]string{CHANNEL_MODERATED_PERMISSIONS[0], CHANNEL_MODERATED_PERMISSIONS[1]},
+			[]string{ChannelModeratedPermissions[0], ChannelModeratedPermissions[1]},
 		},
 		{
 			"Adds removed moderated permissions from initial permissions list",
@@ -58,10 +58,10 @@ func TestChannelModeratedPermissionsChangedByPatch(t *testing.T) {
 }
 
 func TestRolePatchFromChannelModerationsPatch(t *testing.T) {
-	createPosts := CHANNEL_MODERATED_PERMISSIONS[0]
-	createReactions := CHANNEL_MODERATED_PERMISSIONS[1]
-	manageMembers := CHANNEL_MODERATED_PERMISSIONS[2]
-	channelMentions := CHANNEL_MODERATED_PERMISSIONS[3]
+	createPosts := ChannelModeratedPermissions[0]
+	createReactions := ChannelModeratedPermissions[1]
+	manageMembers := ChannelModeratedPermissions[2]
+	channelMentions := ChannelModeratedPermissions[3]
 
 	basePermissions := []string{
 		PERMISSION_ADD_REACTION.Id,
@@ -245,10 +245,10 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_ADD_REACTION.Id, PERMISSION_REMOVE_REACTION.Id, PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id, PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id, PERMISSION_USE_CHANNEL_MENTIONS.Id},
 			CHANNEL_OPEN,
 			map[string]bool{
-				CHANNEL_MODERATED_PERMISSIONS[0]: true,
-				CHANNEL_MODERATED_PERMISSIONS[1]: true,
-				CHANNEL_MODERATED_PERMISSIONS[2]: true,
-				CHANNEL_MODERATED_PERMISSIONS[3]: true,
+				ChannelModeratedPermissions[0]: true,
+				ChannelModeratedPermissions[1]: true,
+				ChannelModeratedPermissions[2]: true,
+				ChannelModeratedPermissions[3]: true,
 			},
 		},
 		{
@@ -256,7 +256,7 @@ func TestGetChannelModeratedPermissions(t *testing.T) {
 			[]string{PERMISSION_CREATE_POST.Id, PERMISSION_CREATE_DIRECT_CHANNEL.Id},
 			CHANNEL_OPEN,
 			map[string]bool{
-				CHANNEL_MODERATED_PERMISSIONS[0]: true,
+				ChannelModeratedPermissions[0]: true,
 			},
 		},
 		{

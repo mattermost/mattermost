@@ -106,7 +106,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should support search stemming",
@@ -126,7 +126,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
-		Tags: []string{ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
 	},
 	{
 		Name: "Should support terms with dash",
@@ -953,6 +953,8 @@ func testSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 	require.Nil(t, err)
 	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "in the a on to where you", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
+	p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "where is the car?", "", model.POST_DEFAULT, 0, false)
+	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
 	t.Run("Should avoid stop word 'the'", func(t *testing.T) {
@@ -979,13 +981,26 @@ func testSearchIgnoringStopWords(t *testing.T, th *SearchTestHelper) {
 
 	t.Run("Should avoid stop word 'in'", func(t *testing.T) {
 		params := &model.SearchParams{
-			Terms: "in where",
+			Terms: "in where you",
 		}
 		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, false, false, 0, 20)
 		require.Nil(t, apperr)
 
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Should avoid stop words 'where', 'is' and 'the'", func(t *testing.T) {
+		results, apperr := th.Store.Post().Search(th.Team.Id, th.User.Id, &model.SearchParams{Terms: "where is the car"})
+		require.Nil(t, apperr)
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p4.Id, results.Posts)
+	})
+
+	t.Run("Should remove all terms and return empty list", func(t *testing.T) {
+		results, apperr := th.Store.Post().Search(th.Team.Id, th.User.Id, &model.SearchParams{Terms: "where is the"})
+		require.Nil(t, apperr)
+		require.Empty(t, results.Posts)
 	})
 }
 

@@ -756,8 +756,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 			return
 		}
 
@@ -1223,6 +1223,18 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.IsValidUserRoles(newRoles) {
 		c.SetInvalidParam("roles")
 		return
+	}
+
+	// require license feature to assign "new system roles"
+	for _, roleName := range strings.Fields(newRoles) {
+		for _, id := range model.NewSystemRoleIDs {
+			if roleName == id {
+				if license := c.App.Srv().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
+					c.Err = model.NewAppError("updateUserRoles", "api.user.update_user_roles.license.app_error", nil, "", http.StatusBadRequest)
+					return
+				}
+			}
+		}
 	}
 
 	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
@@ -1863,7 +1875,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.App.Session().UserId)
-	c.App.Session().SetExpireInDays(*c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInDays(c.App.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 

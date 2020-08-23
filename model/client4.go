@@ -2490,6 +2490,18 @@ func (c *Client4) GetChannelsForTeamForUser(teamId, userId string, includeDelete
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
+// GetChannelsForTeamAndUserWithLastDeleteAt returns a list channels of a team for a user, additionally filtered with lastDeleteAt. This does not have any effect if includeDeleted is set to false.
+func (c *Client4) GetChannelsForTeamAndUserWithLastDeleteAt(teamId, userId string, includeDeleted bool, lastDeleteAt int, etag string) ([]*Channel, *Response) {
+	route := fmt.Sprintf(c.GetUserRoute(userId) + c.GetTeamRoute(teamId) + "/channels")
+	route += fmt.Sprintf("?include_deleted=%v&last_delete_at=%d", includeDeleted, lastDeleteAt)
+	r, err := c.DoApiGet(route, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // SearchChannels returns the channels on a team matching the provided search term.
 func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsForTeamRoute(teamId)+"/search", search.ToJson())
@@ -2543,6 +2555,16 @@ func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Respo
 // DeleteChannel deletes channel based on the provided channel id string.
 func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetChannelRoute(channelId))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// PermanentDeleteChannel deletes a channel based on the provided channel id string.
+func (c *Client4) PermanentDeleteChannel(channelId string) (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetChannelRoute(channelId) + "?permanent=" + c.boolString(true))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -3342,6 +3364,19 @@ func (c *Client4) UpdateConfig(config *Config) (*Config, *Response) {
 	return ConfigFromJson(r.Body), BuildResponse(r)
 }
 
+// MigrateConfig will migrate existing config to the new one.
+func (c *Client4) MigrateConfig(from, to string) (bool, *Response) {
+	m := make(map[string]string, 2)
+	m["from"] = from
+	m["to"] = to
+	r, err := c.DoApiPost(c.GetConfigRoute()+"/migrate", MapToJson(m))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return true, BuildResponse(r)
+}
+
 // UploadLicenseFile will add a license file to the system.
 func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	body := &bytes.Buffer{}
@@ -3840,7 +3875,19 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
-	return GroupsFromJson(r.Body), BuildResponse(r)
+	responseData := struct {
+		Count  int      `json:"count"`
+		Groups []*Group `json:"groups"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+		appErr := NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	for i := range responseData.Groups {
+		responseData.Groups[i].DisplayName = *responseData.Groups[i].Name
+	}
+
+	return responseData.Groups, BuildResponse(r)
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
@@ -4686,6 +4733,21 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DownloadJob downloads the results of the job
+func (c *Client4) DownloadJob(jobId string) ([]byte, *Response) {
+	r, appErr := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/download", jobId), "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_job_result_file.app_error", nil, err.Error(), r.StatusCode))
+	}
+	return data, BuildResponse(r)
+}
+
 // Roles Section
 
 // GetRole gets a single role by ID.
@@ -5356,4 +5418,19 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 	}
 
 	return cat, BuildResponse(r)
+}
+
+// CheckIntegrity performs a database integrity check.
+func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
+	r, err := c.DoApiPost("/integrity", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	var results []IntegrityCheckResult
+	if err := json.NewDecoder(r.Body).Decode(&results); err != nil {
+		appErr := NewAppError("Api4.CheckIntegrity", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	return results, BuildResponse(r)
 }

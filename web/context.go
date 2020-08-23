@@ -154,35 +154,36 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.App.Session().UserId); err != nil {
-		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
+	user, err := c.App.GetUser(c.App.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("MfaRequired", "api.context.get_user.app_error", nil, err.Error(), http.StatusUnauthorized)
 		return
-	} else {
-		if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
-			return
-		}
-		// Only required for email and ldap accounts
-		if user.AuthService != "" &&
-			user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
-			user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-			return
-		}
+	}
 
-		// Special case to let user get themself
-		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
-			return
-		}
+	if user.IsGuest() && !*c.App.Config().GuestAccountsSettings.EnforceMultifactorAuthentication {
+		return
+	}
+	// Only required for email and ldap accounts
+	if user.AuthService != "" &&
+		user.AuthService != model.USER_AUTH_SERVICE_EMAIL &&
+		user.AuthService != model.USER_AUTH_SERVICE_LDAP {
+		return
+	}
 
-		// Bots are exempt
-		if user.IsBot {
-			return
-		}
+	// Special case to let user get themself
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+	if c.App.Path() == path.Join(subpath, "/api/v4/users/me") {
+		return
+	}
 
-		if !user.MfaActive {
-			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
-			return
-		}
+	// Bots are exempt
+	if user.IsBot {
+		return
+	}
+
+	if !user.MfaActive {
+		c.Err = model.NewAppError("MfaRequired", "api.context.mfa_required.app_error", nil, "", http.StatusForbidden)
+		return
 	}
 }
 
@@ -257,8 +258,8 @@ func NewServerBusyError() *model.AppError {
 	return err
 }
 
-func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.App.MakePermissionError(permission)
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	c.Err = c.App.MakePermissionError(permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

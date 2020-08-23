@@ -111,7 +111,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile, isOAuth, isSaml bool) *model.AppError {
+func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
 		pluginContext := a.PluginContext()
@@ -125,14 +125,15 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		}
 	}
 
-	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: isOAuth, Props: map[string]string{
+	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false, Props: map[string]string{
 		model.USER_AUTH_SERVICE_IS_MOBILE: strconv.FormatBool(isMobile),
 		model.USER_AUTH_SERVICE_IS_SAML:   strconv.FormatBool(isSaml),
+		model.USER_AUTH_SERVICE_IS_OAUTH:  strconv.FormatBool(isOAuthUser),
 	}}
 	session.GenerateCSRF()
 
 	if len(deviceId) > 0 {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
@@ -140,11 +141,11 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 			return err
 		}
 	} else if isMobile {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
-	} else if isOAuth || isSaml {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthSSOInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthMobileInDays)
+	} else if isOAuthUser || isSaml {
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthSSOInDays)
 	} else {
-		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
+		a.SetSessionExpireInDays(session, *a.Config().ServiceSettings.SessionLengthWebInDays)
 	}
 
 	ua := uasurfer.Parse(r.UserAgent())
@@ -173,7 +174,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	a.SetSession(session)
 
-	if user.AuthService == model.USER_AUTH_SERVICE_LDAP && a.Ldap() != nil {
+	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		a.Srv().Go(func() {
 			a.Ldap().UpdateProfilePictureIfNecessary(user, session)
 		})
