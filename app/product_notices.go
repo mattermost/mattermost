@@ -151,10 +151,26 @@ func validateConfigEntry(a *App, path string, expectedValue interface{}) bool {
 }
 
 func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
+	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
+
+	// check if notices for regular users are disabled
+	if !*a.Srv().Config().AnnouncementSettings.UserNoticesEnabled && !isTeamAdmin && !isSystemAdmin {
+		return []model.NoticeMessage{}, nil
+	}
+
+	// check if notices for admins are disabled
+	if !*a.Srv().Config().AnnouncementSettings.AdminNoticesEnabled && (isTeamAdmin || isSystemAdmin) {
+		return []model.NoticeMessage{}, nil
+	}
+
 	views, err := a.Srv().Store.ProductNotices().GetViews(userId)
 	if err != nil {
 		return nil, model.NewAppError("GetProductNotices", "api.system.update_viewed_notices.failed", nil, err.Error(), http.StatusBadRequest)
 	}
+
+	sku := a.Srv().ClientLicense()["SkuShortName"]
+	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
 
 	var filteredNotices []model.NoticeMessage
 
@@ -166,11 +182,6 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 		}
 		return nil
 	}
-
-	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
-	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
-	sku := a.Srv().ClientLicense()["SkuShortName"]
-	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
 
 	for _, notice := range cachedNotices {
 		// check if the notice has been viewed already
