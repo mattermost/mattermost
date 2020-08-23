@@ -56,8 +56,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1, err = th.App.Srv().Store.Job().Save(j1)
-	require.Nil(t, err)
+	j1, nErr = th.App.Srv().Store.Job().Save(j1)
+	require.Nil(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
@@ -75,8 +75,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j2, err = th.App.Srv().Store.Job().Save(j2)
-	require.Nil(t, err)
+	j2, nErr = th.App.Srv().Store.Job().Save(j2)
+	require.Nil(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)
@@ -94,8 +94,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j3, err = th.App.Srv().Store.Job().Save(j3)
-	require.Nil(t, err)
+	j3, nErr = th.App.Srv().Store.Job().Save(j3)
+	require.Nil(t, nErr)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv().Store)
 	assert.Nil(t, err)

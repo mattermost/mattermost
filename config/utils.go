@@ -54,6 +54,10 @@ func desanitize(actual, target *model.Config) {
 	for i := range target.SqlSettings.DataSourceSearchReplicas {
 		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
+
+	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
+		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	}
 }
 
 // fixConfig patches invalid or missing data in the configuration, returning true if changed.
