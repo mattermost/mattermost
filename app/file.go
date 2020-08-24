@@ -652,8 +652,12 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 
 	if !t.Raw && *a.Config().ServiceSettings.EnableOfficeFilePreviews && t.fileinfo.IsMMPreviewSupported() {
 		mmpreviewURL := *a.Config().ServiceSettings.MMPreviewURL
+		mmpreviewSecret := *a.Config().ServiceSettings.MMPreviewSecret
 		go func() {
-			previews.GeneratePreview(mmpreviewURL, t.fileinfo, t.newReader(), t.writeFile)
+			err := previews.GeneratePreview(mmpreviewURL, mmpreviewSecret, t.fileinfo, t.newReader(), t.writeFile)
+			if err != nil {
+				mlog.Error("Unable to generate document preview", mlog.Err(err), mlog.String("fileId", t.fileinfo.Id))
+			}
 		}()
 	}
 
@@ -1030,6 +1034,7 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 
 func (a *App) HandleOfficeFiles(infos []*model.FileInfo) error {
 	mmpreviewURL := *a.Config().ServiceSettings.MMPreviewURL
+	mmpreviewSecret := *a.Config().ServiceSettings.MMPreviewSecret
 	backend, err := a.FileBackend()
 	if err != nil {
 		return err
@@ -1045,7 +1050,7 @@ func (a *App) HandleOfficeFiles(infos []*model.FileInfo) error {
 				mlog.Error("Unable to generate document preview", mlog.Err(appErr), mlog.String("fileId", info.Id))
 				return
 			}
-			err := previews.GeneratePreview(mmpreviewURL, info, fileReader, a.WriteFile)
+			err := previews.GeneratePreview(mmpreviewURL, mmpreviewSecret, info, fileReader, a.WriteFile)
 			if err != nil {
 				mlog.Error("Unable to generate document preview", mlog.Err(err), mlog.String("fileId", info.Id))
 			}

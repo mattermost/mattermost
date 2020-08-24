@@ -342,6 +342,7 @@ type ServiceSettings struct {
 	LocalModeSocketLocation                           *string
 	EnableOfficeFilePreviews                          *bool
 	MMPreviewURL                                      *string
+	MMPreviewSecret                                   *string
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -762,6 +763,9 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.MMPreviewURL == nil {
 		s.MMPreviewURL = NewString("")
+	}
+	if s.MMPreviewSecret == nil {
+		s.MMPreviewSecret = NewString("")
 	}
 }
 
