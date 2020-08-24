@@ -160,7 +160,7 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 
 	// Checking if plugin crashed after the command.
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
-		message := fmt.Sprintf("Plugin for the /%s command crashed the %s plugin. Please contact your system administrator.", trigger, matched.PluginId)
+		message := fmt.Sprintf("/%s command crashed the %s plugin. Please contact your system administrator.", trigger, matched.PluginId)
 		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", message, nil, "err= Plugin failed to start: "+matched.PluginId, http.StatusInternalServerError)
 	}
 	return matched.Command, response, appErr
