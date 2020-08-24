@@ -79,6 +79,8 @@ github.com/blevesearch/zap/v13
 github.com/blevesearch/zap/v14
 # github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 ## explicit
+# github.com/cespare/xxhash v1.1.0
+github.com/cespare/xxhash
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
 # github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd
@@ -99,6 +101,10 @@ github.com/couchbase/vellum/utf8
 ## explicit
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/dgraph-io/ristretto v0.0.3
+## explicit
+github.com/dgraph-io/ristretto
+github.com/dgraph-io/ristretto/z
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 ## explicit
 github.com/dgryski/dgoogauth
@@ -240,7 +246,6 @@ github.com/jaytaylor/html2text
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
 # github.com/jonboulle/clockwork v0.1.0
-## explicit
 github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
@@ -394,7 +399,6 @@ github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
-## explicit
 github.com/prometheus/client_model/go
 # github.com/prometheus/common v0.10.0
 github.com/prometheus/common/expfmt
@@ -471,14 +475,7 @@ github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 ## explicit
-github.com/tinylib/msgp
-github.com/tinylib/msgp/gen
 github.com/tinylib/msgp/msgp
-github.com/tinylib/msgp/parse
-github.com/tinylib/msgp/printer
-# github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31
-## explicit
-github.com/ttacon/chalk
 # github.com/tylerb/graceful v1.2.15
 ## explicit
 github.com/tylerb/graceful
