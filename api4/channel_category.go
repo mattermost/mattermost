@@ -165,10 +165,11 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 			return
 		}
 
-		if appErr := validateSidebarCategory(c, c.Params.TeamId, c.Params.UserId, category); appErr != nil {
-			c.Err = appErr
-			return
-		}
+	}
+
+	if appErr := validateSidebarCategories(c, c.Params.TeamId, c.Params.UserId, categoriesUpdateRequest); appErr != nil {
+		c.Err = appErr
+		return
 	}
 
 	categories, appErr := c.App.UpdateSidebarCategories(c.Params.UserId, c.Params.TeamId, categoriesUpdateRequest)
