@@ -52,7 +52,7 @@ func TestScheduler(t *testing.T) {
 		Type:     model.JOB_TYPE_MESSAGE_EXPORT,
 	}
 	// mock job store doesn't return a previously successful job, forcing fallback to config
-	mockStore.JobStore.On("GetNewestJobByStatusAndType", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(job, nil)
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", mock.AnythingOfType("[]string"), mock.AnythingOfType("string")).Return(job, nil)
 	mockStore.JobStore.On("GetCountByStatusAndType", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(int64(1), nil)
 
 	jobServer := &JobServer{

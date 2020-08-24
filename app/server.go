@@ -1302,7 +1302,7 @@ func (s *Server) stopSearchEngine() {
 }
 
 // initDiagnostics initialises the Rudder client for the diagnostics system.
-func (s *Server) initDiagnostics(endpoint string) {
+func (s *Server) initDiagnostics(endpoint string, rudderKey string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1312,7 +1312,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return
