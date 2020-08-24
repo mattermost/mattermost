@@ -1155,7 +1155,6 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *mode
 
 // GetTeamsForUserWithPagination returns limited TeamMembers according to the perPage parameter specified.
 // It also offsets the records as per the page parameter supplied.
-// Returns an error if an error occurs during querying.
 func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId}).
@@ -1176,7 +1175,8 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 	return dbMembers.ToModel(), nil
 }
 
-// GetChannelUnreadsForAllTeams returns all the messages that are unread in the channel for all teams.
+// GetChannelUnreadsForAllTeams returns unreads msg count, mention counts and notifyProps,
+// for all the channels in all the teams except the excluded ones
 func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
@@ -1198,7 +1198,7 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 	return data, nil
 }
 
-// GetChannelUnreadsForTeam returns all the unread messages in the channel for a single team
+// GetChannelUnreadsForTeam returns unreads msg count, mention counts and notifyProps for all the channels in a single team
 func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
