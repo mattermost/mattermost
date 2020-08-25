@@ -354,7 +354,7 @@ func (s *RetryLayerAuditStore) Get(user_id string, offset int, limit int) (model
 	for {
 		result, err := s.AuditStore.Get(user_id, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -374,7 +374,7 @@ func (s *RetryLayerAuditStore) PermanentDeleteByUser(userId string) error {
 	for {
 		err := s.AuditStore.PermanentDeleteByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -394,7 +394,7 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 	for {
 		err := s.AuditStore.Save(audit)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -414,7 +414,7 @@ func (s *RetryLayerBotStore) Get(userId string, includeDeleted bool) (*model.Bot
 	for {
 		result, err := s.BotStore.Get(userId, includeDeleted)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -434,7 +434,7 @@ func (s *RetryLayerBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot,
 	for {
 		result, err := s.BotStore.GetAll(options)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -454,7 +454,7 @@ func (s *RetryLayerBotStore) PermanentDelete(userId string) error {
 	for {
 		err := s.BotStore.PermanentDelete(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -474,7 +474,7 @@ func (s *RetryLayerBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	for {
 		result, err := s.BotStore.Save(bot)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -494,7 +494,7 @@ func (s *RetryLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	for {
 		result, err := s.BotStore.Update(bot)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -562,7 +562,7 @@ func (s *RetryLayerChannelStore) CreateDirectChannel(userId *model.User, otherUs
 	for {
 		result, err := s.ChannelStore.CreateDirectChannel(userId, otherUserId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -582,7 +582,7 @@ func (s *RetryLayerChannelStore) CreateInitialSidebarCategories(userId string, t
 	for {
 		err := s.ChannelStore.CreateInitialSidebarCategories(userId, teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -608,7 +608,7 @@ func (s *RetryLayerChannelStore) Delete(channelId string, time int64) error {
 	for {
 		err := s.ChannelStore.Delete(channelId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -634,7 +634,7 @@ func (s *RetryLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences 
 	for {
 		err := s.ChannelStore.DeleteSidebarChannelsByPreferences(preferences)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -654,7 +654,7 @@ func (s *RetryLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 	for {
 		result, err := s.ChannelStore.Get(id, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -692,7 +692,7 @@ func (s *RetryLayerChannelStore) GetAllChannels(page int, perPage int, opts stor
 	for {
 		result, err := s.ChannelStore.GetAllChannels(page, perPage, opts)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -712,7 +712,7 @@ func (s *RetryLayerChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpt
 	for {
 		result, err := s.ChannelStore.GetAllChannelsCount(opts)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -744,7 +744,7 @@ func (s *RetryLayerChannelStore) GetByName(team_id string, name string, allowFro
 	for {
 		result, err := s.ChannelStore.GetByName(team_id, name, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -764,7 +764,7 @@ func (s *RetryLayerChannelStore) GetByNameIncludeDeleted(team_id string, name st
 	for {
 		result, err := s.ChannelStore.GetByNameIncludeDeleted(team_id, name, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -784,7 +784,7 @@ func (s *RetryLayerChannelStore) GetByNames(team_id string, names []string, allo
 	for {
 		result, err := s.ChannelStore.GetByNames(team_id, names, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -828,7 +828,7 @@ func (s *RetryLayerChannelStore) GetChannels(teamId string, userId string, inclu
 	for {
 		result, err := s.ChannelStore.GetChannels(teamId, userId, includeDeleted, lastDeleteAt)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -866,7 +866,7 @@ func (s *RetryLayerChannelStore) GetDeleted(team_id string, offset int, limit in
 	for {
 		result, err := s.ChannelStore.GetDeleted(team_id, offset, limit, userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -886,7 +886,7 @@ func (s *RetryLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	for {
 		result, err := s.ChannelStore.GetDeletedByName(team_id, name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -912,7 +912,7 @@ func (s *RetryLayerChannelStore) GetFromMaster(id string) (*model.Channel, error
 	for {
 		result, err := s.ChannelStore.GetFromMaster(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -992,7 +992,7 @@ func (s *RetryLayerChannelStore) GetMoreChannels(teamId string, userId string, o
 	for {
 		result, err := s.ChannelStore.GetMoreChannels(teamId, userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1132,7 +1132,7 @@ func (s *RetryLayerChannelStore) MigratePublicChannels() error {
 	for {
 		err := s.ChannelStore.MigratePublicChannels()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1152,7 +1152,7 @@ func (s *RetryLayerChannelStore) PermanentDelete(channelId string) error {
 	for {
 		err := s.ChannelStore.PermanentDelete(channelId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1172,7 +1172,7 @@ func (s *RetryLayerChannelStore) PermanentDeleteByTeam(teamId string) error {
 	for {
 		err := s.ChannelStore.PermanentDeleteByTeam(teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1228,7 +1228,7 @@ func (s *RetryLayerChannelStore) Restore(channelId string, time int64) error {
 	for {
 		err := s.ChannelStore.Restore(channelId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1248,7 +1248,7 @@ func (s *RetryLayerChannelStore) Save(channel *model.Channel, maxChannelsPerTeam
 	for {
 		result, err := s.ChannelStore.Save(channel, maxChannelsPerTeam)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1268,7 +1268,7 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(channel *model.Channel, membe
 	for {
 		result, err := s.ChannelStore.SaveDirectChannel(channel, member1, member2)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1336,7 +1336,7 @@ func (s *RetryLayerChannelStore) SetDeleteAt(channelId string, deleteAt int64, u
 	for {
 		err := s.ChannelStore.SetDeleteAt(channelId, deleteAt, updateAt)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1356,7 +1356,7 @@ func (s *RetryLayerChannelStore) Update(channel *model.Channel) (*model.Channel,
 	for {
 		result, err := s.ChannelStore.Update(channel)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1424,7 +1424,7 @@ func (s *RetryLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences 
 	for {
 		err := s.ChannelStore.UpdateSidebarChannelsByPreferences(preferences)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1450,7 +1450,7 @@ func (s *RetryLayerChannelMemberHistoryStore) GetUsersInChannelDuring(startTime 
 	for {
 		result, err := s.ChannelMemberHistoryStore.GetUsersInChannelDuring(startTime, endTime, channelId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1470,7 +1470,7 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userId string, channe
 	for {
 		err := s.ChannelMemberHistoryStore.LogJoinEvent(userId, channelId, joinTime)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1490,7 +1490,7 @@ func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userId string, chann
 	for {
 		err := s.ChannelMemberHistoryStore.LogLeaveEvent(userId, channelId, leaveTime)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1510,7 +1510,7 @@ func (s *RetryLayerChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64
 	for {
 		result, err := s.ChannelMemberHistoryStore.PermanentDeleteBatch(endTime, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1530,7 +1530,7 @@ func (s *RetryLayerClusterDiscoveryStore) Cleanup() error {
 	for {
 		err := s.ClusterDiscoveryStore.Cleanup()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1550,7 +1550,7 @@ func (s *RetryLayerClusterDiscoveryStore) Delete(discovery *model.ClusterDiscove
 	for {
 		result, err := s.ClusterDiscoveryStore.Delete(discovery)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1570,7 +1570,7 @@ func (s *RetryLayerClusterDiscoveryStore) Exists(discovery *model.ClusterDiscove
 	for {
 		result, err := s.ClusterDiscoveryStore.Exists(discovery)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1590,7 +1590,7 @@ func (s *RetryLayerClusterDiscoveryStore) GetAll(discoveryType string, clusterNa
 	for {
 		result, err := s.ClusterDiscoveryStore.GetAll(discoveryType, clusterName)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1610,7 +1610,7 @@ func (s *RetryLayerClusterDiscoveryStore) Save(discovery *model.ClusterDiscovery
 	for {
 		err := s.ClusterDiscoveryStore.Save(discovery)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1630,7 +1630,7 @@ func (s *RetryLayerClusterDiscoveryStore) SetLastPingAt(discovery *model.Cluster
 	for {
 		err := s.ClusterDiscoveryStore.SetLastPingAt(discovery)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1650,7 +1650,7 @@ func (s *RetryLayerCommandStore) AnalyticsCommandCount(teamId string) (int64, er
 	for {
 		result, err := s.CommandStore.AnalyticsCommandCount(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1670,7 +1670,7 @@ func (s *RetryLayerCommandStore) Delete(commandId string, time int64) error {
 	for {
 		err := s.CommandStore.Delete(commandId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1690,7 +1690,7 @@ func (s *RetryLayerCommandStore) Get(id string) (*model.Command, error) {
 	for {
 		result, err := s.CommandStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1710,7 +1710,7 @@ func (s *RetryLayerCommandStore) GetByTeam(teamId string) ([]*model.Command, err
 	for {
 		result, err := s.CommandStore.GetByTeam(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1730,7 +1730,7 @@ func (s *RetryLayerCommandStore) GetByTrigger(teamId string, trigger string) (*m
 	for {
 		result, err := s.CommandStore.GetByTrigger(teamId, trigger)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1750,7 +1750,7 @@ func (s *RetryLayerCommandStore) PermanentDeleteByTeam(teamId string) error {
 	for {
 		err := s.CommandStore.PermanentDeleteByTeam(teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1770,7 +1770,7 @@ func (s *RetryLayerCommandStore) PermanentDeleteByUser(userId string) error {
 	for {
 		err := s.CommandStore.PermanentDeleteByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1790,7 +1790,7 @@ func (s *RetryLayerCommandStore) Save(webhook *model.Command) (*model.Command, e
 	for {
 		result, err := s.CommandStore.Save(webhook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1810,7 +1810,7 @@ func (s *RetryLayerCommandStore) Update(hook *model.Command) (*model.Command, er
 	for {
 		result, err := s.CommandStore.Update(hook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1836,7 +1836,7 @@ func (s *RetryLayerCommandWebhookStore) Get(id string) (*model.CommandWebhook, e
 	for {
 		result, err := s.CommandWebhookStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1856,7 +1856,7 @@ func (s *RetryLayerCommandWebhookStore) Save(webhook *model.CommandWebhook) (*mo
 	for {
 		result, err := s.CommandWebhookStore.Save(webhook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1876,7 +1876,7 @@ func (s *RetryLayerCommandWebhookStore) TryUse(id string, limit int) error {
 	for {
 		err := s.CommandWebhookStore.TryUse(id, limit)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -1896,7 +1896,7 @@ func (s *RetryLayerComplianceStore) ComplianceExport(compliance *model.Complianc
 	for {
 		result, err := s.ComplianceStore.ComplianceExport(compliance)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1916,7 +1916,7 @@ func (s *RetryLayerComplianceStore) Get(id string) (*model.Compliance, error) {
 	for {
 		result, err := s.ComplianceStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1936,7 +1936,7 @@ func (s *RetryLayerComplianceStore) GetAll(offset int, limit int) (model.Complia
 	for {
 		result, err := s.ComplianceStore.GetAll(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1956,7 +1956,7 @@ func (s *RetryLayerComplianceStore) MessageExport(after int64, limit int) ([]*mo
 	for {
 		result, err := s.ComplianceStore.MessageExport(after, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1976,7 +1976,7 @@ func (s *RetryLayerComplianceStore) Save(compliance *model.Compliance) (*model.C
 	for {
 		result, err := s.ComplianceStore.Save(compliance)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1996,7 +1996,7 @@ func (s *RetryLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	for {
 		result, err := s.ComplianceStore.Update(compliance)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2016,7 +2016,7 @@ func (s *RetryLayerEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 	for {
 		err := s.EmojiStore.Delete(emoji, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -2036,7 +2036,7 @@ func (s *RetryLayerEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji
 	for {
 		result, err := s.EmojiStore.Get(id, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2056,7 +2056,7 @@ func (s *RetryLayerEmojiStore) GetByName(name string, allowFromCache bool) (*mod
 	for {
 		result, err := s.EmojiStore.GetByName(name, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2076,7 +2076,7 @@ func (s *RetryLayerEmojiStore) GetList(offset int, limit int, sort string) ([]*m
 	for {
 		result, err := s.EmojiStore.GetList(offset, limit, sort)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2096,7 +2096,7 @@ func (s *RetryLayerEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji
 	for {
 		result, err := s.EmojiStore.GetMultipleByName(names)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2116,7 +2116,7 @@ func (s *RetryLayerEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	for {
 		result, err := s.EmojiStore.Save(emoji)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2136,7 +2136,7 @@ func (s *RetryLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	for {
 		result, err := s.EmojiStore.Search(name, prefixOnly, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2156,7 +2156,7 @@ func (s *RetryLayerFileInfoStore) AttachToPost(fileId string, postId string, cre
 	for {
 		err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -2182,7 +2182,7 @@ func (s *RetryLayerFileInfoStore) DeleteForPost(postId string) (string, error) {
 	for {
 		result, err := s.FileInfoStore.DeleteForPost(postId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2202,7 +2202,7 @@ func (s *RetryLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	for {
 		result, err := s.FileInfoStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2222,7 +2222,7 @@ func (s *RetryLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error
 	for {
 		result, err := s.FileInfoStore.GetByPath(path)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2242,7 +2242,7 @@ func (s *RetryLayerFileInfoStore) GetForPost(postId string, readFromMaster bool,
 	for {
 		result, err := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2262,7 +2262,7 @@ func (s *RetryLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	for {
 		result, err := s.FileInfoStore.GetForUser(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2282,7 +2282,7 @@ func (s *RetryLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *mod
 	for {
 		result, err := s.FileInfoStore.GetWithOptions(page, perPage, opt)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2308,7 +2308,7 @@ func (s *RetryLayerFileInfoStore) PermanentDelete(fileId string) error {
 	for {
 		err := s.FileInfoStore.PermanentDelete(fileId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -2328,7 +2328,7 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 	for {
 		result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2348,7 +2348,7 @@ func (s *RetryLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, e
 	for {
 		result, err := s.FileInfoStore.PermanentDeleteByUser(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2368,7 +2368,7 @@ func (s *RetryLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, e
 	for {
 		result, err := s.FileInfoStore.Save(info)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2652,7 +2652,7 @@ func (s *RetryLayerJobStore) Delete(id string) (string, error) {
 	for {
 		result, err := s.JobStore.Delete(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2672,7 +2672,7 @@ func (s *RetryLayerJobStore) Get(id string) (*model.Job, error) {
 	for {
 		result, err := s.JobStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2692,7 +2692,7 @@ func (s *RetryLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error)
 	for {
 		result, err := s.JobStore.GetAllByStatus(status)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2712,7 +2712,7 @@ func (s *RetryLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) 
 	for {
 		result, err := s.JobStore.GetAllByType(jobType)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2732,7 +2732,7 @@ func (s *RetryLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	for {
 		result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2752,7 +2752,7 @@ func (s *RetryLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, er
 	for {
 		result, err := s.JobStore.GetAllPage(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2772,7 +2772,7 @@ func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType stri
 	for {
 		result, err := s.JobStore.GetCountByStatusAndType(status, jobType)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2792,7 +2792,7 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	for {
 		result, err := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2812,7 +2812,7 @@ func (s *RetryLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 	for {
 		result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2832,7 +2832,7 @@ func (s *RetryLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	for {
 		result, err := s.JobStore.Save(job)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2852,7 +2852,7 @@ func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus 
 	for {
 		result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2872,7 +2872,7 @@ func (s *RetryLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 	for {
 		result, err := s.JobStore.UpdateStatus(id, status)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2892,7 +2892,7 @@ func (s *RetryLayerJobStore) UpdateStatusOptimistically(id string, currentStatus
 	for {
 		result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2912,7 +2912,7 @@ func (s *RetryLayerLicenseStore) Get(id string) (*model.LicenseRecord, error) {
 	for {
 		result, err := s.LicenseStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2932,7 +2932,7 @@ func (s *RetryLayerLicenseStore) Save(license *model.LicenseRecord) (*model.Lice
 	for {
 		result, err := s.LicenseStore.Save(license)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2952,7 +2952,7 @@ func (s *RetryLayerLinkMetadataStore) Get(url string, timestamp int64) (*model.L
 	for {
 		result, err := s.LinkMetadataStore.Get(url, timestamp)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2972,7 +2972,7 @@ func (s *RetryLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 	for {
 		result, err := s.LinkMetadataStore.Save(linkMetadata)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -2992,7 +2992,7 @@ func (s *RetryLayerOAuthStore) DeleteApp(id string) error {
 	for {
 		err := s.OAuthStore.DeleteApp(id)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3012,7 +3012,7 @@ func (s *RetryLayerOAuthStore) GetAccessData(token string) (*model.AccessData, e
 	for {
 		result, err := s.OAuthStore.GetAccessData(token)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3032,7 +3032,7 @@ func (s *RetryLayerOAuthStore) GetAccessDataByRefreshToken(token string) (*model
 	for {
 		result, err := s.OAuthStore.GetAccessDataByRefreshToken(token)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3052,7 +3052,7 @@ func (s *RetryLayerOAuthStore) GetAccessDataByUserForApp(userId string, clientId
 	for {
 		result, err := s.OAuthStore.GetAccessDataByUserForApp(userId, clientId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3072,7 +3072,7 @@ func (s *RetryLayerOAuthStore) GetApp(id string) (*model.OAuthApp, error) {
 	for {
 		result, err := s.OAuthStore.GetApp(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3092,7 +3092,7 @@ func (s *RetryLayerOAuthStore) GetAppByUser(userId string, offset int, limit int
 	for {
 		result, err := s.OAuthStore.GetAppByUser(userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3112,7 +3112,7 @@ func (s *RetryLayerOAuthStore) GetApps(offset int, limit int) ([]*model.OAuthApp
 	for {
 		result, err := s.OAuthStore.GetApps(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3132,7 +3132,7 @@ func (s *RetryLayerOAuthStore) GetAuthData(code string) (*model.AuthData, error)
 	for {
 		result, err := s.OAuthStore.GetAuthData(code)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3152,7 +3152,7 @@ func (s *RetryLayerOAuthStore) GetAuthorizedApps(userId string, offset int, limi
 	for {
 		result, err := s.OAuthStore.GetAuthorizedApps(userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3172,7 +3172,7 @@ func (s *RetryLayerOAuthStore) GetPreviousAccessData(userId string, clientId str
 	for {
 		result, err := s.OAuthStore.GetPreviousAccessData(userId, clientId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3192,7 +3192,7 @@ func (s *RetryLayerOAuthStore) PermanentDeleteAuthDataByUser(userId string) erro
 	for {
 		err := s.OAuthStore.PermanentDeleteAuthDataByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3212,7 +3212,7 @@ func (s *RetryLayerOAuthStore) RemoveAccessData(token string) error {
 	for {
 		err := s.OAuthStore.RemoveAccessData(token)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3232,7 +3232,7 @@ func (s *RetryLayerOAuthStore) RemoveAllAccessData() error {
 	for {
 		err := s.OAuthStore.RemoveAllAccessData()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3252,7 +3252,7 @@ func (s *RetryLayerOAuthStore) RemoveAuthData(code string) error {
 	for {
 		err := s.OAuthStore.RemoveAuthData(code)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3272,7 +3272,7 @@ func (s *RetryLayerOAuthStore) SaveAccessData(accessData *model.AccessData) (*mo
 	for {
 		result, err := s.OAuthStore.SaveAccessData(accessData)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3292,7 +3292,7 @@ func (s *RetryLayerOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, er
 	for {
 		result, err := s.OAuthStore.SaveApp(app)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3312,7 +3312,7 @@ func (s *RetryLayerOAuthStore) SaveAuthData(authData *model.AuthData) (*model.Au
 	for {
 		result, err := s.OAuthStore.SaveAuthData(authData)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3332,7 +3332,7 @@ func (s *RetryLayerOAuthStore) UpdateAccessData(accessData *model.AccessData) (*
 	for {
 		result, err := s.OAuthStore.UpdateAccessData(accessData)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3352,7 +3352,7 @@ func (s *RetryLayerOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, 
 	for {
 		result, err := s.OAuthStore.UpdateApp(app)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3372,7 +3372,7 @@ func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, o
 	for {
 		result, err := s.PluginStore.CompareAndDelete(keyVal, oldValue)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3392,7 +3392,7 @@ func (s *RetryLayerPluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldV
 	for {
 		result, err := s.PluginStore.CompareAndSet(keyVal, oldValue)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3412,7 +3412,7 @@ func (s *RetryLayerPluginStore) Delete(pluginId string, key string) error {
 	for {
 		err := s.PluginStore.Delete(pluginId, key)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3432,7 +3432,7 @@ func (s *RetryLayerPluginStore) DeleteAllExpired() error {
 	for {
 		err := s.PluginStore.DeleteAllExpired()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3452,7 +3452,7 @@ func (s *RetryLayerPluginStore) DeleteAllForPlugin(PluginId string) error {
 	for {
 		err := s.PluginStore.DeleteAllForPlugin(PluginId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3472,7 +3472,7 @@ func (s *RetryLayerPluginStore) Get(pluginId string, key string) (*model.PluginK
 	for {
 		result, err := s.PluginStore.Get(pluginId, key)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3492,7 +3492,7 @@ func (s *RetryLayerPluginStore) List(pluginId string, page int, perPage int) ([]
 	for {
 		result, err := s.PluginStore.List(pluginId, page, perPage)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3512,7 +3512,7 @@ func (s *RetryLayerPluginStore) SaveOrUpdate(keyVal *model.PluginKeyValue) (*mod
 	for {
 		result, err := s.PluginStore.SaveOrUpdate(keyVal)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3532,7 +3532,7 @@ func (s *RetryLayerPluginStore) SetWithOptions(pluginId string, key string, valu
 	for {
 		result, err := s.PluginStore.SetWithOptions(pluginId, key, value, options)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3576,7 +3576,7 @@ func (s *RetryLayerPostStore) Delete(postId string, time int64, deleteByID strin
 	for {
 		err := s.PostStore.Delete(postId, time, deleteByID)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3596,7 +3596,7 @@ func (s *RetryLayerPostStore) Get(id string, skipFetchThreads bool) (*model.Post
 	for {
 		result, err := s.PostStore.Get(id, skipFetchThreads)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3736,7 +3736,7 @@ func (s *RetryLayerPostStore) GetSingle(id string) (*model.Post, error) {
 	for {
 		result, err := s.PostStore.GetSingle(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3780,7 +3780,7 @@ func (s *RetryLayerPostStore) PermanentDeleteByChannel(channelId string) error {
 	for {
 		err := s.PostStore.PermanentDeleteByChannel(channelId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3800,7 +3800,7 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(userId string) error {
 	for {
 		err := s.PostStore.PermanentDeleteByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3820,7 +3820,7 @@ func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
 	for {
 		result, err := s.PostStore.Save(post)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3840,7 +3840,7 @@ func (s *RetryLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 	for {
 		result, resultVar1, err := s.PostStore.SaveMultiple(posts)
 		if err == nil {
-			return result, resultVar1, err
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
 			return result, resultVar1, err
@@ -3872,7 +3872,7 @@ func (s *RetryLayerPostStore) Update(newPost *model.Post, oldPost *model.Post) (
 	for {
 		result, err := s.PostStore.Update(newPost, oldPost)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3892,7 +3892,7 @@ func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error
 	for {
 		result, err := s.PreferenceStore.CleanupFlagsBatch(limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3912,7 +3912,7 @@ func (s *RetryLayerPreferenceStore) Delete(userId string, category string, name 
 	for {
 		err := s.PreferenceStore.Delete(userId, category, name)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3932,7 +3932,7 @@ func (s *RetryLayerPreferenceStore) DeleteCategory(userId string, category strin
 	for {
 		err := s.PreferenceStore.DeleteCategory(userId, category)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3952,7 +3952,7 @@ func (s *RetryLayerPreferenceStore) DeleteCategoryAndName(category string, name 
 	for {
 		err := s.PreferenceStore.DeleteCategoryAndName(category, name)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -3972,7 +3972,7 @@ func (s *RetryLayerPreferenceStore) Get(userId string, category string, name str
 	for {
 		result, err := s.PreferenceStore.Get(userId, category, name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3992,7 +3992,7 @@ func (s *RetryLayerPreferenceStore) GetAll(userId string) (model.Preferences, er
 	for {
 		result, err := s.PreferenceStore.GetAll(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4012,7 +4012,7 @@ func (s *RetryLayerPreferenceStore) GetCategory(userId string, category string) 
 	for {
 		result, err := s.PreferenceStore.GetCategory(userId, category)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4032,7 +4032,7 @@ func (s *RetryLayerPreferenceStore) PermanentDeleteByUser(userId string) error {
 	for {
 		err := s.PreferenceStore.PermanentDeleteByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4052,7 +4052,7 @@ func (s *RetryLayerPreferenceStore) Save(preferences *model.Preferences) error {
 	for {
 		err := s.PreferenceStore.Save(preferences)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4072,7 +4072,7 @@ func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 	for {
 		result, err := s.ReactionStore.BulkGetForPosts(postIds)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4092,7 +4092,7 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 	for {
 		result, err := s.ReactionStore.Delete(reaction)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4112,7 +4112,7 @@ func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error
 	for {
 		err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4132,7 +4132,7 @@ func (s *RetryLayerReactionStore) GetForPost(postId string, allowFromCache bool)
 	for {
 		result, err := s.ReactionStore.GetForPost(postId, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4152,7 +4152,7 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 	for {
 		result, err := s.ReactionStore.PermanentDeleteBatch(endTime, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4172,7 +4172,7 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 	for {
 		result, err := s.ReactionStore.Save(reaction)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4192,7 +4192,7 @@ func (s *RetryLayerRoleStore) AllChannelSchemeRoles() ([]*model.Role, error) {
 	for {
 		result, err := s.RoleStore.AllChannelSchemeRoles()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4212,7 +4212,7 @@ func (s *RetryLayerRoleStore) ChannelHigherScopedPermissions(roleNames []string)
 	for {
 		result, err := s.RoleStore.ChannelHigherScopedPermissions(roleNames)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4232,7 +4232,7 @@ func (s *RetryLayerRoleStore) ChannelRolesUnderTeamRole(roleName string) ([]*mod
 	for {
 		result, err := s.RoleStore.ChannelRolesUnderTeamRole(roleName)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4252,7 +4252,7 @@ func (s *RetryLayerRoleStore) Delete(roleId string) (*model.Role, error) {
 	for {
 		result, err := s.RoleStore.Delete(roleId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4272,7 +4272,7 @@ func (s *RetryLayerRoleStore) Get(roleId string) (*model.Role, error) {
 	for {
 		result, err := s.RoleStore.Get(roleId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4292,7 +4292,7 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 	for {
 		result, err := s.RoleStore.GetAll()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4312,7 +4312,7 @@ func (s *RetryLayerRoleStore) GetByName(name string) (*model.Role, error) {
 	for {
 		result, err := s.RoleStore.GetByName(name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4332,7 +4332,7 @@ func (s *RetryLayerRoleStore) GetByNames(names []string) ([]*model.Role, error) 
 	for {
 		result, err := s.RoleStore.GetByNames(names)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4352,7 +4352,7 @@ func (s *RetryLayerRoleStore) PermanentDeleteAll() error {
 	for {
 		err := s.RoleStore.PermanentDeleteAll()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4372,7 +4372,7 @@ func (s *RetryLayerRoleStore) Save(role *model.Role) (*model.Role, error) {
 	for {
 		result, err := s.RoleStore.Save(role)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4392,7 +4392,7 @@ func (s *RetryLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	for {
 		result, err := s.SchemeStore.CountByScope(scope)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4412,7 +4412,7 @@ func (s *RetryLayerSchemeStore) CountWithoutPermission(scope string, permissionI
 	for {
 		result, err := s.SchemeStore.CountWithoutPermission(scope, permissionID, roleScope, roleType)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4432,7 +4432,7 @@ func (s *RetryLayerSchemeStore) Delete(schemeId string) (*model.Scheme, error) {
 	for {
 		result, err := s.SchemeStore.Delete(schemeId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4452,7 +4452,7 @@ func (s *RetryLayerSchemeStore) Get(schemeId string) (*model.Scheme, error) {
 	for {
 		result, err := s.SchemeStore.Get(schemeId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4472,7 +4472,7 @@ func (s *RetryLayerSchemeStore) GetAllPage(scope string, offset int, limit int) 
 	for {
 		result, err := s.SchemeStore.GetAllPage(scope, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4492,7 +4492,7 @@ func (s *RetryLayerSchemeStore) GetByName(schemeName string) (*model.Scheme, err
 	for {
 		result, err := s.SchemeStore.GetByName(schemeName)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4512,7 +4512,7 @@ func (s *RetryLayerSchemeStore) PermanentDeleteAll() error {
 	for {
 		err := s.SchemeStore.PermanentDeleteAll()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4532,7 +4532,7 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	for {
 		result, err := s.SchemeStore.Save(scheme)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4552,7 +4552,7 @@ func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	for {
 		result, err := s.SessionStore.AnalyticsSessionCount()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4578,7 +4578,7 @@ func (s *RetryLayerSessionStore) Get(sessionIdOrToken string) (*model.Session, e
 	for {
 		result, err := s.SessionStore.Get(sessionIdOrToken)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4598,7 +4598,7 @@ func (s *RetryLayerSessionStore) GetSessions(userId string) ([]*model.Session, e
 	for {
 		result, err := s.SessionStore.GetSessions(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4618,7 +4618,7 @@ func (s *RetryLayerSessionStore) GetSessionsExpired(thresholdMillis int64, mobil
 	for {
 		result, err := s.SessionStore.GetSessionsExpired(thresholdMillis, mobileOnly, unnotifiedOnly)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4638,7 +4638,7 @@ func (s *RetryLayerSessionStore) GetSessionsWithActiveDeviceIds(userId string) (
 	for {
 		result, err := s.SessionStore.GetSessionsWithActiveDeviceIds(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4658,7 +4658,7 @@ func (s *RetryLayerSessionStore) PermanentDeleteSessionsByUser(teamId string) er
 	for {
 		err := s.SessionStore.PermanentDeleteSessionsByUser(teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4678,7 +4678,7 @@ func (s *RetryLayerSessionStore) Remove(sessionIdOrToken string) error {
 	for {
 		err := s.SessionStore.Remove(sessionIdOrToken)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4698,7 +4698,7 @@ func (s *RetryLayerSessionStore) RemoveAllSessions() error {
 	for {
 		err := s.SessionStore.RemoveAllSessions()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4718,7 +4718,7 @@ func (s *RetryLayerSessionStore) Save(session *model.Session) (*model.Session, e
 	for {
 		result, err := s.SessionStore.Save(session)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4738,7 +4738,7 @@ func (s *RetryLayerSessionStore) UpdateDeviceId(id string, deviceId string, expi
 	for {
 		result, err := s.SessionStore.UpdateDeviceId(id, deviceId, expiresAt)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4758,7 +4758,7 @@ func (s *RetryLayerSessionStore) UpdateExpiredNotify(sessionid string, notified 
 	for {
 		err := s.SessionStore.UpdateExpiredNotify(sessionid, notified)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4778,7 +4778,7 @@ func (s *RetryLayerSessionStore) UpdateExpiresAt(sessionId string, time int64) e
 	for {
 		err := s.SessionStore.UpdateExpiresAt(sessionId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4798,7 +4798,7 @@ func (s *RetryLayerSessionStore) UpdateLastActivityAt(sessionId string, time int
 	for {
 		err := s.SessionStore.UpdateLastActivityAt(sessionId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4818,7 +4818,7 @@ func (s *RetryLayerSessionStore) UpdateProps(session *model.Session) error {
 	for {
 		err := s.SessionStore.UpdateProps(session)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4838,7 +4838,7 @@ func (s *RetryLayerSessionStore) UpdateRoles(userId string, roles string) (strin
 	for {
 		result, err := s.SessionStore.UpdateRoles(userId, roles)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4858,7 +4858,7 @@ func (s *RetryLayerStatusStore) Get(userId string) (*model.Status, error) {
 	for {
 		result, err := s.StatusStore.Get(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4878,7 +4878,7 @@ func (s *RetryLayerStatusStore) GetByIds(userIds []string) ([]*model.Status, err
 	for {
 		result, err := s.StatusStore.GetByIds(userIds)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4898,7 +4898,7 @@ func (s *RetryLayerStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	for {
 		result, err := s.StatusStore.GetTotalActiveUsersCount()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4918,7 +4918,7 @@ func (s *RetryLayerStatusStore) ResetAll() error {
 	for {
 		err := s.StatusStore.ResetAll()
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4938,7 +4938,7 @@ func (s *RetryLayerStatusStore) SaveOrUpdate(status *model.Status) error {
 	for {
 		err := s.StatusStore.SaveOrUpdate(status)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4958,7 +4958,7 @@ func (s *RetryLayerStatusStore) UpdateLastActivityAt(userId string, lastActivity
 	for {
 		err := s.StatusStore.UpdateLastActivityAt(userId, lastActivityAt)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4978,7 +4978,7 @@ func (s *RetryLayerSystemStore) Get() (model.StringMap, error) {
 	for {
 		result, err := s.SystemStore.Get()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4998,7 +4998,7 @@ func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, error) {
 	for {
 		result, err := s.SystemStore.GetByName(name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5018,7 +5018,7 @@ func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.Sys
 	for {
 		result, err := s.SystemStore.InsertIfExists(system)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5038,7 +5038,7 @@ func (s *RetryLayerSystemStore) PermanentDeleteByName(name string) (*model.Syste
 	for {
 		result, err := s.SystemStore.PermanentDeleteByName(name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5058,7 +5058,7 @@ func (s *RetryLayerSystemStore) Save(system *model.System) error {
 	for {
 		err := s.SystemStore.Save(system)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5078,7 +5078,7 @@ func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	for {
 		err := s.SystemStore.SaveOrUpdate(system)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5098,7 +5098,7 @@ func (s *RetryLayerSystemStore) Update(system *model.System) error {
 	for {
 		err := s.SystemStore.Update(system)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5364,7 +5364,7 @@ func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTe
 	for {
 		result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5384,7 +5384,7 @@ func (s *RetryLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 	for {
 		result, err := s.TeamStore.SaveMultipleMembers(members, maxUsersPerTeam)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5464,7 +5464,7 @@ func (s *RetryLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*mo
 	for {
 		result, err := s.TermsOfServiceStore.Get(id, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5484,7 +5484,7 @@ func (s *RetryLayerTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.T
 	for {
 		result, err := s.TermsOfServiceStore.GetLatest(allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5504,7 +5504,7 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	for {
 		result, err := s.TermsOfServiceStore.Save(termsOfService)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5530,7 +5530,7 @@ func (s *RetryLayerTokenStore) Delete(token string) error {
 	for {
 		err := s.TokenStore.Delete(token)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5550,7 +5550,7 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	for {
 		result, err := s.TokenStore.GetByToken(token)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5570,7 +5570,7 @@ func (s *RetryLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	for {
 		err := s.TokenStore.RemoveAllTokensByType(tokenType)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5590,7 +5590,7 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) error {
 	for {
 		err := s.TokenStore.Save(recovery)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6006,7 +6006,7 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenId string) error {
 	for {
 		err := s.UserAccessTokenStore.Delete(tokenId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6026,7 +6026,7 @@ func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userId string) error {
 	for {
 		err := s.UserAccessTokenStore.DeleteAllForUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6046,7 +6046,7 @@ func (s *RetryLayerUserAccessTokenStore) Get(tokenId string) (*model.UserAccessT
 	for {
 		result, err := s.UserAccessTokenStore.Get(tokenId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6066,7 +6066,7 @@ func (s *RetryLayerUserAccessTokenStore) GetAll(offset int, limit int) ([]*model
 	for {
 		result, err := s.UserAccessTokenStore.GetAll(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6086,7 +6086,7 @@ func (s *RetryLayerUserAccessTokenStore) GetByToken(tokenString string) (*model.
 	for {
 		result, err := s.UserAccessTokenStore.GetByToken(tokenString)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6106,7 +6106,7 @@ func (s *RetryLayerUserAccessTokenStore) GetByUser(userId string, page int, perP
 	for {
 		result, err := s.UserAccessTokenStore.GetByUser(userId, page, perPage)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6126,7 +6126,7 @@ func (s *RetryLayerUserAccessTokenStore) Save(token *model.UserAccessToken) (*mo
 	for {
 		result, err := s.UserAccessTokenStore.Save(token)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6146,7 +6146,7 @@ func (s *RetryLayerUserAccessTokenStore) Search(term string) ([]*model.UserAcces
 	for {
 		result, err := s.UserAccessTokenStore.Search(term)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6166,7 +6166,7 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenDisable(tokenId string) erro
 	for {
 		err := s.UserAccessTokenStore.UpdateTokenDisable(tokenId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6186,7 +6186,7 @@ func (s *RetryLayerUserAccessTokenStore) UpdateTokenEnable(tokenId string) error
 	for {
 		err := s.UserAccessTokenStore.UpdateTokenEnable(tokenId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6206,7 +6206,7 @@ func (s *RetryLayerUserTermsOfServiceStore) Delete(userId string, termsOfService
 	for {
 		err := s.UserTermsOfServiceStore.Delete(userId, termsOfServiceId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6226,7 +6226,7 @@ func (s *RetryLayerUserTermsOfServiceStore) GetByUser(userId string) (*model.Use
 	for {
 		result, err := s.UserTermsOfServiceStore.GetByUser(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6246,7 +6246,7 @@ func (s *RetryLayerUserTermsOfServiceStore) Save(userTermsOfService *model.UserT
 	for {
 		result, err := s.UserTermsOfServiceStore.Save(userTermsOfService)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6266,7 +6266,7 @@ func (s *RetryLayerWebhookStore) AnalyticsIncomingCount(teamId string) (int64, e
 	for {
 		result, err := s.WebhookStore.AnalyticsIncomingCount(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6286,7 +6286,7 @@ func (s *RetryLayerWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, e
 	for {
 		result, err := s.WebhookStore.AnalyticsOutgoingCount(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6312,7 +6312,7 @@ func (s *RetryLayerWebhookStore) DeleteIncoming(webhookId string, time int64) er
 	for {
 		err := s.WebhookStore.DeleteIncoming(webhookId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6332,7 +6332,7 @@ func (s *RetryLayerWebhookStore) DeleteOutgoing(webhookId string, time int64) er
 	for {
 		err := s.WebhookStore.DeleteOutgoing(webhookId, time)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6352,7 +6352,7 @@ func (s *RetryLayerWebhookStore) GetIncoming(id string, allowFromCache bool) (*m
 	for {
 		result, err := s.WebhookStore.GetIncoming(id, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6372,7 +6372,7 @@ func (s *RetryLayerWebhookStore) GetIncomingByChannel(channelId string) ([]*mode
 	for {
 		result, err := s.WebhookStore.GetIncomingByChannel(channelId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6392,7 +6392,7 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeam(teamId string, offset int, li
 	for {
 		result, err := s.WebhookStore.GetIncomingByTeam(teamId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6412,7 +6412,7 @@ func (s *RetryLayerWebhookStore) GetIncomingByTeamByUser(teamId string, userId s
 	for {
 		result, err := s.WebhookStore.GetIncomingByTeamByUser(teamId, userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6432,7 +6432,7 @@ func (s *RetryLayerWebhookStore) GetIncomingList(offset int, limit int) ([]*mode
 	for {
 		result, err := s.WebhookStore.GetIncomingList(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6452,7 +6452,7 @@ func (s *RetryLayerWebhookStore) GetIncomingListByUser(userId string, offset int
 	for {
 		result, err := s.WebhookStore.GetIncomingListByUser(userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6472,7 +6472,7 @@ func (s *RetryLayerWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook,
 	for {
 		result, err := s.WebhookStore.GetOutgoing(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6492,7 +6492,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannel(channelId string, offset i
 	for {
 		result, err := s.WebhookStore.GetOutgoingByChannel(channelId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6512,7 +6512,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingByChannelByUser(channelId string, us
 	for {
 		result, err := s.WebhookStore.GetOutgoingByChannelByUser(channelId, userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6532,7 +6532,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeam(teamId string, offset int, li
 	for {
 		result, err := s.WebhookStore.GetOutgoingByTeam(teamId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6552,7 +6552,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingByTeamByUser(teamId string, userId s
 	for {
 		result, err := s.WebhookStore.GetOutgoingByTeamByUser(teamId, userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6572,7 +6572,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingList(offset int, limit int) ([]*mode
 	for {
 		result, err := s.WebhookStore.GetOutgoingList(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6592,7 +6592,7 @@ func (s *RetryLayerWebhookStore) GetOutgoingListByUser(userId string, offset int
 	for {
 		result, err := s.WebhookStore.GetOutgoingListByUser(userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6618,7 +6618,7 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByChannel(channelId stri
 	for {
 		err := s.WebhookStore.PermanentDeleteIncomingByChannel(channelId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6638,7 +6638,7 @@ func (s *RetryLayerWebhookStore) PermanentDeleteIncomingByUser(userId string) er
 	for {
 		err := s.WebhookStore.PermanentDeleteIncomingByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6658,7 +6658,7 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByChannel(channelId stri
 	for {
 		err := s.WebhookStore.PermanentDeleteOutgoingByChannel(channelId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6678,7 +6678,7 @@ func (s *RetryLayerWebhookStore) PermanentDeleteOutgoingByUser(userId string) er
 	for {
 		err := s.WebhookStore.PermanentDeleteOutgoingByUser(userId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -6698,7 +6698,7 @@ func (s *RetryLayerWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*
 	for {
 		result, err := s.WebhookStore.SaveIncoming(webhook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6718,7 +6718,7 @@ func (s *RetryLayerWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*
 	for {
 		result, err := s.WebhookStore.SaveOutgoing(webhook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6738,7 +6738,7 @@ func (s *RetryLayerWebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) 
 	for {
 		result, err := s.WebhookStore.UpdateIncoming(webhook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -6758,7 +6758,7 @@ func (s *RetryLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 	for {
 		result, err := s.WebhookStore.UpdateOutgoing(hook)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
