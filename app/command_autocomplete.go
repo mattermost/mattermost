@@ -189,20 +189,25 @@ func (a *App) parseArgument(commandArgs *model.CommandArgs, arg *model.Autocompl
 
 func parseNamedArgument(arg *model.AutocompleteArg, parsed, toBeParsed string) (found bool, alreadyParsed string, yetToBeParsed string, suggestion model.AutocompleteSuggestion) {
 	in := strings.TrimPrefix(toBeParsed, " ")
-	if len(arg.Name) == 0 {
+	if len(arg.Name) == 0 && arg.Type == model.AutocompleteArgTypeBool {
 		if len(parsed) > 0 || len(toBeParsed) > 0 {
-			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + " " + "false" + " ", Suggestion: "", Hint: "", Description: arg.HelpText}
-
+			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + " " + "false" + " ", Suggestion: "false", Hint: "", Description: arg.HelpText}
 		}
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + "false" + " ", Suggestion: "", Hint: "", Description: arg.HelpText}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: "false" + " ", Suggestion: "false", Hint: "", Description: arg.HelpText}
 	}
 
 	namedArg := "--" + arg.Name
 	if in == "" { //The user has not started typing the argument.
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " " + "true" + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
+		if arg.Type == model.AutocompleteArgTypeBool {
+			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " " + "true" + " ", Suggestion: "true", Hint: "", Description: arg.HelpText}
+		}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 	if strings.HasPrefix(strings.ToLower(namedArg), strings.ToLower(in)) {
-		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " " + "true" + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
+		if arg.Type == model.AutocompleteArgTypeBool {
+			return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " " + "true" + " ", Suggestion: "true", Hint: "", Description: arg.HelpText}
+		}
+		return true, parsed + toBeParsed, "", model.AutocompleteSuggestion{Complete: parsed + toBeParsed + namedArg[len(in):] + " ", Suggestion: namedArg, Hint: "", Description: arg.HelpText}
 	}
 
 	if !strings.HasPrefix(strings.ToLower(in), strings.ToLower(namedArg)+" ") {
