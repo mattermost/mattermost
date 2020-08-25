@@ -3628,7 +3628,7 @@ func (s *RetryLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 	for {
 		result, err := s.PostStore.GetFlaggedPosts(userId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3648,7 +3648,7 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 	for {
 		result, err := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3668,7 +3668,7 @@ func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId strin
 	for {
 		result, err := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3712,7 +3712,7 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 	for {
 		result, err := s.PostStore.GetPostAfterTime(channelId, time)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3732,7 +3732,7 @@ func (s *RetryLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 	for {
 		result, err := s.PostStore.GetPostIdAfterTime(channelId, time)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3752,7 +3752,7 @@ func (s *RetryLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	for {
 		result, err := s.PostStore.GetPostIdBeforeTime(channelId, time)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3778,7 +3778,7 @@ func (s *RetryLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 	for {
 		result, err := s.PostStore.GetPostsAfter(options)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3804,7 +3804,7 @@ func (s *RetryLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*mo
 	for {
 		result, err := s.PostStore.GetPostsBefore(options)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -3836,7 +3836,7 @@ func (s *RetryLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	for {
 		result, err := s.PostStore.GetPostsSince(options, allowFromCache)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
