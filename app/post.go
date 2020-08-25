@@ -1146,7 +1146,12 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv().Store.FileInfo().GetForPost(postId, fromMaster, false, true)
+	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postId, fromMaster, false, true)
+	if err != nil {
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return fileInfos, nil
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
