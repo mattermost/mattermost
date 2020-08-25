@@ -550,7 +550,7 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId s
 	for {
 		err := s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -688,7 +688,7 @@ func (s *RetryLayerChannelStore) GetAll(teamId string) ([]*model.Channel, error)
 	for {
 		result, err := s.ChannelStore.GetAll(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -832,7 +832,7 @@ func (s *RetryLayerChannelStore) GetChannelCounts(teamId string, userId string) 
 	for {
 		result, err := s.ChannelStore.GetChannelCounts(teamId, userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -896,7 +896,7 @@ func (s *RetryLayerChannelStore) GetChannelsByIds(channelIds []string, includeDe
 	for {
 		result, err := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -962,7 +962,7 @@ func (s *RetryLayerChannelStore) GetForPost(postId string) (*model.Channel, erro
 	for {
 		result, err := s.ChannelStore.GetForPost(postId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1094,7 +1094,7 @@ func (s *RetryLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset
 	for {
 		result, err := s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1114,7 +1114,7 @@ func (s *RetryLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, ch
 	for {
 		result, err := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1134,7 +1134,7 @@ func (s *RetryLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 	for {
 		result, err := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1172,7 +1172,7 @@ func (s *RetryLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 	for {
 		result, err := s.ChannelStore.GetTeamChannels(teamId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -1544,7 +1544,7 @@ func (s *RetryLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *mod
 	for {
 		err := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
