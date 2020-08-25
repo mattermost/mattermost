@@ -5124,7 +5124,7 @@ func (s *RetryLayerTeamStore) AnalyticsPrivateTeamCount() (int64, error) {
 	for {
 		result, err := s.TeamStore.AnalyticsPrivateTeamCount()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5144,7 +5144,7 @@ func (s *RetryLayerTeamStore) AnalyticsPublicTeamCount() (int64, error) {
 	for {
 		result, err := s.TeamStore.AnalyticsPublicTeamCount()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5164,7 +5164,7 @@ func (s *RetryLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, er
 	for {
 		result, err := s.TeamStore.AnalyticsTeamCount(includeDeleted)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5196,7 +5196,7 @@ func (s *RetryLayerTeamStore) Get(id string) (*model.Team, error) {
 	for {
 		result, err := s.TeamStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5222,7 +5222,7 @@ func (s *RetryLayerTeamStore) GetAll() ([]*model.Team, error) {
 	for {
 		result, err := s.TeamStore.GetAll()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5248,7 +5248,7 @@ func (s *RetryLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, 
 	for {
 		result, err := s.TeamStore.GetAllPage(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5268,7 +5268,7 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) 
 	for {
 		result, err := s.TeamStore.GetAllPrivateTeamListing()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5288,7 +5288,7 @@ func (s *RetryLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int
 	for {
 		result, err := s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5308,7 +5308,7 @@ func (s *RetryLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int)
 	for {
 		result, err := s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5328,7 +5328,7 @@ func (s *RetryLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	for {
 		result, err := s.TeamStore.GetAllTeamListing()
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5348,7 +5348,7 @@ func (s *RetryLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*m
 	for {
 		result, err := s.TeamStore.GetAllTeamPageListing(offset, limit)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5368,7 +5368,7 @@ func (s *RetryLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, error
 	for {
 		result, err := s.TeamStore.GetByInviteId(inviteId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5388,7 +5388,7 @@ func (s *RetryLayerTeamStore) GetByName(name string) (*model.Team, error) {
 	for {
 		result, err := s.TeamStore.GetByName(name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5408,7 +5408,7 @@ func (s *RetryLayerTeamStore) GetByNames(name []string) ([]*model.Team, error) {
 	for {
 		result, err := s.TeamStore.GetByNames(name)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5470,7 +5470,7 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	for {
 		result, err := s.TeamStore.GetTeamsByUserId(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5532,7 +5532,7 @@ func (s *RetryLayerTeamStore) PermanentDelete(teamId string) error {
 	for {
 		err := s.TeamStore.PermanentDelete(teamId)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5582,7 +5582,7 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	for {
 		result, err := s.TeamStore.Save(team)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5642,7 +5642,7 @@ func (s *RetryLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]
 	for {
 		result, err := s.TeamStore.SearchAll(term, opts)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5662,7 +5662,7 @@ func (s *RetryLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch
 	for {
 		result, resultVar1, err := s.TeamStore.SearchAllPaged(term, opts)
 		if err == nil {
-			return result, resultVar1, err
+			return result, resultVar1, nil
 		}
 		if !isRepeatableError(err) {
 			return result, resultVar1, err
@@ -5682,7 +5682,7 @@ func (s *RetryLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
 	for {
 		result, err := s.TeamStore.SearchOpen(term)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5702,7 +5702,7 @@ func (s *RetryLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) 
 	for {
 		result, err := s.TeamStore.SearchPrivate(term)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5722,7 +5722,7 @@ func (s *RetryLayerTeamStore) Update(team *model.Team) (*model.Team, error) {
 	for {
 		result, err := s.TeamStore.Update(team)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
