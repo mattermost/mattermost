@@ -2806,6 +2806,26 @@ func TestUpdateUserPassword(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateUserHashedPassword(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	password := "SuperSecurePass23!"
+	passwordHash := "$2a$10$CiS1iWVPUj7rQNdY6XW53.DmaPLsETIvmW2p0asp4Dqpofs10UL5W"
+	pass, resp := th.SystemAdminClient.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+	CheckNoError(t, resp)
+	require.True(t, pass)
+
+	_, resp = th.Client.Login(th.BasicUser.Email, password)
+	CheckNoError(t, resp)
+
+	// Standard users should never be updating their passwords with already-
+	// hashed passwords.
+	pass, resp = th.Client.UpdateUserHashedPassword(th.BasicUser.Id, passwordHash)
+	CheckUnauthorizedStatus(t, resp)
+	require.False(t, pass)
+}
+
 func TestResetPassword(t *testing.T) {
 	t.Skip("test disabled during old build server changes, should be investigated")
 
