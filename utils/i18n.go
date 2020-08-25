@@ -53,7 +53,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 func InitTranslationsWithDir(dir string) error {
 	i18nDirectory, found := fileutils.FindDirRelBinary(dir)
 	if !found {
-		return fmt.Errorf(fmt.Sprintf("Unable to find %q directory", dir))
+		return fmt.Errorf(fmt.Sprintf("Unable to find i18n directory at %q", dir))
 	}
 
 	files, _ := ioutil.ReadDir(i18nDirectory)
