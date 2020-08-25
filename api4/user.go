@@ -1635,12 +1635,12 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
-	props := model.MapFromJson(r.Body)
-
+	props := extractLoginParameters(r)
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
 	mfaToken := props["token"]
+	cwsToken := props["cws_token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 
@@ -1670,11 +1670,16 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
-		return
+		if isCWSLogin(c, cwsToken) {
+			http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+			return
+		} else {
+			c.Err = err
+			return
+		}
 	}
 	auditRec.AddMeta("user", user)
 
@@ -1699,8 +1704,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
-	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML || isCWSLogin(c, cwsToken) {
 		c.App.AttachSessionCookies(w, r)
+	}
+
+	if isCWSLogin(c, cwsToken) {
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
@@ -1718,6 +1728,35 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
+}
+
+func extractLoginParameters(r *http.Request) map[string]string {
+	parameters := map[string]string{}
+	r.ParseForm()
+	if len(r.Form) > 0 {
+		for key, value := range r.Form {
+			if key == "login_id" {
+				parameters["login_id"] = value[0]
+			}
+			if key == "cws_token" {
+				parameters["cws_token"] = value[0]
+			}
+		}
+	} else {
+		props := model.MapFromJson(r.Body)
+		parameters["id"] = props["id"]
+		parameters["login_id"] = props["login_id"]
+		parameters["password"] = props["password"]
+		parameters["token"] = props["token"]
+		parameters["device_id"] = props["device_id"]
+		parameters["ldap_only"] = props["ldap_only"]
+	}
+
+	return parameters
+}
+
+func isCWSLogin(c *Context, cwsToken string) bool {
+	return *c.App.Config().ServiceSettings.EnableCWSTokenLogin && cwsToken != ""
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {

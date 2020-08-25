@@ -2851,6 +2851,10 @@
     "translation": "Password field must not be blank"
   },
   {
+    "id": "api.user.login.cws_token_users.app_error",
+    "translation": "That CWS token was already used"
+  },
+  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },

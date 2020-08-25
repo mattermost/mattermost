@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +17,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
+
+const cwsTokenEnv = "CWS_CLOUD_TOKEN"
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
@@ -34,7 +37,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -46,13 +49,32 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 		}
 	}()
 
-	if len(password) == 0 {
+	if len(password) == 0 && !*a.Config().ServiceSettings.EnableCWSTokenLogin {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
 	if user, err = a.GetUserForLogin(id, loginId); err != nil {
 		return nil, err
+	}
+
+	// Cloud login allow to use the one-time token to
+	// login the user to their installation for the first time
+	if *a.Config().ServiceSettings.EnableCWSTokenLogin {
+		if err = checkUserNotBot(user); err != nil {
+			return nil, err
+		}
+		sessions, errSessions := a.GetSessions(user.Id)
+		if errSessions != nil {
+			return nil, errSessions
+		}
+		if len(sessions) > 0 {
+			return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.cws_token_users.app_error", nil, "", http.StatusBadRequest)
+		}
+		token, ok := os.LookupEnv(cwsTokenEnv)
+		if ok && cwsToken != "" && token == cwsToken {
+			return user, nil
+		}
 	}
 
 	// If client side cert is enable and it's checking as a primary source

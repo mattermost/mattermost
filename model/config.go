@@ -340,6 +340,7 @@ type ServiceSettings struct {
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
+	EnableCWSTokenLogin                               *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -753,6 +754,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.LocalModeSocketLocation == nil {
 		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
 	}
+
+	if s.EnableCWSTokenLogin == nil {
+		s.EnableCWSTokenLogin = NewBool(false)
+	}
+
 }
 
 type ClusterSettings struct {
