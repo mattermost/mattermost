@@ -35,7 +35,7 @@ func TranslationsPreInit() error {
 	TDefault = TfuncWithFallback("en")
 
 	translationsDir := "i18n"
-	if mattermostPath := os.Getenv("MM_SRC_PATH"); mattermostPath != "" {
+	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
 		translationsDir = filepath.Join(mattermostPath, "i18n")
 	}
 
