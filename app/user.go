@@ -1547,7 +1547,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().PermanentDelete(user.Id); err != nil {
