@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -57,18 +58,16 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	parsedEmail := ParseEmail(email)
 
 	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
-	req, err := http.NewRequest("GET", url, nil)
+	resp, err := http.Get(url)
+
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	defer func() {
+		io.Copy(ioutil.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
 	if resp.Body == nil {
 		return nil, fmt.Errorf("No Mailbox")
@@ -95,11 +94,14 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 	var record JSONMessageInbucket
 
 	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), INBUCKET_API, parsedEmail, id)
-	emailResponse, err := get(url)
+	emailResponse, err := http.Get(url)
 	if err != nil {
 		return record, err
 	}
-	defer emailResponse.Body.Close()
+	defer func() {
+		io.Copy(ioutil.Discard, emailResponse.Body)
+		emailResponse.Body.Close()
+	}()
 
 	if err = json.NewDecoder(emailResponse.Body).Decode(&record); err != nil {
 		return record, err
@@ -122,7 +124,7 @@ func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 }
 
 func downloadAttachment(url string) ([]byte, error) {
-	attachmentResponse, err := get(url)
+	attachmentResponse, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -131,21 +133,6 @@ func downloadAttachment(url string) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	io.Copy(buf, attachmentResponse.Body)
 	return buf.Bytes(), nil
-}
-
-func get(url string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }
 
 func DeleteMailBox(email string) (err error) {

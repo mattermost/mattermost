@@ -6,9 +6,9 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -52,19 +52,19 @@ func (fs SqlFileInfoStore) createIndexesIfNotExists() {
 	fs.CreateIndexIfNotExists("idx_fileinfo_postid_at", "FileInfo", "PostId")
 }
 
-func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	info.PreSave()
 	if err := info.IsValid(); err != nil {
 		return nil, err
 	}
 
 	if err := fs.GetMaster().Insert(info); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.Save", "store.sql_file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to save FileInfo")
 	}
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	if err := fs.GetReplica().SelectOne(info,
@@ -76,17 +76,18 @@ func (fs SqlFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
 			Id = :Id
 			AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("FileInfo", id)
 		}
-		return nil, model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get FileInfo with id=%s", id)
 	}
 	return info, nil
 }
 
-func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
-	if perPage < 0 || page < 0 {
-		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
-			"store.sql_file_info.get_with_options.app_error", nil, fmt.Sprintf("page=%d and perPage=%d must be non-negative", page, perPage), http.StatusBadRequest)
+func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
+	if perPage < 0 {
+		return nil, store.NewErrLimitExceeded("perPage", perPage, "value used in pagination while getting FileInfos")
+	} else if page < 0 {
+		return nil, store.NewErrLimitExceeded("page", page, "value used in pagination while getting FileInfos")
 	}
 	if perPage == 0 {
 		return nil, nil
@@ -131,8 +132,7 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 	case model.FILEINFO_SORT_BY_SIZE:
 		query = query.OrderBy("FileInfo.Size " + sortDirection)
 	default:
-		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
-			"store.sql_file_info.get_with_options.app_error", nil, "invalid sort option", http.StatusBadRequest)
+		return nil, store.NewErrInvalidInput("FileInfo", "<sortOption>", opt.SortBy)
 	}
 
 	query = query.OrderBy("FileInfo.Id ASC") // secondary sort for sort stability
@@ -141,18 +141,16 @@ func (fs SqlFileInfoStore) GetWithOptions(page, perPage int, opt *model.GetFileI
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
-			"store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 	var infos []*model.FileInfo
 	if _, err := fs.GetReplica().Select(&infos, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetWithOptions",
-			"store.sql_file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find FileInfos")
 	}
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	info := &model.FileInfo{}
 
 	if err := fs.GetReplica().SelectOne(info,
@@ -164,7 +162,11 @@ func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppEr
 				Path = :Path
 				AND DeleteAt = 0
 			LIMIT 1`, map[string]interface{}{"Path": path}); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetByPath", "store.sql_file_info.get_by_path.app_error", nil, "path="+path+", "+err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("FileInfo", fmt.Sprintf("path=%s", path))
+		}
+
+		return nil, errors.Wrapf(err, "failed to get FileInfo with path=%s", path)
 	}
 	return info, nil
 }
@@ -172,7 +174,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppEr
 func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string, deleted bool) {
 }
 
-func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	var infos []*model.FileInfo
 
 	dbmap := fs.GetReplica()
@@ -193,17 +195,16 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster, includeDele
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetForPost", "store.sql_file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "file_info_tosql")
 	}
 
 	if _, err := dbmap.Select(&infos, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetForPost",
-			"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find FileInfos with postId=%s", postId)
 	}
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	var infos []*model.FileInfo
 
 	dbmap := fs.GetReplica()
@@ -218,13 +219,12 @@ func (fs SqlFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.
 				AND DeleteAt = 0
 			ORDER BY
 				CreateAt`, map[string]interface{}{"CreatorId": userId}); err != nil {
-		return nil, model.NewAppError("SqlFileInfoStore.GetForUser",
-			"store.sql_file_info.get_for_user_id.app_error", nil, "creator_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find FileInfos with creatorId=%s", userId)
 	}
 	return infos, nil
 }
 
-func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model.AppError {
+func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) error {
 	sqlResult, err := fs.GetMaster().Exec(`
 		UPDATE
 			FileInfo
@@ -240,24 +240,21 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) *model
 		"CreatorId": creatorId,
 	})
 	if err != nil {
-		return model.NewAppError("SqlFileInfoStore.AttachToPost",
-			"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to update FileInfo with id=%s and postId=%s", fileId, postId)
 	}
 
 	count, err := sqlResult.RowsAffected()
 	if err != nil {
 		// RowsAffected should never fail with the MySQL or Postgres drivers
-		return model.NewAppError("SqlFileInfoStore.AttachToPost",
-			"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "unable to retrieve rows affected")
 	} else if count == 0 {
 		// Could not attach the file to the post
-		return model.NewAppError("SqlFileInfoStore.AttachToPost",
-			"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId, http.StatusBadRequest)
+		return store.NewErrInvalidInput("FileInfo", "<id, postId, creatorId>", fmt.Sprintf("<%s, %s, %s>", fileId, postId, creatorId))
 	}
 	return nil
 }
 
-func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, error) {
 	if _, err := fs.GetMaster().Exec(
 		`UPDATE
 				FileInfo
@@ -265,25 +262,23 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) (string, *model.AppError
 				DeleteAt = :DeleteAt
 			WHERE
 				PostId = :PostId`, map[string]interface{}{"DeleteAt": model.GetMillis(), "PostId": postId}); err != nil {
-		return "", model.NewAppError("SqlFileInfoStore.DeleteForPost",
-			"store.sql_file_info.delete_for_post.app_error", nil, "post_id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+		return "", errors.Wrapf(err, "failed to update FileInfo with postId=%s", postId)
 	}
 	return postId, nil
 }
 
-func (fs SqlFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (fs SqlFileInfoStore) PermanentDelete(fileId string) error {
 	if _, err := fs.GetMaster().Exec(
 		`DELETE FROM
 				FileInfo
 			WHERE
 				Id = :FileId`, map[string]interface{}{"FileId": fileId}); err != nil {
-		return model.NewAppError("SqlFileInfoStore.PermanentDelete",
-			"store.sql_file_info.permanent_delete.app_error", nil, "file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete FileInfo with id=%s", fileId)
 	}
 	return nil
 }
 
-func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if fs.DriverName() == "postgres" {
 		query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
@@ -293,28 +288,28 @@ func (fs SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int
 
 	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
 	if err != nil {
-		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "failed to delete FileInfos in batch")
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
 	}
 
 	return rowsAffected, nil
 }
 
-func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (fs SqlFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	query := "DELETE from FileInfo WHERE CreatorId = :CreatorId"
 
 	sqlResult, err := fs.GetMaster().Exec(query, map[string]interface{}{"CreatorId": userId})
 	if err != nil {
-		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "failed to delete FileInfo with creatorId=%s", userId)
 	}
 
 	rowsAffected, err := sqlResult.RowsAffected()
 	if err != nil {
-		return 0, model.NewAppError("SqlFileInfoStore.PermanentDeleteByUser", "store.sql_file_info.PermanentDeleteByUser.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "unable to retrieve rows affected")
 	}
 
 	return rowsAffected, nil

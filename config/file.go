@@ -234,7 +234,7 @@ func (fs *FileStore) RemoveFile(name string) error {
 		return errors.Wrap(err, "failed to remove file")
 	}
 
-	return err
+	return nil
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.
