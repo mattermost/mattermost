@@ -100,7 +100,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	if data.Permissions != nil {
 		for _, permission := range *data.Permissions {
 			permissionValidated := false
-			for _, p := range model.ALL_PERMISSIONS {
+			for _, p := range append(model.AllPermissions, model.DeprecatedPermissions...) {
 				if permission == p.Id {
 					permissionValidated = true
 					break
