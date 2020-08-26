@@ -139,7 +139,7 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 
 	// Checking if plugin is working or not
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]interface{}{"Command":trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_error.error.app_error", map[string]interface{}{"Command": trigger}, "err= Plugin has recently crashed: "+matched.PluginId, http.StatusInternalServerError)
 	}
 
 	pluginHooks, err := pluginsEnvironment.HooksForPlugin(matched.PluginId)
@@ -160,7 +160,7 @@ func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, 
 	// Checking if plugin crashed after the command.
 	if err := pluginsEnvironment.PerformHealthCheck(matched.PluginId); err != nil {
 		errMessage := fmt.Sprintf("err= Plugin %s crashed due to /%s command", matched.PluginId, trigger)
-		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]interface{}{"Command":trigger, "PluginId":matched.PluginId}, errMessage, http.StatusInternalServerError)
+		return matched.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command_crash.error.app_error", map[string]interface{}{"Command": trigger, "PluginId": matched.PluginId}, errMessage, http.StatusInternalServerError)
 	}
 	return matched.Command, response, appErr
 }
