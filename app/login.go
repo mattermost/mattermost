@@ -49,7 +49,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		}
 	}()
 
-	if len(password) == 0 && !IsCWSLogin(a) {
+	if len(password) == 0 && !IsCWSLogin(a, cwsToken) {
 		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -58,9 +58,9 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		return nil, err
 	}
 
-	// Cloud login allow to use the one-time token to
-	// login the user to their installation for the first time
-	if IsCWSLogin(a) {
+	// CWS login allow to use the one-time token to login the users when they're redirected to their
+	// installation for the first time
+	if IsCWSLogin(a, cwsToken) {
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		token, ok := os.LookupEnv(cwsTokenEnv)
-		if ok && cwsToken != "" && token == cwsToken {
+		if ok && token == cwsToken {
 			return user, nil
 		}
 	}
@@ -270,6 +270,6 @@ func GetProtocol(r *http.Request) string {
 	return "http"
 }
 
-func IsCWSLogin(a *App) bool {
-	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud
+func IsCWSLogin(a *App, token string) bool {
+	return a.Srv().License() != nil && *a.Srv().License().Features.Cloud && token != ""
 }

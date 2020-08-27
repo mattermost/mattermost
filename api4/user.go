@@ -1641,7 +1641,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginId := props["login_id"]
 	password := props["password"]
 	mfaToken := props["token"]
-	cwsToken := props["cws_token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 
@@ -1671,7 +1670,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
