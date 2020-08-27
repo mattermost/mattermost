@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -235,112 +234,112 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
-func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
-	perPage := 25
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SYSTEM_ADMIN_ROLE_ID,
-		Inactive: false,
-	}
+// func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
+// 	perPage := 25
+// 	userOptions := &model.UserGetOptions{
+// 		Page:     0,
+// 		PerPage:  perPage,
+// 		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+// 		Inactive: false,
+// 	}
 
-	// get sysadmins
-	var sysAdmins []*model.User
-	for {
-		sysAdminsList, err := a.GetUsers(userOptions)
-		if err != nil {
-			return err
-		}
+// 	// get sysadmins
+// 	var sysAdmins []*model.User
+// 	for {
+// 		sysAdminsList, err := a.GetUsers(userOptions)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		if len(sysAdminsList) == 0 {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-		}
-		sysAdmins = append(sysAdmins, sysAdminsList...)
+// 		if len(sysAdminsList) == 0 {
+// 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+// 		}
+// 		sysAdmins = append(sysAdmins, sysAdminsList...)
 
-		if len(sysAdminsList) < perPage {
-			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
-			break
-		}
-	}
+// 		if len(sysAdminsList) < perPage {
+// 			mlog.Debug("Number of system admins is less than page limit", mlog.Int("count", len(sysAdminsList)))
+// 			break
+// 		}
+// 	}
 
-	T := utils.GetUserTranslations(sysAdmins[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdmins[0].Id,
-	}
+// 	T := utils.GetUserTranslations(sysAdmins[0].Locale)
+// 	warnMetricsBot := &model.Bot{
+// 		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+// 		DisplayName: T("app.system.warn_metric.bot_displayname"),
+// 		Description: "",
+// 		OwnerId:     sysAdmins[0].Id,
+// 	}
 
-	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
-	if err != nil {
-		return err
-	}
+// 	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	for _, sysAdmin := range sysAdmins {
-		T := utils.GetUserTranslations(sysAdmin.Locale)
-		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
-		bot.Description = T("app.system.warn_metric.bot_description")
+// 	for _, sysAdmin := range sysAdmins {
+// 		T := utils.GetUserTranslations(sysAdmin.Locale)
+// 		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
+// 		bot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
-		if appErr != nil {
-			mlog.Error("Cannot create channel for system bot notification!", mlog.String("Admin Id", sysAdmin.Id))
-			return appErr
-		}
+// 		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
+// 		if appErr != nil {
+// 			mlog.Error("Cannot create channel for system bot notification!", mlog.String("Admin Id", sysAdmin.Id))
+// 			return appErr
+// 		}
 
-		warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
-		if warnMetricStatus == nil {
-			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
-		}
+// 		warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
+// 		if warnMetricStatus == nil {
+// 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
+// 		}
 
-		botPost := &model.Post{
-			UserId:    bot.UserId,
-			ChannelId: channel.Id,
-			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
-			Message:   "",
-		}
+// 		botPost := &model.Post{
+// 			UserId:    bot.UserId,
+// 			ChannelId: channel.Id,
+// 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
+// 			Message:   "",
+// 		}
 
-		actions := []*model.PostAction{}
-		actions = append(actions,
-			&model.PostAction{
-				Id:   "contactUs",
-				Name: T("api.server.warn_metric.contact_us"),
-				Type: model.POST_ACTION_TYPE_BUTTON,
-				Options: []*model.PostActionOptions{
-					{
-						Text:  "TrackEventId",
-						Value: warnMetricId,
-					},
-					{
-						Text:  "ActionExecutingMessage",
-						Value: T("api.server.warn_metric.contacting_us"),
-					},
-				},
-				Integration: &model.PostActionIntegration{
-					Context: model.StringInterface{
-						"bot_user_id": bot.UserId,
-						"force_ack":   false,
-					},
-					URL: fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId),
-				},
-			},
-		)
+// 		actions := []*model.PostAction{}
+// 		actions = append(actions,
+// 			&model.PostAction{
+// 				Id:   "contactUs",
+// 				Name: T("api.server.warn_metric.contact_us"),
+// 				Type: model.POST_ACTION_TYPE_BUTTON,
+// 				Options: []*model.PostActionOptions{
+// 					{
+// 						Text:  "TrackEventId",
+// 						Value: warnMetricId,
+// 					},
+// 					{
+// 						Text:  "ActionExecutingMessage",
+// 						Value: T("api.server.warn_metric.contacting_us"),
+// 					},
+// 				},
+// 				Integration: &model.PostActionIntegration{
+// 					Context: model.StringInterface{
+// 						"bot_user_id": bot.UserId,
+// 						"force_ack":   false,
+// 					},
+// 					URL: fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId),
+// 				},
+// 			},
+// 		)
 
-		attachments := []*model.SlackAttachment{{
-			AuthorName: "",
-			Title:      warnMetricDisplayTexts.BotTitle,
-			Text:       warnMetricDisplayTexts.BotMessageBody,
-			Actions:    actions,
-		}}
-		model.ParseSlackAttachment(botPost, attachments)
+// 		attachments := []*model.SlackAttachment{{
+// 			AuthorName: "",
+// 			Title:      warnMetricDisplayTexts.BotTitle,
+// 			Text:       warnMetricDisplayTexts.BotMessageBody,
+// 			Actions:    actions,
+// 		}}
+// 		model.ParseSlackAttachment(botPost, attachments)
 
-		mlog.Debug("Send admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
-		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
-			return err
-		}
-	}
+// 		mlog.Debug("Send admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
+// 		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
+// 			return err
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
