@@ -340,7 +340,6 @@ type ServiceSettings struct {
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
-	EnableCWSTokenLogin                               *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
