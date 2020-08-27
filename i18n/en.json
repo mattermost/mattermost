@@ -1995,14 +1995,6 @@
     "translation": "Mattermost Contact Us request. My team has now {{.Limit}} users and I am considering Mattermost Enterprise Edition.\r\n"
   },
   {
-    "id": "api.server.warn_metric.contact_us",
-    "translation": "Contact us"
-  },
-  {
-    "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacting us"
-  },
-  {
     "id": "api.server.warn_metric.email_us",
     "translation": "Email us"
   },
@@ -4601,22 +4593,6 @@
   {
     "id": "app.system.save.app_error",
     "translation": "We encountered an error saving the system property."
-  },
-  {
-    "id": "app.system.warn_metric.bot_description",
-    "translation": "[Learn more about the Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost Advisor"
-  },
-  {
-    "id": "app.system.warn_metric.notification.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
-    "id": "app.system.warn_metric.notification.invalid_metric.app_error",
-    "translation": "Could not find metric."
   },
   {
     "id": "app.system.warn_metric.store.app_error",
