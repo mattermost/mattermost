@@ -754,11 +754,6 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.LocalModeSocketLocation == nil {
 		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
 	}
-
-	if s.EnableCWSTokenLogin == nil {
-		s.EnableCWSTokenLogin = NewBool(false)
-	}
-
 }
 
 type ClusterSettings struct {

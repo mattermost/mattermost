@@ -63,6 +63,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -1635,7 +1636,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
-	props := extractLoginParameters(r)
+	props := model.MapFromJson(r.Body)
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1673,13 +1674,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		if isCWSLogin(c, cwsToken) {
-			http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
-			return
-		} else {
-			c.Err = err
-			return
-		}
+		c.Err = err
+		return
 	}
 	auditRec.AddMeta("user", user)
 
@@ -1704,13 +1700,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
-	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML || isCWSLogin(c, cwsToken) {
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 		c.App.AttachSessionCookies(w, r)
-	}
-
-	if isCWSLogin(c, cwsToken) {
-		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
-		return
 	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
@@ -1730,33 +1721,46 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
-func extractLoginParameters(r *http.Request) map[string]string {
-	parameters := map[string]string{}
+func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
+		return
+	}
 	r.ParseForm()
+	var loginID string
+	var token string
 	if len(r.Form) > 0 {
 		for key, value := range r.Form {
 			if key == "login_id" {
-				parameters["login_id"] = value[0]
+				loginID = value[0]
 			}
 			if key == "cws_token" {
-				parameters["cws_token"] = value[0]
+				token = value[0]
 			}
 		}
-	} else {
-		props := model.MapFromJson(r.Body)
-		parameters["id"] = props["id"]
-		parameters["login_id"] = props["login_id"]
-		parameters["password"] = props["password"]
-		parameters["token"] = props["token"]
-		parameters["device_id"] = props["device_id"]
-		parameters["ldap_only"] = props["ldap_only"]
 	}
 
-	return parameters
-}
-
-func isCWSLogin(c *Context, cwsToken string) bool {
-	return *c.App.Config().ServiceSettings.EnableCWSTokenLogin && cwsToken != ""
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginID)
+	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	if err != nil {
+		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		mlog.Error("CWS authentication error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	auditRec.AddMeta("user", user)
+	c.LogAuditWithUserId(user.Id, "authenticated")
+	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	if err != nil {
+		mlog.Error("CWS login error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(w, r)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
