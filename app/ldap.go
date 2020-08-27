@@ -4,11 +4,18 @@
 package app
 
 import (
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
+)
+
+const (
+	LdapPublicCertificateName = "ldap-public.crt"
+	LdapPrivateKeyName        = "ldap-private.key"
 )
 
 func (a *App) SyncLdap() {
@@ -174,4 +181,102 @@ func (a *App) MigrateIdLDAP(toAttribute string) *model.AppError {
 		return nil
 	}
 	return model.NewAppError("IdMigrateLDAP", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
+}
+
+func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *model.AppError {
+	file, err := fileData.Open()
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = a.Srv().configStore.SetFile(filename, data)
+	if err != nil {
+		return model.NewAppError("AddLdapCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
+	if err := a.writeLdapFile(LdapPublicCertificateName, fileData); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PublicCertificateFile = LdapPublicCertificateName
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
+	if err := a.writeLdapFile(LdapPrivateKeyName, fileData); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PrivateKeyFile = LdapPrivateKeyName
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) removeLdapFile(filename string) *model.AppError {
+	mlog.Debug(filename)
+	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
+		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) RemoveLdapPublicCertificate() *model.AppError {
+	if err := a.removeLdapFile(*a.Config().LdapSettings.PublicCertificateFile); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PublicCertificateFile = ""
+	// *cfg.LdapSettings.Encrypt = false
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
+}
+
+func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
+	if err := a.removeLdapFile(*a.Config().LdapSettings.PrivateKeyFile); err != nil {
+		return err
+	}
+
+	cfg := a.Config().Clone()
+	*cfg.LdapSettings.PrivateKeyFile = ""
+	// *cfg.LdapSettings.Encrypt = false
+
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
+
+	return nil
 }

@@ -3671,7 +3671,7 @@ func (c *Client4) GetSamlMetadata() (string, *Response) {
 	return buf.String(), BuildResponse(r)
 }
 
-func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
+func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -3694,7 +3694,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3706,7 +3706,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3718,7 +3718,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4051,6 +4051,50 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
+func (c *Client4) UploadLdapPublicCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/public", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
+func (c *Client4) UploadLdapPrivateCertificate(data []byte, filename string) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, filename)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/private", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// DeleteLdapPublicCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPublicCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/public")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DeleteLDAPPrivateCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPrivateCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/private")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // Audits Section
