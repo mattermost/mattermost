@@ -103,7 +103,6 @@ func (a *App) InitServer() {
 		if a.Srv().runjobs {
 			a.Srv().Go(func() {
 				runLicenseExpirationCheckJob(a)
-				runCheckNumberOfActiveUsersWarnMetricStatusJob(a)
 			})
 		}
 		a.srv.RunJobs()
