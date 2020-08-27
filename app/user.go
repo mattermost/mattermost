@@ -1280,6 +1280,25 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 	return nil
 }
 
+func (a *App) UpdateHashedPasswordByUserId(userId, newHashedPassword string) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	return a.UpdateHashedPassword(user, newHashedPassword)
+}
+
+func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+	if err := a.Srv().Store.User().UpdatePassword(user.Id, newHashedPassword); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
 func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
 	token, err := a.GetPasswordRecoveryToken(userSuppliedTokenString)
 	if err != nil {
