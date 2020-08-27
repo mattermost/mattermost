@@ -1186,6 +1186,17 @@ func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// UpdateUserHashedPassword updates a user's password with an already-hashed password. Must be a system administrator.
+func (c *Client4) UpdateUserHashedPassword(userId, newHashedPassword string) (bool, *Response) {
+	requestBody := map[string]string{"already_hashed": "true", "new_password": newHashedPassword}
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // PromoteGuestToUser convert a guest into a regular user
 func (c *Client4) PromoteGuestToUser(guestId string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetUserRoute(guestId)+"/promote", "")
