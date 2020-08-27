@@ -299,6 +299,12 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 
 	if csrfCheckNeeded {
 		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+		if csrfHeader == "" && *c.App.Config().ServiceSettings.EnableCWSTokenLogin {
+			cookie, err := r.Cookie(model.SESSION_COOKIE_CSRF)
+			if err == nil {
+				csrfHeader = cookie.Value
+			}
+		}
 
 		if csrfHeader == session.GetCSRF() {
 			csrfCheckPassed = true
