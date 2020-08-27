@@ -13,7 +13,7 @@ import (
 // in the database column for role permissions.
 func TestPermissionsLength(t *testing.T) {
 	permissionsString := ""
-	for _, permission := range ALL_PERMISSIONS {
+	for _, permission := range AllPermissions {
 		permissionsString += " " + permission.Id
 	}
 

@@ -13,10 +13,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -45,6 +47,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
@@ -724,6 +727,51 @@ func (s *Server) Shutdown() error {
 	return nil
 }
 
+func (s *Server) Restart() error {
+	percentage, err := s.UpgradeToE0Status()
+	if err != nil || percentage != 100 {
+		return errors.Wrap(err, "unable to restart because the system has not been upgraded")
+	}
+	s.Shutdown()
+
+	argv0, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(argv0); err != nil {
+		return err
+	}
+
+	mlog.Info("Restarting server")
+	return syscall.Exec(argv0, os.Args, os.Environ())
+}
+
+func (s *Server) isUpgradedFromTE() bool {
+	val, err := s.Store.System().GetByName(model.SYSTEM_UPGRADED_FROM_TE_ID)
+	if err != nil {
+		return false
+	}
+	return val.Value == "true"
+}
+
+func (s *Server) CanIUpgradeToE0() error {
+	return upgrader.CanIUpgradeToE0()
+}
+
+func (s *Server) UpgradeToE0() error {
+	if err := upgrader.UpgradeToE0(); err != nil {
+		return err
+	}
+	upgradedFromTE := &model.System{Name: model.SYSTEM_UPGRADED_FROM_TE_ID, Value: "true"}
+	s.Store.System().Save(upgradedFromTE)
+	return nil
+}
+
+func (s *Server) UpgradeToE0Status() (int64, error) {
+	return upgrader.UpgradeToE0Status()
+}
+
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the server is shutdown.
 func (s *Server) Go(f func()) {
@@ -1318,7 +1366,7 @@ func (s *Server) stopSearchEngine() {
 }
 
 // initDiagnostics initialises the Rudder client for the diagnostics system.
-func (s *Server) initDiagnostics(endpoint string) {
+func (s *Server) initDiagnostics(endpoint string, rudderKey string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1328,7 +1376,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return

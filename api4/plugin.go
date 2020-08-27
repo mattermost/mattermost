@@ -50,8 +50,8 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("uploadPlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 
@@ -101,8 +101,8 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("installPluginFromUrl", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 
@@ -134,8 +134,8 @@ func installMarketplacePlugin(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec := c.MakeAuditRecord("installMarketplacePlugin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 
@@ -166,8 +166,8 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
 		return
 	}
 
@@ -186,8 +186,8 @@ func getPluginStatuses(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
 		return
 	}
 
@@ -215,8 +215,8 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 
@@ -267,8 +267,8 @@ func getMarketplacePlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_PLUGINS)
 		return
 	}
 
@@ -308,8 +308,8 @@ func enablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 
@@ -337,8 +337,8 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("plugin_id", c.Params.PluginId)
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_PLUGINS)
 		return
 	}
 

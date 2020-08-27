@@ -1111,8 +1111,16 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": ""
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -2215,6 +2223,10 @@
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "You've reached the free tier user limit"
+  },
+  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
   },
@@ -2619,6 +2631,46 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
@@ -2987,6 +3039,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
+  },
+  {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Update password failed because we couldn't find a valid account."
   },
@@ -2997,6 +3053,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3433,6 +3493,26 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Unable to get the file info."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Unable to get the file info with options"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Unable to save the file info."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3997,6 +4077,30 @@
   {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
+  },
+  {
+    "id": "app.job.get.app_error",
+    "translation": "Unable to get the job."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Unable to get the job count by status and type."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Unable to get the newest job by status and type."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Unable to save the job."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Unable to update the job."
   },
   {
     "id": "app.notification.body.intro.direct.full",
@@ -5007,6 +5111,10 @@
     "translation": "Failed to purge records."
   },
   {
+    "id": "ent.data_retention.file_infos_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos."
+  },
+  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "We encountered an error cleaning up the batch of flags."
   },
@@ -5331,6 +5439,14 @@
     "translation": "unable to migrate."
   },
   {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "Unable to add attachment to the Global Relay export."
   },
@@ -5381,6 +5497,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -7191,50 +7311,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Unable to delete attachments of the user."
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Unable to attach the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Unable to delete the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.get.app_error",
-    "translation": "Unable to get the file info."
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Unable to get the file info by path."
-  },
-  {
-    "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Unable to get the file info for the post."
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Unable to get the file info for the user."
-  },
-  {
-    "id": "store.sql_file_info.get_with_options.app_error",
-    "translation": "Unable to get the file info with options"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "store.sql_file_info.save.app_error",
-    "translation": "Unable to save the file info."
-  },
-  {
     "id": "store.sql_group.app_error",
     "translation": "failed to build query."
   },
@@ -7261,34 +7337,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Unable to delete the job."
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Unable to get the job."
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Unable to get the jobs."
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type."
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type."
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Unable to save the job."
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Unable to update the job."
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
@@ -7369,6 +7417,10 @@
   {
     "id": "store.sql_post.populate_reply_count.app_error",
     "translation": "Unable to get the post replies count"
+  },
+  {
+    "id": "store.sql_post.search.app_error",
+    "translation": "Error searching posts"
   },
   {
     "id": "store.sql_post.search.disabled",
