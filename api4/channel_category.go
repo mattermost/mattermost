@@ -164,7 +164,6 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 			c.SetInvalidParam("category")
 			return
 		}
-
 	}
 
 	if appErr := validateSidebarCategories(c, c.Params.TeamId, c.Params.UserId, categoriesUpdateRequest); appErr != nil {
