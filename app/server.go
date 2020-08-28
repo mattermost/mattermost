@@ -536,6 +536,10 @@ func (s *Server) RunJobs() {
 		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 			s.Jobs.StartSchedulers()
 		}
+
+		if *s.Config().ServiceSettings.EnableAWSMetering {
+			runReportToAWSMeterJob(s)
+		}
 	}
 }
 
@@ -1143,14 +1147,14 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
-func runReportToAWSMeterJob(a *App) {
+func runReportToAWSMeterJob(s *Server) {
 	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
-		doReportUsageToAWSMeteringService(a)
-	}, time.Hour*1)
+		doReportUsageToAWSMeteringService(s)
+	}, time.Hour*model.AWS_METERING_REPORT_INTERVAL)
 }
 
-func doReportUsageToAWSMeteringService(a *App) {
-	awsMeter := awsmeter.New(a.srv.Store, a.Config())
+func doReportUsageToAWSMeteringService(s *Server) {
+	awsMeter := awsmeter.New(s.Store, s.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return

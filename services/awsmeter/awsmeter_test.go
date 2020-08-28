@@ -50,8 +50,8 @@ func TestAwsMeterUsage(t *testing.T) {
 	storeMock := mocks.Store{}
 	storeMock.On("User").Return(&userStoreMock)
 
-	reports := make([]*model.AWSMeterReport, 1)
-	reports[0] = &model.AWSMeterReport{
+	reports := make([]*AWSMeterReport, 1)
+	reports[0] = &AWSMeterReport{
 		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
 		Value:     2,
 		Timestamp: startTime,
@@ -116,8 +116,8 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 	storeMock := mocks.Store{}
 	storeMock.On("User").Return(&userStoreMock)
 
-	reports := make([]*model.AWSMeterReport, 1)
-	reports[0] = &model.AWSMeterReport{
+	reports := make([]*AWSMeterReport, 1)
+	reports[0] = &AWSMeterReport{
 		Dimension: model.AWS_METERING_DIMENSION_USAGE_HRS,
 		Value:     2,
 		Timestamp: startTime,

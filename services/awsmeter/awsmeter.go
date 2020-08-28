@@ -4,14 +4,14 @@
 package awsmeter
 
 import (
-	"errors"
-	"net/http"
+	"encoding/json"
 	"os"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/pkg/errors"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -32,6 +32,17 @@ type AWSMeterService struct {
 	AwsDryRun      bool
 	AwsProductCode string
 	AwsMeteringSvc marketplacemeteringiface.MarketplaceMeteringAPI
+}
+
+type AWSMeterReport struct {
+	Dimension string    `json:"dimension"`
+	Value     int64     `json:"value"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+func (o *AWSMeterReport) ToJSON() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func New(store store.Store, config *model.Config) *AwsMeter {
@@ -77,8 +88,8 @@ func newAWSMarketplaceMeteringService() (*marketplacemetering.MarketplaceMeterin
 }
 
 // a report entry is for all metrics
-func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.Time, endTime time.Time) []*model.AWSMeterReport {
-	reports := make([]*model.AWSMeterReport, 0)
+func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.Time, endTime time.Time) []*AWSMeterReport {
+	reports := make([]*AWSMeterReport, 0)
 
 	for _, dimension := range dimensions {
 		var userCount int64
@@ -90,18 +101,14 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 			mlog.Info("GetUserCategoryUsage", mlog.Int64("usercount", userCount), mlog.Err(err), mlog.Bool("bool", err != nil))
 			if err != nil {
 				mlog.Error("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.String("start", startTime.String()), mlog.Int64("count", userCount), mlog.Err(err))
+				continue
 			}
 		default:
 			mlog.Error("Dimension does not exist!", mlog.String("dimension", dimension))
-			err = errors.New("Dimension does not exist")
+			continue
 		}
 
-		if err != nil {
-			mlog.Error("Failed to obtain usage.", mlog.String("dimension", dimension), mlog.Err(err))
-			return reports
-		}
-
-		report := &model.AWSMeterReport{
+		report := &AWSMeterReport{
 			Dimension: dimension,
 			Value:     userCount,
 			Timestamp: startTime,
@@ -113,7 +120,7 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 	return reports
 }
 
-func (awsm *AwsMeter) ReportUserCategoryUsage(reports []*model.AWSMeterReport) *model.AppError {
+func (awsm *AwsMeter) ReportUserCategoryUsage(reports []*AWSMeterReport) error {
 	for _, report := range reports {
 		err := sendReportToMeteringService(awsm.service, report)
 		if err != nil {
@@ -123,7 +130,7 @@ func (awsm *AwsMeter) ReportUserCategoryUsage(reports []*model.AWSMeterReport) *
 	return nil
 }
 
-func sendReportToMeteringService(ams *AWSMeterService, report *model.AWSMeterReport) *model.AppError {
+func sendReportToMeteringService(ams *AWSMeterService, report *AWSMeterReport) error {
 	params := &marketplacemetering.MeterUsageInput{
 		DryRun:         aws.Bool(ams.AwsDryRun),
 		ProductCode:    aws.String(ams.AwsProductCode),
@@ -134,10 +141,10 @@ func sendReportToMeteringService(ams *AWSMeterService, report *model.AWSMeterRep
 
 	resp, err := ams.AwsMeteringSvc.MeterUsage(params)
 	if err != nil {
-		return model.NewAppError("sendReportToMeteringService", "app.system.aws_metering_service.error", nil, err.Error(), http.StatusNotFound)
+		return errors.Wrap(err, "Invalid metering service id.")
 	}
 	if resp.MeteringRecordId == nil {
-		return model.NewAppError("sendReportToMeteringService", "app.system.aws_metering_service.error", nil, "", http.StatusNotFound)
+		return errors.Wrap(err, "Invalid metering service id.")
 	}
 
 	mlog.Debug("Sent record to AWS metering service", mlog.String("dimension", report.Dimension), mlog.Int64("value", report.Value), mlog.String("timestamp", report.Timestamp.String()))
