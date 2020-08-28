@@ -1161,7 +1161,7 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	}
 
 	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
-	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-1*time.Hour).UTC())
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AWS_METERING_REPORT_INTERVAL*time.Hour).UTC())
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
