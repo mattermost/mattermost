@@ -2899,10 +2899,6 @@
     "translation": "Please sign in using {{.AuthService}}."
   },
   {
-    "id": "api.user.login_by_cws.license.error",
-    "translation": "CWS login is forbidden."
-  },
-  {
     "id": "api.user.login_by_cws.invalid_token.app_error",
     "translation": "CWS token is not valid"
   },
@@ -2917,6 +2913,10 @@
   {
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS login is forbidden."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
