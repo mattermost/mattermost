@@ -79,7 +79,6 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		envToken, ok := os.LookupEnv(cwsTokenEnv)
-		mlog.Info(fmt.Sprintf("token: %s --- env: %s", cwsToken, envToken))
 		if ok && subtle.ConstantTimeCompare([]byte(envToken), []byte(cwsToken)) == 1 {
 			token = &model.Token{
 				Token:    cwsToken,
