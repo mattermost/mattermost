@@ -4,6 +4,8 @@
 package app
 
 import (
+	"crypto/subtle"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +14,7 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -64,18 +67,35 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		if err = checkUserNotBot(user); err != nil {
 			return nil, err
 		}
-		sessions, errSessions := a.GetSessions(user.Id)
-		if errSessions != nil {
-			return nil, errSessions
+		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
+		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+			mlog.Error("error retrieving the cws token from the store", mlog.Err(err))
+			return nil, model.NewAppError("AuthenticateUserForLogin",
+				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 		}
-		if len(sessions) > 0 {
+		// If token is stored in the database that means it was used
+		if token != nil {
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
-		token, ok := os.LookupEnv(cwsTokenEnv)
-		if ok && token == cwsToken {
+		envToken, ok := os.LookupEnv(cwsTokenEnv)
+		mlog.Info(fmt.Sprintf("token: %s --- env: %s", cwsToken, envToken))
+		if ok && subtle.ConstantTimeCompare([]byte(envToken), []byte(cwsToken)) == 1 {
+			token = &model.Token{
+				Token:    cwsToken,
+				CreateAt: model.GetMillis(),
+				Type:     TOKEN_TYPE_CWS_ACCESS,
+			}
+			err := a.Srv().Store.Token().Save(token)
+			if err != nil {
+				mlog.Error("error storing the cws token in the store", mlog.Err(err))
+				return nil, model.NewAppError("AuthenticateUserForLogin",
+					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
+			}
 			return user, nil
 		}
+		return nil, model.NewAppError("AuthenticateUserForLogin",
+			"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// If client side cert is enable and it's checking as a primary source

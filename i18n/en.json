@@ -2904,7 +2904,7 @@
   },
   {
     "id": "api.user.login_by_cws.invalid_token.app_error",
-    "translation": "That CWS token was already used"
+    "translation": "CWS token is not valid"
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
