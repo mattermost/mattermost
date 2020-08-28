@@ -67,7 +67,10 @@ func New(store store.Store, config *model.Config) *AwsMeter {
 
 func newAWSMarketplaceMeteringService() (*marketplacemetering.MarketplaceMetering, error) {
 	region := os.Getenv("AWS_REGION")
-	s := session.Must(session.NewSession(&aws.Config{Region: &region}))
+	s, err := session.NewSession(&aws.Config{Region: &region}))
+	if err != nil {
+		return nil, err
+	}
 
 	creds := credentials.NewChainCredentials(
 		[]credentials.Provider{
@@ -98,7 +101,6 @@ func (awsm *AwsMeter) GetUserCategoryUsage(dimensions []string, startTime time.T
 		switch dimension {
 		case model.AWS_METERING_DIMENSION_USAGE_HRS:
 			userCount, err = awsm.store.User().AnalyticsActiveCountForPeriod(model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), model.UserCountOptions{})
-			mlog.Info("GetUserCategoryUsage", mlog.Int64("usercount", userCount), mlog.Err(err), mlog.Bool("bool", err != nil))
 			if err != nil {
 				mlog.Error("Failed to obtain usage data", mlog.String("dimension", dimension), mlog.String("start", startTime.String()), mlog.Int64("count", userCount), mlog.Err(err))
 				continue
