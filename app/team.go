@@ -591,10 +591,21 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv().Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		var tmr *model.TeamMember
-		tmr, err = a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
-		if err != nil {
-			return nil, false, err
+		tmr, nErr := a.Srv().Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if nErr != nil {
+			var appErr *model.AppError
+			var conflictErr *store.ErrConflict
+			var limitExeededErr *store.ErrLimitExceeded
+			switch {
+			case errors.As(nErr, &appErr): // in case we haven't converted to plain error.
+				return nil, false, appErr
+			case errors.As(nErr, &conflictErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.conflict.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			case errors.As(nErr, &limitExeededErr):
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.max_accounts.app_error", nil, nErr.Error(), http.StatusBadRequest)
+			default: // last fallback in case it doesn't map to an existing app error.
+				return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.save_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 		return tmr, false, nil
 	}
@@ -1116,6 +1127,47 @@ func (a *App) prepareInviteNewUsersToTeam(teamId, senderId string) (*model.User,
 	return user, team, nil
 }
 
+func genEmailInviteWithErrorList(emailList []string) []*model.EmailInviteWithError {
+	invitesNotSent := make([]*model.EmailInviteWithError, len(emailList))
+	for i := range emailList {
+		invite := &model.EmailInviteWithError{
+			Email: emailList[i],
+			Error: model.NewAppError("inviteUsersToTeam", "api.team.invite_members.limit_reached.app_error", map[string]interface{}{"Addresses": emailList[i]}, "", http.StatusBadRequest),
+		}
+		invitesNotSent[i] = invite
+	}
+	return invitesNotSent
+}
+
+func (a *App) GetErrorListForEmailsOverLimit(emailList []string, cloudUserLimit int64) ([]string, []*model.EmailInviteWithError, *model.AppError) {
+	var invitesNotSent []*model.EmailInviteWithError
+	if cloudUserLimit <= 0 {
+		return emailList, invitesNotSent, nil
+	}
+	systemUserCount, _ := a.Srv().Store.User().Count(model.UserCountOptions{})
+	remainingUsers := cloudUserLimit - systemUserCount
+	if remainingUsers <= 0 {
+		// No remaining users so all fail
+		invitesNotSent = genEmailInviteWithErrorList(emailList)
+		emailList = nil
+	} else if remainingUsers < int64(len(emailList)) {
+		// Trim the email list to only invite as many users as are remaining in subscription
+		// Set graceful errors for the remaining email addresses
+		emailsAboveLimit := emailList[remainingUsers:]
+		invitesNotSent = genEmailInviteWithErrorList(emailsAboveLimit)
+		// If 1 user remaining we have to prevent 0:0 reslicing
+		if remainingUsers == 1 {
+			email := emailList[0]
+			emailList = nil
+			emailList = append(emailList, email)
+		} else {
+			emailList = emailList[:(remainingUsers - 1)]
+		}
+	}
+
+	return emailList, invitesNotSent, nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderId string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1125,7 +1177,6 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
-
 	user, team, err := a.prepareInviteNewUsersToTeam(teamId, senderId)
 	if err != nil {
 		return nil, err
@@ -1148,7 +1199,10 @@ func (a *App) InviteNewUsersToTeamGracefully(emailList []string, teamId, senderI
 
 	if len(goodEmails) > 0 {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL())
+		err = a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return inviteListWithErrors, nil
@@ -1235,7 +1289,10 @@ func (a *App) InviteGuestsToChannelsGracefully(teamId string, guestsInvite *mode
 		if err != nil {
 			a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 		}
-		a.Srv().EmailService.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		err = a.Srv().EmailService.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), guestsInvite.Message)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return inviteListWithErrors, nil
@@ -1267,12 +1324,14 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
+		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
+	err = a.Srv().EmailService.SendInviteEmails(team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -1304,7 +1363,10 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 	if err != nil {
 		a.Log().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
 	}
-	a.Srv().EmailService.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
+	err = a.Srv().EmailService.sendGuestInviteEmails(team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, guestsInvite.Emails, a.GetSiteURL(), guestsInvite.Message)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
