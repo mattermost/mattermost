@@ -7914,5 +7914,53 @@
     {
         "id": "app.email.no_rate_limiter.app_error",
         "translation": "Ограничитель скорости не настроен."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Невозможно завершить вход в SAML с пустым адресом электронной почты."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Эта учетная запись не использует аутентификацию SAML. Пожалуйста, войдите, используя электронную почту и пароль."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Эта учетная запись не использует аутентификацию AD/LDAP. Пожалуйста, войдите, используя электронную почту и пароль."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Мы обнаружили ошибку при подключении к серверу."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Не найдена конечная точка API кластера."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " прикрепил файл."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Не удалось экспортировать в XML."
     }
 ]

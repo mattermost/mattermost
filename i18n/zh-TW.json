@@ -7828,5 +7828,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "尋找系統參數時遇到錯誤"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "無法用空的電子郵件地址完成 SAML 登入。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "該帳號未使用 SAML 認證。請用電子郵件地址與密碼登入。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "該帳號未使用 AD/LDAP 認證。請用電子郵件地址與密碼登入。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP 同步工作逾時。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "無法解析訊息匯出工作 BatchSize。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "連接伺服器時遇到錯誤"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "找不到叢集 API 端點。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " 檔案已附加。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "無法轉換匯出至 XML"
     }
 ]

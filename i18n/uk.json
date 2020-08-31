@@ -7533,7 +7533,7 @@
     },
     {
         "id": "app.plugin_store.list.app_error",
-        "translation": ""
+        "translation": "Unable to list all the plugin keys."
     },
     {
         "id": "app.plugin_store.get.app_error",
@@ -7562,5 +7562,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "Виникла помилка при пошуку властивостей системи"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Ми виявили помилку при підключенні до сервера"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Не знайдена кінцева точка API кластера."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": "додається файл."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Не вдалося перетворити експорт в XML. "
     }
 ]

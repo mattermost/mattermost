@@ -7804,5 +7804,53 @@
     {
         "id": "app.system.get.app_error",
         "translation": "We encountered an error finding the system properties"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Unable to complete SAML login with an empty email address."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "An account with that username already exists. Please contact your Administrator."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "This account does not use SAML authentication. Please sign in using email and password."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "An account with that username already exists. Please contact your Administrator."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Reached AD/LDAP synchronization job timeout."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Could not parse message export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Could not parse message export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "We encountered an error while connecting to the server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster API endpoint not found."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": "파일을 첨부했습니다."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
     }
 ]
