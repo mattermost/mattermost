@@ -1,109 +1,5 @@
 [
     {
-        "id": "store.sql_webhooks.update_outgoing.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.update_incoming.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.save_outgoing.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.save_incoming.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_outgoing.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.get_incoming.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.delete_outgoing.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.delete_incoming.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_enable.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.update_token_disable.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_user.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.get_by_token.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.get_all.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.get.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_user_access_token.delete.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
         "id": "store.sql_user.update_last_picture_update.app_error",
         "translation": "Не може да се актуализира update_at."
     },
@@ -260,30 +156,6 @@
         "translation": "Не могат да се броят частните екипи."
     },
     {
-        "id": "store.sql_session.update_roles.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_session.update_device_id.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_session.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_session.remove.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_session.analytics_session_count.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
         "id": "app.scheme.save.app_error",
         "translation": "Не може да се създаде схемата."
     },
@@ -292,68 +164,8 @@
         "translation": "Не може да се получи схемата."
     },
     {
-        "id": "store.sql_role.save.update.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.save.insert.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.get_by_names.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.get_by_name.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.get_all.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.get.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_role.delete.update.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_recover.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_recover.delete.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
         "id": "app.reaction.save.save.app_error",
         "translation": "Реакцията не може да бъде запазена."
-    },
-    {
-        "id": "store.sql_preference.update.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_preference.insert.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Не може да се актуализира публикацията."
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Не може да се запази публикацията."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Не може да се изтрият публикациите по канал."
-    },
-    {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Не може да се изтрие публикацията."
     },
     {
         "id": "store.sql_post.overwrite.app_error",
@@ -372,136 +184,12 @@
         "translation": "Не могат да се получават директни публикации."
     },
     {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Не може да се получи публикацията."
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Не може да се изтрие публикацията."
-    },
-    {
-        "id": "store.sql_oauth.update_app.update.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_oauth.update_app.find.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_oauth.save_app.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_oauth.save_access_data.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_oauth.remove_access_data.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_oauth.get_app_by_user.find.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Не може да се актуализира работата."
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Работата не може да бъде запазена."
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Не могат да се получат работните места."
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Не може да се получи работата."
-    },
-    {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Заданието не може да се изтрие."
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Информацията за файла не може да бъде запазена."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Не може да се получи информация за файла с опции"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Не може да се получи информация за файла за потребителя."
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Не може да се получи информация за файла за публикацията."
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Не може да се получи информация за файла по път."
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Информацията за файла не може да бъде получена."
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Информацията за файла не може да бъде изтрита до публикацията."
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Информацията за файла не може да се прикачи към публикацията."
-    },
-    {
         "id": "app.emoji.delete.app_error",
         "translation": "Емоджиите не могат да бъдат изтрити."
     },
     {
-        "id": "store.sql_command_webhooks.try_use.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command_webhooks.save.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command_webhooks.get.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.save.update.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.save.saving.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.save.get_team.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
         "id": "store.sql_command.save.get.app_error",
         "translation": "Не може да се получи командата."
-    },
-    {
-        "id": "store.sql_command.save.delete_perm.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.save.delete.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.get_by_trigger.app_error",
-        "translation": "Неуспешно обновяване на канала"
-    },
-    {
-        "id": "store.sql_command.analytics_command_count.app_error",
-        "translation": "Неуспешно обновяване на канала"
     },
     {
         "id": "app.channel.update.bad_id",
@@ -1070,10 +758,6 @@
     {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Липсва файл в полето 'сертификат' на заявката."
-    },
-    {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Невъзможно конвертиране на експорта в XML."
     },
     {
         "id": "September",
@@ -2923,10 +2607,6 @@
         "translation": "{{.Service}} SSO чрез OAuth 2.0 не е наличен на този сървър."
     },
     {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Постигна AD / LDAP синхронизация на задание за изчакване."
-    },
-    {
         "id": "app.webhooks.update_outgoing.app_error",
         "translation": "Не може да се актуализира уебхоката."
     },
@@ -4083,10 +3763,6 @@
         "translation": "Неуспешно стартиране на транзакцията с база данни."
     },
     {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Възникна грешка при запазването на състоянието."
-    },
-    {
         "id": "store.sql_post.get_posts_since.app_error",
         "translation": "Не може да се получат публикациите за канала."
     },
@@ -4287,10 +3963,6 @@
         "translation": "Неуспешно обновяване на връзката към уеб сокета."
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Не може да се изтрият прикачени файлове на потребителя."
-    },
-    {
         "id": "store.sql_team.get_unread.app_error",
         "translation": "Неуспешно получаване на непрочетени съобщения на екипите."
     },
@@ -4401,10 +4073,6 @@
     {
         "id": "ent.ldap.syncronize.get_all_groups.app_error",
         "translation": "извличане на групи за грешки."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Този акаунт не използва SAML удостоверяване. Моля, влезте с имейл и парола."
     },
     {
         "id": "bleveengine.purge_channel_index.error",
@@ -4635,10 +4303,6 @@
         "translation": "Търсенето е деактивирано на този сървър. Моля, свържете се със системния си администратор."
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Крайната точка на API на клъстера не е намерена."
-    },
-    {
         "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
         "translation": "Не успя да извърши транзакцията с база данни."
     },
@@ -4655,10 +4319,6 @@
         "translation": "Възникна грешка при кодирането на заявката за доставчика на идентичност. Моля, свържете се със системния си администратор."
     },
     {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Стойността на ключа за приставката не можа да бъде получена."
-    },
-    {
         "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
         "translation": "Вашата парола трябва да съдържа най-малко {{.Min}} знаци, съставени от поне една главна буква, поне едно число и поне един символ (напр. \"~! @ # $% ^ & * ()\")."
     },
@@ -4669,10 +4329,6 @@
     {
         "id": "app.import.validate_post_import_data.user_missing.error",
         "translation": "Липсва задължителна собственост на публикацията: Потребител."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Профил с това потребителско име вече съществува. Моля, свържете се с вашия администратор."
     },
     {
         "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4995,10 +4651,6 @@
         "translation": "При откриването на предпочитания срещнахме грешка."
     },
     {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Не може да се получи броя на заданията по статус и тип."
-    },
-    {
         "id": "store.sql_team.get_all_private_team_page_listing.app_error",
         "translation": "Не успяхме да съберем всички частни екипи на страница."
     },
@@ -5203,24 +4855,12 @@
         "translation": "За да завършите актуализирането на имейл адреса си за {{.TeamDisplayName}}, моля, щракнете върху връзката по-долу, за да потвърдите, че това е правилният адрес."
     },
     {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Среща грешка при актуализиране на състоянието."
-    },
-    {
         "id": "bleveengine.indexer.do_job.parse_start_time.error",
         "translation": "Служителят за индексиране на Bleve не успя да анализира началното време."
     },
     {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Възникна грешка при нулиране на всички състояния."
-    },
-    {
         "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
         "translation": "Не мога да напиша имейл съобщението."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Не може да се изберат публикациите, които да се изтрият за потребителя."
     },
     {
         "id": "utils.mail.send_mail.msg.app_error",
@@ -5331,10 +4971,6 @@
         "translation": "Не може да се получат реакции за публикация."
     },
     {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Не може да се актуализират последната дата и час на активността на потребителя."
-    },
-    {
         "id": "model.incoming_hook.icon_url.app_error",
         "translation": "Невалидна икона за публикация."
     },
@@ -5423,10 +5059,6 @@
         "translation": "Грешка при генериране на QR код."
     },
     {
-        "id": "model.client.connecting.app_error",
-        "translation": "Ние срещнахме грешка при свързването със сървъра."
-    },
-    {
         "id": "app.import.validate_user_import_data.roles_invalid.error",
         "translation": "Ролята на потребителя не е валидна."
     },
@@ -5449,10 +5081,6 @@
     {
         "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
         "translation": "Невалиден RemoteImageProxyURL за atmos / camo. Трябва да е настроен на вашия споделен ключ."
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Срещнахме грешка при актуализиране на системната собственост."
     },
     {
         "id": "model.config.is_valid.webserver_security.app_error",
@@ -5509,10 +5137,6 @@
     {
         "id": "store.sql_user.app_error",
         "translation": "Неуспешно изграждане на заявка."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Срещнахме грешка за изтриване на трайно партидата от файлове."
     },
     {
         "id": "store.sql_team.get_all_private_team_listing.app_error",
@@ -5607,10 +5231,6 @@
         "translation": "груповата синхронизация вече беше изтрита"
     },
     {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Не може да се получи най-новата работа по статус и тип."
-    },
-    {
         "id": "app.command_webhook.create_command_webhook.existing",
         "translation": "Не можете да актуализирате съществуващ CommandWebhook."
     },
@@ -5675,10 +5295,6 @@
         "translation": "не е намерена съвпадаща група"
     },
     {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Срещнахме грешка при намирането на системните свойства."
-    },
-    {
         "id": "app.plugin.marketplace_disabled.app_error",
         "translation": "Пазарът е деактивиран. Моля, проверете вашите дневници за подробности."
     },
@@ -5729,10 +5345,6 @@
     {
         "id": "ent.saml.configure.load_private_key.app_error",
         "translation": "Влизането в SAML не бе успешно, тъй като частният ключ на доставчика на услуги не бе намерен. Моля, свържете се със системния си администратор."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Не можете да изберете публикациите, които да изтриете за потребителя (твърде много), моля, пуснете отново."
     },
     {
         "id": "web.error.unsupported_browser.browser_title.chrome",
@@ -5813,10 +5425,6 @@
     {
         "id": "utils.file.list_directory.s3.app_error",
         "translation": "Срещна директория за грешка в списъка от S3."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Профил с това потребителско име вече съществува. Моля, свържете се с вашия администратор."
     },
     {
         "id": "model.command.is_valid.method.app_error",
@@ -5983,10 +5591,6 @@
         "translation": "Версия 60+"
     },
     {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Намерени повече от 1 ред в MySQL след KVCompareAndSet с непроменена стойност."
-    },
-    {
         "id": "app.command.updatecommand.internal_error",
         "translation": "Не може да се актуализира командата."
     },
@@ -6027,16 +5631,8 @@
         "translation": "Невалидно име на канала. Потребителските идентификационни номера не са разрешени в името на канала за не-директни канали за съобщения."
     },
     {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Коментарите за потребителя не могат да бъдат изтрити."
-    },
-    {
         "id": "api.user.authorize_oauth_user.token_failed.app_error",
         "translation": "Заявката за маркиране не бе успешна."
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Не може да се намери системната променлива."
     },
     {
         "id": "api.user.reset_password.token_parse.error",
@@ -6301,10 +5897,6 @@
     {
         "id": "ent.saml.configure.encryption_not_enabled.app_error",
         "translation": "Влизането в SAML не бе успешно, тъй като криптирането не е активирано. Моля, свържете се със системния си администратор."
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Невъзможно е да се изброят всички ключове за приставки."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -6791,10 +6383,6 @@
         "translation": "Изпратен от "
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Този акаунт не използва AD / LDAP удостоверяване. Моля, влезте с имейл и парола."
-    },
-    {
         "id": "store.sql_team.search_private_team.app_error",
         "translation": "Срещнахме грешка при търсене на частни екипи."
     },
@@ -6817,10 +6405,6 @@
     {
         "id": "app.oauth.update_app.updating.app_error",
         "translation": "Срещнахме грешка при актуализиране на приложението."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Не можахме да изтрием окончателно записа на системната таблица."
     },
     {
         "id": "model.outgoing_hook.is_valid.update_at.app_error",
@@ -6951,10 +6535,6 @@
         "translation": "Променен е повече от един ред."
     },
     {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Не можа да се запази или актуализира стойността на ключа на приставката."
-    },
-    {
         "id": "ent.cluster.config_changed.info",
         "translation": "Конфигурацията на клъстера се промени за id = {{.id}}. Клъстерът може да стане нестабилен и се изисква рестартиране. За да сте сигурни, че клъстерът е конфигуриран правилно, трябва незабавно да извършите подвижен рестарт."
     },
@@ -7043,10 +6623,6 @@
         "translation": "[{{.SiteName}}] Потвърждение на имейл"
     },
     {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Не можете да актуализирате съществуваща публикация."
-    },
-    {
         "id": "api.templates.warn_metric_ack.number_of_active_users.body",
         "translation": "Mattermost Свържете се с нас. Моят екип вече има {{.Limit}} потребители и обмислям Mattermost Enterprise Edition."
     },
@@ -7057,10 +6633,6 @@
     {
         "id": "app.role.save.invalid_role.app_error",
         "translation": "Ролята не беше валидна."
-    },
-    {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Не успя да извърши транзакцията с база данни."
     },
     {
         "id": "api.templates.warn_metric_ack.body.site_url_header",
@@ -7081,10 +6653,6 @@
     {
         "id": "app.plugin.write_file.read.app_error",
         "translation": "Възникна грешка при четене на файла."
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Най-старата публикация не може да бъде извлечена от базата данни"
     },
     {
         "id": "store.sql_team.update.updating.app_error",
@@ -7211,10 +6779,6 @@
         "translation": "Мрежата не може да се намери."
     },
     {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Срещнахме грешка при запазването на системната собственост."
-    },
-    {
         "id": "app.webhooks.analytics_outgoing_count.app_error",
         "translation": "Неуспешно преброяване на изходящите уебшокове."
     },
@@ -7247,10 +6811,6 @@
         "translation": "Изтеглете приложението Mattermost или използвайте поддържан браузър за по-добро изживяване."
     },
     {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Не можахме да преброим активните потребители."
-    },
-    {
         "id": "bleveengine.create_user_index.error",
         "translation": "Грешка при създаването на индекс бивши потребители."
     },
@@ -7271,10 +6831,6 @@
         "translation": "Не могат да се получат всички канали."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Не може да се анализира заданието за експортиране на съобщения BatchSize."
-    },
-    {
         "id": "app.import.validate_user_import_data.position_length.error",
         "translation": "Позицията на потребителя е твърде дълга."
     },
@@ -7285,14 +6841,6 @@
     {
         "id": "app.channel.post_update_channel_purpose_message.post.error",
         "translation": "Съобщението за целта на канала не бе успешно"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Стойността на ключа за приставката не може да бъде изтрита."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Неуспешно запитване за съществуващ ред в MySQL след KVCompareAndSet с непроменена стойност."
     },
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
@@ -7639,10 +7187,6 @@
         "translation": "AD / LDAP поле \"AD / LDAP Server\" е задължително."
     },
     {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Възникна грешка при извличане на състоянието."
-    },
-    {
         "id": "api.user.add_direct_channels_and_forget.failed.error",
         "translation": "Неуспешно добавяне на предпочитания за директни канали за потребител user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{.Error}}"
     },
@@ -7899,10 +7443,6 @@
         "translation": "Фамилното име на потребителя е твърде дълго."
     },
     {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Не може да се анализира заданието за експортиране на съобщение ExportFromTimestamp."
-    },
-    {
         "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
         "translation": "Невалидна настройка за непрочетени секции за потребителя"
     },
@@ -7929,10 +7469,6 @@
     {
         "id": "ent.elasticsearch.delete_channel_posts.error",
         "translation": "Изтриването на публикациите на канала не бе успешно"
-    },
-    {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Не може да се извърши вход в SAML с празен имейл адрес."
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.safari",
@@ -8031,10 +7567,6 @@
         "translation": "Изисква се идентификатор на доставчика на услуги"
     },
     {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Информацията за файла не може да бъде изтрита за постоянно."
-    },
-    {
         "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
         "translation": "MFA не е наличен за този тип акаунт."
     },
@@ -8101,10 +7633,6 @@
     {
         "id": "web.error.unsupported_browser.no_longer_support",
         "translation": "Този браузър вече не се поддържа от Mattermost"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Този екип достигна максималния брой разрешени акаунти. Свържете се със системния си администратор, за да зададете по-висок лимит."
     },
     {
         "id": "api.templates.email_change_verify_body.title",
@@ -8209,10 +7737,6 @@
     {
         "id": "api.templates.password_change_subject",
         "translation": "[{{.SiteName}}] Вашата парола е актуализирана"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Няма запис за този статус."
     },
     {
         "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
