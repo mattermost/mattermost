@@ -7817,5 +7817,57 @@
     {
         "id": "app.post.delete.app_error",
         "translation": "İleti silinemedi."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Uygulama eki anahtarı değeri silinemedi."
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Zaten var olduğundan, yeni takım üyeliği içe aktarılamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Bu takıma başka üye kabul edilmediğinden, varsayılan takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Zaten var olduğundan, varsayılan takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Varsayılan takım üyelikleri oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Zaten var olduğundan yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Bu takıma başka üye kabul edilmediğinden takım üyeliği içe aktarılamadı"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Yeni takım üyelikleri içe aktarılamadı"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Uygulama eki anahtarı değeri alınamadı."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Uygulama eki anahtarı değeri kaydedilemedi ya da güncellenemedi."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Tüm uygulama eki anahtarları listelenemedi."
     }
 ]
