@@ -76,6 +76,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP is not available."
+  },
+  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate."
   },
@@ -1547,6 +1551,10 @@
   {
     "id": "api.marshal_error",
     "translation": "marshal error"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Unable to migrate SAML."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
