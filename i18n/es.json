@@ -8029,5 +8029,45 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Incapaz de convertir bot a usuario."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. La firma digital de la lima binaria descargada no podría ser verificada."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. Esta característica sólo obrará encima sistemas de Linux con x86-64 arquitectura."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchown {{.FileUsername}} \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Ruta}}\"\nchmod +w \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchown {{.FileUsername}} \"{{.Ruta}}\"\nchmod -w \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchmod +w \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchmod -w \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "Un upgrade a Mattermost Edición de Empresa ya está corriendo."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": " Puedes no upgrade porque ya estás corriendo Mattermost Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": " Has ya upgraded a Mattermost Edición de Empresa. Complacer retomar el servidor para acabar el upgrade."
     }
 ]
