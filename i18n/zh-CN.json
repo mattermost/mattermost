@@ -109,7 +109,7 @@
     },
     {
         "id": "api.admin.upload_brand_image.array.app_error",
-        "translation": "请求中图片数组为空。"
+        "translation": "请求中 'image' 为空。"
     },
     {
         "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -553,7 +553,7 @@
     },
     {
         "id": "api.command_dnd.name",
-        "translation": "dnd"
+        "translation": "请勿打扰"
     },
     {
         "id": "api.command_dnd.success",
@@ -939,7 +939,7 @@
     },
     {
         "id": "api.command_shrug.name",
-        "translation": "shrug"
+        "translation": "耸肩"
     },
     {
         "id": "api.config.client.old_format.app_error",
@@ -2371,11 +2371,11 @@
     },
     {
         "id": "api.user.update_password.context.app_error",
-        "translation": "更新密码失败因为 user_id 提供用户ID不匹配"
+        "translation": "更新密码失败因为 user_id 与用户的 user_id 不匹配。"
     },
     {
         "id": "api.user.update_password.failed.app_error",
-        "translation": "更新密码失败"
+        "translation": "更新密码失败。"
     },
     {
         "id": "api.user.update_password.incorrect.app_error",
@@ -2387,19 +2387,19 @@
     },
     {
         "id": "api.user.update_password.oauth.app_error",
-        "translation": "因为用户登录通过OAuth服务更新密码失败"
+        "translation": "更新密码失败，因为用户通过 OAuth 服务登录。"
     },
     {
         "id": "api.user.update_password.valid_account.app_error",
-        "translation": "更新密码失败，因为我们无法找到有效的帐户"
+        "translation": "更新密码失败，因为我们无法找到有效的帐户。"
     },
     {
         "id": "api.user.upload_profile_user.array.app_error",
-        "translation": "根据“图像”请求的空数组"
+        "translation": "请求中 'image' 为空。"
     },
     {
         "id": "api.user.upload_profile_user.decode.app_error",
-        "translation": "无法解码配置文件"
+        "translation": "无法解码个人头像。"
     },
     {
         "id": "api.user.upload_profile_user.decode_config.app_error",
@@ -2407,11 +2407,11 @@
     },
     {
         "id": "api.user.upload_profile_user.encode.app_error",
-        "translation": "无法编码图像"
+        "translation": "无法编码个人头像。"
     },
     {
         "id": "api.user.upload_profile_user.no_file.app_error",
-        "translation": "请求中图像不是文件"
+        "translation": "请求中 'image' 没有文件。"
     },
     {
         "id": "api.user.upload_profile_user.open.app_error",
@@ -2419,7 +2419,7 @@
     },
     {
         "id": "api.user.upload_profile_user.parse.app_error",
-        "translation": "无法解析多形式表单"
+        "translation": "无法解析混合表单。"
     },
     {
         "id": "api.user.upload_profile_user.storage.app_error",
@@ -2431,7 +2431,7 @@
     },
     {
         "id": "api.user.upload_profile_user.upload_profile.app_error",
-        "translation": "无法上传配置文件"
+        "translation": "无法上传个人头像。"
     },
     {
         "id": "api.user.verify_email.bad_link.app_error",
@@ -2451,7 +2451,7 @@
     },
     {
         "id": "api.web_socket.connect.upgrade.app_error",
-        "translation": "未能升级WebSocket连接"
+        "translation": "升级 WebSocket 连接失败。"
     },
     {
         "id": "api.web_socket_router.bad_action.app_error",
@@ -2483,7 +2483,7 @@
     },
     {
         "id": "api.webhook.create_outgoing.triggers.app_error",
-        "translation": "无论是trigger_words或channel_id必须设置"
+        "translation": "必须设置 trigger_words 或 channel_id。"
     },
     {
         "id": "api.webhook.incoming.error",
@@ -2491,7 +2491,7 @@
     },
     {
         "id": "api.webhook.team_mismatch.app_error",
-        "translation": "无法跨团队更新 webhook"
+        "translation": "无法跨团队更新 webhook。"
     },
     {
         "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2507,7 +2507,7 @@
     },
     {
         "id": "app.channel.create_channel.no_team_id.app_error",
-        "translation": "必须指定团队ID才能创建频道"
+        "translation": "必须指定团队 ID 才可创建频道。"
     },
     {
         "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3127,11 +3127,11 @@
     },
     {
         "id": "app.plugin.config.app_error",
-        "translation": "保存插件状态到配置出错"
+        "translation": "保存插件状态到配置出错。"
     },
     {
         "id": "app.plugin.deactivate.app_error",
-        "translation": "无法停用插件"
+        "translation": "无法停用插件。"
     },
     {
         "id": "app.plugin.disabled.app_error",
@@ -3139,11 +3139,11 @@
     },
     {
         "id": "app.plugin.extract.app_error",
-        "translation": "解压插件时遇到错误"
+        "translation": "解压插件时遇到错误。"
     },
     {
         "id": "app.plugin.filesystem.app_error",
-        "translation": "遇到文件系统错误"
+        "translation": "遇到文件系统错误。"
     },
     {
         "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3151,7 +3151,7 @@
     },
     {
         "id": "app.plugin.get_plugins.app_error",
-        "translation": "无法获取已启动的插件"
+        "translation": "无法获取启动的插件。"
     },
     {
         "id": "app.plugin.get_statuses.app_error",
@@ -3175,7 +3175,7 @@
     },
     {
         "id": "app.plugin.manifest.app_error",
-        "translation": "无法在解压的插件里找到 manifest 档"
+        "translation": "无法在解压的插件里找到 manifest 档。"
     },
     {
         "id": "app.plugin.mvdir.app_error",
@@ -3183,11 +3183,11 @@
     },
     {
         "id": "app.plugin.not_installed.app_error",
-        "translation": "插件未安装"
+        "translation": "插件未安装。"
     },
     {
         "id": "app.plugin.remove.app_error",
-        "translation": "无法删除插件"
+        "translation": "无法删除插件。"
     },
     {
         "id": "app.plugin.upload_disabled.app_error",
@@ -3199,7 +3199,7 @@
     },
     {
         "id": "app.save_config.app_error",
-        "translation": "An error occurred saving the configuration"
+        "translation": "保存配置时出错。"
     },
     {
         "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3211,7 +3211,7 @@
     },
     {
         "id": "app.system_install_date.parse_int.app_error",
-        "translation": "解析安装日期失败"
+        "translation": "解析安装日期失败。"
     },
     {
         "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3227,7 +3227,7 @@
     },
     {
         "id": "app.user_access_token.invalid_or_missing",
-        "translation": "无效或缺少令牌"
+        "translation": "无效或缺少令牌。"
     },
     {
         "id": "brand.save_brand_image.decode.app_error",
@@ -3379,7 +3379,7 @@
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "无法从数据库获取最旧的消息。"
+        "translation": "无法从数据库获取最旧的消息"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -6459,7 +6459,7 @@
     },
     {
         "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-        "translation": "尝试在所有实体已完成时创建新批量索引。"
+        "translation": "尝试在所有实体已完成时创建新批量索引"
     },
     {
         "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -6631,7 +6631,7 @@
     },
     {
         "id": "api.bot.set_bot_icon_image.array.app_error",
-        "translation": "请求中图片数组为空。"
+        "translation": "请求中 'image' 为空。"
     },
     {
         "id": "api.channel.add_members.error",
@@ -7647,23 +7647,23 @@
     },
     {
         "id": "ent.data_retention.reactions_batch.internal_error",
-        "translation": "批量永久删除互动时遇到错误"
+        "translation": "批量永久删除互动时遇到错误。"
     },
     {
         "id": "app.reaction.save.save.app_error",
-        "translation": "无法保存互动"
+        "translation": "无法保存互动。"
     },
     {
         "id": "app.reaction.get_for_post.app_error",
-        "translation": "无法获取消息的互动"
+        "translation": "无法获取消息的互动。"
     },
     {
         "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
-        "translation": "无法用提供的表情符获取互动"
+        "translation": "无法用提供的表情符获取互动。"
     },
     {
         "id": "app.reaction.bulk_get_for_post_ids.app_error",
-        "translation": "无法获取消息的互动"
+        "translation": "无法获取消息的互动。"
     },
     {
         "id": "store.sql_command.update.missing.app_error",
@@ -7871,7 +7871,7 @@
     },
     {
         "id": "api.templates.warn_metric_ack.body.registered_users_header",
-        "translation": "总活动用户"
+        "translation": "总活跃用户： "
     },
     {
         "id": "api.templates.warn_metric_ack.body.contact_email_header",
@@ -7932,5 +7932,137 @@
     {
         "id": "api.server.warn_metric.bot_response.mailto_contact_header",
         "translation": "联络：{{.Contact}}"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "无效的本地储存目录。不能为空字串。"
+    },
+    {
+        "id": "app.system.warn_metric.store.app_error",
+        "translation": "储存 {{.WarnMetricName}} 值失败"
+    },
+    {
+        "id": "app.system.warn_metric.bot_displayname",
+        "translation": "Mattermost Advisor"
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost 无法升级至企业版。无法验证下载的二进制文件的数字签名。"
+    },
+    {
+        "id": "store.sql_group.more_than_one_row_changed",
+        "translation": "多于一条数据被改动。"
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "无法转换机器人至用户。"
+    },
+    {
+        "id": "app.system.warn_metric.notification.invalid_metric.app_error",
+        "translation": "未找到指标。"
+    },
+    {
+        "id": "app.system.warn_metric.bot_description",
+        "translation": "[了解更多关于 Mattermost Advisor](https://about.mattermost.com/default-channel-handle-documentation)"
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost 无法升级至企业版。"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost 无法升级至企业版。此功能只能用于 x86-64 构架的 Linux 系统。"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost 无法升级至企业版。Mattermost 系统用户 {{.MattermostUsername}} 没有写入二进制文件权限。系统管理员可在服务器上运行以下指令更新文件权限：\n\n```\nchmod +w \"{{.Path}}\"\n```\n\n更新文件权限后，请重新尝试升级 Mattermost。当您升级并重启后，请务必恢复二进制文件权限：\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost 无法升级至企业版。"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "升级至企业版已在进行中。"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": "您不能升级因为您已正在运行 Mattermost 企业版。"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": "您已升级至 Mattermost 企业版。请重启以完成升级。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.number_of_active_users.body",
+        "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
+        "translation": "Mattermost 强烈推荐超过 500 位用户的部署升级至企业版以获得用户管理、机群以及性能监视等功能。\n\n联系支持提交您的联系信息至  Mattermost, Inc. [了解更多](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
+        "translation": "您的 Mattermost 系统现已有 400 位用户。当您连接 Mattermost 到您组织的单一登录提供商后，用户可不需要再次输入帐号信息登入 Mattermost。联系支持了解更多关于企业版中的 SAML 2.0 整合。\n\n[了解更多关于整合SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\n联系支持提交您的联系信息至  Mattermost, Inc. [了解更多](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
+        "translation": "您的 Mattermost 系统现已有 200 位用户。随着您的用户群增长，配置新帐户会变得很耗时。我们推荐您升级至 Mattermost 企业版并整合到您组织的活动目录/LDAP。这将允许任何有帐号的用户登入而不需要他们创建新的用户名和密码。同时这也减少管理员部署和管理帐号。\n\n[了解更多关于整合 AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\n联系支持提交您的联系信息至  Mattermost, Inc. [了解更多](https://mattermost.com/pl/default-admin-advisory)"
+    },
+    {
+        "id": "api.server.warn_metric.email_us",
+        "translation": "电子邮件我们"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
+        "translation": "Mattermost 联络我们请求。我的团队有 {{.Limit}} 位用户并且我正在考虑 Mattermost 企业版。\n"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.notification_failure.body",
+        "translation": "请电子邮件我们。"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.subject",
+        "translation": "Mattermost 联络我们请求"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_subject",
+        "translation": "Mattermost 联络我们请求"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
+        "translation": "总活跃用户：{{.NoRegisteredUsers}}"
+    },
+    {
+        "id": "api.templates.warn_metric_ack.footer",
+        "translation": "如果您有其他的查询，请联络 support@mattermost.com"
+    },
+    {
+        "id": "api.server.warn_metric.bot_response.mailto_footer",
+        "translation": "如果您有其他的查询，请联络 support@mattermost.com"
+    },
+    {
+        "id": "api.preference.update_preferences.update_sidebar.app_error",
+        "translation": "无法更新右侧栏以匹配删除的偏好设定"
+    },
+    {
+        "id": "api.preference.delete_preferences.update_sidebar.app_error",
+        "translation": "无法更新右侧栏以匹配删除的偏好设定"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
+        "translation": "未找到警告指标。"
+    },
+    {
+        "id": "api.email.send_warn_metric_ack.failure.app_error",
+        "translation": "发送管理员确认电子邮件失败"
     }
 ]
