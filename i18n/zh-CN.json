@@ -7684,5 +7684,97 @@
     {
         "id": "app.post.delete.app_error",
         "translation": "无法删除消息"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "该状态没有对应的数据"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "获取状态时遇到错误"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "无法保存或更新插件键值"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "无法列出所有插件密钥。"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "无法获取插件键值"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "无法删除插件键值"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "我们保存系统属性时遇到了一个错误"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "我们保存系统属性时遇到了一个错误"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "我们无法永久删除系统表数据"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "无法找到该系统变量。"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "我们再查找系统属性遇到了一个错误"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "无法用空的邮件地址完成 SAML 登入。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "已有帐号使用该用户名。请联系您的管理员。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "这个账号不使用LDAP验证。请使用电子邮件和密码登陆。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "已有帐号使用该用户名。请联系您的管理员。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "这个账号不使用 AD/LDAP 验证。请使用电子邮件和密码登陆。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP 同步任务超时。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "无法解析 BatchSize 导出任务消息。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "在连接到服务器时，我们遇到了一个错误"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "未找到机群 API 接口。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " 附加了文件。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "无法转换导出到 XML。"
     }
 ]

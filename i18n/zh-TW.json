@@ -7784,5 +7784,49 @@
     {
         "id": "app.post.delete.app_error",
         "translation": "無法刪除訊息"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "該狀態沒有對應的資料存在"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "嘗試取得狀態時遇到錯誤"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "無法儲存或更新模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "無法表列模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "無法取得模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "無法刪除模組鍵值"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "儲存系統參數時遇到錯誤"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "儲存系統參數時遇到錯誤"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "無法永久刪除系統表單當中的項目"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "找不到系統變數"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "尋找系統參數時遇到錯誤"
     }
 ]

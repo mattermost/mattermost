@@ -7836,5 +7836,73 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "プラグインのキーを削除できませんでした。"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "システム設定値を保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "システム設定値を保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "システムテーブルのエントリーを完全に削除できませんでした。"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "システム変数が見付かりませんでした。"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "システム設定値を探す際にエラーが発生しました。"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "空の電子メールアドレスでのSAMLログインを完了できませんでした。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "このアカウントはSAML認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "このアカウントはAD/LDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP同期処理がタイムアウトしました。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "サーバーに接続中にエラーになりました。"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " がファイルを添付しました。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "エクスポート情報をXMLへ変換できませんでした。"
     }
 ]

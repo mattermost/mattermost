@@ -7784,5 +7784,25 @@
     {
         "id": "app.plugin_store.delete.app_error",
         "translation": "Could not delete plugin key value"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "We encountered an error saving the system property"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "We encountered an error saving the system property"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "We could not permanently delete the system table entry"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Unable to find the system variable."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "We encountered an error finding the system properties"
     }
 ]
