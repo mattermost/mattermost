@@ -2224,7 +2224,7 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the user limit of your current tier"
+    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -3037,6 +3037,10 @@
   {
     "id": "api.user.update_password.oauth.app_error",
     "translation": "Update password failed because the user is logged in through an OAuth service."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
