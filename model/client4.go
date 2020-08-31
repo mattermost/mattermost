@@ -5405,6 +5405,24 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, cat
 	return cat, BuildResponse(r)
 }
 
+func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response) {
+	payload, _ := json.Marshal(categories)
+	route := c.GetUserCategoryRoute(userID, teamID)
+
+	r, appErr := c.doApiPutBytes(route, payload)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	categories, err := SidebarCategoriesFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+
+	return categories, BuildResponse(r)
+}
+
 func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag string) ([]string, *Response) {
 	route := c.GetUserCategoryRoute(userID, teamID) + "/order"
 	r, err := c.DoApiGet(route, etag)
@@ -5435,7 +5453,7 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 	defer closeBody(r)
 	cat, err := SidebarCategoryFromJson(r.Body)
 	if err != nil {
-		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(c.GetUserRoute(userID), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 
 	return cat, BuildResponse(r)
@@ -5451,7 +5469,7 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 	defer closeBody(r)
 	cat, err := SidebarCategoryFromJson(r.Body)
 	if err != nil {
-		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(c.GetUserRoute(userID), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 
 	return cat, BuildResponse(r)
