@@ -691,6 +691,11 @@ func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.Post
 }
 
 func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if options.Page < 0 || options.PerPage < 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil,
+			fmt.Sprintf("Page=%d and PerPage=%d must be non-negative", options.Page, options.PerPage), http.StatusBadRequest)
+	}
+
 	offset := options.Page * options.PerPage
 	var posts, parents []*model.Post
 
@@ -703,10 +708,18 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		direction = ">"
 		sort = "ASC"
 	}
+	table := "Posts p"
+	// We force MySQL to use the right index to prevent it from accidentally
+	// using the index_merge_intersection optimization.
+	// See MM-27575.
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
+	}
+
 	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(Posts.Id)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 	query := s.getQueryBuilder().Select("p.*")
 	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
-	query = query.From("Posts p").
+	query = query.From(table).
 		Where(sq.And{
 			sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId),
 			sq.Eq{"ChannelId": options.ChannelId},
@@ -806,9 +819,17 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 		sort = "ASC"
 	}
 
+	table := "Posts"
+	// We force MySQL to use the right index to prevent it from accidentally
+	// using the index_merge_intersection optimization.
+	// See MM-27575.
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
+	}
+
 	query := s.getQueryBuilder().
 		Select("Id").
-		From("Posts").
+		From(table).
 		Where(sq.And{
 			direction,
 			sq.Eq{"ChannelId": channelId},
@@ -836,9 +857,17 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 }
 
 func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+	table := "Posts"
+	// We force MySQL to use the right index to prevent it from accidentally
+	// using the index_merge_intersection optimization.
+	// See MM-27575.
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		table += " USE INDEX(idx_posts_channel_id_delete_at_create_at)"
+	}
+
 	query := s.getQueryBuilder().
 		Select("*").
-		From("Posts").
+		From(table).
 		Where(sq.And{
 			sq.Gt{"CreateAt": time},
 			sq.Eq{"ChannelId": channelId},
@@ -1749,10 +1778,9 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
-		// Don't allow users to search for everything.
-		if params.Terms == "*" {
-			continue
-		}
+		// remove any unquoted term that contains only non-alphanumeric chars
+		// ex: abcd "**" && abc     >>     abcd "**" abc
+		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
 
 		wg.Add(1)
 
@@ -1779,4 +1807,27 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 	posts.SortByCreateAt()
 
 	return model.MakePostSearchResults(posts, nil), nil
+}
+
+func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+	query := s.getQueryBuilder().Select("MIN(min_createat) min_createat").
+		Suffix(`FROM (
+					(SELECT MIN(createat) min_createat FROM Posts)
+					UNION
+					(SELECT MIN(createat) min_createat FROM Users)
+					UNION
+					(SELECT MIN(createat) min_createat FROM Channels)
+				) entities`)
+	queryString, _, err := query.ToSql()
+	if err != nil {
+		return -1, model.NewAppError("SqlPostStore.GetOldestEntityCreationTime",
+			"store.sql_post.get_oldest_entity_creation_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	row := s.GetReplica().Db.QueryRow(queryString)
+	var oldest int64
+	if err := row.Scan(&oldest); err != nil {
+		return -1, model.NewAppError("SqlPostStore.GetOldestEntityCreationTime",
+			"store.sql_post.get_oldest_entity_creation_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return oldest, nil
 }

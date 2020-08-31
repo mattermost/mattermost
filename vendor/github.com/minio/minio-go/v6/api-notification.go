@@ -146,16 +146,22 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 
 		// Validate the bucket name.
 		if err := s3utils.CheckValidBucketName(bucketName); err != nil {
-			notificationInfoCh <- NotificationInfo{
+			select {
+			case notificationInfoCh <- NotificationInfo{
 				Err: err,
+			}:
+			case <-doneCh:
 			}
 			return
 		}
 
 		// Check ARN partition to verify if listening bucket is supported
 		if s3utils.IsAmazonEndpoint(*c.endpointURL) || s3utils.IsGoogleEndpoint(*c.endpointURL) {
-			notificationInfoCh <- NotificationInfo{
+			select {
+			case notificationInfoCh <- NotificationInfo{
 				Err: ErrAPINotSupported("Listening for bucket notification is specific only to `minio` server endpoints"),
+			}:
+			case <-doneCh:
 			}
 			return
 		}
@@ -176,14 +182,17 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 		// Wait on the jitter retry loop.
 		for range c.newRetryTimerContinous(time.Second, time.Second*30, MaxJitter, retryDoneCh) {
 			// Execute GET on bucket to list objects.
-			resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+			resp, err := c.executeMethod(context.Background(), http.MethodGet, requestMetadata{
 				bucketName:       bucketName,
 				queryValues:      urlValues,
 				contentSHA256Hex: emptySHA256Hex,
 			})
 			if err != nil {
-				notificationInfoCh <- NotificationInfo{
+				select {
+				case notificationInfoCh <- NotificationInfo{
 					Err: err,
+				}:
+				case <-doneCh:
 				}
 				return
 			}
@@ -191,8 +200,11 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 			// Validate http response, upon error return quickly.
 			if resp.StatusCode != http.StatusOK {
 				errResponse := httpRespToErrorResponse(resp, bucketName, "")
-				notificationInfoCh <- NotificationInfo{
+				select {
+				case notificationInfoCh <- NotificationInfo{
 					Err: errResponse,
+				}:
+				case <-doneCh:
 				}
 				return
 			}
@@ -205,14 +217,18 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 			bio.Buffer(notificationEventBuffer, notificationCapacity)
 			var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-			// Unmarshal each line, returns marshalled values.
+			// Unmarshal each line, returns marshaled values.
 			for bio.Scan() {
 				var notificationInfo NotificationInfo
 				if err = json.Unmarshal(bio.Bytes(), &notificationInfo); err != nil {
 					// Unexpected error during json unmarshal, send
 					// the error to caller for actionable as needed.
-					notificationInfoCh <- NotificationInfo{
+					select {
+					case notificationInfoCh <- NotificationInfo{
 						Err: err,
+					}:
+					case <-doneCh:
+						return
 					}
 					closeResponse(resp)
 					continue
@@ -225,13 +241,20 @@ func (c Client) ListenBucketNotification(bucketName, prefix, suffix string, even
 					return
 				}
 			}
+
 			if err = bio.Err(); err != nil {
-				notificationInfoCh <- NotificationInfo{
+				select {
+				case notificationInfoCh <- NotificationInfo{
 					Err: err,
+				}:
+				case <-doneCh:
+					return
 				}
 			}
+
 			// Close current connection before looping further.
 			closeResponse(resp)
+
 		}
 	}(notificationInfoCh)
 

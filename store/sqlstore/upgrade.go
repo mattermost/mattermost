@@ -18,7 +18,11 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_24_0
+	CURRENT_SCHEMA_VERSION   = VERSION_5_26_0
+	VERSION_5_28_0           = "5.28.0"
+	VERSION_5_27_0           = "5.27.0"
+	VERSION_5_26_0           = "5.26.0"
+	VERSION_5_25_0           = "5.25.0"
 	VERSION_5_24_0           = "5.24.0"
 	VERSION_5_23_0           = "5.23.0"
 	VERSION_5_22_0           = "5.22.0"
@@ -179,6 +183,11 @@ func upgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	upgradeDatabaseToVersion522(sqlStore)
 	upgradeDatabaseToVersion523(sqlStore)
 	upgradeDatabaseToVersion524(sqlStore)
+	upgradeDatabaseToVersion525(sqlStore)
+	upgradeDatabaseToVersion526(sqlStore)
+	upgradeDatabaseToVersion527(sqlStore)
+	upgradeDatabaseToVersion528(sqlStore)
+
 	return nil
 }
 
@@ -802,4 +811,36 @@ func upgradeDatabaseToVersion524(sqlStore SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_5_24_0)
 	}
+}
+
+func upgradeDatabaseToVersion525(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_24_0, VERSION_5_25_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_25_0)
+	}
+}
+
+func upgradeDatabaseToVersion526(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_25_0, VERSION_5_26_0) {
+		sqlStore.CreateColumnIfNotExists("Sessions", "ExpiredNotify", "boolean", "boolean", "0")
+
+		saveSchemaVersion(sqlStore, VERSION_5_26_0)
+	}
+}
+
+func upgradeDatabaseToVersion527(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.27
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_26_0, VERSION_5_27_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_27_0)
+	// }
+}
+
+func upgradeDatabaseToVersion528(sqlStore SqlStore) {
+	// TODO: uncomment when the time arrive to upgrade the DB for 5.28
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_27_0, VERSION_5_28_0) {
+	sqlStore.CreateColumnIfNotExistsNoDefault("Commands", "PluginId", "VARCHAR(190)", "VARCHAR(190)")
+	sqlStore.GetMaster().Exec("UPDATE Commands SET PluginId = '' WHERE PluginId IS NULL")
+
+	// saveSchemaVersion(sqlStore, VERSION_5_28_0)
+	//}
 }

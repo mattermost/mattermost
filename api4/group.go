@@ -52,6 +52,10 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/{syncable_type:teams|channels}/{syncable_id:[A-Za-z0-9]+}/patch",
 		api.ApiSessionRequired(patchGroupSyncable)).Methods("PUT")
 
+	// GET /api/v4/groups/:group_id/stats
+	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/stats",
+		api.ApiSessionRequired(getGroupStats)).Methods("GET")
+
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
 		api.ApiSessionRequired(getGroupMembers)).Methods("GET")
@@ -524,6 +528,41 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupStats", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groupID := c.Params.GroupId
+	count, err := c.App.GetGroupMemberCount(groupID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(model.GroupStats{
+		GroupID:          groupID,
+		TotalMemberCount: count,
+	})
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupStats", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

@@ -207,7 +207,6 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
 
 	if doTeams {
 		if err := a.CreateBasicUser(client); err != nil {
@@ -317,11 +316,11 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		return &model.CommandResponse{Text: "Failed to add channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
-	channelCreator := NewAutoChannelCreator(client, team)
+	channelCreator := NewAutoChannelCreator(a, team, args.UserId)
 	channelCreator.Fuzzy = doFuzz
-	channelCreator.CreateTestChannels(channelsr)
+	if _, err := channelCreator.CreateTestChannels(channelsr); err != nil {
+		return &model.CommandResponse{Text: "Failed to create test channels: " + err.Error(), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	}
 
 	return &model.CommandResponse{Text: "Added channels", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, nil
 }
@@ -338,14 +337,12 @@ func (me *LoadTestProvider) ThreadedPostCommand(a *App, args *model.CommandArgs,
 		}
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	client.MockSession(args.Session.Token)
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
+	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = true
 	testPoster.Users = usernames
-	rpost, err := testPoster.CreateRandomPost()
-	if err != nil {
-		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err
+	rpost, err2 := testPoster.CreateRandomPost()
+	if err2 != nil {
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}, err2
 	}
 	for i := 0; i < 1000; i++ {
 		testPoster.CreateRandomPostNested(rpost.Id, rpost.Id)
@@ -387,9 +384,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		}
 	}
 
-	client := model.NewAPIv4Client(args.SiteURL)
-	client.SetToken(args.Session.Token)
-	testPoster := NewAutoPostCreator(client, args.ChannelId)
+	testPoster := NewAutoPostCreator(a, args.ChannelId, args.UserId)
 	testPoster.Fuzzy = doFuzz
 	testPoster.Users = usernames
 

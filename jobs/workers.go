@@ -24,6 +24,7 @@ type Workers struct {
 	Migrations               model.Worker
 	Plugins                  model.Worker
 	BleveIndexing            model.Worker
+	ExpiryNotify             model.Worker
 
 	listenerId string
 }
@@ -66,6 +67,9 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.BleveIndexing = bleveIndexerInterface.MakeWorker()
 	}
 
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
+	}
 	return workers
 }
 
@@ -103,6 +107,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
 			go workers.BleveIndexing.Run()
+		}
+
+		if workers.ExpiryNotify != nil {
+			go workers.ExpiryNotify.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -200,6 +208,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing {
 		workers.BleveIndexing.Stop()
+	}
+
+	if workers.ExpiryNotify != nil {
+		workers.ExpiryNotify.Stop()
 	}
 
 	mlog.Info("Stopped workers")

@@ -25,6 +25,7 @@ type JobServer struct {
 	Migrations              tjobs.MigrationsJobInterface
 	Plugins                 tjobs.PluginsJobInterface
 	BleveIndexer            tjobs.IndexerJobInterface
+	ExpiryNotify            tjobs.ExpiryNotifyJobInterface
 }
 
 func NewJobServer(configService configservice.ConfigService, store store.Store) *JobServer {

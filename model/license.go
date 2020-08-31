@@ -13,7 +13,7 @@ const (
 	EXPIRED_LICENSE_ERROR = "api.license.add_license.expired.app_error"
 	INVALID_LICENSE_ERROR = "api.license.add_license.invalid.app_error"
 	LICENSE_GRACE_PERIOD  = 1000 * 60 * 60 * 24 * 10 //10 days
-	LICENSE_RENEWAL_LINK  = "https://licensing.mattermost.com/renew"
+	LICENSE_RENEWAL_LINK  = "https://mattermost.com/renew/"
 )
 
 type LicenseRecord struct {
@@ -41,12 +41,14 @@ type Customer struct {
 }
 
 type TrialLicenseRequest struct {
-	ServerID string `json:"server_id"`
-	Email    string `json:"email"`
-	Name     string `json:"name"`
-	SiteURL  string `json:"site_url"`
-	SiteName string `json:"site_name"`
-	Users    int    `json:"users"`
+	ServerID              string `json:"server_id"`
+	Email                 string `json:"email"`
+	Name                  string `json:"name"`
+	SiteURL               string `json:"site_url"`
+	SiteName              string `json:"site_name"`
+	Users                 int    `json:"users"`
+	TermsAccepted         bool   `json:"terms_accepted"`
+	ReceiveEmailsAccepted bool   `json:"receive_emails_accepted"`
 }
 
 func (tlr *TrialLicenseRequest) ToJson() string {
@@ -79,6 +81,7 @@ type Features struct {
 	IDLoadedPushNotifications *bool `json:"id_loaded"`
 	LockTeammateNameDisplay   *bool `json:"lock_teammate_name_display"`
 	EnterprisePlugins         *bool `json:"enterprise_plugins"`
+	AdvancedLogging           *bool `json:"advanced_logging"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -106,6 +109,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"id_loaded":                   *f.IDLoadedPushNotifications,
 		"lock_teammate_name_display":  *f.LockTeammateNameDisplay,
 		"enterprise_plugins":          *f.EnterprisePlugins,
+		"advanced_logging":            *f.AdvancedLogging,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -209,6 +213,10 @@ func (f *Features) SetDefaults() {
 
 	if f.EnterprisePlugins == nil {
 		f.EnterprisePlugins = NewBool(*f.FutureFeatures)
+	}
+
+	if f.AdvancedLogging == nil {
+		f.AdvancedLogging = NewBool(*f.FutureFeatures)
 	}
 }
 

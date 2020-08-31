@@ -81,15 +81,17 @@ func (es LocalCacheEmojiStore) addToCache(emoji *model.Emoji) {
 }
 
 func (es LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) {
-	if emoji := es.rootStore.doStandardReadCache(es.rootStore.emojiCacheById, id); emoji != nil {
-		return emoji.(*model.Emoji), true
+	var emoji *model.Emoji
+	if err := es.rootStore.doStandardReadCache(es.rootStore.emojiCacheById, id, &emoji); err == nil {
+		return emoji, true
 	}
 	return nil, false
 }
 
 func (es LocalCacheEmojiStore) getFromCacheByName(name string) (*model.Emoji, bool) {
-	if emojiId := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name); emojiId != nil {
-		return es.getFromCacheById(emojiId.(string))
+	var emojiId string
+	if err := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name, &emojiId); err == nil {
+		return es.getFromCacheById(emojiId)
 	}
 	return nil, false
 }

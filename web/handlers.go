@@ -14,17 +14,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mkraft/gziphandler"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
-
+	"github.com/NYTimes/gziphandler"
 	"github.com/mattermost/mattermost-server/v5/app"
+	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -86,7 +86,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 
 	requestID := model.NewId()
-	mlog.Debug("Received HTTP request", mlog.String("method", r.Method), mlog.String("url", r.URL.Path), mlog.String("request_id", requestID))
+	var statusCode string
+	defer func() {
+		responseLogFields := []mlog.Field{
+			mlog.String("method", r.Method),
+			mlog.String("url", r.URL.Path),
+			mlog.String("request_id", requestID),
+		}
+		// Websockets are returning status code 0 to requests after closing the socket
+		if statusCode != "0" {
+			responseLogFields = append(responseLogFields, mlog.String("status_code", statusCode))
+		}
+		mlog.Debug("Received HTTP request", responseLogFields...)
+	}()
 
 	c := &Context{}
 	c.App = app.New(
@@ -126,9 +138,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		tmpSrv := app.Server{}
 		tmpSrv = *c.App.Srv()
-		tmpSrv.Store = store.NewOpenTracingLayer(c.App.Srv().Store, ctx)
+		tmpSrv.Store = opentracinglayer.New(c.App.Srv().Store, ctx)
 		c.App.SetServer(&tmpSrv)
-		c.App = app.NewOpenTracingAppLayer(c.App, ctx)
+		c.App = app_opentracing.NewOpenTracingAppLayer(c.App, ctx)
 	}
 
 	// Set the max request body size to be equal to MaxFileSize.
@@ -155,7 +167,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
-			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com cdn.segment.com/analytics.js/%s",
+			"frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com%s",
 			h.cspShaDirective,
 		))
 	} else {
@@ -268,12 +280,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	statusCode = strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 	if c.App.Metrics() != nil {
 		c.App.Metrics().IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
 			c.App.Metrics().ObserveApiEndpointDuration(h.HandlerName, r.Method, statusCode, elapsed)
 		}
 	}

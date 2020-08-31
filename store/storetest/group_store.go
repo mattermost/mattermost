@@ -148,7 +148,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	require.Nil(t, g5.IsValidForCreate())
 
 	g5.Name = model.NewString(*g5.Name + "x")
-	require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.app_error")
+	require.Equal(t, g5.IsValidForCreate().Id, "model.group.name.invalid_length.app_error")
 	g5.Name = model.NewString(model.NewId())
 	require.Nil(t, g5.IsValidForCreate())
 

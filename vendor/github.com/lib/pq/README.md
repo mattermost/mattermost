@@ -20,6 +20,10 @@
 * Notifications: `LISTEN`/`NOTIFY`
 * pgpass support
 
+## Optional Features
+
+* GSS (Kerberos) auth (to use, see GoDoc)
+
 ## Tests
 
 `go test` is used for testing.  See [TESTS.md](TESTS.md) for more details.

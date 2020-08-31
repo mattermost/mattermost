@@ -7,19 +7,18 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/wiggin77/logr"
-	"github.com/wiggin77/logr/format"
+	"github.com/mattermost/logr"
+	"github.com/mattermost/logr/format"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
-
-type Level logr.Level
 
 type Audit struct {
 	lgr    *logr.Logr
 	logger logr.Logger
 
 	// OnQueueFull is called on an attempt to add an audit record to a full queue.
-	// On return the calling goroutine will block until the audit record can be added.
-	OnQueueFull func(qname string, maxQueueSize int)
+	// Return true to drop record, or false to block until there is room in queue.
+	OnQueueFull func(qname string, maxQueueSize int) bool
 
 	// OnError is called when an error occurs while writing an audit record.
 	OnError func(err error)
@@ -35,7 +34,7 @@ func (a *Audit) Init(maxQueueSize int) {
 }
 
 // MakeFilter creates a filter which only allows the specified audit levels to be output.
-func (a *Audit) MakeFilter(level ...Level) *logr.CustomFilter {
+func (a *Audit) MakeFilter(level ...mlog.LogLevel) *logr.CustomFilter {
 	filter := &logr.CustomFilter{}
 	for _, l := range level {
 		filter.Add(logr.Level(l))
@@ -56,7 +55,7 @@ func (a *Audit) MakeJSONFormatter() *format.JSON {
 }
 
 // LogRecord emits an audit record with complete info.
-func (a *Audit) LogRecord(level Level, rec Record) {
+func (a *Audit) LogRecord(level mlog.LogLevel, rec Record) {
 	flds := logr.Fields{}
 	flds[KeyAPIPath] = rec.APIPath
 	flds[KeyEvent] = rec.Event
@@ -75,7 +74,7 @@ func (a *Audit) LogRecord(level Level, rec Record) {
 }
 
 // Log emits an audit record based on minimum required info.
-func (a *Audit) Log(level Level, path string, evt string, status string, userID string, sessionID string, meta Meta) {
+func (a *Audit) Log(level mlog.LogLevel, path string, evt string, status string, userID string, sessionID string, meta Meta) {
 	a.LogRecord(level, Record{
 		APIPath:   path,
 		Event:     evt,
@@ -101,18 +100,18 @@ func (a *Audit) Shutdown() {
 
 func (a *Audit) onQueueFull(rec *logr.LogRec, maxQueueSize int) bool {
 	if a.OnQueueFull != nil {
-		a.OnQueueFull("main", maxQueueSize)
+		return a.OnQueueFull("main", maxQueueSize)
 	}
-	// block until record can be added.
-	return false
+	mlog.Error("Audit logging queue full, dropping record.", mlog.Int("queueSize", maxQueueSize))
+	return true
 }
 
 func (a *Audit) onTargetQueueFull(target logr.Target, rec *logr.LogRec, maxQueueSize int) bool {
 	if a.OnQueueFull != nil {
-		a.OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
+		return a.OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
 	}
-	// block until record can be added.
-	return false
+	mlog.Error("Audit logging queue full for target, dropping record.", mlog.Any("target", target), mlog.Int("queueSize", maxQueueSize))
+	return true
 }
 
 func (a *Audit) onLoggerError(err error) {
