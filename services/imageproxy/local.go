@@ -5,11 +5,14 @@ package imageproxy
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -66,6 +69,24 @@ func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	}
 }
 
+type contentTypeRecorder struct {
+	http.ResponseWriter
+	filename string
+}
+
+func (rec *contentTypeRecorder) WriteHeader(code int) {
+	hdr := rec.ResponseWriter.Header()
+	contentType := hdr.Get("Content-Type")
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	// The error is caused by a malformed input and there's not much use logging it.
+	// Therefore, even in the error case we set it to attachment mode to be safe.
+	if err != nil || mediaType == "image/svg+xml" {
+		hdr.Set("Content-Disposition", fmt.Sprintf("attachment;filename=%q", rec.filename))
+	}
+
+	rec.ResponseWriter.WriteHeader(code)
+}
+
 func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
 	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
 	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
@@ -78,12 +99,21 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 		return
 	}
 
+	u, err := url.Parse(imageURL)
+	if err != nil {
+		mlog.Error("Failed to parse URL for proxied image", mlog.String("url", imageURL), mlog.Err(err))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte{})
+		return
+	}
+
 	w.Header().Set("X-Frame-Options", "deny")
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; img-src data:; style-src 'unsafe-inline'")
 
-	backend.impl.ServeHTTP(w, req)
+	rec := contentTypeRecorder{w, filepath.Base(u.Path)}
+	backend.impl.ServeHTTP(&rec, req)
 }
 
 func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {

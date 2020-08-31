@@ -136,7 +136,7 @@ func (o *Team) Etag() string {
 
 func (o *Team) IsValid() *AppError {
 
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -234,7 +234,6 @@ func IsReservedTeamName(s string) bool {
 }
 
 func IsValidTeamName(s string) bool {
-
 	if !IsValidAlphaNum(s) {
 		return false
 	}

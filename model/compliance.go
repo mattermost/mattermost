@@ -71,7 +71,7 @@ func (c *Compliance) JobName() string {
 
 func (c *Compliance) IsValid() *AppError {
 
-	if len(c.Id) != 26 {
+	if !IsValidId(c.Id) {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 

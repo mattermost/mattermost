@@ -444,14 +444,14 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &d5.Id,
 	}
-	c5, err = ss.Channel().Save(c5, -1)
-	assert.Nil(t, err)
+	c5, nErr := ss.Channel().Save(c5, -1)
+	assert.Nil(t, nErr)
 
 	_, err = ss.Scheme().Delete(d5.Id)
 	assert.Nil(t, err)
 
-	c6, err := ss.Channel().Get(c5.Id, true)
-	assert.Nil(t, err)
+	c6, nErr := ss.Channel().Get(c5.Id, true)
+	assert.Nil(t, nErr)
 	assert.Equal(t, "", *c6.SchemeId)
 }
 
@@ -537,7 +537,7 @@ func testCountWithoutPermission(t *testing.T, ss store.Store) {
 	}
 
 	getRoles := func(scheme *model.Scheme) (channelUser, channelGuest *model.Role) {
-		var err *model.AppError
+		var err error
 		channelUser, err = ss.Role().GetByName(scheme.DefaultChannelUserRole)
 		require.Nil(t, err)
 		require.NotNil(t, channelUser)

@@ -76,6 +76,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
 			AmazonS3Region:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3PathPrefix:      model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 			AmazonS3SSE:             model.NewBool(encrypt),
 		},
@@ -157,11 +158,14 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	s.Nil(err)
 	defer s.backend.RemoveFile(path2)
 
-	_, err = s.backend.ReadFile(path1)
+	data1, err := s.backend.ReadFile(path1)
 	s.Nil(err)
 
-	_, err = s.backend.ReadFile(path2)
+	data2, err := s.backend.ReadFile(path2)
 	s.Nil(err)
+
+	s.Equal(b, data1)
+	s.Equal(b, data2)
 }
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
@@ -201,8 +205,10 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	_, err = s.backend.ReadFile(path1)
 	s.Error(err)
 
-	_, err = s.backend.ReadFile(path2)
+	data, err := s.backend.ReadFile(path2)
 	s.Nil(err)
+
+	s.Equal(b, data)
 }
 
 func (s *FileBackendTestSuite) TestRemoveFile() {

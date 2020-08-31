@@ -4,6 +4,7 @@
 package app
 
 import (
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ func TestHandleNewNotifications(t *testing.T) {
 	id3 := model.NewId()
 
 	// test queueing of received posts by user
-	job := NewEmailBatchingJob(th.Server, 128)
+	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	job.handleNewNotifications()
 
@@ -57,7 +58,7 @@ func TestHandleNewNotifications(t *testing.T) {
 	require.Len(t, job.pendingNotifications[id3], 1, "should have received 1 post for user3")
 
 	// test ordering of received posts
-	job = NewEmailBatchingJob(th.Server, 128)
+	job = NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test1"}, &model.Team{Name: "team"})
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test2"}, &model.Team{Name: "team"})
@@ -76,7 +77,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	job := NewEmailBatchingJob(th.Server, 128)
+	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
 			post: &model.Post{
@@ -94,13 +95,13 @@ func TestCheckPendingNotifications(t *testing.T) {
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
 
-	err = th.App.Srv().Store.Preference().Save(&model.Preferences{{
+	nErr := th.App.Srv().Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "60",
 	}})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	// test that notifications aren't sent before interval
 	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
@@ -115,7 +116,28 @@ func TestCheckPendingNotifications(t *testing.T) {
 	_, err = th.App.Srv().Store.Channel().UpdateMember(channelMember)
 	require.Nil(t, err)
 
-	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
+	// We reset the interval to something shorter
+	nErr = th.App.Srv().Store.Preference().Save(&model.Preferences{{
+		UserId:   th.BasicUser.Id,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "10",
+	}})
+	require.Nil(t, nErr)
+
+	var wasCalled int32
+	job.checkPendingNotifications(time.Unix(10050, 0), func(string, []*batchedNotification) {
+		atomic.StoreInt32(&wasCalled, int32(1))
+	})
+
+	// A hack to check whether the handler was called.
+	// It's not straightforward to just wait for it using a channel because the test should
+	// NOT call the handler, and it will be called only if the test fails.
+	time.Sleep(1 * time.Second)
+	// We do a check outside the email handler, because otherwise, failing from
+	// inside the handler doesn't let the .Go() function exit cleanly, and it gets
+	// stuck during server shutdown, trying to wait for the goroutine to exit
+	require.Equal(t, atomic.LoadInt32(&wasCalled), int32(0), "email handler should not have been called")
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id])
 	require.Empty(t, job.pendingNotifications[th.BasicUser.Id], "should've remove queued post since user acted")
@@ -183,7 +205,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	job := NewEmailBatchingJob(th.Server, 128)
+	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
 	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
@@ -221,7 +243,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	job := NewEmailBatchingJob(th.Server, 128)
+	job := NewEmailBatchingJob(th.Server.EmailService, 128)
 
 	// bypasses recent user activity check
 	channelMember, err := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
@@ -231,13 +253,13 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	require.Nil(t, err)
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
-	err = th.App.Srv().Store.Preference().Save(&model.Preferences{{
+	nErr := th.App.Srv().Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "notAnIntegerValue",
 	}})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
@@ -282,7 +304,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
 	require.NotContains(t, rendered, post.Message, "Rendered email should not contain post contents when email notification contents type is set to Generic.")
 }
 
@@ -307,6 +329,6 @@ func TestRenderBatchedPostFull(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = th.Server.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	var rendered = th.Server.EmailService.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
 	require.Contains(t, rendered, post.Message, "Rendered email should contain post contents when email notification contents type is set to Full.")
 }

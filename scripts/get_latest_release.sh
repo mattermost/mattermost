@@ -16,9 +16,9 @@ THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$THIS_BRANCH" =~ $BRANCH_TO_USE || $DRAFT =~ "true" ]];
 then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
-    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
 else
-    REL_TO_USE=$(echo "$THIS_BRANCH" | sed "s/\(.*\)/$LATEST_REL/")
+    REL_TO_USE=$LATEST_REL
 fi
 
 echo "$REL_TO_USE"

@@ -266,6 +266,13 @@ func (enc *jsonEncoder) AppendString(val string) {
 	enc.buf.AppendByte('"')
 }
 
+func (enc *jsonEncoder) AppendTimeLayout(time time.Time, layout string) {
+	enc.addElementSeparator()
+	enc.buf.AppendByte('"')
+	enc.buf.AppendTime(time, layout)
+	enc.buf.AppendByte('"')
+}
+
 func (enc *jsonEncoder) AppendTime(val time.Time) {
 	cur := enc.buf.Len()
 	enc.EncodeTime(val, enc)

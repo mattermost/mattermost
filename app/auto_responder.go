@@ -18,6 +18,10 @@ func (a *App) SendAutoResponseIfNecessary(channel *model.Channel, sender *model.
 	}
 
 	receiverId := channel.GetOtherUserIdForDM(sender.Id)
+	if receiverId == "" {
+		// User direct messaged themself, let them test their auto-responder.
+		receiverId = sender.Id
+	}
 
 	receiver, err := a.GetUser(receiverId)
 	if err != nil {
@@ -48,7 +52,7 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) (bo
 		UserId:    receiver.Id,
 	}
 
-	if _, err := a.CreatePost(autoResponderPost, channel, false); err != nil {
+	if _, err := a.CreatePost(autoResponderPost, channel, false, false); err != nil {
 		mlog.Error(err.Error())
 		return false, err
 	}

@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"crypto/subtle"
 	"io"
-	"io/ioutil"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -51,8 +50,7 @@ var MEDIA_CONTENT_TYPES = [...]string{
 	"audio/wav",
 }
 
-const maxUploadDrainBytes = (10 * 1024 * 1024) // 10Mb
-const maxMultipartFormDataBytes = 10 * 1024    // 10Kb
+const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.ApiSessionRequired(uploadFileStream)).Methods("POST")
@@ -97,9 +95,6 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Drain any remaining bytes in the request body, up to a limit
-	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
-
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
@@ -118,6 +113,13 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 				nil, err.Error(), http.StatusBadRequest)
 			return
 		}
+	}
+
+	if r.ContentLength == 0 {
+		c.Err = model.NewAppError("uploadFileStream",
+			"api.file.upload_file.read_request.app_error",
+			nil, "Content-Length should not be 0", http.StatusBadRequest)
+		return
 	}
 
 	timestamp := time.Now()
@@ -464,10 +466,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 
 	auditRec := c.MakeAuditRecord("getFile", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -508,11 +507,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
-
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
@@ -591,11 +586,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	forceDownload, convErr := strconv.ParseBool(r.URL.Query().Get("download"))
-	if convErr != nil {
-		forceDownload = false
-	}
-
+	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err

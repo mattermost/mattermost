@@ -7,34 +7,31 @@ orbs:
 executors:
   ubuntu:
     working_directory: ~/mattermost/
+    resource_class: xlarge
     machine:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-    resource_class: "large"
 
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
     docker:
       - image: mattermost/mattermost-build-webapp:oct-2-2018
-    resource_class: xlarge
     steps:
       - checkout
       - run: |
           cd ../
-          git clone https://github.com/mattermost/mattermost-webapp.git
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
-          export CURL_FAILED=0
-          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || export CURL_FAILED=1
 
-          if [ $CURL_FAILED -eq 1 ]
-          then
-            npm ci && cd node_modules/mattermost-redux && npm install && npm run build && cd ../.. && make build
-          fi
+          trap 'npm ci && make build' ERR
+          curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
+          mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
+          trap - ERR
       - persist_to_workspace:
           root: ~/mattermost
           paths:
@@ -55,6 +52,9 @@ jobs:
       - attach_workspace:
           at: ~/mattermost/
       - run:
+          name: Checkout config
+          command: cd .. && git clone --depth=1 https://github.com/mattermost/security-automation-config
+      - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
       - owasp/with_commandline:
@@ -71,14 +71,17 @@ jobs:
             - run:
                 name: Run OWASP Dependency-Check Analyzer
                 command: |
-                  ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> \
-                    --format ALL --noupdate --enableExperimental --suppression ./dependency-suppression.xml \
+                  ~/.owasp/dependency-check/bin/dependency-check.sh \
+                    --data << parameters.cve_data_directory >> --format ALL --noupdate --enableExperimental \
+                    --propertyfile ../security-automation-config/dependency-check/dependencycheck.properties \
+                    --suppression ../security-automation-config/dependency-check/suppression.xml \
+                    --suppression ../security-automation-config/dependency-check/suppression.$CIRCLE_PROJECT_REPONAME.xml \
                     --scan './**/*' || true
             - owasp/collect_reports:
                 persist_to_workspace: false
       - run:
           name: Post results to Mattermost
-          command: ./scripts/depcheck-alert.sh
+          command: go run ../security-automation-config/dependency-check/post_results.go
 
   # TODO: enable this step when the i18n-extract works with mattermost-server only
   # and not depend on both mm-server/enterprise
@@ -98,7 +101,7 @@ jobs:
 
   check-app-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -111,7 +114,7 @@ jobs:
 
   check-store-layers:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     working_directory: ~/mattermost
     steps:
       - attach_workspace:
@@ -131,7 +134,7 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            git clone https://github.com/mattermost/mattermost-api-reference.git
+            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
             echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
             git checkout ${CIRCLE_BRANCH} || true
@@ -143,7 +146,7 @@ jobs:
 
   build:
     docker:
-      - image: mattermost/mattermost-build-server:20200322_golang-1.14.1
+      - image: mattermost/mattermost-build-server:20200731_golang-1.14.6
     resource_class: xlarge
     working_directory: ~/mattermost
     steps:
@@ -152,7 +155,7 @@ jobs:
       - run:
           command: |
             echo "Installing golangci-lint"
-            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.23.6 # Keep this in sync with Jenkinsfile.pr
+            curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b /usr/local/bin v1.25.1
             echo "Installing mattermost-govet"
             export GOBIN=${PWD}/mattermost-server/bin
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -160,8 +163,12 @@ jobs:
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
-            make build BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            curl -sL https://sentry.io/get-cli/ | bash
+            export VERSION=$(sentry-cli releases propose-version)
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
+            sentry-cli --log-level=debug releases set-commits --auto $VERSION
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -224,7 +231,7 @@ jobs:
               --env GOBIN=/mattermost/mattermost-server/bin \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
               bash -c 'ulimit -n 8096; make test-server BUILD_NUMBER="$CIRCLE_BRANCH-$CIRCLE_PREVIOUS_BUILD_NUM" TESTFLAGS= TESTFLAGSEE='
           no_output_timeout: 1h
       - run:
@@ -297,7 +304,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/latest?sslmode=disable&connect_timeout=10" ARGS="version" run-cli'
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -333,7 +340,7 @@ jobs:
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
-              mattermost/mattermost-build-server:20200322_golang-1.14.1 \
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
               bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/latest?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s" ARGS="version" run-cli'
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
@@ -428,6 +435,7 @@ workflows:
           requires:
             - setup
       - build:
+          context: matterbuild-sentry
           requires:
             - check-app-layers
             - check-store-layers

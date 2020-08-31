@@ -135,3 +135,6 @@ Email: jay at (my github username).com
 
 Twitter: [@jtaylor](https://twitter.com/jtaylor)
 
+# Alternatives
+
+https://github.com/k3a/html2text - Lightweight

@@ -4,9 +4,12 @@
 package app
 
 import (
+	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type permissionTransformation struct {
@@ -56,6 +59,13 @@ const (
 	PERMISSION_REMOVE_REACTION                   = "remove_reaction"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS     = "manage_public_channel_members"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS    = "manage_private_channel_members"
+	PERMISSION_READ_JOBS                         = "read_jobs"
+	PERMISSION_MANAGE_JOBS                       = "manage_jobs"
+	PERMISSION_READ_OTHER_USERS_TEAMS            = "read_other_users_teams"
+	PERMISSION_EDIT_OTHER_USERS                  = "edit_other_users"
+	PERMISSION_READ_PUBLIC_CHANNEL_GROUPS        = "read_public_channel_groups"
+	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS       = "read_private_channel_groups"
+	PERMISSION_EDIT_BRAND                        = "edit_brand"
 )
 
 func isRole(roleName string) func(*model.Role, map[string]map[string]bool) bool {
@@ -162,12 +172,18 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role, roleMap, migrationMap)
 		if _, err := a.Srv().Store.Role().Save(role); err != nil {
-			return err
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return model.NewAppError("doPermissionsMigration", "app.role.save.invalid_role.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			default:
+				return model.NewAppError("doPermissionsMigration", "app.role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
 	if err := a.Srv().Store.System().Save(&model.System{Name: key, Value: "true"}); err != nil {
-		return err
+		return model.NewAppError("doPermissionsMigration", "app.system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -425,6 +441,54 @@ func (a *App) getAddUseGroupMentionsPermissionMigration() (permissionsMap, error
 	}, nil
 }
 
+func (a *App) getAddSystemConsolePermissionsMigration() (permissionsMap, error) {
+	transformations := []permissionTransformation{}
+
+	permissionsToAdd := []string{}
+	for _, permission := range append(model.SysconsoleReadPermissions, model.SysconsoleWritePermissions...) {
+		permissionsToAdd = append(permissionsToAdd, permission.Id)
+	}
+
+	// add the new permissions to system admin
+	transformations = append(transformations,
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: permissionsToAdd,
+		})
+
+	// add read_jobs to all roles with manage_jobs
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_JOBS),
+		Add: []string{PERMISSION_READ_JOBS},
+	})
+
+	// add read_other_users_teams to all roles with edit_other_users
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_EDIT_OTHER_USERS),
+		Add: []string{PERMISSION_READ_OTHER_USERS_TEAMS},
+	})
+
+	// add read_public_channel_groups to all roles with manage_public_channel_members
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS),
+		Add: []string{PERMISSION_READ_PUBLIC_CHANNEL_GROUPS},
+	})
+
+	// add read_private_channel_groups to all roles with manage_private_channel_members
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS),
+		Add: []string{PERMISSION_READ_PRIVATE_CHANNEL_GROUPS},
+	})
+
+	// add edit_brand to all roles with manage_system
+	transformations = append(transformations, permissionTransformation{
+		On:  permissionExists(PERMISSION_MANAGE_SYSTEM),
+		Add: []string{PERMISSION_EDIT_BRAND},
+	})
+
+	return transformations, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	PermissionsMigrations := []struct {
@@ -442,6 +506,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS, Migration: a.getAddManageGuestsPermissionsMigration},
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: a.getAddUseGroupMentionsPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {

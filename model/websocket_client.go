@@ -30,8 +30,12 @@ type writeMessage struct {
 	data    interface{}
 }
 
+const avgReadMsgSizeBytes = 1024
+
 // WebSocketClient stores the necessary information required to
 // communicate with a WebSocket endpoint.
+// A client must read from PingTimeoutChannel, EventChannel and ResponseChannel to prevent
+// deadlocks from occuring in the program.
 type WebSocketClient struct {
 	Url                string                  // The location of the server like "ws://localhost:8065"
 	ApiUrl             string                  // The API location of the server like "ws://localhost:8065/api/v3"
@@ -49,6 +53,7 @@ type WebSocketClient struct {
 	quitPingWatchdog chan struct{}
 
 	quitWriterChan chan struct{}
+	resetTimerChan chan struct{}
 	closed         int32
 }
 
@@ -79,6 +84,7 @@ func NewWebSocketClientWithDialer(dialer *websocket.Dialer, url, authToken strin
 		writeChan:          make(chan writeMessage),
 		quitPingWatchdog:   make(chan struct{}),
 		quitWriterChan:     make(chan struct{}),
+		resetTimerChan:     make(chan struct{}),
 	}
 
 	client.configurePingHandling()
@@ -123,6 +129,8 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 		wsc.writeChan = make(chan writeMessage)
 		wsc.quitWriterChan = make(chan struct{})
 		go wsc.writer()
+		wsc.resetTimerChan = make(chan struct{})
+		wsc.quitPingWatchdog = make(chan struct{})
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -133,6 +141,8 @@ func (wsc *WebSocketClient) ConnectWithDialer(dialer *websocket.Dialer) *AppErro
 	return nil
 }
 
+// Close closes the websocket client. It is recommended that a closed client should not be
+// reused again. Rather a new client should be created anew.
 func (wsc *WebSocketClient) Close() {
 	// CAS to 1 and proceed. Return if already 1.
 	if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
@@ -140,9 +150,12 @@ func (wsc *WebSocketClient) Close() {
 	}
 	wsc.quitWriterChan <- struct{}{}
 	close(wsc.writeChan)
+	// We close the connection, which breaks the reader loop.
+	// Then we let the defer block in the reader do further cleanup.
 	wsc.Conn.Close()
 }
 
+// TODO: un-export the Conn so that Write methods go through the writer
 func (wsc *WebSocketClient) writer() {
 	for {
 		select {
@@ -159,27 +172,59 @@ func (wsc *WebSocketClient) writer() {
 	}
 }
 
+// Listen starts the read loop of the websocket client.
 func (wsc *WebSocketClient) Listen() {
+	// This loop can exit in 2 conditions:
+	// 1. Either the connection breaks naturally.
+	// 2. Close was explicitly called, which closes the connection manually.
+	//
+	// Due to the way the API is written, there is a requirement that a client may NOT
+	// call Listen at all and can still call Close and Connect.
+	// Therefore, we let the cleanup of the reader stuff rely on closing the connection
+	// and then we do the cleanup in the defer block.
+	//
+	// First, we close some channels and then CAS to 1 and proceed to close the writer chan also.
+	// This is needed because then the defer clause does not double-close the writer when (2) happens.
+	// But if (1) happens, we set the closed bit, and close the rest of the stuff.
 	go func() {
 		defer func() {
-			wsc.Conn.Close()
 			close(wsc.EventChannel)
 			close(wsc.ResponseChannel)
 			close(wsc.quitPingWatchdog)
+			close(wsc.resetTimerChan)
+			// We CAS to 1 and proceed.
+			if !atomic.CompareAndSwapInt32(&wsc.closed, 0, 1) {
+				return
+			}
+			wsc.quitWriterChan <- struct{}{}
+			close(wsc.writeChan)
+			wsc.Conn.Close() // This can most likely be removed. Needs to be checked.
 		}()
 
+		var buf bytes.Buffer
+		buf.Grow(avgReadMsgSizeBytes)
+
 		for {
-			var rawMsg json.RawMessage
-			var err error
-			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
+			// Reset buffer.
+			buf.Reset()
+			_, r, err := wsc.Conn.NextReader()
+			if err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
 					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
-
+				return
+			}
+			// Use pre-allocated buffer.
+			_, err = buf.ReadFrom(r)
+			if err != nil {
+				// This should use a different error ID, but en.json is not imported anyways.
+				// It's a different bug altogether but we let it be for now.
+				// See MM-24520.
+				wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			event := WebSocketEventFromJson(bytes.NewReader(rawMsg))
+			event := WebSocketEventFromJson(bytes.NewReader(buf.Bytes()))
 			if event == nil {
 				continue
 			}
@@ -189,11 +234,10 @@ func (wsc *WebSocketClient) Listen() {
 			}
 
 			var response WebSocketResponse
-			if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
+			if err := json.Unmarshal(buf.Bytes(), &response); err == nil && response.IsValid() {
 				wsc.ResponseChannel <- &response
 				continue
 			}
-
 		}
 	}()
 }
@@ -246,21 +290,32 @@ func (wsc *WebSocketClient) pingHandler(appData string) error {
 	if atomic.LoadInt32(&wsc.closed) == 1 {
 		return nil
 	}
-	if !wsc.pingTimeoutTimer.Stop() {
-		<-wsc.pingTimeoutTimer.C
-	}
-
-	wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+	wsc.resetTimerChan <- struct{}{}
 	wsc.writeChan <- writeMessage{
 		msgType: msgTypePong,
 	}
 	return nil
 }
 
+// pingWatchdog is used to send values to the PingTimeoutChannel whenever a timeout occurs.
+// We use the resetTimerChan from the pingHandler to pass the signal, and then reset the timer
+// after draining it. And if the timer naturally expires, we also extend it to prevent it from
+// being deadlocked when the resetTimerChan case runs. Because timer.Stop would return false,
+// and the code would be forever stuck trying to read from C.
 func (wsc *WebSocketClient) pingWatchdog() {
-	select {
-	case <-wsc.pingTimeoutTimer.C:
-		wsc.PingTimeoutChannel <- true
-	case <-wsc.quitPingWatchdog:
+	for {
+		select {
+		case <-wsc.resetTimerChan:
+			if !wsc.pingTimeoutTimer.Stop() {
+				<-wsc.pingTimeoutTimer.C
+			}
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+
+		case <-wsc.pingTimeoutTimer.C:
+			wsc.PingTimeoutChannel <- true
+			wsc.pingTimeoutTimer.Reset(time.Second * (60 + PING_TIMEOUT_BUFFER_SECONDS))
+		case <-wsc.quitPingWatchdog:
+			return
+		}
 	}
 }

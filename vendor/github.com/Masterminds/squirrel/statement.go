@@ -15,6 +15,12 @@ func (b StatementBuilderType) Insert(into string) InsertBuilder {
 	return InsertBuilder(b).Into(into)
 }
 
+// Replace returns a InsertBuilder for this StatementBuilderType with the
+// statement keyword set to "REPLACE".
+func (b StatementBuilderType) Replace(into string) InsertBuilder {
+	return InsertBuilder(b).statementKeyword("REPLACE").Into(into)
+}
+
 // Update returns a UpdateBuilder for this StatementBuilderType.
 func (b StatementBuilderType) Update(table string) UpdateBuilder {
 	return UpdateBuilder(b).Table(table)
@@ -35,6 +41,13 @@ func (b StatementBuilderType) RunWith(runner BaseRunner) StatementBuilderType {
 	return setRunWith(b, runner).(StatementBuilderType)
 }
 
+// Where adds WHERE expressions to the query.
+//
+// See SelectBuilder.Where for more information.
+func (b StatementBuilderType) Where(pred interface{}, args ...interface{}) StatementBuilderType {
+	return builder.Append(b, "WhereParts", newWherePart(pred, args...)).(StatementBuilderType)
+}
+
 // StatementBuilder is a parent builder for other builders, e.g. SelectBuilder.
 var StatementBuilder = StatementBuilderType(builder.EmptyBuilder).PlaceholderFormat(Question)
 
@@ -50,6 +63,14 @@ func Select(columns ...string) SelectBuilder {
 // See InsertBuilder.Into.
 func Insert(into string) InsertBuilder {
 	return StatementBuilder.Insert(into)
+}
+
+// Replace returns a new InsertBuilder with the statement keyword set to
+// "REPLACE" and with the given table name.
+//
+// See InsertBuilder.Into.
+func Replace(into string) InsertBuilder {
+	return StatementBuilder.Replace(into)
 }
 
 // Update returns a new UpdateBuilder with the given table name.

@@ -21,7 +21,7 @@ func (s *LocalCacheFileInfoStore) handleClusterInvalidateFileInfo(msg *model.Clu
 	s.rootStore.fileInfoCache.Remove(msg.Data)
 }
 
-func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
 	if !allowFromCache {
 		return s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
 	}
@@ -31,8 +31,9 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 		cacheKey += "_deleted"
 	}
 
-	if fileInfo := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, cacheKey); fileInfo != nil {
-		return fileInfo.([]*model.FileInfo), nil
+	var fileInfo []*model.FileInfo
+	if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, cacheKey, &fileInfo); err == nil {
+		return fileInfo, nil
 	}
 
 	fileInfos, err := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)

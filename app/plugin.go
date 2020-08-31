@@ -40,15 +40,24 @@ type pluginSignaturePath struct {
 //
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
-func (a *App) GetPluginsEnvironment() *plugin.Environment {
-	if !*a.Config().PluginSettings.Enable {
+func (s *Server) GetPluginsEnvironment() *plugin.Environment {
+	if !*s.Config().PluginSettings.Enable {
 		return nil
 	}
 
-	a.Srv().PluginsLock.RLock()
-	defer a.Srv().PluginsLock.RUnlock()
+	s.PluginsLock.RLock()
+	defer s.PluginsLock.RUnlock()
 
-	return a.Srv().PluginsEnvironment
+	return s.PluginsEnvironment
+}
+
+// GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
+// initialized.
+//
+// To get the plugins environment when the plugins are disabled, manually acquire the plugins
+// lock instead.
+func (a *App) GetPluginsEnvironment() *plugin.Environment {
+	return a.Srv().GetPluginsEnvironment()
 }
 
 func (a *App) SetPluginsEnvironment(pluginsEnvironment *plugin.Environment) {
@@ -77,46 +86,52 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
-		// Deactivate any plugins that have been disabled.
+		// Determine which plugins need to be activated or deactivated.
+		disabledPlugins := []*model.BundleInfo{}
+		enabledPlugins := []*model.BundleInfo{}
 		for _, plugin := range availablePlugins {
-			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to deactivate it
-			if !pluginEnabled {
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
+			if pluginEnabled {
+				enabledPlugins = append(enabledPlugins, plugin)
+			} else {
+				disabledPlugins = append(disabledPlugins, plugin)
+			}
+		}
+
+		// Concurrently activate/deactivate each plugin appropriately.
+		var wg sync.WaitGroup
+
+		// Deactivate any plugins that have been disabled.
+		for _, plugin := range disabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
+
+				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					a.Publish(message)
 				}
-			}
+			}(plugin)
 		}
 
 		// Activate any plugins that have been enabled
-		for _, plugin := range availablePlugins {
-			if plugin.Manifest == nil {
-				plugin.WrapLogger(a.Log()).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-				continue
-			}
+		for _, plugin := range enabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
 
-			// Determine if plugin is enabled
-			pluginId := plugin.Manifest.Id
-			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginId]; ok {
-				pluginEnabled = state.Enable
-			}
-
-			// Activate plugin if enabled
-			if pluginEnabled {
+				pluginId := plugin.Manifest.Id
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
 				if err != nil {
 					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
-					continue
+					return
 				}
 
 				if activated {
@@ -125,8 +140,9 @@ func (a *App) SyncPluginsActiveState() {
 						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
-			}
+			}(plugin)
 		}
+		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
@@ -175,6 +191,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
 	pluginsEnvironment = a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		mlog.Info("Plugins environment not found, server is likely shutting down")
+		return
+	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
 	// Sync plugin active state when config changes. Also notify plugins.
@@ -270,8 +290,8 @@ func (a *App) SyncPlugins() *model.AppError {
 	return nil
 }
 
-func (a *App) ShutDownPlugins() {
-	pluginsEnvironment := a.GetPluginsEnvironment()
+func (s *Server) ShutDownPlugins() {
+	pluginsEnvironment := s.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return
 	}
@@ -280,14 +300,14 @@ func (a *App) ShutDownPlugins() {
 
 	pluginsEnvironment.Shutdown()
 
-	a.RemoveConfigListener(a.Srv().PluginConfigListenerId)
-	a.Srv().PluginConfigListenerId = ""
+	s.RemoveConfigListener(s.PluginConfigListenerId)
+	s.PluginConfigListenerId = ""
 
 	// Acquiring lock manually before cleaning up PluginsEnvironment.
-	a.Srv().PluginsLock.Lock()
-	defer a.Srv().PluginsLock.Unlock()
-	if a.Srv().PluginsEnvironment == pluginsEnvironment {
-		a.Srv().PluginsEnvironment = nil
+	s.PluginsLock.Lock()
+	defer s.PluginsLock.Unlock()
+	if s.PluginsEnvironment == pluginsEnvironment {
+		s.PluginsEnvironment = nil
 	} else {
 		mlog.Warn("Another PluginsEnvironment detected while shutting down plugins.")
 	}
@@ -428,7 +448,7 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
-		p, appErr := a.getRemotePlugins(filter)
+		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -488,7 +508,9 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
+	filter := a.getBaseMarketplaceFilter()
+	filter.Filter = pluginId
+
 	plugin, err := marketplaceClient.GetPlugin(filter, version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -497,7 +519,7 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.AppError) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()
@@ -513,11 +535,11 @@ func (a *App) getRemotePlugins(filter *model.MarketplacePluginFilter) (map[strin
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	filter := a.getBaseMarketplaceFilter()
 	// Fetch all plugins from marketplace.
-	marketplacePlugins, err := marketplaceClient.GetPlugins(&model.MarketplacePluginFilter{
-		PerPage:       -1,
-		ServerVersion: model.CurrentVersion,
-	})
+	filter.PerPage = -1
+
+	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.failed_to_fetch", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -633,6 +655,23 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 	}
 
 	return nil
+}
+
+func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
+	filter := &model.MarketplacePluginFilter{
+		ServerVersion: model.CurrentVersion,
+	}
+
+	license := a.Srv().License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	return filter
 }
 
 func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {
@@ -869,8 +908,10 @@ func getIcon(iconPath string) (string, error) {
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to open icon at path %s", iconPath)
 	}
+
 	if !svg.Is(icon) {
-		return "", errors.Wrapf(err, "icon is not svg %s", iconPath)
+		return "", errors.Errorf("icon is not svg %s", iconPath)
 	}
+
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }

@@ -4,8 +4,10 @@
 package api4
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -28,8 +30,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/web"
 	"github.com/mattermost/mattermost-server/v5/wsapi"
 
-	s3 "github.com/minio/minio-go/v6"
-	"github.com/minio/minio-go/v6/pkg/credentials"
+	s3 "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/stretchr/testify/require"
 )
 
@@ -55,6 +57,8 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 	tempWorkspace     string
 
+	LocalClient *model.Client4
+
 	IncludeCacheLayer bool
 }
 
@@ -78,6 +82,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	config := memoryStore.Get()
 	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	if updateConfig != nil {
 		updateConfig(config)
 	}
@@ -97,7 +103,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	th := &TestHelper{
-		App:               s.FakeApp(),
+		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
 		ConfigStore:       memoryStore,
 		IncludeCacheLayer: includeCache,
@@ -118,15 +124,15 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := th.Server.Start()
-	if serverErr != nil {
-		panic(serverErr)
+	if err := th.Server.Start(); err != nil {
+		panic(err)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.Server, th.Server.AppOptions, th.App.Srv().Router)
+	InitLocal(th.Server, th.Server.AppOptions, th.App.Srv().LocalRouter)
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv().Router)
-	wsapi.Init(th.App, th.App.Srv().WebSocketRouter)
+	wsapi.Init(th.App.Srv())
 	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -141,17 +147,31 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	})
 
 	if enterprise {
-		th.App.SetLicense(model.NewTestLicense())
+		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
-		th.App.SetLicense(nil)
+		th.App.Srv().SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
 
+	// Verify handling of the supported true/false values by randomizing on each run.
+	rand.Seed(time.Now().UTC().UnixNano())
+	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
+	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
+	trueString := trueValues[rand.Intn(len(trueValues))]
+	falseString := falseValues[rand.Intn(len(falseValues))]
+	mlog.Debug("Configured Client4 bool string values", mlog.String("true", trueString), mlog.String("false", falseString))
+	th.Client.SetBoolString(true, trueString)
+	th.Client.SetBoolString(false, falseString)
+
+	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
+
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
+
+	th.App.InitServer()
 
 	return th
 }
@@ -169,7 +189,9 @@ func SetupEnterprise(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, true, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -185,7 +207,9 @@ func Setup(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th := setupTestHelper(dbStore, searchEngine, false, true, nil)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -201,7 +225,9 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 	searchEngine := mainHelper.GetSearchEngine()
-	return setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig)
+	th.InitLogin()
+	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
@@ -248,7 +274,7 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 	if me.IncludeCacheLayer {
 		// Clean all the caches
-		me.App.InvalidateAllCaches()
+		me.App.Srv().InvalidateAllCaches()
 	}
 
 	me.ShutdownApp()
@@ -264,7 +290,7 @@ var userCache struct {
 	BasicUser2      *model.User
 }
 
-func (me *TestHelper) InitBasic() *TestHelper {
+func (me *TestHelper) InitLogin() *TestHelper {
 	me.waitForConnectivity()
 
 	// create users once and cache them because password hashing is slow
@@ -299,9 +325,21 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicUser.Password = "Pa$$word11"
 	me.BasicUser2.Password = "Pa$$word11"
 
-	me.LoginSystemAdmin()
-	me.LoginTeamAdmin()
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		me.LoginSystemAdmin()
+		wg.Done()
+	}()
+	go func() {
+		me.LoginTeamAdmin()
+		wg.Done()
+	}()
+	wg.Wait()
+	return me
+}
 
+func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
 	me.BasicPrivateChannel = me.CreatePrivateChannel()
@@ -341,6 +379,22 @@ func (me *TestHelper) waitForConnectivity() {
 
 func (me *TestHelper) CreateClient() *model.Client4 {
 	return model.NewAPIv4Client(fmt.Sprintf("http://localhost:%v", me.App.Srv().ListenAddr.Port))
+}
+
+// ToDo: maybe move this to NewAPIv4SocketClient and reuse it in mmctl
+func (me *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return net.Dial("unix", socketPath)
+			},
+		},
+	}
+
+	return &model.Client4{
+		ApiUrl:     "http://_" + model.API_URL_SUFFIX,
+		HttpClient: httpClient,
+	}
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
@@ -656,7 +710,7 @@ func (me *TestHelper) GenerateTestEmail() string {
 func (me *TestHelper) CreateGroup() *model.Group {
 	id := model.NewId()
 	group := &model.Group{
-		Name:        "n-" + id,
+		Name:        model.NewString("n-" + id),
 		DisplayName: "dn_" + id,
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + id,
@@ -669,6 +723,46 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	}
 	utils.EnableDebugLogForTest()
 	return group
+}
+
+// TestForSystemAdminAndLocal runs a test function for both
+// SystemAdmin and Local clients. Several endpoints work in the same
+// way when used by a fully privileged user and through the local
+// mode, so this helper facilitates checking both
+func (me *TestHelper) TestForSystemAdminAndLocal(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
+		f(t, me.SystemAdminClient)
+	})
+
+	t.Run(testName+"LocalClient", func(t *testing.T) {
+		f(t, me.LocalClient)
+	})
+}
+
+// TestForAllClients runs a test function for all the clients
+// registered in the TestHelper
+func (me *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"Client", func(t *testing.T) {
+		f(t, me.Client)
+	})
+
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
+		f(t, me.SystemAdminClient)
+	})
+
+	t.Run(testName+"LocalClient", func(t *testing.T) {
+		f(t, me.LocalClient)
+	})
 }
 
 func GenerateTestUsername() string {
@@ -797,7 +891,13 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	} else {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
-	return s3.NewWithCredentials(endpoint, creds, secure, region)
+
+	opts := s3.Options{
+		Creds:  creds,
+		Secure: secure,
+		Region: region,
+	}
+	return s3.New(endpoint, &opts)
 }
 
 func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
@@ -814,18 +914,18 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 			return err
 		}
 		bucket := *cfg.FileSettings.AmazonS3Bucket
-		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
+		if err := s3Clnt.RemoveObject(context.Background(), bucket, info.Path, s3.RemoveObjectOptions{}); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.ThumbnailPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.ThumbnailPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := s3Clnt.RemoveObject(bucket, info.PreviewPath); err != nil {
+			if err := s3Clnt.RemoveObject(context.Background(), bucket, info.PreviewPath, s3.RemoveObjectOptions{}); err != nil {
 				return err
 			}
 		}

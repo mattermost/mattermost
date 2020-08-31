@@ -29,7 +29,7 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 	require.True(t, utils.StringInSlice(th.BasicUser2.Id, mentions), "mentions", mentions)
@@ -44,13 +44,13 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	_, appErr = th.App.UpdateActive(th.BasicUser2, false)
 	require.Nil(t, appErr)
-	appErr = th.App.InvalidateAllCaches()
+	appErr = th.App.Srv().InvalidateAllCaches()
 	require.Nil(t, appErr)
 
 	post3, appErr := th.App.CreatePostMissingChannel(&model.Post{
@@ -60,12 +60,12 @@ func TestSendNotifications(t *testing.T) {
 	}, true)
 	require.Nil(t, appErr)
 
-	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.NotNil(t, mentions)
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
 	require.NoError(t, err)
 	require.Empty(t, mentions)
 }
@@ -162,7 +162,16 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	user3 := th.CreateUser()
+	guest := th.CreateGuest()
+	user4 := th.CreateUser()
+	guestAndUser4Channel := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteUser(guest)
 	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.LinkUserToTeam(user4, th.BasicTeam)
+	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.App.AddUserToChannel(guest, channel)
+	th.App.AddUserToChannel(user4, guestAndUser4Channel)
+	th.App.AddUserToChannel(guest, guestAndUser4Channel)
 
 	t.Run("should return users not in the channel", func(t *testing.T) {
 		post := &model.Post{}
@@ -174,6 +183,18 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return only visible users not in the channel (for guests)", func(t *testing.T) {
+		post := &model.Post{}
+		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
+
+		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(guest, post, channel, potentialMentions)
+
+		require.Nil(t, err)
+		require.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
@@ -810,7 +831,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
+			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -819,7 +840,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
+			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -828,22 +849,22 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceeding @": {
 			Message: "@engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
+			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
-					"engineering": {Name: "engineering"},
+					"engineering": {Name: model.NewString("engineering")},
 				},
 				OtherPotentialMentions: []string{"engineering"},
 			},
 		},
 		"matching upper case group with preceeding @": {
 			Message: "@Engineering",
-			Groups:  map[string]*model.Group{"engineering": {Name: "engineering"}},
+			Groups:  map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 			Expected: &ExplicitMentions{
 				Mentions: nil,
 				GroupMentions: map[string]*model.Group{
-					"engineering": {Name: "engineering"},
+					"engineering": {Name: model.NewString("engineering")},
 				},
 				OtherPotentialMentions: []string{"Engineering"},
 			},
@@ -977,6 +998,13 @@ func TestAllowGroupMentions(t *testing.T) {
 	defer th.TearDown()
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
+
+	t.Run("should return false without ldap groups license", func(t *testing.T) {
+		allowGroupMentions := th.App.allowGroupMentions(post)
+		assert.False(t, allowGroupMentions)
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap_groups"))
 
 	t.Run("should return true for a regular post with few channel members", func(t *testing.T) {
 		allowGroupMentions := th.App.allowGroupMentions(post)
@@ -2014,22 +2042,22 @@ func TestAddGroupMention(t *testing.T) {
 		},
 		"No matching groups": {
 			Word:     "nothing",
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: false,
 		},
 		"matching group with no @": {
 			Word:     "engineering",
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: false,
 		},
 		"matching group with preceeding @": {
 			Word:     "@engineering",
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: true,
 		},
 		"matching upper case group with preceeding @": {
 			Word:     "@Engineering",
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: true,
 		},
 	} {
@@ -2058,7 +2086,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user in text": {
 			Text:     "hello user @user1",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2068,7 +2096,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user after ending a sentence with full stop": {
 			Text:     "hello user.@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2087,7 +2115,7 @@ func TestProcessText(t *testing.T) {
 		"Mention user after colon": {
 			Text:     "hello user:@user1",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2097,7 +2125,7 @@ func TestProcessText(t *testing.T) {
 		"Mention here after colon": {
 			Text:     "hello all:@here",
 			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				HereMentioned: true,
 			},
@@ -2105,7 +2133,7 @@ func TestProcessText(t *testing.T) {
 		"Mention all after hyphen": {
 			Text:     "hello all-@all",
 			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				AllMentioned: true,
 			},
@@ -2113,7 +2141,7 @@ func TestProcessText(t *testing.T) {
 		"Mention channel after full stop": {
 			Text:     "hello channel.@channel",
 			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				ChannelMentioned: true,
 			},
@@ -2121,7 +2149,7 @@ func TestProcessText(t *testing.T) {
 		"Mention other pontential users or system calls": {
 			Text:     "hello @potentialuser and @otherpotentialuser",
 			Keywords: map[string][]string{},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
 			},
@@ -2129,7 +2157,7 @@ func TestProcessText(t *testing.T) {
 		"Mention a real user and another potential user": {
 			Text:     "@user1, you can use @systembot to get help",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
@@ -2140,21 +2168,21 @@ func TestProcessText(t *testing.T) {
 		"Mention a group": {
 			Text:     "@engineering",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
-				GroupMentions:          map[string]*model.Group{"engineering": {Name: "engineering"}},
+				GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 				OtherPotentialMentions: []string{"engineering"},
 			},
 		},
 		"Mention a real user and another potential user and a group": {
 			Text:     "@engineering @user1, you can use @systembot to get help from",
 			Keywords: map[string][]string{"@user1": {id1}},
-			Groups:   map[string]*model.Group{"engineering": {Name: "engineering"}, "developers": {Name: "developers"}},
+			Groups:   map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}, "developers": {Name: model.NewString("developers")}},
 			Expected: &ExplicitMentions{
 				Mentions: map[string]MentionType{
 					id1: KeywordMention,
 				},
-				GroupMentions:          map[string]*model.Group{"engineering": {Name: "engineering"}},
+				GroupMentions:          map[string]*model.Group{"engineering": {Name: model.NewString("engineering")}},
 				OtherPotentialMentions: []string{"engineering", "systembot"},
 			},
 		},
@@ -2192,7 +2220,7 @@ func TestGetNotificationNameFormat(t *testing.T) {
 }
 
 func TestUserAllowsEmail(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {
@@ -2296,7 +2324,7 @@ func TestInsertGroupMentions(t *testing.T) {
 	channel := th.BasicChannel
 	group := th.CreateGroup()
 	group.DisplayName = "engineering"
-	group.Name = "engineering"
+	group.Name = model.NewString("engineering")
 	group, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 
@@ -2317,7 +2345,7 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	groupWithNoMembers := th.CreateGroup()
 	groupWithNoMembers.DisplayName = "marketing"
-	groupWithNoMembers.Name = "marketing"
+	groupWithNoMembers.Name = model.NewString("marketing")
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
 	require.Nil(t, err)
 
@@ -2387,5 +2415,108 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, len(mentions.Mentions), 1)
 		_, found := mentions.Mentions[groupChannelMember.Id]
 		require.Equal(t, found, true)
+	})
+}
+
+func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var err *model.AppError
+	var groupsMap map[string]*model.Group
+
+	team := th.BasicTeam
+	channel := th.BasicChannel
+	group1 := th.CreateGroup()
+
+	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 0)
+	})
+
+	group1.AllowReference = true
+	group1, err = th.App.UpdateGroup(group1)
+	require.Nil(t, err)
+
+	group2 := th.CreateGroup()
+	t.Run("should only return groups with allow reference", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	group2.AllowReference = true
+	group2, err = th.App.UpdateGroup(group2)
+	require.Nil(t, err)
+
+	// Sync first group to constrained channel
+	constrainedChannel := th.CreateChannel(th.BasicTeam)
+	constrainedChannel.GroupConstrained = model.NewBool(true)
+	constrainedChannel, err = th.App.UpdateChannel(constrainedChannel)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group1.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		SyncableId: constrainedChannel.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return only groups synced to channel if channel is group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	// Create a third group not synced with a team or channel
+	group3 := th.CreateGroup()
+	group3.AllowReference = true
+	group3, err = th.App.UpdateGroup(group3)
+	require.Nil(t, err)
+
+	// Sync group2 to the team
+	team.GroupConstrained = model.NewBool(true)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group2.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		SyncableId: team.Id,
+	})
+	require.Nil(t, err)
+
+	t.Run("should return union of groups synced to team and any channels if team is group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 2)
+		require.Nil(t, groupsMap[*group3.Name])
+		require.Equal(t, groupsMap[*group2.Name], group2)
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	t.Run("should return only subset of groups synced to channel for group constrained channel when team is also group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(constrainedChannel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 1)
+		require.Nil(t, groupsMap[*group3.Name])
+		require.Nil(t, groupsMap[*group2.Name])
+		require.Equal(t, groupsMap[*group1.Name], group1)
+	})
+
+	team.GroupConstrained = model.NewBool(false)
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	t.Run("should return all groups when team and channel are not group constrained", func(t *testing.T) {
+		groupsMap, err = th.App.getGroupsAllowedForReferenceInChannel(channel, team)
+		require.Nil(t, err)
+		require.Len(t, groupsMap, 3)
+		require.Equal(t, groupsMap[*group1.Name], group1)
+		require.Equal(t, groupsMap[*group2.Name], group2)
+		require.Equal(t, groupsMap[*group3.Name], group3)
 	})
 }

@@ -130,6 +130,131 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
 }
+
+func TestPluginAPIGetUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+
+	assert.Equal(t, user1.Id, preferences[0].UserId)
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+	assert.Equal(t, user1.Id, preferences[0].Name)
+	assert.Equal(t, "0", preferences[0].Value)
+}
+
+func TestPluginAPIDeleteUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+
+	err = api.DeletePreferencesForUser(user1.Id, preferences)
+	require.Nil(t, err)
+	preferences, err = api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 0, len(preferences))
+
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user2)
+
+	preference := model.Preference{
+		Name:     user2.Id,
+		UserId:   user2.Id,
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
+	}
+	err = api.UpdatePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 2, len(preferences))
+
+	err = api.DeletePreferencesForUser(user2.Id, []model.Preference{preference})
+	require.Nil(t, err)
+	preferences, err = api.GetPreferencesForUser(user2.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+}
+
+func TestPluginAPIUpdateUserPreferences(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	preferences, err := api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+	assert.Equal(t, 1, len(preferences))
+	assert.Equal(t, user1.Id, preferences[0].UserId)
+	assert.Equal(t, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, preferences[0].Category)
+	assert.Equal(t, user1.Id, preferences[0].Name)
+	assert.Equal(t, "0", preferences[0].Value)
+
+	preference := model.Preference{
+		Name:     user1.Id,
+		UserId:   user1.Id,
+		Category: model.PREFERENCE_CATEGORY_THEME,
+		Value:    `{"color": "#ff0000", "color2": "#faf"}`,
+	}
+
+	err = api.UpdatePreferencesForUser(user1.Id, []model.Preference{preference})
+	require.Nil(t, err)
+
+	preferences, err = api.GetPreferencesForUser(user1.Id)
+	require.Nil(t, err)
+
+	assert.Equal(t, 2, len(preferences))
+	expectedCategories := []string{model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, model.PREFERENCE_CATEGORY_THEME}
+	for _, pref := range preferences {
+		assert.Contains(t, expectedCategories, pref.Category)
+		assert.Equal(t, user1.Id, pref.UserId)
+		assert.Equal(t, user1.Id, pref.Name)
+		if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
+			assert.Equal(t, "0", pref.Value)
+		} else {
+			newTheme, _ := json.Marshal(map[string]string{"color": "#ff0000", "color2": "#faf"})
+			assert.Equal(t, string(newTheme), pref.Value)
+		}
+	}
+}
+
 func TestPluginAPIGetUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -218,7 +343,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 }
 
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -722,7 +847,7 @@ func TestInstallPlugin(t *testing.T) {
 		}, pluginDir
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// start an http server to serve plugin's tarball to the test.
@@ -744,7 +869,7 @@ func TestInstallPlugin(t *testing.T) {
 
 		import (
 			"net/http"
-			
+
 			"github.com/pkg/errors"
 
 			"github.com/mattermost/mattermost-server/v5/plugin"
@@ -753,7 +878,7 @@ func TestInstallPlugin(t *testing.T) {
 		type configuration struct {
 			DownloadURL string
 		}
-		
+
 		type Plugin struct {
 			plugin.MattermostPlugin
 
@@ -766,7 +891,7 @@ func TestInstallPlugin(t *testing.T) {
 			}
 			return nil
 		}
-		
+
 		func (p *Plugin) OnActivate() error {
 			resp, err := http.Get(p.configuration.DownloadURL)
 			if err != nil {
@@ -783,7 +908,7 @@ func TestInstallPlugin(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&Plugin{})
 		}
-		
+
 	`,
 		`{"id": "testinstallplugin", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
@@ -945,7 +1070,7 @@ func TestBasicAPIPlugins(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndSet(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1041,7 +1166,7 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 }
 
 func TestPluginAPIKVCompareAndDelete(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1149,7 +1274,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 }
 
 func TestPluginAPIGetConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1186,7 +1311,7 @@ func TestPluginAPIGetConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetUnsanitizedConfig(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -1235,7 +1360,7 @@ func TestPluginAddUserToChannel(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTP(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	setupMultiPluginApiTest(t,
@@ -1256,6 +1381,11 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 			if r.URL.Path != "/api/v2/test" {
 				return
 			}
+
+			if r.URL.Query().Get("abc") != "xyz" {
+				return
+			}
+
 			buf := bytes.Buffer{}
 			buf.ReadFrom(r.Body)
 			resp := "we got:" + buf.String()
@@ -1285,7 +1415,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 			buf := bytes.Buffer{}
 			buf.WriteString("This is the request")
-			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test", &buf)
+			req, err := http.NewRequest("GET", "/testplugininterserver/api/v2/test?abc=xyz", &buf)
 			if err != nil {
 				return nil, err.Error()
 			}
@@ -1330,7 +1460,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestApiMetrics(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("", func(t *testing.T) {
@@ -1451,4 +1581,237 @@ func TestPluginAPIGetPostsForChannel(t *testing.T) {
 	postList, err = api.GetPostsForChannel(th.BasicChannel.Id, 0, numPosts+1)
 	require.Nil(err)
 	require.Equal(expectedPosts, postList.ToSlice())
+}
+
+func TestPluginHTTPConnHijack(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_hijack_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "OK", string(body))
+}
+
+func TestPluginHTTPUpgradeWebSocket(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	testFolder, found := fileutils.FindDir("mattermost-server/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_http_upgrade_websocket_plugin", "main.go")
+
+	pluginCode, err := ioutil.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("ws://localhost:%d/plugins/%s", th.Server.ListenAddr.Port, pluginID)
+	wsc, err := model.NewWebSocketClient(reqURL, "")
+	require.Nil(t, err)
+	require.NotNil(t, wsc)
+
+	wsc.Listen()
+	defer wsc.Close()
+
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.STATUS_OK)
+
+	for i := 0; i < 10; i++ {
+		wsc.SendMessage("custom_action", map[string]interface{}{"value": i})
+		var resp *model.WebSocketResponse
+		select {
+		case resp = <-wsc.ResponseChannel:
+		case <-time.After(1 * time.Second):
+		}
+		require.NotNil(t, resp)
+		require.Equal(t, resp.Status, model.STATUS_OK)
+		require.Equal(t, "custom_action", resp.Data["action"])
+		require.Equal(t, float64(i), resp.Data["value"])
+	}
+}
+
+func TestPluginExecuteSlashCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	newUser := th.CreateUser()
+	th.LinkUserToTeam(newUser, th.BasicTeam)
+
+	t.Run("run invite command", func(t *testing.T) {
+		_, err := api.ExecuteSlashCommand(&model.CommandArgs{
+			Command:   "/invite @" + newUser.Username,
+			TeamId:    th.BasicTeam.Id,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+		})
+		require.NoError(t, err)
+		_, err2 := th.App.GetChannelMember(th.BasicChannel.Id, newUser.Id)
+		require.Nil(t, err2)
+	})
+}
+
+func TestPluginAPISearchPostsInTeamByUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	basicPostText := &th.BasicPost.Message
+	unknwonTerm := "Unknown Message"
+
+	testCases := []struct {
+		description      string
+		teamId           string
+		userId           string
+		params           model.SearchParameter
+		expectedPostsLen int
+	}{
+		{
+			"empty params",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{},
+			0,
+		},
+		{
+			"doesn't match any posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{Terms: &unknwonTerm},
+			0,
+		},
+		{
+			"matched posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			model.SearchParameter{Terms: basicPostText},
+			1,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			searchResults, err := api.SearchPostsInTeamForUser(testCase.teamId, testCase.userId, testCase.params)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.expectedPostsLen, len(searchResults.Posts))
+		})
+	}
+}
+
+func TestPluginAPICreateCommandAndListCommands(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	foundCommand := func(listXCommand func(teamId string) ([]*model.Command, error)) bool {
+		cmds, appErr := listXCommand(th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		for _, cmd := range cmds {
+			if cmd.Trigger == "testcmd" {
+				return true
+			}
+		}
+		return false
+	}
+
+	require.False(t, foundCommand(api.ListCommands))
+
+	cmd := &model.Command{
+		TeamId:  th.BasicTeam.Id,
+		Trigger: "testcmd",
+		Method:  "G",
+		URL:     "http://test.com/testcmd",
+	}
+
+	cmd, appErr := api.CreateCommand(cmd)
+	require.Nil(t, appErr)
+
+	newCmd, appErr := api.GetCommand(cmd.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.Equal(t, "", newCmd.CreatorId)
+	require.True(t, foundCommand(api.ListCommands))
+	require.True(t, foundCommand(api.ListCustomCommands))
+	require.False(t, foundCommand(api.ListPluginCommands))
+}
+
+func TestPluginAPIUpdateCommand(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	cmd := &model.Command{
+		TeamId:  th.BasicTeam.Id,
+		Trigger: "testcmd",
+		Method:  "G",
+		URL:     "http://test.com/testcmd",
+	}
+
+	cmd, appErr := api.CreateCommand(cmd)
+	require.Nil(t, appErr)
+
+	newCmd, appErr := api.GetCommand(cmd.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd.PluginId)
+	require.Equal(t, "", newCmd.CreatorId)
+
+	newCmd.Trigger = "NewTrigger"
+	newCmd.PluginId = "CannotChangeMe"
+	newCmd2, appErr := api.UpdateCommand(newCmd.Id, newCmd)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd2.PluginId)
+	require.Equal(t, "newtrigger", newCmd2.Trigger)
+
+	team1 := th.CreateTeam()
+
+	newCmd2.PluginId = "CannotChangeMe"
+	newCmd2.Trigger = "anotherNewTrigger"
+	newCmd2.TeamId = team1.Id
+	newCmd3, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
+	require.Nil(t, appErr)
+	require.Equal(t, "pluginid", newCmd3.PluginId)
+	require.Equal(t, "anothernewtrigger", newCmd3.Trigger)
+	require.Equal(t, team1.Id, newCmd3.TeamId)
+
+	newCmd3.Trigger = "anotherNewTriggerAgain"
+	newCmd3.TeamId = ""
+	newCmd4, appErr := api.UpdateCommand(newCmd2.Id, newCmd2)
+	require.Nil(t, appErr)
+	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
+	require.Equal(t, team1.Id, newCmd4.TeamId)
+
 }

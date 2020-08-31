@@ -16,7 +16,7 @@ import "time"
 //			.Set("Role", "Jedi"),
 //	}
 //
-// The specifications can be found at https://segment.com/docs/spec/identify/#traits
+
 type Traits map[string]interface{}
 
 func NewTraits() Traits {

@@ -120,12 +120,24 @@ type ChannelModeratedRolesPatch struct {
 // PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	IncludeDeleted         bool
-	ExcludeChannelNames    []string
-	Page                   *int
-	PerPage                *int
+	NotAssociatedToGroup    string
+	ExcludeDefaultChannels  bool
+	IncludeDeleted          bool
+	Deleted                 bool
+	ExcludeChannelNames     []string
+	TeamIds                 []string
+	GroupConstrained        bool
+	ExcludeGroupConstrained bool
+	Public                  bool
+	Private                 bool
+	Page                    *int
+	PerPage                 *int
+}
+
+type ChannelMemberCountByGroup struct {
+	GroupId                     string `db:"-" json:"group_id"`
+	ChannelMemberCount          int64  `db:"-" json:"channel_member_count"`
+	ChannelMemberTimezonesCount int64  `db:"-" json:"channel_member_timezones_count"`
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -181,12 +193,18 @@ func ChannelModerationsPatchFromJson(data io.Reader) []*ChannelModerationPatch {
 	return o
 }
 
+func ChannelMemberCountsByGroupFromJson(data io.Reader) []*ChannelMemberCountByGroup {
+	var o []*ChannelMemberCountByGroup
+	json.NewDecoder(data).Decode(&o)
+	return o
+}
+
 func (o *Channel) Etag() string {
 	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -220,6 +238,11 @@ func (o *Channel) IsValid() *AppError {
 
 	if len(o.CreatorId) > 26 {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.creator_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	userIds := strings.Split(o.Name, "__")
+	if o.Type != CHANNEL_DIRECT && len(userIds) == 2 && IsValidId(userIds[0]) && IsValidId(userIds[1]) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

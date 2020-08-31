@@ -187,7 +187,7 @@ func (wc *WebConn) writePump() {
 				case model.WEBSOCKET_EVENT_TYPING,
 					model.WEBSOCKET_EVENT_STATUS_CHANGE,
 					model.WEBSOCKET_EVENT_CHANNEL_VIEWED:
-					mlog.Info(
+					mlog.Warn(
 						"websocket.slow: dropping message",
 						mlog.String("user_id", wc.UserId),
 						mlog.String("type", msg.EventType()),
@@ -197,40 +197,41 @@ func (wc *WebConn) writePump() {
 				}
 			}
 
-			if !skipSend {
-				var msgBytes []byte
-				if evtOk {
-					cpyEvt := evt.SetSequence(wc.Sequence)
-					msgBytes = []byte(cpyEvt.ToJson())
-					wc.Sequence++
-				} else {
-					msgBytes = []byte(msg.ToJson())
-				}
-
-				if len(wc.send) >= sendFullWarn {
-					logData := []mlog.Field{
-						mlog.String("user_id", wc.UserId),
-						mlog.String("type", msg.EventType()),
-						mlog.Int("size", len(msgBytes)),
-					}
-					if evtOk {
-						logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
-					}
-
-					mlog.Warn("websocket.full", logData...)
-				}
-
-				wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
-				if err := wc.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-					wc.logSocketErr("websocket.send", err)
-					return
-				}
-
-				if wc.App.Metrics() != nil {
-					wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
-				}
+			if skipSend {
+				continue
 			}
 
+			var msgBytes []byte
+			if evtOk {
+				cpyEvt := evt.SetSequence(wc.Sequence)
+				msgBytes = []byte(cpyEvt.ToJson())
+				wc.Sequence++
+			} else {
+				msgBytes = []byte(msg.ToJson())
+			}
+
+			if len(wc.send) >= sendFullWarn {
+				logData := []mlog.Field{
+					mlog.String("user_id", wc.UserId),
+					mlog.String("type", msg.EventType()),
+					mlog.Int("size", len(msgBytes)),
+				}
+				if evtOk {
+					logData = append(logData, mlog.String("channel_id", evt.GetBroadcast().ChannelId))
+				}
+
+				mlog.Warn("websocket.full", logData...)
+			}
+
+			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
+			if err := wc.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
+				wc.logSocketErr("websocket.send", err)
+				return
+			}
+
+			if wc.App.Metrics() != nil {
+				wc.App.Metrics().IncrementWebSocketBroadcast(msg.EventType())
+			}
 		case <-ticker.C:
 			wc.WebSocket.SetWriteDeadline(time.Now().Add(writeWaitTime))
 			if err := wc.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
@@ -285,7 +286,7 @@ func (wc *WebConn) IsAuthenticated() bool {
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", wc.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.License() != nil))
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, wc.App.ClientConfigHash(), wc.App.Srv().License() != nil))
 	return msg
 }
 

@@ -104,7 +104,10 @@ func TestSAMLSettings(t *testing.T) {
 			mockPostStore := storemocks.PostStore{}
 			mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 			mockSystemStore := storemocks.SystemStore{}
+			mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 			mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+			mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
 			mockStore.On("User").Return(&mockUserStore)
 			mockStore.On("Post").Return(&mockPostStore)
 			mockStore.On("System").Return(&mockSystemStore)
@@ -116,6 +119,7 @@ func TestSAMLSettings(t *testing.T) {
 			}
 
 			th.Server.initEnterprise()
+			th.App.initEnterprise()
 			if tc.isNil {
 				assert.Nil(t, th.App.Srv().Saml)
 			} else {
