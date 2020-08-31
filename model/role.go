@@ -9,10 +9,21 @@ import (
 	"strings"
 )
 
+// SysconsoleAncillaryPermissions maps the non-sysconsole permissions required by each sysconsole view.
+var SysconsoleAncillaryPermissions map[string][]*Permission
+
 var BuiltInSchemeManagedRoleIDs []string
 
+var NewSystemRoleIDs []string
+
 func init() {
-	BuiltInSchemeManagedRoleIDs = []string{
+	NewSystemRoleIDs = []string{
+		SYSTEM_USER_MANAGER_ROLE_ID,
+		SYSTEM_READ_ONLY_ADMIN_ROLE_ID,
+		SYSTEM_MANAGER_ROLE_ID,
+	}
+
+	BuiltInSchemeManagedRoleIDs = append([]string{
 		SYSTEM_GUEST_ROLE_ID,
 		SYSTEM_USER_ROLE_ID,
 		SYSTEM_ADMIN_ROLE_ID,
@@ -29,6 +40,58 @@ func init() {
 		CHANNEL_GUEST_ROLE_ID,
 		CHANNEL_USER_ROLE_ID,
 		CHANNEL_ADMIN_ROLE_ID,
+	}, NewSystemRoleIDs...)
+
+	SysconsoleAncillaryPermissions = map[string][]*Permission{
+		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id: {
+			PERMISSION_READ_PUBLIC_CHANNEL,
+			PERMISSION_READ_CHANNEL,
+			PERMISSION_READ_PUBLIC_CHANNEL_GROUPS,
+			PERMISSION_READ_PRIVATE_CHANNEL_GROUPS,
+		},
+		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id: {
+			PERMISSION_READ_OTHER_USERS_TEAMS,
+		},
+		PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS.Id: {
+			PERMISSION_LIST_PRIVATE_TEAMS,
+			PERMISSION_LIST_PUBLIC_TEAMS,
+			PERMISSION_VIEW_TEAM,
+		},
+		PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id: {
+			PERMISSION_READ_JOBS,
+		},
+		PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id: {
+			PERMISSION_READ_JOBS,
+		},
+		PERMISSION_SYSCONSOLE_READ_REPORTING.Id: {
+			PERMISSION_VIEW_TEAM,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS.Id: {
+			PERMISSION_MANAGE_TEAM,
+			PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES,
+			PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+			PERMISSION_DELETE_PRIVATE_CHANNEL,
+			PERMISSION_DELETE_PUBLIC_CHANNEL,
+			PERMISSION_MANAGE_CHANNEL_ROLES,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS.Id: {
+			PERMISSION_MANAGE_TEAM_ROLES,
+			PERMISSION_REMOVE_USER_FROM_TEAM,
+			PERMISSION_JOIN_PRIVATE_TEAMS,
+			PERMISSION_JOIN_PUBLIC_TEAMS,
+			PERMISSION_ADD_USER_TO_TEAM,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS.Id: {
+			PERMISSION_MANAGE_TEAM,
+			PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS,
+			PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id: {
+			PERMISSION_MANAGE_JOBS,
+		},
+		PERMISSION_SYSCONSOLE_WRITE_SITE.Id: {
+			PERMISSION_EDIT_BRAND,
+		},
 	}
 }
 
@@ -42,6 +105,9 @@ const (
 	SYSTEM_POST_ALL_ROLE_ID          = "system_post_all"
 	SYSTEM_POST_ALL_PUBLIC_ROLE_ID   = "system_post_all_public"
 	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
+	SYSTEM_USER_MANAGER_ROLE_ID      = "system_user_manager"
+	SYSTEM_READ_ONLY_ADMIN_ROLE_ID   = "system_read_only_admin"
+	SYSTEM_MANAGER_ROLE_ID           = "system_manager"
 
 	TEAM_GUEST_ROLE_ID           = "team_guest"
 	TEAM_USER_ROLE_ID            = "team_user"
@@ -135,8 +201,8 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 	higherScopedPermissionsMap := AsStringBoolMap(higherScopedPermissions.Permissions)
 	rolePermissionsMap := AsStringBoolMap(r.Permissions)
 
-	for _, cp := range ALL_PERMISSIONS {
-		if cp.Scope != PERMISSION_SCOPE_CHANNEL {
+	for _, cp := range AllPermissions {
+		if cp.Scope != PermissionScopeChannel {
 			continue
 		}
 
@@ -150,7 +216,7 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 			continue
 		}
 
-		_, permissionIsModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[cp.Id]
+		_, permissionIsModerated := ChannelModeratedPermissionsMap[cp.Id]
 		if permissionIsModerated {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
 			if presentOnRole && presentOnHigherScope {
@@ -216,13 +282,13 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 	patchMap := make(map[string]bool)
 
 	for _, permission := range role.Permissions {
-		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+		if channelModeratedPermissionName, found := ChannelModeratedPermissionsMap[permission]; found {
 			roleMap[channelModeratedPermissionName] = true
 		}
 	}
 
 	for _, permission := range *patch.Permissions {
-		if channelModeratedPermissionName, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; found {
+		if channelModeratedPermissionName, found := ChannelModeratedPermissionsMap[permission]; found {
 			patchMap[channelModeratedPermissionName] = true
 		}
 	}
@@ -246,11 +312,11 @@ func ChannelModeratedPermissionsChangedByPatch(role *Role, patch *RolePatch) []s
 func (r *Role) GetChannelModeratedPermissions(channelType string) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
 	for _, permission := range r.Permissions {
-		if _, found := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !found {
+		if _, found := ChannelModeratedPermissionsMap[permission]; !found {
 			continue
 		}
 
-		for moderated, moderatedPermissionValue := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+		for moderated, moderatedPermissionValue := range ChannelModeratedPermissionsMap {
 			// the moderated permission has already been found to be true so skip this iteration
 			if moderatedPermissions[moderatedPermissionValue] {
 				continue
@@ -279,14 +345,14 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 	// Iterate through the list of existing permissions on the role and append permissions that we want to keep.
 	for _, permission := range r.Permissions {
 		// Permission is not moderated so dont add it to the patch and skip the channelModerationsPatch
-		if _, isModerated := CHANNEL_MODERATED_PERMISSIONS_MAP[permission]; !isModerated {
+		if _, isModerated := ChannelModeratedPermissionsMap[permission]; !isModerated {
 			continue
 		}
 
 		permissionEnabled := true
 		// Check if permission has a matching moderated permission name inside the channel moderation patch
 		for _, channelModerationPatch := range channelModerationsPatch {
-			if *channelModerationPatch.Name == CHANNEL_MODERATED_PERMISSIONS_MAP[permission] {
+			if *channelModerationPatch.Name == ChannelModeratedPermissionsMap[permission] {
 				// Permission key exists in patch with a value of false so skip over it
 				if roleName == "members" {
 					if channelModerationPatch.Roles.Members != nil && !*channelModerationPatch.Roles.Members {
@@ -307,7 +373,7 @@ func (r *Role) RolePatchFromChannelModerationsPatch(channelModerationsPatch []*C
 
 	// Iterate through the patch and add any permissions that dont already exist on the role
 	for _, channelModerationPatch := range channelModerationsPatch {
-		for permission, moderatedPermissionName := range CHANNEL_MODERATED_PERMISSIONS_MAP {
+		for permission, moderatedPermissionName := range ChannelModeratedPermissionsMap {
 			if roleName == "members" && channelModerationPatch.Roles.Members != nil && *channelModerationPatch.Roles.Members && *channelModerationPatch.Name == moderatedPermissionName {
 				permissionsToAddToPatch[permission] = true
 			}
@@ -349,7 +415,7 @@ func (r *Role) IsValidWithoutId() bool {
 
 	for _, permission := range r.Permissions {
 		permissionValidated := false
-		for _, p := range ALL_PERMISSIONS {
+		for _, p := range append(AllPermissions, DeprecatedPermissions...) {
 			if permission == p.Id {
 				permissionValidated = true
 				break
@@ -579,6 +645,91 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	roles[SYSTEM_USER_MANAGER_ROLE_ID] = &Role{
+		Name:        "system_user_manager",
+		DisplayName: "authentication.roles.system_user_manager.name",
+		Description: "authentication.roles.system_user_manager.description",
+		Permissions: []string{
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SYSTEM_READ_ONLY_ADMIN_ROLE_ID] = &Role{
+		Name:        "system_read_only_admin",
+		DisplayName: "authentication.roles.system_read_only_admin.name",
+		Description: "authentication.roles.system_read_only_admin.description",
+		Permissions: []string{
+			PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+			PERMISSION_SYSCONSOLE_READ_REPORTING.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS.Id,
+			PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id,
+			PERMISSION_SYSCONSOLE_READ_SITE.Id,
+			PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id,
+			PERMISSION_SYSCONSOLE_READ_PLUGINS.Id,
+			PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id,
+			PERMISSION_SYSCONSOLE_READ_EXPERIMENTAL.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	roles[SYSTEM_MANAGER_ROLE_ID] = &Role{
+		Name:        "system_manager",
+		DisplayName: "authentication.roles.system_manager.name",
+		Description: "authentication.roles.system_manager.description",
+		Permissions: []string{
+			PERMISSION_SYSCONSOLE_READ_ABOUT.Id,
+			PERMISSION_SYSCONSOLE_READ_REPORTING.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_TEAMS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_CHANNELS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS.Id,
+			PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id,
+			PERMISSION_SYSCONSOLE_WRITE_ENVIRONMENT.Id,
+			PERMISSION_SYSCONSOLE_READ_SITE.Id,
+			PERMISSION_SYSCONSOLE_WRITE_SITE.Id,
+			PERMISSION_SYSCONSOLE_READ_AUTHENTICATION.Id,
+			PERMISSION_SYSCONSOLE_READ_PLUGINS.Id,
+			PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id,
+			PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id,
+		},
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	// Add the ancillary permissions to each new system role
+	for _, role := range []*Role{roles[SYSTEM_USER_MANAGER_ROLE_ID], roles[SYSTEM_READ_ONLY_ADMIN_ROLE_ID], roles[SYSTEM_MANAGER_ROLE_ID]} {
+		for _, rolePermission := range role.Permissions {
+			if ancillaryPermissions, ok := SysconsoleAncillaryPermissions[rolePermission]; ok {
+				for _, ancillaryPermission := range ancillaryPermissions {
+					role.Permissions = append(role.Permissions, ancillaryPermission.Id)
+				}
+			}
+		}
+	}
+
+	allPermissionIDs := []string{}
+	for _, permission := range AllPermissions {
+		allPermissionIDs = append(allPermissionIDs, permission.Id)
+	}
+
 	roles[SYSTEM_ADMIN_ROLE_ID] = &Role{
 		Name:        "system_admin",
 		DisplayName: "authentication.roles.global_admin.name",
@@ -586,61 +737,7 @@ func MakeDefaultRoles() map[string]*Role {
 		// System admins can do anything channel and team admins can do
 		// plus everything members of teams and channels can do to all teams
 		// and channels on the system
-		Permissions: append(
-			append(
-				append(
-					append(
-						[]string{
-							PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE.Id,
-							PERMISSION_MANAGE_SYSTEM.Id,
-							PERMISSION_MANAGE_ROLES.Id,
-							PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
-							PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
-							PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
-							PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
-							PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
-							PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
-							PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
-							PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
-							PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-							PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
-							PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
-							PERMISSION_EDIT_OTHER_USERS.Id,
-							PERMISSION_EDIT_OTHERS_POSTS.Id,
-							PERMISSION_MANAGE_OAUTH.Id,
-							PERMISSION_INVITE_USER.Id,
-							PERMISSION_INVITE_GUEST.Id,
-							PERMISSION_PROMOTE_GUEST.Id,
-							PERMISSION_DEMOTE_TO_GUEST.Id,
-							PERMISSION_DELETE_POST.Id,
-							PERMISSION_DELETE_OTHERS_POSTS.Id,
-							PERMISSION_CREATE_TEAM.Id,
-							PERMISSION_ADD_USER_TO_TEAM.Id,
-							PERMISSION_LIST_USERS_WITHOUT_TEAM.Id,
-							PERMISSION_MANAGE_JOBS.Id,
-							PERMISSION_CREATE_POST_PUBLIC.Id,
-							PERMISSION_CREATE_POST_EPHEMERAL.Id,
-							PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
-							PERMISSION_READ_USER_ACCESS_TOKEN.Id,
-							PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
-							PERMISSION_CREATE_BOT.Id,
-							PERMISSION_READ_BOTS.Id,
-							PERMISSION_READ_OTHERS_BOTS.Id,
-							PERMISSION_MANAGE_BOTS.Id,
-							PERMISSION_MANAGE_OTHERS_BOTS.Id,
-							PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
-							PERMISSION_LIST_PRIVATE_TEAMS.Id,
-							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
-							PERMISSION_VIEW_MEMBERS.Id,
-						},
-						roles[TEAM_USER_ROLE_ID].Permissions...,
-					),
-					roles[CHANNEL_USER_ROLE_ID].Permissions...,
-				),
-				roles[TEAM_ADMIN_ROLE_ID].Permissions...,
-			),
-			roles[CHANNEL_ADMIN_ROLE_ID].Permissions...,
-		),
+		Permissions:   allPermissionIDs,
 		SchemeManaged: true,
 		BuiltIn:       true,
 	}
