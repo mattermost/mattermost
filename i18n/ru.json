@@ -7822,5 +7822,41 @@
     {
         "id": "app.post.delete.app_error",
         "translation": "Невозможно удалить сообщение."
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Невозможно создать новое членство в команде, потому что команда достигла предела участников"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Невозможно создать новое членство в команде, потому что оно уже существует"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Невозможно создать новое членство в команде"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Невозможно импортировать членство в команде, потому что в этой команде не разрешены дополнительные участники"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Невозможно импортировать членство в команде"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Невозможно импортировать новое членство в команде, потому что оно уже существует"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию, потому что оно уже существует"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию"
     }
 ]
