@@ -7909,5 +7909,173 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "No se puede convertir la exportación a XML."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. La firma digital de la lima binaria descargada no podría ser verificada."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. Esta característica sólo obrará encima sistemas de Linux con x86-64 arquitectura."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchown {{.FileUsername}} \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Ruta}}\"\nchmod +w \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchown {{.FileUsername}} \"{{.Ruta}}\"\nchmod -w \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa. El Mattermost usuario de sistema {{.MattermostUsername}} No tiene escribir acceso a la lima binaria necesaria. Un administrador de sistema puede actualizar los permisos de lima por ejecutar la orden siguiente en el servidor donde Mattermost está instalado:\n\n```\nchmod +w \"{{.Ruta}}\"\n```\n\ndespués de cambiar los permisos de lima, prueba a upgrade Mattermost otra vez. Cuándo  has upgraded y retomado, recuerda para restaurar los permisos de lima binarios originales:\n\n```\nchmod -w \"{{.Ruta}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost Era incapaz a upgrade a Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "Un upgrade a Mattermost Edición de Empresa ya está corriendo."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": " Puedes no upgrade porque ya estás corriendo Mattermost Edición de Empresa."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": " Has ya upgraded a Mattermost Edición de Empresa. Complacer retomar el servidor para acabar el upgrade."
+    },
+    {
+        "id": "store.sql_post.search.app_error",
+        "translation": "El error que busca postes"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "No se pudo actualizar el trabajo."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "No se pudo guardar el trabajo."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "No pudimos obtener el trabajo más reciente según estado y tipo."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "No pudimos obtener la cantidad de trabajos según estado y tipo."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "No se pudo obtener los trabajos."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "No se pudo obtener el trabajo."
+    },
+    {
+        "id": "ent.message_export.global_relay_export.get_attachment_error",
+        "translation": "Fallado para coger lima info para un poste."
+    },
+    {
+        "id": "ent.message_export.csv_export.get_attachment_error",
+        "translation": "Fallado para coger lima info para un poste."
+    },
+    {
+        "id": "ent.message_export.actiance_export.get_attachment_error",
+        "translation": "Fallado para coger lima info para un poste."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Hemos detectado un error al eliminar permanentemente el lote de información archivos."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "No se pudo guardar la información del archivo."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "No se pudo eliminar los archivos adjuntos del usuario."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "No pudimos obtener la información del archivo por ruta."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "No pudimos obtener la información del archivo para el mensaje."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "No se pudo obtener la información del archivo."
+    },
+    {
+        "id": "api.team.invite_members.limit_reached.app_error",
+        "translation": " Has logrado el libre tier límite de usuario"
+    },
+    {
+        "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+        "translation": "La entidad más vieja (usuario, canal o poste), no podría ser recuperado de la base de datos"
+    },
+    {
+        "id": "api.config.migrate_config.app_error",
+        "translation": "Fallado para emigrar config tienda."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Equipo permanente deletion la característica no es habilitada. Complacer contactar vuestro Administrador de Sistema."
+    },
+    {
+        "id": "app.email.setup_rate_limiter.app_error",
+        "translation": "El error ocurrido en el limitador de tasa."
+    },
+    {
+        "id": "app.email.rate_limit_exceeded.app_error",
+        "translation": "Invita límite de tasa de los emails superó. El temporizador será reinicialización  después de que {{.ResetAfter}} Segundos. Complacer retry después de que {{.RetryAfter}} Segundos."
+    },
+    {
+        "id": "app.email.no_rate_limiter.app_error",
+        "translation": "Limitador de tasa no es poner arriba."
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Incapaz de crear la afiliación de equipo nueva porque el equipo ha logrado el límite de miembros"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Incapaz de crear la afiliación de equipo nueva porque ya existe"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Incapaz de crear la afiliación de equipo nueva"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Incapaz de importar afiliación de equipo porque no más los miembros están dejados en aquel equipo"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Incapaz de importar afiliaciones de equipo"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Incapaz de importar la afiliación de equipo nueva porque ya existe"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Incapaz de crear default afiliación de equipo porque no más los miembros están dejados en aquel equipo"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Incapaz de crear default afiliación de equipo porque ya existe"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Incapaz de crear default afiliaciones de equipo"
     }
 ]

@@ -6484,7 +6484,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": ""
+        "translation": "Post Props are longer than the maximum permitted length."
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
@@ -7909,5 +7909,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Não foi possível converter a exportação para XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Não foi possível atualizar o job."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Não foi possível salvar o job."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Não foi possível buscar a nova tarefa por status e tipo."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Não foi possível buscar o número de tarefas por status e tipo."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Não foi possível obter as tarefas."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Não foi possível obter o job."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Encontramos um erro ao apagar o lote de arquivos de informações."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Não foi possível salvar as informações do arquivo."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Não foi possível excluir anexos do usuário."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Não foi possível obter as informações do arquivo com opções"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Não foi possível obter as informações do arquivo para publicação."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Não foi possível obter as informações do arquivo."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "O recurso de exclusão permanente da equipe não está ativado. Entre em contato com o Administrador do Sistema."
     }
 ]

@@ -7904,5 +7904,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "エクスポート情報をXMLへ変換できませんでした。"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "ジョブを更新できませんでした。"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "ジョブを保存できませんでした。"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "状態と種類から最新のジョブを取得することができませんでした。"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "状態と種類からジョブ数を取得することができませんでした。"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "ジョブを取得できませんでした。"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "ジョブを取得できませんでした。"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "複数のファイル情報を完全に削除する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "ファイル情報を保存できませんでした。"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "ユーザーの添付ファイルを削除できませんでした。"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "オプションのファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "投稿のファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "ファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "チーム削除機能は有効になっていません。システム管理者に連絡してください。"
     }
 ]

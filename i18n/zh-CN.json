@@ -7776,5 +7776,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "无法转换导出到 XML。"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "无法更新任务。"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "无法保存任务。"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "无法以状态和类型获取最新任务。"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "无法以状态和类型获取任务数。"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "无法获取任务。"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "无法获取任务。"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "批量永久删除文件信息时遇到错误。"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "无法保存文件信息。"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "无法删除用户的附件。"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "无法获取文件信息以及选项"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "无法从消息获取文件信息。"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "无法获取文件信息。"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "永久删除功能未开启。请联系您的系统管理员。"
     }
 ]

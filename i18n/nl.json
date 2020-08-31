@@ -7945,5 +7945,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Kan export niet converteren naar XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Taak kan niet worden bijgewerkt."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Kan de taak niet bewaren."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "De nieuwste taak kan niet worden opgehaald naar status en type."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Aantal taken kan niet worden opgehaald naar status en type."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "De taken kunnen niet worden opgehaald."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "De taak kan niet worden opgehaald."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Er is een fout opgetreden bij het permanent verwijderen van de batch met bestandsinfo."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Kan de bestandsinformatie niet bewaren."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Bijlagen van de gebruiker kunnen niet worden gewist."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Bestandsinformatie met opties kan niet worden opgehaald."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "De bestandsinformatie voor de post kan niet worden opgehaald."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "De bestandsinformatie kan niet worden opgehaald."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Definitief verwijderen van de teams is niet ingeschakeld. Contacteer je systeembeheerder."
     }
 ]

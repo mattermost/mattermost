@@ -1435,7 +1435,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": ""
+        "translation": "無法刪除已刪除頻道的訊息。"
     },
     {
         "id": "api.post.disabled_all",
@@ -1475,7 +1475,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": ""
+        "translation": "無法更新已刪除頻道的訊息。"
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1511,7 +1511,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": ""
+        "translation": "無法更新已刪除頻道的訊息。"
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1567,7 +1567,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": ""
+        "translation": "受限的系統管理員無法執行此動作。"
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -6479,7 +6479,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": ""
+        "translation": "Post Props are longer than the maximum permitted length."
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
@@ -7876,5 +7876,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "無法轉換匯出至 XML"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "無法更新工作"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "無法儲存工作"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "無法根據狀態與類型取得最新工作"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "無法根據狀態與類型取得工作數量"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "無法取得工作"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "無法取得工作"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "永久批次刪除檔案資訊時遇到錯誤"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "無法儲存檔案訊息"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "無法刪除使用者的附件檔案"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "無法根據設定取得檔案訊息"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "無法取得訊息的檔案訊息"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "無法取得檔案訊息"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
     }
 ]

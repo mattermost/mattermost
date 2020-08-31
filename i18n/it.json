@@ -7929,5 +7929,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Impossibile convertire l'esportazione in XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Impossibile aggiornare il lavoro"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Impossibile salvare il lavoro"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Impossibile recuperare il nuovo lavoro per stato e tipo"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Impossibile recuperare il numero di lavori per stato e tipo"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Impossibile ottenere i lavori"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Impossibile ottenere il lavoro"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Si è verificato un errore durante la cancellazione delle informazioni sui file"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Impossibile salvare le informazioni sul file"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Impossibile eliminare gli allegati di un utente"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Non è stato possibile recuperare le informazioni sul file dal percorso"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Non è stato possibile recuperare le informazioni sul file per la pubblicazione"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Impossibile salvare il file informativo"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "La funzione di eliminazione definitiva squadra non è attiva. Contattare l'Amministratore di Sistema."
     }
 ]

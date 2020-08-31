@@ -7945,5 +7945,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Görev güncellenemedi."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Görev kaydedilemedi."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Durum ve türe göre en son görev alınamadı."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Durum ve türe göre görev sayısı alınamadı."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Görevler alınamadı."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Görev alınamadı."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Toplu dosya bilgileri kalıcı olarak silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Dosya bilgileri kaydedilemedi."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Kullanıcının ek dosyaları silinemedi."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Yola göre dosya bilgileri alınamadı."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "İletinin dosya bilgileri alınamadı."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Dosya bilgileri alınamadı."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
     }
 ]

@@ -7852,5 +7852,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "작업을 업데이트 할 수 없습니다."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "작업을 저장할 수 없습니다."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "상태 및 유형별로 최신 작업을 가져 올 수 없습니다."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "상태 및 유형별로 작업 수를 가져올 수 없음"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "작업을 가져올 수 없음"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "직업을 가져올 수 없음"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "파일 정보 배치를 영구적으로 삭제하는 중 오류가 발생함"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "파일 정보를 저장할 수 없습니다."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "사용자 첨부파일을 삭제 할수 없습니다."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "파일 정보 경로를 찾을 수 없음"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "게시물에 대한 파일 정보를 가져올 수 없음"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "파일 정보를 가져올 수 없음"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "영구 팀 삭제 기능이 활성화되어 있지 않습니다. 시스템 관리자에게 문의하십시오."
     }
 ]

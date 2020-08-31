@@ -329,7 +329,7 @@
     },
     {
         "id": "api.command.execute_command.create_post_failed.app_error",
-        "translation": ""
+        "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
     },
     {
         "id": "api.command.execute_command.failed.app_error",
@@ -1173,7 +1173,7 @@
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-        "translation": ""
+        "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
     },
     {
         "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1189,15 +1189,15 @@
     },
     {
         "id": "api.file.upload_file.multiple_channel_ids.app_error",
-        "translation": ""
+        "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
     },
     {
         "id": "api.file.upload_file.read_form_value.app_error",
-        "translation": ""
+        "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
     },
     {
         "id": "api.file.upload_file.read_request.app_error",
-        "translation": ""
+        "translation": "Unable to upload file(s). Error reading or parsing request data."
     },
     {
         "id": "api.file.upload_file.storage.app_error",
@@ -1205,7 +1205,7 @@
     },
     {
         "id": "api.file.upload_file.too_large_detailed.app_error",
-        "translation": ""
+        "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
     },
     {
         "id": "api.file.write_file.s3.app_error",
@@ -1233,11 +1233,11 @@
     },
     {
         "id": "api.ldap_group.not_found",
-        "translation": ""
+        "translation": "ldap group not found"
     },
     {
         "id": "api.ldap_groups.license_error",
-        "translation": ""
+        "translation": "Редакція не підтримує Elasticsearch. "
     },
     {
         "id": "api.license.add_license.array.app_error",
@@ -1281,7 +1281,7 @@
     },
     {
         "id": "api.marshal_error",
-        "translation": ""
+        "translation": "marshal error"
     },
     {
         "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1433,15 +1433,15 @@
     },
     {
         "id": "api.post.deduplicate_create_post.failed_to_get",
-        "translation": ""
+        "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
     },
     {
         "id": "api.post.deduplicate_create_post.pending",
-        "translation": ""
+        "translation": "Rejected post since another client is making the same request."
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": ""
+        "translation": "Can not delete a post in a deleted channel."
     },
     {
         "id": "api.post.disabled_all",
@@ -1485,7 +1485,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": ""
+        "translation": "Can not update a post in a deleted channel."
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1521,7 +1521,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": ""
+        "translation": "Can not update a post in a deleted channel."
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1577,7 +1577,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": ""
+        "translation": "This action is forbidden to a restricted system admin."
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -2165,7 +2165,7 @@
     },
     {
         "id": "api.user.create_email_token.error",
-        "translation": ""
+        "translation": "Failed to create token data for email verification"
     },
     {
         "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2229,7 +2229,7 @@
     },
     {
         "id": "api.user.get_user_by_email.permissions.app_error",
-        "translation": ""
+        "translation": "Unable to get user by email."
     },
     {
         "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2449,11 +2449,11 @@
     },
     {
         "id": "api.user.verify_email.link_expired.app_error",
-        "translation": ""
+        "translation": "The email verification link has expired."
     },
     {
         "id": "api.user.verify_email.token_parse.error",
-        "translation": ""
+        "translation": "Failed to parse token data from email verification"
     },
     {
         "id": "api.web_socket.connect.upgrade.app_error",
@@ -3493,7 +3493,7 @@
     },
     {
         "id": "ent.ldap.syncronize.populate_syncables",
-        "translation": ""
+        "translation": "error populating syncables"
     },
     {
         "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3505,23 +3505,23 @@
     },
     {
         "id": "ent.ldap_groups.group_search_error",
-        "translation": ""
+        "translation": "error retrieving ldap group"
     },
     {
         "id": "ent.ldap_groups.groups_search_error",
-        "translation": ""
+        "translation": "error retrieving ldap groups"
     },
     {
         "id": "ent.ldap_groups.members_of_group_error",
-        "translation": ""
+        "translation": "error retrieving members of group"
     },
     {
         "id": "ent.ldap_groups.no_rows",
-        "translation": ""
+        "translation": "no groups found with matching uid"
     },
     {
         "id": "ent.ldap_groups.reachable_groups_error",
-        "translation": ""
+        "translation": "error retrieving groups for user"
     },
     {
         "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -4013,11 +4013,11 @@
     },
     {
         "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-        "translation": ""
+        "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
     },
     {
         "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-        "translation": ""
+        "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
     },
     {
         "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4101,7 +4101,7 @@
     },
     {
         "id": "model.config.is_valid.image_proxy_type.app_error",
-        "translation": ""
+        "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
     },
     {
         "id": "model.config.is_valid.ldap_basedn",
@@ -4649,7 +4649,7 @@
     },
     {
         "id": "model.post.is_valid.file_ids.app_error",
-        "translation": ""
+        "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
     },
     {
         "id": "model.post.is_valid.filenames.app_error",
@@ -4913,15 +4913,15 @@
     },
     {
         "id": "plugin_api.send_mail.missing_htmlbody",
-        "translation": ""
+        "translation": "Missing HTML Body."
     },
     {
         "id": "plugin_api.send_mail.missing_subject",
-        "translation": ""
+        "translation": "Missing email subject."
     },
     {
         "id": "plugin_api.send_mail.missing_to",
-        "translation": ""
+        "translation": "Missing TO address."
     },
     {
         "id": "store.insert_error",
@@ -4929,7 +4929,7 @@
     },
     {
         "id": "store.select_error",
-        "translation": ""
+        "translation": "select error"
     },
     {
         "id": "store.sql.convert_string_array",
@@ -5137,11 +5137,11 @@
     },
     {
         "id": "store.sql_group.group_syncable_already_deleted",
-        "translation": ""
+        "translation": "group syncable was already deleted"
     },
     {
         "id": "store.sql_group.no_rows",
-        "translation": ""
+        "translation": "no matching group found"
     },
     {
         "id": "store.sql_group.unique_constraint",
@@ -5149,7 +5149,7 @@
     },
     {
         "id": "store.sql_group.uniqueness_error",
-        "translation": ""
+        "translation": "group member already exists"
     },
     {
         "id": "store.sql_post.analytics_posts_count.app_error",
@@ -5705,19 +5705,19 @@
     },
     {
         "id": "web.error.unsupported_browser.system_browser_make_default",
-        "translation": ""
+        "translation": "Make default"
     },
     {
         "id": "web.error.unsupported_browser.open_system_browser.edge",
-        "translation": ""
+        "translation": "Open Edge"
     },
     {
         "id": "web.error.unsupported_browser.no_longer_support_version",
-        "translation": ""
+        "translation": "This version of your browser is no longer supported by Mattermost"
     },
     {
         "id": "web.error.unsupported_browser.no_longer_support",
-        "translation": ""
+        "translation": "This browser is no longer supported by Mattermost"
     },
     {
         "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -5745,27 +5745,27 @@
     },
     {
         "id": "web.error.unsupported_browser.learn_more",
-        "translation": ""
+        "translation": "Learn more about supported browsers."
     },
     {
         "id": "web.error.unsupported_browser.install_guide.windows",
-        "translation": ""
+        "translation": "Install Guide"
     },
     {
         "id": "web.error.unsupported_browser.install_guide.mac",
-        "translation": ""
+        "translation": "Install Guide"
     },
     {
         "id": "web.error.unsupported_browser.download_the_app",
-        "translation": ""
+        "translation": "Download the App"
     },
     {
         "id": "web.error.unsupported_browser.download_app_or_upgrade_browser",
-        "translation": ""
+        "translation": "Download the Mattermost app or use a supported browser for a better experience."
     },
     {
         "id": "web.error.unsupported_browser.download",
-        "translation": ""
+        "translation": "Download the App"
     },
     {
         "id": "web.error.unsupported_browser.browser_title.safari",
@@ -5785,15 +5785,15 @@
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.safari",
-        "translation": ""
+        "translation": "Get the latest Safari browser"
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.firefox",
-        "translation": ""
+        "translation": "Get the latest Firefox browser"
     },
     {
         "id": "web.error.unsupported_browser.browser_get_latest.chrome",
-        "translation": ""
+        "translation": "Get the latest Chrome browser"
     },
     {
         "id": "store.sql_user.update_active_for_multiple_users.updating.app_error",
@@ -5801,7 +5801,7 @@
     },
     {
         "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
-        "translation": ""
+        "translation": "Unable to get the list of deactivate guests ids."
     },
     {
         "id": "store.sql_user.promote_guest.user_update.app_error",
@@ -5829,11 +5829,11 @@
     },
     {
         "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-        "translation": ""
+        "translation": "Unable to get the team members for the users batch for indexing."
     },
     {
         "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-        "translation": ""
+        "translation": "Unable to get the channel members for the users batch for indexing."
     },
     {
         "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
@@ -5841,7 +5841,7 @@
     },
     {
         "id": "store.sql_user.get_known_users.get_users.app_error",
-        "translation": ""
+        "translation": "Unable to get know users from the database."
     },
     {
         "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
@@ -5865,11 +5865,11 @@
     },
     {
         "id": "store.sql_user.count.app_error",
-        "translation": ""
+        "translation": "UserCountOptions don't make sense."
     },
     {
         "id": "store.sql_team.user_belongs_to_teams.app_error",
-        "translation": ""
+        "translation": "Unable to determine if the user belongs to a list of teams."
     },
     {
         "id": "store.sql_team.search_private_team.app_error",
@@ -5877,11 +5877,11 @@
     },
     {
         "id": "store.sql_team.get_user_team_ids.app_error",
-        "translation": ""
+        "translation": "Unable to get the list of teams of a user."
     },
     {
         "id": "store.sql_team.get_by_names.missing.app_error",
-        "translation": ""
+        "translation": "Unable to find some of the requested teams"
     },
     {
         "id": "store.sql_team.get_by_names.app_error",
@@ -5909,15 +5909,15 @@
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
-        "translation": ""
+        "translation": "Unable to get the post replies count"
     },
     {
         "id": "store.sql_post.get_post_id_around.app_error",
-        "translation": ""
+        "translation": "Unable to get post around time bound."
     },
     {
         "id": "store.sql_post.get_post_after_time.app_error",
-        "translation": ""
+        "translation": "Unable to get post after time bound."
     },
     {
         "id": "store.sql_post.get_direct_posts.app_error",
@@ -5925,11 +5925,11 @@
     },
     {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
-        "translation": ""
+        "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
     },
     {
         "id": "store.sql_group.app_error",
-        "translation": ""
+        "translation": "failed to build query."
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -5937,11 +5937,11 @@
     },
     {
         "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-        "translation": ""
+        "translation": "Unable to mark channel as unread."
     },
     {
         "id": "store.sql_channel.search_group_channels.app_error",
-        "translation": ""
+        "translation": "Unable to get the group channels for the given user and term."
     },
     {
         "id": "store.sql_channel.get_pinnedpost_count.app_error",
@@ -5961,23 +5961,23 @@
     },
     {
         "id": "store.sql_channel.count_posts_since.app_error",
-        "translation": ""
+        "translation": "Unable to count messages since given date."
     },
     {
         "id": "store.sql.build_query.app_error",
-        "translation": ""
+        "translation": "failed to build query."
     },
     {
         "id": "searchengine.bleve.disabled.error",
-        "translation": ""
+        "translation": "Error purging Bleve indexes: engine is disabled"
     },
     {
         "id": "plugin_api.bot_cant_create_bot",
-        "translation": ""
+        "translation": "Bot user cannot create bot user."
     },
     {
         "id": "plugin.api.get_users_in_channel",
-        "translation": ""
+        "translation": "Unable to get the users, invalid sorting criteria."
     },
     {
         "id": "model.user.is_valid.update_at.app_error",
@@ -5985,11 +5985,11 @@
     },
     {
         "id": "model.user.is_valid.position.app_error",
-        "translation": ""
+        "translation": "Invalid position: must not be longer than 128 characters."
     },
     {
         "id": "model.user.is_valid.password_limit.app_error",
-        "translation": ""
+        "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
     },
     {
         "id": "model.user.is_valid.nickname.app_error",
@@ -6017,27 +6017,27 @@
     },
     {
         "id": "model.user.is_valid.auth_data_type.app_error",
-        "translation": ""
+        "translation": "Invalid user, auth data must be set with auth type."
     },
     {
         "id": "model.user.is_valid.auth_data_pwd.app_error",
-        "translation": ""
+        "translation": "Invalid user, password and auth data cannot both be set."
     },
     {
         "id": "model.user.is_valid.auth_data.app_error",
-        "translation": ""
+        "translation": "Invalid auth data."
     },
     {
         "id": "model.team.is_valid.invite_id.app_error",
-        "translation": ""
+        "translation": "Invalid invite id."
     },
     {
         "id": "model.post.channel_notifications_disabled_in_channel.message",
-        "translation": ""
+        "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
     },
     {
         "id": "model.plugin_kvset_options.is_valid.old_value.app_error",
-        "translation": ""
+        "translation": "Invalid old value, it shouldn't be set when the operation is not atomic."
     },
     {
         "id": "model.guest.is_valid.emails.app_error",
@@ -6057,23 +6057,23 @@
     },
     {
         "id": "model.group.name.invalid_chars.app_error",
-        "translation": ""
+        "translation": "invalid characters in the name property for group"
     },
     {
         "id": "model.config.is_valid.saml_signature_algorithm.app_error",
-        "translation": ""
+        "translation": "Invalid Signature Algorithm."
     },
     {
         "id": "model.config.is_valid.saml_guest_attribute.app_error",
-        "translation": ""
+        "translation": "Invalid Guest attribute. Must be in the form 'field=value'."
     },
     {
         "id": "model.config.is_valid.saml_canonical_algorithm.app_error",
-        "translation": ""
+        "translation": "Invalid Canonical Algorithm."
     },
     {
         "id": "model.config.is_valid.saml_admin_attribute.app_error",
-        "translation": ""
+        "translation": "Invalid Admin attribute. Must be in the form 'field=value'."
     },
     {
         "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
@@ -6097,11 +6097,11 @@
     },
     {
         "id": "model.command.is_valid.autocomplete_data.app_error",
-        "translation": ""
+        "translation": "Invalid AutocompleteData"
     },
     {
         "id": "model.channel.is_valid.name.app_error",
-        "translation": ""
+        "translation": "Invalid channel name. User ids are not permitted in channel name for non-direct message channels."
     },
     {
         "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -6109,11 +6109,11 @@
     },
     {
         "id": "groups.unsupported_syncable_type",
-        "translation": ""
+        "translation": "Unsupported syncable type '{{.Value}}'."
     },
     {
         "id": "group_not_associated_to_synced_team",
-        "translation": ""
+        "translation": "Group cannot be associated to the channel until it is first associated to the parent group-synced team."
     },
     {
         "id": "ent.ldap.validate_guest_filter.app_error",
@@ -6125,23 +6125,23 @@
     },
     {
         "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-        "translation": ""
+        "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
     },
     {
         "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-        "translation": ""
+        "translation": "error deleting team or channel memberships"
     },
     {
         "id": "ent.id_loaded.license_disable.app_error",
-        "translation": ""
+        "translation": "Your license does not support ID Loaded Push Notifications."
     },
     {
         "id": "ent.elasticsearch.start.parse_server_version.app_error",
-        "translation": ""
+        "translation": "Failed to parse Elasticsearch server version."
     },
     {
         "id": "ent.elasticsearch.start.get_server_version.app_error",
-        "translation": ""
+        "translation": "Failed to get Elasticsearch server version."
     },
     {
         "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -6169,7 +6169,7 @@
     },
     {
         "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-        "translation": ""
+        "translation": "Trying to index a new batch when all the entities are completed"
     },
     {
         "id": "ent.elasticsearch.index_user.error",
@@ -6189,15 +6189,15 @@
     },
     {
         "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-        "translation": ""
+        "translation": "Failed to create Elasticsearch template for users"
     },
     {
         "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-        "translation": ""
+        "translation": "Failed to create Elasticsearch template for posts"
     },
     {
         "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-        "translation": ""
+        "translation": "Failed to create Elasticsearch template for channels"
     },
     {
         "id": "ent.compliance.csv.warning.appError",
@@ -6209,19 +6209,19 @@
     },
     {
         "id": "cli.outgoing_webhook.inconsistent_state.app_error",
-        "translation": ""
+        "translation": "The outgoing webhook is deleted but unable to create a new one due to some error."
     },
     {
         "id": "bleveengine.stop_user_index.error",
-        "translation": ""
+        "translation": "Failed to close user index."
     },
     {
         "id": "bleveengine.stop_post_index.error",
-        "translation": ""
+        "translation": "Failed to close post index."
     },
     {
         "id": "bleveengine.stop_channel_index.error",
-        "translation": ""
+        "translation": "Failed to close channel index."
     },
     {
         "id": "bleveengine.search_users_in_team.error",
@@ -6245,19 +6245,19 @@
     },
     {
         "id": "bleveengine.purge_user_index.error",
-        "translation": ""
+        "translation": "Failed to purge user indexes."
     },
     {
         "id": "bleveengine.purge_post_index.error",
-        "translation": ""
+        "translation": "Failed to purge post indexes."
     },
     {
         "id": "bleveengine.purge_channel_index.error",
-        "translation": ""
+        "translation": "Failed to purge channel indexes."
     },
     {
         "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-        "translation": ""
+        "translation": "Trying to index a new batch when all the entities are completed."
     },
     {
         "id": "bleveengine.indexer.do_job.parse_start_time.error",
@@ -6273,19 +6273,19 @@
     },
     {
         "id": "bleveengine.indexer.do_job.engine_inactive",
-        "translation": ""
+        "translation": "Failed to run Bleve index job: engine is inactive."
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-        "translation": ""
+        "translation": "Failed to index user batch."
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-        "translation": ""
+        "translation": "Failed to index post batch."
     },
     {
         "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-        "translation": ""
+        "translation": "Failed to index channel batch."
     },
     {
         "id": "bleveengine.index_user.error",
@@ -6313,19 +6313,19 @@
     },
     {
         "id": "bleveengine.create_user_index.error",
-        "translation": ""
+        "translation": "Error creating the bleve user index."
     },
     {
         "id": "bleveengine.create_post_index.error",
-        "translation": ""
+        "translation": "Error creating the bleve post index."
     },
     {
         "id": "bleveengine.create_channel_index.error",
-        "translation": ""
+        "translation": "Error creating the bleve channel index."
     },
     {
         "id": "bleveengine.already_started.error",
-        "translation": ""
+        "translation": "Bleve is already started."
     },
     {
         "id": "app.user_terms_of_service.save.app_error",
@@ -6361,15 +6361,15 @@
     },
     {
         "id": "app.team.rename_team.name_occupied",
-        "translation": ""
+        "translation": "Unable to rename the team, the name is already in use."
     },
     {
         "id": "app.team.invite_token.group_constrained.error",
-        "translation": ""
+        "translation": "Unable to join a group-constrained team by token."
     },
     {
         "id": "app.team.invite_id.group_constrained.error",
-        "translation": ""
+        "translation": "Unable to join a group-constrained team by invite."
     },
     {
         "id": "app.plugin.write_file.saving.app_error",
@@ -6381,55 +6381,55 @@
     },
     {
         "id": "app.plugin.webapp_bundle.app_error",
-        "translation": ""
+        "translation": "Unable to generate plugin webapp bundle."
     },
     {
         "id": "app.plugin.sync.read_local_folder.app_error",
-        "translation": ""
+        "translation": "Error reading local plugins folder."
     },
     {
         "id": "app.plugin.sync.list_filestore.app_error",
-        "translation": ""
+        "translation": "Error reading files from the plugins folder in the file store."
     },
     {
         "id": "app.plugin.store_signature.app_error",
-        "translation": ""
+        "translation": "Unable to store the plugin signature to the configured file store."
     },
     {
         "id": "app.plugin.store_bundle.app_error",
-        "translation": ""
+        "translation": "Unable to store the plugin to the configured file store."
     },
     {
         "id": "app.plugin.signature_decode.app_error",
-        "translation": ""
+        "translation": "Unable to decode base64 signature."
     },
     {
         "id": "app.plugin.restart.app_error",
-        "translation": ""
+        "translation": "Unable to restart plugin on upgrade."
     },
     {
         "id": "app.plugin.remove_bundle.app_error",
-        "translation": ""
+        "translation": "Unable to remove plugin bundle from file store."
     },
     {
         "id": "app.plugin.modify_saml.app_error",
-        "translation": ""
+        "translation": "Can't modify saml files."
     },
     {
         "id": "app.plugin.marshal.app_error",
-        "translation": ""
+        "translation": "Failed to marshal marketplace plugins."
     },
     {
         "id": "app.plugin.marketplace_plugins.signature_not_found.app_error",
-        "translation": ""
+        "translation": "Could not find the requested marketplace plugin signature."
     },
     {
         "id": "app.plugin.marketplace_plugins.not_found.app_error",
-        "translation": ""
+        "translation": "Could not find the requested marketplace plugin."
     },
     {
         "id": "app.plugin.marketplace_plugin_request.app_error",
-        "translation": ""
+        "translation": "Failed to decode the marketplace plugin request."
     },
     {
         "id": "app.plugin.marketplace_disabled.app_error",
@@ -6437,27 +6437,27 @@
     },
     {
         "id": "app.plugin.marketplace_client.failed_to_fetch",
-        "translation": ""
+        "translation": "Failed to get plugins from the marketplace server."
     },
     {
         "id": "app.plugin.marketplace_client.app_error",
-        "translation": ""
+        "translation": "Failed to create marketplace client."
     },
     {
         "id": "app.plugin.invalid_version.app_error",
-        "translation": ""
+        "translation": "Plugin version could not be parsed."
     },
     {
         "id": "app.plugin.install_marketplace_plugin.app_error",
-        "translation": ""
+        "translation": "Failed to install marketplace plugin."
     },
     {
         "id": "app.plugin.get_public_key.get_file.app_error",
-        "translation": ""
+        "translation": "An error occurred while getting the public key from the store."
     },
     {
         "id": "app.plugin.flag_managed.app_error",
-        "translation": ""
+        "translation": "Unable to set plugin as managed by the file store."
     },
     {
         "id": "app.plugin.delete_public_key.delete.app_error",
@@ -6465,51 +6465,51 @@
     },
     {
         "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-        "translation": ""
+        "translation": "Invalid team theme for the User"
     },
     {
         "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-        "translation": ""
+        "translation": "User AuthService and AuthData are mutually inclusive."
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-        "translation": ""
+        "translation": "Invalid show unread section setting for User"
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-        "translation": ""
+        "translation": "Invalid post formatting setting for User"
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-        "translation": ""
+        "translation": "Invalid markdown preview setting for User"
     },
     {
         "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-        "translation": ""
+        "translation": "Invalid email batching interval setting for User"
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": ""
+        "translation": "Post Props are longer than the maximum permitted length."
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
-        "translation": ""
+        "translation": "Unable to save the team theme preferences"
     },
     {
         "id": "app.import.import_user_channels.channel_not_found.error",
-        "translation": ""
+        "translation": "Error importing user channels. Channel not found."
     },
     {
         "id": "app.import.get_users_by_username.some_users_not_found.error",
-        "translation": ""
+        "translation": "Some users not found"
     },
     {
         "id": "app.import.get_teams_by_names.some_teams_not_found.error",
-        "translation": ""
+        "translation": "Some teams not found"
     },
     {
         "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-        "translation": ""
+        "translation": "Unable to copy custom emoji images"
     },
     {
         "id": "app.emoji.get_list.internal_error",
@@ -6601,7 +6601,7 @@
     },
     {
         "id": "app.bot.permanent_delete.internal_error",
-        "translation": ""
+        "translation": "Unable to delete the bot permanently."
     },
     {
         "id": "app.bot.patchbot.internal_error",
@@ -6617,7 +6617,7 @@
     },
     {
         "id": "app.bot.get_disable_bot_sysadmin_message",
-        "translation": ""
+        "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
     },
     {
         "id": "app.bot.createbot.internal_error",
@@ -6625,23 +6625,23 @@
     },
     {
         "id": "app.admin.test_site_url.failure",
-        "translation": ""
+        "translation": "This is not a valid live URL"
     },
     {
         "id": "app.admin.saml.invalid_response_from_idp.app_error",
-        "translation": ""
+        "translation": "Could not read the response received from the Identity Provider."
     },
     {
         "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
-        "translation": ""
+        "translation": "Failure encountered when reading the response payload received from the Identity Provider."
     },
     {
         "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
-        "translation": ""
+        "translation": "Could not decode the XML metadata information received from the Identity Provider."
     },
     {
         "id": "api.websocket_handler.server_busy.app_error",
-        "translation": ""
+        "translation": "Server is busy, non-critical services are temporarily unavailable."
     },
     {
         "id": "api.user.update_user.accepted_guest_domain.app_error",
@@ -6653,31 +6653,31 @@
     },
     {
         "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
-        "translation": ""
+        "translation": "You cannot activate a guest account because Guest Access feature is not enabled."
     },
     {
         "id": "api.user.reset_password.token_parse.error",
-        "translation": ""
+        "translation": "Unable to parse the reset password token"
     },
     {
         "id": "api.user.promote_guest_to_user.no_guest.app_error",
-        "translation": ""
+        "translation": "Unable to convert the guest to regular user because is not a guest."
     },
     {
         "id": "api.user.login.invalid_credentials_username",
-        "translation": ""
+        "translation": "Enter a valid username and/or password."
     },
     {
         "id": "api.user.login.invalid_credentials_sso",
-        "translation": ""
+        "translation": "Enter a valid email or username and/or password, or sign in using another method."
     },
     {
         "id": "api.user.login.invalid_credentials_email_username",
-        "translation": ""
+        "translation": "Enter a valid email or username and/or password."
     },
     {
         "id": "api.user.login.invalid_credentials_email",
-        "translation": ""
+        "translation": "Enter a valid email and/or password"
     },
     {
         "id": "api.user.login.guest_accounts.license.error",
@@ -6685,15 +6685,15 @@
     },
     {
         "id": "api.user.login.guest_accounts.disabled.error",
-        "translation": ""
+        "translation": "Guest accounts are disabled"
     },
     {
         "id": "api.user.demote_user_to_guest.already_guest.app_error",
-        "translation": ""
+        "translation": "Unable to convert the user to guest because is already a guest."
     },
     {
         "id": "api.user.create_user.invalid_invitation_type.app_error",
-        "translation": ""
+        "translation": "Unable to create the user, invalid invitation."
     },
     {
         "id": "api.user.create_user.guest_accounts.license.app_error",
@@ -6701,23 +6701,23 @@
     },
     {
         "id": "api.user.create_user.guest_accounts.disabled.app_error",
-        "translation": ""
+        "translation": "Guest accounts are disabled."
     },
     {
         "id": "api.user.create_password_token.error",
-        "translation": ""
+        "translation": "Unable to create password recovery token"
     },
     {
         "id": "api.templates.remove_expired_license.subject",
-        "translation": ""
+        "translation": "Mattermost Enterprise license has been disabled."
     },
     {
         "id": "api.templates.remove_expired_license.body.title",
-        "translation": ""
+        "translation": "Enterprise license has expired and some features may be disabled. Please renew."
     },
     {
         "id": "api.templates.remove_expired_license.body.renew_button",
-        "translation": ""
+        "translation": "Renew License"
     },
     {
         "id": "api.templates.invite_guest_subject",
@@ -6725,27 +6725,27 @@
     },
     {
         "id": "api.templates.invite_body_guest.info",
-        "translation": ""
+        "translation": "[[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
     },
     {
         "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-        "translation": ""
+        "translation": "Invalid team member update: A user must be a guest or a user but not both."
     },
     {
         "id": "api.team.search_teams.pagination_not_implemented.public_team_search",
-        "translation": ""
+        "translation": "Pagination not implemented for public-only team search."
     },
     {
         "id": "api.team.search_teams.pagination_not_implemented.private_team_search",
-        "translation": ""
+        "translation": "Pagination not implemented for private-only team search."
     },
     {
         "id": "api.team.remove_member.group_constrained.app_error",
-        "translation": ""
+        "translation": "Unable to remove a user from a group-constrained team."
     },
     {
         "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
-        "translation": ""
+        "translation": "The channels of the invite must be part of the team of the invite."
     },
     {
         "id": "api.team.invate_guests_to_channels.license.error",
@@ -6753,11 +6753,11 @@
     },
     {
         "id": "api.team.invate_guests_to_channels.disabled.error",
-        "translation": ""
+        "translation": "Guest accounts are disabled"
     },
     {
         "id": "api.team.invalidate_all_email_invites.app_error",
-        "translation": ""
+        "translation": "Error invalidating email invites."
     },
     {
         "id": "api.team.get_all_teams.insufficient_permissions",
@@ -6769,23 +6769,23 @@
     },
     {
         "id": "api.team.demote_user_to_guest.disabled.error",
-        "translation": ""
+        "translation": "Guest accounts are disabled."
     },
     {
         "id": "api.team.add_user_to_team_from_invite.guest.app_error",
-        "translation": ""
+        "translation": "Guests are restricted from joining a team via an invite link. Please request a guest email invitation to the team."
     },
     {
         "id": "api.team.add_members.user_denied",
-        "translation": ""
+        "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
     },
     {
         "id": "api.team.add_members.error",
-        "translation": ""
+        "translation": "Error adding team member(s)."
     },
     {
         "id": "api.system.id_loaded.not_available.app_error",
-        "translation": ""
+        "translation": "ID Loaded Push Notifications are not configured or supported on this server."
     },
     {
         "id": "api.slackimport.slack_import.zip.file_too_large",
@@ -6793,47 +6793,47 @@
     },
     {
         "id": "api.push_notifications_ack.message.parse.app_error",
-        "translation": ""
+        "translation": "An error occurred building the push notification ack message."
     },
     {
         "id": "api.push_notifications_ack.forward.app_error",
-        "translation": ""
+        "translation": "An error occurred sending the receipt delivery to the push notification service."
     },
     {
         "id": "api.push_notifications.message.parse.app_error",
-        "translation": ""
+        "translation": "An error occurred building the push notification message."
     },
     {
         "id": "api.push_notification.id_loaded.fetch.app_error",
-        "translation": ""
+        "translation": "An error occurred fetching the ID-loaded push notification."
     },
     {
         "id": "api.push_notification.id_loaded.default_message",
-        "translation": ""
+        "translation": "You've received a new message."
     },
     {
         "id": "api.push_notification.disabled.app_error",
-        "translation": ""
+        "translation": "Push Notifications are disabled on this server."
     },
     {
         "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-        "translation": ""
+        "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
     },
     {
         "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-        "translation": ""
+        "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
     },
     {
         "id": "api.post.check_for_out_of_channel_group_users.message.none",
-        "translation": ""
+        "translation": "@{{.GroupName}} has no members on this team"
     },
     {
         "id": "api.plugin.verify_plugin.app_error",
-        "translation": ""
+        "translation": "Unable to verify plugin signature."
     },
     {
         "id": "api.plugin.install.download_failed.app_error",
-        "translation": ""
+        "translation": "An error occurred while downloading the plugin."
     },
     {
         "id": "api.plugin.add_public_key.open.app_error",
@@ -6845,39 +6845,39 @@
     },
     {
         "id": "api.ldap_groups.existing_user_name_error",
-        "translation": ""
+        "translation": "group name already exists as a user name"
     },
     {
         "id": "api.ldap_groups.existing_reserved_name_error",
-        "translation": ""
+        "translation": "group name already exists as a reserved name"
     },
     {
         "id": "api.ldap_groups.existing_group_name_error",
-        "translation": ""
+        "translation": "group name already exists"
     },
     {
         "id": "api.image.get.app_error",
-        "translation": ""
+        "translation": "Requested image url cannot be parsed."
     },
     {
         "id": "api.file.upload_file.rejected_by_plugin.app_error",
-        "translation": ""
+        "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
     },
     {
         "id": "api.context.server_busy.app_error",
-        "translation": ""
+        "translation": "Server is busy, non-critical services are temporarily unavailable."
     },
     {
         "id": "api.context.local_origin_required.app_error",
-        "translation": ""
+        "translation": "This endpoint requires a local request origin."
     },
     {
         "id": "api.config.update_config.restricted_merge.app_error",
-        "translation": ""
+        "translation": "Failed to merge given config."
     },
     {
         "id": "api.command_remove.group_constrained_user_denied",
-        "translation": ""
+        "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
     },
     {
         "id": "api.command_invite.user_not_in_team.app_error",
@@ -6885,39 +6885,39 @@
     },
     {
         "id": "api.command_invite.group_constrained_user_denied",
-        "translation": ""
+        "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
     },
     {
         "id": "api.command.execute_command.format.app_error",
-        "translation": ""
+        "translation": "Command trigger word is missing the leading slash character"
     },
     {
         "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-        "translation": ""
+        "translation": "Invalid team member update: You can't add or remove the guest role manually."
     },
     {
         "id": "api.channel.update_channel_privacy.default_channel_error",
-        "translation": ""
+        "translation": "The default channel cannot be made private."
     },
     {
         "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-        "translation": ""
+        "translation": "Invalid channel member update: A user must be a guest or a user but not both."
     },
     {
         "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-        "translation": ""
+        "translation": "Invalid channel member update: You can't add or remove the guest role manually."
     },
     {
         "id": "api.channel.update_channel.typechange.app_error",
-        "translation": ""
+        "translation": "Channel type cannot be updated."
     },
     {
         "id": "api.channel.restore_channel.unarchived",
-        "translation": ""
+        "translation": "{{.Username}} unarchived the channel."
     },
     {
         "id": "api.channel.restore_channel.restored.app_error",
-        "translation": ""
+        "translation": "Unable to unarchive channel. The channel is not archived."
     },
     {
         "id": "api.channel.remove_user_from_channel.app_error",
@@ -6925,11 +6925,11 @@
     },
     {
         "id": "api.channel.remove_members.denied",
-        "translation": ""
+        "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
     },
     {
         "id": "api.channel.remove_member.group_constrained.app_error",
-        "translation": ""
+        "translation": "Unable to remove a user from a group-constrained channel."
     },
     {
         "id": "api.channel.patch_channel_moderations.license.error",
@@ -6937,7 +6937,7 @@
     },
     {
         "id": "api.channel.guest_join_channel.post_and_forget",
-        "translation": ""
+        "translation": "%v joined the channel as guest."
     },
     {
         "id": "api.channel.get_channel_moderations.license.error",
@@ -6949,11 +6949,11 @@
     },
     {
         "id": "api.channel.add_members.user_denied",
-        "translation": ""
+        "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
     },
     {
         "id": "api.channel.add_members.error",
-        "translation": ""
+        "translation": "Error adding channel member(s)."
     },
     {
         "id": "api.channel.add_guest.added",
@@ -6961,7 +6961,7 @@
     },
     {
         "id": "api.bot.teams_channels.add_message_mobile",
-        "translation": ""
+        "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
     },
     {
         "id": "api.bot.set_bot_icon_image.too_large.app_error",
@@ -6989,7 +6989,7 @@
     },
     {
         "id": "api.bot.get_bot_icon_image.read.app_error",
-        "translation": ""
+        "translation": "Unable to read icon image file."
     },
     {
         "id": "api.bot.delete_bot_icon_image.app_error",
@@ -6997,31 +6997,31 @@
     },
     {
         "id": "api.bot.create_disabled",
-        "translation": ""
+        "translation": "Bot creation has been disabled."
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
-        "translation": ""
+        "translation": "Missing content type."
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
-        "translation": ""
+        "translation": "Invalid content type."
     },
     {
         "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
-        "translation": ""
+        "translation": "Invalid certificate text."
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-        "translation": ""
+        "translation": "Missing Identity Provider SSO Services node in the XML."
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-        "translation": ""
+        "translation": "Missing Identity Provider Key Descriptors node in the XML."
     },
     {
         "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-        "translation": ""
+        "translation": "Missing Identity Provider SSO Descriptors node in the XML."
     },
     {
         "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -7029,15 +7029,15 @@
     },
     {
         "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-        "translation": ""
+        "translation": "Failure encountered while parsing the metadata information received from the Identity Provider to a certificate."
     },
     {
         "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
-        "translation": ""
+        "translation": "Failed to obtain metadata from Identity Provider URL."
     },
     {
         "id": "api.admin.delete_brand_image.storage.not_found",
-        "translation": ""
+        "translation": "Unable to delete brand image, not found."
     },
     {
         "id": "store.sql_channel.sidebar_categories.open_transaction.app_error",
@@ -7610,5 +7610,53 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Не вдалося перетворити експорт в XML. "
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Не вдається оновити схему"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Неможливо зберегти схему"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Не вдається отримати схему"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Не вдається отримати схему"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Не вдається зберегти інформацію про файл"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Не вдалося видалити вкладення користувача"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Не вдається отримати інформацію про файл"
     }
 ]

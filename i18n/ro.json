@@ -7962,5 +7962,57 @@
     {
         "id": "ent.actiance.export.marshalToXml.appError",
         "translation": "Imposibil de convertit exportul în XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Imposibil de actualizat lucrarea."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Imposibil de salvat lucrarea."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Nu se poate obține cea mai nouă lucrare după stare și tip."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Nu se poate obține numărul de lucrare în funcție de stare și tip."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Imposibil de obținut joburile."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Imposibil de obținut lucrarea."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Am întâlnit o eroare ștergând definitiv lotul de informații despre fișiere."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Imposibil de salvat informațiile despre fișier."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Imposibil de șters fișierele atașate ale utilizatorului."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier cu opțiuni."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier pentru postare."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
     }
 ]
