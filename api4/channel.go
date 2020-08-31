@@ -238,8 +238,8 @@ func convertChannelToPrivate(c *Context, w http.ResponseWriter, r *http.Request)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("channel", oldPublicChannel)
 
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_CONVERT_PUBLIC_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_CONVERT_PUBLIC_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE) {
+		c.SetPermissionError(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE)
 		return
 	}
 

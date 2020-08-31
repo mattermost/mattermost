@@ -47,7 +47,7 @@ const (
 	PERMISSION_DELETE_PRIVATE_CHANNEL            = "delete_private_channel"
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES  = "manage_public_channel_properties"
 	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES = "manage_private_channel_properties"
-	PERMISSION_CONVERT_PUBLIC_CHANNEL            = "convert_public_channel"
+	PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE = "convert_public_channel_to_private"
 	PERMISSION_VIEW_MEMBERS                      = "view_members"
 	PERMISSION_INVITE_USER                       = "invite_user"
 	PERMISSION_INVITE_GUEST                      = "invite_guest"
@@ -495,7 +495,7 @@ func (a *App) getAddConvertPublicChannelPermissionMigration() (permissionsMap, e
 	return permissionsMap{
 		permissionTransformation{
 			On:  permissionExists(PERMISSION_MANAGE_TEAM),
-			Add: []string{PERMISSION_CONVERT_PUBLIC_CHANNEL},
+			Add: []string{PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE},
 		},
 	}, nil
 }
@@ -518,7 +518,7 @@ func (a *App) DoPermissionsMigrations() error {
 		{Key: model.MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS, Migration: a.channelModerationPermissionsMigration},
 		{Key: model.MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION, Migration: a.getAddUseGroupMentionsPermissionMigration},
 		{Key: model.MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS, Migration: a.getAddSystemConsolePermissionsMigration},
-		{Key: model.MIGRATION_KEY_ADD_CONVERT_PUBLIC_CHANNELS_PERMISSION, Migration: a.getAddConvertPublicChannelPermissionMigration},
+		{Key: model.MIGRATION_KEY_ADD_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE_PERMISSION, Migration: a.getAddConvertPublicChannelPermissionMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
