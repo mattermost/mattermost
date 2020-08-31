@@ -6484,7 +6484,7 @@
     },
     {
         "id": "app.import.validate_post_import_data.props_too_large.error",
-        "translation": "Post Props are longer than the maximum permitted length."
+        "translation": ""
     },
     {
         "id": "app.import.import_user_teams.save_preferences.error",
