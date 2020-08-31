@@ -9,7 +9,7 @@ package timerlayer
 import (
 	"context"
 	timemodule "time"
-	
+
     "github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -42,7 +42,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 	{{if $element.Results | len | eq 0}}
 	s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{else}}
-	{{$element.Results | genResultsVars}} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
+	{{genResultsVars $element.Results false }} := s.{{$substoreName}}Store.{{$index}}({{$element.Params | joinParams}})
 	{{end}}
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -51,7 +51,7 @@ func (s *{{$.Name}}{{$substoreName}}Store) {{$index}}({{$element.Params | joinPa
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("{{$substoreName}}Store.{{$index}}", success, elapsed)
-	{{ with ($element.Results | genResultsVars) -}}
+	{{ with (genResultsVars $element.Results false ) -}}
 	}
 	return {{ . }}
 	{{- else -}}

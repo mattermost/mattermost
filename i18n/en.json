@@ -48,10 +48,6 @@
     "translation": "September"
   },
   {
-    "id": "actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
-  },
-  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -1113,6 +1109,18 @@
   {
     "id": "api.config.client.old_format.app_error",
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": ""
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Failed to migrate config store."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": ""
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -2215,6 +2223,10 @@
     "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
+    "id": "api.team.invite_members.limit_reached.app_error",
+    "translation": "You've reached the free tier user limit"
+  },
+  {
     "id": "api.team.invite_members.no_one.app_error",
     "translation": "No one to invite."
   },
@@ -2619,6 +2631,46 @@
     "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
   },
   {
+    "id": "api.upgrade_to_enterprise.already-done.app_error",
+    "translation": "You have already upgraded to Mattermost Enterprise Edition. Please restart the server to finish the upgrade."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+    "translation": "You cannot upgrade because you are already running Mattermost Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.app_error",
+    "translation": "An upgrade to Mattermost Enterprise Edition is already running."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.generic_error.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The Mattermost system user {{.MattermostUsername}} does not have write access to the necessary binary file. A system administrator can update the file permissions by executing the following command on the server where Mattermost is installed:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nAfter changing the file permissions, try to upgrade Mattermost again. When you have upgraded and restarted, remember to restore the original binary file permissions:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. This feature will only work on Linux systems with x86-64 architecture."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
@@ -2753,6 +2805,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.app_error",
+    "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
   },
   {
     "id": "api.user.delete_team.not_enabled.app_error",
@@ -2983,6 +3039,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
+  },
+  {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Update password failed because we couldn't find a valid account."
   },
@@ -2993,6 +3053,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -3287,10 +3351,6 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
-    "id": "app.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
-  },
-  {
     "id": "app.command.createcommand.internal_error",
     "translation": "Unable to save the command."
   },
@@ -3367,6 +3427,30 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Unable to create default team memberships"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Unable to create default team membership because they already exists"
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Unable to create default team membership because no more members are allowed in that team"
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Rate limiter is not set up."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Invite emails rate limit exceeded. Timer will be reset after {{.ResetAfter}} seconds. Please retry after {{.RetryAfter}} seconds."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Error occurred in the rate limiter."
+  },
+  {
     "id": "app.emoji.create.internal_error",
     "translation": "Unable to save emoji."
   },
@@ -3409,6 +3493,26 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Unable to get the file info."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Unable to get the file info for the post."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Unable to get the file info with options"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete attachments of the user."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Unable to save the file info."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3545,6 +3649,18 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Unable to import the new team membership because it already exists"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Unable to import team memberships"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Unable to import team membership because no more members are allowed in that team"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -3963,6 +4079,30 @@
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
   {
+    "id": "app.job.get.app_error",
+    "translation": "Unable to get the job."
+  },
+  {
+    "id": "app.job.get_all.app_error",
+    "translation": "Unable to get the jobs."
+  },
+  {
+    "id": "app.job.get_count_by_status_and_type.app_error",
+    "translation": "Unable to get the job count by status and type."
+  },
+  {
+    "id": "app.job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Unable to get the newest job by status and type."
+  },
+  {
+    "id": "app.job.save.app_error",
+    "translation": "Unable to save the job."
+  },
+  {
+    "id": "app.job.update.app_error",
+    "translation": "Unable to update the job."
+  },
+  {
     "id": "app.notification.body.intro.direct.full",
     "translation": "You have a new Direct Message."
   },
@@ -4247,6 +4387,50 @@
     "translation": "An error occurred while saving the file."
   },
   {
+    "id": "app.plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value."
+  },
+  {
+    "id": "app.plugin_store.get.app_error",
+    "translation": "Could not get plugin key value."
+  },
+  {
+    "id": "app.plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys."
+  },
+  {
+    "id": "app.plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value."
+  },
+  {
+    "id": "app.post.delete.app_error",
+    "translation": "Unable to delete the post."
+  },
+  {
+    "id": "app.post.get.app_error",
+    "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.permanent_delete_by_channel.app_error",
+    "translation": "Unable to delete the posts by channel."
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Unable to select the posts to delete for the user."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Unable to save the Post."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.update.app_error",
+    "translation": "Unable to update the Post."
+  },
+  {
     "id": "app.preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences."
   },
@@ -4391,8 +4575,32 @@
     "translation": "Unable to update the device id."
   },
   {
+    "id": "app.status.get.app_error",
+    "translation": "Encountered an error retrieving the status."
+  },
+  {
+    "id": "app.status.get.missing.app_error",
+    "translation": "No entry for that status exists."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
+  },
+  {
+    "id": "app.system.get.app_error",
+    "translation": "We encountered an error finding the system properties."
+  },
+  {
+    "id": "app.system.get_by_name.app_error",
+    "translation": "Unable to find the system variable."
+  },
+  {
+    "id": "app.system.permanent_delete_by_name.app_error",
+    "translation": "We could not permanently delete the system table entry."
+  },
+  {
+    "id": "app.system.save.app_error",
+    "translation": "We encountered an error saving the system property."
   },
   {
     "id": "app.system.warn_metric.bot_description",
@@ -4431,6 +4639,18 @@
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
+    "id": "app.team.join_user_to_team.save_member.app_error",
+    "translation": "Unable to create the new team membership"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+    "translation": "Unable to create the new team membership because it already exists"
+  },
+  {
+    "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+    "translation": "Unable to create the new team membership because the team has reached the limit of members"
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
@@ -4453,10 +4673,6 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
-  },
-  {
-    "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-    "translation": "Unable to complete SAML login with an empty email address."
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",
@@ -4763,12 +4979,28 @@
     "translation": "Unable to get SAML users."
   },
   {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "Unable to convert export to XML."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": " attached a file."
+  },
+  {
+    "id": "ent.cluster.404.app_error",
+    "translation": "Cluster API endpoint not found."
+  },
+  {
     "id": "ent.cluster.config_changed.info",
     "translation": "Cluster configuration has changed for id={{ .id }}. The cluster may become unstable and a restart is required. To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.json_encode.error",
     "translation": "Error occurred while marshalling JSON request"
+  },
+  {
+    "id": "ent.cluster.model.client.connecting.app_error",
+    "translation": "We encountered an error while connecting to the server."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -4875,6 +5107,10 @@
     "translation": "Failed to purge records."
   },
   {
+    "id": "ent.data_retention.file_infos_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos."
+  },
+  {
     "id": "ent.data_retention.flags_batch.internal_error",
     "translation": "We encountered an error cleaning up the batch of flags."
   },
@@ -4963,8 +5199,8 @@
     "translation": "Failed to index the user"
   },
   {
-    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database"
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_entity.error",
+    "translation": "The oldest entity (user, channel or post), could not be retrieved from the database"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -5075,6 +5311,18 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.jobs.do_job.batch_size.parse_error",
+    "translation": "Could not parse message export job BatchSize."
+  },
+  {
+    "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+    "translation": "Could not parse message export job ExportFromTimestamp."
+  },
+  {
+    "id": "ent.jobs.start_synchronize_job.timeout",
+    "translation": "Reached AD/LDAP synchronization job timeout."
+  },
+  {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil."
   },
@@ -5117,6 +5365,14 @@
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "User not registered on AD/LDAP server."
+  },
+  {
+    "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
+  },
+  {
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
@@ -5179,6 +5435,14 @@
     "translation": "unable to migrate."
   },
   {
+    "id": "ent.message_export.actiance_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
+    "id": "ent.message_export.csv_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
+  },
+  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "Unable to add attachment to the Global Relay export."
   },
@@ -5229,6 +5493,10 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file."
+  },
+  {
+    "id": "ent.message_export.global_relay_export.get_attachment_error",
+    "translation": "Failed to get file info for a post."
   },
   {
     "id": "ent.message_export.run_export.app_error",
@@ -5307,8 +5575,20 @@
     "translation": "An error occurred while building Service Provider Metadata."
   },
   {
+    "id": "ent.saml.save_user.email_exists.saml_app_error",
+    "translation": "This account does not use SAML authentication. Please sign in using email and password."
+  },
+  {
+    "id": "ent.saml.save_user.username_exists.saml_app_error",
+    "translation": "An account with that username already exists. Please contact your Administrator."
+  },
+  {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+    "translation": "Unable to complete SAML login with an empty email address."
   },
   {
     "id": "group_not_associated_to_synced_team",
@@ -5347,24 +5627,12 @@
     "translation": "Failed to sign generated trigger ID for interactive dialog."
   },
   {
-    "id": "jobs.do_job.batch_size.parse_error",
-    "translation": "Could not parse message export job BatchSize."
-  },
-  {
-    "id": "jobs.do_job.batch_start_timestamp.parse_error",
-    "translation": "Could not parse message export job ExportFromTimestamp."
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
   },
   {
     "id": "jobs.set_job_error.update.error",
     "translation": "Failed to set job status to error"
-  },
-  {
-    "id": "jobs.start_synchronize_job.timeout",
-    "translation": "Reached AD/LDAP synchronization job timeout."
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
@@ -5413,6 +5681,10 @@
   {
     "id": "mfa.validate_token.authenticate.app_error",
     "translation": "Invalid MFA token."
+  },
+  {
+    "id": "migrations.system.save.app_error",
+    "translation": "We encountered an error saving the system property."
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -5569,10 +5841,6 @@
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
     "translation": "Invalid user id."
-  },
-  {
-    "id": "model.client.connecting.app_error",
-    "translation": "We encountered an error while connecting to the server."
   },
   {
     "id": "model.cluster.is_valid.create_at.app_error",
@@ -7043,50 +7311,6 @@
     "translation": "Command does not exist."
   },
   {
-    "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Unable to delete attachments of the user."
-  },
-  {
-    "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Unable to attach the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Unable to delete the file info to the post."
-  },
-  {
-    "id": "store.sql_file_info.get.app_error",
-    "translation": "Unable to get the file info."
-  },
-  {
-    "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "Unable to get the file info by path."
-  },
-  {
-    "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "Unable to get the file info for the post."
-  },
-  {
-    "id": "store.sql_file_info.get_for_user_id.app_error",
-    "translation": "Unable to get the file info for the user."
-  },
-  {
-    "id": "store.sql_file_info.get_with_options.app_error",
-    "translation": "Unable to get the file info with options"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "Unable to permanently delete the file info."
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos."
-  },
-  {
-    "id": "store.sql_file_info.save.app_error",
-    "translation": "Unable to save the file info."
-  },
-  {
     "id": "store.sql_group.app_error",
     "translation": "failed to build query."
   },
@@ -7115,58 +7339,6 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_job.delete.app_error",
-    "translation": "Unable to delete the job."
-  },
-  {
-    "id": "store.sql_job.get.app_error",
-    "translation": "Unable to get the job."
-  },
-  {
-    "id": "store.sql_job.get_all.app_error",
-    "translation": "Unable to get the jobs."
-  },
-  {
-    "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Unable to get the job count by status and type."
-  },
-  {
-    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Unable to get the newest job by status and type."
-  },
-  {
-    "id": "store.sql_job.save.app_error",
-    "translation": "Unable to save the job."
-  },
-  {
-    "id": "store.sql_job.update.app_error",
-    "translation": "Unable to update the job."
-  },
-  {
-    "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-    "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-    "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Could not delete plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Could not get plugin key value."
-  },
-  {
-    "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys."
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Could not save or update plugin key value."
-  },
-  {
     "id": "store.sql_post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
@@ -7177,14 +7349,6 @@
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "store.sql_post.delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.get.app_error",
-    "translation": "Unable to get the post."
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
@@ -7247,100 +7411,20 @@
     "translation": "Unable to overwrite the Post."
   },
   {
-    "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Unable to delete the post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Unable to delete the comments for user."
-  },
-  {
     "id": "store.sql_post.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "Unable to delete the posts by channel."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Unable to select the posts to delete for the user."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Unable to select the posts to delete for the user (too many), please re-run."
   },
   {
     "id": "store.sql_post.populate_reply_count.app_error",
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.save.app_error",
-    "translation": "Unable to save the Post."
-  },
-  {
-    "id": "store.sql_post.save.existing.app_error",
-    "translation": "You cannot update an existing Post."
+    "id": "store.sql_post.search.app_error",
+    "translation": "Error searching posts"
   },
   {
     "id": "store.sql_post.search.disabled",
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-  },
-  {
-    "id": "store.sql_post.update.app_error",
-    "translation": "Unable to update the Post."
-  },
-  {
-    "id": "store.sql_status.get.app_error",
-    "translation": "Encountered an error retrieving the status."
-  },
-  {
-    "id": "store.sql_status.get.missing.app_error",
-    "translation": "No entry for that status exists."
-  },
-  {
-    "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "We could not count the active users."
-  },
-  {
-    "id": "store.sql_status.reset_all.app_error",
-    "translation": "Encountered an error resetting all the statuses."
-  },
-  {
-    "id": "store.sql_status.save.app_error",
-    "translation": "Encountered an error saving the status."
-  },
-  {
-    "id": "store.sql_status.update.app_error",
-    "translation": "Encountered an error updating the status."
-  },
-  {
-    "id": "store.sql_status.update_last_activity_at.app_error",
-    "translation": "Unable to update the last activity date and time of the user."
-  },
-  {
-    "id": "store.sql_system.get.app_error",
-    "translation": "We encountered an error finding the system properties."
-  },
-  {
-    "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Unable to find the system variable."
-  },
-  {
-    "id": "store.sql_system.permanent_delete_by_name.app_error",
-    "translation": "We could not permanently delete the system table entry."
-  },
-  {
-    "id": "store.sql_system.save.app_error",
-    "translation": "We encountered an error saving the system property."
-  },
-  {
-    "id": "store.sql_system.save.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_system.update.app_error",
-    "translation": "We encountered an error updating the system property."
   },
   {
     "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -7711,20 +7795,8 @@
     "translation": "An account with that email already exists."
   },
   {
-    "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "This account does not use SAML authentication. Please sign in using email and password."
-  },
-  {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -7733,14 +7805,6 @@
   {
     "id": "store.sql_user.save.username_exists.app_error",
     "translation": "An account with that username already exists."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "An account with that username already exists. Please contact your Administrator."
-  },
-  {
-    "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "An account with that username already exists. Please contact your Administrator."
   },
   {
     "id": "store.sql_user.search.app_error",
