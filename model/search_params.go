@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -366,4 +367,14 @@ func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	}
 
 	return paramsList
+}
+
+func IsSearchParamsListValid(paramsList []*SearchParams) *AppError {
+	// All SearchParams should have same IncludeDeletedChannels value.
+	for _, params := range paramsList {
+		if params.IncludeDeletedChannels != paramsList[0].IncludeDeletedChannels {
+			return NewAppError("IsSearchParamsListValid", "model.search_params_list.is_valid.include_deleted_channels.app_error", nil, "", http.StatusInternalServerError)
+		}
+	}
+	return nil
 }
