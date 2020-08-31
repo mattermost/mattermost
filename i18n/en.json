@@ -76,6 +76,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP is not available."
+  },
+  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate."
   },
@@ -1111,8 +1115,16 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": ""
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store."
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": ""
   },
   {
     "id": "api.config.update_config.clear_siteurl.app_error",
@@ -1539,6 +1551,10 @@
   {
     "id": "api.marshal_error",
     "translation": "marshal error"
+  },
+  {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Unable to migrate SAML."
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -2216,7 +2232,7 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the user limit of your current tier"
+    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -3031,6 +3047,10 @@
     "translation": "Update password failed because the user is logged in through an OAuth service."
   },
   {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
+  },
+  {
     "id": "api.user.update_password.valid_account.app_error",
     "translation": "Update password failed because we couldn't find a valid account."
   },
@@ -3041,6 +3061,10 @@
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
     "translation": "The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": ""
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
@@ -6761,6 +6785,10 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

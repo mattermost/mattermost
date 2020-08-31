@@ -392,8 +392,8 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS)
 		return
 	}
 
@@ -503,8 +503,8 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHER_USERS_TEAMS) {
+		c.SetPermissionError(model.PERMISSION_READ_OTHER_USERS_TEAMS)
 		return
 	}
 
@@ -1477,8 +1477,8 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -1537,8 +1537,8 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		groupIDs = append(groupIDs, gid)
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 
