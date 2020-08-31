@@ -101,6 +101,12 @@ func setupMultiPluginApiTest(t *testing.T, pluginCodes []string, pluginManifests
 		require.Nil(t, reterr)
 		require.NotNil(t, manifest)
 		require.True(t, activated)
+
+		app.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[pluginId] = &model.PluginState{
+				Enable: true,
+			}
+		})
 	}
 
 	app.SetPluginsEnvironment(env)
