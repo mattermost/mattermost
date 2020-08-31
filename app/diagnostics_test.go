@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -123,7 +124,7 @@ func TestRudderDiagnostics(t *testing.T) {
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
-	th.Server.initDiagnostics(server.URL)
+	th.Server.initDiagnostics(server.URL, RUDDER_KEY)
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
@@ -333,5 +334,17 @@ func TestRudderDiagnostics(t *testing.T) {
 		case <-time.After(time.Second * 1):
 			// Did not receive diagnostics
 		}
+	})
+
+	t.Run("RudderConfigUsesConfigForValues", func(t *testing.T) {
+		os.Setenv("RUDDER_KEY", "abc123")
+		os.Setenv("RUDDER_DATAPLANE_URL", "arudderstackplace")
+		defer os.Unsetenv("RUDDER_KEY")
+		defer os.Unsetenv("RUDDER_DATAPLANE_URL")
+
+		config := th.App.Srv().getRudderConfig()
+
+		assert.Equal(t, "arudderstackplace", config.DataplaneUrl)
+		assert.Equal(t, "abc123", config.RudderKey)
 	})
 }

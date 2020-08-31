@@ -205,6 +205,80 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 	err = l.Get("post", &p)
 	require.Nil(t, err)
 	require.Equal(t, post.Clone(), p.Clone())
+
+	session := &model.Session{
+		Id:             "ty7ia14yuty5bmpt8wmz6da1fw",
+		Token:          "79c3iq6nzpycmkkawudanqhg5c",
+		CreateAt:       1595445296960,
+		ExpiresAt:      1598296496960,
+		LastActivityAt: 1595445296960,
+		UserId:         "rpgh1q5ra38y9xjn9z8fjctezr",
+		Roles:          "system_admin system_user",
+		IsOAuth:        false,
+		ExpiredNotify:  false,
+		Props: map[string]string{
+			"csrf":     "33zb7h7rk3rfffztojn5pxbkxe",
+			"isMobile": "false",
+			"isSaml":   "false",
+			"is_guest": "false",
+			"os":       "",
+			"platform": "Windows",
+		},
+	}
+
+	err = l.Set("session", session)
+	require.Nil(t, err)
+
+	var s *model.Session
+	err = l.Get("session", &s)
+	require.Nil(t, err)
+	require.Equal(t, session, s)
+
+	user := &model.User{
+		Id:             "id",
+		CreateAt:       11111,
+		UpdateAt:       11111,
+		DeleteAt:       11111,
+		Username:       "username",
+		Password:       "password",
+		AuthService:    "AuthService",
+		AuthData:       nil,
+		Email:          "Email",
+		EmailVerified:  true,
+		Nickname:       "Nickname",
+		FirstName:      "FirstName",
+		LastName:       "LastName",
+		Position:       "Position",
+		Roles:          "Roles",
+		AllowMarketing: true,
+		Props: map[string]string{
+			"key0": "value0",
+		},
+		NotifyProps: map[string]string{
+			"key0": "value0",
+		},
+		LastPasswordUpdate:     111111,
+		LastPictureUpdate:      111111,
+		FailedAttempts:         111111,
+		Locale:                 "Locale",
+		MfaActive:              true,
+		MfaSecret:              "MfaSecret",
+		LastActivityAt:         111111,
+		IsBot:                  true,
+		TermsOfServiceId:       "TermsOfServiceId",
+		TermsOfServiceCreateAt: 111111,
+	}
+
+	err = l.Set("user", user)
+	require.Nil(t, err)
+
+	var u *model.User
+	err = l.Get("user", &u)
+	require.Nil(t, err)
+	// msgp returns an empty map instead of a nil map.
+	// This does not make an actual difference in terms of functionality.
+	u.Timezone = nil
+	require.Equal(t, user, u)
 }
 
 func BenchmarkLRU(b *testing.B) {
@@ -458,7 +532,43 @@ func BenchmarkLRU(b *testing.B) {
 			err := l2.Set("test", status)
 			require.Nil(b, err)
 
-			var val model.Status
+			var val *model.Status
+			err = l2.Get("test", &val)
+			require.Nil(b, err)
+		}
+	})
+
+	session := model.Session{
+		Id:             "ty7ia14yuty5bmpt8wmz6da1fw",
+		Token:          "79c3iq6nzpycmkkawudanqhg5c",
+		CreateAt:       1595445296960,
+		ExpiresAt:      1598296496960,
+		LastActivityAt: 1595445296960,
+		UserId:         "rpgh1q5ra38y9xjn9z8fjctezr",
+		Roles:          "system_admin system_user",
+		IsOAuth:        false,
+		ExpiredNotify:  false,
+		Props: map[string]string{
+			"csrf":     "33zb7h7rk3rfffztojn5pxbkxe",
+			"isMobile": "false",
+			"isSaml":   "false",
+			"is_guest": "false",
+			"os":       "",
+			"platform": "Windows",
+		},
+	}
+
+	b.Run("Session=new", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			l2 := NewLRU(&LRUOptions{
+				Size:                   1,
+				DefaultExpiry:          0,
+				InvalidateClusterEvent: "",
+			})
+			err := l2.Set("test", &session)
+			require.Nil(b, err)
+
+			var val *model.Session
 			err = l2.Get("test", &val)
 			require.Nil(b, err)
 		}

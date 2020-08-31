@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -1273,6 +1274,18 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery('english', :Terms)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		if searchType == "Message" {
+			var err error
+			terms, err = removeMysqlStopWordsFromTerms(terms)
+			if err != nil {
+				return nil, model.NewAppError("SqlPostStore.search", "store.sql_post.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			if terms == "" {
+				return list, nil
+			}
+		}
+
 		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
@@ -1316,6 +1329,25 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	}
 	list.MakeNonNil()
 	return list, nil
+}
+
+func removeMysqlStopWordsFromTerms(terms string) (string, error) {
+	stopWords := make([]string, len(searchlayer.MYSQL_STOP_WORDS))
+	copy(stopWords, searchlayer.MYSQL_STOP_WORDS)
+	re, err := regexp.Compile(fmt.Sprintf(`^(%s)$`, strings.Join(stopWords, "|")))
+	if err != nil {
+		return "", err
+	}
+
+	newTerms := make([]string, 0)
+	separatedTerms := strings.Fields(terms)
+	for _, term := range separatedTerms {
+		term = strings.TrimSpace(term)
+		if term = re.ReplaceAllString(term, ""); term != "" {
+			newTerms = append(newTerms, term)
+		}
+	}
+	return strings.Join(newTerms, " "), nil
 }
 
 func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
@@ -1772,10 +1804,14 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	return posts, nil
 }
 
-func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	// Since we don't support paging for DB search, we just return nothing for later pages
 	if page > 0 {
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	if err := model.IsSearchParamsListValid(paramsList); err != nil {
+		return nil, err
 	}
 
 	var wg sync.WaitGroup
@@ -1786,8 +1822,6 @@ func (s *SqlPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams
 		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
-		params.IncludeDeletedChannels = includeDeletedChannels
-		params.OrTerms = isOrSearch
 
 		wg.Add(1)
 
