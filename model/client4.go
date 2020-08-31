@@ -4053,6 +4053,32 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
 	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
+func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/migrate_auth/ldap", StringInterfaceToJson(map[string]interface{}{
+		"from":        fromAuthService,
+		"force":       force,
+		"match_field": matchField,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/migrate_auth/saml", StringInterfaceToJson(map[string]interface{}{
+		"from":    fromAuthService,
+		"auto":    auto,
+		"matches": usersMap,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // Audits Section
 
 // GetAudits returns a list of audits for the whole system.
