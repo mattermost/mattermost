@@ -1686,6 +1686,13 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
+	th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.AddPermissionToRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL.Id, model.TEAM_ADMIN_ROLE_ID)
+
 	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
 	CheckOKStatus(t, resp)
 	require.Equal(t, model.CHANNEL_PRIVATE, rchannel.Type, "channel should be converted from public to private")
