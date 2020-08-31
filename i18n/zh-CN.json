@@ -7656,5 +7656,33 @@
     {
         "id": "app.role.get.app_error",
         "translation": "无法获取角色。"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "无法更新消息"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "您不能更新一个村庄的邮件"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "无法保存消息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "无法删除该用户被选择的消息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "无法根据频道删除消息"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "无法获取消息。"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "无法删除消息"
     }
 ]

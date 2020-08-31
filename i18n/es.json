@@ -7789,5 +7789,57 @@
     {
         "id": "app.role.get.app_error",
         "translation": "No se pudo obtener el rol."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "No se puede actualizar el mensaje."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "No puedes actualizar el Mensaje."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "No se puede guardar el mensaje."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "No se puede seleccionar los mensajes a eliminar del usuario."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "No se puede eliminar los mensajes por canal."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "No se puede obtener el mensaje."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "No se puede eliminar el mensaje."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "No existe ninguna entrada para que el estado."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Detectado un error al recuperar el estado."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "No se pudo guardar o actualizar el valor de la clave del plugin."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "No se puede listar todas las llaves de los plugins."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "No se pudo obtener el valor de la clave del plugin."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "No se puede eliminar el valor de la clave del plugin."
     }
 ]

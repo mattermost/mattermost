@@ -7794,5 +7794,57 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Imposibil de a primi rol."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Imposibil de actualizat Postarea"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Imposibil de actualizat un Post existente"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Imposibil de salvat postarea"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Imposibil de selectat mesajele pe care trebuie să le ștergeți pentru utilizator"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Nu se pot șterge mesajele după canal"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Nu se poate obține postarea"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Nu se poate șterge postarea"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Nu există nicio intrare pentru acel statut"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "A apărut o eroare la preluarea stării"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Nu ar putea salva sau actualiza valoarea cheii plugin"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Imposibil de listat toate cheile pluginului."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Nu am putut obţine plugin cheie value"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Imposibil de șters valoarea cheii plugin"
     }
 ]

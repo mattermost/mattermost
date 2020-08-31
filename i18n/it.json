@@ -7773,5 +7773,57 @@
     {
         "id": "app.system.warn_metric.bot_displayname",
         "translation": "Consigliere di Mattermost"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Impossibile aggiornare la pubblicazione."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Non puoi aggiornare una pubblicazione esistente."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Impossibile salvare la pubblicazione."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Non è stato possibile selezionare le pubblicazioni da eliminare per l'utente."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Impossibile cancellare le pubblicazioni del canale."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Impossibile recuperare la pubblicazione."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Impossibile cancellare la pubblicazione."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Nessuna voce esistente per quello stato."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Errore riscontrato nel recupero dello stato."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Impossibile salvare o aggiornare il valore della chiave del plugin."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Impossibile elencare tutte le chiavi plugin."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Impossibile ottenere il valore della chiave del plugin."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Impossibile cancellare il valore della chiave del plugin."
     }
 ]

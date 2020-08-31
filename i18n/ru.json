@@ -7794,5 +7794,33 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Невозможно преобразовать бота в пользователя."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Невозможно обновить сообщение."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Вы не можете обновить существующее сообщение."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Невозможно сохранить сообщение."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Не удалось выбрать для удаления посты пользователя."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Невозможно удалить сообщения по каналу."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Не удалось получить сообщение."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Невозможно удалить сообщение."
     }
 ]

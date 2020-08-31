@@ -7789,5 +7789,33 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Kan bot niet converteren naar gebruiker."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Een bestaand bericht kan niet bijwerkt worden"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Kan de kanalen niet ophalen"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
     }
 ]
