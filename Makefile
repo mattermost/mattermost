@@ -80,7 +80,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
