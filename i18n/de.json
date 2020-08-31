@@ -48,10 +48,6 @@
         "translation": "September"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Konnte Export nicht in XML konvertieren."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Keine Datei unter 'certificate' in der Anfrage."
     },
@@ -1442,7 +1438,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht löschen."
     },
     {
         "id": "api.post.disabled_all",
@@ -1484,7 +1480,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1520,7 +1516,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1576,7 +1572,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": "Diese Aktion ist Administratoren mit eingeschränkten Rechten nicht erlaubt."
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -2539,10 +2535,6 @@
         "translation": "%s hat den Kanalzweck aktualisiert zu: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Cluster-API-Endpunkt nicht gefunden."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Es trat ein Fehler beim Schreiben der Exportdaten auf."
     },
@@ -3223,10 +3215,6 @@
         "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Konnte SAML-Anmeldung nicht mit leerer E-Mail-Adresse durchführen."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Persönliche Zugriffs-Token sind auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator für Details."
     },
@@ -3381,10 +3369,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Indizierung der Nachricht fehlgeschlagen"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3687,24 +3671,12 @@
         "translation": "Fehler bei der Signierung der generierten Auslöse-ID für interaktiven Dialog."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Konnte Abbruch für Job, der sich nicht in einem abbrechbaren Status befindet, nicht anfordern."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Konnte Job-Status nicht auf fehlerhaft setzen"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3877,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Ungültige Benutzer-ID"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5163,46 +5131,6 @@
         "translation": "Konnte den Befehl nicht abrufen."
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Die Anhänge des Benutzers konnten nicht gelöscht werden."
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Die Dateiinformationen konnten nicht an den Beitrag angehängt werden."
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Die Dateiinformationen konnten nicht aus dem Beitrag gelöscht werden."
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Konnte die Dateiinformationen nicht abrufen."
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Konnte die Dateiinformationen über Pfad abrufen."
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Konnte die Dateiinformationen für den Beitrag nicht abgerufen."
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Konnte die Dateiinformationen für den Benutzer nicht abgerufen."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Konnte die Dateiinformationen nicht permanent löschen."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Konnte die Dateiinformationen nicht speichern."
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "Gruppe der synchronisierbaren Objekte wurde bereits gelöscht"
     },
@@ -5219,46 +5147,6 @@
         "translation": "Gruppenmitglied existiert bereits"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Konnte den Job nicht löschen."
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Konnte den Job nicht abrufen."
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Konnte die Jobs nicht abrufen."
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Die Anzahl der Jobs konnte nicht über Status und Typ abgerufen werden."
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Die neuesten Jobs konnten nicht über Status und Typ abgerufen werden."
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Konnte den Job nicht speichern."
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Konnte den Job nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Konnte Plugin-Key-Value nicht löschen"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Konnte Plugin-Key-Value nicht abrufen"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Konnte die Anzahl an Nachrichten nicht abrufen."
     },
@@ -5269,14 +5157,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Konnte die Anzahl an Benutzer mit Nachrichten nicht abrufen."
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Konnte die Nachricht nicht löschen."
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Konnte die Nachricht nicht abrufen."
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5203,12 @@
         "translation": "Konnte die Nachricht nicht überschreiben."
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Konnte die Nachricht nicht löschen."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Konnte die Kommentare des Benutzers nicht löschen."
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Konnte die Nachrichten nach Kanal nicht löschen."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen (zu viele), bitte wiederholen."
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Konnte die Nachricht nicht speichern."
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Sie können keine existierende Nachricht aktualisieren"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Suchen wurde auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Konnte die Nachricht nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Es existiert kein Eintrag für diesen Status"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Die Anzahl der aktiven Benutzer konnte nicht gezählt werden"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Ein Fehler ist beim Zurücksetzen aller Status aufgetreten."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Ein Fehler ist beim Speichern der Status aufgetreten."
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Ein Fehler ist beim Aktualisieren des Status auf."
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Konnte den Zeitpunkt der letzten Aktivität des Benutzers nicht aktualisieren."
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Es trat ein Fehler beim Finden der Systemeinstellungen auf"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Konnte die Systemvariable nicht finden."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Es trat ein Fehler beim aktualisieren der Systemeinstellung auf"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5471,8 @@
         "translation": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Es muss Update für existierenden Benutzer aufgerufen werden"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5481,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Es gibt bereits ein Konto mit diesem Benutzernamen."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6179,10 +5959,6 @@
         "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Konnte die Datenbanktransaktion nicht ausführen."
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
     },
@@ -6199,28 +5975,12 @@
         "translation": "Konnte die Direktnachrichten nicht abrufen."
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Nach KVCompareAndSet mit unverändertem Wert wurde mehr als 1 Zeile in MySQL gefunden."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Fehler beim Abfragen der vorhandenen Zeile in MySQL nach KVCompareAndSet mit unverändertem Wert."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Konnte das Gruppenmitglied mit der Benutzer-ID \"{{.UserId}}\" nicht entfernen."
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "Fehler beim Erstellen der Abfrage."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Konnte die Dateiinformationen über Pfad abrufen."
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7745,5 +7505,177 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Konnte die Rolle nicht abrufen."
+    },
+    {
+        "id": "api.context.get_user.app_error",
+        "translation": "Konnte Benutzer nicht über die Benutzer-ID der Sitzung holen."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Konnte die Nachricht nicht aktualisieren."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Sie können keine existierende Nachricht aktualisieren"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Konnte die Nachricht nicht speichern."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Konnte die zu löschenden Nachrichten für den Benutzer nicht auswählen."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Konnte die Nachrichten nach Kanal nicht löschen."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Konnte die Nachricht nicht abrufen."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Konnte die Nachricht nicht löschen."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Es existiert kein Eintrag für diesen Status"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Ein Fehler ist beim Abruf des Status aufgetreten."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht abrufen"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Konnte Plugin-Key-Value nicht löschen"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Es trat ein Fehler beim Speichern der Systemeinstellung auf"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "System-Tabelleneintrag konnte nicht permanent gelöscht werden"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Konnte die Systemvariable nicht finden."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Es trat ein Fehler beim Finden der Systemeinstellungen auf"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Konnte SAML-Anmeldung nicht mit leerer E-Mail-Adresse durchführen."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP-Synchronisierungs-Job-Timeout erreicht."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Konnte ExportFromTimestamp des Nachrichten-Export-Jobs nicht verarbeiten."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Konnte BatchSize des Nachrichten-Export-Jobs nicht verarbeiten."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster-API-Endpunkt nicht gefunden."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " hat eine Datei hochgeladen."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Konnte Export nicht in XML konvertieren."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Konnte den Job nicht aktualisieren."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Konnte den Job nicht speichern."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Konnte die neuesten Jobs nicht über Status und Typ abrufen."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Konnte die Anzahl der Jobs nicht über Status und Typ abrufen."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Konnte die Jobs nicht abrufen."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Konnte den Job nicht abrufen."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Konnte die Dateiinformationen nicht speichern."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Konnte die Anhänge des Benutzers nicht löschen."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Konnte die Dateiinformationen über Pfad abrufen."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Konnte die Dateiinformationen für den Beitrag nicht abgerufen."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Konnte die Dateiinformationen nicht abrufen."
     }
 ]
