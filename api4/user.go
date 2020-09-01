@@ -2594,6 +2594,16 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
 	if migrate := c.App.AccountMigration(); migrate != nil {
 		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
 			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
@@ -2641,6 +2651,16 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
