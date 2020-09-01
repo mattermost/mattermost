@@ -258,8 +258,8 @@ func NewServerBusyError() *model.AppError {
 	return err
 }
 
-func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.App.MakePermissionError(permission)
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	c.Err = c.App.MakePermissionError(permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

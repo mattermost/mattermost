@@ -283,7 +283,7 @@ type PostStore interface {
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
-	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError)
 	GetOldestEntityCreationTime() (int64, *model.AppError)
 }
 
@@ -535,18 +535,18 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
-	Get(id string) (*model.FileInfo, *model.AppError)
-	GetByPath(path string) (*model.FileInfo, *model.AppError)
-	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
-	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
-	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	Save(info *model.FileInfo) (*model.FileInfo, error)
+	Get(id string) (*model.FileInfo, error)
+	GetByPath(path string) (*model.FileInfo, error)
+	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetForUser(userId string) ([]*model.FileInfo, error)
+	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postId string, deleted bool)
-	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
-	DeleteForPost(postId string) (string, *model.AppError)
-	PermanentDelete(fileId string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	PermanentDeleteByUser(userId string) (int64, *model.AppError)
+	AttachToPost(fileId string, postId string, creatorId string) error
+	DeleteForPost(postId string) (string, error)
+	PermanentDelete(fileId string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(userId string) (int64, error)
 	ClearCaches()
 }
 
@@ -568,19 +568,19 @@ type ReactionStore interface {
 }
 
 type JobStore interface {
-	Save(job *model.Job) (*model.Job, *model.AppError)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError)
-	UpdateStatus(id string, status string) (*model.Job, *model.AppError)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError)
-	Get(id string) (*model.Job, *model.AppError)
-	GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByType(jobType string) ([]*model.Job, *model.AppError)
-	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
-	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
-	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError)
-	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
-	Delete(id string) (string, *model.AppError)
+	Save(job *model.Job) (*model.Job, error)
+	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	UpdateStatus(id string, status string) (*model.Job, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	Get(id string) (*model.Job, error)
+	GetAllPage(offset int, limit int) ([]*model.Job, error)
+	GetAllByType(jobType string) ([]*model.Job, error)
+	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(status string) ([]*model.Job, error)
+	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
+	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
+	GetCountByStatusAndType(status string, jobType string) (int64, error)
+	Delete(id string) (string, error)
 }
 
 type UserAccessTokenStore interface {

@@ -2635,7 +2635,7 @@ func (s *TimerLayerEmojiStore) Search(name string, prefixOnly bool, limit int) (
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) *model.AppError {
+func (s *TimerLayerFileInfoStore) AttachToPost(fileId string, postId string, creatorId string) error {
 	start := timemodule.Now()
 
 	err := s.FileInfoStore.AttachToPost(fileId, postId, creatorId)
@@ -2666,7 +2666,7 @@ func (s *TimerLayerFileInfoStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, *model.AppError) {
+func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.DeleteForPost(postId)
@@ -2682,7 +2682,7 @@ func (s *TimerLayerFileInfoStore) DeleteForPost(postId string) (string, *model.A
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.Get(id)
@@ -2698,7 +2698,7 @@ func (s *TimerLayerFileInfoStore) Get(id string) (*model.FileInfo, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetByPath(path)
@@ -2714,7 +2714,7 @@ func (s *TimerLayerFileInfoStore) GetByPath(path string) (*model.FileInfo, *mode
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool, includeDeleted bool, allowFromCache bool) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetForPost(postId, readFromMaster, includeDeleted, allowFromCache)
@@ -2730,7 +2730,7 @@ func (s *TimerLayerFileInfoStore) GetForPost(postId string, readFromMaster bool,
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetForUser(userId)
@@ -2746,7 +2746,7 @@ func (s *TimerLayerFileInfoStore) GetForUser(userId string) ([]*model.FileInfo, 
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) GetWithOptions(page int, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.GetWithOptions(page, perPage, opt)
@@ -2777,7 +2777,7 @@ func (s *TimerLayerFileInfoStore) InvalidateFileInfosForPostCache(postId string,
 	}
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError {
+func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) error {
 	start := timemodule.Now()
 
 	err := s.FileInfoStore.PermanentDelete(fileId)
@@ -2793,7 +2793,7 @@ func (s *TimerLayerFileInfoStore) PermanentDelete(fileId string) *model.AppError
 	return err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.PermanentDeleteBatch(endTime, limit)
@@ -2809,7 +2809,7 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteBatch(endTime int64, limit int6
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *model.AppError) {
+func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.PermanentDeleteByUser(userId)
@@ -2825,7 +2825,7 @@ func (s *TimerLayerFileInfoStore) PermanentDeleteByUser(userId string) (int64, *
 	return result, err
 }
 
-func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, *model.AppError) {
+func (s *TimerLayerFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	start := timemodule.Now()
 
 	result, err := s.FileInfoStore.Save(info)
@@ -3545,7 +3545,7 @@ func (s *TimerLayerGroupStore) UpsertMember(groupID string, userID string) (*mod
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Delete(id string) (string, *model.AppError) {
+func (s *TimerLayerJobStore) Delete(id string) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Delete(id)
@@ -3561,7 +3561,7 @@ func (s *TimerLayerJobStore) Delete(id string) (string, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) Get(id string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Get(id)
@@ -3577,7 +3577,7 @@ func (s *TimerLayerJobStore) Get(id string) (*model.Job, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByStatus(status)
@@ -3593,7 +3593,7 @@ func (s *TimerLayerJobStore) GetAllByStatus(status string) ([]*model.Job, *model
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByType(jobType)
@@ -3609,7 +3609,7 @@ func (s *TimerLayerJobStore) GetAllByType(jobType string) ([]*model.Job, *model.
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllByTypePage(jobType, offset, limit)
@@ -3625,7 +3625,7 @@ func (s *TimerLayerJobStore) GetAllByTypePage(jobType string, offset int, limit 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetAllPage(offset, limit)
@@ -3641,7 +3641,7 @@ func (s *TimerLayerJobStore) GetAllPage(offset int, limit int) ([]*model.Job, *m
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError) {
+func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetCountByStatusAndType(status, jobType)
@@ -3657,7 +3657,7 @@ func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType stri
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetNewestJobByStatusAndType(status, jobType)
@@ -3673,7 +3673,7 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusAndType(status string, jobType 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
@@ -3689,7 +3689,7 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 	return result, err
 }
 
-func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.Save(job)
@@ -3705,7 +3705,7 @@ func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, *model.AppError) 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateOptimistically(job, currentStatus)
@@ -3721,7 +3721,7 @@ func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus 
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateStatus(id, status)
@@ -3737,7 +3737,7 @@ func (s *TimerLayerJobStore) UpdateStatus(id string, status string) (*model.Job,
 	return result, err
 }
 
-func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError) {
+func (s *TimerLayerJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.JobStore.UpdateStatusOptimistically(id, currentStatus, newStatus)
@@ -4839,10 +4839,10 @@ func (s *TimerLayerPostStore) Search(teamId string, userId string, params *model
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s *TimerLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
 	start := timemodule.Now()
 
-	result, err := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	result, err := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
