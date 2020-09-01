@@ -4082,7 +4082,7 @@ func (s *RetryLayerProductNoticesStore) Clear(notices []string) error {
 	for {
 		err := s.ProductNoticesStore.Clear(notices)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4102,7 +4102,7 @@ func (s *RetryLayerProductNoticesStore) ClearOldNotices(currentNotices *model.Pr
 	for {
 		err := s.ProductNoticesStore.ClearOldNotices(currentNotices)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -4122,7 +4122,7 @@ func (s *RetryLayerProductNoticesStore) GetViews(userId string) ([]model.Product
 	for {
 		result, err := s.ProductNoticesStore.GetViews(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -4142,7 +4142,7 @@ func (s *RetryLayerProductNoticesStore) View(userId string, notices []string) er
 	for {
 		err := s.ProductNoticesStore.View(userId, notices)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
