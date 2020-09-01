@@ -81,3 +81,9 @@ func defaultAddTarget(target logr.Target) error {
 	// logger is replaced with mlog.Logger instance.
 	return errors.New("cannot AddTarget on default logger")
 }
+
+func defaultEnableMetrics(collector logr.MetricsCollector) error {
+	// mlog.EnableMetrics should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot EnableMetrics on default logger")
+}
