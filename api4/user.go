@@ -63,6 +63,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -1652,7 +1653,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	props := model.MapFromJson(r.Body)
-
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1686,7 +1686,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1734,6 +1734,48 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
+}
+
+func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+	r.ParseForm()
+	var loginID string
+	var token string
+	if len(r.Form) > 0 {
+		for key, value := range r.Form {
+			if key == "login_id" {
+				loginID = value[0]
+			}
+			if key == "cws_token" {
+				token = value[0]
+			}
+		}
+	}
+
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginID)
+	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	if err != nil {
+		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		mlog.Error("CWS authentication error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	auditRec.AddMeta("user", user)
+	c.LogAuditWithUserId(user.Id, "authenticated")
+	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	if err != nil {
+		mlog.Error("CWS login error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(w, r)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
