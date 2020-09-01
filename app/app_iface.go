@@ -947,6 +947,8 @@ type AppIface interface {
 	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
+	UpdateHashedPasswordByUserId(userId, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(activate bool, userId, token string) *model.AppError
