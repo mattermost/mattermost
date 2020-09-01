@@ -1131,7 +1131,6 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 			}
 			img, _, _ := prepareImage(data)
 			if img == nil {
-				mlog.Error("error preparing image file", mlog.Err(err))
 				return
 			}
 			fi.MiniPreview = model.GenerateMiniPreviewImage(img)
