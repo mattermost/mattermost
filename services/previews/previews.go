@@ -1,8 +1,9 @@
 package previews
 
 import (
-	"fmt"
+	"bytes"
 	"io"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -21,12 +22,18 @@ func generateMMPreviewPreview(mmpreviewURL string, mmpreviewSecret string, fileI
 	if fileInfo.PreviewPath == "" {
 		return errors.New("Invalid preview path")
 	}
-	req, err := http.NewRequest("POST", mmpreviewURL+"/toPDF", fileReader)
+	b, w, err := createMultipartFormData("file", fileInfo.Name, fileReader)
+	if err != nil {
+		return errors.Wrap(err, "Unable to generate file preview using mmpreview.")
+	}
+	req, err := http.NewRequest("POST", mmpreviewURL+"/toPDF", &b)
+	if err != nil {
+		return errors.Wrap(err, "Unable to generate file preview using mmpreview.")
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
 	if mmpreviewSecret != "" {
 		req.Header.Add("Authentication", mmpreviewSecret)
 	}
-	req.Header.Add("Content-Type", fileInfo.MimeType)
-	req.Header.Add("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileInfo.Name))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "Unable to generate file preview using mmpreview.")
@@ -40,4 +47,19 @@ func generateMMPreviewPreview(mmpreviewURL string, mmpreviewSecret string, fileI
 		return appErr
 	}
 	return nil
+}
+
+func createMultipartFormData(fieldName, fileName string, fileData io.Reader) (bytes.Buffer, *multipart.Writer, error) {
+	var b bytes.Buffer
+	var err error
+	w := multipart.NewWriter(&b)
+	var fw io.Writer
+	if fw, err = w.CreateFormFile(fieldName, fileName); err != nil {
+		return b, nil, err
+	}
+	if _, err = io.Copy(fw, fileData); err != nil {
+		return b, nil, err
+	}
+	w.Close()
+	return b, w, nil
 }
