@@ -5620,7 +5620,7 @@ func (s *RetryLayerUploadSessionStore) Delete(id string) error {
 	for {
 		err := s.UploadSessionStore.Delete(id)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
@@ -5640,7 +5640,7 @@ func (s *RetryLayerUploadSessionStore) Get(id string) (*model.UploadSession, err
 	for {
 		result, err := s.UploadSessionStore.Get(id)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5660,7 +5660,7 @@ func (s *RetryLayerUploadSessionStore) GetForUser(userId string) ([]*model.Uploa
 	for {
 		result, err := s.UploadSessionStore.GetForUser(userId)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5680,7 +5680,7 @@ func (s *RetryLayerUploadSessionStore) Save(session *model.UploadSession) (*mode
 	for {
 		result, err := s.UploadSessionStore.Save(session)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
@@ -5700,7 +5700,7 @@ func (s *RetryLayerUploadSessionStore) Update(session *model.UploadSession) erro
 	for {
 		err := s.UploadSessionStore.Update(session)
 		if err == nil {
-			return err
+			return nil
 		}
 		if !isRepeatableError(err) {
 			return err
