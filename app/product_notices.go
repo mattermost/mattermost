@@ -179,7 +179,8 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 		var view *model.ProductNoticeViewState
 		for _, v := range views {
 			if v.NoticeId == notice.ID {
-				view = &v
+				viewPtr := &v
+				view = viewPtr
 				break
 			}
 		}
