@@ -640,6 +640,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return nil, aerr
 	}
 
+	wg.Wait()
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
 		var appErr *model.AppError
 		switch {
@@ -649,8 +650,6 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			return nil, model.NewAppError("UploadFileX", "app.file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-
-	wg.Wait()
 
 	return t.fileinfo, nil
 }
@@ -834,7 +833,7 @@ func (t *UploadFileTask) postprocessImage() {
 	h := decoded.Bounds().Dy()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		thumb := decoded
@@ -855,6 +854,11 @@ func (t *UploadFileTask) postprocessImage() {
 			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
 		}
 		writeJPEG(preview, t.fileinfo.PreviewPath)
+	}()
+
+	go func() {
+		defer wg.Done()
+		t.fileinfo.MiniPreview = model.GenerateMiniPreviewImage(decoded)
 	}()
 	wg.Wait()
 }
@@ -1116,6 +1120,24 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 }
 
+func (a *App) generateMiniPreview(fi *model.FileInfo) {
+	if fi.IsImage() && fi.MiniPreview == "" {
+		go func() {
+
+			data, err := a.ReadFile(fi.Path)
+			if err == nil {
+				img, _, _ := prepareImage(data)
+				fi.MiniPreview = model.GenerateMiniPreviewImage(img)
+				if _, appErr := a.Srv().Store.FileInfo().Save(fi); appErr != nil {
+					mlog.Error("creating mini preview failed", mlog.Err(appErr))
+				} else {
+					a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
+				}
+			}
+		}()
+	}
+}
+
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	fileInfo, err := a.Srv().Store.FileInfo().Get(fileId)
 	if err != nil {
@@ -1128,6 +1150,9 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 		}
 	}
 
+	// update mini preview if needed, done in the background to avoid delaying the response
+	// will save fileinfo with the preview added for future use
+	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
 }
 

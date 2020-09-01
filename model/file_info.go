@@ -5,9 +5,13 @@ package model
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"image"
 	"image/gif"
+	"image/jpeg"
 	"io"
 	"mime"
 	"net/http"
@@ -53,6 +57,7 @@ type FileInfo struct {
 	Width           int    `json:"width,omitempty"`
 	Height          int    `json:"height,omitempty"`
 	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
+	MiniPreview     string `json:"mini_preview"`
 }
 
 func (fi *FileInfo) ToJson() string {
@@ -151,6 +156,18 @@ func NewInfo(name string) *FileInfo {
 	return info
 }
 
+func GenerateMiniPreviewImage(img image.Image) string {
+	preview := imaging.Resize(img, 16, 0, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+
+	if err := jpeg.Encode(buf, preview, &jpeg.Options{Quality: 90}); err != nil {
+		mlog.Error("Unable to encode image as mini preview jpg", mlog.Err(err))
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(buf.Bytes())
+}
+
 func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
@@ -170,10 +187,10 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 
 	if info.IsImage() {
 		// Only set the width and height if it's actually an image that we can understand
-		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
-			info.Width = config.Width
-			info.Height = config.Height
-
+		if im, _, err := image.Decode(bytes.NewReader(data)); err == nil {
+			info.Width = im.Bounds().Size().X
+			info.Height = im.Bounds().Size().Y
+			info.MiniPreview = GenerateMiniPreviewImage(im)
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
 				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
