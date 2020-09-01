@@ -32,6 +32,7 @@ func NewTestingLogger(tb testing.TB, writer io.Writer) *Logger {
 	testingLogger := &Logger{
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel("debug")),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel("info")),
+		logrLogger:   newLogr(),
 	}
 
 	logWriterCore := zapcore.NewCore(makeEncoder(true), logWriterSync, testingLogger.consoleLevel)
