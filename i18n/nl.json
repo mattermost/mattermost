@@ -1628,7 +1628,7 @@
     },
     {
         "id": "api.slackimport.slack_add_bot_user.unable_import",
-        "translation": "Fout bij het importeren van  Integratie /Slack Bot gebruiker {{.Username}}.\n"
+        "translation": "Fout bij het importeren van Integratie /Slack Bot gebruiker {{.Username}}.\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.added",
@@ -1636,7 +1636,7 @@
     },
     {
         "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-        "translation": "Fout bij het toevoegen aan kanaal van  Slack gebruiker {{.Username}}\n"
+        "translation": "Fout bij het toevoegen aan kanaal van Slack gebruiker {{.Username}}\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.import_failed",
@@ -1880,15 +1880,15 @@
     },
     {
         "id": "api.templates.deactivate_body.warning",
-        "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+        "translation": "Als deze wijziging niet door jou werd gevraagd of je wil je account heractiveren, neem contact op met je systeembeheerder."
     },
     {
         "id": "api.templates.deactivate_subject",
-        "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+        "translation": "[{{ .SiteName }}] Je account bij {{ .ServerURL }} werd gedeactiveerd"
     },
     {
         "id": "api.templates.email_change_body.info",
-        "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+        "translation": "Je e-mailadres voor {{.TeamDisplayName}} werd gewijzigd naar {{.NewEmail}}."
     },
     {
         "id": "api.templates.email_change_body.title",
@@ -1896,7 +1896,7 @@
     },
     {
         "id": "api.templates.email_change_subject",
-        "translation": "[{{ .SiteName }}] Your email address has changed"
+        "translation": "[{{ .SiteName }}] Je e-mailadres werd gewijzigd"
     },
     {
         "id": "api.templates.email_change_verify_body.button",
@@ -1912,7 +1912,7 @@
     },
     {
         "id": "api.templates.email_change_verify_subject",
-        "translation": "[{{ .SiteName }}] Verify new email address"
+        "translation": "[{{ .SiteName }}] Bevestig je nieuw e-mailadres"
     },
     {
         "id": "api.templates.email_footer",
@@ -1920,15 +1920,15 @@
     },
     {
         "id": "api.templates.email_info1",
-        "translation": "Any questions at all, mail us any time: "
+        "translation": "Heb je vragen, mail ons: "
     },
     {
         "id": "api.templates.email_info2",
-        "translation": "Best wishes,"
+        "translation": "Met vriendelijke groeten,"
     },
     {
         "id": "api.templates.email_info3",
-        "translation": "The {{.SiteName}} Team"
+        "translation": "Het {{.SiteName}} Team"
     },
     {
         "id": "api.templates.email_organization",
@@ -2016,7 +2016,7 @@
     },
     {
         "id": "api.templates.signin_change_email.body.info",
-        "translation": "U heeft uw inlog methode op {{ .SiteName }} bijgewerkt"
+        "translation": "Je hebt je aanmeldwijze op {{ .SiteName }} bijgewerkt naar {{.Method}}."
     },
     {
         "id": "api.templates.signin_change_email.body.method_email",
@@ -2100,7 +2100,7 @@
     },
     {
         "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-        "translation": "MFA is niet beschikbaar voor dit account type"
+        "translation": "MFA is niet beschikbaar voor dit account type."
     },
     {
         "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2108,11 +2108,11 @@
     },
     {
         "id": "api.user.authorize_oauth_user.bad_response.app_error",
-        "translation": "Ongeldig response bij aanvraag van een token"
+        "translation": "Ongeldig antwoord bij aanvraag van een token."
     },
     {
         "id": "api.user.authorize_oauth_user.bad_token.app_error",
-        "translation": "Ongeldig token type"
+        "translation": "Ongeldig token type."
     },
     {
         "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2120,7 +2120,7 @@
     },
     {
         "id": "api.user.authorize_oauth_user.missing.app_error",
-        "translation": "Toegangs token mist"
+        "translation": "Toegangstoken ontbreekt."
     },
     {
         "id": "api.user.authorize_oauth_user.response.app_error",
@@ -2128,15 +2128,15 @@
     },
     {
         "id": "api.user.authorize_oauth_user.service.app_error",
-        "translation": "Token aanvraag voor {{.Service}} is mislukt"
+        "translation": "Token aanvraag voor {{.Service}} is mislukt."
     },
     {
         "id": "api.user.authorize_oauth_user.token_failed.app_error",
-        "translation": "Token aanvraag mislukt"
+        "translation": "Token aanvraag mislukte."
     },
     {
         "id": "api.user.authorize_oauth_user.unsupported.app_error",
-        "translation": "Niet ondersteunde OAuth service provider"
+        "translation": "Niet ondersteunde OAuth service provider."
     },
     {
         "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2152,7 +2152,7 @@
     },
     {
         "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Lege e-mail"
+        "translation": "Lege e-mail."
     },
     {
         "id": "api.user.complete_switch_with_oauth.parse.app_error",
@@ -2160,7 +2160,7 @@
     },
     {
         "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-        "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
+        "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
     },
     {
         "id": "api.user.create_email_token.error",
@@ -2176,19 +2176,19 @@
     },
     {
         "id": "api.user.create_oauth_user.not_available.app_error",
-        "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server"
+        "translation": "{{.Service}} SSO via OAuth 2.0 is niet beschikbaar op deze server."
     },
     {
         "id": "api.user.create_profile_image.default_font.app_error",
-        "translation": "Kan geen standaard profiel aanmaken"
+        "translation": "Kon geen standaardprofielfiguur aanmaken."
     },
     {
         "id": "api.user.create_profile_image.encode.app_error",
-        "translation": "Kan het standaard figuur voor het profiel niet coderen"
+        "translation": "Kan het standaardfiguur voor het profiel niet encoderen."
     },
     {
         "id": "api.user.create_profile_image.initial.app_error",
-        "translation": "Kan geen initieel standaard figuur toevoegen bij het gebruikers profiel"
+        "translation": "Kan geen initiaal toevoegen aan de standaard profielafbeelding."
     },
     {
         "id": "api.user.create_user.accepted_domain.app_error",
@@ -2208,7 +2208,7 @@
     },
     {
         "id": "api.user.create_user.signup_link_expired.app_error",
-        "translation": "De aanmeld link is verlopen"
+        "translation": "De aanmeldlink is verlopen."
     },
     {
         "id": "api.user.create_user.signup_link_invalid.app_error",
@@ -7208,7 +7208,7 @@
     },
     {
         "id": "api.user.create_user.guest_accounts.license.app_error",
-        "translation": "Je licentie ondersteunt geen gastaccounts"
+        "translation": "Je licentie ondersteunt geen gastaccounts."
     },
     {
         "id": "api.user.create_user.guest_accounts.disabled.app_error",
@@ -8029,5 +8029,45 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Kan bot niet converteren naar gebruiker."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost kon niet upgraden naar de Enterprise Editie. De Mattermost systeemgebruiker {{.MattermostUsername}} heeft geen schrijfrechten op het noodzakelijke binaire bestand. Een systeembeheerder kan de bestandsrechten wijzigen door de volgende opdracht uit te voeren op de server waarop Mattermost is geïnstalleerd:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nNa het wijzigen van de bestandsrechten, probeer opnieuw Mattermost te upgraden. Na de upgrade en herstart, denk er aan om dan de bestandsrechten opnieuw te herstellen naar de originele bestandsrechten: \n\n```\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost kon niet worden geüpgraded naar de Enterprise Editie."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "Een upgrade naar de Mattermost Enterprise editie wordt reeds uitgevoerd."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": "Je kan niet upgraden omdat je reeds werkt met de Mattermost Enterprise editie."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": "Je hebt reeds geüpgraded naar de Mattermost Enterprise Editie. Gelieve de server te herstarten om de upgrade te beëindigen."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost kon niet upgraden naar de Enterprise editie. De digitale handtekening van het gedownloade bestand kon niet worden geverifieerd."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost kon niet upgraden naar de Enterprise editie."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost kont niet upgraden naar de Enterprise editie. Dit werkt enkel op Linuxsystemen met een X86-64 architectuur."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost kon niet upgraden naar de Enterprise Editie. De Mattermost systeemgebruiker {{.MattermostUsername}} heeft geen schrijfrechten op het nodige programmabestand. Een systeembeheerder kan de toegangsrechten wijzigen door volgende opdracht uit te voeren op de server waarop Mattermost geïnstalleerd is:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nNa het wijzigen van de toegangsrechten, kan je opnieuw proberen Mattermost te upgraden. Na de upgrade en het herstarten, vergeet niet om opnieuw de originele toegangsrechten opnieuw in te stellen:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost kon niet upgraden naar de Enterprise Editie. De Mattermost systeemgebruiker {{.MattermostUsername}} heeft geen schrijfrechten op het nodige programmabestand. Een systeembeheerder kan de toegangsrechten wijzigen door volgende opdracht uit te voeren op de server waarop Mattermost geïnstalleerd is:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nNa het wijzigen van de toegangsrechten, kan je opnieuw proberen Mattermost te upgraden. Na de upgrade en het herstarten, vergeet niet om opnieuw de originele toegangsrechten opnieuw in te stellen:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
     }
 ]

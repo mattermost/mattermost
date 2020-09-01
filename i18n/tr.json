@@ -8029,5 +8029,45 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Bot kullanıcıya dönüştürülemedi."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. İndirilen dosyanın sayısal imzası doğrulanamadı."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. Bu özellik yalnız x86-64 mimarisine sahip Linux sistemleri üzerinde kullanılabilir."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemi tamamlanıp sunucu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemi tamamlanıp sunucu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi. {{.MattermostUsername}} Mattermost sistem kullanıcısının gerekli program dosyalarına yazma izni yok. Bir sistem yöneticisi Mattermost uygulamasının kurulu olduğu sunucu üzerinde aşağıdaki komutları yürüterek dosya izinlerini güncelleyebilir:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDosya izinleri değiştirildikten sonra Mattermost sürümünü yükseltmeyi yeniden deneyin. Yükseltme işlemi tamamlanıp sunucu yeniden başlatıldıktan sonra aşağıdaki komutun yürütülerek program dosyası izinlerini özgün duruma döndürülmesi gerektiğini unutmayın:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost Enterprise Sürümüne yükseltilemedi."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "Mattermost Enterprise Sürümü için bir yükseltme işlemi zaten yapılıyor."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": "Zaten Mattermost Enterprise Sürümünü kullandığınız için yükseltme yapamazsınız."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": "Mattermost Enterprise Sürümüne zaten yükseltmişsiniz. Lütfen yükseltme işlemini tamamlamak için sunucuyu yeniden başlatın."
     }
 ]
