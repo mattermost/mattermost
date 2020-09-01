@@ -33,7 +33,7 @@ var cachedUserCount int64
 // previously fetched notices
 var cachedNotices model.ProductNotices
 
-func noticeMatchesConditions(a *App, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(conf *model.Config, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -119,7 +119,7 @@ func noticeMatchesConditions(a *App, client model.NoticeClientType, clientVersio
 
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
-		if !validateConfigEntry(a, k, v) {
+		if !validateConfigEntry(conf, k, v) {
 			return false, nil
 		}
 	}
@@ -134,8 +134,8 @@ func noticeMatchesConditions(a *App, client model.NoticeClientType, clientVersio
 	return true, nil
 }
 
-func validateConfigEntry(a *App, path string, expectedValue interface{}) bool {
-	value, found := config.GetValueByPath(strings.Split(path, "."), a.Config())
+func validateConfigEntry(conf *model.Config, path string, expectedValue interface{}) bool {
+	value, found := config.GetValueByPath(strings.Split(path, "."), *conf)
 	if !found {
 		return false
 	}
@@ -196,7 +196,7 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 			}
 		}
 		currentNotice := notice // pin
-		result, err := noticeMatchesConditions(a,
+		result, err := noticeMatchesConditions(a.Config(),
 			client,
 			clientVersion,
 			locale,
