@@ -298,8 +298,13 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel", channel)
 	auditRec.AddMeta("new_type", privacy)
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), channel.TeamId, model.PERMISSION_MANAGE_TEAM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+	if privacy == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC) {
+		c.SetPermissionError(model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC)
+		return
+	}
+
+	if privacy == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(*c.App.Session(), c.Params.ChannelId, model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE) {
+		c.SetPermissionError(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE)
 		return
 	}
 
