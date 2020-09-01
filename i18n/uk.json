@@ -6788,10 +6788,6 @@
         "translation": "ID Loaded Push Notifications are not configured or supported on this server."
     },
     {
-        "id": "api.slackimport.slack_import.zip.file_too_large",
-        "translation": ""
-    },
-    {
         "id": "api.push_notifications_ack.message.parse.app_error",
         "translation": "An error occurred building the push notification ack message."
     },
