@@ -135,7 +135,7 @@ func noticeMatchesConditions(a *App, client model.NoticeClientType, clientVersio
 }
 
 func validateConfigEntry(a *App, path string, expectedValue interface{}) bool {
-	value, found := config.GetConfigValueByPath(a.Config(), strings.Split(path, "."))
+	value, found := config.GetValueByPath(strings.Split(path, "."), a.Config())
 	if !found {
 		return false
 	}
@@ -174,18 +174,15 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 
 	var filteredNotices []model.NoticeMessage
 
-	getViewState := func(nid string) *model.ProductNoticeViewState {
-		for _, v := range views {
-			if v.NoticeId == nid {
-				return &v
-			}
-		}
-		return nil
-	}
-
 	for _, notice := range cachedNotices {
 		// check if the notice has been viewed already
-		view := getViewState(notice.ID)
+		var view *model.ProductNoticeViewState
+		for _, v := range views {
+			if v.NoticeId == notice.ID {
+				view = &v
+				break
+			}
+		}
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
 			if !repeatable && view.Viewed > 0 {
@@ -198,7 +195,7 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 				continue
 			}
 		}
-		notice := notice // pin
+		currentNotice := notice // pin
 		result, err := noticeMatchesConditions(a,
 			client,
 			clientVersion,
@@ -209,15 +206,15 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 			isTeamAdmin,
 			isCloud,
 			sku,
-			&notice)
+			&currentNotice)
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}
 		if result {
 			selectedLocale := "enUS"
 			filteredNotices = append(filteredNotices, model.NoticeMessage{
-				NoticeMessageInternal: notice.LocalizedMessages[selectedLocale],
-				ID:                    notice.ID,
+				NoticeMessageInternal: currentNotice.LocalizedMessages[selectedLocale],
+				ID:                    currentNotice.ID,
 			})
 		}
 	}

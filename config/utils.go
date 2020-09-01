@@ -182,11 +182,7 @@ func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
 	return cfg, nil
 }
 
-func GetConfigValueByPath(config *model.Config, path []string) (interface{}, bool) {
-	return getValueByPath(path, *config)
-}
-
-func getValueByPath(path []string, obj interface{}) (interface{}, bool) {
+func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
 	r := reflect.ValueOf(obj)
 	var val reflect.Value
 	if r.Kind() == reflect.Map {
@@ -206,7 +202,7 @@ func getValueByPath(path []string, obj interface{}) (interface{}, bool) {
 	case len(path) == 1:
 		return val.Interface(), true
 	case val.Kind() == reflect.Struct:
-		return getValueByPath(path[1:], val.Interface())
+		return GetValueByPath(path[1:], val.Interface())
 	case val.Kind() == reflect.Map:
 		remainingPath := strings.Join(path[1:], ".")
 		mapIter := val.MapRange()
@@ -224,7 +220,7 @@ func getValueByPath(path []string, obj interface{}) (interface{}, bool) {
 					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
 				}
 				// pass subpath
-				return getValueByPath(path[i:], data)
+				return GetValueByPath(path[i:], data)
 			}
 		}
 	}
