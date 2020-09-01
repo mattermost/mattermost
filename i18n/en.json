@@ -2000,7 +2000,7 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Acknowledging us"
+    "translation": "Acknowledging"
   },
   {
     "id": "api.server.warn_metric.email_us",
