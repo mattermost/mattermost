@@ -40,7 +40,6 @@ func newSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface
 		table.ColMap("Name").SetMaxSize(256)
 		table.ColMap("Extension").SetMaxSize(64)
 		table.ColMap("MimeType").SetMaxSize(256)
-		table.ColMap("MiniPreview").SetMaxSize(1024)
 	}
 
 	return s
@@ -58,14 +57,15 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) (*model.FileInfo, error) {
 	if err := info.IsValid(); err != nil {
 		return nil, err
 	}
-	var err error
-	if info.Id != "" {
-		_, err = fs.GetMaster().Update(info)
-	} else {
-		err = fs.GetMaster().Insert(info)
-	}
+
+	n, err := fs.GetMaster().Update(info)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to save FileInfo")
+		return nil, errors.Wrap(err, "failed to update FileInfo")
+	}
+	if n == 0 {
+		if err = fs.GetMaster().Insert(info); err != nil {
+			return nil, errors.Wrap(err, "failed to save FileInfo")
+		}
 	}
 	return info, nil
 }

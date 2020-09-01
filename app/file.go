@@ -1121,7 +1121,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
-	if fi.IsImage() && fi.MiniPreview == "" {
+	if fi.IsImage() && fi.MiniPreview == nil {
 		go func() {
 
 			data, err := a.ReadFile(fi.Path)
