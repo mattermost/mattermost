@@ -76,6 +76,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP is not available."
+  },
+  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate."
   },
@@ -1549,6 +1553,10 @@
     "translation": "marshal error"
   },
   {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Unable to migrate SAML."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2224,7 +2232,7 @@
   },
   {
     "id": "api.team.invite_members.limit_reached.app_error",
-    "translation": "You've reached the user limit of your current tier"
+    "translation": "You've reached the free tier user limit"
   },
   {
     "id": "api.team.invite_members.no_one.app_error",
@@ -2899,6 +2907,10 @@
     "translation": "Please sign in using {{.AuthService}}."
   },
   {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS token is not valid"
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -2909,6 +2921,10 @@
   {
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS login is forbidden."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -3037,6 +3053,10 @@
   {
     "id": "api.user.update_password.oauth.app_error",
     "translation": "Update password failed because the user is logged in through an OAuth service."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Only system administrators can set already-hashed passwords."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
@@ -6773,6 +6793,10 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "All IncludeDeletedChannels params should have the same value."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

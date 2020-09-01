@@ -282,7 +282,7 @@ github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 ## explicit
 github.com/mattermost/ldap
-# github.com/mattermost/logr v1.0.5
+# github.com/mattermost/logr v1.0.9
 ## explicit
 github.com/mattermost/logr
 github.com/mattermost/logr/format
@@ -515,10 +515,6 @@ github.com/willf/bitset
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 ## explicit
 github.com/xtgo/uuid
-# github.com/ziutek/mymysql v1.5.4
-## explicit
-# github.com/zmb3/gogetdoc v0.0.0-20190228002656-b37376c5da6a
-## explicit
 # go.etcd.io/bbolt v1.3.5
 ## explicit
 go.etcd.io/bbolt
@@ -568,7 +564,6 @@ golang.org/x/image/webp
 # golang.org/x/lint v0.0.0-20200302205851-738671d3881b
 ## explicit
 # golang.org/x/mod v0.3.0
-## explicit
 golang.org/x/mod/module
 golang.org/x/mod/semver
 # golang.org/x/net v0.0.0-20200707034311-ab3426394381
