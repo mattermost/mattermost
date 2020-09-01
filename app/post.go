@@ -1079,6 +1079,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
+		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
@@ -1098,7 +1099,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)
+	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, page, perPage)
 	if err != nil {
 		return nil, err
 	}
@@ -1146,7 +1147,12 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv().Store.FileInfo().GetForPost(postId, fromMaster, false, true)
+	fileInfos, err := a.Srv().Store.FileInfo().GetForPost(postId, fromMaster, false, true)
+	if err != nil {
+		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return fileInfos, nil
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
