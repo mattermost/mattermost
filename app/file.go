@@ -1125,14 +1125,20 @@ func (a *App) generateMiniPreview(fi *model.FileInfo) {
 		go func() {
 
 			data, err := a.ReadFile(fi.Path)
-			if err == nil {
-				img, _, _ := prepareImage(data)
-				fi.MiniPreview = model.GenerateMiniPreviewImage(img)
-				if _, appErr := a.Srv().Store.FileInfo().Save(fi); appErr != nil {
-					mlog.Error("creating mini preview failed", mlog.Err(appErr))
-				} else {
-					a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
-				}
+			if err != nil {
+				mlog.Error("error reading image file", mlog.Err(err))
+				return
+			}
+			img, _, _ := prepareImage(data)
+			if img == nil {
+				mlog.Error("error preparing image file", mlog.Err(err))
+				return
+			}
+			fi.MiniPreview = model.GenerateMiniPreviewImage(img)
+			if _, appErr := a.Srv().Store.FileInfo().Save(fi); appErr != nil {
+				mlog.Error("creating mini preview failed", mlog.Err(appErr))
+			} else {
+				a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
 			}
 		}()
 	}
