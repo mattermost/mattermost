@@ -7,9 +7,39 @@
 REPO_TO_USE=$1
 BRANCH_TO_USE=$2
 
-LATEST_REL=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-DRAFT=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"draft":' | sed -E 's/.*: ([^,]+).*/\1/')
-PRERELEASE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"prerelease":' | sed -E 's/.*: ([^,]+).*/\1/')
+BASIC_AUTH=""
+
+# If we find a github username and token, we use that.
+# In CI, these variables are available and useful to avoid rate limits which is
+# much more strict for unauthenticated requests.
+if [[ $GITHUB_USERNAME != "" && $GITHUB_TOKEN != "" ]];
+then
+	BASIC_AUTH="--user $GITHUB_USERNAME:$GITHUB_TOKEN"
+fi
+
+LATEST_REL=$(curl \
+	--silent \
+	$BASIC_AUTH \
+	"https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
+	| grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
+LATEST_REL=$(curl \
+  --silent \
+	$BASIC_AUTH \
+  "https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
+  | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
+DRAFT=$(curl \
+  --silent \
+	$BASIC_AUTH \
+  "https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
+  | grep '"draft":' | sed -E 's/.*: ([^,]+).*/\1/')
+
+PRERELEASE=$(curl \
+  --silent \
+	$BASIC_AUTH \
+  "https://api.github.com/repos/$REPO_TO_USE/releases" \
+  | grep '"prerelease":' | sed -E 's/.*: ([^,]+).*/\1/')
 
 # Check if this is a release branch
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -17,10 +47,10 @@ THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [[ "$THIS_BRANCH" =~ $BRANCH_TO_USE || $DRAFT =~ "true" ]]; then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
-    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
 elif [[ "$THIS_BRANCH"  =~ "master" ]]; then
     # Get the latest release even if its a pre-release
-    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent $BASIC_AUTH" https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sort -rV | head -n 1)
 else
     REL_TO_USE=$LATEST_REL
 fi
