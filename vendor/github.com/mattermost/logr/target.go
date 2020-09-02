@@ -10,6 +10,9 @@ import (
 // Target represents a destination for log records such as file,
 // database, TCP socket, etc.
 type Target interface {
+	// SetName provides an option name for the target.
+	SetName(name string)
+
 	// IsLevelEnabled returns true if this target should emit
 	// logs for the specified level. Also determines if
 	// a stack trace is required.
@@ -33,9 +36,10 @@ type RecordWriter interface {
 
 // Basic provides the basic functionality of a Target that can be used
 // to more easily compose your own Targets. To use, just embed Basic
-// in your target type, implement `RecordWriter`, and call `Start`.
+// in your target type, implement `RecordWriter`, and call `(*Basic).Start`.
 type Basic struct {
 	target Target
+	name   string
 
 	filter    Filter
 	formatter Formatter
@@ -43,6 +47,14 @@ type Basic struct {
 	in   chan *LogRec
 	done chan struct{}
 	w    RecordWriter
+
+	queueSizeGauge Gauge
+	loggedCounter  Counter
+	errorCounter   Counter
+	droppedCounter Counter
+	blockedCounter Counter
+
+	metricsUpdateFreqMillis int64
 }
 
 // Start initializes this target helper and starts accepting log records for processing.
@@ -61,6 +73,14 @@ func (b *Basic) Start(target Target, rw RecordWriter, filter Filter, formatter F
 	b.done = make(chan struct{}, 1)
 	b.w = rw
 	go b.start()
+
+	if b.queueSizeGauge != nil {
+		go b.startMetricsUpdater()
+	}
+}
+
+func (b *Basic) SetName(name string) {
+	b.name = name
 }
 
 // IsLevelEnabled returns true if this target should emit
@@ -97,14 +117,54 @@ func (b *Basic) Log(rec *LogRec) {
 	default:
 		handler := lgr.OnTargetQueueFull
 		if handler != nil && handler(b.target, rec, cap(b.in)) {
+			if b.droppedCounter != nil {
+				b.droppedCounter.Inc()
+			}
 			return // drop the record
 		}
+		if b.blockedCounter != nil {
+			b.blockedCounter.Inc()
+		}
+
 		select {
 		case <-time.After(lgr.enqueueTimeout()):
 			lgr.ReportError(fmt.Errorf("target enqueue timeout for log rec [%v]", rec))
 		case b.in <- rec: // block until success or timeout
 		}
 	}
+}
+
+// Metrics enables metrics collection using the provided MetricsCollector.
+func (b *Basic) EnableMetrics(collector MetricsCollector, updateFreqMillis int64) error {
+	b.metricsUpdateFreqMillis = updateFreqMillis
+
+	name := fmt.Sprintf("%v", b)
+	var err error
+
+	if b.queueSizeGauge, err = collector.QueueSizeGauge(name); err != nil {
+		return err
+	}
+	if b.loggedCounter, err = collector.LoggedCounter(name); err != nil {
+		return err
+	}
+	if b.errorCounter, err = collector.ErrorCounter(name); err != nil {
+		return err
+	}
+	if b.droppedCounter, err = collector.DroppedCounter(name); err != nil {
+		return err
+	}
+	if b.blockedCounter, err = collector.BlockedCounter(name); err != nil {
+		return err
+	}
+	return nil
+}
+
+// String returns a name for this target. Use `SetName` to specify a name.
+func (b *Basic) String() string {
+	if b.name != "" {
+		return b.name
+	}
+	return fmt.Sprintf("%T", b.target)
 }
 
 // Start accepts log records via In channel and writes to the
@@ -123,11 +183,39 @@ func (b *Basic) start() {
 		} else {
 			err := b.w.Write(rec)
 			if err != nil {
+				if b.errorCounter != nil {
+					b.errorCounter.Inc()
+				}
 				rec.Logger().Logr().ReportError(err)
+			} else if b.loggedCounter != nil {
+				b.loggedCounter.Inc()
 			}
 		}
 	}
 	close(b.done)
+}
+
+// startMetricsUpdater updates the metrics for any polled values every `MetricsUpdateFreqSecs` seconds until
+// target is closed.
+func (b *Basic) startMetricsUpdater() {
+	for {
+		updateFreq := b.metricsUpdateFreqMillis
+		if updateFreq == 0 {
+			updateFreq = DefMetricsUpdateFreqMillis
+		}
+		if updateFreq < 250 {
+			updateFreq = 250 // don't peg the CPU
+		}
+
+		select {
+		case <-b.done:
+			return
+		case <-time.After(time.Duration(updateFreq) * time.Millisecond):
+			if b.queueSizeGauge != nil {
+				b.queueSizeGauge.Set(float64(len(b.in)))
+			}
+		}
+	}
 }
 
 // flush drains the queue and notifies when done.
@@ -141,6 +229,9 @@ func (b *Basic) flush(done chan<- struct{}) {
 			if rec.flush == nil {
 				err = b.w.Write(rec)
 				if err != nil {
+					if b.errorCounter != nil {
+						b.errorCounter.Inc()
+					}
 					rec.Logger().Logr().ReportError(err)
 				}
 			}
