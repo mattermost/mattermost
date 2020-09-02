@@ -149,6 +149,9 @@ func (s *Server) initEnterprise() {
 		if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
 			mlog.Debug("Loading new SAML2 library")
 			s.Saml = samlInterfaceNew(s.FakeApp())
+		} else if *s.FakeApp().Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew == nil {
+			mlog.Debug("Ignoring configuration setting to use the Experimental SAML library")
+			s.Saml = samlInterface(s.FakeApp())
 		} else {
 			mlog.Debug("Loading original SAML library")
 			s.Saml = samlInterface(s.FakeApp())
