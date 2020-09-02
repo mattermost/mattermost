@@ -2012,7 +2012,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integrate AD/LDAP"
+    "translation": "Scaling with Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
@@ -2020,7 +2020,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrate SAML 2.0"
+    "translation": "Scaling with Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
