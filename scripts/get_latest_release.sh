@@ -18,12 +18,6 @@ then
 fi
 
 LATEST_REL=$(curl \
-	--silent \
-	$BASIC_AUTH \
-	"https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
-	| grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-
-LATEST_REL=$(curl \
   --silent \
 	$BASIC_AUTH \
   "https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
