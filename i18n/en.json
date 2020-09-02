@@ -4603,10 +4603,6 @@
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
-    "id": "app.system.aws_metering_service.error",
-    "translation": "Invalid metering service id."
-  },
-  {
     "id": "app.system.get.app_error",
     "translation": "We encountered an error finding the system properties."
   },
