@@ -60,6 +60,10 @@
     "translation": "Could not open certificate file."
   },
   {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Error parsing multiform request"
+  },
+  {
     "id": "api.admin.add_certificate.saving.app_error",
     "translation": "Could not save certificate file."
   },
@@ -5384,7 +5388,7 @@
   },
   {
     "id": "ent.ldap.do_login.x509.app_error",
-    "translation": ""
+    "translation": "Error creating key pair"
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",

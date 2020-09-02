@@ -13,11 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-const (
-	LdapPublicCertificateName = "ldap-public.crt"
-	LdapPrivateKeyName        = "ldap-private.key"
-)
-
 func (a *App) SyncLdap() {
 	a.Srv().Go(func() {
 
@@ -204,12 +199,12 @@ func (a *App) writeLdapFile(filename string, fileData *multipart.FileHeader) *mo
 }
 
 func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(LdapPublicCertificateName, fileData); err != nil {
+	if err := a.writeLdapFile(model.LDAP_PUBIC_CERTIFICATE_NAME, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PublicCertificateFile = LdapPublicCertificateName
+	*cfg.LdapSettings.PublicCertificateFile = model.LDAP_PUBIC_CERTIFICATE_NAME
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -221,12 +216,12 @@ func (a *App) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 }
 
 func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := a.writeLdapFile(LdapPrivateKeyName, fileData); err != nil {
+	if err := a.writeLdapFile(model.LDAP_PRIVATE_KEY_NAME, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.LdapSettings.PrivateKeyFile = LdapPrivateKeyName
+	*cfg.LdapSettings.PrivateKeyFile = model.LDAP_PRIVATE_KEY_NAME
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -252,7 +247,6 @@ func (a *App) RemoveLdapPublicCertificate() *model.AppError {
 
 	cfg := a.Config().Clone()
 	*cfg.LdapSettings.PublicCertificateFile = ""
-	// *cfg.LdapSettings.Encrypt = false
 
 	if err := cfg.IsValid(); err != nil {
 		return err
@@ -270,7 +264,6 @@ func (a *App) RemoveLdapPrivateCertificate() *model.AppError {
 
 	cfg := a.Config().Clone()
 	*cfg.LdapSettings.PrivateKeyFile = ""
-	// *cfg.LdapSettings.Encrypt = false
 
 	if err := cfg.IsValid(); err != nil {
 		return err

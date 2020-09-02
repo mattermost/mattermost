@@ -302,7 +302,7 @@ func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 func parseLdapCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
 	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
-		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.no_file.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("addLdapCertificate", "api.admin.add_certificate.parseform.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	m := r.MultipartForm

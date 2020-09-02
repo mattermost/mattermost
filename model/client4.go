@@ -4080,9 +4080,8 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 }
 
 // UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
-// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
-func (c *Client4) UploadLdapPublicCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, filename)
+func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PUBIC_CERTIFICATE_NAME)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4092,9 +4091,8 @@ func (c *Client4) UploadLdapPublicCertificate(data []byte, filename string) (boo
 }
 
 // UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
-// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
-func (c *Client4) UploadLdapPrivateCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := fileToMultipart(data, filename)
+func (c *Client4) UploadLdapPrivateCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PRIVATE_KEY_NAME)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}

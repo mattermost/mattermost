@@ -203,13 +203,10 @@ func TestUploadPublicCertificate(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	// sth.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName })
-	// defer sth.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = "" })
-
-	_, resp := th.Client.UploadLdapPublicCertificate([]byte(spPublicCertificate), "pub.crt")
+	_, resp := th.Client.UploadLdapPublicCertificate([]byte(spPublicCertificate))
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.UploadLdapPublicCertificate([]byte(spPublicCertificate), "pub.crt")
+	_, resp = th.SystemAdminClient.UploadLdapPublicCertificate([]byte(spPublicCertificate))
 	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 
 	_, resp = th.Client.DeleteLdapPublicCertificate()
@@ -217,24 +214,33 @@ func TestUploadPublicCertificate(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DeleteLdapPublicCertificate()
 	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+
+	_, resp = th.LocalClient.UploadLdapPublicCertificate([]byte(spPublicCertificate))
+	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+
+	_, resp = th.LocalClient.DeleteLdapPublicCertificate()
+	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 }
 
 func TestUploadPrivateCertificate(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	// sth.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = app.SamlIdpCertificateName })
-	// defer sth.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.SamlSettings.IdpCertificateFile = "" })
-
-	_, resp := th.Client.UploadSamlPrivateCertificate([]byte(spPrivateKey), "private.key")
+	_, resp := th.Client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.UploadSamlPrivateCertificate([]byte(spPrivateKey), "private.key")
+	_, resp = th.SystemAdminClient.UploadLdapPrivateCertificate([]byte(spPrivateKey))
 	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 
-	_, resp = th.Client.DeleteSamlPrivateCertificate()
+	_, resp = th.Client.DeleteLdapPrivateCertificate()
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.DeleteSamlPrivateCertificate()
+	_, resp = th.SystemAdminClient.DeleteLdapPrivateCertificate()
+	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+
+	_, resp = th.LocalClient.UploadLdapPrivateCertificate([]byte(spPrivateKey))
+	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+
+	_, resp = th.LocalClient.DeleteLdapPrivateCertificate()
 	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 }
