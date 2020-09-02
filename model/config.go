@@ -3504,6 +3504,14 @@ func (o *Config) Sanitize() {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
+	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+		*o.GoogleSettings.Secret = FAKE_SETTING
+	}
+
+	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+		*o.Office365Settings.Secret = FAKE_SETTING
+	}
+
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
@@ -3519,5 +3527,9 @@ func (o *Config) Sanitize() {
 
 	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
+	}
+
+	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 }
