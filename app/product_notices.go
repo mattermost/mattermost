@@ -174,13 +174,12 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 
 	var filteredNotices []model.NoticeMessage
 
-	for _, notice := range cachedNotices {
+	for noticeIndex, notice := range cachedNotices {
 		// check if the notice has been viewed already
 		var view *model.ProductNoticeViewState
-		for _, v := range views {
+		for viewIndex, v := range views {
 			if v.NoticeId == notice.ID {
-				viewPtr := &v
-				view = viewPtr
+				view = &views[viewIndex]
 				break
 			}
 		}
@@ -196,7 +195,6 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 				continue
 			}
 		}
-		currentNotice := notice // pin
 		result, err := noticeMatchesConditions(a.Config(),
 			client,
 			clientVersion,
@@ -207,15 +205,15 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 			isTeamAdmin,
 			isCloud,
 			sku,
-			&currentNotice)
+			&cachedNotices[noticeIndex])
 		if err != nil {
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}
 		if result {
 			selectedLocale := "enUS"
 			filteredNotices = append(filteredNotices, model.NoticeMessage{
-				NoticeMessageInternal: currentNotice.LocalizedMessages[selectedLocale],
-				ID:                    currentNotice.ID,
+				NoticeMessageInternal: notice.LocalizedMessages[selectedLocale],
+				ID:                    notice.ID,
 			})
 		}
 	}
