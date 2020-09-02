@@ -87,6 +87,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger := &Logger{
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
+		logrLogger:   newLogr(),
 	}
 
 	if config.EnableConsole {
@@ -101,6 +102,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 			MaxSize:  100,
 			Compress: true,
 		})
+
 		core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
 		cores = append(cores, core)
 	}
@@ -167,77 +169,67 @@ func (l *Logger) Sugar() *SugarLogger {
 
 func (l *Logger) Debug(message string, fields ...Field) {
 	l.zap.Debug(message, fields...)
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Debug) {
+	if isLevelEnabled(l.logrLogger, logr.Debug) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Debug(message)
 	}
 }
 
 func (l *Logger) Info(message string, fields ...Field) {
 	l.zap.Info(message, fields...)
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Info) {
+	if isLevelEnabled(l.logrLogger, logr.Info) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Info(message)
 	}
 }
 
 func (l *Logger) Warn(message string, fields ...Field) {
 	l.zap.Warn(message, fields...)
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Warn) {
+	if isLevelEnabled(l.logrLogger, logr.Warn) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Warn(message)
 	}
 }
 
 func (l *Logger) Error(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Error) {
+	if isLevelEnabled(l.logrLogger, logr.Error) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
 	}
 }
 
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Error) {
+	if isLevelEnabled(l.logrLogger, logr.Error) {
 		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
 	}
 }
 
 func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
-	if l.logrLogger != nil && isLevelEnabled(l.logrLogger, logr.Level(level)) {
-		l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
-	}
+	l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
 }
 
 func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
-	if l.logrLogger != nil {
-		var logger *logr.Logger
-		for _, lvl := range levels {
-			if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
-				// don't create logger with fields unless at least one level is active.
-				if logger == nil {
-					l := l.logrLogger.WithFields(zapToLogr(fields))
-					logger = &l
-				}
-				logger.Log(logr.Level(lvl), message)
+	var logger *logr.Logger
+	for _, lvl := range levels {
+		if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
+			// don't create logger with fields unless at least one level is active.
+			if logger == nil {
+				l := l.logrLogger.WithFields(zapToLogr(fields))
+				logger = &l
 			}
+			logger.Log(logr.Level(lvl), message)
 		}
 	}
 }
 
 func (l *Logger) Flush(cxt context.Context) error {
-	if l.logrLogger != nil {
-		return l.logrLogger.Logr().Flush() // TODO: use context when Logr lib supports it.
-	}
-	return nil
+	return l.logrLogger.Logr().Flush() // TODO: use context when Logr lib supports it.
 }
 
 // ShutdownAdvancedLogging stops the logger from accepting new log records and tries to
 // flush queues within the context timeout. Once complete all targets are shutdown
 // and any resources released.
 func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
-	var err error
-	if l.logrLogger != nil {
-		err = l.logrLogger.Logr().Shutdown() // TODO: use context when Logr lib supports it.
-		l.logrLogger = nil
-	}
+	err := l.logrLogger.Logr().Shutdown() // TODO: use context when Logr lib supports it.
+	l.logrLogger = newLogr()
 	return err
 }
 
@@ -245,14 +237,11 @@ func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
 // specified log targets. This is the easiest way to get the advanced logger
 // configured via a config source such as file.
 func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
-	if l.logrLogger != nil {
-		if err := l.ShutdownAdvancedLogging(context.Background()); err != nil {
-			Error("error shutting down previous logger", Err(err))
-		}
+	if err := l.ShutdownAdvancedLogging(context.Background()); err != nil {
+		Error("error shutting down previous logger", Err(err))
 	}
 
-	logr, err := newLogr(targets)
-	l.logrLogger = logr
+	err := logrAddTargets(l.logrLogger, targets)
 	return err
 }
 
@@ -261,4 +250,10 @@ func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
 //config source.
 func (l *Logger) AddTarget(target logr.Target) error {
 	return l.logrLogger.Logr().AddTarget(target)
+}
+
+// EnableMetrics enables metrics collection by supplying a MetricsCollector.
+// The MetricsCollector provides counters and gauges that are updated by log targets.
+func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
+	return l.logrLogger.Logr().SetMetricsCollector(collector)
 }
