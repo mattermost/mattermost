@@ -5616,7 +5616,7 @@ func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, end
 	for {
 		result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
 		if err == nil {
-			return result, err
+			return result, nil
 		}
 		if !isRepeatableError(err) {
 			return result, err
