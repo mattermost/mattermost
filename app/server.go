@@ -1227,12 +1227,12 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
 		if !warnMetric.IsBotOnly {
-			//banner and bot metrics - send websocket event
+			// Banner and bot metrics - send websocket event
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
 
-			//bot and banner metrics, do not send the bot message again
+			// Bot and banner metrics, do not send the bot message again
 			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
 				continue
 			}
