@@ -4643,6 +4643,54 @@
     "translation": "Failed to parse installation date."
   },
   {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Unable to count the teams."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "We encountered an error finding the team."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all private teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "We could not get all private teams in page."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
     "id": "app.team.invite_id.group_constrained.error",
     "translation": "Unable to join a group-constrained team by invite."
   },
@@ -4667,12 +4715,44 @@
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Unable to delete the existing team."
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
   {
     "id": "app.team.rename_team.name_occupied",
     "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Unable to save the team."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Must call update for existing team."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "We encountered an error searching teams."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Unable to find the existing team to update."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "We encountered an error updating the team."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -7447,18 +7527,6 @@
     "translation": "Unable to get the channel count for the scheme."
   },
   {
-    "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Unable to count the private teams."
-  },
-  {
-    "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Unable to count the public teams."
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Unable to count the teams."
-  },
-  {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction."
   },
@@ -7475,56 +7543,8 @@
     "translation": "Failed to update the team member."
   },
   {
-    "id": "store.sql_team.get.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
     "id": "store.sql_team.get_active_member_count.app_error",
     "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_all.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "We could not get all private teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-    "translation": "We could not get all private teams in page."
-  },
-  {
-    "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.missing.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_names.app_error",
-    "translation": "Unable to get the teams by names"
-  },
-  {
-    "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -7575,10 +7595,6 @@
     "translation": "Failed to update the team member."
   },
   {
-    "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Unable to delete the existing team."
-  },
-  {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "Unable to remove the team member."
   },
@@ -7587,52 +7603,12 @@
     "translation": "We could not reset the team schemes."
   },
   {
-    "id": "store.sql_team.save.app_error",
-    "translation": "Unable to save the team."
-  },
-  {
-    "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "A team with that name already exists."
-  },
-  {
-    "id": "store.sql_team.save.existing.app_error",
-    "translation": "Must call update for existing team."
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
     "translation": "Unable to save the team member."
-  },
-  {
-    "id": "store.sql_team.search_all_team.app_error",
-    "translation": "We encountered an error searching teams."
-  },
-  {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "We encountered an error searching open teams."
-  },
-  {
-    "id": "store.sql_team.search_private_team.app_error",
-    "translation": "We encountered an error searching private teams."
-  },
-  {
-    "id": "store.sql_team.update.app_error",
-    "translation": "Unable to update the team."
-  },
-  {
-    "id": "store.sql_team.update.find.app_error",
-    "translation": "Unable to find the existing team to update."
-  },
-  {
-    "id": "store.sql_team.update.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
-    "id": "store.sql_team.update.updating.app_error",
-    "translation": "We encountered an error updating the team."
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
