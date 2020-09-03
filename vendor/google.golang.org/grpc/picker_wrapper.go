@@ -25,7 +25,6 @@ import (
 
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/internal/channelz"
 	"google.golang.org/grpc/internal/transport"
 	"google.golang.org/grpc/status"
@@ -145,7 +144,7 @@ func (pw *pickerWrapper) pick(ctx context.Context, failfast bool, info balancer.
 
 		acw, ok := pickResult.SubConn.(*acBalancerWrapper)
 		if !ok {
-			grpclog.Error("subconn returned from pick is not *acBalancerWrapper")
+			logger.Error("subconn returned from pick is not *acBalancerWrapper")
 			continue
 		}
 		if t, ok := acw.getAddrConn().getReadyTransport(); ok {
@@ -159,7 +158,7 @@ func (pw *pickerWrapper) pick(ctx context.Context, failfast bool, info balancer.
 			// DoneInfo with default value works.
 			pickResult.Done(balancer.DoneInfo{})
 		}
-		grpclog.Infof("blockingPicker: the picked transport is not ready, loop back to repick")
+		logger.Infof("blockingPicker: the picked transport is not ready, loop back to repick")
 		// If ok == false, ac.state is not READY.
 		// A valid picker always returns READY subConn. This means the state of ac
 		// just changed, and picker will be updated shortly.
