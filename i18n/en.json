@@ -7287,6 +7287,10 @@
     "translation": "Unable to get the group channels for the given user and term."
   },
   {
+    "id": "store.sql_channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
+  },
+  {
     "id": "store.sql_channel.sidebar_categories.commit_transaction.app_error",
     "translation": "Unable to commit transaction."
   },
