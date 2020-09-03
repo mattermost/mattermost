@@ -8,30 +8,33 @@ else
 	PLATFORM=$(uname)
 fi
 
-if [[ -z "$1" ]]
+# When using the output of get_latest_release.sh
+if [[ "$1" == *"error"* ]]
 then
-	echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down, or you are being rate-limited.";
-	echo "Set the GITHUB_USERNAME and GITHUB_TOKEN environment variables to the appropriate values to work around Github rate-limiting.";
-	exit 1;
+    echo "$1"
+    exit 1;
 else
-    echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$1";
+    # strip whitespace
+    RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
+    echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$RELEASE_TO_DOWNLOAD";
 fi
 
 case "$PLATFORM" in
 
 Linux)
-    MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$1"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+    MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
     ;;
 
 Darwin)
-    MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$1"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+    MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
     ;;
 
 Windows)
-    MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$1"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d bin && rm "$MMCTL_FILE";
+    MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d bin && rm "$MMCTL_FILE";
     ;;
 
 *)
 	echo "error downloading mmctl: can't detect OS";
     ;;
+
 esac
