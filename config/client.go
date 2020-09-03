@@ -53,6 +53,7 @@ func GenerateClientConfig(c *model.Config, diagnosticID string, license *model.L
 	props["ExperimentalEnableClickToReply"] = strconv.FormatBool(*c.ExperimentalSettings.EnableClickToReply)
 
 	props["ExperimentalCloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+	props["ExperimentalCloudBilling"] = strconv.FormatBool(*c.ExperimentalSettings.CloudBilling)
 	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
 	} else {
