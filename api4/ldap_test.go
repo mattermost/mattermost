@@ -206,20 +206,18 @@ func TestUploadPublicCertificate(t *testing.T) {
 	_, resp := th.Client.UploadLdapPublicCertificate([]byte(spPublicCertificate))
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.UploadLdapPublicCertificate([]byte(spPublicCertificate))
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.UploadLdapPublicCertificate([]byte(spPrivateKey))
+		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	})
 
 	_, resp = th.Client.DeleteLdapPublicCertificate()
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.DeleteLdapPublicCertificate()
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
-
-	_, resp = th.LocalClient.UploadLdapPublicCertificate([]byte(spPublicCertificate))
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
-
-	_, resp = th.LocalClient.DeleteLdapPublicCertificate()
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.DeleteLdapPublicCertificate()
+		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	})
 }
 
 func TestUploadPrivateCertificate(t *testing.T) {
@@ -229,18 +227,16 @@ func TestUploadPrivateCertificate(t *testing.T) {
 	_, resp := th.Client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.UploadLdapPrivateCertificate([]byte(spPrivateKey))
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
+		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	})
 
 	_, resp = th.Client.DeleteLdapPrivateCertificate()
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
-	_, resp = th.SystemAdminClient.DeleteLdapPrivateCertificate()
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
-
-	_, resp = th.LocalClient.UploadLdapPrivateCertificate([]byte(spPrivateKey))
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
-
-	_, resp = th.LocalClient.DeleteLdapPrivateCertificate()
-	require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, resp := client.DeleteLdapPrivateCertificate()
+		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
+	})
 }
