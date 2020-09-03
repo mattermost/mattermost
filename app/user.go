@@ -75,9 +75,9 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		}
 	}
 
-	channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
-	if err != nil {
-		return nil, err
+	channels, nErr := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	if nErr != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	user.Email = tokenData["email"]

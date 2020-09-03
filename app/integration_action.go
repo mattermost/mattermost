@@ -78,7 +78,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().GetForPost(postId)
-		cchan <- store.StoreResult{Data: channel, Err: err}
+		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
@@ -133,8 +133,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	} else {
 		post := result.Data.(*model.Post)
 		result = <-cchan
-		if result.Err != nil {
-			return "", result.Err
+		if result.NErr != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 		channel := result.Data.(*model.Channel)
 
