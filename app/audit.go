@@ -161,7 +161,9 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 			errs = multierror.Append(err)
 			continue
 		}
-		adt.AddTarget(target)
+		if target != nil {
+			adt.AddTarget(target)
+		}
 	}
 	return errs
 }
