@@ -17,23 +17,16 @@ then
 	BASIC_AUTH="--user $GITHUB_USERNAME:$GITHUB_TOKEN"
 fi
 
-LATEST_REL=$(curl \
+RELEASE=$(curl \
   --silent \
 	$BASIC_AUTH \
-  "https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
-  | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  "https://api.github.com/repos/$REPO_TO_USE/releases/latest")
 
-DRAFT=$(curl \
-  --silent \
-	$BASIC_AUTH \
-  "https://api.github.com/repos/$REPO_TO_USE/releases/latest" \
-  | grep '"draft":' | sed -E 's/.*: ([^,]+).*/\1/')
+LATEST_REL=$(echo "$RELEASE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
-PRERELEASE=$(curl \
-  --silent \
-	$BASIC_AUTH \
-  "https://api.github.com/repos/$REPO_TO_USE/releases" \
-  | grep '"prerelease":' | sed -E 's/.*: ([^,]+).*/\1/')
+DRAFT=$(echo "$RELEASE" | grep '"draft":' | sed -E 's/.*: ([^,]+).*/\1/')
+
+PRERELEASE=$(echo "$RELEASE" | grep '"prerelease":' | sed -E 's/.*: ([^,]+).*/\1/')
 
 # Check if this is a release branch
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
