@@ -868,6 +868,7 @@ type ExperimentalSettings struct {
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -895,6 +896,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 		// User limit 0 is treated as no limit
 		s.CloudUserLimit = NewInt64(0)
 	}
+
+	if s.CloudBilling == nil {
+		s.CloudBilling = NewBool(false)
+	}
+
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
 	}
