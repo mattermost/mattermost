@@ -314,12 +314,12 @@ func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError
 	return posts[0], nil
 }
 
-func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	var posts []*model.Post
 	if _, err := s.GetReplica().Select(&posts, "SELECT *, (SELECT count(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
 	for _, post := range posts {
@@ -330,7 +330,7 @@ func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*m
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	var posts []*model.Post
@@ -362,7 +362,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
             LIMIT :Limit OFFSET :Offset`
 
 	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 
 	for _, post := range posts {
@@ -373,7 +373,7 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
 	pl := model.NewPostList()
 
 	var posts []*model.Post
@@ -389,7 +389,7 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 		LIMIT :Limit OFFSET :Offset`
 
 	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find Posts")
 	}
 	for _, post := range posts {
 		pl.AddPost(post)
@@ -606,7 +606,7 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool) (*model.P
 	return list, err
 }
 
-func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	var posts []*model.Post
 
 	replyCountQuery1 := ""
@@ -677,7 +677,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
 	list := model.NewPostList()
@@ -692,18 +692,21 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	return s.getPostsAround(true, options)
 }
 
-func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *SqlPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	return s.getPostsAround(false, options)
 }
 
-func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	if options.Page < 0 || options.PerPage < 0 {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil,
-			fmt.Sprintf("Page=%d and PerPage=%d must be non-negative", options.Page, options.PerPage), http.StatusBadRequest)
+func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions) (*model.PostList, error) {
+	if options.Page < 0 {
+		return nil, store.NewErrInvalidInput("Post", "<options.Page>", options.Page)
+	}
+
+	if options.PerPage < 0 {
+		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 
 	offset := options.Page * options.PerPage
@@ -744,11 +747,11 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "post_tosql")
 	}
 	_, err = s.GetMaster().Select(&posts, queryString, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 	}
 
 	if len(posts) > 0 {
@@ -779,11 +782,11 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 		rootQueryString, rootArgs, err := rootQuery.ToSql()
 
 		if err != nil {
-			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "post_tosql")
 		}
 		_, err = s.GetMaster().Select(&parents, rootQueryString, rootArgs...)
 		if err != nil {
-			return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+options.ChannelId+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
 		}
 	}
 
@@ -810,15 +813,15 @@ func (s *SqlPostStore) getPostsAround(before bool, options model.GetPostsOptions
 	return list, nil
 }
 
-func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *SqlPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	return s.getPostIdAroundTime(channelId, time, true)
 }
 
-func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *SqlPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	return s.getPostIdAroundTime(channelId, time, false)
 }
 
-func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, *model.AppError) {
+func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before bool) (string, error) {
 	var direction sq.Sqlizer
 	var sort string
 	if before {
@@ -853,20 +856,20 @@ func (s *SqlPostStore) getPostIdAroundTime(channelId string, time int64, before 
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return "", errors.Wrap(err, "post_tosql")
 	}
 
 	var postId string
 	if err := s.GetMaster().SelectOne(&postId, queryString, args...); err != nil {
 		if err != sql.ErrNoRows {
-			return "", model.NewAppError("SqlPostStore.getPostIdAroundTime", "store.sql_post.get_post_id_around.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			return "", errors.Wrapf(err, "failed to get Post id with channelId=%s", channelId)
 		}
 	}
 
 	return postId, nil
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	table := "Posts"
 	// We force MySQL to use the right index to prevent it from accidentally
 	// using the index_merge_intersection optimization.
@@ -891,13 +894,13 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Po
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "post_tosql")
 	}
 
 	var post *model.Post
 	if err := s.GetMaster().SelectOne(&post, queryString, args...); err != nil {
 		if err != sql.ErrNoRows {
-			return nil, model.NewAppError("SqlPostStore.GetPostAfterTime", "store.sql_post.get_post_after_time.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrapf(err, "failed to get Post with channelId=%s", channelId)
 		}
 	}
 

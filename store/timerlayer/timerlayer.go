@@ -4382,7 +4382,7 @@ func (s *TimerLayerPostStore) GetEtag(channelId string, allowFromCache bool) str
 	return result
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPosts(userId, offset, limit)
@@ -4398,7 +4398,7 @@ func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
@@ -4414,7 +4414,7 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
@@ -4494,7 +4494,7 @@ func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostAfterTime(channelId, time)
@@ -4510,7 +4510,7 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostIdAfterTime(channelId, time)
@@ -4526,7 +4526,7 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostIdBeforeTime(channelId, time)
@@ -4558,7 +4558,7 @@ func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsAfter(options)
@@ -4590,7 +4590,7 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsBefore(options)
@@ -4638,7 +4638,7 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsSince(options, allowFromCache)
