@@ -553,7 +553,7 @@ func (s *TimerLayerChannelStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) *model.AppError {
+func (s *TimerLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.ClearSidebarOnTeamLeave(userId, teamId)
@@ -697,7 +697,7 @@ func (s *TimerLayerChannelStore) Get(id string, allowFromCache bool) (*model.Cha
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetAll(teamId)
@@ -857,7 +857,7 @@ func (s *TimerLayerChannelStore) GetByNames(team_id string, names []string, allo
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelCounts(teamId, userId)
@@ -953,7 +953,7 @@ func (s *TimerLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, en
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
@@ -1017,7 +1017,7 @@ func (s *TimerLayerChannelStore) GetDeletedByName(team_id string, name string) (
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetForPost(postId)
@@ -1257,7 +1257,7 @@ func (s *TimerLayerChannelStore) GetPinnedPosts(channelId string) (*model.PostLi
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetPrivateChannelsForTeam(teamId, offset, limit)
@@ -1273,7 +1273,7 @@ func (s *TimerLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetPublicChannelsByIdsForTeam(teamId, channelIds)
@@ -1289,7 +1289,7 @@ func (s *TimerLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, ch
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetPublicChannelsForTeam(teamId, offset, limit)
@@ -1353,7 +1353,7 @@ func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userId string, teamId s
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetTeamChannels(teamId)
@@ -2002,7 +2002,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamI
 	return err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.UpdateSidebarChannelCategoryOnMove(channel, newTeamId)
@@ -4382,7 +4382,7 @@ func (s *TimerLayerPostStore) GetEtag(channelId string, allowFromCache bool) str
 	return result
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPosts(userId, offset, limit)
@@ -4398,7 +4398,7 @@ func (s *TimerLayerPostStore) GetFlaggedPosts(userId string, offset int, limit i
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPostsForChannel(userId, channelId, offset, limit)
@@ -4414,7 +4414,7 @@ func (s *TimerLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetFlaggedPostsForTeam(userId, teamId, offset, limit)
@@ -4494,7 +4494,7 @@ func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostAfterTime(channelId, time)
@@ -4510,7 +4510,7 @@ func (s *TimerLayerPostStore) GetPostAfterTime(channelId string, time int64) (*m
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostIdAfterTime(channelId, time)
@@ -4526,7 +4526,7 @@ func (s *TimerLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostIdBeforeTime(channelId, time)
@@ -4558,7 +4558,7 @@ func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromC
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsAfter(options)
@@ -4590,7 +4590,7 @@ func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsBefore(options)
@@ -4638,7 +4638,7 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsSince(options, allowFromCache)

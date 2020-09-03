@@ -577,7 +577,7 @@ func (s *OpenTracingLayerChannelStore) ClearCaches() {
 
 }
 
-func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) ClearSidebarOnTeamLeave(userId string, teamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.ClearSidebarOnTeamLeave")
 	s.Root.Store.SetContext(newCtx)
@@ -739,7 +739,7 @@ func (s *OpenTracingLayerChannelStore) Get(id string, allowFromCache bool) (*mod
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetAll(teamId string) ([]*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAll")
 	s.Root.Store.SetContext(newCtx)
@@ -919,7 +919,7 @@ func (s *OpenTracingLayerChannelStore) GetByNames(team_id string, names []string
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelCounts")
 	s.Root.Store.SetContext(newCtx)
@@ -1027,7 +1027,7 @@ func (s *OpenTracingLayerChannelStore) GetChannelsBatchForIndexing(startTime int
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetChannelsByIds")
 	s.Root.Store.SetContext(newCtx)
@@ -1099,7 +1099,7 @@ func (s *OpenTracingLayerChannelStore) GetDeletedByName(team_id string, name str
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetForPost(postId string) (*model.Channel, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -1364,7 +1364,7 @@ func (s *OpenTracingLayerChannelStore) GetPinnedPosts(channelId string) (*model.
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetPrivateChannelsForTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -1382,7 +1382,7 @@ func (s *OpenTracingLayerChannelStore) GetPrivateChannelsForTeam(teamId string, 
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetPublicChannelsByIdsForTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -1400,7 +1400,7 @@ func (s *OpenTracingLayerChannelStore) GetPublicChannelsByIdsForTeam(teamId stri
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetPublicChannelsForTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -1472,7 +1472,7 @@ func (s *OpenTracingLayerChannelStore) GetSidebarCategoryOrder(userId string, te
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
+func (s *OpenTracingLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetTeamChannels")
 	s.Root.Store.SetContext(newCtx)
@@ -2170,7 +2170,7 @@ func (s *OpenTracingLayerChannelStore) UpdateSidebarCategoryOrder(userId string,
 	return err
 }
 
-func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+func (s *OpenTracingLayerChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.UpdateSidebarChannelCategoryOnMove")
 	s.Root.Store.SetContext(newCtx)
@@ -4827,7 +4827,7 @@ func (s *OpenTracingLayerPostStore) GetEtag(channelId string, allowFromCache boo
 	return result
 }
 
-func (s *OpenTracingLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetFlaggedPosts")
 	s.Root.Store.SetContext(newCtx)
@@ -4845,7 +4845,7 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPosts(userId string, offset int, l
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetFlaggedPostsForChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -4863,7 +4863,7 @@ func (s *OpenTracingLayerPostStore) GetFlaggedPostsForChannel(userId string, cha
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetFlaggedPostsForTeam")
 	s.Root.Store.SetContext(newCtx)
@@ -4956,7 +4956,7 @@ func (s *OpenTracingLayerPostStore) GetParentsForExportAfter(limit int, afterId 
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostAfterTime")
 	s.Root.Store.SetContext(newCtx)
@@ -4974,7 +4974,7 @@ func (s *OpenTracingLayerPostStore) GetPostAfterTime(channelId string, time int6
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostIdAfterTime")
 	s.Root.Store.SetContext(newCtx)
@@ -4992,7 +4992,7 @@ func (s *OpenTracingLayerPostStore) GetPostIdAfterTime(channelId string, time in
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostIdBeforeTime")
 	s.Root.Store.SetContext(newCtx)
@@ -5028,7 +5028,7 @@ func (s *OpenTracingLayerPostStore) GetPosts(options model.GetPostsOptions, allo
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostsAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -5064,7 +5064,7 @@ func (s *OpenTracingLayerPostStore) GetPostsBatchForIndexing(startTime int64, en
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostsBefore")
 	s.Root.Store.SetContext(newCtx)
@@ -5118,7 +5118,7 @@ func (s *OpenTracingLayerPostStore) GetPostsCreatedAt(channelId string, time int
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *OpenTracingLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetPostsSince")
 	s.Root.Store.SetContext(newCtx)

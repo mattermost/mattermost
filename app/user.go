@@ -75,15 +75,16 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 		}
 	}
 
-	channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
-	if err != nil {
-		return nil, err
+	channels, nErr := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	if nErr != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
 	var ruser *model.User
+	var err *model.AppError
 	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
 		ruser, err = a.CreateUser(user)
 	} else {

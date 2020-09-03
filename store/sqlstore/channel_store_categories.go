@@ -899,15 +899,15 @@ func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences *model.P
 	return nil
 }
 
-func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) *model.AppError {
+func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Channel, newTeamId string) error {
 	// if channel is being moved, remove it from the categories, since it's possible that there's no matching category in the new team
 	if _, err := s.GetMaster().Exec("DELETE FROM SidebarChannels WHERE ChannelId=:ChannelId", map[string]interface{}{"ChannelId": channel.Id}); err != nil {
-		return model.NewAppError("SqlChannelStore.UpdateSidebarChannelCategoryOnMove", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete SidebarChannels with channelId=%s", channel.Id)
 	}
 	return nil
 }
 
-func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.AppError {
+func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	// if user leaves the team, clean his team related entries in sidebar channels and categories
 	params := map[string]interface{}{
 		"UserId": userId,
@@ -921,10 +921,10 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) *model.A
 		deleteQuery = "DELETE FROM SidebarChannels USING SidebarChannels AS chan LEFT OUTER JOIN SidebarCategories AS cat ON cat.Id = chan.CategoryId WHERE cat.UserId = :UserId AND   cat.TeamId = :TeamId"
 	}
 	if _, err := s.GetMaster().Exec(deleteQuery, params); err != nil {
-		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to delete from SidebarChannels")
 	}
 	if _, err := s.GetMaster().Exec("DELETE FROM SidebarCategories WHERE SidebarCategories.TeamId = :TeamId AND SidebarCategories.UserId = :UserId", params); err != nil {
-		return model.NewAppError("SqlChannelStore.ClearSidebarOnTeamLeave", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to delete from SidebarCategories")
 	}
 	return nil
 }
