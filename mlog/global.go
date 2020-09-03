@@ -32,6 +32,7 @@ func InitGlobalLogger(logger *Logger) {
 	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
 	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
 	AddTarget = globalLogger.AddTarget
+	EnableMetrics = globalLogger.EnableMetrics
 }
 
 func RedirectStdLog(logger *Logger) {
@@ -45,6 +46,7 @@ type FlushFunc func(context.Context) error
 type ConfigFunc func(cfg LogTargetCfg) error
 type ShutdownFunc func(context.Context) error
 type AddTargetFunc func(logr.Target) error
+type EnableMetricsFunc func(logr.MetricsCollector) error
 
 // DON'T USE THIS Modify the level on the app logger
 func GloballyDisableDebugLogForTest() {
@@ -68,3 +70,4 @@ var Flush FlushFunc = defaultFlush
 var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
 var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
 var AddTarget AddTargetFunc = defaultAddTarget
+var EnableMetrics EnableMetricsFunc = defaultEnableMetrics

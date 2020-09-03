@@ -131,9 +131,13 @@ func (s SearchPostStore) PermanentDeleteByChannel(channelID string) error {
 	return err
 }
 
-func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	if err := model.IsSearchParamsListValid(paramsList); err != nil {
+		return nil, err
+	}
+
 	// We only allow the user to search in channels they are a member of.
-	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, includeDeletedChannels, 0)
+	userChannels, nErr := s.rootStore.Channel().GetChannels(teamId, userId, paramsList[0].IncludeDeletedChannels, 0)
 	if nErr != nil {
 		mlog.Error("error getting channel for user", mlog.Err(nErr))
 		var nfErr *store.ErrNotFound
@@ -169,10 +173,10 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
-			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
 				mlog.Error("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
@@ -188,5 +192,5 @@ func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchPara
 	}
 
 	mlog.Debug("Using database search because no other search engine is available")
-	return s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	return s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)
 }
