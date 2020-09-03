@@ -636,6 +636,7 @@ func (s *Server) trackConfig() {
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 	})
 
 	s.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
