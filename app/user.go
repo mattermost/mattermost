@@ -42,6 +42,7 @@ const (
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
 	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
 	TOKEN_TYPE_GUEST_INVITATION   = "guest_invitation"
+	TOKEN_TYPE_CWS_ACCESS         = "cws_access_token"
 	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
 	INVITATION_EXPIRY_TIME        = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
@@ -1280,6 +1281,25 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 	return nil
 }
 
+func (a *App) UpdateHashedPasswordByUserId(userId, newHashedPassword string) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	return a.UpdateHashedPassword(user, newHashedPassword)
+}
+
+func (a *App) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+	if err := a.Srv().Store.User().UpdatePassword(user.Id, newHashedPassword); err != nil {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
 func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError {
 	token, err := a.GetPasswordRecoveryToken(userSuppliedTokenString)
 	if err != nil {
@@ -1535,7 +1555,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.Srv().Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.file_info.permanent_delete_by_user.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.User().PermanentDelete(user.Id); err != nil {

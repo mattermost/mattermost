@@ -85,8 +85,3 @@ func (f *File) Shutdown(ctx context.Context) error {
 
 	return errs.ErrorOrNil()
 }
-
-// String returns a string representation of this target.
-func (f *File) String() string {
-	return "FileTarget"
-}

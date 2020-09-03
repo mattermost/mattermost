@@ -231,11 +231,15 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			}
 			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
 		},
-		"genResultsVars": func(results []string) string {
+		"genResultsVars": func(results []string, withNilError bool) string {
 			vars := []string{}
 			for i, typeName := range results {
 				if isError(typeName) {
-					vars = append(vars, "err")
+					if withNilError {
+						vars = append(vars, "nil")
+					} else {
+						vars = append(vars, "err")
+					}
 				} else if i == 0 {
 					vars = append(vars, "result")
 				} else {
