@@ -3,38 +3,38 @@
 
 if [[ "$OS" = "Windows_NT" ]]
 then
-	PLATFORM="Windows"
+  PLATFORM="Windows"
 else
-	PLATFORM=$(uname)
+  PLATFORM=$(uname)
 fi
 
 # When using the output of get_latest_release.sh
 if [[ "$1" == *"error"* ]]
 then
-    echo "$1"
-    exit 1;
+  echo "$1"
+  exit 1;
 else
-    # strip whitespace
-    RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
-    echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$RELEASE_TO_DOWNLOAD";
+  # strip whitespace
+  RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
+  echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$RELEASE_TO_DOWNLOAD";
 fi
 
 case "$PLATFORM" in
 
 Linux)
-    MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
-    ;;
+  MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+  ;;
 
 Darwin)
-    MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
-    ;;
+  MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && tar -xvf "$MMCTL_FILE" -C bin && rm "$MMCTL_FILE";
+  ;;
 
 Windows)
-    MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d bin && rm "$MMCTL_FILE";
-    ;;
+  MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$RELEASE_TO_DOWNLOAD"/"$MMCTL_FILE" && unzip -o "$MMCTL_FILE" -d bin && rm "$MMCTL_FILE";
+  ;;
 
 *)
-	echo "error downloading mmctl: can't detect OS";
-    ;;
+  echo "error downloading mmctl: can't detect OS";
+  ;;
 
 esac
