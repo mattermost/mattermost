@@ -5868,7 +5868,7 @@ func (s *TimerLayerTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (i
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) AnalyticsPrivateTeamCount() (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.AnalyticsPrivateTeamCount()
@@ -5884,7 +5884,7 @@ func (s *TimerLayerTeamStore) AnalyticsPrivateTeamCount() (int64, *model.AppErro
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.AnalyticsPublicTeamCount()
@@ -5900,7 +5900,7 @@ func (s *TimerLayerTeamStore) AnalyticsPublicTeamCount() (int64, *model.AppError
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) AnalyticsTeamCount(includeDeleted bool) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.AnalyticsTeamCount(includeDeleted)
@@ -5947,7 +5947,7 @@ func (s *TimerLayerTeamStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerTeamStore) Get(id string) (*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) Get(id string) (*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.Get(id)
@@ -5979,7 +5979,7 @@ func (s *TimerLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAll() ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAll() ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAll()
@@ -6011,7 +6011,7 @@ func (s *TimerLayerTeamStore) GetAllForExportAfter(limit int, afterId string) ([
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPage(offset, limit)
@@ -6027,7 +6027,7 @@ func (s *TimerLayerTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, 
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPrivateTeamListing()
@@ -6043,7 +6043,7 @@ func (s *TimerLayerTeamStore) GetAllPrivateTeamListing() ([]*model.Team, *model.
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPrivateTeamPageListing(offset, limit)
@@ -6059,7 +6059,7 @@ func (s *TimerLayerTeamStore) GetAllPrivateTeamPageListing(offset int, limit int
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllPublicTeamPageListing(offset, limit)
@@ -6075,7 +6075,7 @@ func (s *TimerLayerTeamStore) GetAllPublicTeamPageListing(offset int, limit int)
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllTeamListing()
@@ -6091,7 +6091,7 @@ func (s *TimerLayerTeamStore) GetAllTeamListing() ([]*model.Team, *model.AppErro
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetAllTeamPageListing(offset, limit)
@@ -6107,7 +6107,7 @@ func (s *TimerLayerTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*m
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetByInviteId(inviteId)
@@ -6123,7 +6123,7 @@ func (s *TimerLayerTeamStore) GetByInviteId(inviteId string) (*model.Team, *mode
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetByName(name string) (*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetByName(name)
@@ -6139,7 +6139,7 @@ func (s *TimerLayerTeamStore) GetByName(name string) (*model.Team, *model.AppErr
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetByNames(name []string) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetByNames(name []string) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetByNames(name)
@@ -6267,7 +6267,7 @@ func (s *TimerLayerTeamStore) GetTeamsByScheme(schemeId string, offset int, limi
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetTeamsByUserId(userId)
@@ -6394,7 +6394,7 @@ func (s *TimerLayerTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId s
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) PermanentDelete(teamId string) *model.AppError {
+func (s *TimerLayerTeamStore) PermanentDelete(teamId string) error {
 	start := timemodule.Now()
 
 	err := s.TeamStore.PermanentDelete(teamId)
@@ -6490,7 +6490,7 @@ func (s *TimerLayerTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return err
 }
 
-func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.Save(team)
@@ -6538,7 +6538,7 @@ func (s *TimerLayerTeamStore) SaveMultipleMembers(members []*model.TeamMember, m
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.SearchAll(term, opts)
@@ -6554,7 +6554,7 @@ func (s *TimerLayerTeamStore) SearchAll(term string, opts *model.TeamSearch) ([]
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch) ([]*model.Team, int64, error) {
 	start := timemodule.Now()
 
 	result, resultVar1, err := s.TeamStore.SearchAllPaged(term, opts)
@@ -6570,7 +6570,7 @@ func (s *TimerLayerTeamStore) SearchAllPaged(term string, opts *model.TeamSearch
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.SearchOpen(term)
@@ -6586,7 +6586,7 @@ func (s *TimerLayerTeamStore) SearchOpen(term string) ([]*model.Team, *model.App
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) SearchPrivate(term string) ([]*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.SearchPrivate(term)
@@ -6602,7 +6602,7 @@ func (s *TimerLayerTeamStore) SearchPrivate(term string) ([]*model.Team, *model.
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
+func (s *TimerLayerTeamStore) Update(team *model.Team) (*model.Team, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.Update(team)
