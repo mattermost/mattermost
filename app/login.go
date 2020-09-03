@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -178,11 +177,9 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		a.Srv().Go(func() {
 			a.Ldap().UpdateProfilePictureIfNecessary(*user, session)
-			mlog.Debug(*user.AuthData)
 		})
 	}
 
-	mlog.Debug(*user.AuthData)
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := a.PluginContext()
@@ -193,7 +190,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		})
 	}
 
-	mlog.Debug(*user.AuthData)
 	return nil
 }
 

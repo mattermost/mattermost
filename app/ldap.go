@@ -233,7 +233,6 @@ func (a *App) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.A
 }
 
 func (a *App) removeLdapFile(filename string) *model.AppError {
-	mlog.Debug(filename)
 	if err := a.Srv().configStore.RemoveFile(filename); err != nil {
 		return model.NewAppError("RemoveLdapFile", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
