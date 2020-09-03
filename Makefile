@@ -114,9 +114,6 @@ else
 ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
-# Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD:=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
-
 all: run ## Alias for 'run'.
 
 -include config.override.mk
@@ -188,14 +185,16 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
-ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
-	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
+	@echo "mmctl already exists in bin/mmctl not downloading a new version."
+else
+	$(eval MMCTL_REL_TO_DOWNLOAD := $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-'))
+ifeq ("$(MMCTL_REL_TO_DOWNLOAD)",)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down, or you are being rate-limited."
+	@echo "Set the GITHUB_USERNAME and GITHUB_TOKEN environment variables to the appropriate values to work around Github's rate-limiting."
 	@exit 1
 endif
-# Externally built binaries
-ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
-	@echo mmctl installed
-else ifeq ($(PLATFORM),Darwin)
+ifeq ($(PLATFORM),Darwin)
 	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
 	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Linux)
@@ -206,6 +205,7 @@ else ifeq ($(PLATFORM),Windows)
 	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
 else
 	@echo "mmctl error: can't detect OS"
+endif
 endif
 
 golangci-lint: ## Run golangci-lint on codebase
