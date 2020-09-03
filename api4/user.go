@@ -63,6 +63,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -85,6 +86,9 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1492,18 +1496,31 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.UserId == c.App.Session().UserId {
-		currentPassword := props["current_password"]
-		if len(currentPassword) <= 0 {
-			c.SetInvalidParam("current_password")
-			return
-		}
 
-		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
-	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+	// There are two main update flows depending on whether the provided password
+	// is already hashed or not.
+	if props["already_hashed"] == "true" {
+		if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
+		} else if c.Params.UserId == c.App.Session().UserId {
+			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	} else {
-		err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		if c.Params.UserId == c.App.Session().UserId {
+			currentPassword := props["current_password"]
+			if len(currentPassword) <= 0 {
+				c.SetInvalidParam("current_password")
+				return
+			}
+
+			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+		} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	if err != nil {
@@ -1636,7 +1653,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	props := model.MapFromJson(r.Body)
-
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1670,7 +1686,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1718,6 +1734,48 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
+}
+
+func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+	r.ParseForm()
+	var loginID string
+	var token string
+	if len(r.Form) > 0 {
+		for key, value := range r.Form {
+			if key == "login_id" {
+				loginID = value[0]
+			}
+			if key == "cws_token" {
+				token = value[0]
+			}
+		}
+	}
+
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginID)
+	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	if err != nil {
+		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		mlog.Error("CWS authentication error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	auditRec.AddMeta("user", user)
+	c.LogAuditWithUserId(user.Id, "authenticated")
+	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	if err != nil {
+		mlog.Error("CWS login error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(w, r)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2541,4 +2599,122 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("convertedTo", bot)
 
 	w.Write(bot.ToJson())
+}
+
+func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		c.SetInvalidParam("force")
+		return
+	}
+
+	matchField, ok := props["match_field"].(string)
+	if !ok {
+		c.SetInvalidParam("match_field")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("match_field", matchField)
+	auditRec.AddMeta("force", force)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToLdap", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	auto, ok := props["auto"].(bool)
+	if !ok {
+		c.SetInvalidParam("auto")
+		return
+	}
+	matches, ok := props["matches"].(map[string]interface{})
+	if !ok {
+		c.SetInvalidParam("matches")
+		return
+	}
+	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+
+	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("matches", matches)
+	auditRec.AddMeta("auto", auto)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
