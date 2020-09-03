@@ -671,6 +671,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
+		Where("u.DeleteAt = 0").
 		OrderBy("u.Username ASC").
 		Offset(uint64(offset)).Limit(uint64(limit))
 
@@ -696,6 +697,7 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		LeftJoin("Status s ON ( s.UserId = u.Id )").
 		Where("cm.ChannelId = ?", channelId).
+		Where("u.DeleteAt = 0").
 		OrderBy(`
 			CASE s.Status
 				WHEN 'online' THEN 1

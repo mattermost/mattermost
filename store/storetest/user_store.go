@@ -756,6 +756,15 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, nErr)
+
 	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
@@ -793,6 +802,17 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	u4.DeleteAt = 1
+	_, err = ss.User().Update(u4, true)
 	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
@@ -861,6 +881,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, nErr)
+
 	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
@@ -898,6 +927,17 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
+	require.Nil(t, err)
+
+	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, err)
+
+	u4.DeleteAt = 1
+	_, err = ss.User().Update(u4, true)
 	require.Nil(t, err)
 
 	_, err = ss.Channel().SaveMember(&model.ChannelMember{
