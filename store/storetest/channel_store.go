@@ -925,8 +925,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -934,7 +934,7 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1086,8 +1086,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -1246,8 +1246,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
@@ -1422,8 +1422,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -1431,7 +1431,7 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -1597,8 +1597,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -1771,8 +1771,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
@@ -1948,8 +1948,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -1957,7 +1957,7 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2111,8 +2111,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -2273,8 +2273,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",
@@ -2451,8 +2451,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -2460,7 +2460,7 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		channel, nErr := ss.Channel().Save(channel, -1)
+		channel, nErr = ss.Channel().Save(channel, -1)
 		require.Nil(t, nErr)
 		defer func() { ss.Channel().PermanentDelete(channel.Id) }()
 
@@ -2621,8 +2621,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel := &model.Channel{
 			DisplayName: "DisplayName",
@@ -2790,8 +2790,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		channel, nErr := ss.Channel().Save(&model.Channel{
 			DisplayName: "DisplayName",

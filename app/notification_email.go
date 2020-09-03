@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return err
+			return model.NewAppError("sendNotificationEmail", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
