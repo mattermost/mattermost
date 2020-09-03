@@ -140,9 +140,9 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			team, err := job.server.Store.Team().GetByName(notifications[0].teamName)
-			if err != nil {
-				mlog.Error("Unable to find Team id for notification", mlog.Err(err))
+			team, nErr := job.server.Store.Team().GetByName(notifications[0].teamName)
+			if nErr != nil {
+				mlog.Error("Unable to find Team id for notification", mlog.Err(nErr))
 				continue
 			}
 
