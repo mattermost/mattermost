@@ -84,6 +84,7 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 	user.EmailVerified = true
 
 	var ruser *model.User
+	var err *model.AppError
 	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
 		ruser, err = a.CreateUser(user)
 	} else {
