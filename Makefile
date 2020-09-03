@@ -195,14 +195,14 @@ ifeq ("$(MMCTL_REL_TO_DOWNLOAD)",)
 	@exit 1
 endif
 ifeq ($(PLATFORM),Darwin)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
-	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/"$(MMCTL_REL_TO_DOWNLOAD)"
+	@MMCTL_FILE="darwin_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$(MMCTL_REL_TO_DOWNLOAD)"/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Linux)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/"$(MMCTL_REL_TO_DOWNLOAD)"
 	@MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C bin && rm $$MMCTL_FILE
 else ifeq ($(PLATFORM),Windows)
-	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$(MMCTL_REL_TO_DOWNLOAD)
-	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
+	@echo Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/"$(MMCTL_REL_TO_DOWNLOAD)"
+	@MMCTL_FILE="windows_amd64.zip" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/"$(MMCTL_REL_TO_DOWNLOAD)"/$$MMCTL_FILE && unzip -o $$MMCTL_FILE -d bin && rm $$MMCTL_FILE
 else
 	@echo "mmctl error: can't detect OS"
 endif
