@@ -4451,12 +4451,28 @@
     "translation": "Could not save or update plugin key value."
   },
   {
+    "id": "app.post.analytics_posts_count.app_error",
+    "translation": "Unable to get post counts."
+  },
+  {
+    "id": "app.post.analytics_posts_count_by_day.app_error",
+    "translation": "Unable to get post counts by day."
+  },
+  {
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
+    "translation": "Unable to get user counts with posts."
+  },
+  {
     "id": "app.post.delete.app_error",
     "translation": "Unable to delete the post."
   },
   {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.get_direct_posts.app_error",
+    "translation": "Unable to get direct posts."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
@@ -4471,12 +4487,32 @@
     "translation": "Unable to get post around time bound."
   },
   {
+    "id": "app.post.get_posts.app_error",
+    "translation": "Limit exceeded for paging."
+  },
+  {
     "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the posts batch for indexing."
+  },
+  {
+    "id": "app.post.get_posts_created_att.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_root_posts.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.overwrite.app_error",
+    "translation": "Unable to overwrite the Post."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -4493,6 +4529,10 @@
   {
     "id": "app.post.save.existing.app_error",
     "translation": "You cannot update an existing Post."
+  },
+  {
+    "id": "app.post.search.app_error",
+    "translation": "Error searching posts"
   },
   {
     "id": "app.post.update.app_error",
@@ -7457,66 +7497,6 @@
   {
     "id": "store.sql_group.uniqueness_error",
     "translation": "group member already exists"
-  },
-  {
-    "id": "app.post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts."
-  },
-  {
-    "id": "app.post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day."
-  },
-  {
-    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts."
-  },
-  {
-    "id": "app.post.get_direct_posts.app_error",
-    "translation": "Unable to get direct posts."
-  },
-  {
-    "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
-    "translation": "Unable to get the oldest entitiy creation time."
-  },
-  {
-    "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Unable to get the parent post for the channel."
-  },
-  {
-    "id": "app.post.get_posts.app_error",
-    "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the posts batch for indexing."
-  },
-  {
-    "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Unable to get the posts."
-  },
-  {
-    "id": "app.post.get_posts_created_att.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.get_root_posts.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "app.post.overwrite.app_error",
-    "translation": "Unable to overwrite the Post."
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts."
-  },
-  {
-    "id": "store.sql_post.populate_reply_count.app_error",
-    "translation": "Unable to get the post replies count"
-  },
-  {
-    "id": "app.post.search.app_error",
-    "translation": "Error searching posts"
   },
   {
     "id": "store.sql_post.search.disabled",
