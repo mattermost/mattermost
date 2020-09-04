@@ -7459,19 +7459,19 @@
     "translation": "group member already exists"
   },
   {
-    "id": "store.sql_post.analytics_posts_count.app_error",
+    "id": "app.post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
   {
-    "id": "store.sql_post.analytics_posts_count_by_day.app_error",
+    "id": "app.post.analytics_posts_count_by_day.app_error",
     "translation": "Unable to get post counts by day."
   },
   {
-    "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
+    "id": "app.post.analytics_user_counts_posts_by_day.app_error",
     "translation": "Unable to get user counts with posts."
   },
   {
-    "id": "store.sql_post.get_direct_posts.app_error",
+    "id": "app.post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
   {
@@ -7483,11 +7483,11 @@
     "translation": "Unable to get the parent post for the channel."
   },
   {
-    "id": "store.sql_post.get_posts.app_error",
+    "id": "app.post.get_posts.app_error",
     "translation": "Limit exceeded for paging."
   },
   {
-    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
     "translation": "Unable to get the posts batch for indexing."
   },
   {
@@ -7495,15 +7495,15 @@
     "translation": "Unable to get the posts."
   },
   {
-    "id": "store.sql_post.get_posts_created_att.app_error",
+    "id": "app.post.get_posts_created_att.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "store.sql_post.get_root_posts.app_error",
+    "id": "app.post.get_root_posts.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "store.sql_post.overwrite.app_error",
+    "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
   },
   {
@@ -7515,7 +7515,7 @@
     "translation": "Unable to get the post replies count"
   },
   {
-    "id": "store.sql_post.search.app_error",
+    "id": "app.post.search.app_error",
     "translation": "Error searching posts"
   },
   {

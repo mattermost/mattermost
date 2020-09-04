@@ -4255,7 +4255,7 @@ func (s *TimerLayerPluginStore) SetWithOptions(pluginId string, key string, valu
 	return result, err
 }
 
-func (s *TimerLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError) {
+func (s *TimerLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.AnalyticsPostCount(teamId, mustHaveFile, mustHaveHashtag)
@@ -4271,7 +4271,7 @@ func (s *TimerLayerPostStore) AnalyticsPostCount(teamId string, mustHaveFile boo
 	return result, err
 }
 
-func (s *TimerLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
+func (s *TimerLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.AnalyticsPostCountsByDay(options)
@@ -4287,7 +4287,7 @@ func (s *TimerLayerPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsP
 	return result, err
 }
 
-func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+func (s *TimerLayerPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.AnalyticsUserCountsWithPostsByDay(teamId)
@@ -4350,7 +4350,7 @@ func (s *TimerLayerPostStore) Get(id string, skipFetchThreads bool) (*model.Post
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
+func (s *TimerLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterId)
@@ -4446,7 +4446,7 @@ func (s *TimerLayerPostStore) GetMaxPostSize() int {
 	return result
 }
 
-func (s *TimerLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetOldest() (*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetOldest()
@@ -4462,7 +4462,7 @@ func (s *TimerLayerPostStore) GetOldest() (*model.Post, *model.AppError) {
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppError) {
+func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetOldestEntityCreationTime()
@@ -4478,7 +4478,7 @@ func (s *TimerLayerPostStore) GetOldestEntityCreationTime() (int64, *model.AppEr
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
+func (s *TimerLayerPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetParentsForExportAfter(limit, afterId)
@@ -4542,7 +4542,7 @@ func (s *TimerLayerPostStore) GetPostIdBeforeTime(channelId string, time int64) 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPosts(options, allowFromCache)
@@ -4574,7 +4574,7 @@ func (s *TimerLayerPostStore) GetPostsAfter(options model.GetPostsOptions) (*mod
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsBatchForIndexing(startTime, endTime, limit)
@@ -4606,7 +4606,7 @@ func (s *TimerLayerPostStore) GetPostsBefore(options model.GetPostsOptions) (*mo
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsByIds(postIds)
@@ -4622,7 +4622,7 @@ func (s *TimerLayerPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *m
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetPostsCreatedAt(channelId, time)
@@ -4654,7 +4654,7 @@ func (s *TimerLayerPostStore) GetPostsSince(options model.GetPostsSinceOptions, 
 	return result, err
 }
 
-func (s *TimerLayerPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
+func (s *TimerLayerPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.GetRepliesForExport(parentId)
@@ -4701,7 +4701,7 @@ func (s *TimerLayerPostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.Overwrite(post)
@@ -4717,7 +4717,7 @@ func (s *TimerLayerPostStore) Overwrite(post *model.Post) (*model.Post, *model.A
 	return result, err
 }
 
-func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError) {
+func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error) {
 	start := timemodule.Now()
 
 	result, resultVar1, err := s.PostStore.OverwriteMultiple(posts)
@@ -4733,7 +4733,7 @@ func (s *TimerLayerPostStore) OverwriteMultiple(posts []*model.Post) ([]*model.P
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+func (s *TimerLayerPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.PermanentDeleteBatch(endTime, limit)
@@ -4813,7 +4813,7 @@ func (s *TimerLayerPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, 
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError) {
+func (s *TimerLayerPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.Search(teamId, userId, params)
@@ -4829,7 +4829,7 @@ func (s *TimerLayerPostStore) Search(teamId string, userId string, params *model
 	return result, err
 }
 
-func (s *TimerLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s *TimerLayerPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.PostSearchResults, error) {
 	start := timemodule.Now()
 
 	result, err := s.PostStore.SearchPostsInTeamForUser(paramsList, userId, teamId, page, perPage)

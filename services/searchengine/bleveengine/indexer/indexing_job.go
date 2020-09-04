@@ -283,11 +283,11 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 
 	tries := 0
 	for posts == nil {
-		var err *model.AppError
+		var err error
 		posts, err = worker.jobServer.Store.Post().GetPostsBatchForIndexing(progress.LastEntityTime, endTime, BATCH_SIZE)
 		if err != nil {
 			if tries >= 10 {
-				return progress, err
+				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 			} else {
 				mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
 

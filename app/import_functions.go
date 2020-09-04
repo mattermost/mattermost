@@ -1004,9 +1004,9 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		user := users[*replyData.User]
 
 		// Check if this post already exists.
-		replies, err := a.Srv().Store.Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
-		if err != nil {
-			return err
+		replies, nErr := a.Srv().Store.Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
+		if nErr != nil {
+			return model.NewAppError("importReplies", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var reply *model.Post
@@ -1064,8 +1064,8 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		}
 	}
 
-	if _, _, err := a.Srv().Store.Post().OverwriteMultiple(postsForOverwriteList); err != nil {
-		return err
+	if _, _, nErr := a.Srv().Store.Post().OverwriteMultiple(postsForOverwriteList); nErr != nil {
+		return model.NewAppError("importReplies", "app.post.overwrite.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, postWithData := range postsWithData {
@@ -1251,9 +1251,9 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		user := users[*line.Post.User]
 
 		// Check if this post already exists.
-		posts, appErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
-		if appErr != nil {
-			return line.LineNumber, appErr
+		posts, nErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
+		if nErr != nil {
+			return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var post *model.Post
@@ -1330,10 +1330,10 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
-				return lineNumber, err
+				return lineNumber, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
-		return 0, err
+		return 0, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, postWithData := range postsWithData {
@@ -1547,9 +1547,9 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		user := users[*line.DirectPost.User]
 
 		// Check if this post already exists.
-		posts, err := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
-		if err != nil {
-			return line.LineNumber, err
+		posts, nErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
+		if nErr != nil {
+			return line.LineNumber, model.NewAppError("BulkImport", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var post *model.Post
@@ -1625,10 +1625,10 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		if idx != -1 && idx < len(postsForOverwriteList) {
 			post := postsForOverwriteList[idx]
 			if lineNumber, ok := postsForOverwriteMap[getPostStrID(post)]; ok {
-				return lineNumber, err
+				return lineNumber, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
-		return 0, err
+		return 0, model.NewAppError("importMultiplePostLines", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, postWithData := range postsWithData {

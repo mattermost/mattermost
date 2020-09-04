@@ -365,7 +365,7 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 		post.FileIds = attachedIds
 
 		if _, err := a.Srv().Store.Post().Overwrite(post); err != nil {
-			return err
+			return model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -668,11 +668,27 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) GetPostsPage(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetPosts(options, false)
+	postList, err := a.Srv().Store.Post().GetPosts(options, false)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsPage", "app.post.get_posts.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetPostsPage", "app.post.get_root_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, true)
+	postList, err := a.Srv().Store.Post().GetPosts(model.GetPostsOptions{ChannelId: channelId, Page: offset, PerPage: limit}, true)
+	if err != nil {
+
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
@@ -1084,7 +1100,7 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store.Post().Search(teamId, userId, params)
-			pchan <- store.StoreResult{Data: postList, Err: err}
+			pchan <- store.StoreResult{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1094,8 +1110,8 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 	posts := model.NewPostList()
 
 	for result := range pchan {
-		if result.Err != nil {
-			return nil, result.Err
+		if result.NErr != nil {
+			return nil, model.NewAppError("searchPostsInTeam", "app.post.search.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 		data := result.Data.(*model.PostList)
 		posts.Extend(data)
@@ -1139,7 +1155,6 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 
 func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	var postSearchResults *model.PostSearchResults
-	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1171,9 +1186,15 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, page, perPage)
-	if err != nil {
-		return nil, err
+	postSearchResults, nErr := a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, page, perPage)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("SearchPostsInTeamForUser", "app.post.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return postSearchResults, nil

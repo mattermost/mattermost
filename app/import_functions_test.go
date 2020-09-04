@@ -1958,8 +1958,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.Nil(t, err, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, err := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
-	require.Nil(t, err)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	require.Nil(t, nErr)
 
 	// Try adding an invalid post in dry run mode.
 	data := LineImportWorkerData{
@@ -2092,8 +2092,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
-	require.Nil(t, err)
+	posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2120,8 +2120,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
-	require.Nil(t, err)
+	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2185,8 +2185,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Equal(t, 0, errLine)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
-	require.Nil(t, err)
+	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2230,8 +2230,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
-	require.Nil(t, err)
+	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2269,8 +2269,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
 
 	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
-	require.Nil(t, err)
+	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2310,8 +2310,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
 
 	// Check the post values.
-	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
-	require.Nil(t, err)
+	posts, nErr = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
+	require.Nil(t, nErr)
 
 	require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2320,8 +2320,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	require.False(t, postBool, "Post properties not as expected")
 
 	// Check the reply values.
-	replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
-	require.Nil(t, err)
+	replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+	require.Nil(t, nErr)
 
 	require.Len(t, replies, 1, "Unexpected number of posts found.")
 
@@ -2447,8 +2447,8 @@ func TestImportImportPost(t *testing.T) {
 	require.Nil(t, appErr, "Failed to get user from database.")
 
 	// Count the number of posts in the testing team.
-	initialPostCount, appErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
-	require.Nil(t, appErr)
+	initialPostCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount(team.Id, false, false)
+	require.Nil(t, nErr)
 
 	time := model.GetMillis()
 	hashtagTime := time + 2
@@ -2585,8 +2585,8 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2614,8 +2614,8 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2681,8 +2681,8 @@ func TestImportImportPost(t *testing.T) {
 		assert.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2719,8 +2719,8 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2759,8 +2759,8 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2799,8 +2799,8 @@ func TestImportImportPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -2809,8 +2809,8 @@ func TestImportImportPost(t *testing.T) {
 		require.False(t, postBool, "Post properties not as expected")
 
 		// Check the reply values.
-		replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
-		require.Nil(t, err)
+		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 
@@ -3087,8 +3087,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, appErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, appErr)
+	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, nErr)
 	initialPostCount := result
 	initialDate := model.GetMillis()
 
@@ -3175,8 +3175,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3206,8 +3206,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3278,8 +3278,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3314,8 +3314,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3349,8 +3349,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, appErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, appErr)
+	result, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, nErr)
 	initialPostCount = result
 
 	t.Run("Try adding an invalid post in dry run mode", func(t *testing.T) {
@@ -3441,8 +3441,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3473,8 +3473,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3548,8 +3548,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Equal(t, 0, errLine)
 		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3587,8 +3587,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 		require.Len(t, posts, 1)
 
 		post := posts[0]
@@ -3626,8 +3626,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -3671,8 +3671,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
 
 		// Check the post values.
-		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
-		require.Nil(t, err)
+		posts, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
+		require.Nil(t, nErr)
 
 		require.Len(t, posts, 1, "Unexpected number of posts found.")
 
@@ -3681,8 +3681,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.False(t, postBool, "Post properties not as expected")
 
 		// Check the reply values.
-		replies, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
-		require.Nil(t, err)
+		replies, nErr := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *replyTime)
+		require.Nil(t, nErr)
 
 		require.Len(t, replies, 1, "Unexpected number of posts found.")
 

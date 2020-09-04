@@ -79,7 +79,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			postChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, false)
-				postChan <- store.StoreResult{Data: count, Err: err2}
+				postChan <- store.StoreResult{Data: count, NErr: err2}
 				close(postChan)
 			}()
 		}
@@ -121,8 +121,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[2].Value = -1
 		} else {
 			r = <-postChan
-			if r.Err != nil {
-				return nil, r.Err
+			if r.NErr != nil {
+				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[2].Value = float64(r.Data.(int64))
 		}
@@ -198,28 +198,43 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
-		return a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
+		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
 			TeamId:        teamId,
 			BotsOnly:      true,
 			YesterdayOnly: false,
 		})
+		if nErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count_by_day.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		return analyticsRows, nil
 	} else if name == "post_counts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
-		return a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
+		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
 			TeamId:        teamId,
 			BotsOnly:      false,
 			YesterdayOnly: false,
 		})
+		if nErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count_by_day.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		return analyticsRows, nil
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
-		return a.Srv().Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
+		analyticsRows, nErr := a.Srv().Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
+		if nErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.post.analytics_user_counts_posts_by_day.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+
+		return analyticsRows, nil
 	} else if name == "extra_counts" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 		rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
@@ -264,14 +279,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			fileChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, true, false)
-				fileChan <- store.StoreResult{Data: count, Err: err2}
+				fileChan <- store.StoreResult{Data: count, NErr: err2}
 				close(fileChan)
 			}()
 
 			hashtagChan = make(chan store.StoreResult, 1)
 			go func() {
 				count, err2 := a.Srv().Store.Post().AnalyticsPostCount(teamId, false, true)
-				hashtagChan <- store.StoreResult{Data: count, Err: err2}
+				hashtagChan <- store.StoreResult{Data: count, NErr: err2}
 				close(hashtagChan)
 			}()
 		}
@@ -280,8 +295,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[0].Value = -1
 		} else {
 			r := <-fileChan
-			if r.Err != nil {
-				return nil, r.Err
+			if r.NErr != nil {
+				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[0].Value = float64(r.Data.(int64))
 		}
@@ -290,8 +305,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[1].Value = -1
 		} else {
 			r := <-hashtagChan
-			if r.Err != nil {
-				return nil, r.Err
+			if r.NErr != nil {
+				return nil, model.NewAppError("GetAnalytics", "app.post.analytics_posts_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[1].Value = float64(r.Data.(int64))
 		}
