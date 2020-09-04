@@ -3087,8 +3087,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, nErr)
+	result, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
 	initialPostCount := result
 	initialDate := model.GetMillis()
 
@@ -3349,7 +3349,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	result, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	require.Nil(t, nErr)
 	initialPostCount = result
 
