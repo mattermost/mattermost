@@ -27,6 +27,8 @@ func (scheme scheme) defaultPort() int {
 	}
 }
 
+// DsnParseError represents an error that occurs if a Sentry
+// DSN cannot be parsed.
 type DsnParseError struct {
 	Message string
 }
@@ -46,7 +48,7 @@ type Dsn struct {
 	projectID int
 }
 
-// NewDsn creates an instance of `Dsn` by parsing provided url in a `string` format.
+// NewDsn creates an instance of Dsn by parsing provided url in a string format.
 // If Dsn is not set the client is effectively disabled.
 func NewDsn(rawURL string) (*Dsn, error) {
 	// Parse
@@ -123,7 +125,7 @@ func NewDsn(rawURL string) (*Dsn, error) {
 	}, nil
 }
 
-// String formats Dsn struct into a valid string url
+// String formats Dsn struct into a valid string url.
 func (dsn Dsn) String() string {
 	var url string
 	url += fmt.Sprintf("%s://%s", dsn.scheme, dsn.publicKey)
@@ -141,9 +143,19 @@ func (dsn Dsn) String() string {
 	return url
 }
 
-// StoreAPIURL returns assembled url to be used in the transport.
-// It points to configures Sentry instance.
+// StoreAPIURL returns the URL of the store endpoint of the project associated
+// with the DSN.
 func (dsn Dsn) StoreAPIURL() *url.URL {
+	return dsn.getAPIURL("store")
+}
+
+// EnvelopeAPIURL returns the URL of the envelope endpoint of the project
+// associated with the DSN.
+func (dsn Dsn) EnvelopeAPIURL() *url.URL {
+	return dsn.getAPIURL("envelope")
+}
+
+func (dsn Dsn) getAPIURL(s string) *url.URL {
 	var rawURL string
 	rawURL += fmt.Sprintf("%s://%s", dsn.scheme, dsn.host)
 	if dsn.port != dsn.scheme.defaultPort() {
@@ -152,7 +164,7 @@ func (dsn Dsn) StoreAPIURL() *url.URL {
 	if dsn.path != "" {
 		rawURL += dsn.path
 	}
-	rawURL += fmt.Sprintf("/api/%d/store/", dsn.projectID)
+	rawURL += fmt.Sprintf("/api/%d/%s/", dsn.projectID, s)
 	parsedURL, _ := url.Parse(rawURL)
 	return parsedURL
 }
@@ -172,10 +184,12 @@ func (dsn Dsn) RequestHeaders() map[string]string {
 	}
 }
 
+// MarshalJSON converts the Dsn struct to JSON.
 func (dsn Dsn) MarshalJSON() ([]byte, error) {
 	return json.Marshal(dsn.String())
 }
 
+// UnmarshalJSON converts JSON data to the Dsn struct.
 func (dsn *Dsn) UnmarshalJSON(data []byte) error {
 	var str string
 	_ = json.Unmarshal(data, &str)

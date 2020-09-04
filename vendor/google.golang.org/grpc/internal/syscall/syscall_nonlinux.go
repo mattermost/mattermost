@@ -31,10 +31,11 @@ import (
 )
 
 var once sync.Once
+var logger = grpclog.Component("core")
 
 func log() {
 	once.Do(func() {
-		grpclog.Info("CPU time info is unavailable on non-linux or appengine environment.")
+		logger.Info("CPU time info is unavailable on non-linux or appengine environment.")
 	})
 }
 

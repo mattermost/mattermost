@@ -1,6 +1,7 @@
 package objx
 
 import (
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,10 +17,17 @@ const (
 	// arrayAccesRegexString is the regex used to extract the array number
 	// from the access path
 	arrayAccesRegexString = `^(.+)\[([0-9]+)\]$`
+
+	// mapAccessRegexString is the regex used to extract the map key
+	// from the access path
+	mapAccessRegexString = `^([^\[]*)\[([^\]]+)\](.*)$`
 )
 
 // arrayAccesRegex is the compiled arrayAccesRegexString
 var arrayAccesRegex = regexp.MustCompile(arrayAccesRegexString)
+
+// mapAccessRegex is the compiled mapAccessRegexString
+var mapAccessRegex = regexp.MustCompile(mapAccessRegexString)
 
 // Get gets the value using the specified selector and
 // returns it inside a new Obj object.
@@ -70,13 +78,45 @@ func getIndex(s string) (int, string) {
 	return -1, s
 }
 
+// getKey returns the key which is held in s by two brackets.
+// It also returns the next selector.
+func getKey(s string) (string, string) {
+	selSegs := strings.SplitN(s, PathSeparator, 2)
+	thisSel := selSegs[0]
+	nextSel := ""
+
+	if len(selSegs) > 1 {
+		nextSel = selSegs[1]
+	}
+
+	mapMatches := mapAccessRegex.FindStringSubmatch(s)
+	if len(mapMatches) > 0 {
+		if _, err := strconv.Atoi(mapMatches[2]); err != nil {
+			thisSel = mapMatches[1]
+			nextSel = "[" + mapMatches[2] + "]" + mapMatches[3]
+
+			if thisSel == "" {
+				thisSel = mapMatches[2]
+				nextSel = mapMatches[3]
+			}
+
+			if nextSel == "" {
+				selSegs = []string{"", ""}
+			} else if nextSel[0] == '.' {
+				nextSel = nextSel[1:]
+			}
+		}
+	}
+
+	return thisSel, nextSel
+}
+
 // access accesses the object using the selector and performs the
 // appropriate action.
 func access(current interface{}, selector string, value interface{}, isSet bool) interface{} {
-	selSegs := strings.SplitN(selector, PathSeparator, 2)
-	thisSel := selSegs[0]
-	index := -1
+	thisSel, nextSel := getKey(selector)
 
+	index := -1
 	if strings.Contains(thisSel, "[") {
 		index, thisSel = getIndex(thisSel)
 	}
@@ -88,7 +128,7 @@ func access(current interface{}, selector string, value interface{}, isSet bool)
 	switch current.(type) {
 	case map[string]interface{}:
 		curMSI := current.(map[string]interface{})
-		if len(selSegs) <= 1 && isSet {
+		if nextSel == "" && isSet {
 			curMSI[thisSel] = value
 			return nil
 		}
@@ -102,9 +142,10 @@ func access(current interface{}, selector string, value interface{}, isSet bool)
 	default:
 		current = nil
 	}
+
 	// do we need to access the item of an array?
 	if index > -1 {
-		if array, ok := current.([]interface{}); ok {
+		if array, ok := interSlice(current); ok {
 			if index < len(array) {
 				current = array[index]
 			} else {
@@ -112,8 +153,27 @@ func access(current interface{}, selector string, value interface{}, isSet bool)
 			}
 		}
 	}
-	if len(selSegs) > 1 {
-		current = access(current, selSegs[1], value, isSet)
+	if nextSel != "" {
+		current = access(current, nextSel, value, isSet)
 	}
 	return current
+}
+
+func interSlice(slice interface{}) ([]interface{}, bool) {
+	if array, ok := slice.([]interface{}); ok {
+		return array, ok
+	}
+
+	s := reflect.ValueOf(slice)
+	if s.Kind() != reflect.Slice {
+		return nil, false
+	}
+
+	ret := make([]interface{}, s.Len())
+
+	for i := 0; i < s.Len(); i++ {
+		ret[i] = s.Index(i).Interface()
+	}
+
+	return ret, true
 }

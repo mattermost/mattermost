@@ -76,6 +76,10 @@
     "translation": "Image storage is not configured."
   },
   {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP is not available."
+  },
+  {
     "id": "api.admin.remove_certificate.delete.app_error",
     "translation": "An error occurred while deleting the certificate."
   },
@@ -1549,6 +1553,10 @@
     "translation": "marshal error"
   },
   {
+    "id": "api.migrate_to_saml.error",
+    "translation": "Unable to migrate SAML."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2899,6 +2907,10 @@
     "translation": "Please sign in using {{.AuthService}}."
   },
   {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "CWS token is not valid"
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -2909,6 +2921,10 @@
   {
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Could not parse auth data out of {{.Service}} user object."
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "CWS login is forbidden."
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
@@ -3283,12 +3299,28 @@
     "translation": "Channel does not exist."
   },
   {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Unable to get the channel counts."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
   {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "No channels were found."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Unable to get channels by ids."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "No channel found."
   },
   {
     "id": "app.channel.get_deleted.existing.app_error",
@@ -3299,8 +3331,20 @@
     "translation": "No deleted channels exist."
   },
   {
+    "id": "app.channel.get_for_post.app_error",
+    "translation": "Unable to get the channel for the given post."
+  },
+  {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_private_channels.get.app_error",
+    "translation": "Unable to get private channels."
+  },
+  {
+    "id": "app.channel.get_public_channels.get.app_error",
+    "translation": "Unable to get public channels."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
@@ -3333,6 +3377,10 @@
   {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.sidebar_categories.app_error",
+    "translation": "Failed to insert record to database."
   },
   {
     "id": "app.channel.update.bad_id",
@@ -4411,6 +4459,26 @@
     "translation": "Unable to get the post."
   },
   {
+    "id": "app.post.get_flagged_posts.app_error",
+    "translation": "Unable to get the flagged posts."
+  },
+  {
+    "id": "app.post.get_post_after_time.app_error",
+    "translation": "Unable to get post after time bound."
+  },
+  {
+    "id": "app.post.get_post_id_around.app_error",
+    "translation": "Unable to get post around time bound."
+  },
+  {
+    "id": "app.post.get_posts_around.get.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_since.app_error",
+    "translation": "Unable to get the posts for the channel."
+  },
+  {
     "id": "app.post.permanent_delete_by_channel.app_error",
     "translation": "Unable to delete the posts by channel."
   },
@@ -4627,6 +4695,54 @@
     "translation": "Failed to parse installation date."
   },
   {
+    "id": "app.team.analytics_private_team_count.app_error",
+    "translation": "Unable to count the private teams."
+  },
+  {
+    "id": "app.team.analytics_public_team_count.app_error",
+    "translation": "Unable to count the public teams."
+  },
+  {
+    "id": "app.team.analytics_team_count.app_error",
+    "translation": "Unable to count the teams."
+  },
+  {
+    "id": "app.team.get.find.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get.finding.app_error",
+    "translation": "We encountered an error finding the team."
+  },
+  {
+    "id": "app.team.get_all.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all private teams."
+  },
+  {
+    "id": "app.team.get_all_private_team_page_listing.app_error",
+    "translation": "We could not get all private teams in page."
+  },
+  {
+    "id": "app.team.get_all_team_listing.app_error",
+    "translation": "We could not get all teams."
+  },
+  {
+    "id": "app.team.get_by_invite_id.finding.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
+    "id": "app.team.get_by_name.missing.app_error",
+    "translation": "Unable to find the existing team."
+  },
+  {
     "id": "app.team.invite_id.group_constrained.error",
     "translation": "Unable to join a group-constrained team by invite."
   },
@@ -4651,12 +4767,44 @@
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
+    "id": "app.team.permanent_delete.app_error",
+    "translation": "Unable to delete the existing team."
+  },
+  {
     "id": "app.team.permanentdeleteteam.internal_error",
     "translation": "Unable to delete team."
   },
   {
     "id": "app.team.rename_team.name_occupied",
     "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.team.save.app_error",
+    "translation": "Unable to save the team."
+  },
+  {
+    "id": "app.team.save.existing.app_error",
+    "translation": "Must call update for existing team."
+  },
+  {
+    "id": "app.team.search_all_team.app_error",
+    "translation": "We encountered an error searching teams."
+  },
+  {
+    "id": "app.team.search_open_team.app_error",
+    "translation": "We encountered an error searching open teams."
+  },
+  {
+    "id": "app.team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams."
+  },
+  {
+    "id": "app.team.update.find.app_error",
+    "translation": "Unable to find the existing team to update."
+  },
+  {
+    "id": "app.team.update.updating.app_error",
+    "translation": "We encountered an error updating the team."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -6779,6 +6927,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
+    "translation": "All IncludeDeletedChannels params should have the same value."
+  },
+  {
     "id": "model.team.is_valid.characters.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters."
   },
@@ -7107,28 +7259,8 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
-    "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
     "translation": "Unable to get the channels batch for indexing."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Unable to get channels by ids."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.get.app_error",
-    "translation": "Unable to get the channels."
-  },
-  {
-    "id": "store.sql_channel.get_channels_by_ids.not_found.app_error",
-    "translation": "No channel found."
-  },
-  {
-    "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Unable to get the channel for the given post."
   },
   {
     "id": "store.sql_channel.get_member.app_error",
@@ -7157,14 +7289,6 @@
   {
     "id": "store.sql_channel.get_pinnedpost_count.app_error",
     "translation": "Unable to get the channel pinned post count."
-  },
-  {
-    "id": "store.sql_channel.get_private_channels.get.app_error",
-    "translation": "Unable to get private channels."
-  },
-  {
-    "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "Unable to get public channels."
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -7351,10 +7475,6 @@
     "translation": "Unable to get direct posts."
   },
   {
-    "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "Unable to get the flagged posts."
-  },
-  {
     "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
     "translation": "Unable to get the oldest entitiy creation time."
   },
@@ -7363,24 +7483,8 @@
     "translation": "Unable to get the parent post for the channel."
   },
   {
-    "id": "store.sql_post.get_post_after_time.app_error",
-    "translation": "Unable to get post after time bound."
-  },
-  {
-    "id": "store.sql_post.get_post_id_around.app_error",
-    "translation": "Unable to get post around time bound."
-  },
-  {
     "id": "store.sql_post.get_posts.app_error",
     "translation": "Limit exceeded for paging."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Unable to get the parent posts for the channel."
   },
   {
     "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
@@ -7392,10 +7496,6 @@
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
-    "translation": "Unable to get the posts for the channel."
-  },
-  {
-    "id": "store.sql_post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
@@ -7427,18 +7527,6 @@
     "translation": "Unable to get the channel count for the scheme."
   },
   {
-    "id": "store.sql_team.analytics_private_team_count.app_error",
-    "translation": "Unable to count the private teams."
-  },
-  {
-    "id": "store.sql_team.analytics_public_team_count.app_error",
-    "translation": "Unable to count the public teams."
-  },
-  {
-    "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Unable to count the teams."
-  },
-  {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction."
   },
@@ -7455,56 +7543,8 @@
     "translation": "Failed to update the team member."
   },
   {
-    "id": "store.sql_team.get.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
     "id": "store.sql_team.get_active_member_count.app_error",
     "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_all.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "We could not get all private teams."
-  },
-  {
-    "id": "store.sql_team.get_all_private_team_page_listing.app_error",
-    "translation": "We could not get all private teams in page."
-  },
-  {
-    "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "We could not get all teams."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_name.missing.app_error",
-    "translation": "Unable to find the existing team."
-  },
-  {
-    "id": "store.sql_team.get_by_names.app_error",
-    "translation": "Unable to get the teams by names"
-  },
-  {
-    "id": "store.sql_team.get_by_names.missing.app_error",
-    "translation": "Unable to find some of the requested teams"
   },
   {
     "id": "store.sql_team.get_by_scheme.app_error",
@@ -7555,10 +7595,6 @@
     "translation": "Failed to update the team member."
   },
   {
-    "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Unable to delete the existing team."
-  },
-  {
     "id": "store.sql_team.remove_member.app_error",
     "translation": "Unable to remove the team member."
   },
@@ -7567,52 +7603,12 @@
     "translation": "We could not reset the team schemes."
   },
   {
-    "id": "store.sql_team.save.app_error",
-    "translation": "Unable to save the team."
-  },
-  {
-    "id": "store.sql_team.save.domain_exists.app_error",
-    "translation": "A team with that name already exists."
-  },
-  {
-    "id": "store.sql_team.save.existing.app_error",
-    "translation": "Must call update for existing team."
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
     "translation": "Unable to save the team member."
-  },
-  {
-    "id": "store.sql_team.search_all_team.app_error",
-    "translation": "We encountered an error searching teams."
-  },
-  {
-    "id": "store.sql_team.search_open_team.app_error",
-    "translation": "We encountered an error searching open teams."
-  },
-  {
-    "id": "store.sql_team.search_private_team.app_error",
-    "translation": "We encountered an error searching private teams."
-  },
-  {
-    "id": "store.sql_team.update.app_error",
-    "translation": "Unable to update the team."
-  },
-  {
-    "id": "store.sql_team.update.find.app_error",
-    "translation": "Unable to find the existing team to update."
-  },
-  {
-    "id": "store.sql_team.update.finding.app_error",
-    "translation": "We encountered an error finding the team."
-  },
-  {
-    "id": "store.sql_team.update.updating.app_error",
-    "translation": "We encountered an error updating the team."
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",

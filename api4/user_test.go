@@ -495,7 +495,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("NoInviteId", func(t *testing.T) {
@@ -516,7 +516,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotFoundStatus(t, resp)
-		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.finding.app_error")
+		CheckErrorMessage(t, resp, "app.team.get_by_invite_id.finding.app_error")
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
@@ -5180,5 +5180,31 @@ func TestConvertUserToBot(t *testing.T) {
 		bot, resp = client.GetBot(bot.UserId, "")
 		CheckNoError(t, resp)
 		require.NotNil(t, bot)
+	})
+}
+
+func TestMigrateAuthToLDAP(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToLdap("email", "a", false)
+	CheckForbiddenStatus(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToLdap("email", "a", false)
+		CheckNotImplementedStatus(t, err)
+	})
+}
+
+func TestMigrateAuthToSAML(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	_, err := th.Client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+	CheckForbiddenStatus(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		_, err = client.MigrateAuthToSaml("email", map[string]string{"1": "a"}, true)
+		CheckNotImplementedStatus(t, err)
 	})
 }
