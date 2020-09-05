@@ -361,7 +361,7 @@ type AppIface interface {
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError
 	AttachSessionCookies(w http.ResponseWriter, r *http.Request)
-	AuthenticateUserForLogin(id, loginId, password, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError)
+	AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError)
 	AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError)
 	AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError)
 	AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError)
@@ -863,6 +863,7 @@ type AppIface interface {
 	SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SelectInteractiveDialogOption(request model.DialogSelectOptionRequest) (*model.DialogSelectOptionResponse, *model.AppError)
 	SendAckToPushProxy(ack *model.PushNotificationAck) error
 	SendAutoResponse(channel *model.Channel, receiver *model.User) (bool, *model.AppError)
 	SendAutoResponseIfNecessary(channel *model.Channel, sender *model.User) (bool, *model.AppError)
@@ -950,6 +951,8 @@ type AppIface interface {
 	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
 	UpdateGroup(group *model.Group) (*model.Group, *model.AppError)
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError
+	UpdateHashedPasswordByUserId(userId, newHashedPassword string) *model.AppError
 	UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	UpdateLastActivityAtIfNeeded(session model.Session)
 	UpdateMfa(activate bool, userId, token string) *model.AppError

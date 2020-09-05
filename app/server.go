@@ -112,19 +112,20 @@ type Server struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            cache.Cache
-	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache
-	configListenerId        string
-	licenseListenerId       string
-	logListenerId           string
-	clusterLeaderListenerId string
-	searchConfigListenerId  string
-	searchLicenseListenerId string
-	configStore             config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
-	postActionCookieSecret  []byte
+	htmlTemplateWatcher            *utils.HTMLTemplateWatcher
+	sessionCache                   cache.Cache
+	seenPendingPostIdsCache        cache.Cache
+	statusCache                    cache.Cache
+	configListenerId               string
+	licenseListenerId              string
+	logListenerId                  string
+	clusterLeaderListenerId        string
+	searchConfigListenerId         string
+	searchLicenseListenerId        string
+	loggerMetricsLicenseListenerId string
+	configStore                    config.Store
+	asymmetricSigningKey           *ecdsa.PrivateKey
+	postActionCookieSecret         []byte
 
 	advancedLogListenerCleanup func()
 
@@ -489,6 +490,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	s.enableLoggingMetrics()
+	s.loggerMetricsLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.enableLoggingMetrics()
+	})
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
@@ -620,6 +626,18 @@ func (s *Server) initLogging() error {
 	return nil
 }
 
+func (s *Server) enableLoggingMetrics() {
+	if s.Metrics == nil {
+		return
+	}
+
+	if err := mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
+		mlog.Debug("Failed to enable advanced logging metrics", mlog.Err(err))
+	} else {
+		mlog.Debug("Advanced logging metrics enabled")
+	}
+}
+
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
 func (s *Server) StopHTTPServer() {
@@ -652,6 +670,7 @@ func (s *Server) Shutdown() error {
 	s.HubStop()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
+	s.RemoveLicenseListener(s.loggerMetricsLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
 	if s.tracer != nil {

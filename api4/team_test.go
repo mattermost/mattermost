@@ -42,7 +42,7 @@ func TestCreateTeam(t *testing.T) {
 
 		rteam.Id = ""
 		_, resp = client.CreateTeam(rteam)
-		CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
+		CheckErrorMessage(t, resp, "app.team.save.existing.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Name = ""
@@ -2737,9 +2737,9 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Len(t, invitesWithErrors, 2)
 		require.NotNil(t, invitesWithErrors[0].Error)
-		assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the user limit of your current tier")
+		assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the free tier user limit")
 		require.NotNil(t, invitesWithErrors[1].Error)
-		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the free tier user limit")
 	})
 
 	t.Run("Regular user, invite when at limit should succeed", func(t *testing.T) {
@@ -2760,7 +2760,7 @@ func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
 		require.Len(t, invitesWithErrors, 2)
 		require.Nil(t, invitesWithErrors[0].Error)
 		require.NotNil(t, invitesWithErrors[1].Error)
-		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the user limit of your current tier")
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the free tier user limit")
 
 	})
 

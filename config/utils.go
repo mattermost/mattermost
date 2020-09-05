@@ -33,6 +33,14 @@ func desanitize(actual, target *model.Config) {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
+	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FAKE_SETTING {
+		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
+	}
+
+	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FAKE_SETTING {
+		target.Office365Settings.Secret = actual.Office365Settings.Secret
+	}
+
 	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
@@ -56,6 +64,10 @@ func desanitize(actual, target *model.Config) {
 
 	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
 		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	}
+
+	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FAKE_SETTING {
+		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
 	}
 }
 

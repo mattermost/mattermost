@@ -680,7 +680,12 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetPostsSince(options, true)
+	postList, err := a.Srv().Store.Post().GetPostsSince(options, true)
+	if err != nil {
+		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -717,15 +722,30 @@ func (a *App) GetPostThread(postId string, skipFetchThreads bool) (*model.PostLi
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetFlaggedPosts(userId, offset, limit)
+	postList, err := a.Srv().Store.Post().GetFlaggedPosts(userId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+	postList, err := a.Srv().Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+	postList, err := a.Srv().Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
@@ -761,30 +781,82 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetPostsBefore(options)
+	postList, err := a.Srv().Store.Post().GetPostsBefore(options)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetPostsBeforePost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPostsAfterPost(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
-	return a.Srv().Store.Post().GetPostsAfter(options)
+	postList, err := a.Srv().Store.Post().GetPostsAfter(options)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPostsAroundPost(before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	var postList *model.PostList
+	var err error
 	if before {
-		return a.Srv().Store.Post().GetPostsBefore(options)
+		postList, err = a.Srv().Store.Post().GetPostsBefore(options)
+	} else {
+		postList, err = a.Srv().Store.Post().GetPostsAfter(options)
 	}
-	return a.Srv().Store.Post().GetPostsAfter(options)
+
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return postList, nil
 }
 
 func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
-	return a.Srv().Store.Post().GetPostAfterTime(channelId, time)
+	post, err := a.Srv().Store.Post().GetPostAfterTime(channelId, time)
+	if err != nil {
+		return nil, model.NewAppError("GetPostAfterTime", "app.post.get_post_after_time.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return post, nil
 }
 
 func (a *App) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
-	return a.Srv().Store.Post().GetPostIdAfterTime(channelId, time)
+	postId, err := a.Srv().Store.Post().GetPostIdAfterTime(channelId, time)
+	if err != nil {
+		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postId, nil
 }
 
 func (a *App) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
-	return a.Srv().Store.Post().GetPostIdBeforeTime(channelId, time)
+	postId, err := a.Srv().Store.Post().GetPostIdBeforeTime(channelId, time)
+	if err != nil {
+		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return postId, nil
 }
 
 func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
@@ -1079,6 +1151,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 	for _, params := range paramsList {
 		params.OrTerms = isOrSearch
+		params.IncludeDeletedChannels = includeDeleted
 		// Don't allow users to search for "*"
 		if params.Terms != "*" {
 			// Convert channel names to channel IDs
@@ -1098,7 +1171,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, isOrSearch, includeDeleted, page, perPage)
+	postSearchResults, err = a.Srv().Store.Post().SearchPostsInTeamForUser(finalParamsList, userId, teamId, page, perPage)
 	if err != nil {
 		return nil, err
 	}

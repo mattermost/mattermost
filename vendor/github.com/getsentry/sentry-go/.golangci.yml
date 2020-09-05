@@ -7,11 +7,11 @@ linters:
     - dogsled
     - dupl
     - errcheck
-    - gochecknoglobals
     - gochecknoinits
     - goconst
     - gocritic
     - gocyclo
+    - godot
     - gofmt
     - goimports
     - golint
@@ -33,14 +33,8 @@ linters:
     - unparam
     - unused
     - varcheck
-run:
-  skip-dirs:
-    - echo
-    - example/echo
+    - whitespace
 issues:
-  exclude:
-    - "not declared by package utf8"
-    - "unicode/utf8/utf8.go"
   exclude-rules:
     - path: _test\.go
       linters:

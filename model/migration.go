@@ -19,4 +19,5 @@ const (
 	MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION           = "add_use_group_mentions_permission"
 	MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS              = "add_system_console_permissions"
 	MIGRATION_KEY_SIDEBAR_CATEGORIES_PHASE_2                  = "migration_sidebar_categories_phase_2"
+	MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS             = "add_convert_channel_permissions"
 )

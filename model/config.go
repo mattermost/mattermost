@@ -863,6 +863,7 @@ type ExperimentalSettings struct {
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -890,6 +891,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 		// User limit 0 is treated as no limit
 		s.CloudUserLimit = NewInt64(0)
 	}
+
+	if s.CloudBilling == nil {
+		s.CloudBilling = NewBool(false)
+	}
+
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
 	}
@@ -3504,6 +3510,14 @@ func (o *Config) Sanitize() {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
+	if o.GoogleSettings.Secret != nil && len(*o.GoogleSettings.Secret) > 0 {
+		*o.GoogleSettings.Secret = FAKE_SETTING
+	}
+
+	if o.Office365Settings.Secret != nil && len(*o.Office365Settings.Secret) > 0 {
+		*o.Office365Settings.Secret = FAKE_SETTING
+	}
+
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
@@ -3519,5 +3533,9 @@ func (o *Config) Sanitize() {
 
 	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
+	}
+
+	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
+		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 }

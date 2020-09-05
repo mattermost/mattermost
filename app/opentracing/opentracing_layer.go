@@ -599,7 +599,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *htt
 	a.app.AttachSessionCookies(w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
 
@@ -611,7 +611,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -12604,6 +12604,28 @@ func (a *OpenTracingAppLayer) SearchUsersWithoutTeam(term string, options *model
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SelectInteractiveDialogOption(request model.DialogSelectOptionRequest) (*model.DialogSelectOptionResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SelectInteractiveDialogOption")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SelectInteractiveDialogOption(request)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAckToPushProxy")
@@ -14337,6 +14359,50 @@ func (a *OpenTracingAppLayer) UpdateGroupSyncable(groupSyncable *model.GroupSync
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateHashedPassword")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateHashedPassword(user, newHashedPassword)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) UpdateHashedPasswordByUserId(userId string, newHashedPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateHashedPasswordByUserId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateHashedPasswordByUserId(userId, newHashedPassword)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebhook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {

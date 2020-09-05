@@ -200,24 +200,48 @@ type Dialog struct {
 }
 
 type DialogElement struct {
-	DisplayName string               `json:"display_name"`
-	Name        string               `json:"name"`
-	Type        string               `json:"type"`
-	SubType     string               `json:"subtype"`
-	Default     string               `json:"default"`
-	Placeholder string               `json:"placeholder"`
-	HelpText    string               `json:"help_text"`
-	Optional    bool                 `json:"optional"`
-	MinLength   int                  `json:"min_length"`
-	MaxLength   int                  `json:"max_length"`
-	DataSource  string               `json:"data_source"`
-	Options     []*PostActionOptions `json:"options"`
+	DisplayName      string               `json:"display_name"`
+	Name             string               `json:"name"`
+	Type             string               `json:"type"`
+	SubType          string               `json:"subtype"`
+	Default          string               `json:"default"`
+	Placeholder      string               `json:"placeholder"`
+	HelpText         string               `json:"help_text"`
+	Optional         bool                 `json:"optional"`
+	MinLength        int                  `json:"min_length"`
+	MaxLength        int                  `json:"max_length"`
+	DataSource       string               `json:"data_source"`
+	Options          []*PostActionOptions `json:"options"`
+	DependsOn        string               `json:"depends_on"`
+	DispatchOnChange bool                 `json:"dispatch_on_change"`
+	FetchOnce 		 bool 				  `json:"fetch_once"`
 }
 
 type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
+}
+
+type DialogSelectOptionRequest struct {
+	Type       string                 `json:"type"`
+	URL        string                 `json:"url,omitempty"`
+	CallbackId string                 `json:"callback_id"`
+	State      string                 `json:"state"`
+	UserId     string                 `json:"user_id"`
+	ChannelId  string                 `json:"channel_id"`
+	TeamId     string                 `json:"team_id"`
+	Elements   []DialogElement        `json:"elements"`
+	Values     map[string]interface{} `json:"values"`
+	Name       string                 `json:"name"`
+	Value      interface{}            `json:"value"`
+}
+
+type DialogSelectOptionResponse struct {
+	Error    string                 `json:"error,omitempty"`
+	Errors   map[string]string      `json:"errors,omitempty"`
+	Elements []DialogElement        `json:"elements"`
+	Values   map[string]interface{} `json:"values"`
 }
 
 type SubmitDialogRequest struct {

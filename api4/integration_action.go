@@ -14,6 +14,7 @@ func (api *API) InitAction() {
 	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.ApiSessionRequired(doPostAction)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/open", api.ApiHandler(openDialog)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/select", api.ApiSessionRequired(dialogSelectOption)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/submit", api.ApiSessionRequired(submitDialog)).Methods("POST")
 }
 
@@ -85,6 +86,43 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func dialogSelectOption(c *Context, w http.ResponseWriter, r *http.Request) {
+	var submit model.DialogSelectOptionRequest
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
+	if jsonErr != nil {
+		c.SetInvalidParam("dialog")
+		return
+	}
+
+	if submit.URL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	submit.UserId = c.App.Session().UserId
+
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), submit.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	resp, err := c.App.SelectInteractiveDialogOption(submit)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(resp)
+
+	w.Write(b)
 }
 
 func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
