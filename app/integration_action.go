@@ -565,6 +565,32 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
+func (a *App) SelectInteractiveDialogOption(request model.DialogSelectOptionRequest) (*model.DialogSelectOptionResponse, *model.AppError) {
+	url := request.URL
+	request.URL = ""
+	request.Type = "dialog_select"
+
+	b, jsonErr := json.Marshal(request)
+	if jsonErr != nil {
+		return nil, model.NewAppError("SelectInteractiveDialogOption", "app.select_interactive_dialog_option.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
+	}
+
+	resp, err := a.DoActionRequest(url, b)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var response model.DialogSelectOptionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		// Don't fail, an empty response is acceptable
+		return &response, nil
+	}
+
+	return &response, nil
+}
+
 func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""

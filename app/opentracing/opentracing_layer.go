@@ -12565,6 +12565,28 @@ func (a *OpenTracingAppLayer) SearchUsersWithoutTeam(term string, options *model
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) SelectInteractiveDialogOption(request model.DialogSelectOptionRequest) (*model.DialogSelectOptionResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SelectInteractiveDialogOption")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.SelectInteractiveDialogOption(request)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendAckToPushProxy")
