@@ -93,20 +93,20 @@ type TeamStore interface {
 	AnalyticsPrivateTeamCount() (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
-	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
-	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError)
-	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
-	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
-	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
-	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
-	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
-	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
-	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
-	RemoveMember(teamId string, userId string) *model.AppError
-	RemoveMembers(teamId string, userIds []string) *model.AppError
-	RemoveAllMembersByTeam(teamId string) *model.AppError
+	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
+	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
+	GetMember(teamId string, userId string) (*model.TeamMember, error)
+	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
+	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
+	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
+	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
+	GetTeamsForUser(userId string) ([]*model.TeamMember, error)
+	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error)
+	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error)
+	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error)
+	RemoveMember(teamId string, userId string) error
+	RemoveMembers(teamId string, userIds []string) error
+	RemoveAllMembersByTeam(teamId string) error
 	RemoveAllMembersByUser(userId string) *model.AppError
 	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
 	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)

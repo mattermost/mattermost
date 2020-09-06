@@ -137,7 +137,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 
 	// Scientist should not be in team or channel
 	_, err = th.App.GetTeamMember(nerdsTeam.Id, scientist1.Id)
-	if err.Id != "store.sql_team.get_member.missing.app_error" {
+	if err.Id != "app.team.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 

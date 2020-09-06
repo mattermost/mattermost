@@ -1277,11 +1277,17 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	teamMember, err := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
-
-	if err != nil {
-		return nil, err
+	teamMember, nErr := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
+
 	if teamMember.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
