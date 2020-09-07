@@ -8568,7 +8568,7 @@ func (a *OpenTracingAppLayer) GetUsersEtag(restrictionsHash string) string {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannel")
 
@@ -8580,7 +8580,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannel(channelId string, offset int, li
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersInChannel(channelId, offset, limit)
+	resultVar0, resultVar1 := a.app.GetUsersInChannel(options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8590,7 +8590,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannel(channelId string, offset int, li
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelByStatus")
 
@@ -8602,7 +8602,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelByStatus(channelId string, offset
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersInChannelByStatus(channelId, offset, limit)
+	resultVar0, resultVar1 := a.app.GetUsersInChannelByStatus(options)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8612,7 +8612,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelByStatus(channelId string, offset
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelMap")
 
@@ -8624,7 +8624,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelMap(channelId string, offset int,
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersInChannelMap(channelId, offset, limit, asAdmin)
+	resultVar0, resultVar1 := a.app.GetUsersInChannelMap(options, asAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8634,7 +8634,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelMap(channelId string, offset int,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelPage")
 
@@ -8646,7 +8646,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelPage(channelId string, page int, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersInChannelPage(channelId, page, perPage, asAdmin)
+	resultVar0, resultVar1 := a.app.GetUsersInChannelPage(options, asAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -8656,7 +8656,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelPage(channelId string, page int, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetUsersInChannelPageByStatus")
 
@@ -8668,7 +8668,7 @@ func (a *OpenTracingAppLayer) GetUsersInChannelPageByStatus(channelId string, pa
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetUsersInChannelPageByStatus(channelId, page, perPage, asAdmin)
+	resultVar0, resultVar1 := a.app.GetUsersInChannelPageByStatus(options, asAdmin)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
