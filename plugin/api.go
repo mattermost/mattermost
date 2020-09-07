@@ -109,6 +109,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetDiagnosticId() string
 
+	// GetTelemetryId returns a unique identifier used by the server for telemetry reports.
+	//
+	// @tag Server
+	// Minimum server version: 5.28
+	GetTelemetryId() string
+
 	// CreateUser creates a user.
 	//
 	// @tag User

@@ -147,6 +147,10 @@ func (api *PluginAPI) GetDiagnosticId() string {
 	return api.app.TelemetryId()
 }
 
+func (api *PluginAPI) GetTelemetryId() string {
+	return api.app.TelemetryId()
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }

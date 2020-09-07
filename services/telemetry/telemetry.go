@@ -104,7 +104,7 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		log:          log,
 	}
 	service.ensureTelemetryID()
-	service.initRudder(RUDDER_DATAPLANE_URL)
+	service.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 	return service
 }
 
@@ -130,7 +130,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
-		ts.initRudder(RUDDER_DATAPLANE_URL)
+		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 		ts.trackActivity()
 		ts.trackConfig()
 		ts.trackLicense()
@@ -1104,7 +1104,7 @@ func (ts *TelemetryService) trackChannelModeration() {
 	})
 }
 
-func (ts *TelemetryService) initRudder(endpoint string) {
+func (ts *TelemetryService) initRudder(endpoint string, rudderKey string) {
 	if ts.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(ts.log.StdLog(mlog.String("source", "rudder")))
@@ -1114,7 +1114,7 @@ func (ts *TelemetryService) initRudder(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return
@@ -1238,7 +1238,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 	pluginsEnvironment := ts.srv.GetPluginsEnvironment()
 	if pluginsEnvironment != nil {
 		if plugins, appErr := pluginsEnvironment.Available(); appErr != nil {
-			mlog.Error("Unable to add plugin versions to diagnostics", mlog.Err(appErr))
+			mlog.Error("Unable to add plugin versions to telemetry", mlog.Err(appErr))
 		} else {
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
