@@ -141,10 +141,10 @@ type GCRARateLimiter struct {
 // only permits one request per second with no tolerance for bursts.
 func NewGCRARateLimiter(st GCRAStore, quota RateQuota) (*GCRARateLimiter, error) {
 	if quota.MaxBurst < 0 {
-		return nil, fmt.Errorf("Invalid RateQuota %#v. MaxBurst must be greater than zero.", quota)
+		return nil, fmt.Errorf("invalid RateQuota %#v; MaxBurst must be greater than zero", quota)
 	}
 	if quota.MaxRate.period <= 0 {
-		return nil, fmt.Errorf("Invalid RateQuota %#v. MaxRate must be greater than zero.", quota)
+		return nil, fmt.Errorf("invalid RateQuota %#v; MaxRate must be greater than zero", quota)
 	}
 
 	return &GCRARateLimiter{
