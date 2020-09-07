@@ -3,6 +3,8 @@
 
 package einterfaces
 
+import "github.com/mattermost/logr"
+
 type MetricsInterface interface {
 	StartServer()
 	StopServer()
@@ -58,4 +60,5 @@ type MetricsInterface interface {
 	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
 
 	ObserveEnabledUsers(users int64)
+	GetLoggerMetricsCollector() logr.MetricsCollector
 }

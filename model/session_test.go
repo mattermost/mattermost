@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -71,4 +72,24 @@ func TestSessionCSRF(t *testing.T) {
 	token2 := s.GetCSRF()
 	assert.NotEmpty(t, token2)
 	assert.Equal(t, token, token2)
+}
+
+func TestSessionIsOAuthUser(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Session     Session
+		isOAuthUser bool
+	}{
+		{"False on empty props", Session{}, false},
+		{"True when key is set to true", Session{Props: StringMap{USER_AUTH_SERVICE_IS_OAUTH: strconv.FormatBool(true)}}, true},
+		{"False when key is set to false", Session{Props: StringMap{USER_AUTH_SERVICE_IS_OAUTH: strconv.FormatBool(false)}}, false},
+		{"Not affected by Session.IsOauth being true", Session{IsOAuth: true}, false},
+		{"Not affected by Session.IsOauth being false", Session{IsOAuth: false, Props: StringMap{USER_AUTH_SERVICE_IS_OAUTH: strconv.FormatBool(true)}}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			require.Equal(t, tc.isOAuthUser, tc.Session.IsOAuthUser())
+		})
+	}
 }

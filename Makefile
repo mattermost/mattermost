@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -80,7 +80,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
@@ -115,7 +115,7 @@ ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+MMCTL_REL_TO_DOWNLOAD:=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -128,11 +128,19 @@ ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
 	RUN_IN_BACKGROUND := &
 endif
 
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-		ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) openldap
-	endif
+start-docker-check:
+ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
 endif
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+  endif
+  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  endif
+endif
+ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
@@ -180,6 +188,10 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+	@exit 1
+endif
 # Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
@@ -219,6 +231,10 @@ app-layers: ## Extract interface from App struct
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+
+i18n-check: ## Exit on empty translation strings except in english base file
+	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
+	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
@@ -323,15 +339,23 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+  ifneq ($(IS_CI),true)
+    ifneq ($(MM_NO_DOCKER),true)
+      ifneq ($(TEMP_DOCKER_SERVICES),)
+	      @echo Stopping temporary docker services
+	      docker-compose stop $(TEMP_DOCKER_SERVICES)
+      endif
+    endif
+  endif
 
-test-server-ee: check-prereqs-enterprise start-docker go-junit-report do-cover-file ## Runs EE tests.
+test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
 	@echo Running only EE tests
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
 
@@ -538,7 +562,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=serialized_gen.go -tFatal"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \
@@ -550,6 +574,13 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
+
+gen-serialized: ## Generates serialization methods for hot structs
+	# This tool only works at a file level, not at a package level.
+	# So you would need to move the structs that need to be serialized temporarily
+	# to session.go and run the tool.
+	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO

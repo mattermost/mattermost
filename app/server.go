@@ -13,10 +13,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -44,8 +46,10 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
+	"github.com/mattermost/mattermost-server/v5/services/upgrader"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"github.com/mattermost/mattermost-server/v5/store/timerlayer"
@@ -108,19 +112,20 @@ type Server struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
-	sessionCache            cache.Cache
-	seenPendingPostIdsCache cache.Cache
-	statusCache             cache.Cache
-	configListenerId        string
-	licenseListenerId       string
-	logListenerId           string
-	clusterLeaderListenerId string
-	searchConfigListenerId  string
-	searchLicenseListenerId string
-	configStore             config.Store
-	asymmetricSigningKey    *ecdsa.PrivateKey
-	postActionCookieSecret  []byte
+	htmlTemplateWatcher            *utils.HTMLTemplateWatcher
+	sessionCache                   cache.Cache
+	seenPendingPostIdsCache        cache.Cache
+	statusCache                    cache.Cache
+	configListenerId               string
+	licenseListenerId              string
+	logListenerId                  string
+	clusterLeaderListenerId        string
+	searchConfigListenerId         string
+	searchLicenseListenerId        string
+	loggerMetricsLicenseListenerId string
+	configStore                    config.Store
+	asymmetricSigningKey           *ecdsa.PrivateKey
+	postActionCookieSecret         []byte
 
 	advancedLogListenerCleanup func()
 
@@ -293,7 +298,7 @@ func NewServer(options ...Option) (*Server, error) {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
 			searchStore := searchlayer.NewSearchLayer(
 				localcachelayer.NewLocalCacheLayer(
-					s.sqlStore,
+					retrylayer.New(s.sqlStore),
 					s.Metrics,
 					s.Cluster,
 					s.CacheProvider,
@@ -392,6 +397,7 @@ func NewServer(options ...Option) (*Server, error) {
 		server:   s,
 		handlers: make(map[string]webSocketHandler),
 	}
+	s.WebSocketRouter.app = fakeApp
 
 	if appErr := mailservice.TestConnection(s.Config()); appErr != nil {
 		mlog.Error("Mail server connection test is failed: " + appErr.Message)
@@ -465,7 +471,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		if err := s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
@@ -481,13 +487,18 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
+	s.enableLoggingMetrics()
+	s.loggerMetricsLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.enableLoggingMetrics()
+	})
+
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if appErr = s.Store.Status().ResetAll(); appErr != nil {
-		mlog.Error("Error to reset the server status.", mlog.Err(appErr))
+	if err = s.Store.Status().ResetAll(); err != nil {
+		mlog.Error("Error to reset the server status.", mlog.Err(err))
 	}
 
 	if s.startMetrics && s.Metrics != nil {
@@ -612,6 +623,18 @@ func (s *Server) initLogging() error {
 	return nil
 }
 
+func (s *Server) enableLoggingMetrics() {
+	if s.Metrics == nil {
+		return
+	}
+
+	if err := mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
+		mlog.Debug("Failed to enable advanced logging metrics", mlog.Err(err))
+	} else {
+		mlog.Debug("Advanced logging metrics enabled")
+	}
+}
+
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
 func (s *Server) StopHTTPServer() {
@@ -644,6 +667,7 @@ func (s *Server) Shutdown() error {
 	s.HubStop()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
+	s.RemoveLicenseListener(s.loggerMetricsLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
 	if s.tracer != nil {
@@ -719,6 +743,51 @@ func (s *Server) Shutdown() error {
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
 
 	return nil
+}
+
+func (s *Server) Restart() error {
+	percentage, err := s.UpgradeToE0Status()
+	if err != nil || percentage != 100 {
+		return errors.Wrap(err, "unable to restart because the system has not been upgraded")
+	}
+	s.Shutdown()
+
+	argv0, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(argv0); err != nil {
+		return err
+	}
+
+	mlog.Info("Restarting server")
+	return syscall.Exec(argv0, os.Args, os.Environ())
+}
+
+func (s *Server) isUpgradedFromTE() bool {
+	val, err := s.Store.System().GetByName(model.SYSTEM_UPGRADED_FROM_TE_ID)
+	if err != nil {
+		return false
+	}
+	return val.Value == "true"
+}
+
+func (s *Server) CanIUpgradeToE0() error {
+	return upgrader.CanIUpgradeToE0()
+}
+
+func (s *Server) UpgradeToE0() error {
+	if err := upgrader.UpgradeToE0(); err != nil {
+		return err
+	}
+	upgradedFromTE := &model.System{Name: model.SYSTEM_UPGRADED_FROM_TE_ID, Value: "true"}
+	s.Store.System().Save(upgradedFromTE)
+	return nil
+}
+
+func (s *Server) UpgradeToE0Status() (int64, error) {
+	return upgrader.UpgradeToE0Status()
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
@@ -1150,14 +1219,14 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	}
 
 	for _, warnMetric := range warnMetrics {
-		data, err := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if err == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
+		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
+		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
 			mlog.Debug("This metric warning has already been acked or should only run once")
 			continue
 		}
 
-		if err = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); err != nil {
-			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(err))
+		if nErr = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); nErr != nil {
+			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(nErr))
 			continue
 		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
@@ -1297,7 +1366,7 @@ func (s *Server) stopSearchEngine() {
 }
 
 // initDiagnostics initialises the Rudder client for the diagnostics system.
-func (s *Server) initDiagnostics(endpoint string) {
+func (s *Server) initDiagnostics(endpoint string, rudderKey string) {
 	if s.rudderClient == nil {
 		config := rudder.Config{}
 		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
@@ -1307,7 +1376,7 @@ func (s *Server) initDiagnostics(endpoint string) {
 			config.Verbose = true
 			config.BatchSize = 1
 		}
-		client, err := rudder.NewWithConfig(RUDDER_KEY, endpoint, config)
+		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
 		if err != nil {
 			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
 			return

@@ -215,7 +215,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if count != 1 {
+	if count > 1 {
 		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count), http.StatusInternalServerError)
 	}
 
@@ -273,8 +273,6 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 }
 
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError) {
-	email = strings.ToLower(email)
-
 	updateAt := model.GetMillis()
 
 	query := `
@@ -289,7 +287,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 			     AuthData = :AuthData`
 
 	if len(email) != 0 {
-		query += ", Email = :Email"
+		query += ", Email = lower(:Email)"
 	}
 
 	if resetMfa {
@@ -1052,9 +1050,7 @@ func (us SqlUserStore) GetSystemAdminProfiles() (map[string]*model.User, *model.
 }
 
 func (us SqlUserStore) GetByEmail(email string) (*model.User, *model.AppError) {
-	email = strings.ToLower(email)
-
-	query := us.usersQuery.Where("Email = ?", email)
+	query := us.usersQuery.Where("Email = lower(?)", email)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1129,7 +1125,7 @@ func (us SqlUserStore) GetAllNotInAuthService(authServices []string) ([]*model.U
 }
 
 func (us SqlUserStore) GetByUsername(username string) (*model.User, *model.AppError) {
-	query := us.usersQuery.Where("u.Username = ?", username)
+	query := us.usersQuery.Where("u.Username = lower(?)", username)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1138,7 +1134,7 @@ func (us SqlUserStore) GetByUsername(username string) (*model.User, *model.AppEr
 
 	var user *model.User
 	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error", nil, err.Error()+" -- "+queryString, http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil
@@ -1147,11 +1143,11 @@ func (us SqlUserStore) GetByUsername(username string) (*model.User, *model.AppEr
 func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) (*model.User, *model.AppError) {
 	query := us.usersQuery
 	if allowSignInWithUsername && allowSignInWithEmail {
-		query = query.Where("Username = ? OR Email = ?", loginId, loginId)
+		query = query.Where("Username = lower(?) OR Email = lower(?)", loginId, loginId)
 	} else if allowSignInWithUsername {
-		query = query.Where("Username = ?", loginId)
+		query = query.Where("Username = lower(?)", loginId)
 	} else if allowSignInWithEmail {
-		query = query.Where("Email = ?", loginId)
+		query = query.Where("Email = lower(?)", loginId)
 	} else {
 		return nil, model.NewAppError("SqlUserStore.GetForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -1180,7 +1176,7 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, *model.AppError) {
 	curTime := model.GetMillis()
-	if _, err := us.GetMaster().Exec("UPDATE Users SET Email = :email, EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
+	if _, err := us.GetMaster().Exec("UPDATE Users SET Email = lower(:email), EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
 		return "", model.NewAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
 	}
 

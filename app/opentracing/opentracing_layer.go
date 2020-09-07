@@ -7,7 +7,6 @@
 package opentracing
 
 import (
-	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/ecdsa"
@@ -600,7 +599,7 @@ func (a *OpenTracingAppLayer) AttachSessionCookies(w http.ResponseWriter, r *htt
 	a.app.AttachSessionCookies(w, r)
 }
 
-func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string, password string, mfaToken string, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AuthenticateUserForLogin")
 
@@ -612,7 +611,7 @@ func (a *OpenTracingAppLayer) AuthenticateUserForLogin(id string, loginId string
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	resultVar0, resultVar1 := a.app.AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken, ldapOnly)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1426,28 +1425,6 @@ func (a *OpenTracingAppLayer) CopyFileInfos(userId string, fileIds []string) ([]
 	}
 
 	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) CreateBasicUser(client *model.Client4) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateBasicUser")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.CreateBasicUser(client)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
@@ -3059,6 +3036,28 @@ func (a *OpenTracingAppLayer) DoAppMigrations() {
 	a.app.DoAppMigrations()
 }
 
+func (a *OpenTracingAppLayer) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoCommandRequest")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1, resultVar2 := a.app.DoCommandRequest(cmd, p)
+
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2
+}
+
 func (a *OpenTracingAppLayer) DoEmojisPermissionsMigration() {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoEmojisPermissionsMigration")
@@ -3111,7 +3110,7 @@ func (a *OpenTracingAppLayer) DoLocalRequest(rawURL string, body []byte) (*http.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile bool, isOAuth bool, isSaml bool) *model.AppError {
+func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string, isMobile bool, isOAuthUser bool, isSaml bool) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoLogin")
 
@@ -3123,7 +3122,7 @@ func (a *OpenTracingAppLayer) DoLogin(w http.ResponseWriter, r *http.Request, us
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.DoLogin(w, r, user, deviceId, isMobile, isOAuth, isSaml)
+	resultVar0 := a.app.DoLogin(w, r, user, deviceId, isMobile, isOAuthUser, isSaml)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -3197,6 +3196,21 @@ func (a *OpenTracingAppLayer) DoPostActionWithCookie(postId string, actionId str
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoSystemConsoleRolesCreationMigration")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.DoSystemConsoleRolesCreationMigration()
 }
 
 func (a *OpenTracingAppLayer) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
@@ -5068,6 +5082,28 @@ func (a *OpenTracingAppLayer) GetEnvironmentConfig() map[string]interface{} {
 	resultVar0 := a.app.GetEnvironmentConfig()
 
 	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) GetErrorListForEmailsOverLimit(emailList []string, cloudUserLimit int64) ([]string, []*model.EmailInviteWithError, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetErrorListForEmailsOverLimit")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1, resultVar2 := a.app.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+
+	if resultVar2 != nil {
+		span.LogFields(spanlog.Error(resultVar2))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1, resultVar2
 }
 
 func (a *OpenTracingAppLayer) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -10021,7 +10057,7 @@ func (a *OpenTracingAppLayer) MakeAuditRecord(event string, initialStatus string
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) MakePermissionError(permission *model.Permission) *model.AppError {
+func (a *OpenTracingAppLayer) MakePermissionError(permissions []*model.Permission) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MakePermissionError")
 
@@ -10033,7 +10069,7 @@ func (a *OpenTracingAppLayer) MakePermissionError(permission *model.Permission) 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.MakePermissionError(permission)
+	resultVar0 := a.app.MakePermissionError(permissions)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -10100,6 +10136,40 @@ func (a *OpenTracingAppLayer) MaxPostSize() int {
 
 	defer span.Finish()
 	resultVar0 := a.app.MaxPostSize()
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) MentionsToPublicChannels(message string, teamId string) model.ChannelMentionMap {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MentionsToPublicChannels")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MentionsToPublicChannels(message, teamId)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) MentionsToTeamMembers(message string, teamId string) model.UserMentionMap {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.MentionsToTeamMembers")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.MentionsToTeamMembers(message, teamId)
 
 	return resultVar0
 }
@@ -12738,6 +12808,23 @@ func (a *OpenTracingAppLayer) SessionHasPermissionTo(session model.Session, perm
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToAny")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SessionHasPermissionToAny(session, permissions)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SessionHasPermissionToCategory(session model.Session, userId string, teamId string, categoryId string) bool {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SessionHasPermissionToCategory")
@@ -13389,72 +13476,6 @@ func (a *OpenTracingAppLayer) SetTeamIconFromMultiPartFile(teamId string, file m
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddBotUser")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddBotUser(teamId, log)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SlackAddChannels(teamId string, slackchannels []app.SlackChannel, posts map[string][]app.SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User, importerLog *bytes.Buffer) map[string]*model.Channel {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddChannels")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddChannels(teamId, slackchannels, posts, users, uploads, botUser, importerLog)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) SlackAddPosts(teamId string, channel *model.Channel, posts []app.SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddPosts")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SlackAddPosts(teamId, channel, posts, users, uploads, botUser)
-}
-
-func (a *OpenTracingAppLayer) SlackAddUsers(teamId string, slackusers []app.SlackUser, importerLog *bytes.Buffer) map[string]*model.User {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackAddUsers")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.SlackAddUsers(teamId, slackusers, importerLog)
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackImport")
@@ -13473,23 +13494,6 @@ func (a *OpenTracingAppLayer) SlackImport(fileData multipart.File, fileSize int6
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) SlackUploadFile(slackPostFile *app.SlackFile, uploads map[string]*zip.File, teamId string, channelId string, userId string, slackTimestamp string) (*model.FileInfo, bool) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackUploadFile")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.SlackUploadFile(slackPostFile, uploads, teamId, channelId, userId, slackTimestamp)
 
 	return resultVar0, resultVar1
 }
@@ -14264,6 +14268,50 @@ func (a *OpenTracingAppLayer) UpdateGroupSyncable(groupSyncable *model.GroupSync
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateHashedPassword(user *model.User, newHashedPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateHashedPassword")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateHashedPassword(user, newHashedPassword)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) UpdateHashedPasswordByUserId(userId string, newHashedPassword string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateHashedPasswordByUserId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateHashedPasswordByUserId(userId, newHashedPassword)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateIncomingWebhook(oldHook *model.IncomingWebhook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {

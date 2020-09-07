@@ -100,7 +100,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, error) 
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update OAuthApp with id=%s", app.Id)
 	}
-	if count != 1 {
+	if count > 1 {
 		return nil, store.NewErrInvalidInput("OAuthApp", "Id", app.Id)
 	}
 	return app, nil

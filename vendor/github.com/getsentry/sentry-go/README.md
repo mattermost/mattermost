@@ -154,7 +154,7 @@ checkout the official documentation:
 
 - [Configuration](https://docs.sentry.io/platforms/go/config)
 - [Error Reporting](https://docs.sentry.io/error-reporting/quickstart?platform=go)
-- [Enriching Error Data](https://docs.sentry.io/enriching-error-data/context?platform=go)
+- [Enriching Error Data](https://docs.sentry.io/enriching-error-data/additional-data/?platform=go)
 - [Transports](https://docs.sentry.io/platforms/go/transports)
 - [Integrations](https://docs.sentry.io/platforms/go/integrations)
   - [net/http](https://docs.sentry.io/platforms/go/http)

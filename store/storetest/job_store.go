@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"testing"
 
 	"time"
@@ -21,6 +22,7 @@ func TestJobStore(t *testing.T, ss store.Store) {
 	t.Run("JobGetAllPage", func(t *testing.T) { testJobGetAllPage(t, ss) })
 	t.Run("JobGetAllByStatus", func(t *testing.T) { testJobGetAllByStatus(t, ss) })
 	t.Run("GetNewestJobByStatusAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusAndType(t, ss) })
+	t.Run("GetNewestJobByStatusesAndType", func(t *testing.T) { testJobStoreGetNewestJobByStatusesAndType(t, ss) })
 	t.Run("GetCountByStatusAndType", func(t *testing.T) { testJobStoreGetCountByStatusAndType(t, ss) })
 	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, ss) })
 	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, ss) })
@@ -257,7 +259,73 @@ func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
 	assert.EqualValues(t, jobs[0].Id, received.Id)
 
 	received, err = ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
+	assert.NotNil(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, received)
+}
+
+func testJobStoreGetNewestJobByStatusesAndType(t *testing.T, ss store.Store) {
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	status1 := model.NewId()
+	status2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1001,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1000,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1003,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1004,
+			Status:   status2,
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
+		defer ss.Job().Delete(job.Id)
+	}
+
+	received, err := ss.Job().GetNewestJobByStatusesAndType([]string{status1, status2}, jobType1)
 	assert.Nil(t, err)
+	assert.EqualValues(t, jobs[3].Id, received.Id)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{model.NewId(), model.NewId()}, model.NewId())
+	assert.NotNil(t, err)
+	var nfErr *store.ErrNotFound
+	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, received)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status2}, jobType2)
+	assert.NotNil(t, err)
+	assert.True(t, errors.As(err, &nfErr))
+	assert.Nil(t, received)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{status1}, jobType2)
+	assert.Nil(t, err)
+	assert.EqualValues(t, jobs[2].Id, received.Id)
+
+	received, err = ss.Job().GetNewestJobByStatusesAndType([]string{}, jobType1)
+	assert.NotNil(t, err)
+	assert.True(t, errors.As(err, &nfErr))
 	assert.Nil(t, received)
 }
 
