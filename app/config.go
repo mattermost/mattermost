@@ -139,8 +139,8 @@ func (s *Server) ensurePostActionCookieSecret() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if appErr := s.Store.System().Save(system); appErr != nil {
-			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(appErr))
+		if err = s.Store.System().Save(system); err != nil {
+			mlog.Error("Failed to save PostActionCookieSecret", mlog.Err(err))
 		} else {
 			secret = newSecret
 		}
@@ -202,8 +202,8 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 		}
 		system.Value = string(v)
 		// If we were able to save the key, use it, otherwise log the error.
-		if appErr := s.Store.System().Save(system); appErr != nil {
-			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(appErr))
+		if err = s.Store.System().Save(system); err != nil {
+			mlog.Error("Failed to save AsymmetricSigningKey", mlog.Err(err))
 		} else {
 			key = newKey
 		}
@@ -242,40 +242,38 @@ func (s *Server) ensureAsymmetricSigningKey() error {
 }
 
 func (s *Server) ensureInstallationDate() error {
-	_, err := s.getSystemInstallDate()
-	if err == nil {
+	_, appErr := s.getSystemInstallDate()
+	if appErr == nil {
 		return nil
 	}
 
-	installDate, err := s.Store.User().InferSystemInstallDate()
+	installDate, appErr := s.Store.User().InferSystemInstallDate()
 	var installationDate int64
-	if err == nil && installDate > 0 {
+	if appErr == nil && installDate > 0 {
 		installationDate = installDate
 	} else {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
 
-	err = s.Store.System().SaveOrUpdate(&model.System{
+	if err := s.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 		Value: strconv.FormatInt(installationDate, 10),
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (s *Server) ensureFirstServerRunTimestamp() error {
-	_, err := s.getFirstServerRunTimestamp()
-	if err == nil {
+	_, appErr := s.getFirstServerRunTimestamp()
+	if appErr == nil {
 		return nil
 	}
 
-	err = s.Store.System().SaveOrUpdate(&model.System{
+	if err := s.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY,
 		Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10),
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -348,6 +346,7 @@ func (s *Server) ClientConfigWithComputed() map[string]string {
 	// by the client.
 	respCfg["NoAccounts"] = strconv.FormatBool(s.IsFirstUserAccount())
 	respCfg["MaxPostSize"] = strconv.Itoa(s.MaxPostSize())
+	respCfg["UpgradedFromTE"] = strconv.FormatBool(s.isUpgradedFromTE())
 	respCfg["InstallationDate"] = ""
 	if installationDate, err := s.getSystemInstallDate(); err == nil {
 		respCfg["InstallationDate"] = strconv.FormatInt(installationDate, 10)

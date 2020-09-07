@@ -14,6 +14,7 @@ import (
 
 const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
 const GUEST_ROLES_CREATION_MIGRATION_KEY = "GuestRolesCreationMigrationComplete"
+const SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY = "SystemConsoleRolesCreationMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -240,11 +241,57 @@ func (a *App) DoGuestRolesCreationMigration() {
 	}
 }
 
+func (a *App) DoSystemConsoleRolesCreationMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := a.Srv().Store.System().GetByName(SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY); err == nil {
+		return
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	allSucceeded := true
+	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_MANAGER_ROLE_ID); err != nil {
+		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_MANAGER_ROLE_ID]); err != nil {
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_MANAGER_ROLE_ID))
+			allSucceeded = false
+		}
+	}
+	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err != nil {
+		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID]); err != nil {
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID))
+			allSucceeded = false
+		}
+	}
+	if _, err := a.Srv().Store.Role().GetByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err != nil {
+		if _, err := a.Srv().Store.Role().Save(roles[model.SYSTEM_USER_MANAGER_ROLE_ID]); err != nil {
+			mlog.Critical("Failed to create new role.", mlog.Err(err), mlog.String("role", model.SYSTEM_USER_MANAGER_ROLE_ID))
+			allSucceeded = false
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  SYSTEM_CONSOLE_ROLES_CREATION_MIGRATION_KEY,
+		Value: "true",
+	}
+
+	if err := a.Srv().Store.System().Save(&system); err != nil {
+		mlog.Critical("Failed to mark system console roles creation migration as completed.", mlog.Err(err))
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.DoAdvancedPermissionsMigration()
 	a.DoEmojisPermissionsMigration()
 	a.DoGuestRolesCreationMigration()
+	a.DoSystemConsoleRolesCreationMigration()
 	// This migration always must be the last, because can be based on previous
 	// migrations. For example, it needs the guest roles migration.
-	a.DoPermissionsMigrations()
+	err := a.DoPermissionsMigrations()
+	if err != nil {
+		mlog.Critical("(app.App).DoPermissionsMigrations failed", mlog.Err(err))
+	}
 }

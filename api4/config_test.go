@@ -4,11 +4,13 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,6 +52,43 @@ func TestGetConfig(t *testing.T) {
 		if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
 			require.FailNow(t, "did not sanitize properly")
 		}
+	})
+}
+
+func TestGetConfigWithAccessTag(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	varyByHeader := *&th.App.Config().RateLimitSettings.VaryByHeader // environment perm.
+	supportEmail := *&th.App.Config().SupportSettings.SupportEmail   // site perm.
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.RateLimitSettings.VaryByHeader = varyByHeader
+		cfg.SupportSettings.SupportEmail = supportEmail
+	})
+
+	// set some values so that we know they're not blank
+	mockVaryByHeader := model.NewId()
+	mockSupportEmail := model.NewId() + "@mattermost.com"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.RateLimitSettings.VaryByHeader = mockVaryByHeader
+		cfg.SupportSettings.SupportEmail = &mockSupportEmail
+	})
+
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	// add read sysconsole environment config
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_ENVIRONMENT.Id, model.SYSTEM_USER_ROLE_ID)
+
+	cfg, resp := th.Client.GetConfig()
+	CheckNoError(t, resp)
+
+	t.Run("Cannot read value without permission", func(t *testing.T) {
+		assert.Nil(t, cfg.SupportSettings.SupportEmail)
+	})
+
+	t.Run("Can read value with permission", func(t *testing.T) {
+		assert.Equal(t, mockVaryByHeader, cfg.RateLimitSettings.VaryByHeader)
 	})
 }
 
@@ -107,7 +146,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{}}`)
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), fmt.Sprintf(`{"ServiceSettings":{"SiteURL":"%s"}}`, *cfg.ServiceSettings.SiteURL))
 			require.Nil(t, appErr)
 		})
 
@@ -175,6 +214,88 @@ func TestUpdateConfig(t *testing.T) {
 		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+	})
+}
+
+func TestGetConfigWithoutManageSystemPermission(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	t.Run("any sysconsole read permission provides config read access", func(t *testing.T) {
+		// forbidden by default
+		_, resp := th.Client.GetConfig()
+		CheckForbiddenStatus(t, resp)
+
+		// add any sysconsole read permission
+		th.AddPermissionToRole(model.SysconsoleReadPermissions[0].Id, model.SYSTEM_USER_ROLE_ID)
+		_, resp = th.Client.GetConfig()
+
+		// should be readable now
+		CheckNoError(t, resp)
+	})
+}
+
+func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	th.Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	// add read sysconsole integrations config
+	th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+	defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_READ_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+
+	t.Run("sysconsole read permission does not provides config write access", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.Client.GetConfig()
+		CheckNoError(t, resp)
+
+		_, resp = th.Client.UpdateConfig(cfg)
+
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("the wrong write permission does not grant access", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
+
+		originalValue := *cfg.ServiceSettings.AllowCorsFrom
+
+		// add the wrong write permission
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_ABOUT.Id, model.SYSTEM_USER_ROLE_ID)
+
+		// try update a config value allowed by sysconsole WRITE integrations
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, resp = th.Client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		// ensure the config setting was not updated
+		cfg, resp = th.Client.GetConfig()
+		CheckNoError(t, resp)
+		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, originalValue)
+	})
+
+	t.Run("config value is writeable by specific system console permission", func(t *testing.T) {
+		// should be readable because has a sysconsole read permission
+		cfg, resp := th.SystemAdminClient.GetConfig()
+		CheckNoError(t, resp)
+
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_INTEGRATIONS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		// try update a config value allowed by sysconsole WRITE integrations
+		mockVal := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &mockVal
+		_, resp = th.Client.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+
+		// ensure the config setting was updated
+		cfg, resp = th.Client.GetConfig()
+		CheckNoError(t, resp)
+		assert.Equal(t, *cfg.ServiceSettings.AllowCorsFrom, mockVal)
 	})
 }
 
@@ -549,5 +670,34 @@ func TestPatchConfig(t *testing.T) {
 		cfg, resp = th.SystemAdminClient.GetConfig()
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
+
+		// Check that sending an empty config returns an error.
+		_, resp = th.SystemAdminClient.PatchConfig(&model.Config{})
+		require.NotNil(t, resp.Error)
+		CheckBadRequestStatus(t, resp)
+		assert.Equal(t, "api.config.update_config.clear_siteurl.app_error", resp.Error.Id)
+	})
+}
+
+func TestMigrateConfig(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("user is not system admin", func(t *testing.T) {
+		_, response := th.Client.MigrateConfig("from", "to")
+		CheckForbiddenStatus(t, response)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		f, err := config.NewStore("from.json", false)
+		require.NoError(t, err)
+		defer f.RemoveFile("from.json")
+
+		_, err = config.NewStore("to.json", false)
+		require.NoError(t, err)
+		defer f.RemoveFile("to.json")
+
+		_, response := client.MigrateConfig("from.json", "to.json")
+		CheckNoError(t, response)
 	})
 }

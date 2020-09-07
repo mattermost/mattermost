@@ -669,6 +669,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
+		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -1158,7 +1159,7 @@ func (ts *TelemetryService) Shutdown() error {
 
 func (ts *TelemetryService) trackWarnMetrics() {
 	systemDataList, appErr := ts.dbStore.System().Get()
-	if appErr != nil {
+	if nErr != nil {
 		return
 	}
 	for key, value := range systemDataList {

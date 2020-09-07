@@ -28,6 +28,8 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
+var logger = grpclog.Component("balancer")
+
 type baseBuilder struct {
 	name          string
 	pickerBuilder PickerBuilder
@@ -91,8 +93,8 @@ func (b *baseBalancer) ResolverError(err error) {
 
 func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 	// TODO: handle s.ResolverState.ServiceConfig?
-	if grpclog.V(2) {
-		grpclog.Infoln("base.baseBalancer: got new ClientConn state: ", s)
+	if logger.V(2) {
+		logger.Info("base.baseBalancer: got new ClientConn state: ", s)
 	}
 	// Successful resolution; clear resolver error and ensure we return nil.
 	b.resolverErr = nil
@@ -104,7 +106,7 @@ func (b *baseBalancer) UpdateClientConnState(s balancer.ClientConnState) error {
 			// a is a new address (not existing in b.subConns).
 			sc, err := b.cc.NewSubConn([]resolver.Address{a}, balancer.NewSubConnOptions{HealthCheckEnabled: b.config.HealthCheck})
 			if err != nil {
-				grpclog.Warningf("base.baseBalancer: failed to create new SubConn: %v", err)
+				logger.Warningf("base.baseBalancer: failed to create new SubConn: %v", err)
 				continue
 			}
 			b.subConns[a] = sc
@@ -168,13 +170,13 @@ func (b *baseBalancer) regeneratePicker() {
 
 func (b *baseBalancer) UpdateSubConnState(sc balancer.SubConn, state balancer.SubConnState) {
 	s := state.ConnectivityState
-	if grpclog.V(2) {
-		grpclog.Infof("base.baseBalancer: handle SubConn state change: %p, %v", sc, s)
+	if logger.V(2) {
+		logger.Infof("base.baseBalancer: handle SubConn state change: %p, %v", sc, s)
 	}
 	oldS, ok := b.scStates[sc]
 	if !ok {
-		if grpclog.V(2) {
-			grpclog.Infof("base.baseBalancer: got state changes for an unknown SubConn: %p, %v", sc, s)
+		if logger.V(2) {
+			logger.Infof("base.baseBalancer: got state changes for an unknown SubConn: %p, %v", sc, s)
 		}
 		return
 	}
