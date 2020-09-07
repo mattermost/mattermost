@@ -629,10 +629,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 	defer cancelCtx()
 
 	mlog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
-		if ti.Type != "*target.Writer" && ti.Type != "*target.File" {
-			return true
-		}
-		return ti.Type != "*target.Writer" && ti.Type != "*target.File" 
+		return ti.Type != "*target.Writer" && ti.Type != "*target.File"
 	})
 }
 
