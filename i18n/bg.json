@@ -7187,10 +7187,6 @@
         "translation": "AD / LDAP поле \"AD / LDAP Server\" е задължително."
     },
     {
-        "id": "api.user.add_direct_channels_and_forget.failed.error",
-        "translation": "Неуспешно добавяне на предпочитания за директни канали за потребител user_id = {{. UserId}}, team_id = {{. TeamId}}, err = {{.Error}}"
-    },
-    {
         "id": "store.sql_channel.save_member.open_transaction.app_error",
         "translation": "Не може да се отвори транзакция."
     },
