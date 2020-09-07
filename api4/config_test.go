@@ -145,7 +145,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{"SiteURL":""}}`)
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), "{}")
 			require.Nil(t, appErr)
 		})
 
