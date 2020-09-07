@@ -624,7 +624,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return t.fileinfo, aerr
 	}
 
-	// Concurrently upload and update DB, and post-process the image.
+	// Concurrently post-process the image.
 	wg := sync.WaitGroup{}
 
 	if !t.Raw && t.fileinfo.IsImage() {
@@ -858,7 +858,9 @@ func (t *UploadFileTask) postprocessImage() {
 
 	go func() {
 		defer wg.Done()
-		t.fileinfo.MiniPreview = model.GenerateMiniPreviewImage(decoded)
+		if t.fileinfo.MiniPreview == nil {
+			t.fileinfo.MiniPreview = model.GenerateMiniPreviewImage(decoded)
+		}
 	}()
 	wg.Wait()
 }
@@ -1120,27 +1122,39 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 	}
 }
 
+// generateMiniPreview updates mini preview if needed
+// will save fileinfo with the preview added
 func (a *App) generateMiniPreview(fi *model.FileInfo) {
 	if fi.IsImage() && fi.MiniPreview == nil {
-		go func() {
-
-			data, err := a.ReadFile(fi.Path)
-			if err != nil {
-				mlog.Error("error reading image file", mlog.Err(err))
-				return
-			}
-			img, _, _ := prepareImage(data)
-			if img == nil {
-				return
-			}
-			fi.MiniPreview = model.GenerateMiniPreviewImage(img)
-			if _, appErr := a.Srv().Store.FileInfo().Save(fi); appErr != nil {
-				mlog.Error("creating mini preview failed", mlog.Err(appErr))
-			} else {
-				a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
-			}
-		}()
+		data, err := a.ReadFile(fi.Path)
+		if err != nil {
+			mlog.Error("error reading image file", mlog.Err(err))
+			return
+		}
+		img, _, _ := prepareImage(data)
+		if img == nil {
+			return
+		}
+		fi.MiniPreview = model.GenerateMiniPreviewImage(img)
+		if _, appErr := a.Srv().Store.FileInfo().Upsert(fi); appErr != nil {
+			mlog.Error("creating mini preview failed", mlog.Err(appErr))
+		} else {
+			a.Srv().Store.FileInfo().InvalidateFileInfosForPostCache(fi.PostId, false)
+		}
 	}
+}
+
+func (a *App) generateMiniPreviewForInfos(fileInfos []*model.FileInfo) {
+	wg := new(sync.WaitGroup)
+
+	wg.Add(len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		go func(fi *model.FileInfo) {
+			defer wg.Done()
+			a.generateMiniPreview(fi)
+		}(fileInfo)
+	}
+	wg.Wait()
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
@@ -1155,8 +1169,6 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 		}
 	}
 
-	// update mini preview if needed, done in the background to avoid delaying the response
-	// will save fileinfo with the preview added for future use
 	a.generateMiniPreview(fileInfo)
 	return fileInfo, nil
 }
@@ -1175,6 +1187,8 @@ func (a *App) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([
 			return nil, model.NewAppError("GetFileInfos", "app.file_info.get_with_options.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	a.generateMiniPreviewForInfos(fileInfos)
 
 	return fileInfos, nil
 }
