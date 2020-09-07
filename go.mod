@@ -53,7 +53,7 @@ require (
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/jonboulle/clockwork v0.1.0
+	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/lib/pq v1.7.0
 	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/mattermost/gorp v1.6.2-0.20200624165429-2595d5e54111
 	github.com/mattermost/gosaml2 v0.3.2
 	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
-	github.com/mattermost/logr v1.0.9
+	github.com/mattermost/logr v1.0.11
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-colorable v0.1.7 // indirect
@@ -81,7 +81,7 @@ require (
 	github.com/pelletier/go-toml v1.8.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.7.1
-	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
 	github.com/rs/cors v1.7.0
 	github.com/rudderlabs/analytics-go v3.2.1+incompatible

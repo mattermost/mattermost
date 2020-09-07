@@ -42,6 +42,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
+	mlog.DisableZap()
+
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)

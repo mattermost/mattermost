@@ -10,7 +10,7 @@ import (
 // Target represents a destination for log records such as file,
 // database, TCP socket, etc.
 type Target interface {
-	// SetName provides an option name for the target.
+	// SetName provides an optional name for the target.
 	SetName(name string)
 
 	// IsLevelEnabled returns true if this target should emit

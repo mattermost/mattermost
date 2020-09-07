@@ -112,20 +112,20 @@ type Server struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher            *utils.HTMLTemplateWatcher
-	sessionCache                   cache.Cache
-	seenPendingPostIdsCache        cache.Cache
-	statusCache                    cache.Cache
-	configListenerId               string
-	licenseListenerId              string
-	logListenerId                  string
-	clusterLeaderListenerId        string
-	searchConfigListenerId         string
-	searchLicenseListenerId        string
-	loggerMetricsLicenseListenerId string
-	configStore                    config.Store
-	asymmetricSigningKey           *ecdsa.PrivateKey
-	postActionCookieSecret         []byte
+	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
+	sessionCache            cache.Cache
+	seenPendingPostIdsCache cache.Cache
+	statusCache             cache.Cache
+	configListenerId        string
+	licenseListenerId       string
+	logListenerId           string
+	clusterLeaderListenerId string
+	searchConfigListenerId  string
+	searchLicenseListenerId string
+	loggerLicenseListenerId string
+	configStore             config.Store
+	asymmetricSigningKey    *ecdsa.PrivateKey
+	postActionCookieSecret  []byte
 
 	advancedLogListenerCleanup func()
 
@@ -476,19 +476,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if !allowAdvancedLogging {
-		timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*5)
-		defer cancelCtx()
-		mlog.Info("Shutting down advanced logging")
-		mlog.ShutdownAdvancedLogging(timeoutCtx)
-		if s.advancedLogListenerCleanup != nil {
-			s.advancedLogListenerCleanup()
-			s.advancedLogListenerCleanup = nil
-		}
-	}
-
+	s.removeUnlicensedLogTargets(license)
 	s.enableLoggingMetrics()
-	s.loggerMetricsLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+
+	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.removeUnlicensedLogTargets(newLicense)
 		s.enableLoggingMetrics()
 	})
 
@@ -551,6 +543,7 @@ func (s *Server) AppOptions() []AppOption {
 	}
 }
 
+// initLogging initializes and configures the logger. This may be called more than once.
 func (s *Server) initLogging() error {
 	if s.Log == nil {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
@@ -568,6 +561,9 @@ func (s *Server) initLogging() error {
 	// Use this app logger as the global logger (eventually remove all instances of global logging)
 	mlog.InitGlobalLogger(s.Log)
 
+	if s.logListenerId != "" {
+		s.RemoveConfigListener(s.logListenerId)
+	}
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
 		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
 
@@ -623,13 +619,30 @@ func (s *Server) initLogging() error {
 	return nil
 }
 
+func (s *Server) removeUnlicensedLogTargets(license *model.License) {
+	if license != nil && *license.Features.AdvancedLogging {
+		// advanced logging enabled via license; no need to remove any targets
+		return
+	}
+
+	timeoutCtx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancelCtx()
+
+	mlog.RemoveTargets(timeoutCtx, func(ti mlog.TargetInfo) bool {
+		if ti.Type != "*target.Writer" && ti.Type != "*target.File" {
+			return true
+		}
+		return false
+	})
+}
+
 func (s *Server) enableLoggingMetrics() {
 	if s.Metrics == nil {
 		return
 	}
 
 	if err := mlog.EnableMetrics(s.Metrics.GetLoggerMetricsCollector()); err != nil {
-		mlog.Debug("Failed to enable advanced logging metrics", mlog.Err(err))
+		mlog.Error("Failed to enable advanced logging metrics", mlog.Err(err))
 	} else {
 		mlog.Debug("Advanced logging metrics enabled")
 	}
@@ -667,7 +680,7 @@ func (s *Server) Shutdown() error {
 	s.HubStop()
 	s.ShutDownPlugins()
 	s.RemoveLicenseListener(s.licenseListenerId)
-	s.RemoveLicenseListener(s.loggerMetricsLicenseListenerId)
+	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
 	if s.tracer != nil {
