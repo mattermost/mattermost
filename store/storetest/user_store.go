@@ -821,7 +821,18 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.Nil(t, err)
-	t.Run("get in channel 1, offset 0, limit 100", func(t *testing.T) {
+
+	t.Run("get all users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3), sanitized(u4)}, users)
+	})
+
+	t.Run("get only active users in channel 1, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
 			InChannelId: c1.Id,
 			Page:        0,
@@ -832,19 +843,28 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
 	})
 
+	t.Run("get inactive users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Inactive:    true,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u4)}, users)
+	})
+
 	t.Run("get in channel 1, offset 1, limit 2", func(t *testing.T) {
 		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
 			InChannelId: c1.Id,
 			Page:        1,
 			PerPage:     1,
-			Active:      true,
 		})
 		require.Nil(t, err)
 		users_p2, err2 := ss.User().GetProfilesInChannel(&model.UserGetOptions{
 			InChannelId: c1.Id,
 			Page:        2,
 			PerPage:     1,
-			Active:      true,
 		})
 		require.Nil(t, err2)
 		users = append(users, users_p2...)
@@ -981,7 +1001,17 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		Status: model.STATUS_ONLINE,
 	}))
 
-	t.Run("get in channel 1 by status, offset 0, limit 100", func(t *testing.T) {
+	t.Run("get all users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3), sanitized(u4)}, users)
+	})
+
+	t.Run("get active in channel 1 by status, offset 0, limit 100", func(t *testing.T) {
 		users, err := ss.User().GetProfilesInChannelByStatus(&model.UserGetOptions{
 			InChannelId: c1.Id,
 			Page:        0,
@@ -990,6 +1020,17 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u2), sanitized(u1)}, users)
+	})
+
+	t.Run("get inactive users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Inactive:    true,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u4)}, users)
 	})
 
 	t.Run("get in channel 2 by status, offset 0, limit 1", func(t *testing.T) {
