@@ -632,7 +632,7 @@ func (s *Server) removeUnlicensedLogTargets(license *model.License) {
 		if ti.Type != "*target.Writer" && ti.Type != "*target.File" {
 			return true
 		}
-		return false
+		return ti.Type != "*target.Writer" && ti.Type != "*target.File" 
 	})
 }
 
