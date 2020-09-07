@@ -1,8 +1,32 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
 
-- "I am running away from my responsibilities. And it feels good." – Michael Scott, Season 4, "Money"
+- feat: Include original error when event cannot be encoded as JSON (#258)
+- feat: Use Hub from request context when available (#217, #259)
+- feat: Extract stack frames from golang.org/x/xerrors (#262)
+- feat: Make Environment Integration preserve existing context data (#261)
+- feat: Recover and RecoverWithContext with arbitrary types (#268)
+- feat: Report bad usage of CaptureMessage and CaptureEvent (#269)
+- feat: Send debug logging to stderr by default (#266)
+- feat: Several improvements to documentation (#223, #245, #250, #265)
+- feat: Example of Recover followed by panic (#241, #247)
+- feat: Add Transactions and Spans (to support OpenTelemetry Sentry Exporter) (#235, #243, #254)
+- fix: Set either Frame.Filename or Frame.AbsPath (#233)
+- fix: Clone requestBody to new Scope (#244)
+- fix: Synchronize access and mutation of Hub.lastEventID (#264)
+- fix: Avoid repeated syscalls in prepareEvent (#256)
+- fix: Do not allocate new RNG for every event (#256)
+- fix: Remove stale replace directive in go.mod (#255)
+- fix(http): Deprecate HandleFunc, remove duplication (#260)
+
+_NOTE:_
+This version comes packed with several fixes and improvements and no breaking
+changes.
+Notably, there is a change in how the SDK reports file names in stack traces
+that should resolve any ambiguity when looking at stack traces and using the
+Suspect Commits feature.
+We recommend all users to upgrade.
 
 ## v0.6.1
 

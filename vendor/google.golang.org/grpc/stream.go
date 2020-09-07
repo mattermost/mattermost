@@ -35,6 +35,7 @@ import (
 	"google.golang.org/grpc/internal/binarylog"
 	"google.golang.org/grpc/internal/channelz"
 	"google.golang.org/grpc/internal/grpcrand"
+	"google.golang.org/grpc/internal/grpcutil"
 	"google.golang.org/grpc/internal/transport"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
@@ -346,7 +347,16 @@ func (cs *clientStream) newAttemptLocked(sh stats.Handler, trInfo *traceInfo) (r
 	if err := cs.ctx.Err(); err != nil {
 		return toRPCErr(err)
 	}
-	t, done, err := cs.cc.getTransport(cs.ctx, cs.callInfo.failFast, cs.callHdr.Method)
+
+	ctx := cs.ctx
+	if cs.cc.parsedTarget.Scheme == "xds" {
+		// Add extra metadata (metadata that will be added by transport) to context
+		// so the balancer can see them.
+		ctx = grpcutil.WithExtraMetadata(cs.ctx, metadata.Pairs(
+			"content-type", grpcutil.ContentType(cs.callHdr.ContentSubtype),
+		))
+	}
+	t, done, err := cs.cc.getTransport(ctx, cs.callInfo.failFast, cs.callHdr.Method)
 	if err != nil {
 		return err
 	}
@@ -510,13 +520,13 @@ func (cs *clientStream) shouldRetry(err error) error {
 		if len(sps) == 1 {
 			var e error
 			if pushback, e = strconv.Atoi(sps[0]); e != nil || pushback < 0 {
-				channelz.Infof(cs.cc.channelzID, "Server retry pushback specified to abort (%q).", sps[0])
+				channelz.Infof(logger, cs.cc.channelzID, "Server retry pushback specified to abort (%q).", sps[0])
 				cs.retryThrottler.throttle() // This counts as a failure for throttling.
 				return err
 			}
 			hasPushback = true
 		} else if len(sps) > 1 {
-			channelz.Warningf(cs.cc.channelzID, "Server retry pushback specified multiple values (%q); not retrying.", sps)
+			channelz.Warningf(logger, cs.cc.channelzID, "Server retry pushback specified multiple values (%q); not retrying.", sps)
 			cs.retryThrottler.throttle() // This counts as a failure for throttling.
 			return err
 		}
