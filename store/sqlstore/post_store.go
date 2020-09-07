@@ -1607,9 +1607,7 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 				table_name = 'posts'
 			AND	column_name = 'message'
 		`); err != nil {
-			// REVIEW: I think this should be returned as an error and we should remove the error log here, but the whole code is not prepared to handle an error here.
-			// Perhaps in another PR we can tackle this as the present PR is for error migration only.
-			mlog.Error("Unable to determine the maximum supported post size", mlog.Err(err))
+			mlog.Warn("Unable to determine the maximum supported post size", mlog.Err(err))
 		}
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
