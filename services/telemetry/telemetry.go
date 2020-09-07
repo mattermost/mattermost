@@ -1165,7 +1165,7 @@ func (ts *TelemetryService) Shutdown() error {
 }
 
 func (ts *TelemetryService) trackWarnMetrics() {
-	systemDataList, appErr := ts.dbStore.System().Get()
+	systemDataList, nErr := ts.dbStore.System().Get()
 	if nErr != nil {
 		return
 	}
