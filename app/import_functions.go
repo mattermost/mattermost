@@ -1006,7 +1006,7 @@ func (a *App) importReplies(data []ReplyImportData, post *model.Post, teamId str
 		// Check if this post already exists.
 		replies, nErr := a.Srv().Store.Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
 		if nErr != nil {
-			return model.NewAppError("importReplies", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("importReplies", "app.post.get_posts_created_at.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var reply *model.Post
@@ -1253,7 +1253,7 @@ func (a *App) importMultiplePostLines(lines []LineImportWorkerData, dryRun bool)
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.Post.CreateAt)
 		if nErr != nil {
-			return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return line.LineNumber, model.NewAppError("importMultiplePostLines", "app.post.get_posts_created_at.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var post *model.Post
@@ -1549,7 +1549,7 @@ func (a *App) importMultipleDirectPostLines(lines []LineImportWorkerData, dryRun
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store.Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
 		if nErr != nil {
-			return line.LineNumber, model.NewAppError("BulkImport", "app.post.get_posts_created_att.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			return line.LineNumber, model.NewAppError("BulkImport", "app.post.get_posts_created_at.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
 		var post *model.Post

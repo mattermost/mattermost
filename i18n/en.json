@@ -4499,7 +4499,7 @@
     "translation": "Unable to get the posts batch for indexing."
   },
   {
-    "id": "app.post.get_posts_created_att.app_error",
+    "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
   },
   {
