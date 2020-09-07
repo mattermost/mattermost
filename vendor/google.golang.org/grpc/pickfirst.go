@@ -24,7 +24,6 @@ import (
 
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/connectivity"
-	"google.golang.org/grpc/grpclog"
 )
 
 // PickFirstBalancerName is the name of the pick_first balancer.
@@ -58,8 +57,8 @@ func (b *pickfirstBalancer) ResolverError(err error) {
 			Picker: &picker{err: fmt.Errorf("name resolver error: %v", err)},
 		})
 	}
-	if grpclog.V(2) {
-		grpclog.Infof("pickfirstBalancer: ResolverError called with error %v", err)
+	if logger.V(2) {
+		logger.Infof("pickfirstBalancer: ResolverError called with error %v", err)
 	}
 }
 
@@ -72,8 +71,8 @@ func (b *pickfirstBalancer) UpdateClientConnState(cs balancer.ClientConnState) e
 		var err error
 		b.sc, err = b.cc.NewSubConn(cs.ResolverState.Addresses, balancer.NewSubConnOptions{})
 		if err != nil {
-			if grpclog.V(2) {
-				grpclog.Errorf("pickfirstBalancer: failed to NewSubConn: %v", err)
+			if logger.V(2) {
+				logger.Errorf("pickfirstBalancer: failed to NewSubConn: %v", err)
 			}
 			b.state = connectivity.TransientFailure
 			b.cc.UpdateState(balancer.State{ConnectivityState: connectivity.TransientFailure,
@@ -92,12 +91,12 @@ func (b *pickfirstBalancer) UpdateClientConnState(cs balancer.ClientConnState) e
 }
 
 func (b *pickfirstBalancer) UpdateSubConnState(sc balancer.SubConn, s balancer.SubConnState) {
-	if grpclog.V(2) {
-		grpclog.Infof("pickfirstBalancer: UpdateSubConnState: %p, %v", sc, s)
+	if logger.V(2) {
+		logger.Infof("pickfirstBalancer: UpdateSubConnState: %p, %v", sc, s)
 	}
 	if b.sc != sc {
-		if grpclog.V(2) {
-			grpclog.Infof("pickfirstBalancer: ignored state change because sc is not recognized")
+		if logger.V(2) {
+			logger.Infof("pickfirstBalancer: ignored state change because sc is not recognized")
 		}
 		return
 	}

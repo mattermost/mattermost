@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,7 +17,7 @@ const defaultBufferSize = 30
 const defaultRetryAfter = time.Second * 60
 const defaultTimeout = time.Second * 30
 
-// Transport is used by the `Client` to deliver events to remote server.
+// Transport is used by the Client to deliver events to remote server.
 type Transport interface {
 	Flush(timeout time.Duration) bool
 	Configure(options ClientOptions)
@@ -70,8 +72,10 @@ func getRequestBodyFromEvent(event *Event) []byte {
 		return body
 	}
 
-	partialMarshallMessage := "Original event couldn't be marshalled. Succeeded by stripping the data " +
-		"that uses interface{} type. Please verify that the data you attach to the scope is serializable."
+	partialMarshallMessage := fmt.Sprintf("Could not encode original event as JSON. "+
+		"Succeeded by removing Breadcrumbs, Contexts and Extra. "+
+		"Please verify the data you attach to the scope. "+
+		"Error: %s", err)
 	// Try to serialize the event, with all the contextual data that allows for interface{} stripped.
 	event.Breadcrumbs = nil
 	event.Contexts = nil
@@ -92,6 +96,40 @@ func getRequestBodyFromEvent(event *Event) []byte {
 	return nil
 }
 
+func getEnvelopeFromBody(body []byte, now time.Time) *bytes.Buffer {
+	var b bytes.Buffer
+	fmt.Fprintf(&b, `{"sent_at":"%s"}`, now.UTC().Format(time.RFC3339Nano))
+	fmt.Fprint(&b, "\n", `{"type":"transaction"}`, "\n")
+	b.Write(body)
+	return &b
+}
+
+func getRequestFromEvent(event *Event, dsn *Dsn) (*http.Request, error) {
+	body := getRequestBodyFromEvent(event)
+	if body == nil {
+		return nil, errors.New("event could not be marshalled")
+	}
+
+	if event.Type == transactionType {
+		env := getEnvelopeFromBody(body, time.Now())
+		request, _ := http.NewRequest(
+			http.MethodPost,
+			dsn.EnvelopeAPIURL().String(),
+			env,
+		)
+
+		return request, nil
+	}
+
+	request, _ := http.NewRequest(
+		http.MethodPost,
+		dsn.StoreAPIURL().String(),
+		bytes.NewBuffer(body),
+	)
+
+	return request, nil
+}
+
 // ================================
 // HTTPTransport
 // ================================
@@ -103,7 +141,7 @@ type batch struct {
 	done    chan struct{} // closed to signal completion of all items
 }
 
-// HTTPTransport is a default implementation of `Transport` interface used by `Client`.
+// HTTPTransport is a default implementation of Transport interface used by Client.
 type HTTPTransport struct {
 	dsn       *Dsn
 	client    *http.Client
@@ -124,7 +162,7 @@ type HTTPTransport struct {
 	disabledUntil time.Time
 }
 
-// NewHTTPTransport returns a new pre-configured instance of HTTPTransport
+// NewHTTPTransport returns a new pre-configured instance of HTTPTransport.
 func NewHTTPTransport() *HTTPTransport {
 	transport := HTTPTransport{
 		BufferSize: defaultBufferSize,
@@ -133,7 +171,7 @@ func NewHTTPTransport() *HTTPTransport {
 	return &transport
 }
 
-// Configure is called by the `Client` itself, providing it it's own `ClientOptions`.
+// Configure is called by the Client itself, providing it it's own ClientOptions.
 func (t *HTTPTransport) Configure(options ClientOptions) {
 	dsn, err := NewDsn(options.Dsn)
 	if err != nil {
@@ -175,7 +213,7 @@ func (t *HTTPTransport) Configure(options ClientOptions) {
 	})
 }
 
-// SendEvent assembles a new packet out of `Event` and sends it to remote server.
+// SendEvent assembles a new packet out of Event and sends it to remote server.
 func (t *HTTPTransport) SendEvent(event *Event) {
 	if t.dsn == nil {
 		return
@@ -187,16 +225,10 @@ func (t *HTTPTransport) SendEvent(event *Event) {
 		return
 	}
 
-	body := getRequestBodyFromEvent(event)
-	if body == nil {
+	request, err := getRequestFromEvent(event, t.dsn)
+	if err != nil {
 		return
 	}
-
-	request, _ := http.NewRequest(
-		http.MethodPost,
-		t.dsn.StoreAPIURL().String(),
-		bytes.NewBuffer(body),
-	)
 
 	for headerKey, headerValue := range t.dsn.RequestHeaders() {
 		request.Header.Set(headerKey, headerValue)
@@ -332,7 +364,7 @@ func (t *HTTPTransport) worker() {
 // HTTPSyncTransport
 // ================================
 
-// HTTPSyncTransport is an implementation of `Transport` interface which blocks after each captured event.
+// HTTPSyncTransport is an implementation of Transport interface which blocks after each captured event.
 type HTTPSyncTransport struct {
 	dsn           *Dsn
 	client        *http.Client
@@ -343,7 +375,7 @@ type HTTPSyncTransport struct {
 	Timeout time.Duration
 }
 
-// NewHTTPSyncTransport returns a new pre-configured instance of HTTPSyncTransport
+// NewHTTPSyncTransport returns a new pre-configured instance of HTTPSyncTransport.
 func NewHTTPSyncTransport() *HTTPSyncTransport {
 	transport := HTTPSyncTransport{
 		Timeout: defaultTimeout,
@@ -352,7 +384,7 @@ func NewHTTPSyncTransport() *HTTPSyncTransport {
 	return &transport
 }
 
-// Configure is called by the `Client` itself, providing it it's own `ClientOptions`.
+// Configure is called by the Client itself, providing it it's own ClientOptions.
 func (t *HTTPSyncTransport) Configure(options ClientOptions) {
 	dsn, err := NewDsn(options.Dsn)
 	if err != nil {
@@ -380,22 +412,16 @@ func (t *HTTPSyncTransport) Configure(options ClientOptions) {
 	}
 }
 
-// SendEvent assembles a new packet out of `Event` and sends it to remote server.
+// SendEvent assembles a new packet out of Event and sends it to remote server.
 func (t *HTTPSyncTransport) SendEvent(event *Event) {
 	if t.dsn == nil || time.Now().Before(t.disabledUntil) {
 		return
 	}
 
-	body := getRequestBodyFromEvent(event)
-	if body == nil {
+	request, err := getRequestFromEvent(event, t.dsn)
+	if err != nil {
 		return
 	}
-
-	request, _ := http.NewRequest(
-		http.MethodPost,
-		t.dsn.StoreAPIURL().String(),
-		bytes.NewBuffer(body),
-	)
 
 	for headerKey, headerValue := range t.dsn.RequestHeaders() {
 		request.Header.Set(headerKey, headerValue)
@@ -430,7 +456,7 @@ func (t *HTTPSyncTransport) Flush(_ time.Duration) bool {
 // noopTransport
 // ================================
 
-// noopTransport is an implementation of `Transport` interface which drops all the events.
+// noopTransport is an implementation of Transport interface which drops all the events.
 // Only used internally when an empty DSN is provided, which effectively disables the SDK.
 type noopTransport struct{}
 

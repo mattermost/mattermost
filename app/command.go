@@ -360,7 +360,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	teamChan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(args.TeamId)
-		teamChan <- store.StoreResult{Data: team, Err: err}
+		teamChan <- store.StoreResult{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
@@ -377,8 +377,14 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	}
 
 	tr := <-teamChan
-	if tr.Err != nil {
-		return nil, nil, tr.Err
+	if tr.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(tr.NErr, &nfErr):
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	team := tr.Data.(*model.Team)
 
