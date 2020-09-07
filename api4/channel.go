@@ -1730,7 +1730,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	channelMemberCounts, err := c.App.Srv().Store.Channel().GetMemberCountsByGroup(c.Params.ChannelId, includeTimezones)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

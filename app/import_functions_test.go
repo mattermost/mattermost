@@ -604,8 +604,8 @@ func TestImportImportChannel(t *testing.T) {
 	require.Nil(t, err, "Failed to get team from database.")
 
 	// Check how many channels are in the database.
-	channelCount, err := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	require.Nil(t, err, "Failed to get team count.")
+	channelCount, nErr := th.App.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nil(t, nErr, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := ChannelImportData{
@@ -3044,7 +3044,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Id,
 	}
 	channel, err = th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.Equal(t, err.Id, store.CHANNEL_EXISTS_ERROR)
+	require.IsType(t, &store.ErrNotFound{}, err)
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.

@@ -4,8 +4,11 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -71,8 +74,9 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		}
 	}
 
-	channel, err := a.GetChannel(channelId)
-	if err != nil && err.StatusCode == http.StatusNotFound {
+	channel, appErr := a.GetChannel(channelId)
+	var nfErr *store.ErrNotFound
+	if appErr != nil && errors.As(appErr, &nfErr) {
 		return false
 	}
 
