@@ -60,7 +60,7 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.Config().LogSettings.EnableFile {
-		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*5)
+		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), mlog.DefFlushTimeout)
 		defer timeoutCancel()
 		mlog.Flush(timeoutCtx)
 

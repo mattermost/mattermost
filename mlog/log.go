@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"sync/atomic"
+	"time"
 
 	"github.com/mattermost/logr"
 	"go.uber.org/zap"
@@ -26,6 +27,10 @@ const (
 	LevelWarn = "warn"
 	// Errors are messages about things we know are problems
 	LevelError = "error"
+
+	// DefFlushTimeout is the default amount of time mlog.Flush will wait
+	// before timing out.
+	DefFlushTimeout = time.Second * 5
 )
 
 var (
