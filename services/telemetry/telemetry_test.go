@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/telemetry/mocks"
@@ -33,17 +36,26 @@ func (fcs *FakeConfigService) AddConfigListener(f func(old, current *model.Confi
 func (fcs *FakeConfigService) RemoveConfigListener(key string)                             {}
 func (fcs *FakeConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey                     { return nil }
 
-func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T)) {
+func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, func(t *testing.T), func()) {
 	serverIfaceMock := &mocks.ServerIface{}
 
 	configService := &FakeConfigService{cfg}
 	serverIfaceMock.On("Config").Return(cfg)
 	serverIfaceMock.On("IsLeader").Return(true)
-	serverIfaceMock.On("GetPluginsEnvironment").Return(nil, nil)
+
+	pluginDir, _ := ioutil.TempDir("", "")
+	webappPluginDir, _ := ioutil.TempDir("", "")
+	cleanUp := func() {
+		os.RemoveAll(pluginDir)
+		os.RemoveAll(webappPluginDir)
+	}
+	pluginsAPIMock := &plugintest.API{}
+	pluginEnv, _ := plugin.NewEnvironment(func(m *model.Manifest) plugin.API { return pluginsAPIMock }, pluginDir, webappPluginDir, mlog.NewLogger(&mlog.LoggerConfiguration{}), nil)
+	serverIfaceMock.On("GetPluginsEnvironment").Return(pluginEnv, nil)
+
 	serverIfaceMock.On("License").Return(model.NewTestLicense(), nil)
 	serverIfaceMock.On("GetRoleByName", "system_admin").Return(&model.Role{Permissions: []string{"sa-test1", "sa-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", "system_user").Return(&model.Role{Permissions: []string{"su-test1", "su-test2"}}, nil)
-	// serverIfaceMock.On("GetRoleByName", "system_guest").Return(&model.Role{Permissions: []string{"sg-test1", "sg-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", "team_admin").Return(&model.Role{Permissions: []string{"ta-test1", "ta-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", "team_user").Return(&model.Role{Permissions: []string{"tu-test1", "tu-test2"}}, nil)
 	serverIfaceMock.On("GetRoleByName", "team_guest").Return(&model.Role{Permissions: []string{"tg-test1", "tg-test2"}}, nil)
@@ -128,7 +140,8 @@ func initializeMocks(cfg *model.Config) (*mocks.ServerIface, *storeMocks.Store, 
 		serverIfaceMock.AssertExpectations(t)
 		storeMock.AssertExpectations(t)
 		systemStore.AssertExpectations(t)
-	}
+		pluginsAPIMock.AssertExpectations(t)
+	}, cleanUp
 }
 
 func TestPluginSetting(t *testing.T) {
@@ -240,13 +253,14 @@ func TestRudderTelemetry(t *testing.T) {
 
 	cfg := &model.Config{}
 	cfg.SetDefaults()
-	serverIfaceMock, storeMock, deferredAssertions := initializeMocks(cfg)
+	serverIfaceMock, storeMock, deferredAssertions, cleanUp := initializeMocks(cfg)
+	defer cleanUp()
 	defer deferredAssertions(t)
 
 	telemetryService := New(serverIfaceMock, storeMock, searchengine.NewBroker(cfg, nil), mlog.NewLogger(&mlog.LoggerConfiguration{}))
 	telemetryService.TelemetryID = telemetryID
 	telemetryService.rudderClient = nil
-	telemetryService.initRudder(server.URL)
+	telemetryService.initRudder(server.URL, "")
 
 	assertPayload := func(t *testing.T, actual payload, event string, properties map[string]interface{}) {
 		t.Helper()
