@@ -75,6 +75,10 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 		return nil
 	}
 
+	if properties == nil {
+		properties = map[string]interface{}{}
+	}
+
 	event = t.telemetryShortName + "_" + event
 	properties["PluginID"] = t.pluginID
 	properties["PluginVersion"] = t.pluginVersion
@@ -94,6 +98,10 @@ func (t *tracker) TrackEvent(event string, properties map[string]interface{}) er
 }
 
 func (t *tracker) TrackUserEvent(event, userID string, properties map[string]interface{}) error {
+	if properties == nil {
+		properties = map[string]interface{}{}
+	}
+
 	properties["UserActualID"] = userID
 	return t.TrackEvent(event, properties)
 }
