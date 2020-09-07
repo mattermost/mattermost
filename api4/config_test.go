@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -146,7 +145,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), fmt.Sprintf(`{"ServiceSettings":{"SiteURL":"%s"}}`, *cfg.ServiceSettings.SiteURL))
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), `{"ServiceSettings":{"SiteURL":""}}`)
 			require.Nil(t, appErr)
 		})
 
