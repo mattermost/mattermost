@@ -4,6 +4,7 @@
 package telemetry
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -145,10 +146,16 @@ func (ts *TelemetryService) sendDailyTelemetry(override bool) {
 
 func (ts *TelemetryService) sendTelemetry(event string, properties map[string]interface{}) {
 	if ts.rudderClient != nil {
+		var context *rudder.Context
+		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+			context = &rudder.Context{Traits: map[string]interface{}{"installationId": installationId}}
+		}
 		ts.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
 			UserId:     ts.TelemetryID,
 			Properties: properties,
+			Context:    context,
 		})
 	}
 }
