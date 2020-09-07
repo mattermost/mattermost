@@ -48,10 +48,6 @@
         "translation": "九月"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "無法轉換匯出至 XML"
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "要求中的 'certificate' 欄位沒有檔案"
     },
@@ -1439,7 +1435,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": "無法刪除已刪除頻道的訊息。"
     },
     {
         "id": "api.post.disabled_all",
@@ -1479,7 +1475,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "無法更新已刪除頻道的訊息。"
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1515,7 +1511,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "無法更新已刪除頻道的訊息。"
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1571,7 +1567,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": "受限的系統管理員無法執行此動作。"
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -2534,10 +2530,6 @@
         "translation": "%s 已更新頻道用途為：%s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "找不到叢集 API 端點。"
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "寫入匯出資料時發生錯誤"
     },
@@ -3218,10 +3210,6 @@
         "translation": "此團隊已達最大使用者數量上限。請聯絡系統管理員調大數量限制。"
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "無法用空的電子郵件地址完成 SAML 登入。"
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "個人存取 Token 在此伺服器被停用。詳情請洽管理員。"
     },
@@ -3376,10 +3364,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "索引訊息時失敗"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "無法從資料庫取得最老的訊息。"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3682,24 +3666,12 @@
         "translation": "簽名互動對話欄的觸發 ID 時發生錯誤。"
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "無法解析訊息匯出工作 BatchSize。"
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "由於該工作不在可取消狀態中，無法要求取消工作。"
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "設定工作狀態為錯誤時失敗"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "AD/LDAP 同步工作逾時。"
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3900,10 +3872,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "無效的使用者 ID"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "連接伺服器時遇到錯誤"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5158,46 +5126,6 @@
         "translation": "無法取得指令"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "無法刪除使用者的附件檔案"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "無法添加檔案訊息到訊息上"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "無法刪除訊息的檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "無法取得檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "無法根據路徑取得檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "無法取得訊息的檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "無法取得使用者的檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "無法永久刪除檔案訊息"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "永久批次刪除檔案資訊時遇到錯誤"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "無法儲存檔案訊息"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "群組同步資料已被刪除"
     },
@@ -5214,46 +5142,6 @@
         "translation": "群組成員已存在"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "無法刪除工作"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "無法取得工作"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "無法取得工作"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "無法根據狀態與類型取得工作數量"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "無法根據狀態與類型取得最新工作"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "無法儲存工作"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "無法更新工作"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "無法刪除模組鍵值"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "無法取得模組鍵值"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "無法儲存或更新模組鍵值"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "無法取得訊息計數"
     },
@@ -5264,14 +5152,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "無法取得使用者訊息計數"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "無法刪除訊息"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "無法取得訊息"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5318,92 +5198,12 @@
         "translation": "無法覆蓋訊息"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "無法刪除訊息"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "無法刪除使用者的註解"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "永久批次刪除訊息時遇到錯誤"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "無法根據頻道刪除訊息"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "無法選擇該使用者的訊息以刪除"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "無法選擇該使用者的訊息以刪除 (數量太多)，請重新執行"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "無法儲存訊息"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "無法更新已存在的訊息"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "此伺服器已停用搜尋功能。請向系統管理員聯繫。"
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "無法更新訊息"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "嘗試取得狀態時遇到錯誤"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "該狀態沒有對應的資料存在"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "無法計算活躍使用者的數量"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "重置所有狀態時遇到錯誤"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "儲存狀態時遇到錯誤"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "更新狀態時遇到錯誤"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "無法更新使用者的最後活動時間"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "尋找系統參數時遇到錯誤"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "找不到系統變數"
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "無法永久刪除系統表單當中的項目"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "儲存系統參數時遇到錯誤"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "更新系統參數時遇到錯誤"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5666,20 +5466,8 @@
         "translation": "有帳號已經使用這個電子郵件。"
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "該帳號未使用 AD/LDAP 認證。請用電子郵件地址與密碼登入。"
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "該帳號未使用 SAML 認證。請用電子郵件地址與密碼登入。"
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "必須為已存在的使用者執行更新"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "此團隊已達最大使用者數量上限。請聯絡系統管理員調大數量限制。"
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5688,14 +5476,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "有帳號已經使用這個使用者名稱。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6118,10 +5898,6 @@
         "translation": "無法計算私人團隊數量"
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "認可資料庫交易時失敗"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "無法取得訊息回應數量"
     },
@@ -6138,28 +5914,12 @@
         "translation": "無法取得直接訊息"
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "無法表列模組鍵值"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "在用沒有改變的值執行 KVCompareAndSet 後，在 MySQL 找到不只一筆資料列。"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "在用沒有改變的值執行 KVCompareAndSet 後，向 MySQL 查詢現存的資料列失敗。"
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "無法移除使用者 ID 為 \"{{.UserId}}\" 的群組成員"
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "建立查詢時失敗"
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "無法根據設定取得檔案訊息"
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7996,5 +7756,177 @@
     {
         "id": "app.role.get.app_error",
         "translation": "無法取得角色"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "無法更新訊息"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "無法更新已存在的訊息"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "無法儲存訊息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "無法選擇該使用者的訊息以刪除"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "無法根據頻道刪除訊息"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "無法取得訊息"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "無法刪除訊息"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "該狀態沒有對應的資料存在"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "嘗試取得狀態時遇到錯誤"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "無法儲存或更新模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "無法表列模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "無法取得模組鍵值"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "無法刪除模組鍵值"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "儲存系統參數時遇到錯誤"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "儲存系統參數時遇到錯誤"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "無法永久刪除系統表單當中的項目"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "找不到系統變數"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "尋找系統參數時遇到錯誤"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "無法用空的電子郵件地址完成 SAML 登入。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "該帳號未使用 SAML 認證。請用電子郵件地址與密碼登入。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "有帳號已經使用這個使用者名稱，請聯繫系統管理員。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "該帳號未使用 AD/LDAP 認證。請用電子郵件地址與密碼登入。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP 同步工作逾時。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "無法解析訊息匯出工作 ExportFromTimestamp。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "無法解析訊息匯出工作 BatchSize。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "連接伺服器時遇到錯誤"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "找不到叢集 API 端點。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " 檔案已附加。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "無法轉換匯出至 XML"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "無法更新工作"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "無法儲存工作"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "無法根據狀態與類型取得最新工作"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "無法根據狀態與類型取得工作數量"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "無法取得工作"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "無法取得工作"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "永久批次刪除檔案資訊時遇到錯誤"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "無法儲存檔案訊息"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "無法刪除使用者的附件檔案"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "無法根據設定取得檔案訊息"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "無法取得訊息的檔案訊息"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "無法取得檔案訊息"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "沒有啟用永久刪除團隊功能。請聯絡系統管理員。"
     }
 ]
