@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync/atomic"
 
 	"github.com/mattermost/logr"
 	"go.uber.org/zap"
@@ -33,7 +34,7 @@ var (
 	// and holds file handles until process exit. Currently unit test create
 	// many server instances, and thus many Zap log files.
 	// This flag will be removed when Zap is permanently replaced.
-	disableZap bool
+	disableZap int32
 )
 
 // Type and function aliases from zap to limit the libraries scope into MM code
@@ -109,7 +110,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableFile {
-		if disableZap {
+		if atomic.LoadInt32(&disableZap) != 0 {
 			t := &LogTarget{
 				Type:         "file",
 				Format:       "json",
@@ -309,11 +310,11 @@ func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
 //
 // This method will be removed when Zap is permanently replaced.
 func DisableZap() {
-	disableZap = true
+	atomic.StoreInt32(&disableZap, 1)
 }
 
 // EnableZap re-enables Zap such that any Logger instances created after this
 // call will allow Zap targets.
 func EnableZap() {
-	disableZap = false
+	atomic.StoreInt32(&disableZap, 0)
 }

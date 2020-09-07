@@ -6,6 +6,7 @@ package mlog
 import (
 	"context"
 	"log"
+	"sync/atomic"
 
 	"github.com/mattermost/logr"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func (lw logWriterFunc) Write(p []byte) (int, error) {
 }
 
 func RedirectStdLog(logger *Logger) {
-	if !disableZap {
+	if atomic.LoadInt32(&disableZap) == 0 {
 		zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")).WithOptions(zap.AddCallerSkip(-2)), zapcore.ErrorLevel)
 		return
 	}
