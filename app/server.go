@@ -189,13 +189,6 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
-	}
-
-	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
-
 	if s.configStore == nil {
 		configStore, err := config.NewFileStore("config.json", true)
 		if err != nil {
@@ -204,6 +197,13 @@ func NewServer(options ...Option) (*Server, error) {
 
 		s.configStore = configStore
 	}
+
+	if err := s.initLogging(); err != nil {
+		mlog.Error(err.Error())
+	}
+
+	// This is called after initLogging() to avoid a race condition.
+	mlog.Info("Server is initializing...")
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
