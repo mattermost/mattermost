@@ -1240,8 +1240,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, ms, 2)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
 	require.Nil(t, err)
@@ -2730,8 +2730,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, result, 1)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
@@ -3030,8 +3030,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 
 	require.Equal(t, 10, int(ms2[0].MsgCount), "subtraction failed")
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 }
 
 func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {

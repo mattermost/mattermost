@@ -968,9 +968,9 @@ func (s *Server) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedTeamCount, err := s.Store.Team().GroupSyncedTeamCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedTeamCount, nErr := s.Store.Team().GroupSyncedTeamCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupSyncedChannelCount, err := s.Store.Channel().GroupSyncedChannelCount()
