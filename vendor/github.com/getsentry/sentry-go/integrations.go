@@ -70,27 +70,49 @@ func (ei *environmentIntegration) SetupOnce(client *Client) {
 }
 
 func (ei *environmentIntegration) processor(event *Event, hint *EventHint) *Event {
+	// Initialize maps as necessary.
 	if event.Contexts == nil {
 		event.Contexts = make(map[string]interface{})
 	}
-
-	event.Contexts["device"] = map[string]interface{}{
-		"arch":    runtime.GOARCH,
-		"num_cpu": runtime.NumCPU(),
+	for _, name := range []string{"device", "os", "runtime"} {
+		if event.Contexts[name] == nil {
+			event.Contexts[name] = make(map[string]interface{})
+		}
 	}
 
-	event.Contexts["os"] = map[string]interface{}{
-		"name": runtime.GOOS,
+	// Set contextual information preserving existing data. For each context, if
+	// the existing value is not of type map[string]interface{}, then no
+	// additional information is added.
+	if deviceContext, ok := event.Contexts["device"].(map[string]interface{}); ok {
+		if _, ok := deviceContext["arch"]; !ok {
+			deviceContext["arch"] = runtime.GOARCH
+		}
+		if _, ok := deviceContext["num_cpu"]; !ok {
+			deviceContext["num_cpu"] = runtime.NumCPU()
+		}
 	}
-
-	event.Contexts["runtime"] = map[string]interface{}{
-		"name":           "go",
-		"version":        runtime.Version(),
-		"go_numroutines": runtime.NumGoroutine(),
-		"go_maxprocs":    runtime.GOMAXPROCS(0),
-		"go_numcgocalls": runtime.NumCgoCall(),
+	if osContext, ok := event.Contexts["os"].(map[string]interface{}); ok {
+		if _, ok := osContext["name"]; !ok {
+			osContext["name"] = runtime.GOOS
+		}
 	}
-
+	if runtimeContext, ok := event.Contexts["runtime"].(map[string]interface{}); ok {
+		if _, ok := runtimeContext["name"]; !ok {
+			runtimeContext["name"] = "go"
+		}
+		if _, ok := runtimeContext["version"]; !ok {
+			runtimeContext["version"] = runtime.Version()
+		}
+		if _, ok := runtimeContext["go_numroutines"]; !ok {
+			runtimeContext["go_numroutines"] = runtime.NumGoroutine()
+		}
+		if _, ok := runtimeContext["go_maxprocs"]; !ok {
+			runtimeContext["go_maxprocs"] = runtime.GOMAXPROCS(0)
+		}
+		if _, ok := runtimeContext["go_numcgocalls"]; !ok {
+			runtimeContext["go_numcgocalls"] = runtime.NumCgoCall()
+		}
+	}
 	return event
 }
 

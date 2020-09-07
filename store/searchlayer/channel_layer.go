@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -164,8 +166,9 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("searchAutocompleteChannels", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+
 		for _, ch := range channels {
 			channelList = append(channelList, ch)
 		}
