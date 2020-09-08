@@ -14,12 +14,13 @@ import (
 )
 
 func TestStore(t *testing.T) {
-	t.Run("no license", func(t *testing.T) {
+	t.Run("no license, empty config", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		store := pluginapi.NewClient(api).Store
 
 		api.On("GetLicense").Return(nil)
+		api.On("GetUnsanitizedConfig").Return(&model.Config{})
 		db, err := store.GetMasterDB()
 		require.Error(t, err)
 		require.Nil(t, db)

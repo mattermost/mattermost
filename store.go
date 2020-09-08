@@ -92,11 +92,10 @@ func (s *StoreService) initialize() error {
 		return nil
 	}
 
-	if s.api.GetLicense() == nil {
+	config := s.api.GetUnsanitizedConfig()
+	if !IsEnterpriseLicensedOrDevelopment(config, s.api.GetLicense()) {
 		return ErrNoLicense
 	}
-
-	config := s.api.GetUnsanitizedConfig()
 
 	// Set up master db
 	db, err := setupConnection(*config.SqlSettings.DataSource, config.SqlSettings)
