@@ -112,10 +112,16 @@ func (s *Server) sendDailyDiagnostics(override bool) {
 
 func (s *Server) SendDiagnostic(event string, properties map[string]interface{}) {
 	if s.rudderClient != nil {
+		var context *rudder.Context
+		// if we are part of a cloud installation, add it's ID to the tracked event's context
+		if installationId := os.Getenv("MM_CLOUD_INSTALLATION_ID"); installationId != "" {
+			context = &rudder.Context{Traits: map[string]interface{}{"installationId": installationId}}
+		}
 		s.rudderClient.Enqueue(rudder.Track{
 			Event:      event,
 			UserId:     s.diagnosticId,
 			Properties: properties,
+			Context:    context,
 		})
 	}
 }
