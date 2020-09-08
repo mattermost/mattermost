@@ -28,9 +28,9 @@ const (
 	// Errors are messages about things we know are problems
 	LevelError = "error"
 
-	// DefFlushTimeout is the default amount of time mlog.Flush will wait
+	// DefaultFlushTimeout is the default amount of time mlog.Flush will wait
 	// before timing out.
-	DefFlushTimeout = time.Second * 5
+	DefaultFlushTimeout = time.Second * 5
 )
 
 var (
