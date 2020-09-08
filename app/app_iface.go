@@ -899,7 +899,6 @@ type AppIface interface {
 	SetProfileImageFromMultiPartFile(userId string, file multipart.File) *model.AppError
 	SetRequestId(s string)
 	SetSamlIdpCertificateFromMetadata(data []byte) *model.AppError
-	SetSearchEngine(se *searchengine.Broker)
 	SetServer(srv *Server)
 	SetSession(s *model.Session)
 	SetStatusAwayIfNeeded(userId string, manual bool)

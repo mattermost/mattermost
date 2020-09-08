@@ -110,7 +110,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	if searchEngine != nil {
-		th.App.SetSearchEngine(searchEngine)
+		s.SetSearchEngine(searchEngine)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

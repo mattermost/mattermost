@@ -1466,3 +1466,7 @@ func (s *Server) initJobs() {
 		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
 }
+
+func (s *Server) SetSearchEngine(se *searchengine.Broker) {
+	s.SearchEngine = se
+}
