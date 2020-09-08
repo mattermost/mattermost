@@ -4,13 +4,11 @@
 package app
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (a *App) MakePermissionError(permissions []*model.Permission) *model.AppError {
@@ -74,8 +72,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	}
 
 	channel, appErr := a.GetChannel(channelId)
-	var nfErr *store.ErrNotFound
-	if appErr != nil && errors.As(appErr, &nfErr) {
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
 

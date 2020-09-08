@@ -2266,7 +2266,13 @@ func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError 
 
 func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError {
 	if _, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIds, userId); err != nil {
-		return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
@@ -2435,7 +2441,13 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 	}
 	times, err := a.Srv().Store.Channel().UpdateLastViewedAt(channelIds, userId)
 	if err != nil {
-		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusBadRequest)
+		default:
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {

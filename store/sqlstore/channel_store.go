@@ -2081,8 +2081,12 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	_, err := s.GetMaster().Select(&lastPostAtTimes, query, props)
-	if err != nil || len(lastPostAtTimes) == 0 {
+	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with userId=%s and channelId in %v", userId, channelIds)
+	}
+
+	if len(lastPostAtTimes) == 0 {
+		return nil, store.NewErrInvalidInput("Channel", "Id", fmt.Sprintf("%v", channelIds))
 	}
 
 	times := map[string]int64{}
