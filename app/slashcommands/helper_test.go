@@ -66,8 +66,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	options = append(options, app.StoreOverride(dbStore))
 	options = append(options, app.SetLogger(mlog.NewTestingLogger(tb, buffer)))
 
-	mlog.DisableZap()
-
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)

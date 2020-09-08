@@ -93,8 +93,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(dbStore))
 
-	mlog.DisableZap()
-
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
