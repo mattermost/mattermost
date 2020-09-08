@@ -27,6 +27,11 @@ import (
 type App struct {
 	srv *Server
 
+	// XXX: This is required because removing this needs BleveEngine
+	// to be registered in (h *MainHelper) setupStore, but that creates
+	// a cyclic dependency as bleve tests themselves import testlib.
+	searchEngine *searchengine.Broker
+
 	t              goi18n.TranslateFunc
 	session        model.Session
 	requestId      string
@@ -455,7 +460,7 @@ func (a *App) DataRetention() einterfaces.DataRetentionInterface {
 	return a.srv.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
-	return a.srv.SearchEngine
+	return a.searchEngine
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.srv.Ldap
