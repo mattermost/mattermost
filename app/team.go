@@ -365,8 +365,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	}
 
 	if member == nil {
-		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
 	}
 
 	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamId)
