@@ -99,7 +99,7 @@ var WarnMetricsTable = map[string]WarnMetric{
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
 		Limit:     500,
 		IsBotOnly: false,
-		IsRunOnce: false,
+		IsRunOnce: true,
 	},
 }
 
