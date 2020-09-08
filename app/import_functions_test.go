@@ -3043,8 +3043,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	channel, err = th.App.createGroupChannel(userIds, th.BasicUser.Id)
-	require.IsType(t, &store.ErrNotFound{}, err)
+	channel, appErr := th.App.createGroupChannel(userIds, th.BasicUser.Id)
+	require.Equal(t, appErr.Id, store.CHANNEL_EXISTS_ERROR)
 	require.Equal(t, channel.Header, *data.Header)
 
 	// Import a channel with some favorites.
