@@ -184,7 +184,6 @@ func NewServer(options ...Option) (*Server, error) {
 		hashSeed:            maphash.MakeSeed(),
 	}
 
-	mlog.Info("Server is initializing...")
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -203,6 +202,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := s.initLogging(); err != nil {
 		mlog.Error(err.Error())
 	}
+
+	// This is called after initLogging() to avoid a race condition.
+	mlog.Info("Server is initializing...")
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
