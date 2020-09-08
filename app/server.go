@@ -1175,7 +1175,7 @@ func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
 	doCheckNumberOfActiveUsersWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
 		doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	}, time.Hour*24)
+	}, time.Hour*24*7)
 }
 
 func doSecurity(s *Server) {
@@ -1230,21 +1230,22 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
-			mlog.Debug("This metric warning has already been acked or should only run once")
+		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE)) {
+			mlog.Debug("This metric warning has already been acked or it is bot only and ran once")
 			continue
 		}
 
-		if nErr = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); nErr != nil {
-			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(nErr))
-			continue
-		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
-
 		if !warnMetric.IsBotOnly {
+			// Banner and bot metrics - send websocket event
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
+
+			// Bot and banner metrics, do not send the bot message again
+			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
+				continue
+			}
 		}
 
 		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
@@ -1253,6 +1254,8 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 
 		if warnMetric.IsRunOnce {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
+		} else {
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
 		}
 	}
 }

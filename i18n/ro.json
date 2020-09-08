@@ -48,10 +48,6 @@
         "translation": "Septembrie"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Imposibil de convertit exportul în XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Nici un fișier sub 'certificat' în cerere."
     },
@@ -1357,7 +1353,7 @@
     },
     {
         "id": "api.oauth.invalid_state_token.app_error",
-        "translation": "Starea jetonului invalidă"
+        "translation": "Starea jetonului invalidă."
     },
     {
         "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -1365,15 +1361,15 @@
     },
     {
         "id": "api.oauth.revoke_access_token.del_session.app_error",
-        "translation": "Eroare la ștergerea sesiune din DB"
+        "translation": "Eroare la ștergerea sesiune din DB."
     },
     {
         "id": "api.oauth.revoke_access_token.del_token.app_error",
-        "translation": "Eroare la ștergerea simbol acces la DB"
+        "translation": "Eroare la ștergerea simbol acces la DB."
     },
     {
         "id": "api.oauth.revoke_access_token.get.app_error",
-        "translation": "Eroare la obţinerea accesului token din DB înainte de ştergere"
+        "translation": "Eroare la obţinerea accesului token din DB înainte de ştergere."
     },
     {
         "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1381,11 +1377,11 @@
     },
     {
         "id": "api.oauth.singup_with_oauth.expired_link.app_error",
-        "translation": "Link-ul de înscriere a expirat"
+        "translation": "Link-ul de înscriere a expirat."
     },
     {
         "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
-        "translation": "Linkul de înscriere nu pare să fie valabil"
+        "translation": "Linkul de înscriere nu pare să fie valabil."
     },
     {
         "id": "api.outgoing_webhook.disabled.app_error",
@@ -1393,11 +1389,11 @@
     },
     {
         "id": "api.plugin.upload.array.app_error",
-        "translation": "Fişier array este gol în multipart/formular cerere"
+        "translation": "Fişier array este gol în multipart/formular cerere."
     },
     {
         "id": "api.plugin.upload.file.app_error",
-        "translation": "Imposibil de deschis fişierul în multipart/formular cerere"
+        "translation": "Imposibil de deschis fişierul în multipart/formular cerere."
     },
     {
         "id": "api.plugin.upload.no_file.app_error",
@@ -2544,10 +2540,6 @@
         "translation": "%s a actualizat scopul canalului la: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Clustering API final nu a fost găsit."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "A apărut o eroare la scrierea datelor de export."
     },
@@ -3228,10 +3220,6 @@
         "translation": "Această echipă a atins numărul maxim de conturi permise. Contactați administratorul de sistem pentru a seta o limită mai mare."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Imposibilitatea de a completa SAML login cu o adresă de e-mail gol."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Token-uri personale de acces sunt dezactivate pe acest server. Pentru detalii, contactaţi administratorul de sistem."
     },
@@ -3386,10 +3374,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Nu a reuşit să-l indexaţi post"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Mai vechi post nu poate fi regăsit din baza de date."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3692,24 +3676,12 @@
         "translation": "Identificarea declanșatorului generat pentru dialog interactiv nu a reușit."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Ar putea analiza mesaj export job BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Putea solicita anularea pentru locuri de muncă care nu este în stare revocabil."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Nu s-a putut seta starea lucrării la eroare"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3910,10 +3882,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Identitate utilizator invalidă"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Am întâmpinat o eroare în timpul conectării la server"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5168,46 +5136,6 @@
         "translation": "Nu se poate obține comanda"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Imposibil de șters atașamentele utilizatorului"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Imposibil de atașat informațiile despre fișier la postare"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Imposibil de șters informațiile despre fișier la postare"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Imposibil de obținut informații despre fișier"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Nu s-a putut obține informațiile despre fișier pe cale"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Nu s-a putut obține informațiile despre fișier pentru postare"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Nu se pot obține informațiile despre fișier pentru utilizator"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Imposibil de șters definitiv informațiile despre fișier"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Am întâmpinat o eroare de ștergere definitivă a lotului de informații despre fișiere"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Imposibil de salvat informațiile despre fișier"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "grupul sincronizat a fost deja șters"
     },
@@ -5224,46 +5152,6 @@
         "translation": "membru al grupului există deja"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Nu se poate șterge lucrarea"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Imposibilitatea de a obţine schema"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Nu pot obține slujbele"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Nu se poate obține numărarea postului după stare și tip"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Nu se poate obține cea mai nouă lucrare după statutul și tipul"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Nu este posibilă salvarea jobului"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Imposibil de actualizat jobul"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Imposibil de șters valoarea cheii plugin"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Nu am putut obţine plugin cheie value"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Nu ar putea salva sau actualiza valoarea cheii plugin"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Nu se pot obține conturile postate"
     },
@@ -5274,14 +5162,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Nu s-a putut obține conturile utilizatorilor cu postări"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Nu se poate șterge postarea"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Nu se poate obține postarea"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5328,92 +5208,12 @@
         "translation": "Nu se poate suprascrie Postarea"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Nu se poate șterge postarea"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Imposibil de șters comentariile pentru utilizator"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Am intalnit o eroare permanent a şterge lotul de mesaje"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Nu se pot șterge mesajele după canal"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Imposibil de selectat mesajele pe care trebuie să le ștergeți pentru utilizator"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Am putut selectaţi mesaje pentru a şterge pentru utilizator (prea multe), vă rugăm să re-rula"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Imposibil de salvat postarea"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Imposibil de actualizat un Post existente"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Căutarea a fost dezactivat pe acest server. Vă rugăm să contactaţi administratorul de sistem."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Imposibil de actualizat Postarea"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "A apărut o eroare la preluarea stării"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Nu există nicio intrare pentru acel statut"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Nu am putut conta pe utilizatorii activi"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "A întâlnit o eroare resetarea toate stările"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "A întâlnit o eroare la statutul de economisire"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Întâlnit o eroare la actualizarea statutul"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Imposibil de actualizat ultima activitate data şi ora de utilizator"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Am intalnit o eroare găsirea sistem properties"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Imposibil de găsit variabila de sistem."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Am putea şterge definitiv intrare tabel de sistem"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Am intalnit o eroare sistem de proprietate de economisire"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Am întâlnit o eroare la actualizarea sistemului de proprietate"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5676,20 +5476,8 @@
         "translation": "Există deja un cont cu acest e-mail."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Acest cont nu foloseşte AD/LDAP autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Acest cont nu foloseşte SAML autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Trebuie să plăteşti actualizare pentru utilizator existent"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Această echipă a atins numărul maxim de conturi permise. Contactați administratorul de sistem pentru a seta o limită mai mare."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5698,14 +5486,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Există deja un cont cu acest nume de utilizator."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6128,10 +5908,6 @@
         "translation": "Imposibil de numărat echipele private."
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Nu s-a efectuat tranzacția bazei de date"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Imposibil de a primi răspunsurile la postare"
     },
@@ -6148,28 +5924,12 @@
         "translation": "Nu se pot primi postări directe."
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Imposibil de listat toate cheile pluginului."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "S-au găsit mai mult de 1 rând pe MySQL după KVCompareAndSet cu valoarea nemodificată."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Eroare la interogarea pentru rândul existent pe MySQL după KVCompareAndSet cu valoarea nemodificată."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Imposibil de eliminat membrul grupului cu UserID \"{{.UserId}}\"."
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "nu a reușit să creeze interogarea."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Imposibil de obținut informațiile despre fișier cu opțiuni."
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7721,7 +7481,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să se actualizeze la Mattermost Enterprise E20, care oferă funcții precum gestionarea utilizatorilor, clusterarea serverului și monitorizarea performanței."
+        "translation": "Mattermost recomandă cu tărie ca implementările a peste 500 de utilizatori să se actualizeze la Ediția Mattermost Enterprise, care oferă funcții precum gestionarea utilizatorilor, clusterarea serverului și monitorizarea performanței.\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -7729,7 +7489,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Sistemul dvs. cel mai important are acum 400 de utilizatori. Când conectați Mattermost cu furnizorul de conectare unic al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să re-introduceți datele de acreditare. Contactați asistența pentru a afla mai multe despre integrarea cu SAML 2.0, disponibil în Mattermost Enterprise E20.\n[Aflați mai multe despre integrarea cu SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)"
+        "translation": "Sistemul dvs. cel mai important are acum 400 de utilizatori. Când conectați Mattermost cu furnizorul de conectare unic al organizației dvs., utilizatorii pot accesa Mattermost fără a fi nevoie să re-introduceți datele de acreditare. Contactați asistența pentru a afla mai multe despre integrarea cu SAML 2.0, disponibil în Ediția Mattermost Enterprise.\n\n[Aflați mai multe despre integrarea cu SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7737,7 +7497,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Mattermost Enterprise E10 și să integrați Active Directory / LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)"
+        "translation": "Sistemul dvs. cel mai important are acum 200 de utilizatori. Pe măsură ce baza de utilizator crește, furnizarea de conturi noi poate deveni mult timp. Vă recomandăm să faceți upgrade la Ediția Mattermost Enterprise și să integrați Active Directory/LDAP al organizației dvs., ceea ce va permite oricui are un cont să acceseze Mattermost. Utilizatorii se pot autentifica fără a fi nevoie să creeze noi nume de utilizator și parole, iar administratorii economisesc conturi de furnizare și gestionare a timpului.\n\n[Aflați mai multe despre integrarea cu AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAsistența de contact trimite informațiile de contact către Mattermost, Inc. [Aflați mai multe](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",
@@ -8034,5 +7794,225 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Imposibil de a primi rol."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Imposibil de actualizat Postarea"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Imposibil de actualizat un Post existente"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Imposibil de salvat postarea"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Imposibil de selectat mesajele pe care trebuie să le ștergeți pentru utilizator"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Nu se pot șterge mesajele după canal"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Nu se poate obține postarea"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Nu se poate șterge postarea"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Nu există nicio intrare pentru acel statut"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "A apărut o eroare la preluarea stării"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Nu ar putea salva sau actualiza valoarea cheii plugin"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Imposibil de listat toate cheile pluginului."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Nu am putut obţine plugin cheie value"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Imposibil de șters valoarea cheii plugin"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Am intalnit o eroare sistem de proprietate de economisire"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Am intalnit o eroare sistem de proprietate de economisire"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Am putea şterge definitiv intrare tabel de sistem"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Imposibil de găsit variabila de sistem."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Am intalnit o eroare găsirea sistem properties"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Nu se poate crea noul membru al echipei, deoarece echipa a ajuns la limita membrilor"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Nu se poate crea noul membru al echipei, deoarece există deja"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Nu se poate crea noul membru al echipei"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Imposibil de importat calitatea de membru al echipei, deoarece nu mai sunt membri în acea echipă"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Imposibil de importat calitatea de membru"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Nu se poate importa calitatea de membru al echipei, deoarece există deja"
+    },
+    {
+        "id": "app.email.setup_rate_limiter.app_error",
+        "translation": "A apărut o eroare la limitatorul de viteză."
+    },
+    {
+        "id": "app.email.rate_limit_exceeded.app_error",
+        "translation": "Invită limita de rată a e-mailurilor depășită. Cronometrul va fi resetat după {{.ResetAfter}} secunde. Încercați din nou după {{.RetryAfter}} secunde."
+    },
+    {
+        "id": "app.email.no_rate_limiter.app_error",
+        "translation": "Limitatorul de viteză nu este configurat."
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Nu se poate crea membru al echipei implicite, deoarece nu mai sunt membri în acea echipă"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Nu se poate crea membru al echipei implicite, deoarece există deja"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Imposibil de creat membrii echipei implicite"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Imposibilitatea de a completa SAML login cu o adresă de e-mail gol."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Acest cont nu foloseşte SAML autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Există deja un cont cu acest nume de utilizator. Vă rugăm să contactaţi administratorul."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Acest cont nu foloseşte AD/LDAP autentificare. Vă rugăm să faceţi sign in utilizând adresa e-mail și parola."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Am atins intervalul de timp pentru lucrarea de sincronizare AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Ar putea analiza mesaj export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Ar putea analiza mesaj export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Am întâmpinat o eroare în timpul conectării la server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Clustering API final nu a fost găsit."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " un fişier ataşat."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Imposibil de convertit exportul în XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Imposibil de actualizat lucrarea."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Imposibil de salvat lucrarea."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Nu se poate obține cea mai nouă lucrare după stare și tip."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Nu se poate obține numărul de lucrare în funcție de stare și tip."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Imposibil de obținut joburile."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Imposibil de obținut lucrarea."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Am întâlnit o eroare ștergând definitiv lotul de informații despre fișiere."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Imposibil de salvat informațiile despre fișier."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Imposibil de șters fișierele atașate ale utilizatorului."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier cu opțiuni."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier pentru postare."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Imposibil de obținut informațiile despre fișier."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Funcția de ștergere permanentă a echipei nu este activată. Vă rugăm să contactați administratorul de sistem."
     }
 ]
