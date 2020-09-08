@@ -27,12 +27,13 @@ type Logr struct {
 	shutdown           bool
 	lvlCache           levelCache
 
-	metricsOnce    sync.Once
-	metricsDone    chan struct{}
-	metrics        MetricsCollector
-	queueSizeGauge Gauge
-	loggedCounter  Counter
-	errorCounter   Counter
+	metricsInitOnce  sync.Once
+	metricsCloseOnce sync.Once
+	metricsDone      chan struct{}
+	metrics          MetricsCollector
+	queueSizeGauge   Gauge
+	loggedCounter    Counter
+	errorCounter     Counter
 
 	bufferPool sync.Pool
 
@@ -456,11 +457,13 @@ func (logr *Logr) ShutdownWithTimeout(ctx context.Context) error {
 	}
 	logr.shutdown = true
 	logr.resetLevelCache()
-	if logr.metricsDone != nil {
-		close(logr.metricsDone)
-		logr.metricsDone = nil
-	}
 	logr.mux.Unlock()
+
+	logr.metricsCloseOnce.Do(func() {
+		if logr.metricsDone != nil {
+			close(logr.metricsDone)
+		}
+	})
 
 	errs := merror.New()
 

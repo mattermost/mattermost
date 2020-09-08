@@ -488,6 +488,8 @@ github.com/mattermost/logr v1.0.10 h1:J/M6OFJhzQCUPGLyL9s8hiE+8nyL7Y0DybbOxYOisi
 github.com/mattermost/logr v1.0.10/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
 github.com/mattermost/logr v1.0.11 h1:XlNLB3x9OhvoNxEus46dW38zejINe5D2dZBlwmIlX5Q=
 github.com/mattermost/logr v1.0.11/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
+github.com/mattermost/logr v1.0.12 h1:1Tt2dJppjW6XlpJgMpeN+SNG1QgbTr4ITYnxG3NLPbM=
+github.com/mattermost/logr v1.0.12/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4 h1:cMYOz4PhguscGSPxrSokUtib5HrG4gCpiUh27wyA3d0=

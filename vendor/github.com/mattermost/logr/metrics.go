@@ -64,7 +64,7 @@ func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
 	logr.loggedCounter, _ = collector.LoggedCounter("_logr")
 	logr.errorCounter, _ = collector.ErrorCounter("_logr")
 
-	logr.metricsOnce.Do(func() {
+	logr.metricsInitOnce.Do(func() {
 		logr.metricsDone = make(chan struct{})
 		go logr.startMetricsUpdater()
 	})
