@@ -1791,6 +1791,10 @@
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
   {
+    "id": "api.post.search_posts.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notified the channel."
   },
