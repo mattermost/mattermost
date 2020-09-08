@@ -856,3 +856,31 @@ func TestPostPatchDisableMentionHighlights(t *testing.T) {
 		assert.Nil(t, patch.Message)
 	})
 }
+
+func TestSearchParameterFromJson(t *testing.T) {
+	t.Run("empty input", func(t *testing.T) {
+		params, err := SearchParameterFromJson(strings.NewReader(""))
+		require.Nil(t, params)
+		require.Error(t, err)
+	})
+
+	t.Run("invalid json", func(t *testing.T) {
+		params, err := SearchParameterFromJson(strings.NewReader("invalid"))
+		require.Nil(t, params)
+		require.Error(t, err)
+	})
+
+	t.Run("valid empty input", func(t *testing.T) {
+		params, err := SearchParameterFromJson(strings.NewReader("{}"))
+		require.NoError(t, err)
+		require.NotNil(t, params)
+		require.Equal(t, &SearchParameter{}, params)
+	})
+
+	t.Run("valid non-empty input", func(t *testing.T) {
+		params, err := SearchParameterFromJson(strings.NewReader("{\"terms\": \"test\"}"))
+		require.NoError(t, err)
+		require.NotNil(t, params)
+		require.Equal(t, "test", *params.Terms)
+	})
+}
