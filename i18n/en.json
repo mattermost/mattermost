@@ -4891,6 +4891,10 @@
     "translation": "Failed to read a file."
   },
   {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Failed to save file info."
+  },
+  {
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session."
   },

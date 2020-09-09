@@ -200,9 +200,15 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 		a.HandleImages([]string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
 	}
 
-	info, err = a.Srv().Store.FileInfo().Save(info)
-	if err != nil {
-		return nil, err
+	var storeErr error
+	if info, storeErr = a.Srv().Store.FileInfo().Save(info); storeErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(storeErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("uploadData", "app.upload.upload_data.save.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	// delete upload session
