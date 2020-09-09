@@ -152,7 +152,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
 	oldTeam.GroupConstrained = team.GroupConstrained
 
-	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
+	oldTeam, err = a.UpdateTeamUnsanitized(oldTeam)
 	if err != nil {
 		return team, err
 	}
@@ -162,18 +162,18 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return oldTeam, nil
 }
 
-func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
+func (a *App) UpdateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
 	team, err := a.Srv().Store.Team().Update(team)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("updateTeamUnsanitized", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdateTeamUnsanitized", "app.team.update.find.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		case errors.As(err, &appErr):
 			return nil, appErr
 		default:
-			return nil, model.NewAppError("updateTeamUnsanitized", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("UpdateTeamUnsanitized", "app.team.update.updating.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -200,7 +200,7 @@ func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName st
 		team.DisplayName = newDisplayName
 	}
 
-	newTeam, err := a.updateTeamUnsanitized(team)
+	newTeam, err := a.UpdateTeamUnsanitized(team)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +283,7 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 		return nil, err
 	}
 
-	team, err = a.updateTeamUnsanitized(team)
+	team, err = a.UpdateTeamUnsanitized(team)
 	if err != nil {
 		return team, err
 	}

@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/icrowley/fake"
-	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/importexport"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
 )
@@ -74,22 +74,22 @@ func randomEmoji() string {
 	return emojis[rand.Intn(len(emojis))]
 }
 
-func randomReaction(users []string, parentCreateAt int64) app.ReactionImportData {
+func randomReaction(users []string, parentCreateAt int64) importexport.ReactionImportData {
 	user := users[rand.Intn(len(users))]
 	emoji := randomEmoji()
 	date := parentCreateAt + int64(rand.Intn(100000))
-	return app.ReactionImportData{
+	return importexport.ReactionImportData{
 		User:      &user,
 		EmojiName: &emoji,
 		CreateAt:  &date,
 	}
 }
 
-func randomReply(users []string, parentCreateAt int64) app.ReplyImportData {
+func randomReply(users []string, parentCreateAt int64) importexport.ReplyImportData {
 	user := users[rand.Intn(len(users))]
 	message := randomMessage(users)
 	date := parentCreateAt + int64(rand.Intn(100000))
-	return app.ReplyImportData{
+	return importexport.ReplyImportData{
 		User:     &user,
 		Message:  &message,
 		CreateAt: &date,
@@ -263,7 +263,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 
 	encoder := json.NewEncoder(bulkFile)
 	version := 1
-	encoder.Encode(app.LineImportData{Type: "version", Version: &version})
+	encoder.Encode(importexport.LineImportData{Type: "version", Version: &version})
 
 	fake.Seed(seed)
 	rand.Seed(seed)
@@ -389,7 +389,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string, userType string) app.LineImportData {
+func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndChannels map[string][]string, profileImages []string, userType string) importexport.LineImportData {
 	firstName := fake.FirstName()
 	lastName := fake.LastName()
 	position := fake.JobTitle()
@@ -478,7 +478,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		}
 	}
 
-	teams := []app.UserTeamImportData{}
+	teams := []importexport.UserTeamImportData{}
 	possibleTeams := []string{}
 	for teamName := range teamsAndChannels {
 		possibleTeams = append(possibleTeams, teamName)
@@ -501,7 +501,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		deleteAt = model.GetMillis()
 	}
 
-	user := app.UserImportData{
+	user := importexport.UserImportData{
 		ProfileImage:       profileImage,
 		Username:           &username,
 		Email:              &email,
@@ -519,20 +519,20 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		TutorialStep:       &tutorialStep,
 		DeleteAt:           &deleteAt,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type: "user",
 		User: &user,
 	}
 }
 
-func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string, guest bool) app.UserTeamImportData {
+func createTeamMembership(numOfchannels int, teamChannels []string, teamName *string, guest bool) importexport.UserTeamImportData {
 	roles := "team_user"
 	if guest {
 		roles = "team_guest"
 	} else if rand.Intn(5) == 0 {
 		roles = "team_user team_admin"
 	}
-	channels := []app.UserChannelImportData{}
+	channels := []importexport.UserChannelImportData{}
 	teamChannelsCopy := append([]string(nil), teamChannels...)
 	for x := 0; x < numOfchannels; x++ {
 		if len(teamChannelsCopy) == 0 {
@@ -544,14 +544,14 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 		channels = append(channels, createChannelMembership(channelName, guest))
 	}
 
-	return app.UserTeamImportData{
+	return importexport.UserTeamImportData{
 		Name:     teamName,
 		Roles:    &roles,
 		Channels: &channels,
 	}
 }
 
-func createChannelMembership(channelName string, guest bool) app.UserChannelImportData {
+func createChannelMembership(channelName string, guest bool) importexport.UserChannelImportData {
 	roles := "channel_user"
 	if guest {
 		roles = "channel_guest"
@@ -560,7 +560,7 @@ func createChannelMembership(channelName string, guest bool) app.UserChannelImpo
 	}
 	favorite := rand.Intn(5) == 0
 
-	return app.UserChannelImportData{
+	return importexport.UserChannelImportData{
 		Name:     &channelName,
 		Roles:    &roles,
 		Favorite: &favorite,
@@ -576,7 +576,7 @@ func getSampleTeamName(idx int) string {
 	}
 }
 
-func createTeam(idx int) app.LineImportData {
+func createTeam(idx int) importexport.LineImportData {
 	displayName := fake.Word()
 	name := getSampleTeamName(idx)
 	allowOpenInvite := rand.Intn(2) == 0
@@ -591,20 +591,20 @@ func createTeam(idx int) app.LineImportData {
 		teamType = "I"
 	}
 
-	team := app.TeamImportData{
+	team := importexport.TeamImportData{
 		DisplayName:     &displayName,
 		Name:            &name,
 		AllowOpenInvite: &allowOpenInvite,
 		Description:     &description,
 		Type:            &teamType,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type: "team",
 		Team: &team,
 	}
 }
 
-func createChannel(idx int, teamName string) app.LineImportData {
+func createChannel(idx int, teamName string) importexport.LineImportData {
 	displayName := fake.Word()
 	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
 	header := fake.Paragraph()
@@ -619,7 +619,7 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		channelType = "O"
 	}
 
-	channel := app.ChannelImportData{
+	channel := importexport.ChannelImportData{
 		Team:        &teamName,
 		Name:        &name,
 		DisplayName: &displayName,
@@ -627,13 +627,13 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		Header:      &header,
 		Purpose:     &purpose,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type:    "channel",
 		Channel: &channel,
 	}
 }
 
-func createPost(team string, channel string, allUsers []string, createAt int64) app.LineImportData {
+func createPost(team string, channel string, allUsers []string, createAt int64) importexport.LineImportData {
 	message := randomMessage(allUsers)
 	create_at := createAt
 	user := allUsers[rand.Intn(len(allUsers))]
@@ -644,7 +644,7 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 		flagged_by = append(flagged_by, allUsers[rand.Intn(len(allUsers))])
 	}
 
-	reactions := []app.ReactionImportData{}
+	reactions := []importexport.ReactionImportData{}
 	if rand.Intn(10) == 0 {
 		for {
 			reactions = append(reactions, randomReaction(allUsers, create_at))
@@ -654,7 +654,7 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 		}
 	}
 
-	replies := []app.ReplyImportData{}
+	replies := []importexport.ReplyImportData{}
 	if rand.Intn(10) == 0 {
 		for {
 			replies = append(replies, randomReply(allUsers, create_at))
@@ -664,7 +664,7 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 		}
 	}
 
-	post := app.PostImportData{
+	post := importexport.PostImportData{
 		Team:      &team,
 		Channel:   &channel,
 		User:      &user,
@@ -674,26 +674,26 @@ func createPost(team string, channel string, allUsers []string, createAt int64) 
 		Reactions: &reactions,
 		Replies:   &replies,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type: "post",
 		Post: &post,
 	}
 }
 
-func createDirectChannel(members []string) app.LineImportData {
+func createDirectChannel(members []string) importexport.LineImportData {
 	header := fake.Sentence()
 
-	channel := app.DirectChannelImportData{
+	channel := importexport.DirectChannelImportData{
 		Members: &members,
 		Header:  &header,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type:          "direct_channel",
 		DirectChannel: &channel,
 	}
 }
 
-func createDirectPost(members []string, createAt int64) app.LineImportData {
+func createDirectPost(members []string, createAt int64) importexport.LineImportData {
 	message := randomMessage(members)
 	create_at := createAt
 	user := members[rand.Intn(len(members))]
@@ -704,7 +704,7 @@ func createDirectPost(members []string, createAt int64) app.LineImportData {
 		flagged_by = append(flagged_by, members[rand.Intn(len(members))])
 	}
 
-	reactions := []app.ReactionImportData{}
+	reactions := []importexport.ReactionImportData{}
 	if rand.Intn(10) == 0 {
 		for {
 			reactions = append(reactions, randomReaction(members, create_at))
@@ -714,7 +714,7 @@ func createDirectPost(members []string, createAt int64) app.LineImportData {
 		}
 	}
 
-	replies := []app.ReplyImportData{}
+	replies := []importexport.ReplyImportData{}
 	if rand.Intn(10) == 0 {
 		for {
 			replies = append(replies, randomReply(members, create_at))
@@ -724,7 +724,7 @@ func createDirectPost(members []string, createAt int64) app.LineImportData {
 		}
 	}
 
-	post := app.DirectPostImportData{
+	post := importexport.DirectPostImportData{
 		ChannelMembers: &members,
 		User:           &user,
 		Message:        &message,
@@ -733,7 +733,7 @@ func createDirectPost(members []string, createAt int64) app.LineImportData {
 		Reactions:      &reactions,
 		Replies:        &replies,
 	}
-	return app.LineImportData{
+	return importexport.LineImportData{
 		Type:       "direct_post",
 		DirectPost: &post,
 	}

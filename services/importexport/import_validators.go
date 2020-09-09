@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package app
+package importexport
 
 import (
 	"encoding/json"
@@ -14,7 +14,6 @@ import (
 )
 
 func validateSchemeImportData(data *SchemeImportData) *model.AppError {
-
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
 	}
