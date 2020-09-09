@@ -102,6 +102,7 @@ func ServerConnector(s *Server) AppOption {
 
 		a.cluster = s.Cluster
 		a.compliance = s.Compliance
+		a.cloud = s.Cloud
 		a.dataRetention = s.DataRetention
 		a.searchEngine = s.SearchEngine
 		a.messageExport = s.MessageExport

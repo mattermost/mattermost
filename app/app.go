@@ -44,6 +44,7 @@ type App struct {
 	searchEngine  *searchengine.Broker
 	messageExport einterfaces.MessageExportInterface
 	metrics       einterfaces.MetricsInterface
+	cloud         einterfaces.CloudInterface
 
 	httpService httpservice.HTTPService
 	imageProxy  *imageproxy.ImageProxy
@@ -483,6 +484,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 }
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.srv.Saml
+}
+func (a *App) Cloud() einterfaces.CloudInterface {
+	return a.cloud
 }
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.httpService
