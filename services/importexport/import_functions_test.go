@@ -1125,8 +1125,8 @@ func TestImportImportUser(t *testing.T) {
 	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.PUSH_NOTIFY_PROP])
 	assert.Equal(t, model.USER_NOTIFY_MENTION, channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, team.Id, *(*data.Teams)[0].Theme)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_THEME, team.Id, *(*data.Teams)[0].Theme)
 
 	// No more new member objects.
 	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000, nil)
@@ -1160,16 +1160,16 @@ func TestImportImportUser(t *testing.T) {
 	user, err = th.App.GetUserByUsername(username)
 	require.Nil(t, err, "Failed to get user from database.")
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "formatting", *data.UseFormatting)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS, "show_unread_section", *data.ShowUnreadSection)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "30")
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "feature_enabled_markdown_preview", *data.UseMarkdownPreview)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "formatting", *data.UseFormatting)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS, "show_unread_section", *data.ShowUnreadSection)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "30")
 
 	// Change those preferences.
 	data = UserImportData{
@@ -1187,13 +1187,13 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check their values again.
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "3600")
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME, *data.UseMilitaryTime)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSE_SETTING, *data.CollapsePreviews)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_MESSAGE_DISPLAY, *data.MessageDisplay)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_CHANNEL_DISPLAY_MODE, *data.ChannelDisplayMode)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "3600")
 
 	// Set Notify Without mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
@@ -1975,7 +1975,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
 	assert.NotNil(t, err)
 	assert.Equal(t, data.LineNumber, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in dry run mode.
 	data = LineImportWorkerData{
@@ -1993,7 +1993,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding an invalid post in apply mode.
 	data = LineImportWorkerData{
@@ -2010,7 +2010,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.NotNil(t, err)
 	assert.Equal(t, data.LineNumber, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid team in apply mode.
 	data = LineImportWorkerData{
@@ -2030,7 +2030,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Batch will fail when searching for teams, so no specific line
 	// is associated with the error
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid channel in apply mode.
 	data = LineImportWorkerData{
@@ -2050,7 +2050,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Batch will fail when searching for channels, so no specific
 	// line is associated with the error
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid user in apply mode.
 	data = LineImportWorkerData{
@@ -2070,7 +2070,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	// Batch will fail when searching for users, so no specific line
 	// is associated with the error
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in apply mode.
 	time := model.GetMillis()
@@ -2089,7 +2089,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, team.Id)
 
 	// Check the post values.
 	posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
@@ -2117,7 +2117,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, team.Id)
 
 	// Check the post values.
 	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
@@ -2146,7 +2146,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 2, team.Id)
 
 	// Save the post with a different message.
 	data = LineImportWorkerData{
@@ -2164,7 +2164,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 3, team.Id)
 
 	// Test with hashtags
 	hashtagTime := time + 2
@@ -2183,7 +2183,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	errLine, err = th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, errLine)
-	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 4, team.Id)
 
 	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
 	require.Nil(t, err)
@@ -2227,7 +2227,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 5, team.Id)
 
 	// Check the post values.
 	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
@@ -2239,8 +2239,8 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	postBool = post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 	require.False(t, postBool, "Post properties not as expected")
 
-	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-	checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	checkPreference(t, th.App.Srv().Store, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 
 	// Post with reaction.
 	reactionPostTime := hashtagTime + 2
@@ -2266,7 +2266,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 6, team.Id)
 
 	// Check the post values.
 	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
@@ -2307,7 +2307,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, team.Id)
 
 	// Check the post values.
 	posts, err = th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
@@ -2353,7 +2353,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, team.Id)
 
 	// Create new post with replies based on the previous one.
 	data = LineImportWorkerData{
@@ -2377,7 +2377,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 10, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 10, team.Id)
 
 	// Create new reply for existing post with replies.
 	data = LineImportWorkerData{
@@ -2401,7 +2401,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 	assert.Nil(t, err, "Expected success.")
 	assert.Equal(t, 0, errLine)
 
-	AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+	AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 11, team.Id)
 }
 
 func TestImportImportPost(t *testing.T) {
@@ -2469,7 +2469,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
 		assert.NotNil(t, err)
 		assert.Equal(t, data.LineNumber, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
@@ -2488,7 +2488,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, true)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
@@ -2506,7 +2506,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, data.LineNumber, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding a valid post with invalid team in apply mode", func(t *testing.T) {
@@ -2525,7 +2525,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding a valid post with invalid channel in apply mode", func(t *testing.T) {
@@ -2544,7 +2544,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding a valid post with invalid user in apply mode", func(t *testing.T) {
@@ -2563,7 +2563,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.NotNil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, team.Id)
 	})
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
@@ -2582,7 +2582,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, team.Id)
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
@@ -2611,7 +2611,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, team.Id)
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, time)
@@ -2641,7 +2641,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 2, team.Id)
 	})
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
@@ -2660,7 +2660,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 3, team.Id)
 	})
 
 	t.Run("Test with hashtag", func(t *testing.T) {
@@ -2679,7 +2679,7 @@ func TestImportImportPost(t *testing.T) {
 		errLine, err := th.App.importMultiplePostLines([]LineImportWorkerData{data}, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 4, team.Id)
 
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
 		require.Nil(t, err)
@@ -2716,7 +2716,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 5, team.Id)
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, flagsTime)
@@ -2728,8 +2728,8 @@ func TestImportImportPost(t *testing.T) {
 		postBool := post.Message != *data.Post.Message || post.CreateAt != *data.Post.CreateAt || post.UserId != user.Id
 		require.False(t, postBool, "Post properties not as expected")
 
-		checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
@@ -2756,7 +2756,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 6, team.Id)
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime)
@@ -2796,7 +2796,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, team.Id)
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime)
@@ -2843,7 +2843,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, team.Id)
 	})
 
 	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
@@ -2868,7 +2868,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 10, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 10, team.Id)
 	})
 
 	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
@@ -2893,7 +2893,7 @@ func TestImportImportPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 11, team.Id)
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 11, team.Id)
 	})
 }
 
@@ -2919,8 +2919,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -2931,8 +2931,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -2944,8 +2944,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do an invalid channel in apply mode.
 	data.Members = &[]string{
@@ -2955,8 +2955,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid DIRECT channel.
 	data.Members = &[]string{
@@ -2967,16 +2967,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do the same DIRECT channel again.
 	err = th.App.importDirectChannel(&data, false)
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
@@ -2984,8 +2984,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
 	channel, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
@@ -3004,8 +3004,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid GROUP channel.
 	data.Members = &[]string{
@@ -3017,16 +3017,16 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
 	err = th.App.importDirectChannel(&data, false)
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
@@ -3034,8 +3034,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App.Srv().Store, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
 	userIds := []string{
@@ -3061,8 +3061,8 @@ func TestImportImportDirectChannel(t *testing.T) {
 
 	channel, err = th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 	require.Nil(t, err)
-	checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-	checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App.Srv().Store, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App.Srv().Store, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 }
 
 func TestImportImportDirectPost(t *testing.T) {
@@ -3109,7 +3109,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
 		require.Equal(t, data.LineNumber, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
@@ -3130,7 +3130,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
@@ -3151,7 +3151,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
@@ -3172,7 +3172,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
@@ -3203,7 +3203,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
@@ -3234,7 +3234,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 2, "")
 	})
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
@@ -3255,7 +3255,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 3, "")
 	})
 
 	t.Run("Test with hashtag", func(t *testing.T) {
@@ -3276,7 +3276,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 4, "")
 
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(directChannel.Id, *data.DirectPost.CreateAt)
 		require.Nil(t, err)
@@ -3319,8 +3319,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	})
 
 	// ------------------ Group Channel -------------------------
@@ -3371,7 +3371,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
 		require.NotNil(t, err)
 		require.Equal(t, data.LineNumber, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding a valid post in dry run mode", func(t *testing.T) {
@@ -3393,7 +3393,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, true)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding an invalid post in apply mode", func(t *testing.T) {
@@ -3416,7 +3416,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.NotNil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 0, "")
 	})
 
 	t.Run("Try adding a valid post in apply mode", func(t *testing.T) {
@@ -3438,7 +3438,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
@@ -3470,7 +3470,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 1, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
@@ -3502,7 +3502,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 2, "")
 	})
 
 	t.Run("Save the post with a different message", func(t *testing.T) {
@@ -3524,7 +3524,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 3, "")
 	})
 
 	t.Run("Test with hashtag", func(t *testing.T) {
@@ -3546,7 +3546,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{data}, false)
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
-		AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 4, "")
 
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
 		require.Nil(t, err)
@@ -3584,7 +3584,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 5, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 5, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
@@ -3592,8 +3592,8 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Len(t, posts, 1)
 
 		post := posts[0]
-		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App.Srv().Store, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	})
 
 	t.Run("Post with reaction", func(t *testing.T) {
@@ -3623,7 +3623,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 6, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 6, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
@@ -3668,7 +3668,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, "")
 
 		// Check the post values.
 		posts, err := th.App.Srv().Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.DirectPost.CreateAt)
@@ -3720,7 +3720,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 8, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 8, "")
 	})
 
 	t.Run("Create new post with replies based on the previous one", func(t *testing.T) {
@@ -3750,7 +3750,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 10, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 10, "")
 	})
 
 	t.Run("Create new reply for existing post with replies", func(t *testing.T) {
@@ -3780,7 +3780,7 @@ func TestImportImportDirectPost(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		AssertAllPostsCount(t, th.App, initialPostCount, 11, "")
+		AssertAllPostsCount(t, th.App.Srv().Store, initialPostCount, 11, "")
 	})
 }
 
@@ -3838,7 +3838,7 @@ func TestImportAttachment(t *testing.T) {
 	_, err := th.App.importAttachment(&data, &model.Post{UserId: userId, ChannelId: "some-channel"}, "some-team", true)
 	assert.Nil(t, err, "sample run without errors")
 
-	attachments := GetAttachments(userId, th, t)
+	attachments := GetAttachments(userId, th.App.Srv().Store, t)
 	assert.Len(t, attachments, 1)
 
 	data = AttachmentImportData{Path: &invalidPath}
@@ -3939,16 +3939,16 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user3.Id, th, t)
+		attachments := GetAttachments(user3.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 2)
 		assert.Contains(t, attachments[0].Path, team.Id)
 		assert.Contains(t, attachments[1].Path, team.Id)
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 
-		attachments = GetAttachments(user4.Id, th, t)
+		attachments = GetAttachments(user4.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, team.Id)
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 	})
 
 	t.Run("import existing post with new attachment", func(t *testing.T) {
@@ -3957,15 +3957,15 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user3.Id, th, t)
+		attachments := GetAttachments(user3.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, team.Id)
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 
-		attachments = GetAttachments(user4.Id, th, t)
+		attachments = GetAttachments(user4.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, team.Id)
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 	})
 
 	t.Run("Reply with Attachments in Direct Pos", func(t *testing.T) {
@@ -3994,10 +3994,10 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user2.Id, th, t)
+		attachments := GetAttachments(user2.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 	})
 }
 
@@ -4055,10 +4055,10 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user1.Id, th, t)
+		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 		assert.Contains(t, attachments[0].Path, "noteam")
-		AssertFileIdsInPost(attachments, th, t)
+		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
 	})
 
 	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
@@ -4066,7 +4066,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user1.Id, th, t)
+		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 1)
 	})
 
@@ -4091,7 +4091,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user1.Id, th, t)
+		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 2)
 	})
 
@@ -4116,7 +4116,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 		require.Nil(t, err, "Expected success.")
 		require.Equal(t, 0, errLine)
 
-		attachments := GetAttachments(user1.Id, th, t)
+		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
 		require.Len(t, attachments, 3)
 	})
 }

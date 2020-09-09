@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
@@ -32,8 +33,8 @@ func ptrBool(b bool) *bool {
 	return &b
 }
 
-func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	preferences, err := a.Srv().Store.Preference().GetCategory(userId, category)
+func checkPreference(t *testing.T, s store.Store, userId string, category string, name string, value string) {
+	preferences, err := s.Preference().GetCategory(userId, category)
 	require.Nilf(t, err, "Failed to get preferences for user %v with category %v", userId, category)
 	found := false
 	for _, preference := range preferences {
@@ -60,14 +61,14 @@ func checkNoError(t *testing.T, err *model.AppError) {
 	require.Nil(t, err, "Unexpected Error: %v", err)
 }
 
-func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	result, err := a.Srv().Store.Post().AnalyticsPostCount(teamName, false, false)
+func AssertAllPostsCount(t *testing.T, s store.Store, initialCount int64, change int64, teamName string) {
+	result, err := s.Post().AnalyticsPostCount(teamName, false, false)
 	require.Nil(t, err)
 	require.Equal(t, initialCount+change, result, "Did not find the expected number of posts.")
 }
 
-func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	count, err := a.Srv().Store.Channel().AnalyticsTypeCount("", channelType)
+func AssertChannelCount(t *testing.T, s store.Store, channelType string, expectedCount int64) {
+	count, err := s.Channel().AnalyticsTypeCount("", channelType)
 	require.Equalf(t, expectedCount, count, "Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
 	require.Nil(t, err, "Failed to get channel count.")
 }
@@ -81,42 +82,44 @@ func TestImportImportLine(t *testing.T) {
 		Type: "gibberish",
 	}
 
-	err := th.App.importLine(line, false)
+	importer := NewImporter(th.App, th.App.Srv().Store, th.Config())
+
+	err := importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
 	// Try import line with scheme type but nil scheme.
 	line.Type = "scheme"
-	err = th.App.importLine(line, false)
+	err = importer.importLine(line, false)
 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
 }
 
@@ -245,17 +248,17 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	require.NotNil(t, err, "Expected error on invalid version line.")
 }
 
-func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	fileInfos, err := th.App.Srv().Store.FileInfo().GetForUser(userId)
+func GetAttachments(userId string, s store.Store, t *testing.T) []*model.FileInfo {
+	fileInfos, err := s.FileInfo().GetForUser(userId)
 	require.Nil(t, err)
 	return fileInfos
 }
 
-func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
+func AssertFileIdsInPost(files []*model.FileInfo, s store.Store, t *testing.T) {
 	postId := files[0].PostId
 	require.NotNil(t, postId)
 
-	posts, err := th.App.Srv().Store.Post().GetPostsByIds([]string{postId})
+	posts, err := s.Post().GetPostsByIds([]string{postId})
 	require.Nil(t, err)
 
 	require.Len(t, posts, 1)
