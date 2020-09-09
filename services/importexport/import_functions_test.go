@@ -3,200 +3,212 @@
 
 package importexport
 
-// func TestImportImportScheme(t *testing.T) {
-// 	th := Setup(t)
-// 	defer th.TearDown()
+import (
+	"net/http"
+	"testing"
 
-// 	// Mark the phase 2 permissions migration as completed.
-// 	th.App.Srv().Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	"github.com/stretchr/testify/require"
 
-// 	defer func() {
-// 		th.App.Srv().Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-// 	}()
+	"github.com/mattermost/mattermost-server/v5/model"
+	importExportMocks "github.com/mattermost/mattermost-server/v5/services/importexport/mocks"
+	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+)
 
-// 	// Try importing an invalid scheme in dryRun mode.
-// 	data := SchemeImportData{
-// 		Name:  ptrStr(model.NewId()),
-// 		Scope: ptrStr("team"),
-// 		DefaultTeamGuestRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		DefaultTeamUserRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		DefaultTeamAdminRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		DefaultChannelGuestRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		DefaultChannelUserRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		DefaultChannelAdminRole: &RoleImportData{
-// 			Name:        ptrStr(model.NewId()),
-// 			DisplayName: ptrStr(model.NewId()),
-// 		},
-// 		Description: ptrStr("description"),
-// 	}
+func TestImportImportScheme(t *testing.T) {
+	// Try importing an invalid scheme in dryRun mode.
+	getBaseData := func() SchemeImportData {
+		return SchemeImportData{
+			Name:  model.NewString(model.NewId()),
+			Scope: model.NewString("team"),
+			DefaultTeamGuestRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			DefaultTeamUserRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			DefaultTeamAdminRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			DefaultChannelGuestRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			DefaultChannelUserRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			DefaultChannelAdminRole: &RoleImportData{
+				Name:        ptrStr(model.NewId()),
+				DisplayName: ptrStr(model.NewId()),
+			},
+			Description: ptrStr("description"),
+		}
+	}
 
-// 	err := th.App.importScheme(&data, true)
-// 	require.NotNil(t, err, "Should have failed to import.")
+	t.Run("import invalid scheme with dry-run", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
+		data := getBaseData()
+		err := importer.importScheme(&data, true)
+		require.NotNil(t, err, "Should have failed to import.")
+	})
 
-// 	_, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.NotNil(t, nErr, "Scheme should not have imported.")
+	t.Run("import valid scheme with dry-run", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	// Try importing a valid scheme in dryRun mode.
-// 	data.DisplayName = ptrStr("display name")
+		data := getBaseData()
+		data.DisplayName = model.NewString("display name")
+		err := importer.importScheme(&data, true)
+		require.Nil(t, err, "Should have succeeded.")
+	})
 
-// 	err = th.App.importScheme(&data, true)
-// 	require.Nil(t, err, "Should have succeeded.")
+	t.Run("import invalid scheme without dry-run", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
+		data := getBaseData()
+		err := importer.importScheme(&data, false)
+		require.NotNil(t, err, "Should have failed to import.")
+	})
 
-// 	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.NotNil(t, nErr, "Scheme should not have imported.")
+	t.Run("import valid scheme without dry-run", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	// Try importing an invalid scheme.
-// 	data.DisplayName = nil
+		data := getBaseData()
+		data.DisplayName = model.NewString("display name")
 
-// 	err = th.App.importScheme(&data, false)
-// 	require.NotNil(t, err, "Should have failed to import.")
+		appMock.On("GetSchemeByName", *data.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		newScheme := model.Scheme{
+			Name:        *data.Name,
+			DisplayName: *data.DisplayName,
+			Description: *data.Description,
+			Scope:       *data.Scope,
+		}
+		newReturnedScheme := model.Scheme{
+			Name:                    *data.Name,
+			DisplayName:             *data.DisplayName,
+			Description:             *data.Description,
+			Scope:                   *data.Scope,
+			DefaultTeamAdminRole:    *data.DefaultTeamAdminRole.Name,
+			DefaultTeamUserRole:     *data.DefaultTeamUserRole.Name,
+			DefaultChannelAdminRole: *data.DefaultChannelAdminRole.Name,
+			DefaultChannelUserRole:  *data.DefaultChannelUserRole.Name,
+			DefaultTeamGuestRole:    *data.DefaultTeamGuestRole.Name,
+			DefaultChannelGuestRole: *data.DefaultChannelGuestRole.Name,
+		}
+		appMock.On("CreateScheme", &newScheme).Return(&newReturnedScheme, nil)
+		appMock.On("GetRoleByName", *data.DefaultTeamAdminRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		appMock.On("GetRoleByName", *data.DefaultTeamUserRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		appMock.On("GetRoleByName", *data.DefaultChannelAdminRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		appMock.On("GetRoleByName", *data.DefaultChannelUserRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		appMock.On("GetRoleByName", *data.DefaultTeamGuestRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
+		appMock.On("GetRoleByName", *data.DefaultChannelGuestRole.Name).Return(nil, model.NewAppError("test", "test", nil, "", http.StatusInternalServerError))
 
-// 	_, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.NotNil(t, nErr, "Scheme should not have imported.")
+		newTeamAdminRole := model.Role{Id: "", Name: *data.DefaultTeamAdminRole.Name, DisplayName: *data.DefaultTeamAdminRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newTeamAdminRole).Return(&newTeamAdminRole, nil)
+		newTeamUserRole := model.Role{Id: "", Name: *data.DefaultTeamUserRole.Name, DisplayName: *data.DefaultTeamUserRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newTeamUserRole).Return(&newTeamUserRole, nil)
+		newTeamGuestRole := model.Role{Id: "", Name: *data.DefaultTeamGuestRole.Name, DisplayName: *data.DefaultTeamGuestRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newTeamGuestRole).Return(&newTeamGuestRole, nil)
+		newChannelAdminRole := model.Role{Id: "", Name: *data.DefaultChannelAdminRole.Name, DisplayName: *data.DefaultChannelAdminRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newChannelAdminRole).Return(&newChannelAdminRole, nil)
+		newChannelUserRole := model.Role{Id: "", Name: *data.DefaultChannelUserRole.Name, DisplayName: *data.DefaultChannelUserRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newChannelUserRole).Return(&newChannelUserRole, nil)
+		newChannelGuestRole := model.Role{Id: "", Name: *data.DefaultChannelGuestRole.Name, DisplayName: *data.DefaultChannelGuestRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("CreateRole", &newChannelGuestRole).Return(&newChannelGuestRole, nil)
 
-// 	// Try importing a valid scheme with all params set.
-// 	data.DisplayName = ptrStr("display name")
+		err := importer.importScheme(&data, false)
+		require.Nil(t, err, "Should have succeeded.")
+	})
 
-// 	err = th.App.importScheme(&data, false)
-// 	require.Nil(t, err, "Should have succeeded.")
+	t.Run("import an existing scheme changing the scope", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	scheme, nErr := th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.Nil(t, nErr, "Failed to import scheme: %v", err)
+		data := getBaseData()
+		data.DisplayName = model.NewString("display name")
+		data.Scope = model.NewString("channel")
 
-// 	assert.Equal(t, *data.Name, scheme.Name)
-// 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
-// 	assert.Equal(t, *data.Description, scheme.Description)
-// 	assert.Equal(t, *data.Scope, scheme.Scope)
+		existingScheme := model.Scheme{
+			Name:        *data.Name,
+			DisplayName: *data.DisplayName,
+			Description: *data.Description,
+			Scope:       "team",
+		}
+		appMock.On("GetSchemeByName", *data.Name).Return(existingScheme, nil)
 
-// 	role, nErr := th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
+		err := importer.importScheme(&data, false)
+		require.NotNil(t, err)
+	})
 
-// 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
+	t.Run("import an existing scheme changing the description", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
+		data := getBaseData()
+		data.DisplayName = model.NewString("display name")
+		data.Description = model.NewString("new-description")
 
-// 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
+		existingScheme := model.Scheme{
+			Id:                      model.NewId(),
+			Name:                    *data.Name,
+			DisplayName:             *data.DisplayName,
+			Description:             *data.Description,
+			Scope:                   *data.Scope,
+			DefaultTeamAdminRole:    *data.DefaultTeamAdminRole.Name,
+			DefaultTeamUserRole:     *data.DefaultTeamUserRole.Name,
+			DefaultChannelAdminRole: *data.DefaultChannelAdminRole.Name,
+			DefaultChannelUserRole:  *data.DefaultChannelUserRole.Name,
+			DefaultTeamGuestRole:    *data.DefaultTeamGuestRole.Name,
+			DefaultChannelGuestRole: *data.DefaultChannelGuestRole.Name,
+		}
+		appMock.On("GetSchemeByName", *data.Name).Return(&existingScheme, nil)
+		appMock.On("UpdateScheme", &existingScheme).Return(&existingScheme, nil)
+		teamAdminRole := model.Role{Id: model.NewId(), Name: *data.DefaultTeamAdminRole.Name, DisplayName: *data.DefaultTeamAdminRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		teamUserRole := model.Role{Id: model.NewId(), Name: *data.DefaultTeamUserRole.Name, DisplayName: *data.DefaultTeamUserRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		teamGuestRole := model.Role{Id: model.NewId(), Name: *data.DefaultTeamGuestRole.Name, DisplayName: *data.DefaultTeamGuestRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		channelAdminRole := model.Role{Id: model.NewId(), Name: *data.DefaultChannelAdminRole.Name, DisplayName: *data.DefaultChannelAdminRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		channelUserRole := model.Role{Id: model.NewId(), Name: *data.DefaultChannelUserRole.Name, DisplayName: *data.DefaultChannelUserRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		channelGuestRole := model.Role{Id: model.NewId(), Name: *data.DefaultChannelGuestRole.Name, DisplayName: *data.DefaultChannelGuestRole.DisplayName, Description: "", CreateAt: 0, UpdateAt: 0, DeleteAt: 0, Permissions: []string(nil), SchemeManaged: true, BuiltIn: false}
+		appMock.On("GetRoleByName", *data.DefaultTeamAdminRole.Name).Return(&teamAdminRole, nil)
+		appMock.On("GetRoleByName", *data.DefaultTeamUserRole.Name).Return(&teamUserRole, nil)
+		appMock.On("GetRoleByName", *data.DefaultChannelAdminRole.Name).Return(&channelAdminRole, nil)
+		appMock.On("GetRoleByName", *data.DefaultChannelUserRole.Name).Return(&channelUserRole, nil)
+		appMock.On("GetRoleByName", *data.DefaultTeamGuestRole.Name).Return(&teamGuestRole, nil)
+		appMock.On("GetRoleByName", *data.DefaultChannelGuestRole.Name).Return(&channelGuestRole, nil)
+		appMock.On("UpdateRole", &teamAdminRole).Return(&teamAdminRole, nil)
+		appMock.On("UpdateRole", &teamUserRole).Return(&teamUserRole, nil)
+		appMock.On("UpdateRole", &channelAdminRole).Return(&channelAdminRole, nil)
+		appMock.On("UpdateRole", &channelUserRole).Return(&channelUserRole, nil)
+		appMock.On("UpdateRole", &teamGuestRole).Return(&teamGuestRole, nil)
+		appMock.On("UpdateRole", &channelGuestRole).Return(&channelGuestRole, nil)
 
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	// Try modifying all the fields and re-importing.
-// 	data.DisplayName = ptrStr("new display name")
-// 	data.Description = ptrStr("new description")
-
-// 	err = th.App.importScheme(&data, false)
-// 	require.Nil(t, err, "Should have succeeded: %v", err)
-
-// 	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.Nil(t, nErr, "Failed to import scheme: %v", err)
-
-// 	assert.Equal(t, *data.Name, scheme.Name)
-// 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
-// 	assert.Equal(t, *data.Description, scheme.Description)
-// 	assert.Equal(t, *data.Scope, scheme.Scope)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamAdminRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamUserRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultTeamGuestRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelAdminRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelUserRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	role, nErr = th.App.Srv().Store.Role().GetByName(scheme.DefaultChannelGuestRole)
-// 	require.Nil(t, nErr, "Should have found the imported role.")
-
-// 	assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
-// 	assert.False(t, role.BuiltIn)
-// 	assert.True(t, role.SchemeManaged)
-
-// 	// Try changing the scope of the scheme and reimporting.
-// 	data.Scope = ptrStr("channel")
-
-// 	err = th.App.importScheme(&data, false)
-// 	require.NotNil(t, err, "Should have failed to import.")
-
-// 	scheme, nErr = th.App.Srv().Store.Scheme().GetByName(*data.Name)
-// 	require.Nil(t, nErr, "Failed to import scheme: %v", err)
-
-// 	assert.Equal(t, *data.Name, scheme.Name)
-// 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
-// 	assert.Equal(t, *data.Description, scheme.Description)
-// 	assert.Equal(t, "team", scheme.Scope)
-
-// }
+		err := importer.importScheme(&data, false)
+		require.Nil(t, err)
+	})
+}
 
 // func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 // 	th := Setup(t)

@@ -4,13 +4,16 @@
 package importexport
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	importExportMocks "github.com/mattermost/mattermost-server/v5/services/importexport/mocks"
 	"github.com/mattermost/mattermost-server/v5/store"
+	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
 )
 
 func ptrStr(s string) *string {
@@ -69,72 +72,74 @@ func AssertChannelCount(t *testing.T, s store.Store, channelType string, expecte
 	require.Nil(t, err, "Failed to get channel count.")
 }
 
-// func TestImportImportLine(t *testing.T) {
-// 	th := Setup(t)
-// 	defer th.TearDown()
+func TestImportImportLine(t *testing.T) {
+	appMock := &importExportMocks.ImporterAppIface{}
+	storeMock := &storeMocks.Store{}
+	config := model.Config{}
+	config.SetDefaults()
 
-// 	// Try import line with an invalid type.
-// 	line := LineImportData{
-// 		Type: "gibberish",
-// 	}
+	importer := NewImporter(appMock, storeMock, &config)
 
-// 	importer := NewImporter(th.App, th.App.Srv().Store, th.Config())
+	// Try import line with an invalid type.
+	line := LineImportData{
+		Type: "gibberish",
+	}
 
-// 	err := importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
+	err := importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
-// 	// Try import line with team type but nil team.
-// 	line.Type = "team"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
+	// Try import line with team type but nil team.
+	line.Type = "team"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
-// 	// Try import line with channel type but nil channel.
-// 	line.Type = "channel"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
+	// Try import line with channel type but nil channel.
+	line.Type = "channel"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
-// 	// Try import line with user type but nil user.
-// 	line.Type = "user"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
+	// Try import line with user type but nil user.
+	line.Type = "user"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
-// 	// Try import line with post type but nil post.
-// 	line.Type = "post"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
+	// Try import line with post type but nil post.
+	line.Type = "post"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
-// 	// Try import line with direct_channel type but nil direct_channel.
-// 	line.Type = "direct_channel"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
+	// Try import line with direct_channel type but nil direct_channel.
+	line.Type = "direct_channel"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
-// 	// Try import line with direct_post type but nil direct_post.
-// 	line.Type = "direct_post"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
+	// Try import line with direct_post type but nil direct_post.
+	line.Type = "direct_post"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
-// 	// Try import line with scheme type but nil scheme.
-// 	line.Type = "scheme"
-// 	err = importer.importLine(line, false)
-// 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
-// }
+	// Try import line with scheme type but nil scheme.
+	line.Type = "scheme"
+	err = importer.importLine(line, false)
+	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
+}
 
-// func TestStopOnError(t *testing.T) {
-// 	assert.True(t, stopOnError(LineImportWorkerError{
-// 		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
-// 		1,
-// 	}))
+func TestStopOnError(t *testing.T) {
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
 
-// 	assert.True(t, stopOnError(LineImportWorkerError{
-// 		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
-// 		1,
-// 	}))
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
 
-// 	assert.False(t, stopOnError(LineImportWorkerError{
-// 		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
-// 		1,
-// 	}))
-// }
+	assert.False(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+}
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	data := LineImportData{
