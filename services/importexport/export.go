@@ -55,10 +55,10 @@ var exportablePreferences = map[ComparablePreference]string{{
 
 type BulkExporter struct {
 	s store.Store
-	a AppIface
+	a exporterAppIface
 }
 
-func NewExporter(a AppIface, s store.Store) *BulkExporter {
+func NewExporter(a exporterAppIface, s store.Store) *BulkExporter {
 	return &BulkExporter{a: a, s: s}
 }
 
