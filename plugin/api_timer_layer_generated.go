@@ -133,6 +133,13 @@ func (api *apiTimerLayer) GetDiagnosticId() string {
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetTelemetryId() string {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.GetTelemetryId()
+	api.recordTime(startTime, "GetTelemetryId", true)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CreateUser(user)
