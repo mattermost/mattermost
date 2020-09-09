@@ -76,10 +76,16 @@ func defaultAdvancedShutdown(ctx context.Context) error {
 	return nil
 }
 
-func defaultAddTarget(target logr.Target) error {
+func defaultAddTarget(targets ...logr.Target) error {
 	// mlog.AddTarget should not be called until default
 	// logger is replaced with mlog.Logger instance.
 	return errors.New("cannot AddTarget on default logger")
+}
+
+func defaultRemoveTargets(ctx context.Context, f func(TargetInfo) bool) error {
+	// mlog.RemoveTargets should not be called until default
+	// logger is replaced with mlog.Logger instance.
+	return errors.New("cannot RemoveTargets on default logger")
 }
 
 func defaultEnableMetrics(collector logr.MetricsCollector) error {
