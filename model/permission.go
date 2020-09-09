@@ -25,6 +25,8 @@ var PERMISSION_CREATE_PUBLIC_CHANNEL *Permission
 var PERMISSION_CREATE_PRIVATE_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS *Permission
+var PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE *Permission
+var PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC *Permission
 var PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE *Permission
 var PERMISSION_MANAGE_ROLES *Permission
 var PERMISSION_MANAGE_TEAM_ROLES *Permission
@@ -207,6 +209,18 @@ func initializePermissions() {
 		"manage_private_channel_members",
 		"authentication.permissions.manage_private_channel_members.name",
 		"authentication.permissions.manage_private_channel_members.description",
+		PermissionScopeChannel,
+	}
+	PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE = &Permission{
+		"convert_public_channel_to_private",
+		"authentication.permissions.convert_public_channel_to_private.name",
+		"authentication.permissions.convert_public_channel_to_private.description",
+		PermissionScopeChannel,
+	}
+	PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC = &Permission{
+		"convert_private_channel_to_public",
+		"authentication.permissions.convert_private_channel_to_public.name",
+		"authentication.permissions.convert_private_channel_to_public.description",
 		PermissionScopeChannel,
 	}
 	PERMISSION_ASSIGN_SYSTEM_ADMIN_ROLE = &Permission{
@@ -933,6 +947,8 @@ func initializePermissions() {
 		PERMISSION_MANAGE_CHANNEL_ROLES,
 		PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES,
 		PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+		PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
+		PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC,
 		PERMISSION_DELETE_PUBLIC_CHANNEL,
 		PERMISSION_DELETE_PRIVATE_CHANNEL,
 		PERMISSION_READ_CHANNEL,

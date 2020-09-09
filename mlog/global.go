@@ -5,6 +5,8 @@ package mlog
 
 import (
 	"context"
+	"log"
+	"sync/atomic"
 
 	"github.com/mattermost/logr"
 	"go.uber.org/zap"
@@ -32,10 +34,29 @@ func InitGlobalLogger(logger *Logger) {
 	ConfigAdvancedLogging = globalLogger.ConfigAdvancedLogging
 	ShutdownAdvancedLogging = globalLogger.ShutdownAdvancedLogging
 	AddTarget = globalLogger.AddTarget
+	RemoveTargets = globalLogger.RemoveTargets
+	EnableMetrics = globalLogger.EnableMetrics
+}
+
+// logWriterFunc provides access to mlog via io.Writer, so the standard logger
+// can be redirected to use mlog and whatever targets are defined.
+type logWriterFunc func([]byte) (int, error)
+
+func (lw logWriterFunc) Write(p []byte) (int, error) {
+	return lw(p)
 }
 
 func RedirectStdLog(logger *Logger) {
-	zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")).WithOptions(zap.AddCallerSkip(-2)), zapcore.ErrorLevel)
+	if atomic.LoadInt32(&disableZap) == 0 {
+		zap.RedirectStdLogAt(logger.zap.With(zap.String("source", "stdlog")).WithOptions(zap.AddCallerSkip(-2)), zapcore.ErrorLevel)
+		return
+	}
+
+	writer := func(p []byte) (int, error) {
+		Log(LvlStdLog, string(p))
+		return len(p), nil
+	}
+	log.SetOutput(logWriterFunc(writer))
 }
 
 type LogFunc func(string, ...Field)
@@ -44,7 +65,9 @@ type LogFuncCustomMulti func([]LogLevel, string, ...Field)
 type FlushFunc func(context.Context) error
 type ConfigFunc func(cfg LogTargetCfg) error
 type ShutdownFunc func(context.Context) error
-type AddTargetFunc func(logr.Target) error
+type AddTargetFunc func(...logr.Target) error
+type RemoveTargetsFunc func(context.Context, func(TargetInfo) bool) error
+type EnableMetricsFunc func(logr.MetricsCollector) error
 
 // DON'T USE THIS Modify the level on the app logger
 func GloballyDisableDebugLogForTest() {
@@ -68,3 +91,5 @@ var Flush FlushFunc = defaultFlush
 var ConfigAdvancedLogging ConfigFunc = defaultAdvancedConfig
 var ShutdownAdvancedLogging ShutdownFunc = defaultAdvancedShutdown
 var AddTarget AddTargetFunc = defaultAddTarget
+var RemoveTargets RemoveTargetsFunc = defaultRemoveTargets
+var EnableMetrics EnableMetricsFunc = defaultEnableMetrics
