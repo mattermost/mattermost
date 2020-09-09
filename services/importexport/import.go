@@ -19,11 +19,11 @@ import (
 
 type BulkImporter struct {
 	s      store.Store
-	a      importerAppIface
+	a      ImporterAppIface
 	config *model.Config
 }
 
-func NewImporter(a importerAppIface, s store.Store, config *model.Config) *BulkImporter {
+func NewImporter(a ImporterAppIface, s store.Store, config *model.Config) *BulkImporter {
 	return &BulkImporter{a: a, s: s, config: config}
 }
 

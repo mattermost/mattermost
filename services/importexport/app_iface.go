@@ -8,13 +8,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-type exporterAppIface interface {
+type ExporterAppIface interface {
 	GetPreferencesForUser(userId string) (model.Preferences, *model.AppError)
 	GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError)
 	GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError)
 }
 
-type importerAppIface interface {
+type ImporterAppIface interface {
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
