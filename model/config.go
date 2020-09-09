@@ -3538,4 +3538,8 @@ func (o *Config) Sanitize() {
 	if o.ServiceSettings.GfycatApiSecret != nil && len(*o.ServiceSettings.GfycatApiSecret) > 0 {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
+
+	if o.ServiceSettings.GoogleDeveloperKey != nil && len(*o.ServiceSettings.GoogleDeveloperKey) > 0 {
+		*o.ServiceSettings.GoogleDeveloperKey = FAKE_SETTING
+	}
 }

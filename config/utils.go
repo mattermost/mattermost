@@ -37,6 +37,10 @@ func desanitize(actual, target *model.Config) {
 		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
 	}
 
+	if target.ServiceSettings.GoogleDeveloperKey != nil && *target.ServiceSettings.GoogleDeveloperKey == model.FAKE_SETTING {
+		target.ServiceSettings.GoogleDeveloperKey = actual.ServiceSettings.GoogleDeveloperKey
+	}
+
 	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FAKE_SETTING {
 		target.Office365Settings.Secret = actual.Office365Settings.Secret
 	}
