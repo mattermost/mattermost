@@ -399,6 +399,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
 					mlog.Error("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]interface{}{
 					"display_name": mentioned.DisplayName,
