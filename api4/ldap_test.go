@@ -207,7 +207,7 @@ func TestUploadPublicCertificate(t *testing.T) {
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.UploadLdapPublicCertificate([]byte(spPrivateKey))
+		_, resp = client.UploadLdapPublicCertificate([]byte(spPrivateKey))
 		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 	})
 
@@ -228,7 +228,7 @@ func TestUploadPrivateCertificate(t *testing.T) {
 	require.NotNil(t, resp.Error, "Should have failed. No System Admin privileges")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, resp := client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
+		_, resp = client.UploadLdapPrivateCertificate([]byte(spPrivateKey))
 		require.Nil(t, resp.Error, "Should have passed. System Admin privileges %v", resp.Error)
 	})
 
