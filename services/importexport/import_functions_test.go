@@ -4,14 +4,19 @@
 package importexport
 
 import (
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	importExportMocks "github.com/mattermost/mattermost-server/v5/services/importexport/mocks"
 	storeMocks "github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -3998,122 +4003,200 @@ func TestImportImportScheme(t *testing.T) {
 // 	})
 // }
 
-// func TestImportDirectPostWithAttachments(t *testing.T) {
-// 	th := Setup(t)
-// 	defer th.TearDown()
+func TestImportDirectPostWithAttachments(t *testing.T) {
+	user1 := model.User{
+		Id:       model.NewId(),
+		Username: "user1",
+		Email:    "user1@sample.com",
+	}
+	user2 := model.User{
+		Id:       model.NewId(),
+		Username: "user2",
+		Email:    "user2@sample.com",
+	}
 
-// 	testsDir, _ := fileutils.FindDir("tests")
-// 	testImage := filepath.Join(testsDir, "test.png")
-// 	testImage2 := filepath.Join(testsDir, "test.svg")
-// 	// create a temp file with same name as original but with a different first byte
-// 	tmpFolder, _ := ioutil.TempDir("", "imgFake")
-// 	testImageFake := filepath.Join(tmpFolder, "test.png")
-// 	fakeFileData, _ := ioutil.ReadFile(testImage)
-// 	fakeFileData[0] = 0
-// 	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
-// 	defer os.RemoveAll(tmpFolder)
+	testsDir, _ := fileutils.FindDir("tests")
+	testImage := filepath.Join(testsDir, "test.png")
+	testImage2 := filepath.Join(testsDir, "test.svg")
+	// create a temp file with same name as original but with a different first byte
+	tmpFolder, _ := ioutil.TempDir("", "imgFake")
+	testImageFake := filepath.Join(tmpFolder, "test.png")
+	fakeFileData, _ := ioutil.ReadFile(testImage)
+	fakeFileData[0] = 0
+	_ = ioutil.WriteFile(testImageFake, fakeFileData, 0644)
+	defer os.RemoveAll(tmpFolder)
 
-// 	// Create a user.
-// 	username := model.NewId()
-// 	th.App.importUser(&UserImportData{
-// 		Username: &username,
-// 		Email:    ptrStr(model.NewId() + "@example.com"),
-// 	}, false)
-// 	user1, appErr := th.App.GetUserByUsername(username)
-// 	require.Nil(t, appErr, "Failed to get user1 from database.")
+	directImportData := LineImportWorkerData{
+		LineImportData{
+			DirectPost: &DirectPostImportData{
+				ChannelMembers: &[]string{
+					user1.Username,
+					user2.Username,
+				},
+				User:        &user1.Username,
+				Message:     ptrStr("Direct message"),
+				CreateAt:    ptrInt64(model.GetMillis()),
+				Attachments: &[]AttachmentImportData{{Path: &testImage}},
+			},
+		},
+		3,
+	}
 
-// 	username2 := model.NewId()
-// 	th.App.importUser(&UserImportData{
-// 		Username: &username2,
-// 		Email:    ptrStr(model.NewId() + "@example.com"),
-// 	}, false)
+	t.Run("Regular import of attachment", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		defer appMock.AssertExpectations(t)
+		storeMock := &storeMocks.Store{}
+		defer storeMock.AssertExpectations(t)
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	user2, appErr := th.App.GetUserByUsername(username2)
-// 	require.Nil(t, appErr, "Failed to get user2 from database.")
+		newChannel := model.Channel{Id: model.NewId()}
+		appMock.On("MaxPostSize").Return(65535)
+		appMock.On("GetOrCreateDirectChannel", user1.Id, user2.Id).Return(&newChannel, nil)
+		appMock.On("DoUploadFile", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&model.FileInfo{}, nil)
+		appMock.On("HandleImages", mock.Anything, mock.Anything, mock.Anything)
+		postStore := &storeMocks.PostStore{}
+		postStore.On("GetPostsCreatedAt", newChannel.Id, mock.Anything).Return([]*model.Post{}, nil)
+		postStore.On("SaveMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		postStore.On("OverwriteMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		storeMock.On("Post").Return(postStore)
+		fileInfoMock := &storeMocks.FileInfoStore{}
+		fileInfoMock.On("AttachToPost", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		fileInfoMock.On("GetForUser", user1.Id).Return([]*model.FileInfo{}, nil)
+		storeMock.On("FileInfo").Return(fileInfoMock)
+		userStore := &storeMocks.UserStore{}
+		userStore.On("GetProfilesByUsernames", []string{"user1", "user2"}, (*model.ViewUsersRestrictions)(nil)).Return([]*model.User{&user1, &user2}, nil)
+		storeMock.On("User").Return(userStore)
 
-// 	directImportData := LineImportWorkerData{
-// 		LineImportData{
-// 			DirectPost: &DirectPostImportData{
-// 				ChannelMembers: &[]string{
-// 					user1.Username,
-// 					user2.Username,
-// 				},
-// 				User:        &user1.Username,
-// 				Message:     ptrStr("Direct message"),
-// 				CreateAt:    ptrInt64(model.GetMillis()),
-// 				Attachments: &[]AttachmentImportData{{Path: &testImage}},
-// 			},
-// 		},
-// 		3,
-// 	}
+		errLine, err := importer.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+	})
 
-// 	t.Run("Regular import of attachment", func(t *testing.T) {
-// 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
-// 		require.Nil(t, err, "Expected success.")
-// 		require.Equal(t, 0, errLine)
+	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		defer appMock.AssertExpectations(t)
+		storeMock := &storeMocks.Store{}
+		defer storeMock.AssertExpectations(t)
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
-// 		require.Len(t, attachments, 1)
-// 		assert.Contains(t, attachments[0].Path, "noteam")
-// 		AssertFileIdsInPost(attachments, th.App.Srv().Store, t)
-// 	})
+		newChannel := model.Channel{Id: model.NewId()}
+		appMock.On("MaxPostSize").Return(65535)
+		appMock.On("GetOrCreateDirectChannel", user1.Id, user2.Id).Return(&newChannel, nil)
+		appMock.On("DoUploadFile", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&model.FileInfo{}, nil)
+		appMock.On("HandleImages", mock.Anything, mock.Anything, mock.Anything)
+		postStore := &storeMocks.PostStore{}
+		postStore.On("GetPostsCreatedAt", newChannel.Id, mock.Anything).Return([]*model.Post{}, nil)
+		postStore.On("SaveMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		postStore.On("OverwriteMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		storeMock.On("Post").Return(postStore)
+		fileInfoMock := &storeMocks.FileInfoStore{}
+		fileInfoMock.On("AttachToPost", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		fileInfoMock.On("GetForUser", user1.Id).Return([]*model.FileInfo{}, nil)
+		storeMock.On("FileInfo").Return(fileInfoMock)
+		userStore := &storeMocks.UserStore{}
+		userStore.On("GetProfilesByUsernames", []string{"user1", "user2"}, (*model.ViewUsersRestrictions)(nil)).Return([]*model.User{&user1, &user2}, nil)
+		storeMock.On("User").Return(userStore)
 
-// 	t.Run("Attempt to import again with same file entirely, should NOT add an attachment", func(t *testing.T) {
-// 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
-// 		require.Nil(t, err, "Expected success.")
-// 		require.Equal(t, 0, errLine)
+		errLine, err := importer.importMultipleDirectPostLines([]LineImportWorkerData{directImportData}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+	})
 
-// 		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
-// 		require.Len(t, attachments, 1)
-// 	})
+	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		defer appMock.AssertExpectations(t)
+		storeMock := &storeMocks.Store{}
+		defer storeMock.AssertExpectations(t)
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 	t.Run("Attempt to import again with same name and size but different content, SHOULD add an attachment", func(t *testing.T) {
-// 		directImportDataFake := LineImportWorkerData{
-// 			LineImportData{
-// 				DirectPost: &DirectPostImportData{
-// 					ChannelMembers: &[]string{
-// 						user1.Username,
-// 						user2.Username,
-// 					},
-// 					User:        &user1.Username,
-// 					Message:     ptrStr("Direct message"),
-// 					CreateAt:    ptrInt64(model.GetMillis()),
-// 					Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
-// 				},
-// 			},
-// 			2,
-// 		}
+		newChannel := model.Channel{Id: model.NewId()}
+		appMock.On("MaxPostSize").Return(65535)
+		appMock.On("GetOrCreateDirectChannel", user1.Id, user2.Id).Return(&newChannel, nil)
+		appMock.On("DoUploadFile", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&model.FileInfo{}, nil).Times(1)
+		appMock.On("HandleImages", mock.Anything, mock.Anything, mock.Anything)
+		postStore := &storeMocks.PostStore{}
+		postStore.On("GetPostsCreatedAt", newChannel.Id, mock.Anything).Return([]*model.Post{}, nil)
+		postStore.On("SaveMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		postStore.On("OverwriteMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		storeMock.On("Post").Return(postStore)
+		fileInfoMock := &storeMocks.FileInfoStore{}
+		fileInfoMock.On("AttachToPost", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		fileInfoMock.On("GetForUser", user1.Id).Return([]*model.FileInfo{}, nil)
+		storeMock.On("FileInfo").Return(fileInfoMock)
+		userStore := &storeMocks.UserStore{}
+		userStore.On("GetProfilesByUsernames", []string{"user1", "user2"}, (*model.ViewUsersRestrictions)(nil)).Return([]*model.User{&user1, &user2}, nil)
+		storeMock.On("User").Return(userStore)
 
-// 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportDataFake}, false)
-// 		require.Nil(t, err, "Expected success.")
-// 		require.Equal(t, 0, errLine)
+		directImportDataFake := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						user1.Username,
+						user2.Username,
+					},
+					User:        &user1.Username,
+					Message:     model.NewString("Direct message"),
+					CreateAt:    ptrInt64(model.GetMillis()),
+					Attachments: &[]AttachmentImportData{{Path: &testImageFake}},
+				},
+			},
+			2,
+		}
 
-// 		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
-// 		require.Len(t, attachments, 2)
-// 	})
+		errLine, err := importer.importMultipleDirectPostLines([]LineImportWorkerData{directImportDataFake}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+	})
 
-// 	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
-// 		directImportData2 := LineImportWorkerData{
-// 			LineImportData{
-// 				DirectPost: &DirectPostImportData{
-// 					ChannelMembers: &[]string{
-// 						user1.Username,
-// 						user2.Username,
-// 					},
-// 					User:        &user1.Username,
-// 					Message:     ptrStr("Direct message"),
-// 					CreateAt:    ptrInt64(model.GetMillis()),
-// 					Attachments: &[]AttachmentImportData{{Path: &testImage2}},
-// 				},
-// 			},
-// 			2,
-// 		}
+	t.Run("Attempt to import again with same data, SHOULD add an attachment, since it's different name", func(t *testing.T) {
+		appMock := &importExportMocks.ImporterAppIface{}
+		storeMock := &storeMocks.Store{}
+		config := model.Config{}
+		config.SetDefaults()
+		importer := NewImporter(appMock, storeMock, &config)
 
-// 		errLine, err := th.App.importMultipleDirectPostLines([]LineImportWorkerData{directImportData2}, false)
-// 		require.Nil(t, err, "Expected success.")
-// 		require.Equal(t, 0, errLine)
+		newChannel := model.Channel{Id: model.NewId()}
+		appMock.On("MaxPostSize").Return(65535)
+		appMock.On("GetOrCreateDirectChannel", user1.Id, user2.Id).Return(&newChannel, nil)
+		appMock.On("DoUploadFile", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&model.FileInfo{}, nil).Times(1)
+		appMock.On("HandleImages", mock.Anything, mock.Anything, mock.Anything)
+		postStore := &storeMocks.PostStore{}
+		postStore.On("GetPostsCreatedAt", newChannel.Id, mock.Anything).Return([]*model.Post{}, nil)
+		postStore.On("SaveMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		postStore.On("OverwriteMultiple", mock.Anything).Return([]*model.Post{}, 0, nil)
+		storeMock.On("Post").Return(postStore)
+		fileInfoMock := &storeMocks.FileInfoStore{}
+		fileInfoMock.On("AttachToPost", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+		fileInfoMock.On("GetForUser", user1.Id).Return([]*model.FileInfo{}, nil)
+		storeMock.On("FileInfo").Return(fileInfoMock)
+		userStore := &storeMocks.UserStore{}
+		userStore.On("GetProfilesByUsernames", []string{"user1", "user2"}, (*model.ViewUsersRestrictions)(nil)).Return([]*model.User{&user1, &user2}, nil)
+		storeMock.On("User").Return(userStore)
 
-// 		attachments := GetAttachments(user1.Id, th.App.Srv().Store, t)
-// 		require.Len(t, attachments, 3)
-// 	})
-// }
+		directImportData2 := LineImportWorkerData{
+			LineImportData{
+				DirectPost: &DirectPostImportData{
+					ChannelMembers: &[]string{
+						user1.Username,
+						user2.Username,
+					},
+					User:        &user1.Username,
+					Message:     ptrStr("Direct message"),
+					CreateAt:    ptrInt64(model.GetMillis()),
+					Attachments: &[]AttachmentImportData{{Path: &testImage2}},
+				},
+			},
+			2,
+		}
+
+		errLine, err := importer.importMultipleDirectPostLines([]LineImportWorkerData{directImportData2}, false)
+		require.Nil(t, err, "Expected success.")
+		require.Equal(t, 0, errLine)
+	})
+}
