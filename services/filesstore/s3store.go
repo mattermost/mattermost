@@ -5,6 +5,7 @@ package filesstore
 
 import (
 	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -139,7 +140,8 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 		return true, nil
 	}
 
-	if err.(s3.ErrorResponse).Code == "NoSuchKey" {
+	var s3Err s3.ErrorResponse
+	if errors.As(err, &s3Err); s3Err.Code == "NoSuchKey" {
 		return false, nil
 	}
 
