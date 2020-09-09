@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
@@ -35,6 +36,14 @@ func init() {
 	for _, perm := range model.AllPermissions {
 		allPermissionIDs = append(allPermissionIDs, perm.Id)
 	}
+}
+
+func checkError(t *testing.T, err *model.AppError) {
+	require.NotNil(t, err, "Should have returned an error.")
+}
+
+func checkNoError(t *testing.T, err *model.AppError) {
+	require.Nil(t, err, "Unexpected Error: %v", err)
 }
 
 func TestUnitUpdateConfig(t *testing.T) {
