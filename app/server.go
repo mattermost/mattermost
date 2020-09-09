@@ -26,7 +26,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-	rudder "github.com/rudderlabs/analytics-go"
 
 	"golang.org/x/crypto/acme/autocert"
 
@@ -44,6 +43,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/mailservice"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine"
+	"github.com/mattermost/mattermost-server/v5/services/telemetry"
 	"github.com/mattermost/mattermost-server/v5/services/timezones"
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/services/upgrader"
@@ -57,6 +57,9 @@ import (
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
+
+// declaring this as var to allow overriding in tests
+var SENTRY_DSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlSupplier
@@ -136,8 +139,7 @@ type Server struct {
 	clientConfigHash    atomic.Value
 	limitedClientConfig atomic.Value
 
-	diagnosticId string
-	rudderClient rudder.Client
+	telemetryService *telemetry.TelemetryService
 
 	phase2PermissionsMigrationComplete bool
 
@@ -167,8 +169,7 @@ type Server struct {
 
 	CacheProvider cache.Provider
 
-	tracer                      *tracing.Tracer
-	timestampLastDiagnosticSent time.Time
+	tracer *tracing.Tracer
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -183,7 +184,6 @@ func NewServer(options ...Option) (*Server, error) {
 		hashSeed:            maphash.MakeSeed(),
 	}
 
-	mlog.Info("Server is initializing...")
 	for _, option := range options {
 		if err := option(s); err != nil {
 			return nil, errors.Wrap(err, "failed to apply option")
@@ -202,6 +202,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if err := s.initLogging(); err != nil {
 		mlog.Error(err.Error())
 	}
+
+	// This is called after initLogging() to avoid a race condition.
+	mlog.Info("Server is initializing...")
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -331,6 +334,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.Store = s.newStore()
 
+	s.telemetryService = telemetry.New(s, s.Store, s.SearchEngine, s.Log)
+
 	emailService, err := NewEmailService(s)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
@@ -363,7 +368,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to ensure first run timestamp")
 	}
 
-	s.ensureDiagnosticId()
 	s.regenerateClientConfig()
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -519,7 +523,13 @@ func (s *Server) RunJobs() {
 			runSecurityJob(s)
 		})
 		s.Go(func() {
-			runDiagnosticsJob(s)
+			firstRun, err := s.getFirstServerRunTimestamp()
+			if err != nil {
+				mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
+				s.ensureFirstServerRunTimestamp()
+				firstRun = utils.MillisFromTime(time.Now())
+			}
+			s.telemetryService.RunTelemetryJob(firstRun)
 		})
 		s.Go(func() {
 			runSessionCleanupJob(s)
@@ -676,9 +686,9 @@ func (s *Server) Shutdown() error {
 		}
 	}
 
-	err := s.shutdownDiagnostics()
+	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown diagnostic client", mlog.Err(err))
+		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -1105,34 +1115,6 @@ func runSecurityJob(s *Server) {
 	}, time.Hour*4)
 }
 
-func doDiagnosticsIfNeeded(s *Server, firstRun time.Time) {
-	hoursSinceFirstServerRun := time.Since(firstRun).Hours()
-	// Send once every 10 minutes for the first hour
-	// Send once every hour thereafter for the first 12 hours
-	// Send at the 24 hour mark and every 24 hours after
-	if hoursSinceFirstServerRun < 1 {
-		doDiagnostics(s)
-	} else if hoursSinceFirstServerRun <= 12 && time.Since(s.timestampLastDiagnosticSent) >= time.Hour {
-		doDiagnostics(s)
-	} else if hoursSinceFirstServerRun > 12 && time.Since(s.timestampLastDiagnosticSent) >= 24*time.Hour {
-		doDiagnostics(s)
-	}
-}
-
-func runDiagnosticsJob(s *Server) {
-	// Send on boot
-	doDiagnostics(s)
-	firstRun, err := s.getFirstServerRunTimestamp()
-	if err != nil {
-		mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-		s.ensureFirstServerRunTimestamp()
-		firstRun = utils.MillisFromTime(time.Now())
-	}
-	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnosticsIfNeeded(s, utils.TimeFromMillis(firstRun))
-	}, time.Minute*10)
-}
-
 func runTokenCleanupJob(s *Server) {
 	doTokenCleanup(s)
 	model.CreateRecurringTask("Token Cleanup", func() {
@@ -1165,18 +1147,11 @@ func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
 	doCheckNumberOfActiveUsersWarnMetricStatus(a)
 	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
 		doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	}, time.Hour*24)
+	}, time.Hour*24*7)
 }
 
 func doSecurity(s *Server) {
 	s.DoSecurityUpdateCheck()
-}
-
-func doDiagnostics(s *Server) {
-	if *s.Config().LogSettings.EnableDiagnostics {
-		s.timestampLastDiagnosticSent = time.Now()
-		s.SendDailyDiagnostics()
-	}
 }
 
 func doTokenCleanup(s *Server) {
@@ -1220,21 +1195,22 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || data.Value == model.WARN_METRIC_STATUS_RUNONCE) {
-			mlog.Debug("This metric warning has already been acked or should only run once")
+		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE)) {
+			mlog.Debug("This metric warning has already been acked or it is bot only and ran once")
 			continue
 		}
 
-		if nErr = a.Srv().Store.System().SaveOrUpdate(&model.System{Name: warnMetric.Id, Value: model.WARN_METRIC_STATUS_LIMIT_REACHED}); nErr != nil {
-			mlog.Error("Unable to write to database.", mlog.String("id", warnMetric.Id), mlog.Err(nErr))
-			continue
-		}
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
-
 		if !warnMetric.IsBotOnly {
+			// Banner and bot metrics - send websocket event
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
+
+			// Bot and banner metrics, do not send the bot message again
+			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
+				continue
+			}
 		}
 
 		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
@@ -1243,6 +1219,8 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 
 		if warnMetric.IsRunOnce {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
+		} else {
+			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
 		}
 	}
 }
@@ -1365,39 +1343,6 @@ func (s *Server) stopSearchEngine() {
 	}
 }
 
-// initDiagnostics initialises the Rudder client for the diagnostics system.
-func (s *Server) initDiagnostics(endpoint string, rudderKey string) {
-	if s.rudderClient == nil {
-		config := rudder.Config{}
-		config.Logger = rudder.StdLogger(s.Log.StdLog(mlog.String("source", "rudder")))
-		config.Endpoint = endpoint
-		// For testing
-		if endpoint != RUDDER_DATAPLANE_URL {
-			config.Verbose = true
-			config.BatchSize = 1
-		}
-		client, err := rudder.NewWithConfig(rudderKey, endpoint, config)
-		if err != nil {
-			mlog.Error("Failed to create Rudder instance", mlog.Err(err))
-			return
-		}
-		client.Enqueue(rudder.Identify{
-			UserId: s.diagnosticId,
-		})
-
-		s.rudderClient = client
-	}
-}
-
-// shutdownDiagnostics closes the diagnostics system Rudder client.
-func (s *Server) shutdownDiagnostics() error {
-	if s.rudderClient != nil {
-		return s.rudderClient.Close()
-	}
-
-	return nil
-}
-
 func (s *Server) FileBackend() (filesstore.FileBackend, *model.AppError) {
 	license := s.License()
 	return filesstore.NewFileBackend(&s.Config().FileSettings, license != nil && *license.Features.Compliance)
@@ -1416,25 +1361,6 @@ func (s *Server) TotalWebsocketConnections() int {
 
 func (s *Server) ClusterHealthScore() int {
 	return s.Cluster.HealthScore()
-}
-
-func (s *Server) ensureDiagnosticId() {
-	if s.diagnosticId != "" {
-		return
-	}
-	props, err := s.Store.System().Get()
-	if err != nil {
-		return
-	}
-
-	id := props[model.SYSTEM_DIAGNOSTIC_ID]
-	if len(id) == 0 {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-		s.Store.System().Save(systemID)
-	}
-
-	s.diagnosticId = id
 }
 
 func (s *Server) configOrLicenseListener() {
@@ -1465,4 +1391,15 @@ func (s *Server) initJobs() {
 	if jobsMigrationsInterface != nil {
 		s.Jobs.Migrations = jobsMigrationsInterface(s)
 	}
+}
+
+func (s *Server) TelemetryId() string {
+	if s.telemetryService == nil {
+		return ""
+	}
+	return s.telemetryService.TelemetryID
+}
+
+func (s *Server) HttpService() httpservice.HTTPService {
+	return s.HTTPService
 }

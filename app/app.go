@@ -120,17 +120,15 @@ func (a *App) initJobs() {
 	if jobsExpiryNotifyInterface != nil {
 		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
 	}
-
+	if jobsActiveUsersInterface != nil {
+		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
+	}
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
 
-func (a *App) DiagnosticId() string {
-	return a.Srv().diagnosticId
-}
-
-func (a *App) SetDiagnosticId(id string) {
-	a.Srv().diagnosticId = id
+func (a *App) TelemetryId() string {
+	return a.Srv().TelemetryId()
 }
 
 func (s *Server) HTMLTemplates() *template.Template {
@@ -372,8 +370,8 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 			bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
 			bodyPage.Props["SiteURL"] = a.GetSiteURL()
-			bodyPage.Props["DiagnosticIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
-			bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
+			bodyPage.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+			bodyPage.Props["TelemetryIdValue"] = a.TelemetryId()
 			bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
 			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
