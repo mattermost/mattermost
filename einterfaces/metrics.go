@@ -3,6 +3,8 @@
 
 package einterfaces
 
+import "github.com/mattermost/logr"
+
 type MetricsInterface interface {
 	StartServer()
 	StopServer()
@@ -56,4 +58,7 @@ type MetricsInterface interface {
 	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
 	ObservePluginMultiHookDuration(elapsed float64)
 	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
+
+	ObserveEnabledUsers(users int64)
+	GetLoggerMetricsCollector() logr.MetricsCollector
 }

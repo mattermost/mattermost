@@ -26,6 +26,7 @@ type Workers struct {
 	BleveIndexing            model.Worker
 	ExpiryNotify             model.Worker
 	ProductNotices           model.Worker
+	ActiveUsers              model.Worker
 
 	listenerId string
 }
@@ -72,6 +73,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
 	}
 
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		workers.ActiveUsers = activeUsersInterface.MakeWorker()
+	}
+
 	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
 		workers.ProductNotices = productNoticesInterface.MakeWorker()
 	}
@@ -116,6 +121,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ExpiryNotify != nil {
 			go workers.ExpiryNotify.Run()
+		}
+
+		if workers.ActiveUsers != nil {
+			go workers.ActiveUsers.Run()
 		}
 
 		if workers.ProductNotices != nil {
@@ -223,6 +232,9 @@ func (workers *Workers) Stop() *Workers {
 		workers.ExpiryNotify.Stop()
 	}
 
+	if workers.ActiveUsers != nil {
+		workers.ActiveUsers.Stop()
+	}
 	if workers.ProductNotices != nil {
 		workers.ProductNotices.Stop()
 	}

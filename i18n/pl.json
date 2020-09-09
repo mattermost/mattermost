@@ -48,10 +48,6 @@
         "translation": "Wrzesień"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Nie można przekonwertować eksportu do formatu XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Brak pliku w polu 'Certyfikat' w żądaniu."
     },
@@ -1445,7 +1441,7 @@
     },
     {
         "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-        "translation": "Can not delete a post in a deleted channel."
+        "translation": "Nie można usunąć wiadomości w usuniętym kanale."
     },
     {
         "id": "api.post.disabled_all",
@@ -1489,7 +1485,7 @@
     },
     {
         "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Nie można zaktualizować wiadomości w usuniętym kanale"
     },
     {
         "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1525,7 +1521,7 @@
     },
     {
         "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-        "translation": "Can not update a post in a deleted channel."
+        "translation": "Nie można zaktualizować wiadomości w usuniętym kanale"
     },
     {
         "id": "api.post.update_post.find.app_error",
@@ -1581,7 +1577,7 @@
     },
     {
         "id": "api.restricted_system_admin",
-        "translation": "This action is forbidden to a restricted system admin."
+        "translation": "Ta akcja jest zabroniona u administratora systemu z ograniczeniami."
     },
     {
         "id": "api.roles.patch_roles.license.error",
@@ -2544,10 +2540,6 @@
         "translation": "%s zmienił cel kanału na %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Wystąpił błąd podczas zapisywania danych eksportu."
     },
@@ -3228,10 +3220,6 @@
         "translation": "Ten zespół osiągnął maksymalną dozwoloną liczbę kont. Skontaktuj się z administratorem systemu, aby ustawić wyższy limit."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Nie można ukończyć logowania SAML przy użyciu pustego adresu email."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Osobiste tokeny dostępu są wyłączone na tym serwerze. W celu uzyskania szczegółowych informacji skontaktuj się z administratorem systemu."
     },
@@ -3386,10 +3374,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Nie udało się zindeksować wiadomości"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Najstarszego postu nie można było pobrać z bazy danych."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3692,24 +3676,12 @@
         "translation": "Nie udało się podpisać wygenerowanego ID wywołania dla interaktywnego dialogu."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Nie można przeanalizować zadania eksportowania komunikatu ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Nie można poprosić o anulowanie zadania, które nie jest w stanie anulowania."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Nie udało się ustawić statusu zadania na błąd"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3910,10 +3882,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Nieprawidłowy identyfikator użytkownika"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Napotkano błąd podczas podłączania się do serwera"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5168,46 +5136,6 @@
         "translation": "Nie można uzyskać komendy"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Nie można usunąć załączników użytkownika"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Nie można dołączyć informacji o pliku do wpisu"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Nie można usunąć informacji o pliku do wpisu"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Nie można uzyskać informacji o pliku"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Nie można uzyskać informacji o pliku według ścieżki"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Nie można uzyskać informacji o pliku dla postu"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Nie można uzyskać informacji o pliku dla użytkownika"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Nie można trwale usunąć informacji o pliku"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Nie można zapisać informacji o pliku"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "grupa syncable została już usunięta"
     },
@@ -5224,46 +5152,6 @@
         "translation": "członek grupy już istnieje"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Nie można usunąć zadania"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Nie można uzyskać zadania"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Nie można uzyskać zadań"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Nie można uzyskać liczby zadań według statusu i typu"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Nie można uzyskać najnowszego zadania według statusu i typu"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Nie można zapisać zadania"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Nie można zaktualizować zadania"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Nie można usunąć wartości klucza wtyczki"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Nie można uzyskać wartości klucza wtyczki"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Nie można zapisać ani zaktualizować wartości klucza wtyczki"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Nie można uzyskać liczby postów"
     },
@@ -5274,14 +5162,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Nie można uzyskać liczby użytkowników za pomocą postów"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Nie można usunąć wpisu"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Nie można uzyskać wpisu"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5328,92 +5208,12 @@
         "translation": "Nie można zastąpić wpisu"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Nie można usunąć wpisu"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Nie można usunąć komentarzy dla użytkownika"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Napotkaliśmy błąd podczas trwałego usuwania partii wpisów"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Nie można usunąć wpisów według kanałów"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Nie można wybrać wpisów do usunięcia dla użytkownika"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Nie można wybrać postów do usunięcia dla użytkownika (zbyt wielu), uruchom ponownie"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Nie można zapisać wpisu"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Nie możesz zaktualizować istniejącej wiadomości"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Wyszukiwanie zostało wyłączone na serwerze. Skontaktuj się z Administratorem."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Nie można zaktualizować wpisu"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Wystąpił błąd w trakcie pobierania statusu"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Brak wpisu dla tego statusu"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Nie można porać ilości aktywnych użytkowników"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Wystąpił błąd resetowania wszystkich statusów"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Wystąpił błąd podczas zapisywania statusu"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Wystąpił błąd podczas aktualizowania statusu"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Nie można zaktualizować ostatniej daty i godziny aktywności użytkownika"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Napotkaliśmy błąd podczas wyszukiwania właściwości systemu"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Nie można znaleźć zmiennych systemowych."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Nie można trwale usunąć wpisu tabeli systemowej"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Napotkaliśmy błąd zapisując właściwość systemową"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Napotkaliśmy błąd aktualizując właściwość systemową"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5676,20 +5476,8 @@
         "translation": "Konto z takim adresem e-mail już istnieje."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "To konto nie używa usługi AD/LDAP do autoryzacji, zamiast tego użyj maila i hasła."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "To konto nie używa protokołu SAML do autoryzacji, zamiast tego użyj maila i hasła."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Należy wywołać aktualizacja dla dotychczasowych użytkowników"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Ten zespół osiągnął maksymalną liczbę dozwolonych kont. Skontaktuj się z administratorem systemu, aby ustawić wyższy limit."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5698,14 +5486,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Konto z taką nazwą użytkownika już istnieje."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6128,10 +5908,6 @@
         "translation": "Nie można policzyć prywatnych zespołów"
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Nie udało się zatwierdzić transakcji bazy danych"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
     },
@@ -6148,28 +5924,12 @@
         "translation": "Nie można pobrać wiadomości bezpośrednich"
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Nie można wyświetlić wszystkich kluczy wtyczek"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Możesz usuwać członków grupy z userId \"{{.UserId}}\""
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "nie udało się zbudować zapytania"
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Nie można uzyskać informacji o pliku według ścieżki"
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7742,5 +7502,173 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Nie można uzyskać roli"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Nie można zaktualizować wpisu"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Nie możesz zaktualizować istniejącej wiadomości"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Nie można zapisać wpisu"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Nie można wybrać wpisów do usunięcia dla użytkownika"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Nie można usunąć wpisów według kanałów"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Nie można uzyskać wpisu"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Nie można usunąć wpisu"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Brak wpisu dla tego statusu"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Wystąpił błąd w trakcie pobierania statusu"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Nie można zapisać ani zaktualizować wartości klucza wtyczki"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Nie można wyświetlić wszystkich kluczy wtyczek"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Nie można uzyskać wartości klucza wtyczki"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Nie można usunąć wartości klucza wtyczki"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Napotkaliśmy błąd zapisując właściwość systemową"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Napotkaliśmy błąd zapisując właściwość systemową"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Nie można trwale usunąć wpisu tabeli systemowej"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Nie można znaleźć zmiennych systemowych."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Napotkaliśmy błąd podczas wyszukiwania właściwości systemu"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Nie można ukończyć logowania SAML przy użyciu pustego adresu email."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "To konto nie używa protokołu SAML do autoryzacji, zamiast tego użyj maila i hasła."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Konto o takiej nazwie użytkownika już istnieje. Proszę skontaktować się z Administratorem."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "To konto nie używa usługi AD/LDAP do autoryzacji, zamiast tego użyj maila i hasła."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Osiągnięto limit czasu zadania synchronizacji AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Nie można przeanalizować zadania eksportowania komunikatu ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Nie można przeanalizować zadania eksportu komunikatu BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Napotkano błąd podczas podłączania się do serwera"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Nie znaleziono punktu końcowego interfejsu API klastra."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " załączył plik."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Nie można przekonwertować eksportu do formatu XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Nie można zaktualizować zadania"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Nie można zapisać zadania"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Nie można uzyskać najnowszego zadania według statusu i typu"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Nie można uzyskać liczby zadań według statusu i typu"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Nie można uzyskać zadań"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Nie można uzyskać zadania"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Napotkaliśmy błąd podczas trwałego usuwania informacji o wielu plikach"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Nie można zapisać informacji o pliku"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Nie można usunąć załączników użytkownika"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Nie można uzyskać informacji o pliku według ścieżki"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Nie można uzyskać informacji o pliku dla postu"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Nie można uzyskać informacji o pliku"
     }
 ]
