@@ -732,16 +732,6 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sinceString := r.URL.Query().Get("lastViewed")
-	var lastViewed int64
-	var parseError error
-	if len(sinceString) > 0 {
-		lastViewed, parseError = strconv.ParseInt(sinceString, 10, 64)
-		if parseError != nil {
-			c.SetInvalidParam("lastViewed")
-			return
-		}
-	}
 	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
 	if parseError != nil {
 		c.SetInvalidParam("client")
@@ -750,7 +740,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientVersion := r.URL.Query().Get("clientVersion")
 	locale := r.URL.Query().Get("locale")
 
-	notices, err := c.App.GetProductNotices(lastViewed, c.App.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+	notices, err := c.App.GetProductNotices(c.App.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
 
 	if err != nil {
 		c.Err = err

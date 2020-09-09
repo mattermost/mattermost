@@ -19,6 +19,7 @@ import (
 )
 
 const MAX_REPEAT_VIEWINGS = 3
+const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
 
 // where to fetch notices from. setting as var to allow overriding during build/test
 var NOTICES_JSON_URL = "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
@@ -33,7 +34,7 @@ var cachedUserCount int64
 // previously fetched notices
 var cachedNotices model.ProductNotices
 
-func noticeMatchesConditions(conf *model.Config, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(app AppIface, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -119,7 +120,18 @@ func noticeMatchesConditions(conf *model.Config, client model.NoticeClientType, 
 
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
-		if !validateConfigEntry(conf, k, v) {
+		if !validateConfigEntry(app.Config(), k, v) {
+			return false, nil
+		}
+	}
+
+	// check if user's config matches the notice
+	for k, v := range cnd.UserConfig {
+		res, err := validateUserConfigEntry(app, userId, k, v)
+		if err != nil {
+			return false, err
+		}
+		if !res {
 			return false, nil
 		}
 	}
@@ -132,6 +144,21 @@ func noticeMatchesConditions(conf *model.Config, client model.NoticeClientType, 
 	}
 
 	return true, nil
+}
+
+func validateUserConfigEntry(app AppIface, userId string, key string, expectedValue interface{}) (bool, error) {
+	parts := strings.Split(key, ".")
+	if len(parts) != 2 {
+		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
+	}
+	if _, ok := expectedValue.(string); !ok {
+		return false, errors.New("Invalid format of user config. Value should be string")
+	}
+	pref, err := app.Srv().Store.Preference().Get(userId, parts[0], parts[1])
+	if err != nil {
+		return false, err
+	}
+	return pref.Value == expectedValue, nil
 }
 
 func validateConfigEntry(conf *model.Config, path string, expectedValue interface{}) bool {
@@ -150,7 +177,7 @@ func validateConfigEntry(conf *model.Config, path string, expectedValue interfac
 	return val == expectedValue
 }
 
-func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
 	isSystemAdmin := a.SessionHasPermissionTo(*a.Session(), model.PERMISSION_MANAGE_SYSTEM)
 	isTeamAdmin := a.SessionHasPermissionToTeam(*a.Session(), teamId, model.PERMISSION_MANAGE_TEAM)
 
@@ -185,17 +212,19 @@ func (a *App) GetProductNotices(lastViewed int64, userId, teamId string, client 
 		}
 		if view != nil {
 			repeatable := notice.Repeatable != nil && *notice.Repeatable
-			if !repeatable && view.Viewed > 0 {
-				continue
-			}
-			if repeatable && view.Viewed > MAX_REPEAT_VIEWINGS {
-				continue
-			}
-			if view.Timestamp < lastViewed {
+			if repeatable {
+				if view.Viewed > MAX_REPEAT_VIEWINGS {
+					continue
+				}
+				if (time.Now().UTC().Unix() - view.Timestamp) < MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS {
+					continue
+				}
+			} else if view.Viewed > 0 {
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a.Config(),
+		result, err := noticeMatchesConditions(a,
+			userId,
 			client,
 			clientVersion,
 			locale,

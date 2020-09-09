@@ -12,7 +12,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestNoticeValidation(t *testing.T) {
@@ -22,12 +21,16 @@ func TestNoticeValidation(t *testing.T) {
 	mockSystemStore := mocks.SystemStore{}
 	mockUserStore := mocks.UserStore{}
 	mockPostStore := mocks.PostStore{}
+	mockPreferenceStore := mocks.PreferenceStore{}
 	mockStore.On("Role").Return(&mockRoleStore)
 	mockStore.On("System").Return(&mockSystemStore)
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
+	mockStore.On("Preference").Return(&mockPreferenceStore)
 	mockSystemStore.On("SaveOrUpdate", &model.System{Name: "ActiveLicenseId", Value: ""}).Return(nil)
 	mockUserStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ChannelId: "", ViewRestrictions: (*model.ViewUsersRestrictions)(nil), Roles: []string(nil), ChannelRoles: []string(nil), TeamRoles: []string(nil)}).Return(int64(1), nil)
+	mockPreferenceStore.On("Get", "test", "Stuff", "Data").Return(&model.Preference{Value: "test2"}, nil)
+	mockPreferenceStore.On("Get", "test", "Stuff", "Data2").Return(&model.Preference{Value: "test"}, nil)
 	defer th.TearDown()
 
 	type args struct {
@@ -106,6 +109,42 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  false,
+		},
+		{
+			name: "notice with failing user check due to bad format",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Stuff": "test"},
+					},
+				},
+			},
+			wantErr: true,
+			wantOk:  false,
+		},
+		{
+			name: "notice with failing user check due to mismatch",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Stuff.Data": "test"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice with working user check",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						UserConfig: map[string]interface{}{"Stuff.Data2": "test"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
 		},
 		{
 			name: "notice with server version check",
@@ -291,7 +330,7 @@ func TestNoticeValidation(t *testing.T) {
 			if clientVersion == "" {
 				clientVersion = "1.2.3"
 			}
-			if ok, err := noticeMatchesConditions(th.App.Config(), tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
+			if ok, err := noticeMatchesConditions(th.App, "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
 			} else if ok != tt.wantOk {
 				t.Errorf("noticeMatchesConditions() result = %v, wantOk %v", ok, tt.wantOk)
@@ -347,9 +386,8 @@ func TestNoticeFetch(t *testing.T) {
 	appErr = th.App.UpdateProductNotices()
 	require.Nil(t, appErr)
 
-	now := time.Now().UTC().Unix()
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(0, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -358,7 +396,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(now, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
@@ -375,7 +413,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(now, th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
