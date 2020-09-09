@@ -20,7 +20,7 @@ type LFU struct {
 	invalidateClusterEvent string
 }
 
-// LFUOptions contains options for initializing LFU cache
+// LFUOptions contains options for initializing LFU cache.
 type LFUOptions struct {
 	config                 *ristretto.Config
 	Name                   string
@@ -50,8 +50,6 @@ func NewLFU(config *ristretto.Config) Cache {
 // 	if err != nil {
 // 		panic(err)
 // 	}
-
-// 	// fmt.Println(lfu)
 
 // 	return &LFU{
 // 		cache:                  lfu,
@@ -105,7 +103,6 @@ func (l *LFU) SetWithExpiry(key string, value interface{}, ttl time.Duration) er
 // return ErrKeyNotFound if the key is missing from the cache
 func (l *LFU) Get(key string, value interface{}) error {
 	val, found := l.cache.Get(key)
-	// fmt.Println(val)
 
 	if !found {
 		return ErrKeyNotFound
@@ -123,7 +120,7 @@ func (l *LFU) Get(key string, value interface{}) error {
 // Remove deletes the value for a key.
 func (l *LFU) Remove(key string) error {
 	l.cache.Del(key)
-	// l.len--
+	l.len--
 	return nil
 }
 
