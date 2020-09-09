@@ -1,7 +1,7 @@
 # github.com/Masterminds/squirrel v1.4.0
 ## explicit
 github.com/Masterminds/squirrel
-# github.com/NYTimes/gziphandler v1.1.1
+# github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
 ## explicit
 github.com/NYTimes/gziphandler
 # github.com/RoaringBitmap/roaring v0.5.0
@@ -242,6 +242,9 @@ github.com/jonboulle/clockwork
 github.com/josharian/intern
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
+# github.com/klauspost/compress v1.10.11
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/gzip
 # github.com/klauspost/cpuid v1.3.1
 github.com/klauspost/cpuid
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
