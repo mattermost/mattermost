@@ -52,6 +52,12 @@ type TargetWithMetrics interface {
 	EnableMetrics(collector MetricsCollector, updateFreqMillis int64) error
 }
 
+func (logr *Logr) getMetricsCollector() MetricsCollector {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	return logr.metrics
+}
+
 // SetMetricsCollector enables metrics collection by supplying a MetricsCollector.
 // The MetricsCollector provides counters and gauges that are updated by log targets.
 func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
@@ -59,12 +65,14 @@ func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
 		return errors.New("collector cannot be nil")
 	}
 
+	logr.mux.Lock()
 	logr.metrics = collector
 	logr.queueSizeGauge, _ = collector.QueueSizeGauge("_logr")
 	logr.loggedCounter, _ = collector.LoggedCounter("_logr")
 	logr.errorCounter, _ = collector.ErrorCounter("_logr")
+	logr.mux.Unlock()
 
-	logr.metricsOnce.Do(func() {
+	logr.metricsInitOnce.Do(func() {
 		logr.metricsDone = make(chan struct{})
 		go logr.startMetricsUpdater()
 	})
@@ -75,11 +83,35 @@ func (logr *Logr) SetMetricsCollector(collector MetricsCollector) error {
 	defer logr.tmux.RUnlock()
 	for _, target := range logr.targets {
 		if tm, ok := target.(TargetWithMetrics); ok {
-			if err := tm.EnableMetrics(logr.metrics, logr.MetricsUpdateFreqMillis); err != nil {
+			if err := tm.EnableMetrics(collector, logr.MetricsUpdateFreqMillis); err != nil {
 				merr.Append(err)
 			}
 		}
 
 	}
 	return merr.ErrorOrNil()
+}
+
+func (logr *Logr) setQueueSizeGauge(val float64) {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	if logr.queueSizeGauge != nil {
+		logr.queueSizeGauge.Set(val)
+	}
+}
+
+func (logr *Logr) incLoggedCounter() {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	if logr.loggedCounter != nil {
+		logr.loggedCounter.Inc()
+	}
+}
+
+func (logr *Logr) incErrorCounter() {
+	logr.mux.RLock()
+	defer logr.mux.RUnlock()
+	if logr.errorCounter != nil {
+		logr.errorCounter.Inc()
+	}
 }
