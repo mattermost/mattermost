@@ -48,10 +48,6 @@
         "translation": "september"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Kan export niet converteren naar XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
     },
@@ -141,7 +137,7 @@
     },
     {
         "id": "api.channel.add_user_to_channel.type.app_error",
-        "translation": "Kan geen gebruikers toevoegen aan dit soort kanaal."
+        "translation": "Kan geen gebruiker toevoegen aan dit type kanaal."
     },
     {
         "id": "api.channel.change_channel_privacy.private_to_public",
@@ -149,7 +145,7 @@
     },
     {
         "id": "api.channel.change_channel_privacy.public_to_private",
-        "translation": "This kanaal is omgezet naar een privékanaal."
+        "translation": "Dit kanaal is omgezet naar een privékanaal."
     },
     {
         "id": "api.channel.convert_channel_to_private.default_channel_error",
@@ -169,7 +165,7 @@
     },
     {
         "id": "api.channel.create_default_channels.off_topic",
-        "translation": "Allerlei"
+        "translation": "Off-Topic"
     },
     {
         "id": "api.channel.create_default_channels.town_square",
@@ -221,7 +217,7 @@
     },
     {
         "id": "api.channel.leave.last_member.app_error",
-        "translation": "U bent het laatste lid, probeer de privékanaalte verwijderen in plaats van die te verlaten."
+        "translation": "Je bent het laatste lid, probeer de privékanaal te verwijderen in plaats van dit te verlaten."
     },
     {
         "id": "api.channel.leave.left",
@@ -245,7 +241,7 @@
     },
     {
         "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-        "translation": "%s heeft de kanaalkoptekst veranderd van: %s naar: %s"
+        "translation": "%s heeft de kanaalnaam veranderd van: %s naar: %s"
     },
     {
         "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
@@ -1608,7 +1604,7 @@
     },
     {
         "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-        "translation": "Unable to forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server"
+        "translation": "Kan niet doorsturen van poort 80 naar poort 443 al luisteren op poort %s: schakel Forward80To443 uit als je een proxyserver gebruikt"
     },
     {
         "id": "api.server.start_server.rate_limiting_memory_store",
@@ -1624,11 +1620,11 @@
     },
     {
         "id": "api.slackimport.slack_add_bot_user.email_pwd",
-        "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+        "translation": "De integratie/Slack Bot gebruiker met email {{.Email}} en wachtwoord {{.Password}} werd geïmporteerd.\n"
     },
     {
         "id": "api.slackimport.slack_add_bot_user.unable_import",
-        "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
+        "translation": "Fout bij het importeren van  Integratie /Slack Bot gebruiker {{.Username}}.\n"
     },
     {
         "id": "api.slackimport.slack_add_channels.added",
@@ -1672,7 +1668,7 @@
     },
     {
         "id": "api.slackimport.slack_import.log",
-        "translation": "Mattermost Slack importeer log\r\n"
+        "translation": "Mattermost Slack importeer log\n"
     },
     {
         "id": "api.slackimport.slack_import.note1",
@@ -1688,11 +1684,11 @@
     },
     {
         "id": "api.slackimport.slack_import.notes",
-        "translation": "\r\n Notities \r\n"
+        "translation": "\nNotities:\n"
     },
     {
         "id": "api.slackimport.slack_import.open.app_error",
-        "translation": "Unable to open the file: {{.Filename}}.\r\n"
+        "translation": "Kan het bestand {{.Filename}} niet openen.\n"
     },
     {
         "id": "api.slackimport.slack_import.team_fail",
@@ -1812,31 +1808,31 @@
     },
     {
         "id": "api.team.set_team_icon.decode.app_error",
-        "translation": "Could not decode team icon"
+        "translation": "Kan het teampictogram niet decoderen."
     },
     {
         "id": "api.team.set_team_icon.decode_config.app_error",
-        "translation": "Could not decode team icon metadata"
+        "translation": "Kan de metadata van teampictogram niet decoderen."
     },
     {
         "id": "api.team.set_team_icon.encode.app_error",
-        "translation": "Could not encode team icon"
+        "translation": "Kan het teampictogram niet encoderen."
     },
     {
         "id": "api.team.set_team_icon.get_team.app_error",
-        "translation": "An error occurred getting the team"
+        "translation": "Er trad een fout op bij het ophalen van het team."
     },
     {
         "id": "api.team.set_team_icon.no_file.app_error",
-        "translation": "Geen bestand bij 'image' in aanvraag"
+        "translation": "Geen bestand bij 'image' in aanvraag."
     },
     {
         "id": "api.team.set_team_icon.open.app_error",
-        "translation": "Kan licentie bestand niet openen"
+        "translation": "Kan afbeeldingsbestand niet openen."
     },
     {
         "id": "api.team.set_team_icon.parse.app_error",
-        "translation": "Kan het 'multipart'-formulier niet verwerken"
+        "translation": "Kan het 'multipart'-formulier niet verwerken."
     },
     {
         "id": "api.team.set_team_icon.storage.app_error",
@@ -1848,11 +1844,11 @@
     },
     {
         "id": "api.team.set_team_icon.write_file.app_error",
-        "translation": "Could not save team icon"
+        "translation": "Kan het teampictogram niet bewaren."
     },
     {
         "id": "api.team.team_icon.update.app_error",
-        "translation": "An error occurred updating the team icon"
+        "translation": "Er trad een fout op bij het bijwerken van het teampictogram."
     },
     {
         "id": "api.team.update_member_roles.not_a_member",
@@ -2016,7 +2012,7 @@
     },
     {
         "id": "api.templates.signin_change_email.body.info",
-        "translation": "U heeft uw inlog methode op {{ .SiteName }} bijgewerkt"
+        "translation": "Je hebt je aanmeldwijze op {{ .SiteName }} bijgewerkt naar {{.Method}}."
     },
     {
         "id": "api.templates.signin_change_email.body.method_email",
@@ -2100,7 +2096,7 @@
     },
     {
         "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-        "translation": "MFA is niet beschikbaar voor dit account type"
+        "translation": "MFA is niet beschikbaar voor dit account type."
     },
     {
         "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2108,11 +2104,11 @@
     },
     {
         "id": "api.user.authorize_oauth_user.bad_response.app_error",
-        "translation": "Ongeldig response bij aanvraag van een token"
+        "translation": "Ongeldig antwoord bij aanvraag van een token."
     },
     {
         "id": "api.user.authorize_oauth_user.bad_token.app_error",
-        "translation": "Ongeldig token type"
+        "translation": "Ongeldig token type."
     },
     {
         "id": "api.user.authorize_oauth_user.invalid_state.app_error",
@@ -2120,23 +2116,23 @@
     },
     {
         "id": "api.user.authorize_oauth_user.missing.app_error",
-        "translation": "Toegangs token mist"
+        "translation": "Toegangstoken ontbreekt."
     },
     {
         "id": "api.user.authorize_oauth_user.response.app_error",
-        "translation": "Received invalid response from OAuth service provider"
+        "translation": "Ongeldig antwoord ontvangen van de OAuth service provider."
     },
     {
         "id": "api.user.authorize_oauth_user.service.app_error",
-        "translation": "Token aanvraag voor {{.Service}} is mislukt"
+        "translation": "Token aanvraag voor {{.Service}} is mislukt."
     },
     {
         "id": "api.user.authorize_oauth_user.token_failed.app_error",
-        "translation": "Token aanvraag mislukt"
+        "translation": "Token aanvraag mislukte."
     },
     {
         "id": "api.user.authorize_oauth_user.unsupported.app_error",
-        "translation": "Niet ondersteunde OAuth service provider"
+        "translation": "Niet ondersteunde OAuth service provider."
     },
     {
         "id": "api.user.check_user_login_attempts.too_many.app_error",
@@ -2148,11 +2144,11 @@
     },
     {
         "id": "api.user.check_user_password.invalid.app_error",
-        "translation": "Inloggen mislukt, door een verkeerd wachtwoord"
+        "translation": "Inloggen mislukt door een foutief wachtwoord."
     },
     {
         "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Lege e-mail"
+        "translation": "Lege e-mail."
     },
     {
         "id": "api.user.complete_switch_with_oauth.parse.app_error",
@@ -2524,23 +2520,19 @@
     },
     {
         "id": "app.channel.post_update_channel_purpose_message.removed",
-        "translation": "%s heeft de kanaalkoptekst verwijderd (was: %s)"
+        "translation": "%s heeft de kanaaldoel verwijderd (was: %s)"
     },
     {
         "id": "app.channel.post_update_channel_purpose_message.retrieve_user.error",
-        "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+        "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaaldoel %v"
     },
     {
         "id": "app.channel.post_update_channel_purpose_message.updated_from",
-        "translation": "%s heeft de kanaalkoptekst veranderd van \"%s\" naar \"%s\""
+        "translation": "%s heeft de kanaaldoel veranderd van \"%s\" naar: \"%s\""
     },
     {
         "id": "app.channel.post_update_channel_purpose_message.updated_to",
-        "translation": "%s heeft de kanaalkoptekst bijgewerkt naar: %s"
-    },
-    {
-        "id": "app.cluster.404.app_error",
-        "translation": "Cluster API endpoint not found."
+        "translation": "%s heeft het kanaaldoel bijgewerkt naar: %s"
     },
     {
         "id": "app.export.export_write_line.io_writer.error",
@@ -3223,10 +3215,6 @@
         "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Unable to complete SAML login with an empty email address."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
     },
@@ -3381,10 +3369,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "The oldest post could not be retrieved from the database."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3687,24 +3671,12 @@
         "translation": "Failed to sign generated trigger ID for interactive dialog."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Could not parse message export job BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Could not parse message export job ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Could not request cancellation for job that is not in a cancelable state."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Failed to set job status to error"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Reached AD/LDAP synchronization job timeout."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3877,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Ongeldige gebruikers id"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5163,46 +5131,6 @@
         "translation": "Bericht kan niet opgehaald worden"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Unable to delete attachments of the user"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Unable to permanently delete the file info"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "We encountered an error permanently deleting the batch of file infos"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "We konden de bestandsinfo niet ophalen"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "group syncable was already deleted"
     },
@@ -5219,46 +5147,6 @@
         "translation": "group member already exists"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Unable to get the job count by status and type"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Unable to get the newest job by status and type"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Could not delete plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Could not get plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Could not save or update plugin key value"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Unable to get post counts"
     },
@@ -5269,14 +5157,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Unable to get user counts with posts"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5203,12 @@
         "translation": "Bericht kan niet opgehaald worden"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "We kunnen het bericht voor de gebruiker niet verwijderen"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "We encountered an error permanently deleting the batch of posts"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Kan de kanalen niet ophalen"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "We kunnen de geselecteerde berichten voor de gebruiker niet verwijderen (het zijn er te veel), probeer opnieuw"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Een bestaand bericht kan niet bijwerkt worden"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Bericht kan niet opgehaald worden"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het ophalen van de status"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Er is niks ingevoerd voor deze status"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "De gebruikers kunnen niet geteld worden"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het resetten van alle statussen."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het opslaan van de status"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Er is een fout opgetreden tijdens het bijwerken van de status"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Unable to update the last activity date and time of the user"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het zoeken van de systeem instellingen"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Unable to find the system variable."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "We could not permanently delete the system table entry"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het opslaan van de systeem instellingen"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Er is een probleem opgetreden tijdens het bijwerken van een systeem instelling"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5471,8 @@
         "translation": "Een account met dat e-mail adres bestaat al."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Dit account gebruikt geen SAML authenticatie. Log in met e-mail en wachtwoord."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Bijwerken moet aangeroepen worden voor bestaande gebruikers"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5481,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Een account met deze gebruikersnaam bestaat al."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Een account met die gebruikersnaam bestaat al. Neem kontakt op met de systeembeheerder."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6147,10 +5927,6 @@
         "translation": "De private teams kunnen niet worden geteld."
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Fout bij het ophalen van het aantal antwoorden op het bericht"
     },
@@ -6167,28 +5943,12 @@
         "translation": "Directe berichten kunnen niet worden opgehaald."
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Kan niet alle plugin-sleutels oplijsten."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Meer dan 1 rij gevonden op MySQL na KVCompareAndSet met ongewijzigde waarde."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Query voor bestaande rij op MySQL is mislukt na KVCompareAndSet met ongewijzigde waarde."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Het groepslid kan niet worden verwijderd met gebruikersid \"{{.UserId}}\"."
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "maken van query is mislukt."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Bestandsinformatie met opties kan niet worden opgehaald."
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7196,7 +6956,7 @@
     },
     {
         "id": "api.channel.guest_join_channel.post_and_forget",
-        "translation": "%v vervoegde het kanaal als gast."
+        "translation": "%v is als gast het kanaal binnen gekomen."
     },
     {
         "id": "api.channel.get_channel_moderations.license.error",
@@ -7756,7 +7516,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+        "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
@@ -7764,7 +7524,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+        "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
     },
     {
         "id": "api.server.warn_metric.email_us",
@@ -8029,5 +7789,213 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Kan bot niet converteren naar gebruiker."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Een bestaand bericht kan niet bijwerkt worden"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "We kunnen de gekozen berichten voor de gebruiker niet verwijderen"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Kan de kanalen niet ophalen"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Bericht kan niet opgehaald worden"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Kan geen teamlidmaatschap aanmaken omdat er dit reeds bestaat"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Kan geen nieuwe teamlidmaatschap aanmaken omdat het team zijn maximum aantal leden bereikt heeft"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Kan geen nieuw teamlidmaatschap aanmaken"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Er is niks ingevoerd voor deze status"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het ophalen van de status"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Kan de plugin sleutelwaarde niet bewaren of bijwerken."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Kan niet alle pluginsleutels oplijsten."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Kan de plugin sleutelwaarde niet ophalen."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Kan de plugin sleutelwaarde niet verwijderen."
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Kan geen standaard teamlidmaatschap importeren omdat er geen nieuwe leden toegelaten zijn in dat team"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Kan geen teamlidmaatschappen importeren"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Kan geen nieuwe teamlidmaatschap aanmaken omdat het reeds bestaat"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Kan geen standaard teamlidmaatschap aanmaken omdat er geen nieuwe leden toegelaten zijn in dat team"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Kan geen standaard teamlidmaatschap aanmaken omdat dit reeds bestaat"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Kan geen standaard teamlidmaatschappen aanmaken"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Er trad een fout op bij het bewaren van de systeemeigenschap."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Er trad een fout op bij het bewaren van de systeemeigenschap."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "We konden het element niet definitief verwijderen uit de systeemtabel."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Fout bij het vinden van de systeemvariable."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Er trad een fout op bij het ophalen van de systeemeigenschappen."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Unable to complete SAML login with an empty email address."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Dit account gebruikt geen SAML authenticatie. Log in met e-mail en wachtwoord."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Een account met die gebruikersnaam bestaat al. Neem contact op met de systeembeheerder."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Dit account gebruikt geen AD/LDAP authenticatie. Log in met e-mail en wachtwoord."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Reached AD/LDAP synchronization job timeout."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Could not parse message export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Could not parse message export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Er is een probleem opgetreden tijdens het verbinden met de server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster API endpoint not found."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " voegde een bestand toe."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Kan export niet converteren naar XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Taak kan niet worden bijgewerkt."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Kan de taak niet bewaren."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "De nieuwste taak kan niet worden opgehaald naar status en type."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Aantal taken kan niet worden opgehaald naar status en type."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "De taken kunnen niet worden opgehaald."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "De taak kan niet worden opgehaald."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Er is een fout opgetreden bij het permanent verwijderen van de batch met bestandsinfo."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Kan de bestandsinformatie niet bewaren."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Bijlagen van de gebruiker kunnen niet worden gewist."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Bestandsinformatie met opties kan niet worden opgehaald."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "De bestandsinformatie voor de post kan niet worden opgehaald."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "De bestandsinformatie kan niet worden opgehaald."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Definitief verwijderen van de teams is niet ingeschakeld. Contacteer je systeembeheerder."
     }
 ]

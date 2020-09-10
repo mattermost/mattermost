@@ -332,7 +332,7 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
-	msg.ServerId = a.DiagnosticId()
+	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Info("Notification will be sent",
 		mlog.String("ackId", msg.AckId),

@@ -108,10 +108,10 @@ if [[ -z "${VET_SKIP_PROTO}" ]]; then
     (git status; git --no-pager diff; exit 1)
 fi
 
-# - Check that our module is tidy.
+# - Check that our modules are tidy.
 if go help mod >& /dev/null; then
-  go mod tidy && \
-    git status --porcelain 2>&1 | fail_on_output || \
+  find . -name 'go.mod' | xargs -IXXX bash -c 'cd $(dirname XXX); go mod tidy'
+  git status --porcelain 2>&1 | fail_on_output || \
     (git status; git --no-pager diff; exit 1)
 fi
 
@@ -135,6 +135,7 @@ balancer.Picker
 grpc.CallCustomCodec
 grpc.Code
 grpc.Compressor
+grpc.CustomCodec
 grpc.Decompressor
 grpc.MaxMsgSize
 grpc.MethodConfig
