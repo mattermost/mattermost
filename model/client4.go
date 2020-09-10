@@ -1866,7 +1866,11 @@ func (c *Client4) GetTeamMember(teamId, userId, etag string) (*TeamMember, *Resp
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r)
+	tm, jsonErr := TeamMemberFromJson(r.Body)
+	if jsonErr != nil {
+		return nil, &Response{Error: NewAppError("GetTeamMember", "model.client.from_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)}
+	}
+	return tm, BuildResponse(r)
 }
 
 // UpdateTeamMemberRoles will update the roles on a team for a user.
@@ -2015,7 +2019,11 @@ func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) 
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r)
+	tm, jsonErr := TeamMemberFromJson(r.Body)
+	if jsonErr != nil {
+		return nil, &Response{Error: NewAppError("GetTeamMember", "model.client.from_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)}
+	}
+	return tm, BuildResponse(r)
 }
 
 // AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
@@ -2036,7 +2044,12 @@ func (c *Client4) AddTeamMemberFromInvite(token, inviteId string) (*TeamMember, 
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TeamMemberFromJson(r.Body), BuildResponse(r)
+
+	tm, jsonErr := TeamMemberFromJson(r.Body)
+	if jsonErr != nil {
+		return nil, &Response{Error: NewAppError("GetTeamMember", "model.client.from_json.app_error", nil, jsonErr.Error(), http.StatusBadRequest)}
+	}
+	return tm, BuildResponse(r)
 }
 
 // AddTeamMembers adds a number of users to a team and returns the team members.

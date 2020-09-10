@@ -2143,6 +2143,10 @@
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
   },
   {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },

@@ -69,10 +69,12 @@ func (o *TeamUnread) ToJson() string {
 	return string(b)
 }
 
-func TeamMemberFromJson(data io.Reader) *TeamMember {
+func TeamMemberFromJson(data io.Reader) (*TeamMember, error) {
 	var o *TeamMember
-	json.NewDecoder(data).Decode(&o)
-	return o
+	if err := json.NewDecoder(data).Decode(&o); err != nil {
+		return nil, err
+	}
+	return o, nil
 }
 
 func TeamUnreadFromJson(data io.Reader) *TeamUnread {
