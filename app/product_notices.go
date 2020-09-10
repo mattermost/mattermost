@@ -247,6 +247,8 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 			filteredNotices = append(filteredNotices, model.NoticeMessage{
 				NoticeMessageInternal: notice.LocalizedMessages[selectedLocale],
 				ID:                    notice.ID,
+				TeamAdminOnly:         notice.TeamAdminOnly(),
+				SysAdminOnly:          notice.SysAdminOnly(),
 			})
 		}
 	}

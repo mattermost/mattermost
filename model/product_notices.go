@@ -30,6 +30,14 @@ type ProductNotice struct {
 	Repeatable        *bool                            `json:"repeatable,omitempty"` // Configurable flag if the notice should reappear after it’s seen and dismissed
 }
 
+func (n *ProductNotice) SysAdminOnly() bool {
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_Sysadmin
+}
+
+func (n *ProductNotice) TeamAdminOnly() bool {
+	return n.Conditions.Audience != nil && *n.Conditions.Audience == NoticeAudience_TeamAdmin
+}
+
 type Conditions struct {
 	Audience       *NoticeAudience        `json:"audience,omitempty"`
 	ClientType     *NoticeClientType      `json:"clientType,omitempty"`     // Only show the notice on specific clients. Defaults to 'all'
@@ -57,7 +65,9 @@ type NoticeMessages []NoticeMessage
 
 type NoticeMessage struct {
 	NoticeMessageInternal
-	ID string `json:"id"`
+	ID            string `json:"id"`
+	SysAdminOnly  bool   `json:"sysAdminOnly"`
+	TeamAdminOnly bool   `json:"teamAdminOnly"`
 }
 
 func (r *NoticeMessages) Marshal() ([]byte, error) {
