@@ -12,7 +12,8 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-
+      NOTICES_JSON_URL: "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
+      NOTICES_FETCH_SECS: 3600
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -169,11 +170,12 @@ jobs:
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' NOTICES_JSON_URL='${NOTICES_JSON_URL}' NOTICES_FETCH_SECS='${NOTICES_FETCH_SECS}'
             curl -sL https://sentry.io/get-cli/ | bash
             export VERSION=$(sentry-cli releases propose-version)
             sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
             sentry-cli --log-level=debug releases set-commits --auto $VERSION
+
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -381,7 +383,7 @@ jobs:
 
   upload-s3:
     docker:
-    - image: 'circleci/python:2.7'
+      - image: 'circleci/python:2.7'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -420,9 +422,9 @@ workflows:
       - setup:
           filters:
             branches:
-                ignore:
-                  - master
-                  - /^release-.*/
+              ignore:
+                - master
+                - /^release-.*/
       - check-deps:
           context: sast-webhook
           requires:

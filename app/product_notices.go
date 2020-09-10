@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/v5/store"
 	"net/http"
 	"reflect"
 	"strings"
@@ -24,6 +25,9 @@ const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
 // where to fetch notices from. setting as var to allow overriding during build/test
 var NOTICES_JSON_URL = "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
 
+// notice.json fetch frequency in seconds. setting as var to allow overriding during build/test
+var NOTICES_JSON_FETCH_FREQUENCY_SECONDS = "3600" // one hour by default
+
 // http request cache
 var noticesCache = utils.RequestCache{}
 
@@ -34,7 +38,7 @@ var cachedUserCount int64
 // previously fetched notices
 var cachedNotices model.ProductNotices
 
-func noticeMatchesConditions(app AppIface, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
+func noticeMatchesConditions(config *model.Config, preferences store.PreferenceStore, userId string, client model.NoticeClientType, clientVersion, locale string, postCount, userCount int64, isSystemAdmin, isTeamAdmin bool, isCloud bool, sku string, notice *model.ProductNotice) (bool, error) {
 	cnd := notice.Conditions
 
 	// check client type
@@ -120,14 +124,14 @@ func noticeMatchesConditions(app AppIface, userId string, client model.NoticeCli
 
 	// check if our server config matches the notice
 	for k, v := range cnd.ServerConfig {
-		if !validateConfigEntry(app.Config(), k, v) {
+		if !validateConfigEntry(config, k, v) {
 			return false, nil
 		}
 	}
 
 	// check if user's config matches the notice
 	for k, v := range cnd.UserConfig {
-		res, err := validateUserConfigEntry(app, userId, k, v)
+		res, err := validateUserConfigEntry(preferences, userId, k, v)
 		if err != nil {
 			return false, err
 		}
@@ -146,7 +150,7 @@ func noticeMatchesConditions(app AppIface, userId string, client model.NoticeCli
 	return true, nil
 }
 
-func validateUserConfigEntry(app AppIface, userId string, key string, expectedValue interface{}) (bool, error) {
+func validateUserConfigEntry(preferences store.PreferenceStore, userId string, key string, expectedValue interface{}) (bool, error) {
 	parts := strings.Split(key, ".")
 	if len(parts) != 2 {
 		return false, errors.New("Invalid format of user config. Must be in form of Category.SettingName")
@@ -154,7 +158,7 @@ func validateUserConfigEntry(app AppIface, userId string, key string, expectedVa
 	if _, ok := expectedValue.(string); !ok {
 		return false, errors.New("Invalid format of user config. Value should be string")
 	}
-	pref, err := app.Srv().Store.Preference().Get(userId, parts[0], parts[1])
+	pref, err := preferences.Get(userId, parts[0], parts[1])
 	if err != nil {
 		return false, err
 	}
@@ -199,7 +203,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 	sku := a.Srv().ClientLicense()["SkuShortName"]
 	isCloud := a.Srv().ClientLicense()["Cloud"] != ""
 
-	var filteredNotices []model.NoticeMessage
+	filteredNotices := make([]model.NoticeMessage, 0)
 
 	for noticeIndex, notice := range cachedNotices {
 		// check if the notice has been viewed already
@@ -223,7 +227,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 				continue
 			}
 		}
-		result, err := noticeMatchesConditions(a,
+		result, err := noticeMatchesConditions(a.Config(), a.Srv().Store.Preference(),
 			userId,
 			client,
 			clientVersion,
@@ -258,6 +262,7 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 }
 
 func (a *App) UpdateProductNotices() *model.AppError {
+	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL))
 	var appErr *model.AppError
 	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if appErr != nil {

@@ -48,6 +48,8 @@ ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
 else
 	BUILD_CLIENT = false
 endif
+NOTICES_JSON_URL ?= https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json
+NOTICES_FETCH_SECS ?= 3600
 
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
@@ -61,6 +63,8 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_URL=$(NOTICES_JSON_URL)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS=$(NOTICES_FETCH_SECS)"
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
