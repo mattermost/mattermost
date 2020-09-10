@@ -1151,6 +1151,8 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *mode
 	return dbMembers.ToModel(), nil
 }
 
+// GetTeamsForUserWithPagination returns limited TeamMembers according to the perPage parameter specified.
+// It also offsets the records as per the page parameter supplied.
 func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId}).
@@ -1171,6 +1173,8 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 	return dbMembers.ToModel(), nil
 }
 
+// GetChannelUnreadsForAllTeams returns unreads msg count, mention counts, and notifyProps
+// for all the channels in all the teams except the excluded ones.
 func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
@@ -1192,6 +1196,7 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 	return data, nil
 }
 
+// GetChannelUnreadsForTeam returns unreads msg count, mention counts and notifyProps for all the channels in a single team.
 func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
@@ -1373,6 +1378,7 @@ func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
 	return nil
 }
 
+// ClearCaches method not implemented.
 func (s SqlTeamStore) ClearCaches() {}
 
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
