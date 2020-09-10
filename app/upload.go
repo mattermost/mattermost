@@ -28,7 +28,7 @@ func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession
 	us.FileOffset = 0
 	now := time.Now()
 	us.CreateAt = model.GetMillisForTime(now)
-	us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + us.Filename
+	us.Path = now.Format("20060102") + "/teams/noteam/channels/" + us.ChannelId + "/users/" + us.UserId + "/" + us.Id + "/" + filepath.Base(us.Filename)
 	if err := us.IsValid(); err != nil {
 		return nil, err
 	}
