@@ -26,7 +26,7 @@ func UnmarshalProductNotices(data []byte) (ProductNotices, error) {
 type ProductNotice struct {
 	Conditions        Conditions                       `json:"conditions"`
 	ID                string                           `json:"id"`                   // Unique identifier for this notice. Can be a running number. Used for storing 'viewed'; state on the server.
-	LocalizedMessages map[string]NoticeMessageInternal `json:"localizedMessages"`    // Notice message data, organized by locale.; Example:; "localizedMessages": {; "enUS": { "title": "English", description: "English description"},; "frFR": { "title": "Frances", description: "French description"}; }
+	LocalizedMessages map[string]NoticeMessageInternal `json:"localizedMessages"`    // Notice message data, organized by locale.; Example:; "localizedMessages": {; "en": { "title": "English", description: "English description"},; "frFR": { "title": "Frances", description: "French description"}; }
 	Repeatable        *bool                            `json:"repeatable,omitempty"` // Configurable flag if the notice should reappear after it’s seen and dismissed
 }
 

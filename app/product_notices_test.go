@@ -45,7 +45,7 @@ func TestNoticeValidation(t *testing.T) {
 		notice               *model.ProductNotice
 	}
 	messages := map[string]model.NoticeMessageInternal{
-		"enUS": {
+		"en": {
 			Description: "descr",
 			Title:       "title",
 		},
@@ -346,7 +346,7 @@ func TestNoticeFetch(t *testing.T) {
 		Conditions: model.Conditions{},
 		ID:         "123",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{
-			"enUS": {
+			"en": {
 				Description: "description",
 				Title:       "title",
 			},
@@ -362,7 +362,7 @@ func TestNoticeFetch(t *testing.T) {
 		},
 		ID: "333",
 		LocalizedMessages: map[string]model.NoticeMessageInternal{
-			"enUS": {
+			"en": {
 				Description: "description",
 				Title:       "title",
 			},
@@ -387,7 +387,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them for specified user
-	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr := th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 1)
 
@@ -396,7 +396,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, see that none are returned
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 
@@ -413,7 +413,7 @@ func TestNoticeFetch(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// get them again, since conditions don't match we should be zero
-	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "enUS")
+	messages, appErr = th.App.GetProductNotices(th.BasicUser.Id, th.BasicTeam.Id, model.NoticeClientType_All, "1.2.3", "en")
 	require.Nil(t, appErr)
 	require.Len(t, messages, 0)
 

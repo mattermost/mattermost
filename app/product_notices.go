@@ -243,7 +243,7 @@ func (a *App) GetProductNotices(userId, teamId string, client model.NoticeClient
 			return nil, model.NewAppError("GetProductNotices", "api.system.update_notices.validating_failed", nil, err.Error(), http.StatusBadRequest)
 		}
 		if result {
-			selectedLocale := "enUS"
+			selectedLocale := "en"
 			filteredNotices = append(filteredNotices, model.NoticeMessage{
 				NoticeMessageInternal: notice.LocalizedMessages[selectedLocale],
 				ID:                    notice.ID,
