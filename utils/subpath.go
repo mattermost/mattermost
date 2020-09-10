@@ -90,10 +90,8 @@ func UpdateAssetsSubpath(subpath string) error {
 		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
-	fmt.Println("REPLACEING CSP")
-
 	newRootHtml = reCSP.ReplaceAllLiteralString(newRootHtml, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3 %s">`,
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ js.stripe.com/v3%s">`,
 		GetSubpathScriptHash(subpath),
 	))
 
