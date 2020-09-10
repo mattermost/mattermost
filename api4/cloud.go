@@ -21,20 +21,16 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/payment/confirm", api.ApiSessionRequired(confirmCustomerPayment)).Methods("POST")
 }
 
-const cwsBaseURL = "http://localhost:3000/api/v1"
-
 func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
-	/* Check cloud license
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
-	}*/
+	}
 
-	/* Check admin permission?
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
-	}*/
+	}
 
 	products, appErr := c.App.Cloud().GetCloudProducts()
 	if appErr != nil {
@@ -52,17 +48,15 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	/* Check cloud license
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
-	}*/
+	}
 
-	/* Check admin permission?
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
-	}*/
+	}
 
 	intent, appErr := c.App.Cloud().CreateCustomerPayment()
 	if appErr != nil {
@@ -80,17 +74,15 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
-	/* Check cloud license
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
-		c.Err = model.NewAppError("Api4.getGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
-	}*/
+	}
 
-	/* Check admin permission?
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
-		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
-	}*/
+	}
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
