@@ -124,15 +124,14 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		var appErr *model.AppError
 		var cErr *store.ErrConflict
 		switch {
-		case errors.As(err, &cErr):
-			switch cErr.Resource {
-			case "ChannelMembers":
+		case errors.As(nErr, &cErr):
+			if cErr.Resource == "ChannelMembers" {
 				return model.NewAppError("JoinDefaultChannels", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
 			}
-		case errors.As(err, &appErr):
+		case errors.As(nErr, &appErr):
 			return appErr
 		default:
-			return model.NewAppError("JoinDefaultChannels", "app.channel.create_direct_channel.internal_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("JoinDefaultChannels", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 
