@@ -511,7 +511,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	q := model.Team{}
 	q.DisplayName = "FOOBARDISPLAYNAME"
-	q.Name = "whatever"
+	q.Name = "averylongname"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
 	q.AllowOpenInvite = false
@@ -545,13 +545,13 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search FooBar by  name from text at the beginning name",
-			"what",
+			"averyl",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by  name from text at the end of name",
-			"ever",
+			"ongname",
 			1,
 			q.Id,
 		},

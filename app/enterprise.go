@@ -90,6 +90,12 @@ func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface
 	jobsBleveIndexerInterface = f
 }
 
+var jobsActiveUsersInterface func(*App) tjobs.ActiveUsersJobInterface
+
+func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface) {
+	jobsActiveUsersInterface = f
+}
+
 var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
 
 func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
