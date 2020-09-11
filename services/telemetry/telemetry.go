@@ -922,15 +922,57 @@ func (ts *TelemetryService) trackPermissions() {
 		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
+	systemManagerPermissions := ""
+	systemManagerPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_MANAGER_ROLE_ID); err == nil {
+		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
+		systemManagerPermissions = strings.Join(role.Permissions, " ")
+	}
+	systemManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}})
+	if countErr != nil {
+		systemManagerCount = 0
+	}
+
+	systemUserManagerPermissions := ""
+	systemUserManagerPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
+		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
+		systemUserManagerPermissions = strings.Join(role.Permissions, " ")
+	}
+	systemUserManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}})
+	if countErr != nil {
+		systemManagerCount = 0
+	}
+
+	systemReadOnlyAdminPermissions := ""
+	systemReadOnlyAdminPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
+		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
+		systemReadOnlyAdminPermissions = strings.Join(role.Permissions, " ")
+	}
+	systemReadOnlyAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}})
+	if countErr != nil {
+		systemReadOnlyAdminCount = 0
+	}
+
 	ts.sendTelemetry(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
-		"system_admin_permissions":  systemAdminPermissions,
-		"system_user_permissions":   systemUserPermissions,
-		"team_admin_permissions":    teamAdminPermissions,
-		"team_user_permissions":     teamUserPermissions,
-		"team_guest_permissions":    teamGuestPermissions,
-		"channel_admin_permissions": channelAdminPermissions,
-		"channel_user_permissions":  channelUserPermissions,
-		"channel_guest_permissions": channelGuestPermissions,
+		"system_admin_permissions":                    systemAdminPermissions,
+		"system_user_permissions":                     systemUserPermissions,
+		"system_manager_permissions":                  systemManagerPermissions,
+		"system_user_manager_permissions":             systemUserManagerPermissions,
+		"system_read_only_admin_permissions":          systemReadOnlyAdminPermissions,
+		"team_admin_permissions":                      teamAdminPermissions,
+		"team_user_permissions":                       teamUserPermissions,
+		"team_guest_permissions":                      teamGuestPermissions,
+		"channel_admin_permissions":                   channelAdminPermissions,
+		"channel_user_permissions":                    channelUserPermissions,
+		"channel_guest_permissions":                   channelGuestPermissions,
+		"system_manager_permissions_modified":         systemManagerPermissionsModified,
+		"system_manager_count":                        systemManagerCount,
+		"system_user_manager_permissions_modified":    systemUserManagerPermissionsModified,
+		"system_user_manager_count":                   systemUserManagerCount,
+		"system_read_only_admin_permissions_modified": systemReadOnlyAdminPermissionsModified,
+		"system_read_only_admin_count":                systemReadOnlyAdminCount,
 	})
 
 	if schemes, err := ts.srv.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
@@ -979,41 +1021,6 @@ func (ts *TelemetryService) trackPermissions() {
 			})
 		}
 	}
-	systemManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_MANAGER_ROLE_ID); err == nil {
-		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
-	}
-	systemManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}})
-	if countErr != nil {
-		systemManagerCount = 0
-	}
-
-	systemUserManagerPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
-		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
-	}
-	systemUserManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}})
-	if countErr != nil {
-		systemManagerCount = 0
-	}
-
-	systemReadOnlyAdminPermissionsModified := false
-	if role, err := ts.srv.GetRoleByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
-		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
-	}
-	systemReadOnlyAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}})
-	if countErr != nil {
-		systemReadOnlyAdminCount = 0
-	}
-
-	ts.sendTelemetry(TRACK_PERMISSIONS_SYSTEM_ROLES, map[string]interface{}{
-		"system_manager_permissions_modified":         systemManagerPermissionsModified,
-		"system_manager_count":                        systemManagerCount,
-		"system_user_manager_permissions_modified":    systemUserManagerPermissionsModified,
-		"system_user_manager_count":                   systemUserManagerCount,
-		"system_read_only_admin_permissions_modified": systemReadOnlyAdminPermissionsModified,
-		"system_read_only_admin_count":                systemReadOnlyAdminCount,
-	})
 }
 
 func (ts *TelemetryService) trackElasticsearch() {
