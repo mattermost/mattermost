@@ -77,6 +77,27 @@ func (a *App) GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *
 }
 
 func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError) {
+	// prevent more than one caller to upload data at the same time for a given upload session.
+	// This is to avoid possible inconsistencies.
+	a.Srv().uploadLockMapMut.Lock()
+	locked := a.Srv().uploadLockMap[us.Id]
+	if locked {
+		// session lock is already taken, return error.
+		a.Srv().uploadLockMapMut.Unlock()
+		return nil, model.NewAppError("UploadData", "app.upload.upload_data.concurrent.app_error",
+			nil, "", http.StatusBadRequest)
+	}
+	// grab the session lock.
+	a.Srv().uploadLockMap[us.Id] = true
+	a.Srv().uploadLockMapMut.Unlock()
+
+	// reset the session lock on exit.
+	defer func() {
+		a.Srv().uploadLockMapMut.Lock()
+		delete(a.Srv().uploadLockMap, us.Id)
+		a.Srv().uploadLockMapMut.Unlock()
+	}()
+
 	// make sure it's not possible to upload more data than what is expected.
 	lr := &io.LimitedReader{
 		R: rd,

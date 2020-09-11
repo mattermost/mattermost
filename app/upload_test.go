@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -206,4 +208,79 @@ func TestUploadData(t *testing.T) {
 		require.NotEmpty(t, info.ThumbnailPath)
 		require.NotEmpty(t, info.PreviewPath)
 	})
+}
+
+func TestUploadDataConcurrent(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	us := &model.UploadSession{
+		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Filename:  "upload",
+		FileSize:  8 * 1024 * 1024,
+	}
+
+	var err error
+	us, err = th.App.CreateUploadSession(us)
+	require.Nil(t, err)
+	require.NotEmpty(t, us)
+
+	data := make([]byte, us.FileSize)
+	_, err2 := rand.Read(data)
+	require.NoError(t, err2)
+
+	var nErrs int32
+	var wg sync.WaitGroup
+	n := 8
+	wg.Add(n)
+
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			rd := &io.LimitedReader{
+				R: bytes.NewReader(data),
+				N: 5 * 1024 * 1024,
+			}
+			u := *us
+			_, err := th.App.UploadData(&u, rd)
+			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
+				atomic.AddInt32(&nErrs, 1)
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	// Verify that only 1 request was able to perform the upload.
+	require.Equal(t, int32(n-1), nErrs)
+
+	wg.Add(n)
+
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+			rd := &io.LimitedReader{
+				R: bytes.NewReader(data[5*1024*1024:]),
+				N: 3 * 1024 * 1024,
+			}
+			u := *us
+			u.FileOffset = 5 * 1024 * 1024
+			_, err := th.App.UploadData(&u, rd)
+			if err != nil && err.Id == "app.upload.upload_data.concurrent.app_error" {
+				atomic.AddInt32(&nErrs, 1)
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	// Verify that only 1 request was able to finish the upload.
+	require.Equal(t, int32(n*2-2), nErrs)
+
+	d, err := th.App.ReadFile(us.Path)
+	require.Nil(t, err)
+	require.Equal(t, data, d)
 }

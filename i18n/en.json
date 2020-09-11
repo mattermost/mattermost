@@ -4879,6 +4879,10 @@
     "translation": "Failed to get uploads for user."
   },
   {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Unable to upload data from more than one request."
+  },
+  {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
     "translation": "Failed to upload data. First part must be at least {{.Size}} MBs."
   },
