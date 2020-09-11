@@ -134,3 +134,5 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.3 // indirect
 	willnorris.com/go/imageproxy v0.10.0
 )
+
+replace github.com/NYTimes/gziphandler v1.1.1 => github.com/agnivade/gziphandler v1.1.2-0.20200815170021-7481835cb745
