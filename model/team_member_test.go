@@ -11,25 +11,11 @@ import (
 )
 
 func TestTeamMemberJson(t *testing.T) {
-	t.Run("empty string", func(t *testing.T) {
-		tm, err := TeamMemberFromJson(strings.NewReader(""))
-		require.Nil(t, tm)
-		require.Error(t, err)
-	})
+	o := TeamMember{TeamId: NewId(), UserId: NewId()}
+	json := o.ToJson()
+	ro := TeamMemberFromJson(strings.NewReader(json))
 
-	t.Run("invalid json", func(t *testing.T) {
-		tm, err := TeamMemberFromJson(strings.NewReader("invalid"))
-		require.Nil(t, tm)
-		require.Error(t, err)
-	})
-
-	t.Run("valid json", func(t *testing.T) {
-		o := TeamMember{TeamId: NewId(), UserId: NewId()}
-		json := o.ToJson()
-		ro, err := TeamMemberFromJson(strings.NewReader(json))
-		require.Nil(t, err)
-		require.Equal(t, o.TeamId, ro.TeamId, "Ids do not match")
-	})
+	require.Equal(t, o.TeamId, ro.TeamId, "Ids do not match")
 }
 
 func TestTeamMemberIsValid(t *testing.T) {
