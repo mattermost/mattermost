@@ -49,7 +49,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 
 		v := url.Values{}
 
-		v.Set(PROP_SECURITY_ID, s.diagnosticId)
+		v.Set(PROP_SECURITY_ID, s.TelemetryId())
 		v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 		v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
 		v.Set(PROP_SECURITY_DATABASE, *s.Config().SqlSettings.DriverName)
