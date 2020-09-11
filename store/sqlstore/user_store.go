@@ -713,9 +713,9 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(options *model.UserGetOption
 		OrderBy("u.Username ASC").
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-	if options.Inactive {
+	if options.Inactive && !options.Active {
 		query = query.Where("u.DeleteAt != 0")
-	} else if options.Active {
+	} else if options.Active && !options.Inactive {
 		query = query.Where("u.DeleteAt = 0")
 	}
 
