@@ -289,7 +289,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.True(t, ok || clientDirectory, "ClientDirectory should be in envConfig")
 	})
 
-	t.Run("plugin specific settings cannot be overridden via environment", func(t *testing.T) {
+	t.Run("plugin specific settings can be overridden via environment", func(t *testing.T) {
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_ENABLED", "false")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
 		os.Setenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE", "false")
@@ -305,15 +305,15 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 		enabled, ok := pluginsJira["enabled"]
 		require.True(t, ok, "PluginSettings.Plugins.jira.enabled is missing from config")
-		assert.Equal(t, "true", enabled)
+		assert.Equal(t, "false", enabled)
 
 		secret, ok := pluginsJira["secret"]
 		require.True(t, ok, "PluginSettings.Plugins.jira.secret is missing from config")
-		assert.Equal(t, "config-secret", secret)
+		assert.Equal(t, "env-secret", secret)
 
 		pluginStatesJira, ok := cfg.PluginSettings.PluginStates["jira"]
 		require.True(t, ok, "PluginSettings.PluginStates.jira is missing from config")
-		require.Equal(t, true, pluginStatesJira.Enable)
+		require.Equal(t, false, pluginStatesJira.Enable)
 
 		pluginSettings, ok := envCfg["PluginSettings"]
 		require.True(t, ok, "PluginSettings is missing from envConfig")
@@ -325,13 +325,13 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		require.True(t, ok, "PluginSettings.Plugins is not a map in envConfig")
 
 		_, ok = plugins["jira"].(map[string]interface{})
-		require.False(t, ok, "PluginSettings.Plugins.jira should not be a map in envConfig")
+		require.True(t, ok, "PluginSettings.Plugins.jira should be a map in envConfig")
 
 		pluginStates, ok := pluginSettingsAsMap["PluginStates"].(map[string]interface{})
 		require.True(t, ok, "PluginSettings.PluginStates is missing from envConfig")
 
 		_, ok = pluginStates["jira"].(map[string]interface{})
-		require.False(t, ok, "PluginSettings.PluginStates.jira should not be a map in envConfig")
+		require.True(t, ok, "PluginSettings.PluginStates.jira not be a map in envConfig")
 	})
 }
 

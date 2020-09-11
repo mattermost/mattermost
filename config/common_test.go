@@ -174,5 +174,61 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
 }
 
+func TestPluginConfigEnvironmentOverrides(t *testing.T) {
+	base, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	configData := &model.Config{}
+	configData.SetDefaults()
+	configData.PluginSettings = model.PluginSettings{
+		Plugins: map[string]map[string]interface{}{
+			"jira": map[string]interface{}{
+				"secret": "config-secret",
+			},
+		},
+	}
+	base.Set(configData)
+
+	os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
+	defer os.Unsetenv("MM_PLUGINSETTINGS_JIRA_SECRET")
+
+	t.Run("loading config should respect environment variable overrides", func(t *testing.T) {
+		err := base.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "env-secret", base.Get().PluginSettings.Plugins["jira"]["secret"])
+	})
+
+	t.Run("setting config should respect environment variable overrides", func(t *testing.T) {
+		_, err := base.Set(configData)
+		require.NoError(t, err)
+
+		assert.Equal(t, "env-secret", base.Get().PluginSettings.Plugins["jira"]["secret"])
+	})
+}
+
+func TestPluginRemoveEnvironmentOverrides(t *testing.T) {
+	configData := &model.Config{}
+	configData.SetDefaults()
+	configData.PluginSettings = model.PluginSettings{
+		Plugins: map[string]map[string]interface{}{
+			"jira": map[string]interface{}{
+				"secret": "config-secret",
+			},
+		},
+	}
+	base, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: configData})
+	require.NoError(t, err)
+
+	os.Setenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET", "env-secret")
+	defer os.Unsetenv("MM_PLUGINSETTINGS_JIRA_SECRET")
+	err = base.Load()
+
+	require.NoError(t, err)
+	oldCfg := base.Get()
+	assert.Equal(t, "env-secret", oldCfg.PluginSettings.Plugins["jira"]["secret"])
+	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
+	assert.Equal(t, "config-secret", newCfg.PluginSettings.Plugins["jira"]["secret"])
+}
+
 func newBool(b bool) *bool       { return &b }
 func newString(s string) *string { return &s }

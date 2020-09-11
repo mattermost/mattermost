@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"os"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/mattermost/viper"
@@ -167,6 +169,58 @@ func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config
 	var envErr error
 	if envConfig, envErr = fixEnvSettingsCase(envConfig); envErr != nil {
 		return nil, nil, envErr
+	}
+
+	if allowEnvironmentOverrides {
+		// Making work environment variables for plugin settings
+		reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "failed to generate regular expresion")
+		}
+
+		pluginEnvs := map[string]interface{}{}
+		pluginStates := map[string]interface{}{}
+		hasPluginOverrides := false
+		hasPluginStatesOverrides := false
+		for pluginID := range config.PluginSettings.Plugins {
+			simplifiedPluginID := reg.ReplaceAllString(pluginID, "")
+			pluginEnvs[pluginID] = map[string]interface{}{}
+			pluginStates[pluginID] = map[string]interface{}{}
+
+			for key := range config.PluginSettings.Plugins[pluginID] {
+				value, ok := os.LookupEnv("MM_PLUGINSETTINGS_PLUGINS_" + strings.ToUpper(simplifiedPluginID) + "_" + strings.ToUpper(key))
+				if ok {
+					config.PluginSettings.Plugins[pluginID][key] = value
+					pluginEnvs[pluginID].(map[string]interface{})[key] = true
+					hasPluginOverrides = true
+				}
+			}
+			state, ok := os.LookupEnv("MM_PLUGINSETTINGS_PLUGINSTATES_" + strings.ToUpper(simplifiedPluginID) + "_ENABLE")
+			if ok {
+				config.PluginSettings.PluginStates[pluginID].Enable = state == "true"
+				pluginStates[pluginID].(map[string]interface{})["Enabled"] = state == "true"
+				hasPluginStatesOverrides = true
+			}
+		}
+
+		if hasPluginOverrides {
+			if _, found := envConfig["PluginSettings"]; !found {
+				envConfig["PluginSettings"] = map[string]interface{}{}
+			}
+			if _, found := envConfig["PluginSettings"].(map[string]interface{})["Plugins"]; !found {
+				envConfig["PluginSettings"].(map[string]interface{})["Plugins"] = map[string]interface{}{}
+			}
+			envConfig["PluginSettings"].(map[string]interface{})["Plugins"] = pluginEnvs
+		}
+		if hasPluginStatesOverrides {
+			if _, found := envConfig["PluginSettings"]; !found {
+				envConfig["PluginSettings"] = map[string]interface{}{}
+			}
+			if _, found := envConfig["PluginSettings"].(map[string]interface{})["PluginStates"]; !found {
+				envConfig["PluginSettings"].(map[string]interface{})["PluginStates"] = map[string]interface{}{}
+			}
+			envConfig["PluginSettings"].(map[string]interface{})["PluginStates"] = pluginStates
+		}
 	}
 
 	return &config, envConfig, unmarshalErr
