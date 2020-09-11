@@ -1717,10 +1717,6 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 		AND
 			Posts.Id = :PostId`
 	if err := s.GetReplica().SelectOne(&dbMember, query, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("postId=%s, userId=%s", postId, userId))
-		}
-
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}
 	return dbMember.ToModel(), nil
@@ -1995,7 +1991,7 @@ func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error
 	}
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to Delete ChannelMembers")
+		return errors.Wrap(err, "failed to delete ChannelMembers")
 	}
 
 	// cleanup sidebarchannels table if the user is no longer a member of that channel
@@ -2010,7 +2006,7 @@ func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error
 	}
 	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return errors.Wrap(err, "failed to Delete SidebarChannels")
+		return errors.Wrap(err, "failed to delete SidebarChannels")
 	}
 	return nil
 }

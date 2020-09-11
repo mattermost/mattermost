@@ -1088,7 +1088,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberRoles", store.MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("UpdateChannelMemberRoles", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("UpdateChannelMemberRoles", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1125,7 +1125,7 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", store.MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1176,7 +1176,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		case errors.As(nErr, &appErr):
 			return nil, appErr
 		case errors.As(nErr, &nfErr):
-			return nil, model.NewAppError("UpdateChannelMemberNotifyProps", store.MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("UpdateChannelMemberNotifyProps", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
@@ -1741,7 +1741,7 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetChannelMember", store.MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetChannelMember", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
 			return nil, model.NewAppError("GetChannelMember", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -2268,7 +2268,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
 			return model.NewAppError("UpdateChannelLastViewedAt", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -2443,7 +2443,7 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, invErr.Error(), http.StatusBadRequest)
 		default:
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
