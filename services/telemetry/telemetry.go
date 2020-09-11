@@ -104,7 +104,6 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		log:          log,
 	}
 	service.ensureTelemetryID()
-	service.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 	return service
 }
 
@@ -129,7 +128,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 }
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.HasPrefix(RUDDER_KEY, "placeholder") && !strings.HasPrefix(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
 		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 		ts.trackActivity()
 		ts.trackConfig()
