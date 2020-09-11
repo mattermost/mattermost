@@ -59,5 +59,6 @@ type MetricsInterface interface {
 	ObservePluginMultiHookDuration(elapsed float64)
 	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
 
+	ObserveEnabledUsers(users int64)
 	GetLoggerMetricsCollector() logr.MetricsCollector
 }

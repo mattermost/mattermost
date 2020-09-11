@@ -4,8 +4,10 @@
 package sqlstore_test
 
 import (
-	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/store/sqlstore"
 
 	"github.com/mattermost/mattermost-server/v5/testlib"
 )
@@ -13,6 +15,7 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
+	mlog.DisableZap()
 	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 

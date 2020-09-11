@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -153,6 +154,7 @@ func getMockStore() *mocks.Store {
 }
 
 func TestMain(m *testing.M) {
+	mlog.DisableZap()
 	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 
