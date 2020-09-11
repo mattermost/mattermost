@@ -65,6 +65,7 @@ const (
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
+	TRACK_PERMISSIONS_SYSTEM_ROLES  = "permissions_system_roles"
 	TRACK_ELASTICSEARCH             = "elasticsearch"
 	TRACK_GROUPS                    = "groups"
 	TRACK_CHANNEL_MODERATION        = "channel_moderation"
@@ -978,6 +979,41 @@ func (ts *TelemetryService) trackPermissions() {
 			})
 		}
 	}
+	systemManagerPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_MANAGER_ROLE_ID); err == nil {
+		systemManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemManagerDefaultPermissions})) > 0
+	}
+	systemManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_MANAGER_ROLE_ID}})
+	if countErr != nil {
+		systemManagerCount = 0
+	}
+
+	systemUserManagerPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID); err == nil {
+		systemUserManagerPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemUserManagerDefaultPermissions})) > 0
+	}
+	systemUserManagerCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_USER_MANAGER_ROLE_ID}})
+	if countErr != nil {
+		systemManagerCount = 0
+	}
+
+	systemReadOnlyAdminPermissionsModified := false
+	if role, err := ts.srv.GetRoleByName(model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID); err == nil {
+		systemReadOnlyAdminPermissionsModified = len(model.PermissionsChangedByPatch(role, &model.RolePatch{Permissions: &model.SystemReadOnlyAdminDefaultPermissions})) > 0
+	}
+	systemReadOnlyAdminCount, countErr := ts.dbStore.User().Count(model.UserCountOptions{Roles: []string{model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID}})
+	if countErr != nil {
+		systemReadOnlyAdminCount = 0
+	}
+
+	ts.sendTelemetry(TRACK_PERMISSIONS_SYSTEM_ROLES, map[string]interface{}{
+		"system_manager_permissions_modified":         systemManagerPermissionsModified,
+		"system_manager_count":                        systemManagerCount,
+		"system_user_manager_permissions_modified":    systemUserManagerPermissionsModified,
+		"system_user_manager_count":                   systemUserManagerCount,
+		"system_read_only_admin_permissions_modified": systemReadOnlyAdminPermissionsModified,
+		"system_read_only_admin_count":                systemReadOnlyAdminCount,
+	})
 }
 
 func (ts *TelemetryService) trackElasticsearch() {
