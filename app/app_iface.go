@@ -457,7 +457,6 @@ type AppIface interface {
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
-	DiagnosticId() string
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
@@ -885,7 +884,6 @@ type AppIface interface {
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
-	SetDiagnosticId(id string)
 	SetIpAddress(s string)
 	SetLog(l *mlog.Logger)
 	SetPath(s string)
@@ -925,6 +923,7 @@ type AppIface interface {
 	T(translationID string, args ...interface{}) string
 	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
+	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userId string, cfg *model.Config) *model.AppError
 	TestLdap() *model.AppError

@@ -60,6 +60,7 @@ func logrAddTargets(logger *logr.Logger, targets LogTargetCfg) error {
 			continue
 		}
 		if target != nil {
+			target.SetName(name)
 			lgr.AddTarget(target)
 		}
 	}
@@ -152,15 +153,18 @@ func newFileTarget(name string, t *LogTarget, filter logr.Filter, formatter logr
 	if err := json.Unmarshal(t.Options, options); err != nil {
 		return nil, err
 	}
+	return newFileTargetWithOpts(name, t, target.FileOptions(*options), filter, formatter)
+}
 
-	if options.Filename == "" {
+func newFileTargetWithOpts(name string, t *LogTarget, opts target.FileOptions, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
+	if opts.Filename == "" {
 		return nil, fmt.Errorf("missing 'Filename' option for target %s", name)
 	}
-	if err := checkFileWritable(options.Filename); err != nil {
+	if err := checkFileWritable(opts.Filename); err != nil {
 		return nil, fmt.Errorf("error writing to 'Filename' for target %s: %w", name, err)
 	}
 
-	newTarget := target.NewFileTarget(filter, formatter, target.FileOptions(*options), t.MaxQueueSize)
+	newTarget := target.NewFileTarget(filter, formatter, opts, t.MaxQueueSize)
 	return newTarget, nil
 }
 
@@ -221,4 +225,23 @@ func zapToLogr(zapFields []Field) logr.Fields {
 		zapField.AddTo(encoder)
 	}
 	return logr.Fields(encoder.Fields)
+}
+
+// mlogLevelToLogrLevel converts a mlog logger level to
+// an array of discrete Logr levels.
+func mlogLevelToLogrLevels(level string) []LogLevel {
+	levels := make([]LogLevel, 0)
+	levels = append(levels, LvlError, LvlPanic, LvlFatal, LvlStdLog)
+
+	switch level {
+	case LevelDebug:
+		levels = append(levels, LvlDebug)
+		fallthrough
+	case LevelInfo:
+		levels = append(levels, LvlInfo)
+		fallthrough
+	case LevelWarn:
+		levels = append(levels, LvlWarn)
+	}
+	return levels
 }

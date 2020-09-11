@@ -297,8 +297,8 @@ func (a *App) PostActionCookieSecret() []byte {
 }
 
 func (s *Server) regenerateClientConfig() {
-	clientConfig := config.GenerateClientConfig(s.Config(), s.diagnosticId, s.License())
-	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.diagnosticId, s.License())
+	clientConfig := config.GenerateClientConfig(s.Config(), s.TelemetryId(), s.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(s.Config(), s.TelemetryId(), s.License())
 
 	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := s.Store.TermsOfService().GetLatest(true)
