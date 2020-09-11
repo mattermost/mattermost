@@ -474,6 +474,7 @@ type AppIface interface {
 	DownloadFromURL(downloadURL string) ([]byte, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
+	ExecutePluginAction(request model.PluginIntegrationActionRequest) (*model.PluginIntegrationActionResponse, *model.AppError)
 	ExportPermissions(w io.Writer) error
 	FetchSamlMetadataFromIdp(url string) ([]byte, *model.AppError)
 	FileBackend() (filesstore.FileBackend, *model.AppError)

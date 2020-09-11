@@ -24,6 +24,21 @@ type PluginIntegration struct {
 	Extra interface{} `json:"extra"`
 }
 
+type PluginIntegrationActionRequest struct {
+	Type string `json:"type"`
+	*PluginIntegration
+	TriggerId string `json:"trigger_id"`
+	UserId string `json:"user_id"`
+	TeamId string `json:"team_id"`
+	ChannelId string `json:"channel_id"`
+
+	Values map[string]interface{} `json:"values"`
+}
+
+type PluginIntegrationActionResponse struct {
+	TriggerId string `json:"trigger_id"`
+}
+
 type MobileIntegrationChannelHeader struct {
 	Icon string `json:"icon"`
 	Text string `json:"text"`

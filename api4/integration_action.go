@@ -16,6 +16,8 @@ func (api *API) InitAction() {
 	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/open", api.ApiHandler(openDialog)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/select", api.ApiSessionRequired(dialogSelectOption)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/actions/dialogs/submit", api.ApiSessionRequired(submitDialog)).Methods("POST")
+
+	api.BaseRoutes.ApiRoot.Handle("/actions/integration", api.ApiHandler(executeIntegrationAction)).Methods("POST")
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -152,6 +154,44 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := c.App.SubmitInteractiveDialog(submit)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(resp)
+
+	w.Write(b)
+}
+
+func executeIntegrationAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	var action model.PluginIntegrationActionRequest
+
+	jsonErr := json.NewDecoder(r.Body).Decode(&action)
+	if jsonErr != nil {
+		c.SetInvalidParam("dialog")
+		return
+	}
+
+	if action.RequestURL == "" {
+		c.SetInvalidParam("url")
+		return
+	}
+
+	action.UserId = c.App.Session().UserId
+
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), action.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), action.TeamId, model.PERMISSION_VIEW_TEAM) {
+		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+		return
+	}
+
+	// resp, err := c.App.SubmitInteractiveDialog(action)
+	resp, err := c.App.ExecutePluginAction(action)
 	if err != nil {
 		c.Err = err
 		return
