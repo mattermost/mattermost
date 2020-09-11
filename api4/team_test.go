@@ -2161,7 +2161,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 260; i++ {
 		testUserList = append(testUserList, GenerateTestId())
 	}
 	_, resp = Client.AddTeamMembers(team.Id, testUserList)
