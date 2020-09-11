@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func init() {
 	RootCmd.AddCommand(IntegrityCmd)
 }
 
-func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData, verbose bool) {
+func printRelationalIntegrityCheckResult(data model.RelationalIntegrityCheckData, verbose bool) {
 	fmt.Printf("Found %d records in relation %s orphans of relation %s\n",
 		len(data.Records), data.ChildName, data.ParentName)
 	if !verbose {
@@ -57,9 +57,9 @@ func printRelationalIntegrityCheckResult(data store.RelationalIntegrityCheckData
 	}
 }
 
-func printIntegrityCheckResult(result store.IntegrityCheckResult, verbose bool) {
+func printIntegrityCheckResult(result model.IntegrityCheckResult, verbose bool) {
 	switch data := result.Data.(type) {
-	case store.RelationalIntegrityCheckData:
+	case model.RelationalIntegrityCheckData:
 		printRelationalIntegrityCheckResult(data, verbose)
 	}
 }
@@ -69,7 +69,7 @@ func integrityCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {

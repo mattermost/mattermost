@@ -70,6 +70,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -128,7 +129,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
-	session.SetExpireInDays(1)
+	th.App.SetSessionExpireInDays(session, 1)
 	session, err := th.App.CreateSession(session)
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -311,6 +312,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockPostStore := mocks.PostStore{}
 		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -477,6 +479,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockPostStore := mocks.PostStore{}
 		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 		mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 

@@ -115,7 +115,7 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
-	licenseMutex   sync.Mutex
+	licenseMutex   sync.RWMutex
 }
 
 type TraceOnAdapter struct{}
@@ -330,7 +330,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
-	if ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
 		return ss.GetMaster()
 	}
 
@@ -343,7 +346,10 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
 		return ss.GetMaster()
 	}
 
@@ -855,6 +861,10 @@ func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableNa
 	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
 }
 
+func (ss *SqlSupplier) CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, true)
+}
+
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
 	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_FULL_TEXT, false)
 }
@@ -912,7 +922,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
-			mlog.Critical("Failed to create index", mlog.Err(err))
+			mlog.Critical("Failed to create index", mlog.String("table", tableName), mlog.String("index_name", indexName), mlog.Err(err))
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_FULL_MYSQL)
 		}
@@ -1180,8 +1190,8 @@ func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
 	return builder
 }
 
-func (ss *SqlSupplier) CheckIntegrity() <-chan store.IntegrityCheckResult {
-	results := make(chan store.IntegrityCheckResult)
+func (ss *SqlSupplier) CheckIntegrity() <-chan model.IntegrityCheckResult {
+	results := make(chan model.IntegrityCheckResult)
 	go CheckRelationalIntegrity(ss, results)
 	return results
 }

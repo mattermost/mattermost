@@ -122,7 +122,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -159,7 +159,7 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -183,7 +183,7 @@ func channelGroupStatusCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -204,7 +204,7 @@ func channelGroupListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -228,7 +228,7 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -261,7 +261,7 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -285,7 +285,7 @@ func teamGroupStatusCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -306,7 +306,7 @@ func teamGroupListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {

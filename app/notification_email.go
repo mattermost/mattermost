@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -25,7 +26,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	if channel.IsGroupOrDirect() {
 		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return err
+			return model.NewAppError("sendNotificationEmail", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
@@ -57,7 +58,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 		}
 
 		if sendBatched {
-			if err := a.AddNotificationEmailToBatch(user, post, team); err == nil {
+			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team); err == nil {
 				return nil
 			}
 		}
@@ -99,7 +100,7 @@ func (a *App) sendNotificationEmail(notification *PostNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv().Go(func() {
-		if err := a.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
@@ -166,13 +167,13 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = a.newEmailTemplate("post_body_full", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
 		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
-		bodyPage = a.newEmailTemplate("post_body_generic", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
 	bodyPage.Props["SiteURL"] = a.GetSiteURL()

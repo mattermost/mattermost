@@ -15,6 +15,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/mattermost/mattermost-server/v5/store"
@@ -76,13 +77,15 @@ func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *T
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
+	mlog.DisableZap()
+
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
 	if includeCacheLayer {
 		// Adds the cache layer to the test store
-		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider2)
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
 	}
 
 	prevListenAddress := *s.Config().ServiceSettings.ListenAddress

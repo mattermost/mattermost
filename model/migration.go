@@ -4,6 +4,7 @@
 package model
 
 const (
+	ADVANCED_PERMISSIONS_MIGRATION_KEY         = "AdvancedPermissionsMigrationComplete"
 	MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2 = "migration_advanced_permissions_phase_2"
 
 	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT                     = "emoji_permissions_split"
@@ -17,4 +18,7 @@ const (
 	MIGRATION_KEY_ADD_MANAGE_GUESTS_PERMISSIONS               = "add_manage_guests_permissions"
 	MIGRATION_KEY_CHANNEL_MODERATIONS_PERMISSIONS             = "channel_moderations_permissions"
 	MIGRATION_KEY_ADD_USE_GROUP_MENTIONS_PERMISSION           = "add_use_group_mentions_permission"
+	MIGRATION_KEY_ADD_SYSTEM_CONSOLE_PERMISSIONS              = "add_system_console_permissions"
+	MIGRATION_KEY_SIDEBAR_CATEGORIES_PHASE_2                  = "migration_sidebar_categories_phase_2"
+	MIGRATION_KEY_ADD_CONVERT_CHANNEL_PERMISSIONS             = "add_convert_channel_permissions"
 )

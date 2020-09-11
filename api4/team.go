@@ -367,8 +367,12 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.Permanent && *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
-		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
+			err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
+		} else {
+			err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
+		}
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
@@ -388,8 +392,8 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS)
 		return
 	}
 
@@ -499,8 +503,8 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHER_USERS_TEAMS) {
+		c.SetPermissionError(model.PERMISSION_READ_OTHER_USERS_TEAMS)
 		return
 	}
 
@@ -996,11 +1000,6 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(props.Term) == 0 {
-		c.SetInvalidParam("term")
-		return
-	}
-
 	var teams []*model.Team
 	var totalCount int64
 	var err *model.AppError
@@ -1178,6 +1177,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailList := model.ArrayFromJson(r.Body)
+
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
@@ -1194,7 +1194,21 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
-		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+		var invitesOverLimit []*model.EmailInviteWithError
+		if cloudUserLimit > 0 && c.IsSystemAdmin() {
+			emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+		}
+		var invitesWithError []*model.EmailInviteWithError
+		var err *model.AppError
+		if emailList != nil {
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		}
+
+		if len(invitesOverLimit) > 0 {
+			invitesWithError = append(invitesWithError, invitesOverLimit...)
+		}
+
 		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
@@ -1463,8 +1477,8 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -1523,8 +1537,8 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		groupIDs = append(groupIDs, gid)
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 

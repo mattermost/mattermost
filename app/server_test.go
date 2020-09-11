@@ -304,6 +304,10 @@ func TestPanicLog(t *testing.T) {
 		require.NoError(t, os.Remove(tmpfile.Name()))
 	}()
 
+	// This test requires Zap file target for now.
+	mlog.EnableZap()
+	defer mlog.DisableZap()
+
 	// Creating logger to log to console and temp file
 	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,

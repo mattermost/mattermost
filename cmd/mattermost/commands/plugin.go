@@ -107,7 +107,7 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -137,7 +137,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -161,7 +161,7 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -185,7 +185,7 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -209,7 +209,7 @@ func pluginListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	pluginsResp, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -234,7 +234,7 @@ func pluginPublicKeysCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	verbose, err := command.Flags().GetBool("verbose")
 	if err != nil {
@@ -268,7 +268,7 @@ func pluginAddPublicKeyCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -299,7 +299,7 @@ func pluginDeletePublicKeyCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")

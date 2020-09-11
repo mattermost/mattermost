@@ -4,57 +4,46 @@
 package cache
 
 import (
+	"errors"
 	"time"
 )
 
-// Cache is a representation of any cache store that has keys and values
+// ErrKeyNotFound is the error when the given key is not found
+var ErrKeyNotFound = errors.New("key not found")
+
+// Cache is a representation of a cache store that aims to replace cache.Cache
 type Cache interface {
 	// Purge is used to completely clear the cache.
-	Purge()
+	Purge() error
 
-	// Add adds the given key and value to the store without an expiry.
-	Add(key string, value interface{})
+	// Set adds the given key and value to the store without an expiry. If the key already exists,
+	// it will overwrite the previous value.
+	Set(key string, value interface{}) error
 
-	// AddWithDefaultExpires adds the given key and value to the store with the default expiry.
-	AddWithDefaultExpires(key string, value interface{})
+	// SetWithDefaultExpiry adds the given key and value to the store with the default expiry. If
+	// the key already exists, it will overwrite the previoous value
+	SetWithDefaultExpiry(key string, value interface{}) error
 
-	// AddWithExpiresInSecs adds the given key and value to the cache with the given expiry.
-	AddWithExpiresInSecs(key string, value interface{}, expireAtSecs int64)
+	// SetWithExpiry adds the given key and value to the cache with the given expiry. If the key
+	// already exists, it will overwrite the previoous value
+	SetWithExpiry(key string, value interface{}, ttl time.Duration) error
 
-	// Get returns the value stored in the cache for a key, or nil if no value is present. The ok result indicates whether value was found in the cache.
-	Get(key string) (value interface{}, ok bool)
+	// Get the content stored in the cache for the given key, and decode it into the value interface.
+	// Return ErrKeyNotFound if the key is missing from the cache
+	Get(key string, value interface{}) error
 
-	// GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
-	// This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
-	GetOrAdd(key string, value interface{}, ttl time.Duration) (actual interface{}, loaded bool)
-
-	// Remove deletes the value for a key.
-	Remove(key string)
+	// Remove deletes the value for a given key.
+	Remove(key string) error
 
 	// Keys returns a slice of the keys in the cache.
-	Keys() []string
+	Keys() ([]string, error)
 
 	// Len returns the number of items in the cache.
-	Len() int
-
-	// Name identifies this cache instance among others in the system.
-	Name() string
+	Len() (int, error)
 
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 	GetInvalidateClusterEvent() string
-}
 
-// Provider defines how to create new caches
-type Provider interface {
-	// Connect opens a new connection to the cache using specific provider parameters.
-	Connect()
-
-	// NewCache creates a new cache with given size.
-	NewCache(size int) Cache
-
-	// NewCacheWithParams creates a new cache with the given parameters.
-	NewCacheWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) Cache
-
-	// Close releases any resources used by the cache provider.
-	Close()
+	// Name returns the name of the cache
+	Name() string
 }

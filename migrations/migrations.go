@@ -4,6 +4,8 @@
 package migrations
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	tjobs "github.com/mattermost/mattermost-server/v5/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -42,7 +44,7 @@ func GetMigrationState(migration string, store store.Store) (string, *model.Job,
 
 	jobs, err := store.Job().GetAllByType(model.JOB_TYPE_MIGRATIONS)
 	if err != nil {
-		return "", nil, err
+		return "", nil, model.NewAppError("GetMigrationState", "app.job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, job := range jobs {

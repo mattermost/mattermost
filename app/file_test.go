@@ -270,7 +270,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 }
 
 func TestCopyFileInfos(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	teamId := model.NewId()

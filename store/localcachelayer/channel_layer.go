@@ -159,8 +159,7 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	if allowFromCache {
 		var cacheItem *model.Channel
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
-			ch := cacheItem.DeepCopy()
-			return ch, nil
+			return cacheItem, nil
 		}
 	}
 

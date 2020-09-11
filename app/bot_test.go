@@ -267,7 +267,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	OwnerId1 := model.NewId()
@@ -519,7 +519,7 @@ func TestPermanentDeleteBot(t *testing.T) {
 }
 
 func TestDisableUserBots(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	ownerId1 := model.NewId()
@@ -576,7 +576,7 @@ func TestDisableUserBots(t *testing.T) {
 }
 
 func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	userBots := []*model.Bot{}
