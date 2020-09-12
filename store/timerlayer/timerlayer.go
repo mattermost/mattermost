@@ -6841,6 +6841,22 @@ func (s *TimerLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 	return result, err
 }
 
+func (s *TimerLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError) {
+	start := timemodule.Now()
+
+	result, err := s.UserStore.AnalyticsGetExternalUsers(hostDomain)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.AnalyticsGetExternalUsers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
 	start := timemodule.Now()
 

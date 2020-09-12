@@ -110,6 +110,43 @@ func (a *App) InitServer() {
 	})
 }
 
+func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	currentUser, appErr := a.GetUser(a.Session().UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              a.TelemetryId(),
+		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 currentUser.Email,
+		SiteName:              *a.Config().TeamSettings.SiteName,
+		SiteURL:               *a.Config().ServiceSettings.SiteURL,
+		Users:                 30,
+		TermsAccepted:         true,
+		ReceiveEmailsAccepted: true,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+		return err
+	}
+
+	appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, false, isBot)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
 func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
@@ -215,15 +252,36 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 		warnMetricDisplayTexts.EmailBody = T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetric.Limit})
 
 		switch warnMetricId {
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
+		case model.SYSTEM_WARN_METRIC_MFA:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa_body")
+		case model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email.domain_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email.domain_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.notification_body")
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
 			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_400.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_400.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
 			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
 			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
+			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.notification_body")
 		default:
 			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -234,7 +292,7 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 	return nil, nil
 }
 
-func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppError {
+func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -298,11 +356,23 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 			Message:   "",
 		}
 
+		actionId := "contactUs"
+		actionName := T("api.server.warn_metric.contact_us")
+		postActionValue := T("api.server.warn_metric.contacting_us")
+		postActionUrl := fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId)
+
+		if isE0Edition {
+			actionId = "startTrial"
+			actionName = T("api.server.warn_metric.start_trial")
+			postActionValue = T("api.server.warn_metric.starting_trial")
+			postActionUrl = fmt.Sprintf("/warn_metrics/trial-license-ack/%s", warnMetricId)
+		}
+
 		actions := []*model.PostAction{}
 		actions = append(actions,
 			&model.PostAction{
-				Id:   "contactUs",
-				Name: T("api.server.warn_metric.contact_us"),
+				Id:   actionId,
+				Name: actionName,
 				Type: model.POST_ACTION_TYPE_BUTTON,
 				Options: []*model.PostActionOptions{
 					{
@@ -311,7 +381,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 					},
 					{
 						Text:  "ActionExecutingMessage",
-						Value: T("api.server.warn_metric.contacting_us"),
+						Value: postActionValue,
 					},
 				},
 				Integration: &model.PostActionIntegration{
@@ -319,7 +389,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string) *model.AppErro
 						"bot_user_id": bot.UserId,
 						"force_ack":   false,
 					},
-					URL: fmt.Sprintf("/warn_metrics/ack/%s", warnMetricId),
+					URL: postActionUrl,
 				},
 			},
 		)

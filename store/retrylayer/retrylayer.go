@@ -6184,6 +6184,12 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.Use
 
 }
 
+func (s *RetryLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError) {
+
+	return s.UserStore.AnalyticsGetExternalUsers(hostDomain)
+
+}
+
 func (s *RetryLayerUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
 
 	return s.UserStore.AnalyticsGetGuestCount()

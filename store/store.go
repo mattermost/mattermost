@@ -337,6 +337,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
+	AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
 	AnalyticsGetGuestCount() (int64, *model.AppError)
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)

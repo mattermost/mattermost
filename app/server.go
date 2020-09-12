@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1187,21 +1188,120 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 		return
 	}
 
-	numberOfActiveUsers, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	// Get the system fields values from store
+	systemDataList, nErr := a.Srv().Store.System().Get()
+	if nErr != nil {
+		mlog.Error("No field values obtained", mlog.Err(nErr))
+		return
+	}
+
+	firstRun, err := strconv.ParseInt(systemDataList[model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY], 10, 64)
 	if err != nil {
-		mlog.Error("Error to get active registered users.", mlog.Err(err))
+		mlog.Error("Cannot parse the server first runtime value", mlog.Err(err))
+		return
+	}
+
+	currentTime := utils.MillisFromTime(time.Now())
+	fmt.Println((currentTime - firstRun) / (1000 * 3600 * 24 * 90))
+	fmt.Println(time.Unix(firstRun/1000, 0))
+	fmt.Println(time.Unix(currentTime/1000, 0))
+
+	if (currentTime-firstRun)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
+		mlog.Debug("No advisories should be shown in the first 90 days of server runtime")
+		return
+	}
+
+	ranWarnMetrics := make(map[string]bool)
+	for key, value := range systemDataList {
+		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
+			if _, ok := model.WarnMetricsTable[key]; ok {
+				runTimeStamp, nerr := strconv.ParseInt(value, 10, 64)
+				if nerr != nil {
+					mlog.Error("app.system.get.app_error", mlog.String("key", key), mlog.Err(nerr))
+					continue
+				}
+
+				// Store the warn metric advisories (without time stamp)
+				ranWarnMetrics[key] = true
+
+				if runTimeStamp > 0 {
+					return
+				}
+			}
+		}
+	}
+
+	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err0 != nil {
+		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+	}
+
+	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
+	if err1 != nil {
+		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+	}
+
+	channelOpenCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	if err2 != nil {
+		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+	}
+
+	totalChannelCount := channelOpenCount
+	if channelOpenCount < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit {
+		channelPrivateCount, err3 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_PRIVATE)
+		if err3 != nil {
+			mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		}
+		totalChannelCount += channelPrivateCount
+	}
+
+	postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if err4 != nil {
+		mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+	}
+
+	//CITOMAI
+	numberOfActiveUsers = 4
+
+	//If an account is created with a different email domain
+	//search for an entry that has an email account different from the current domain
+
+	//get domain account from site url
+	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
+	isDiffEmailAccount, err5 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
+	if err5 != nil {
+		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err5))
 	}
 
 	warnMetrics := []model.WarnMetric{}
-	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit {
+	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25].Limit {
 		return
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit {
+	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
+	} else if totalChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
+	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_MFA] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
+	} else if isDiffEmailAccount && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN])
+	}
+
+	if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200] {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400])
-	} else {
+	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
+	} else if !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500] {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
 	}
+
+	//TODO - which group does it belong?
+	if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K] {
+		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K])
+	}
+
+	isE0Edition := (model.BuildEnterpriseReady == "true")
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
@@ -1223,7 +1323,7 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 			}
 		}
 
-		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
+		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); err != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 

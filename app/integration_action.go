@@ -443,48 +443,60 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		HasReactions: true,
 	}
 
-	forceAck := upstreamRequest.Context["force_ack"].(bool)
+	botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
 
-	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
-		if forceAck {
-			return appErr
+	isE0Edition := (model.BuildEnterpriseReady == "true")
+	if isE0Edition {
+		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
+			botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_failure.message")
+			attachements := []*model.SlackAttachment{{
+				AuthorName: "",
+				Title:      "",
+				Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
+			}}
+			model.ParseSlackAttachment(botPost, attachements)
 		}
-		mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
-		botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.notification_failure.message")
-		actions := []*model.PostAction{}
-		actions = append(actions,
-			&model.PostAction{
-				Id:   "emailUs",
-				Name: utils.T("api.server.warn_metric.email_us"),
-				Type: model.POST_ACTION_TYPE_BUTTON,
-				Options: []*model.PostActionOptions{
-					{
-						Text:  "WarnMetricMailtoUrl",
-						Value: mailtoLinkText,
-					},
-					{
-						Text:  "TrackEventId",
-						Value: warnMetricId,
-					},
-				},
-				Integration: &model.PostActionIntegration{
-					Context: model.StringInterface{
-						"bot_user_id": botPost.UserId,
-						"force_ack":   true,
-					},
-					URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
-				},
-			},
-		)
-		attachements := []*model.SlackAttachment{{
-			AuthorName: "",
-			Title:      "",
-			Actions:    actions,
-			Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
-		}}
-		model.ParseSlackAttachment(botPost, attachements)
 	} else {
-		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
+		forceAck := upstreamRequest.Context["force_ack"].(bool)
+		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+			if forceAck {
+				return appErr
+			}
+			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
+			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.notification_failure.message")
+			actions := []*model.PostAction{}
+			actions = append(actions,
+				&model.PostAction{
+					Id:   "emailUs",
+					Name: utils.T("api.server.warn_metric.email_us"),
+					Type: model.POST_ACTION_TYPE_BUTTON,
+					Options: []*model.PostActionOptions{
+						{
+							Text:  "WarnMetricMailtoUrl",
+							Value: mailtoLinkText,
+						},
+						{
+							Text:  "TrackEventId",
+							Value: warnMetricId,
+						},
+					},
+					Integration: &model.PostActionIntegration{
+						Context: model.StringInterface{
+							"bot_user_id": botPost.UserId,
+							"force_ack":   true,
+						},
+						URL: fmt.Sprintf("/warn_metrics/ack/%s", model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500),
+					},
+				},
+			)
+			attachements := []*model.SlackAttachment{{
+				AuthorName: "",
+				Title:      "",
+				Actions:    actions,
+				Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
+			}}
+			model.ParseSlackAttachment(botPost, attachements)
+		}
 	}
 
 	if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
