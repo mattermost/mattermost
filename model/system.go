@@ -39,6 +39,7 @@ const (
 	WARN_METRIC_STATUS_ACK           = "ack"
 	WARN_METRIC_STATUS_STORE_PREFIX  = "warn_metric_"
 	WARN_METRIC_JOB_WAIT_TIME        = 1000 * 3600 * 24 * 90 // 90 days in ms
+	WARN_METRIC_JOB_INTERVAL         = 24 * 7
 )
 
 type System struct {

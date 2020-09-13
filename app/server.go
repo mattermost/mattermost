@@ -1154,11 +1154,11 @@ func runLicenseExpirationCheckJob(a *App) {
 	}, time.Hour*24)
 }
 
-func runCheckNumberOfActiveUsersWarnMetricStatusJob(a *App) {
-	doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	model.CreateRecurringTask("Check Number Of Active Users Warn Metric Status", func() {
-		doCheckNumberOfActiveUsersWarnMetricStatus(a)
-	}, time.Hour*24*7)
+func runCheckWarnMetricStatusJob(a *App) {
+	doCheckWarnMetricStatus(a)
+	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
+		doCheckWarnMetricStatus(a)
+	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
 }
 
 func doSecurity(s *Server) {
@@ -1181,7 +1181,7 @@ func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
 
-func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
+func doCheckWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
 		mlog.Debug("License is present, skip this check")
@@ -1202,6 +1202,7 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	}
 
 	currentTime := utils.MillisFromTime(time.Now())
+	//TODO - remove
 	fmt.Println((currentTime - firstRun) / (1000 * 3600 * 24 * 90))
 	fmt.Println(time.Unix(firstRun/1000, 0))
 	fmt.Println(time.Unix(currentTime/1000, 0))
@@ -1211,22 +1212,11 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 		return
 	}
 
-	ranWarnMetrics := make(map[string]bool)
+	warnMetricStatusFromStore := make(map[string]string)
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
-				runTimeStamp, nerr := strconv.ParseInt(value, 10, 64)
-				if nerr != nil {
-					mlog.Error("app.system.get.app_error", mlog.String("key", key), mlog.Err(nerr))
-					continue
-				}
-
-				// Store the warn metric advisories (without time stamp)
-				ranWarnMetrics[key] = true
-
-				if runTimeStamp > 0 {
-					return
-				}
+				warnMetricStatusFromStore[key] = value
 			}
 		}
 	}
@@ -1276,36 +1266,39 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 	warnMetrics := []model.WarnMetric{}
 	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25].Limit {
 		return
-	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5] {
+	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
-	} else if totalChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50] {
+	} else if totalChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
-	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_MFA] {
+	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_MFA], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
-	} else if isDiffEmailAccount && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN] {
+	} else if isDiffEmailAccount && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN])
 	}
 
-	if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100] {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200] {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-	} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300] {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
-	} else if !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500] {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
-	}
+	// If the system did not cross any of the thresholds for the Contextual Advisories
+	if len(warnMetrics) == 0 {
+		if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100]) {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200]) {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
+		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300]) {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
+		} else if !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]) {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
+		}
 
-	//TODO - which group does it belong?
-	if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !ranWarnMetrics[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K] {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K])
+		//TODO - which group does it belong?
+		if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]) {
+			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K])
+		}
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true")
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && (data.Value == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE)) {
+		if nErr == nil && data != nil && hasBeenAckedOrShown(data.Value, warnMetric) {
 			mlog.Debug("This metric warning has already been acked or it is bot only and ran once")
 			continue
 		}
@@ -1323,8 +1316,8 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 			}
 		}
 
-		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); err != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
+		if nerr := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id, isE0Edition); nerr != nil {
+			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
 		}
 
 		if warnMetric.IsRunOnce {
@@ -1333,6 +1326,10 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
 		}
 	}
+}
+
+func hasBeenAckedOrShown(metricStatusFromStore string, warnMetric model.WarnMetric) bool {
+	return (metricStatusFromStore == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && metricStatusFromStore == model.WARN_METRIC_STATUS_RUNONCE))
 }
 
 func doLicenseExpirationCheck(a *App) {
