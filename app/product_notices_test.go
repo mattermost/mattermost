@@ -354,6 +354,11 @@ func TestNoticeValidation(t *testing.T) {
 func TestNoticeFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
+		*cfg.AnnouncementSettings.UserNoticesEnabled = true
+	})
+
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},
 		ID:         "123",
