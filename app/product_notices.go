@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +28,9 @@ var NOTICES_JSON_URL = "https://raw.githubusercontent.com/reflog/notices-experim
 
 // notice.json fetch frequency in seconds. setting as var to allow overriding during build/test
 var NOTICES_JSON_FETCH_FREQUENCY_SECONDS = "3600" // one hour by default
+
+// this variable can be set during build time for QA to skip caching JSON responses (to avoid CDN delay)
+var NOTICES_SKIP_CACHE = "false"
 
 // http request cache
 var noticesCache = utils.RequestCache{}
@@ -264,7 +268,11 @@ func (a *App) UpdateViewedProductNotices(userId string, noticeIds []string) *mod
 }
 
 func (a *App) UpdateProductNotices() *model.AppError {
-	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL))
+	skip, err := strconv.ParseBool(NOTICES_SKIP_CACHE)
+	if err != nil {
+		skip = false
+	}
+	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL), mlog.Bool("skip_cache", skip))
 	var appErr *model.AppError
 	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if appErr != nil {
@@ -276,7 +284,7 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		mlog.Error("Failed to fetch user count", mlog.String("error", appErr.Error()))
 	}
 
-	data, err := utils.GetUrlWithCache(NOTICES_JSON_URL, &noticesCache)
+	data, err := utils.GetUrlWithCache(NOTICES_JSON_URL, &noticesCache, skip)
 	if err != nil {
 		return model.NewAppError("UpdateProductNotices", "api.system.update_notices.fetch_failed", nil, err.Error(), http.StatusBadRequest)
 	}

@@ -28,9 +28,21 @@ func TestNoticeValidation(t *testing.T) {
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	mockSystemStore.On("SaveOrUpdate", &model.System{Name: "ActiveLicenseId", Value: ""}).Return(nil)
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
+	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
+	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+	mockSystemStore.On("Get").Return(make(model.StringMap), nil)
+
 	mockUserStore.On("Count", model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: true, ExcludeRegularUsers: false, TeamId: "", ChannelId: "", ViewRestrictions: (*model.ViewUsersRestrictions)(nil), Roles: []string(nil), ChannelRoles: []string(nil), TeamRoles: []string(nil)}).Return(int64(1), nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data").Return(&model.Preference{Value: "test2"}, nil)
 	mockPreferenceStore.On("Get", "test", "Stuff", "Data2").Return(&model.Preference{Value: "test"}, nil)
+	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
+		*cfg.AnnouncementSettings.UserNoticesEnabled = true
+	})
+
 	defer th.TearDown()
 
 	type args struct {

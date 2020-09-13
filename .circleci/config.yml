@@ -12,8 +12,9 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-      NOTICES_JSON_URL: "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices_test.json"
+      NOTICES_JSON_URL: "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
       NOTICES_FETCH_SECS: 10
+      NOTICES_SKIP_CACHE: "true"
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server

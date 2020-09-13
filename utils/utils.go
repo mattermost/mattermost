@@ -131,14 +131,15 @@ type RequestCache struct {
 }
 
 // Fetch JSON data from the notices server
-func GetUrlWithCache(url string, cache *RequestCache) ([]byte, error) {
+// if skip is passed, does a fetch without touching the cache
+func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
 	// Build a GET Request, including optional If-None-Match header.
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		cache.Data = nil
 		return nil, err
 	}
-	if cache.Data != nil {
+	if !skip && cache.Data != nil {
 		req.Header.Add("If-None-Match", cache.Key)
 		req.Header.Add("If-Modified-Since", cache.Date)
 	}
