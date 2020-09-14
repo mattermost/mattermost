@@ -1,6 +1,6 @@
 Mattermost MIT Compiled License
 
-**Note: this license does not cover source code, for information on source code licensing see LICENSE.txt in the Mattermost source code.
+**Note: this license does not cover source code, for information on source code licensing see LICENSE.txt in the Mattermost source code. This license also does not cover the upgrade of software originally packaged with this license to the commercial Mattermost Enterprise Edition, whose license can be found at https://mattermost.com/enterprise-edition-license/**
 
 Copyright (c) 2016-present Mattermost, Inc.
 
