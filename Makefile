@@ -50,7 +50,7 @@ else
 endif
 
 # these variables are used by QA to override location of InProduct Notices
-NOTICES_JSON_URL ?= https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json
+NOTICES_JSON_URL ?= https://notices.mattermost.com/
 NOTICES_FETCH_SECS ?= 3600
 NOTICES_SKIP_CACHE ?= false
 

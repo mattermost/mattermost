@@ -24,7 +24,7 @@ const MAX_REPEAT_VIEWINGS = 3
 const MIN_SECONDS_BETWEEN_REPEAT_VIEWINGS = 60 * 60
 
 // where to fetch notices from. setting as var to allow overriding during build/test
-var NOTICES_JSON_URL = "https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json"
+var NOTICES_JSON_URL = "https://notices.mattermost.com/"
 
 // notice.json fetch frequency in seconds. setting as var to allow overriding during build/test
 var NOTICES_JSON_FETCH_FREQUENCY_SECONDS = "3600" // one hour by default
