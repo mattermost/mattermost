@@ -72,9 +72,9 @@ func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
-var jobsMigrationsInterface func(*App) tjobs.MigrationsJobInterface
+var jobsMigrationsInterface func(*Server) tjobs.MigrationsJobInterface
 
-func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterface) {
+func RegisterJobsMigrationsJobInterface(f func(*Server) tjobs.MigrationsJobInterface) {
 	jobsMigrationsInterface = f
 }
 
@@ -88,6 +88,12 @@ var jobsBleveIndexerInterface func(*Server) tjobs.IndexerJobInterface
 
 func RegisterJobsBleveIndexerInterface(f func(*Server) tjobs.IndexerJobInterface) {
 	jobsBleveIndexerInterface = f
+}
+
+var jobsActiveUsersInterface func(*App) tjobs.ActiveUsersJobInterface
+
+func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface) {
+	jobsActiveUsersInterface = f
 }
 
 var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
@@ -167,6 +173,9 @@ func (a *App) initEnterprise() {
 		if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew != nil {
 			mlog.Debug("Loading new SAML2 library")
 			a.srv.Saml = samlInterfaceNew(a)
+		} else if *a.Config().ExperimentalSettings.UseNewSAMLLibrary && samlInterfaceNew == nil {
+			mlog.Debug("Ignoring configuration setting to use the Experimental SAML library")
+			a.srv.Saml = samlInterface(a)
 		} else {
 			mlog.Debug("Loading original SAML library")
 			a.srv.Saml = samlInterface(a)

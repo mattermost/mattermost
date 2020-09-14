@@ -19,6 +19,7 @@
 * Unix socket support
 * Notifications: `LISTEN`/`NOTIFY`
 * pgpass support
+* GSS (Kerberos) auth
 
 ## Tests
 

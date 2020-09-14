@@ -102,8 +102,11 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 				}
 			}
 		}
-		// The overlay could have included an entirely new package.
-		if pkg == nil {
+		// The overlay could have included an entirely new package or an
+		// ad-hoc package. An ad-hoc package is one that we have manually
+		// constructed from inadequate `go list` results for a file= query.
+		// It will have the ID command-line-arguments.
+		if pkg == nil || pkg.ID == "command-line-arguments" {
 			// Try to find the module or gopath dir the file is contained in.
 			// Then for modules, add the module opath to the beginning.
 			pkgPath, ok, err := state.getPkgPath(dir)
@@ -113,42 +116,55 @@ func (state *golistState) processGolistOverlay(response *responseDeduper) (modif
 			if !ok {
 				break
 			}
+			var forTest string // only set for x tests
 			isXTest := strings.HasSuffix(pkgName, "_test")
 			if isXTest {
+				forTest = pkgPath
 				pkgPath += "_test"
 			}
 			id := pkgPath
-			if isTestFile && !isXTest {
-				id = fmt.Sprintf("%s [%s.test]", pkgPath, pkgPath)
-			}
-			// Try to reclaim a package with the same ID, if it exists in the response.
-			for _, p := range response.dr.Packages {
-				if reclaimPackage(p, id, opath, contents) {
-					pkg = p
-					break
+			if isTestFile {
+				if isXTest {
+					id = fmt.Sprintf("%s [%s.test]", pkgPath, forTest)
+				} else {
+					id = fmt.Sprintf("%s [%s.test]", pkgPath, pkgPath)
 				}
 			}
-			// Otherwise, create a new package.
-			if pkg == nil {
-				pkg = &Package{
-					PkgPath: pkgPath,
-					ID:      id,
-					Name:    pkgName,
-					Imports: make(map[string]*Package),
-				}
-				response.addPackage(pkg)
-				havePkgs[pkg.PkgPath] = id
-				// Add the production package's sources for a test variant.
-				if isTestFile && !isXTest && testVariantOf != nil {
-					pkg.GoFiles = append(pkg.GoFiles, testVariantOf.GoFiles...)
-					pkg.CompiledGoFiles = append(pkg.CompiledGoFiles, testVariantOf.CompiledGoFiles...)
-					// Add the package under test and its imports to the test variant.
-					pkg.forTest = testVariantOf.PkgPath
-					for k, v := range testVariantOf.Imports {
-						pkg.Imports[k] = &Package{ID: v.ID}
+			if pkg != nil {
+				// TODO(rstambler): We should change the package's path and ID
+				// here. The only issue is that this messes with the roots.
+			} else {
+				// Try to reclaim a package with the same ID, if it exists in the response.
+				for _, p := range response.dr.Packages {
+					if reclaimPackage(p, id, opath, contents) {
+						pkg = p
+						break
 					}
 				}
-				// TODO(rstambler): Handle forTest for x_tests.
+				// Otherwise, create a new package.
+				if pkg == nil {
+					pkg = &Package{
+						PkgPath: pkgPath,
+						ID:      id,
+						Name:    pkgName,
+						Imports: make(map[string]*Package),
+					}
+					response.addPackage(pkg)
+					havePkgs[pkg.PkgPath] = id
+					// Add the production package's sources for a test variant.
+					if isTestFile && !isXTest && testVariantOf != nil {
+						pkg.GoFiles = append(pkg.GoFiles, testVariantOf.GoFiles...)
+						pkg.CompiledGoFiles = append(pkg.CompiledGoFiles, testVariantOf.CompiledGoFiles...)
+						// Add the package under test and its imports to the test variant.
+						pkg.forTest = testVariantOf.PkgPath
+						for k, v := range testVariantOf.Imports {
+							pkg.Imports[k] = &Package{ID: v.ID}
+						}
+					}
+					if isXTest {
+						pkg.forTest = forTest
+					}
+				}
 			}
 		}
 		if !fileExists {

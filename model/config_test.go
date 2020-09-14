@@ -146,8 +146,30 @@ func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
 	*c1.SamlSettings.IdpUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"
+
+	err := c1.SamlSettings.isValid()
+	require.Nil(t, err)
+}
+
+func TestConfigServiceProviderDefault(t *testing.T) {
+	c1 := &Config{
+		SamlSettings: *&SamlSettings{
+			Enable:             NewBool(true),
+			Verify:             NewBool(false),
+			Encrypt:            NewBool(false),
+			IdpUrl:             NewString("http://test.url.com"),
+			IdpDescriptorUrl:   NewString("http://test2.url.com"),
+			IdpCertificateFile: NewString("certificatefile"),
+			EmailAttribute:     NewString("Email"),
+			UsernameAttribute:  NewString("Username"),
+		},
+	}
+
+	c1.SetDefaults()
+	assert.Equal(t, *c1.SamlSettings.ServiceProviderIdentifier, *c1.SamlSettings.IdpDescriptorUrl)
 
 	err := c1.SamlSettings.isValid()
 	require.Nil(t, err)
@@ -165,6 +187,7 @@ func TestConfigIsValidFakeAlgorithm(t *testing.T) {
 	*c1.SamlSettings.IdpDescriptorUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpMetadataUrl = "http://test.url.com"
 	*c1.SamlSettings.IdpCertificateFile = "certificatefile"
+	*c1.SamlSettings.ServiceProviderIdentifier = "http://test.url.com"
 	*c1.SamlSettings.EmailAttribute = "Email"
 	*c1.SamlSettings.UsernameAttribute = "Username"
 
@@ -281,6 +304,31 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 		c1.SetDefaults()
 
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+}
+
+func TestConfigDefaultIncidentResponsePluginState(t *testing.T) {
+	t.Run("should enable IncidentResponse plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
+	})
+
+	t.Run("should not re-enable IncidentResponse plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.plugin-incident-response": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-incident-response"].Enable)
 	})
 }
 

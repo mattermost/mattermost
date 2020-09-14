@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
@@ -54,6 +55,11 @@ func serverCmdF(command *cobra.Command, args []string) error {
 }
 
 func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+	// Setting the highest traceback level from the code.
+	// This is done to print goroutines from all threads (see golang.org/issue/13161)
+	// and also preserve a crash dump for later investigation.
+	debug.SetTraceback("crash")
+
 	options := []app.Option{
 		app.ConfigStore(configStore),
 		app.RunJobs,
@@ -92,7 +98,7 @@ func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform b
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(interruptChan, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
 
 	return nil

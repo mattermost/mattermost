@@ -4,6 +4,8 @@
 package searchlayer
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
@@ -97,11 +99,31 @@ func (c *SearchChannelStore) RemoveMember(channelId, userIdToRemove string) *mod
 	return err
 }
 
+func (c *SearchChannelStore) RemoveMembers(channelId string, userIds []string) *model.AppError {
+	if err := c.ChannelStore.RemoveMembers(channelId, userIds); err != nil {
+		return err
+	}
+
+	for _, uid := range userIds {
+		c.rootStore.indexUserFromID(uid)
+	}
+	return nil
+}
+
 func (c *SearchChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User) (*model.Channel, error) {
 	channel, err := c.ChannelStore.CreateDirectChannel(user, otherUser)
 	if err == nil {
 		c.rootStore.indexUserFromID(user.Id)
 		c.rootStore.indexUserFromID(otherUser.Id)
+	}
+	return channel, err
+}
+
+func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	channel, err := c.ChannelStore.SaveDirectChannel(directchannel, member1, member2)
+	if err != nil {
+		c.rootStore.indexUserFromID(member1.UserId)
+		c.rootStore.indexUserFromID(member2.UserId)
 	}
 	return channel, err
 }
@@ -144,8 +166,9 @@ func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.Sear
 	if len(channelIds) > 0 {
 		channels, err := c.ChannelStore.GetChannelsByIds(channelIds, includeDeleted)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("searchAutocompleteChannels", "app.channel.get_channels_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+
 		for _, ch := range channels {
 			channelList = append(channelList, ch)
 		}

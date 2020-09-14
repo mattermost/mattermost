@@ -111,7 +111,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 		go func() {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "firstKey"}
-			var err *model.AppError
+			var err error
 			s2, err = ss.System().InsertIfExists(s1)
 			require.Nil(t, err)
 		}()
@@ -119,7 +119,7 @@ func testInsertIfExists(t *testing.T, ss store.Store) {
 		go func() {
 			defer wg.Done()
 			s1 := &model.System{Name: model.SYSTEM_CLUSTER_ENCRYPTION_KEY, Value: "secondKey"}
-			var err *model.AppError
+			var err error
 			s3, err = ss.System().InsertIfExists(s1)
 			require.Nil(t, err)
 		}()

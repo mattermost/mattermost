@@ -86,46 +86,52 @@ func (a *App) SyncPluginsActiveState() {
 			return
 		}
 
-		// Deactivate any plugins that have been disabled.
+		// Determine which plugins need to be activated or deactivated.
+		disabledPlugins := []*model.BundleInfo{}
+		enabledPlugins := []*model.BundleInfo{}
 		for _, plugin := range availablePlugins {
-			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
 			if state, ok := config.PluginStates[pluginId]; ok {
 				pluginEnabled = state.Enable
 			}
 
-			// If it's not enabled we need to deactivate it
-			if !pluginEnabled {
-				deactivated := pluginsEnvironment.Deactivate(pluginId)
+			if pluginEnabled {
+				enabledPlugins = append(enabledPlugins, plugin)
+			} else {
+				disabledPlugins = append(disabledPlugins, plugin)
+			}
+		}
+
+		// Concurrently activate/deactivate each plugin appropriately.
+		var wg sync.WaitGroup
+
+		// Deactivate any plugins that have been disabled.
+		for _, plugin := range disabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
+
+				deactivated := pluginsEnvironment.Deactivate(plugin.Manifest.Id)
 				if deactivated && plugin.Manifest.HasClient() {
 					message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DISABLED, "", "", "", nil)
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					a.Publish(message)
 				}
-			}
+			}(plugin)
 		}
 
 		// Activate any plugins that have been enabled
-		for _, plugin := range availablePlugins {
-			if plugin.Manifest == nil {
-				plugin.WrapLogger(a.Log()).Error("Plugin manifest could not be loaded", mlog.Err(plugin.ManifestError))
-				continue
-			}
+		for _, plugin := range enabledPlugins {
+			wg.Add(1)
+			go func(plugin *model.BundleInfo) {
+				defer wg.Done()
 
-			// Determine if plugin is enabled
-			pluginId := plugin.Manifest.Id
-			pluginEnabled := false
-			if state, ok := config.PluginStates[pluginId]; ok {
-				pluginEnabled = state.Enable
-			}
-
-			// Activate plugin if enabled
-			if pluginEnabled {
+				pluginId := plugin.Manifest.Id
 				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
 				if err != nil {
 					plugin.WrapLogger(a.Log()).Error("Unable to activate plugin", mlog.Err(err))
-					continue
+					return
 				}
 
 				if activated {
@@ -134,8 +140,9 @@ func (a *App) SyncPluginsActiveState() {
 						a.Log().Error("Failed to notify cluster on plugin enable", mlog.Err(err))
 					}
 				}
-			}
+			}(plugin)
 		}
+		wg.Wait()
 	} else { // If plugins are disabled, shutdown plugins.
 		pluginsEnvironment.Shutdown()
 	}
@@ -184,6 +191,10 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 
 	plugins := a.processPrepackagedPlugins(prepackagedPluginsDir)
 	pluginsEnvironment = a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		mlog.Info("Plugins environment not found, server is likely shutting down")
+		return
+	}
 	pluginsEnvironment.SetPrepackagedPlugins(plugins)
 
 	// Sync plugin active state when config changes. Also notify plugins.
@@ -497,7 +508,9 @@ func (a *App) getRemoteMarketplacePlugin(pluginId, version string) (*model.BaseM
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	filter := &model.MarketplacePluginFilter{Filter: pluginId, ServerVersion: model.CurrentVersion}
+	filter := a.getBaseMarketplaceFilter()
+	filter.Filter = pluginId
+
 	plugin, err := marketplaceClient.GetPlugin(filter, version)
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -522,20 +535,9 @@ func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.Ap
 		return nil, model.NewAppError("getRemotePlugins", "app.plugin.marketplace_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	filter := a.getBaseMarketplaceFilter()
 	// Fetch all plugins from marketplace.
-	filter := &model.MarketplacePluginFilter{
-		PerPage:       -1,
-		ServerVersion: model.CurrentVersion,
-	}
-
-	license := a.Srv().License()
-	if license != nil && *license.Features.EnterprisePlugins {
-		filter.EnterprisePlugins = true
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		filter.BuildEnterpriseReady = true
-	}
+	filter.PerPage = -1
 
 	marketplacePlugins, err := marketplaceClient.GetPlugins(filter)
 	if err != nil {
@@ -653,6 +655,23 @@ func (a *App) mergeLocalPlugins(remoteMarketplacePlugins map[string]*model.Marke
 	}
 
 	return nil
+}
+
+func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
+	filter := &model.MarketplacePluginFilter{
+		ServerVersion: model.CurrentVersion,
+	}
+
+	license := a.Srv().License()
+	if license != nil && *license.Features.EnterprisePlugins {
+		filter.EnterprisePlugins = true
+	}
+
+	if model.BuildEnterpriseReady == "true" {
+		filter.BuildEnterpriseReady = true
+	}
+
+	return filter
 }
 
 func pluginMatchesFilter(manifest *model.Manifest, filter string) bool {

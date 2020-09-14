@@ -88,7 +88,7 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if !*a.Config().MessageExportSettings.EnableExport {
 		return errors.New("ERROR: The message export feature is not enabled")
@@ -149,7 +149,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		if err != nil {
 			return err
 		}
-		defer a.Shutdown()
+		defer a.Srv().Shutdown()
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -170,7 +170,11 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 		if warningsCount == 0 {
 			CommandPrettyPrintln("SUCCESS: Your data was exported.")
 		} else {
-			CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
+			if format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY || format == model.COMPLIANCE_EXPORT_TYPE_GLOBALRELAY_ZIP {
+				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see logs for details.", warningsCount))
+			} else {
+				CommandPrettyPrintln(fmt.Sprintf("WARNING: %d warnings encountered, see warning.txt for details.", warningsCount))
+			}
 		}
 
 		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
@@ -187,7 +191,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
@@ -205,6 +209,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 
 	// Path to directory of custom emoji
 	pathToEmojiDir := "data/emoji/"
+
+	customDataDir := a.Config().FileSettings.Directory
+	if customDataDir != nil && *customDataDir != "" {
+		pathToEmojiDir = *customDataDir + "emoji/"
+	}
 
 	// Name of the directory to export custom emoji
 	dirNameToExportEmoji := "exported_emoji"

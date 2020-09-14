@@ -28,6 +28,10 @@ func isError(typeName string) bool {
 	return strings.Contains(typeName, APP_ERROR_TYPE) || strings.Contains(typeName, ERROR_TYPE)
 }
 
+func isAppError(typeName string) bool {
+	return strings.Contains(typeName, APP_ERROR_TYPE)
+}
+
 func main() {
 	if err := buildTimerLayer(); err != nil {
 		log.Fatal(err)
@@ -35,6 +39,22 @@ func main() {
 	if err := buildOpenTracingLayer(); err != nil {
 		log.Fatal(err)
 	}
+	if err := buildRetryLayer(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func buildRetryLayer() error {
+	code, err := generateLayer("RetryLayer", "retry_layer.go.tmpl")
+	if err != nil {
+		return err
+	}
+	formatedCode, err := format.Source(code)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(path.Join("retrylayer/retrylayer.go"), formatedCode, 0644)
 }
 
 func buildTimerLayer() error {
@@ -47,7 +67,7 @@ func buildTimerLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("timer_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("timerlayer", "timerlayer.go"), formatedCode, 0644)
 }
 
 func buildOpenTracingLayer() error {
@@ -60,7 +80,7 @@ func buildOpenTracingLayer() error {
 		return err
 	}
 
-	return ioutil.WriteFile(path.Join("opentracing_layer.go"), formatedCode, 0644)
+	return ioutil.WriteFile(path.Join("opentracinglayer", "opentracinglayer.go"), formatedCode, 0644)
 }
 
 type methodParam struct {
@@ -211,20 +231,38 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			}
 			return fmt.Sprintf("(%s)", strings.Join(results, ", "))
 		},
-		"genResultsVars": func(results []string) string {
+		"genResultsVars": func(results []string, withNilError bool) string {
 			vars := []string{}
-			for i := range results {
-				vars = append(vars, fmt.Sprintf("resultVar%d", i))
+			for i, typeName := range results {
+				if isError(typeName) {
+					if withNilError {
+						vars = append(vars, "nil")
+					} else {
+						vars = append(vars, "err")
+					}
+				} else if i == 0 {
+					vars = append(vars, "result")
+				} else {
+					vars = append(vars, fmt.Sprintf("resultVar%d", i))
+				}
 			}
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d == nil", i)
+					return "err == nil"
 				}
 			}
 			return "true"
+		},
+		"isAppError": func(results []string) bool {
+			for _, typeName := range results {
+				if isAppError(typeName) {
+					return true
+				}
+			}
+			return false
 		},
 		"errorPresent": func(results []string) bool {
 			for _, typeName := range results {
@@ -235,9 +273,9 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return false
 		},
 		"errorVar": func(results []string) string {
-			for i, typeName := range results {
+			for _, typeName := range results {
 				if isError(typeName) {
-					return fmt.Sprintf("resultVar%d", i)
+					return "err"
 				}
 			}
 			return ""
@@ -252,7 +290,26 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 		"joinParamsWithType": func(params []methodParam) string {
 			paramsWithType := []string{}
 			for _, param := range params {
-				paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
+				} else if param.Type == "*UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				} else {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				}
+			}
+			return strings.Join(paramsWithType, ", ")
+		},
+		"joinParamsWithTypeOutsideStore": func(params []methodParam) string {
+			paramsWithType := []string{}
+			for _, param := range params {
+				if param.Type == "ChannelSearchOpts" || param.Type == "UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
+				} else if param.Type == "*UserGetByIdsOpts" {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.UserGetByIdsOpts", param.Name))
+				} else {
+					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
+				}
 			}
 			return strings.Join(paramsWithType, ", ")
 		},

@@ -158,6 +158,11 @@ func (p *tomlParser) parseGroup() tomlParserStateFn {
 	if err := p.tree.createSubTree(keys, startToken.Position); err != nil {
 		p.raiseError(key, "%s", err)
 	}
+	destTree := p.tree.GetPath(keys)
+	if target, ok := destTree.(*Tree); ok && target != nil && target.inline {
+		p.raiseError(key, "could not re-define exist inline table or its sub-table : %s",
+			strings.Join(keys, "."))
+	}
 	p.assume(tokenRightBracket)
 	p.currentTable = keys
 	return p.parseStart
@@ -198,6 +203,11 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 		targetNode = p.tree.GetPath(tableKey).(*Tree)
 	default:
 		p.raiseError(key, "Unknown table type for path: %s",
+			strings.Join(tableKey, "."))
+	}
+
+	if targetNode.inline {
+		p.raiseError(key, "could not add key or sub-table to exist inline table or its sub-table : %s",
 			strings.Join(tableKey, "."))
 	}
 
@@ -411,12 +421,13 @@ Loop:
 	if tokenIsComma(previous) {
 		p.raiseError(previous, "trailing comma at the end of inline table")
 	}
+	tree.inline = true
 	return tree
 }
 
 func (p *tomlParser) parseArray() interface{} {
 	var array []interface{}
-	arrayType := reflect.TypeOf(nil)
+	arrayType := reflect.TypeOf(newTree())
 	for {
 		follow := p.peek()
 		if follow == nil || follow.typ == tokenEOF {
@@ -427,11 +438,8 @@ func (p *tomlParser) parseArray() interface{} {
 			break
 		}
 		val := p.parseRvalue()
-		if arrayType == nil {
-			arrayType = reflect.TypeOf(val)
-		}
 		if reflect.TypeOf(val) != arrayType {
-			p.raiseError(follow, "mixed types in array")
+			arrayType = nil
 		}
 		array = append(array, val)
 		follow = p.peek()
@@ -444,6 +452,12 @@ func (p *tomlParser) parseArray() interface{} {
 		if follow.typ == tokenComma {
 			p.getToken()
 		}
+	}
+
+	// if the array is a mixed-type array or its length is 0,
+	// don't convert it to a table array
+	if len(array) <= 0 {
+		arrayType = nil
 	}
 	// An array of Trees is actually an array of inline
 	// tables, which is a shorthand for a table array. If the
