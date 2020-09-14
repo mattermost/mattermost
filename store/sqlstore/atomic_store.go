@@ -22,7 +22,7 @@ func newSqlAtomicStore(sqlStore SqlStore) store.AtomicStore {
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.AtomicKeyValue{}, "AtomicKeyValueStore").SetKeys(false, "Key")
-		table.ColMap("Key").SetMaxSize(255)
+		table.ColMap("Key").SetMaxSize(190)
 		table.ColMap("Value").SetMaxSize(8192)
 	}
 
