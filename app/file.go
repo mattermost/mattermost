@@ -118,6 +118,15 @@ func (a *App) WriteFile(fr io.Reader, path string) (int64, *model.AppError) {
 	return backend.WriteFile(fr, path)
 }
 
+func (a *App) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return 0, err
+	}
+
+	return backend.AppendFile(fr, path)
+}
+
 func (a *App) RemoveFile(path string) *model.AppError {
 	backend, err := a.FileBackend()
 	if err != nil {
@@ -157,7 +166,7 @@ func (a *App) getInfoForFilename(post *model.Post, teamId, channelId, userId, ol
 		return nil
 	}
 
-	info, err := model.GetInfoForBytes(name, data)
+	info, err := model.GetInfoForBytes(name, bytes.NewReader(data), len(data))
 	if err != nil {
 		mlog.Warn(
 			"Unable to fully decode file info when migrating post to use FileInfos",
@@ -902,7 +911,7 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 	channelId := filepath.Base(rawChannelId)
 	userId := filepath.Base(rawUserId)
 
-	info, err := model.GetInfoForBytes(filename, data)
+	info, err := model.GetInfoForBytes(filename, bytes.NewReader(data), len(data))
 	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, data, err

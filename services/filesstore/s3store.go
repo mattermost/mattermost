@@ -4,7 +4,6 @@
 package filesstore
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -218,13 +217,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(fr)
-	if err != nil {
-		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
-	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, &buf, int64(buf.Len()), options)
+	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, fr, -1, options)
 	if err != nil {
 		return info.Size, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

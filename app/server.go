@@ -170,6 +170,12 @@ type Server struct {
 	CacheProvider cache.Provider
 
 	tracer *tracing.Tracer
+
+	// These are used to prevent concurrent upload requests
+	// for a given upload session which could cause inconsistencies
+	// and data corruption.
+	uploadLockMapMut sync.Mutex
+	uploadLockMap    map[string]bool
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -182,6 +188,7 @@ func NewServer(options ...Option) (*Server, error) {
 		LocalRouter:         localRouter,
 		licenseListeners:    map[string]func(*model.License, *model.License){},
 		hashSeed:            maphash.MakeSeed(),
+		uploadLockMap:       map[string]bool{},
 	}
 
 	for _, option := range options {
