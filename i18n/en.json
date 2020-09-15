@@ -1313,6 +1313,22 @@
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
+    "id": "api.file.append_file.no_exist.app_error",
+    "translation": "File does not exist."
+  },
+  {
+    "id": "api.file.append_file.opening.app_error",
+    "translation": "Encountered an error opening the file."
+  },
+  {
+    "id": "api.file.append_file.s3.app_error",
+    "translation": "Encountered an error appending to a file in S3."
+  },
+  {
+    "id": "api.file.append_file.writing.app_error",
+    "translation": "Encountered an error writing to S3."
+  },
+  {
     "id": "api.file.attachments.disabled.app_error",
     "translation": "File attachments have been disabled on this server."
   },
@@ -2687,6 +2703,14 @@
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
   },
   {
+    "id": "api.upload.get_upload.forbidden.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_length",
+    "translation": "Invalid Content-Length."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
@@ -2849,6 +2873,10 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Failed to get uploads."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -4885,6 +4913,54 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Cannot upload to a deleted channel."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Cannot upload to the specified channel."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Failed to save upload."
+  },
+  {
+    "id": "app.upload.create.upload_too_large.app_error",
+    "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Failed to get upload."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Failed to get uploads for user."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Unable to upload data from more than one request."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Failed to read a file."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Failed to update the upload session."
   },
   {
     "id": "app.user.convert_bot_to_user.app_error",
@@ -7073,6 +7149,42 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Invalid token."
+  },
+  {
+    "id": "model.upload_session.is_valid.channel_id.app_error",
+    "translation": "Invalid value for ChannelId."
+  },
+  {
+    "id": "model.upload_session.is_valid.create_at.app_error",
+    "translation": "Invalid value for CreateAt"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_offset.app_error",
+    "translation": "Invalid value for FileOffset"
+  },
+  {
+    "id": "model.upload_session.is_valid.file_size.app_error",
+    "translation": "Invalid value for FileSize"
+  },
+  {
+    "id": "model.upload_session.is_valid.filename.app_error",
+    "translation": "Invalid value for Filename"
+  },
+  {
+    "id": "model.upload_session.is_valid.id.app_error",
+    "translation": "Invalid value for Id"
+  },
+  {
+    "id": "model.upload_session.is_valid.path.app_error",
+    "translation": "Invalid value for Path"
+  },
+  {
+    "id": "model.upload_session.is_valid.type.app_error",
+    "translation": "Invalid value for Type"
+  },
+  {
+    "id": "model.upload_session.is_valid.user_id.app_error",
+    "translation": "Invalid Value for UserId"
   },
   {
     "id": "model.user.is_valid.auth_data.app_error",
