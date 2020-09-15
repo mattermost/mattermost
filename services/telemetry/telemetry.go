@@ -29,6 +29,8 @@ const (
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
+	ENV_VAR_INSTALL_TYPE = "MM_INSTALL_TYPE"
+
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
@@ -104,7 +106,6 @@ func New(srv ServerIface, dbStore store.Store, searchEngine *searchengine.Broker
 		log:          log,
 	}
 	service.ensureTelemetryID()
-	service.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 	return service
 }
 
@@ -129,7 +130,7 @@ func (ts *TelemetryService) ensureTelemetryID() {
 }
 
 func (ts *TelemetryService) sendDailyTelemetry(override bool) {
-	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.Contains(RUDDER_KEY, "placeholder") && !strings.Contains(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
+	if *ts.srv.Config().LogSettings.EnableDiagnostics && ts.srv.IsLeader() && ((!strings.HasPrefix(RUDDER_KEY, "placeholder") && !strings.HasPrefix(RUDDER_DATAPLANE_URL, "placeholder")) || override) {
 		ts.initRudder(RUDDER_DATAPLANE_URL, RUDDER_KEY)
 		ts.trackActivity()
 		ts.trackConfig()
@@ -606,6 +607,8 @@ func (ts *TelemetryService) trackConfig() {
 		"isempty_guest_filter":                   isDefault(*cfg.LdapSettings.GuestFilter, ""),
 		"isempty_admin_filter":                   isDefault(*cfg.LdapSettings.AdminFilter, ""),
 		"isnotempty_picture_attribute":           !isDefault(*cfg.LdapSettings.PictureAttribute, ""),
+		"isnotempty_public_certificate":          !isDefault(*cfg.LdapSettings.PublicCertificateFile, ""),
+		"isnotempty_private_key":                 !isDefault(*cfg.LdapSettings.PrivateKeyFile, ""),
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -848,10 +851,11 @@ func (ts *TelemetryService) trackPlugins() {
 
 func (ts *TelemetryService) trackServer() {
 	data := map[string]interface{}{
-		"edition":          model.BuildEnterpriseReady,
-		"version":          model.CurrentVersion,
-		"database_type":    *ts.srv.Config().SqlSettings.DriverName,
-		"operating_system": runtime.GOOS,
+		"edition":           model.BuildEnterpriseReady,
+		"version":           model.CurrentVersion,
+		"database_type":     *ts.srv.Config().SqlSettings.DriverName,
+		"operating_system":  runtime.GOOS,
+		"installation_type": os.Getenv(ENV_VAR_INSTALL_TYPE),
 	}
 
 	if scr, err := ts.dbStore.User().AnalyticsGetSystemAdminCount(); err == nil {
