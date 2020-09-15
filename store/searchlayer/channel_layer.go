@@ -130,15 +130,15 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 
 func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	var channelList *model.ChannelList
-	var err *model.AppError
+	var appErr *model.AppError
 	var nErr error
 
 	allFailed := true
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsAutocompletionEnabled() {
-			channelList, err = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
-			if err != nil {
-				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+			channelList, appErr = c.searchAutocompleteChannels(engine, teamId, term, includeDeleted)
+			if appErr != nil {
+				mlog.Error("Encountered error on AutocompleteChannels through SearchEngine. Falling back to default autocompletion.", mlog.String("search_engine", engine.GetName()), mlog.Err(appErr))
 				continue
 			}
 			allFailed = false
@@ -154,7 +154,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 			return nil, model.NewAppError("AutocompleteInTeam", "app.channel.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
-	return channelList, err
+	return channelList, appErr
 }
 
 func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
