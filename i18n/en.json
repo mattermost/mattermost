@@ -60,6 +60,10 @@
     "translation": "Could not open certificate file."
   },
   {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Error parsing multiform request"
+  },
+  {
     "id": "api.admin.add_certificate.saving.app_error",
     "translation": "Could not save certificate file."
   },
@@ -5507,8 +5511,16 @@
     "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
   {
+    "id": "ent.ldap.do_login.certificate.app_error",
+    "translation": "Error loading LDAP TLS Certificate file."
+  },
+  {
     "id": "ent.ldap.do_login.invalid_password.app_error",
     "translation": "Invalid Password."
+  },
+  {
+    "id": "ent.ldap.do_login.key.app_error",
+    "translation": "Error loading LDAP TLS Key file."
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
@@ -5533,6 +5545,10 @@
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
     "translation": "User not registered on AD/LDAP server."
+  },
+  {
+    "id": "ent.ldap.do_login.x509.app_error",
+    "translation": "Error creating key pair"
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
