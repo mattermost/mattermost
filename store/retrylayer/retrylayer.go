@@ -47,6 +47,7 @@ type RetryLayer struct {
 	TeamStore                 store.TeamStore
 	TermsOfServiceStore       store.TermsOfServiceStore
 	TokenStore                store.TokenStore
+	UploadSessionStore        store.UploadSessionStore
 	UserStore                 store.UserStore
 	UserAccessTokenStore      store.UserAccessTokenStore
 	UserTermsOfServiceStore   store.UserTermsOfServiceStore
@@ -159,6 +160,10 @@ func (s *RetryLayer) TermsOfService() store.TermsOfServiceStore {
 
 func (s *RetryLayer) Token() store.TokenStore {
 	return s.TokenStore
+}
+
+func (s *RetryLayer) UploadSession() store.UploadSessionStore {
+	return s.UploadSessionStore
 }
 
 func (s *RetryLayer) User() store.UserStore {
@@ -309,6 +314,11 @@ type RetryLayerTermsOfServiceStore struct {
 
 type RetryLayerTokenStore struct {
 	store.TokenStore
+	Root *RetryLayer
+}
+
+type RetryLayerUploadSessionStore struct {
+	store.UploadSessionStore
 	Root *RetryLayer
 }
 
@@ -6962,6 +6972,106 @@ func (s *RetryLayerTokenStore) Save(recovery *model.Token) error {
 
 }
 
+func (s *RetryLayerUploadSessionStore) Delete(id string) error {
+
+	tries := 0
+	for {
+		err := s.UploadSessionStore.Delete(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerUploadSessionStore) Get(id string) (*model.UploadSession, error) {
+
+	tries := 0
+	for {
+		result, err := s.UploadSessionStore.Get(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerUploadSessionStore) GetForUser(userId string) ([]*model.UploadSession, error) {
+
+	tries := 0
+	for {
+		result, err := s.UploadSessionStore.GetForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerUploadSessionStore) Save(session *model.UploadSession) (*model.UploadSession, error) {
+
+	tries := 0
+	for {
+		result, err := s.UploadSessionStore.Save(session)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerUploadSessionStore) Update(session *model.UploadSession) error {
+
+	tries := 0
+	for {
+		err := s.UploadSessionStore.Update(session)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerUserStore) AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError) {
 
 	return s.UserStore.AnalyticsActiveCount(time, options)
@@ -8202,6 +8312,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.TeamStore = &RetryLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}
 	newStore.TermsOfServiceStore = &RetryLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
 	newStore.TokenStore = &RetryLayerTokenStore{TokenStore: childStore.Token(), Root: &newStore}
+	newStore.UploadSessionStore = &RetryLayerUploadSessionStore{UploadSessionStore: childStore.UploadSession(), Root: &newStore}
 	newStore.UserStore = &RetryLayerUserStore{UserStore: childStore.User(), Root: &newStore}
 	newStore.UserAccessTokenStore = &RetryLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}
 	newStore.UserTermsOfServiceStore = &RetryLayerUserTermsOfServiceStore{UserTermsOfServiceStore: childStore.UserTermsOfService(), Root: &newStore}
