@@ -28,7 +28,7 @@ type LogLevel struct {
 }
 
 type LogTarget struct {
-	Type         string // one of "console", "file", "tcp", "syslog".
+	Type         string // one of "console", "file", "tcp", "syslog", "none".
 	Format       string // one of "json", "plain"
 	Levels       []LogLevel
 	Options      json.RawMessage
@@ -38,7 +38,7 @@ type LogTarget struct {
 type LogTargetCfg map[string]*LogTarget
 type LogrCleanup func() error
 
-func newLogr(targets LogTargetCfg) (*logr.Logger, error) {
+func newLogr() *logr.Logger {
 	lgr := &logr.Logr{}
 	lgr.OnExit = func(int) {}
 	lgr.OnPanic = func(interface{}) {}
@@ -46,12 +46,12 @@ func newLogr(targets LogTargetCfg) (*logr.Logger, error) {
 	lgr.OnQueueFull = onQueueFull
 	lgr.OnTargetQueueFull = onTargetQueueFull
 
-	err := logrAddTargets(lgr, targets)
 	logger := lgr.NewLogger()
-	return &logger, err
+	return &logger
 }
 
-func logrAddTargets(lgr *logr.Logr, targets LogTargetCfg) error {
+func logrAddTargets(logger *logr.Logger, targets LogTargetCfg) error {
+	lgr := logger.Logr()
 	var errs error
 	for name, t := range targets {
 		target, err := NewLogrTarget(name, t)
@@ -59,7 +59,10 @@ func logrAddTargets(lgr *logr.Logr, targets LogTargetCfg) error {
 			errs = multierror.Append(err)
 			continue
 		}
-		lgr.AddTarget(target)
+		if target != nil {
+			target.SetName(name)
+			lgr.AddTarget(target)
+		}
 	}
 	return errs
 }
@@ -90,6 +93,8 @@ func NewLogrTarget(name string, t *LogTarget) (logr.Target, error) {
 		return newSyslogTarget(name, t, filter, formatter)
 	case "tcp":
 		return newTCPTarget(name, t, filter, formatter)
+	case "none":
+		return nil, nil
 	}
 	return nil, fmt.Errorf("invalid type '%s' for target %s", t.Type, name)
 }
@@ -148,15 +153,18 @@ func newFileTarget(name string, t *LogTarget, filter logr.Filter, formatter logr
 	if err := json.Unmarshal(t.Options, options); err != nil {
 		return nil, err
 	}
+	return newFileTargetWithOpts(name, t, target.FileOptions(*options), filter, formatter)
+}
 
-	if options.Filename == "" {
+func newFileTargetWithOpts(name string, t *LogTarget, opts target.FileOptions, filter logr.Filter, formatter logr.Formatter) (logr.Target, error) {
+	if opts.Filename == "" {
 		return nil, fmt.Errorf("missing 'Filename' option for target %s", name)
 	}
-	if err := checkFileWritable(options.Filename); err != nil {
+	if err := checkFileWritable(opts.Filename); err != nil {
 		return nil, fmt.Errorf("error writing to 'Filename' for target %s: %w", name, err)
 	}
 
-	newTarget := target.NewFileTarget(filter, formatter, target.FileOptions(*options), t.MaxQueueSize)
+	newTarget := target.NewFileTarget(filter, formatter, opts, t.MaxQueueSize)
 	return newTarget, nil
 }
 
@@ -201,6 +209,10 @@ func checkFileWritable(filename string) error {
 }
 
 func isLevelEnabled(logger *logr.Logger, level logr.Level) bool {
+	if logger == nil || logger.Logr() == nil {
+		return false
+	}
+
 	status := logger.Logr().IsLevelEnabled(level)
 	return status.Enabled
 }
@@ -213,4 +225,23 @@ func zapToLogr(zapFields []Field) logr.Fields {
 		zapField.AddTo(encoder)
 	}
 	return logr.Fields(encoder.Fields)
+}
+
+// mlogLevelToLogrLevel converts a mlog logger level to
+// an array of discrete Logr levels.
+func mlogLevelToLogrLevels(level string) []LogLevel {
+	levels := make([]LogLevel, 0)
+	levels = append(levels, LvlError, LvlPanic, LvlFatal, LvlStdLog)
+
+	switch level {
+	case LevelDebug:
+		levels = append(levels, LvlDebug)
+		fallthrough
+	case LevelInfo:
+		levels = append(levels, LvlInfo)
+		fallthrough
+	case LevelWarn:
+		levels = append(levels, LvlWarn)
+	}
+	return levels
 }

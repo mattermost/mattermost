@@ -48,10 +48,6 @@
         "translation": "九月"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "无法转换导出到 XML。"
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "请求中 'certificate' 下的文件不存在。"
     },
@@ -2534,10 +2530,6 @@
         "translation": "%s 更新了频道作用为: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "未找到机群 API 接口。"
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "写入导出数据时遇到错误。"
     },
@@ -3218,10 +3210,6 @@
         "translation": "这个团队已经达到允许的最大帐号数量。请与系统管理员联系以设置更高的限制。"
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "无法用空的邮件地址完成 SAML 登入。"
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "个人访问令牌在本服务器禁用。请联系您的系统管理员了解详情。"
     },
@@ -3376,10 +3364,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "索引消息失败"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "无法从数据库获取最旧的消息。"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3682,24 +3666,12 @@
         "translation": "无法为互动对话框签名生成的触发 ID。"
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "无法解析 BatchSize 导出任务消息。"
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "无法请求取消任务到不允许取消的任务。"
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "设置任务状态为错误失败"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "AD/LDAP 同步任务超时。"
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3900,10 +3872,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "无效的用户 id。"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "在连接到服务器时，我们遇到了一个错误"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5158,46 +5126,6 @@
         "translation": "无法获取命令"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "无法删除用户的附件"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "无法附文件信息到消息"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "无法从消息删除文件信息"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "无法获取文件信息"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "无法从路径获取文件信息"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "无法从消息获取文件信息"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "无法获取用户的文件信息"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "无法永久删除文件信息"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "批量永久删除文件信息时遇到错误"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "无法保存文件信息"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "可同步组已被删除"
     },
@@ -5214,46 +5142,6 @@
         "translation": "用户组成员已存在"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "无法删除任务"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "无法获取任务"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "无法获取任务"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "无法以状态和类型获取任务数"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "无法以状态和类型获取最新任务"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "无法保存任务"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "无法更新任务"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "无法删除插件键值"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "无法获取插件键值"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "无法保存或更新插件键值"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "无法获取消息数"
     },
@@ -5264,14 +5152,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "无法获取用户的消息数量"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "无法删除消息。"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "无法获取消息。"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5318,92 +5198,12 @@
         "translation": "无法覆盖消息"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "无法删除消息"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "无法删除用户的评论"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "批量永久删除消息时遇到错误"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "无法根据频道删除消息"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "无法删除该用户被选择的消息"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "无法删除该用户被选择的信息(数量太多)，请重新运行"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "无法保存消息"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "您不能更新一个村庄的邮件"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "此服务器已禁用搜索。请联系您的系统管理员。"
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "无法更新消息"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "获取状态时遇到错误"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "该状态没有对应的数据"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "我们无法计算启用的用户数"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "重置所有状态时遇到错误"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "保存状态时遇到错误"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "更新状态时遇到错误"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "无法更新用户最近活动日期和时间"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "我们再查找系统属性遇到了一个错误"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "无法找到该系统变量。"
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "我们无法永久删除系统表数据"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "我们保存系统属性时遇到了一个错误"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "我们更新系统属性时遇到了一个错误"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5666,20 +5466,8 @@
         "translation": "已有帐号使用该电子邮件。"
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "这个账号不使用 AD/LDAP 验证。请使用电子邮件和密码登陆。"
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "这个账号不使用LDAP验证。请使用电子邮件和密码登陆。"
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "必须对现有的用户执行更新"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "这个团队已经达到允许的最大帐号数量。请与系统管理员联系以设置更高的限制。"
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5688,14 +5476,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "已存在使用该用户名的账户。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "使用此用户名的帐号已经存在。请与您的管理员联系。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "已有帐号使用该用户名。请联系您的管理员。"
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6658,14 +6438,6 @@
         "translation": "无法移除组成员用户 ID \"{{.UserId}}\"。"
     },
     {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "KVCompareAndSet 后无法在 MySQL 查询现有未更改的值。"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "KVCompareAndSet 后在 MySQL 查询到超过一跳现有未更改的值。"
-    },
-    {
         "id": "bleveengine.stop_post_index.error",
         "translation": "关闭消息索引失败。"
     },
@@ -7078,14 +6850,6 @@
         "translation": "无法确定用户是否属于这些频道。"
     },
     {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "无法获取文件信息以及选项"
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "无法列出所有插件密钥。"
-    },
-    {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "无法获取私信。"
     },
@@ -7316,10 +7080,6 @@
     {
         "id": "store.sql_team.analytics_private_team_count.app_error",
         "translation": "无法统计私有团队数。"
-    },
-    {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "提交数据库事务失败"
     },
     {
         "id": "store.sql_post.populate_reply_count.app_error",
@@ -7896,5 +7656,177 @@
     {
         "id": "app.role.get.app_error",
         "translation": "无法获取角色。"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "无法更新消息"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "您不能更新一个村庄的邮件"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "无法保存消息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "无法删除该用户被选择的消息"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "无法根据频道删除消息"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "无法获取消息。"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "无法删除消息"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "该状态没有对应的数据"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "获取状态时遇到错误"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "无法保存或更新插件键值"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "无法列出所有插件密钥。"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "无法获取插件键值"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "无法删除插件键值"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "我们保存系统属性时遇到了一个错误"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "我们保存系统属性时遇到了一个错误"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "我们无法永久删除系统表数据"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "无法找到该系统变量。"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "我们再查找系统属性遇到了一个错误"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "无法用空的邮件地址完成 SAML 登入。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "已有帐号使用该用户名。请联系您的管理员。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "这个账号不使用LDAP验证。请使用电子邮件和密码登陆。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "已有帐号使用该用户名。请联系您的管理员。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "这个账号不使用 AD/LDAP 验证。请使用电子邮件和密码登陆。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP 同步任务超时。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "无法解析 ExportFromTimestamp 导出任务消息。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "无法解析 BatchSize 导出任务消息。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "在连接到服务器时，我们遇到了一个错误"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "未找到机群 API 接口。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " 附加了文件。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "无法转换导出到 XML。"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "无法更新任务。"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "无法保存任务。"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "无法以状态和类型获取最新任务。"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "无法以状态和类型获取任务数。"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "无法获取任务。"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "无法获取任务。"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "批量永久删除文件信息时遇到错误。"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "无法保存文件信息。"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "无法删除用户的附件。"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "无法获取文件信息以及选项"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "无法从消息获取文件信息。"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "无法获取文件信息。"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "永久删除功能未开启。请联系您的系统管理员。"
     }
 ]

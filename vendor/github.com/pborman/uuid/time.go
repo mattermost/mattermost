@@ -29,7 +29,7 @@ func GetTime() (Time, uint16, error) { return guuid.GetTime() }
 // for
 func ClockSequence() int { return guuid.ClockSequence() }
 
-// SetClockSeq sets the clock sequence to the lower 14 bits of seq.  Setting to
+// SetClockSequence sets the clock sequence to the lower 14 bits of seq.  Setting to
 // -1 causes a new sequence to be generated.
 func SetClockSequence(seq int) { guuid.SetClockSequence(seq) }
 

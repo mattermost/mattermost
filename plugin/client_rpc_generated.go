@@ -857,6 +857,33 @@ func (s *apiRPCServer) GetDiagnosticId(args *Z_GetDiagnosticIdArgs, returns *Z_G
 	return nil
 }
 
+type Z_GetTelemetryIdArgs struct {
+}
+
+type Z_GetTelemetryIdReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetTelemetryId() string {
+	_args := &Z_GetTelemetryIdArgs{}
+	_returns := &Z_GetTelemetryIdReturns{}
+	if err := g.client.Call("Plugin.GetTelemetryId", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTelemetryId API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetTelemetryId(args *Z_GetTelemetryIdArgs, returns *Z_GetTelemetryIdReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTelemetryId() string
+	}); ok {
+		returns.A = hook.GetTelemetryId()
+	} else {
+		return encodableError(fmt.Errorf("API GetTelemetryId called but not implemented."))
+	}
+	return nil
+}
+
 type Z_CreateUserArgs struct {
 	A *model.User
 }

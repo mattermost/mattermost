@@ -87,7 +87,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
 			teamCount, err2 := a.Srv().Store.Team().AnalyticsTeamCount(false)
-			teamCountChan <- store.StoreResult{Data: teamCount, Err: err2}
+			teamCountChan <- store.StoreResult{Data: teamCount, NErr: err2}
 			close(teamCountChan)
 		}()
 
@@ -148,8 +148,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 
 		r = <-teamCountChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.team.analytics_team_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[4].Value = float64(r.Data.(int64))
 
