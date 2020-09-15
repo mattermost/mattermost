@@ -170,6 +170,50 @@ func (a *OpenTracingAppLayer) AddDirectChannels(teamId string, user *model.User)
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLdapPrivateCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddLdapPrivateCertificate(fileData)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLdapPublicCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddLdapPublicCertificate(fileData)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
@@ -2897,23 +2941,6 @@ func (a *OpenTracingAppLayer) DemoteUserToGuest(user *model.User) *model.AppErro
 		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) DiagnosticId() string {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DiagnosticId")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.DiagnosticId()
 
 	return resultVar0
 }
@@ -11357,6 +11384,50 @@ func (a *OpenTracingAppLayer) RemoveFile(path string) *model.AppError {
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) RemoveLdapPrivateCertificate() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveLdapPrivateCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveLdapPrivateCertificate()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) RemoveLdapPublicCertificate() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemoveLdapPublicCertificate")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.RemoveLdapPublicCertificate()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) RemovePlugin(id string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RemovePlugin")
@@ -13069,21 +13140,6 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetDiagnosticId(id string) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetDiagnosticId")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SetDiagnosticId(id)
-}
-
 func (a *OpenTracingAppLayer) SetLog(l *mlog.Logger) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetLog")
@@ -13783,6 +13839,23 @@ func (a *OpenTracingAppLayer) TeamMembersToRemove(teamID *string) ([]*model.Team
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) TelemetryId() string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.TelemetryId")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.TelemetryId()
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) TestElasticsearch(cfg *model.Config) *model.AppError {

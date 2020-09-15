@@ -78,7 +78,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	cchan := make(chan store.StoreResult, 1)
 	go func() {
 		channel, err := a.Srv().Store.Channel().GetForPost(postId)
-		cchan <- store.StoreResult{Data: channel, Err: err}
+		cchan <- store.StoreResult{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
@@ -133,8 +133,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 	} else {
 		post := result.Data.(*model.Post)
 		result = <-cchan
-		if result.Err != nil {
-			return "", result.Err
+		if result.NErr != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 		channel := result.Data.(*model.Channel)
 
@@ -528,7 +528,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	mailBody += T("api.server.warn_metric.bot_response.mailto_site_url_header", map[string]interface{}{"SiteUrl": a.GetSiteURL()})
 	mailBody += "\r\n"
 
-	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.DiagnosticId()})
+	mailBody += T("api.server.warn_metric.bot_response.mailto_diagnostic_id_header", map[string]interface{}{"DiagnosticId": a.TelemetryId()})
 	mailBody += "\r\n"
 
 	mailBody += T("api.server.warn_metric.bot_response.mailto_footer")

@@ -497,15 +497,14 @@ func (o *SearchParameter) SearchParameterToJson() string {
 	return string(b)
 }
 
-func SearchParameterFromJson(data io.Reader) *SearchParameter {
+func SearchParameterFromJson(data io.Reader) (*SearchParameter, error) {
 	decoder := json.NewDecoder(data)
 	var searchParam SearchParameter
-	err := decoder.Decode(&searchParam)
-	if err != nil {
-		return nil
+	if err := decoder.Decode(&searchParam); err != nil {
+		return nil, err
 	}
 
-	return &searchParam
+	return &searchParam, nil
 }
 
 func (o *Post) ChannelMentions() []string {

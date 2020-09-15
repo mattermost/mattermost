@@ -1632,15 +1632,36 @@ func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, lim
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
+	list, err := a.Srv().Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetPublicChannelsByIdsForTeam", "app.channel.get_channels_by_ids.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return list, nil
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
+	list, err := a.Srv().Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return list, nil
 }
 
 func (a *App) GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	return a.Srv().Store.Channel().GetPrivateChannelsForTeam(teamId, offset, limit)
+	list, err := a.Srv().Store.Channel().GetPrivateChannelsForTeam(teamId, offset, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetPrivateChannelsForTeam", "app.channel.get_private_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return list, nil
 }
 
 func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
@@ -1705,7 +1726,12 @@ func (a *App) GetChannelPinnedPostCount(channelId string) (int64, *model.AppErro
 }
 
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
-	return a.Srv().Store.Channel().GetChannelCounts(teamId, userId)
+	counts, err := a.Srv().Store.Channel().GetChannelCounts(teamId, userId)
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return counts, nil
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
@@ -2094,7 +2120,13 @@ func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
 	list, err := a.Srv().Store.Channel().GetTeamChannels(teamId)
 	if err != nil {
-		return 0, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.not_found.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return 0, model.NewAppError("GetNumberOfChannelsOnTeam", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 	return len(*list), nil
 }
@@ -2415,8 +2447,8 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 		}
 	}
 
-	if appErr := a.Srv().Store.Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); appErr != nil {
-		return appErr
+	if nErr := a.Srv().Store.Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); nErr != nil {
+		return model.NewAppError("MoveChannel", "app.channel.sidebar_categories.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	channel.TeamId = team.Id

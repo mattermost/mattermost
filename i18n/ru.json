@@ -48,10 +48,6 @@
         "translation": "Сентябрь"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Не удалось экспортировать в XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Нет файла под атрибутом 'certificate' в запросе."
     },
@@ -2544,10 +2540,6 @@
         "translation": "%s обновил заголовок канала на: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Не найдена конечная точка API кластера."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Произошла ошибка при записи данных экспорта."
     },
@@ -3228,10 +3220,6 @@
         "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита учётных записей."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Невозможно завершить вход в SAML с пустым адресом электронной почты."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Токены личного доступа на этом сервере отключены. Пожалуйста, свяжитесь с вашим системным администратором для деталей."
     },
@@ -3386,10 +3374,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Не удалось проиндексировать запись"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Самый старый пост не может быть извлечен из базы данных"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3692,24 +3676,12 @@
         "translation": "Не удалось подписать сгенерированный ID триггера для интерактивного диалога."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Не удалось запросить отмену для задания, которое не находится в состоянии отмены."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Не удалось установить статус задания на ошибку"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3910,10 +3882,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Неверный идентификатор пользователя."
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Мы обнаружили ошибку при подключении к серверу."
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5168,46 +5136,6 @@
         "translation": "Невозможно получить команду."
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Невозможно удалить вложения пользователя."
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Не удалось прикрепить информацию о файле к посту."
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Мы не смогли удалить информацию о файле в посте."
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Невозможно получить информацию о файле."
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Мы не смогли получить информацию о файле по указанному пути."
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Мы не смогли получить информацию о файле к сообщению."
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Мы не смогли получить информацию о файле для пользователя."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Невозможно окончательно удалить информацию о файле."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информаций о файлах."
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Невозможно сохранить информацию о файле."
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "синхронизируемая группа уже удалена"
     },
@@ -5224,46 +5152,6 @@
         "translation": "участник группы уже существует"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Невозможно удалить задание."
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Невозможно получить задание."
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Невозможно получить задания."
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Невозможно получить количество заданий по статусу и типу."
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Невозможно получить новейшее задание по статусу и типу."
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Невозможно сохранить задание."
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Невозможно обновить задание."
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Не получилось удалить значение ключа плагина."
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Не удалось получить значение ключа плагина."
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Не получилось сохранить или обновить значение ключа плагина."
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Невозможно получить количество сообщений."
     },
@@ -5274,14 +5162,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Невозможно получить количество пользователей с сообщениями."
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Невозможно удалить сообщение."
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Не удалось получить сообщение."
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5328,92 +5208,12 @@
         "translation": "Невозможно перезаписать сообщение."
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Невозможно удалить сообщение."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Неудачная попытка удалить комментарии пользователя."
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Мы столкнулись с ошибкой окончательного удаления пакета сообщений."
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Невозможно удалить сообщения по каналу."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Не удалось выбрать для удаления посты пользователя."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Не удалось выбрать для удаления посты пользователя (слишком много), пожалуйста, запустите повторно."
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Невозможно сохранить сообщение."
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Вы не можете обновить существующее сообщение."
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Невозможно обновить сообщение."
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Возникла ошибка при получении статуса."
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Не существует записи для данного статуса."
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Не удалось подсчитать активных пользователей."
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Возникла проблема при сбросе всех статусов."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Возникла ошибка при сохранении статуса."
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Возникла ошибка при обновлении статуса."
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Невозможно обновить дату и время последнего действия пользователя."
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Возникла ошибка при поиске свойств системы."
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Невозможно найти системную переменную."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Мы не можем окончательно удалить запись системной таблицы."
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Возникла ошибка при сохранении свойства системы."
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Возникла ошибка при обновлении свойства системы."
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5676,20 +5476,8 @@
         "translation": "Учетная запись с такой электронной почтой уже существует."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Эта учетная запись не использует аутентификацию AD/LDAP. Пожалуйста, войдите, используя электронную почту и пароль."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Эта учетная запись не использует аутентификацию SAML. Пожалуйста, войдите, используя электронную почту и пароль."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Необходимо вызвать обновление для существующего пользователя."
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита учётных записей."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5698,14 +5486,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Учетная запись с таким именем пользователя уже существует."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6848,14 +6628,6 @@
         "translation": "Невозможно пометить канал как непрочитанный."
     },
     {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Не удалось получить информацию о файле с настройками"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Не удалось запросить существующую строку в MySQL после KVCompareAndSet с неизменным значением."
-    },
-    {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "Не удалось получить личные сообщения."
     },
@@ -6866,10 +6638,6 @@
     {
         "id": "store.sql_post.get_post_id_around.app_error",
         "translation": "Невозможно получить сообщение в течение определенного времени."
-    },
-    {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Не удалось зафиксировать транзакцию базы данных."
     },
     {
         "id": "store.sql_team.analytics_public_team_count.app_error",
@@ -7186,14 +6954,6 @@
     {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Невозможно удалить участника группы с UserID \"{{.UserId}}\"."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Найдено более 1 строки в MySQL после KVCompareAndSet с неизменным значением."
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Невозможно перечислить все ключи плагинов."
     },
     {
         "id": "store.sql_post.get_post_after_time.app_error",
@@ -8034,5 +7794,265 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Невозможно преобразовать бота в пользователя."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Невозможно обновить сообщение."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Вы не можете обновить существующее сообщение."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Невозможно сохранить сообщение."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Не удалось выбрать для удаления посты пользователя."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Невозможно удалить сообщения по каналу."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Не удалось получить сообщение."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Невозможно удалить сообщение."
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Невозможно создать новое членство в команде, потому что команда достигла предела участников"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Невозможно создать новое членство в команде, потому что оно уже существует"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Невозможно создать новое членство в команде"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Невозможно импортировать членство в команде, потому что в этой команде не разрешены дополнительные участники"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Невозможно импортировать членство в команде"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Невозможно импортировать новое членство в команде, потому что оно уже существует"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию, потому что в этой команде не разрешены дополнительные участники"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию, потому что оно уже существует"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Невозможно создать членство в команде по умолчанию"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Не существует записи для данного статуса."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Возникла ошибка при получении статуса."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Не получилось сохранить или обновить значение ключа плагина."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Невозможно перечислить все ключи плагинов."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Не удалось получить значение ключа плагина."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Не получилось удалить значение ключа плагина."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Возникла ошибка при сохранении свойства системы."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Возникла ошибка при сохранении свойства системы."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Мы не можем окончательно удалить запись системной таблицы."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Невозможно найти системную переменную."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Возникла ошибка при поиске свойств системы."
+    },
+    {
+        "id": "app.email.setup_rate_limiter.app_error",
+        "translation": "Произошла ошибка в ограничителе скорости."
+    },
+    {
+        "id": "app.email.rate_limit_exceeded.app_error",
+        "translation": "Превышен предел количества рассылок по приглашениям. Таймер будет сброшен через {{.ResetAfter}} секунд. Повторите попытку через {{.RetryAfter}} секунд."
+    },
+    {
+        "id": "app.email.no_rate_limiter.app_error",
+        "translation": "Ограничитель скорости не настроен."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Невозможно завершить вход в SAML с пустым адресом электронной почты."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Эта учетная запись не использует аутентификацию SAML. Пожалуйста, войдите, используя электронную почту и пароль."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Учетная запись с таким именем пользователя уже существует. Пожалуйста, свяжитесь с Администратором."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Эта учетная запись не использует аутентификацию AD/LDAP. Пожалуйста, войдите, используя электронную почту и пароль."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Достигнут тайм-аут задания синхронизации AD/LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Не удалось разобрать задание экспорта сообщения ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Не удалось проанализировать задание экспорта сообщения BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Мы обнаружили ошибку при подключении к серверу."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Не найдена конечная точка API кластера."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " прикрепил файл."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Не удалось экспортировать в XML."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Функция удаления команды навсегда недоступна. Пожалуйста, обратитесь к системному администратору."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.signature.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции. Не удалось проверить цифровую подпись загруженного двоичного файла."
+    },
+    {
+        "id": "api.upgrade_to_enterprise_status.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции. Эта функция будет работать только в системах Linux с архитектурой x86-64."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции. Системный пользователь Mattermost {{.MattermostUsername}} не имеет прав на запись в необходимый двоичный файл. Системный администратор может обновить права доступа к файлам, выполнив следующую команду на сервере, где установлен Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nПосле изменения прав доступа к файлу попробуйте снова обновить Mattermost. После обновления и перезапуска не забудьте восстановить исходные разрешения для двоичного файла:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции. Системный пользователь Mattermost {{.MattermostUsername}} не имеет прав на запись в необходимый двоичный файл. Системный администратор может обновить права доступа к файлам, выполнив следующую команду на сервере, где установлен Mattermost:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\nchmod +w \"{{.Path}}\"\n```\n\nПосле изменения прав доступа к файлу попробуйте снова обновить Mattermost. После обновления и перезапуска не забудьте восстановить исходные разрешения для двоичного файла:\n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции. Системный пользователь Mattermost {{.MattermostUsername}} не имеет прав на запись в необходимый двоичный файл. Системный администратор может обновить права доступа к файлам, выполнив следующую команду на сервере, где установлен Mattermost:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nПосле изменения прав доступа к файлу попробуйте снова обновить Mattermost. После обновления и перезапуска не забудьте восстановить исходные разрешения для двоичного файла:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+    },
+    {
+        "id": "api.upgrade_to_enterprise.generic_error.app_error",
+        "translation": "Mattermost не удалось обновить до Корпоративной редакции."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.app_error",
+        "translation": "Обновление до Mattermost Корпоративная редакция уже выполняется."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-enterprise.app_error",
+        "translation": "Вы не можете выполнить обновление, потому что вы уже используете Mattermost Корпоративная редакция."
+    },
+    {
+        "id": "api.upgrade_to_enterprise.already-done.app_error",
+        "translation": "Вы уже перешли на Mattermost Корпоративная редакция. Пожалуйста, перезапустите сервер, чтобы завершить обновление."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Не удалось обновить задание."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Не удалось сохранить задание."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Невозможно получить самое новое задание по статусу и типу."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Невозможно получить количество заданий по статусу и типу."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Не удалось получить задания."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Не удалось получить задание."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Мы столкнулись с ошибкой окончательного удаления пакета информации о файлах."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Не удалось сохранить информацию о файле."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Невозможно удалить вложения пользователя."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Не удалось получить информацию о файле с настройками"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Не удалось получить информацию о файле к сообщению."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Не удалось получить информацию о файле."
     }
 ]

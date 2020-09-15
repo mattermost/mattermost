@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 )
 
 // Target represents a destination for log records such as file,
 // database, TCP socket, etc.
 type Target interface {
-	// SetName provides an option name for the target.
+	// SetName provides an optional name for the target.
 	SetName(name string)
 
 	// IsLevelEnabled returns true if this target should emit
@@ -39,7 +40,6 @@ type RecordWriter interface {
 // in your target type, implement `RecordWriter`, and call `(*Basic).Start`.
 type Basic struct {
 	target Target
-	name   string
 
 	filter    Filter
 	formatter Formatter
@@ -48,6 +48,10 @@ type Basic struct {
 	done chan struct{}
 	w    RecordWriter
 
+	mux  sync.RWMutex
+	name string
+
+	metrics        bool
 	queueSizeGauge Gauge
 	loggedCounter  Counter
 	errorCounter   Counter
@@ -74,12 +78,14 @@ func (b *Basic) Start(target Target, rw RecordWriter, filter Filter, formatter F
 	b.w = rw
 	go b.start()
 
-	if b.queueSizeGauge != nil {
+	if b.hasMetrics() {
 		go b.startMetricsUpdater()
 	}
 }
 
 func (b *Basic) SetName(name string) {
+	b.mux.Lock()
+	defer b.mux.Unlock()
 	b.name = name
 }
 
@@ -117,14 +123,10 @@ func (b *Basic) Log(rec *LogRec) {
 	default:
 		handler := lgr.OnTargetQueueFull
 		if handler != nil && handler(b.target, rec, cap(b.in)) {
-			if b.droppedCounter != nil {
-				b.droppedCounter.Inc()
-			}
+			b.incDroppedCounter()
 			return // drop the record
 		}
-		if b.blockedCounter != nil {
-			b.blockedCounter.Inc()
-		}
+		b.incBlockedCounter()
 
 		select {
 		case <-time.After(lgr.enqueueTimeout()):
@@ -136,9 +138,14 @@ func (b *Basic) Log(rec *LogRec) {
 
 // Metrics enables metrics collection using the provided MetricsCollector.
 func (b *Basic) EnableMetrics(collector MetricsCollector, updateFreqMillis int64) error {
+	name := fmt.Sprintf("%v", b)
+
+	b.mux.Lock()
+	defer b.mux.Unlock()
+
+	b.metrics = true
 	b.metricsUpdateFreqMillis = updateFreqMillis
 
-	name := fmt.Sprintf("%v", b)
 	var err error
 
 	if b.queueSizeGauge, err = collector.QueueSizeGauge(name); err != nil {
@@ -159,8 +166,57 @@ func (b *Basic) EnableMetrics(collector MetricsCollector, updateFreqMillis int64
 	return nil
 }
 
+func (b *Basic) hasMetrics() bool {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	return b.metrics
+}
+
+func (b *Basic) setQueueSizeGauge(val float64) {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	if b.queueSizeGauge != nil {
+		b.queueSizeGauge.Set(val)
+	}
+}
+
+func (b *Basic) incLoggedCounter() {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	if b.loggedCounter != nil {
+		b.loggedCounter.Inc()
+	}
+}
+
+func (b *Basic) incErrorCounter() {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	if b.errorCounter != nil {
+		b.errorCounter.Inc()
+	}
+}
+
+func (b *Basic) incDroppedCounter() {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	if b.droppedCounter != nil {
+		b.droppedCounter.Inc()
+	}
+}
+
+func (b *Basic) incBlockedCounter() {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	if b.blockedCounter != nil {
+		b.blockedCounter.Inc()
+	}
+}
+
 // String returns a name for this target. Use `SetName` to specify a name.
 func (b *Basic) String() string {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+
 	if b.name != "" {
 		return b.name
 	}
@@ -183,12 +239,10 @@ func (b *Basic) start() {
 		} else {
 			err := b.w.Write(rec)
 			if err != nil {
-				if b.errorCounter != nil {
-					b.errorCounter.Inc()
-				}
+				b.incErrorCounter()
 				rec.Logger().Logr().ReportError(err)
-			} else if b.loggedCounter != nil {
-				b.loggedCounter.Inc()
+			} else {
+				b.incLoggedCounter()
 			}
 		}
 	}
@@ -199,7 +253,7 @@ func (b *Basic) start() {
 // target is closed.
 func (b *Basic) startMetricsUpdater() {
 	for {
-		updateFreq := b.metricsUpdateFreqMillis
+		updateFreq := b.getMetricsUpdateFreqMillis()
 		if updateFreq == 0 {
 			updateFreq = DefMetricsUpdateFreqMillis
 		}
@@ -211,11 +265,15 @@ func (b *Basic) startMetricsUpdater() {
 		case <-b.done:
 			return
 		case <-time.After(time.Duration(updateFreq) * time.Millisecond):
-			if b.queueSizeGauge != nil {
-				b.queueSizeGauge.Set(float64(len(b.in)))
-			}
+			b.setQueueSizeGauge(float64(len(b.in)))
 		}
 	}
+}
+
+func (b *Basic) getMetricsUpdateFreqMillis() int64 {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+	return b.metricsUpdateFreqMillis
 }
 
 // flush drains the queue and notifies when done.
@@ -229,9 +287,7 @@ func (b *Basic) flush(done chan<- struct{}) {
 			if rec.flush == nil {
 				err = b.w.Write(rec)
 				if err != nil {
-					if b.errorCounter != nil {
-						b.errorCounter.Inc()
-					}
+					b.incErrorCounter()
 					rec.Logger().Logr().ReportError(err)
 				}
 			}
