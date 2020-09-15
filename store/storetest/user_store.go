@@ -547,6 +547,55 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			sanitized(u7),
 		}, actual)
 	})
+
+	u8, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u8" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_user_manager system_user",
+	})
+
+	u9, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u9" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_manager system_user",
+	})
+
+	u10, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u10" + model.NewId(),
+		DeleteAt: model.GetMillis(),
+		Roles:    "system_read_only_admin system_user",
+	})
+
+	t.Run("filter by system_user_manager role", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_user_manager"},
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u8),
+		}, actual)
+	})
+
+	t.Run("filter by multiple system roles", func(t *testing.T) {
+		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_manager", "system_user_manager", "system_read_only_admin", "system_admin"},
+		})
+		require.Nil(t, err)
+		require.Equal(t, []*model.User{
+			sanitized(u10),
+			sanitized(u5),
+			sanitized(u6),
+			sanitized(u8),
+			sanitized(u9),
+		}, actual)
+	})
 }
 
 func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
