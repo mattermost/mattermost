@@ -154,7 +154,12 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 			return nil, model.NewAppError("AutocompleteInTeam", "app.channel.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
-	return channelList, appErr
+
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	return channelList, nil
 }
 
 func (c *SearchChannelStore) searchAutocompleteChannels(engine searchengine.SearchEngineInterface, teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
