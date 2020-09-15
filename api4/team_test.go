@@ -2721,6 +2721,69 @@ func TestImportTeam(t *testing.T) {
 	})
 }
 
+func TestInviteUsersToTeamWithUserLimit(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	email1 := th.GenerateTestEmail()
+	email2 := th.GenerateTestEmail()
+	email3 := th.GenerateTestEmail()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+		*cfg.ExperimentalSettings.CloudUserLimit = 2
+	})
+
+	t.Run("System admin, invite when at limit should fail", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		assert.Equal(t, invitesWithErrors[0].Error.Message, "You've reached the free tier user limit")
+		require.NotNil(t, invitesWithErrors[1].Error)
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the free tier user limit")
+	})
+
+	t.Run("Regular user, invite when at limit should succeed", func(t *testing.T) {
+		invitesWithErrors, resp := th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email3})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 1)
+		assert.Nil(t, invitesWithErrors[0].Error)
+
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.CloudUserLimit = 5
+	})
+
+	t.Run("With one remaining user inviting more than one user as admin invites only one user", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.Nil(t, invitesWithErrors[0].Error)
+		require.NotNil(t, invitesWithErrors[1].Error)
+		assert.Equal(t, invitesWithErrors[1].Error.Message, "You've reached the free tier user limit")
+
+	})
+
+	t.Run("With one remaining user inviting more than one user as a regular user sends all invites", func(t *testing.T) {
+		invitesWithErrors, resp := th.Client.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		assert.Nil(t, invitesWithErrors[0].Error)
+		assert.Nil(t, invitesWithErrors[1].Error)
+
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.CloudUserLimit = 100
+	})
+	t.Run("Invited user count is well below limit", func(t *testing.T) {
+		invitesWithErrors, resp := th.SystemAdminClient.InviteUsersToTeamGracefully(th.BasicTeam.Id, []string{email1, email2})
+		CheckNoError(t, resp)
+		require.Len(t, invitesWithErrors, 2)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
+}
+
 func TestInviteUsersToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -2833,6 +2896,25 @@ func TestInviteUsersToTeam(t *testing.T) {
 		require.NotNil(t, invitesWithErrors[0].Error)
 		require.Nil(t, invitesWithErrors[1].Error)
 	}, "override restricted domains")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.BasicTeam.AllowedDomains = "common.com"
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nilf(t, err, "%v, Should update the team", err)
+
+		emailList := make([]string, 22)
+		for i := 0; i < 22; i++ {
+			emailList[i] = "test-" + strconv.Itoa(i) + "@common.com"
+		}
+		okMsg, resp := client.InviteUsersToTeam(th.BasicTeam.Id, emailList)
+		require.False(t, okMsg, "should return false")
+		CheckRequestEntityTooLargeStatus(t, resp)
+		CheckErrorMessage(t, resp, "app.email.rate_limit_exceeded.app_error")
+
+		_, resp = client.InviteUsersToTeamGracefully(th.BasicTeam.Id, emailList)
+		CheckRequestEntityTooLargeStatus(t, resp)
+		CheckErrorMessage(t, resp, "app.email.rate_limit_exceeded.app_error")
+	}, "rate limits")
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {
@@ -2941,6 +3023,32 @@ func TestInviteGuestsToTeam(t *testing.T) {
 
 		err := th.App.InviteNewUsersToTeam([]string{"user@global.com"}, th.BasicTeam.Id, th.BasicUser.Id)
 		require.Nil(t, err, "non guest user invites should not be affected by the guest domain restrictions")
+	})
+
+	t.Run("rate limit", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.RestrictCreationToDomains = "@guest.com" })
+
+		_, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nilf(t, err, "%v, Should update the team", err)
+
+		emailList := make([]string, 22)
+		for i := 0; i < 22; i++ {
+			emailList[i] = "test-" + strconv.Itoa(i) + "@guest.com"
+		}
+		invite := &model.GuestsInvite{
+			Emails:   emailList,
+			Channels: []string{th.BasicChannel.Id},
+			Message:  "test message",
+		}
+		err = th.App.InviteGuestsToChannels(th.BasicTeam.Id, invite, th.BasicUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
+
+		_, err = th.App.InviteGuestsToChannelsGracefully(th.BasicTeam.Id, invite, th.BasicUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, "app.email.rate_limit_exceeded.app_error", err.Id)
+		assert.Equal(t, http.StatusRequestEntityTooLarge, err.StatusCode)
 	})
 }
 

@@ -282,7 +282,7 @@ type PostStore interface {
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
-	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError)
 	GetOldestEntityCreationTime() (int64, *model.AppError)
 }
 
@@ -429,13 +429,13 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) *model.AppError
-	SaveOrUpdate(system *model.System) *model.AppError
-	Update(system *model.System) *model.AppError
-	Get() (model.StringMap, *model.AppError)
-	GetByName(name string) (*model.System, *model.AppError)
-	PermanentDeleteByName(name string) (*model.System, *model.AppError)
-	InsertIfExists(system *model.System) (*model.System, *model.AppError)
+	Save(system *model.System) error
+	SaveOrUpdate(system *model.System) error
+	Update(system *model.System) error
+	Get() (model.StringMap, error)
+	GetByName(name string) (*model.System, error)
+	PermanentDeleteByName(name string) (*model.System, error)
+	InsertIfExists(system *model.System) (*model.System, error)
 }
 
 type WebhookStore interface {
@@ -525,27 +525,27 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) *model.AppError
-	Get(userId string) (*model.Status, *model.AppError)
-	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	ResetAll() *model.AppError
-	GetTotalActiveUsersCount() (int64, *model.AppError)
-	UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError
+	SaveOrUpdate(status *model.Status) error
+	Get(userId string) (*model.Status, error)
+	GetByIds(userIds []string) ([]*model.Status, error)
+	ResetAll() error
+	GetTotalActiveUsersCount() (int64, error)
+	UpdateLastActivityAt(userId string, lastActivityAt int64) error
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
-	Get(id string) (*model.FileInfo, *model.AppError)
-	GetByPath(path string) (*model.FileInfo, *model.AppError)
-	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
-	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
-	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+	Save(info *model.FileInfo) (*model.FileInfo, error)
+	Get(id string) (*model.FileInfo, error)
+	GetByPath(path string) (*model.FileInfo, error)
+	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
+	GetForUser(userId string) ([]*model.FileInfo, error)
+	GetWithOptions(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, error)
 	InvalidateFileInfosForPostCache(postId string, deleted bool)
-	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
-	DeleteForPost(postId string) (string, *model.AppError)
-	PermanentDelete(fileId string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	PermanentDeleteByUser(userId string) (int64, *model.AppError)
+	AttachToPost(fileId string, postId string, creatorId string) error
+	DeleteForPost(postId string) (string, error)
+	PermanentDelete(fileId string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	PermanentDeleteByUser(userId string) (int64, error)
 	ClearCaches()
 }
 
@@ -559,18 +559,19 @@ type ReactionStore interface {
 }
 
 type JobStore interface {
-	Save(job *model.Job) (*model.Job, *model.AppError)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError)
-	UpdateStatus(id string, status string) (*model.Job, *model.AppError)
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError)
-	Get(id string) (*model.Job, *model.AppError)
-	GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByType(jobType string) ([]*model.Job, *model.AppError)
-	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
-	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
-	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
-	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
-	Delete(id string) (string, *model.AppError)
+	Save(job *model.Job) (*model.Job, error)
+	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	UpdateStatus(id string, status string) (*model.Job, error)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, error)
+	Get(id string) (*model.Job, error)
+	GetAllPage(offset int, limit int) ([]*model.Job, error)
+	GetAllByType(jobType string) ([]*model.Job, error)
+	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, error)
+	GetAllByStatus(status string) ([]*model.Job, error)
+	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, error)
+	GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error)
+	GetCountByStatusAndType(status string, jobType string) (int64, error)
+	Delete(id string) (string, error)
 }
 
 type UserAccessTokenStore interface {
@@ -587,15 +588,15 @@ type UserAccessTokenStore interface {
 }
 
 type PluginStore interface {
-	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, *model.AppError)
-	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
-	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
-	Get(pluginId, key string) (*model.PluginKeyValue, *model.AppError)
-	Delete(pluginId, key string) *model.AppError
-	DeleteAllForPlugin(PluginId string) *model.AppError
-	DeleteAllExpired() *model.AppError
-	List(pluginId string, page, perPage int) ([]string, *model.AppError)
+	SaveOrUpdate(keyVal *model.PluginKeyValue) (*model.PluginKeyValue, error)
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error)
+	SetWithOptions(pluginId string, key string, value []byte, options model.PluginKVSetOptions) (bool, error)
+	Get(pluginId, key string) (*model.PluginKeyValue, error)
+	Delete(pluginId, key string) error
+	DeleteAllForPlugin(PluginId string) error
+	DeleteAllExpired() error
+	List(pluginId string, page, perPage int) ([]string, error)
 }
 
 type RoleStore interface {

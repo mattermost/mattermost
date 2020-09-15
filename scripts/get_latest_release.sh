@@ -8,16 +8,17 @@ REPO_TO_USE=$1
 BRANCH_TO_USE=$2
 
 LATEST_REL=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+DRAFT=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases/latest" | grep '"draft":' | sed -E 's/.*: ([^,]+).*/\1/')
 
 # Check if this is a release branch
 THIS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if [[ $(echo "$THIS_BRANCH" | grep -c ^"$BRANCH_TO_USE") == 1 ]];
+if [[ "$THIS_BRANCH" =~ $BRANCH_TO_USE || $DRAFT =~ "true" ]];
 then
     VERSION_REL=${THIS_BRANCH//$BRANCH_TO_USE/v}
-    REL_TO_USE=$(curl --silent "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
+    REL_TO_USE=$(curl --silent $BASIC_AUTH "https://api.github.com/repos/$REPO_TO_USE/releases" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed -n "/$VERSION_REL/p" | sort -rV | head -n 1)
 else
-    REL_TO_USE=$(echo "$THIS_BRANCH" | sed "s/\(.*\)/$LATEST_REL/")
+    REL_TO_USE=$LATEST_REL
 fi
 
 echo "$REL_TO_USE"
