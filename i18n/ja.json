@@ -48,10 +48,6 @@
         "translation": "9月"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "エクスポート情報をXMLへ変換できませんでした。"
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "リクエストの 'certificate' 以下にファイルがありません。"
     },
@@ -2534,10 +2530,6 @@
         "translation": "%s がチャンネルの目的を %s に更新しました"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "エクスポートデータを書き込む際にエラーが発生しました。"
     },
@@ -3218,10 +3210,6 @@
         "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値を上げるよう依頼してください。"
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "空の電子メールアドレスでのSAMLログインを完了できませんでした。"
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "このサーバーではパーソナルアクセストークンが無効になっています。詳しくはシステム管理者に問い合わせてください。"
     },
@@ -3376,10 +3364,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "投稿にインデックスを付与できませんでした"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "最も古い投稿をデータベースから取り出せませんでした"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3682,24 +3666,12 @@
         "translation": "対話型ダイアログに対して生成されたトリガーIDに署名できませんでした。"
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "ジョブがキャンセル可能な状態でないため、ジョブのキャンセルをリクエストできませんでした。"
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "ジョブの状態をエラーに設定できませんでした"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "AD/LDAP同期処理がタイムアウトしました。"
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3900,10 +3872,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "不正なユーザーIDです。"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "サーバーに接続中にエラーになりました。"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5158,46 +5126,6 @@
         "translation": "コマンドを取得できませんでした。"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "ユーザーの添付ファイルを削除できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "投稿にファイル情報を添付できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "投稿のファイル情報を削除できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "ファイル情報を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "パスからファイル情報を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "投稿のファイル情報を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "ユーザーのファイル情報を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "ファイル情報を完全に削除できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "ファイル情報バッチを完全に削除する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "ファイル情報を保存できませんでした。"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "グループ同期は既に削除されました"
     },
@@ -5214,46 +5142,6 @@
         "translation": "グループメンバーは既に存在しています"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "ジョブを削除できませんでした。"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "ジョブを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "ジョブを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "状態と種類からジョブ数を取得することができませんでした。"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "状態と種類から最新のジョブを取得することができませんでした。"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "ジョブを保存できませんでした。"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "ジョブを更新できませんでした。"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "プラグインのキーを削除できませんでした。"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "プラグインのキーを取得できませんでした。"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "プラグインのキーを保存、更新できませんでした。"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "投稿数を取得できませんでした。"
     },
@@ -5264,14 +5152,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "投稿をしたユーザー数を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "投稿を削除できませんでした。"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "投稿を取得できませんでした。"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5318,92 +5198,12 @@
         "translation": "投稿を上書きできませんでした。"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "役割を削除できませんでした。"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "ユーザーのコメントを削除できませんでした。"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "投稿バッチを完全に削除する際にエラーが発生しました。"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "チャンネルから投稿を削除できませんでした。"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "ユーザーの削除すべき投稿を選択できませんでした。"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "ユーザーの削除すべき投稿を選択できませんでした(数が多過ぎます)。再度実行してください。"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "投稿を保存できませんでした。"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "既存の投稿は更新できません。"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "このサーバーでは検索が無効になっています。システム管理者に問い合わせてください。"
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "投稿を更新できませんでした。"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "状態を取得する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "その状態のエントリは存在しません。"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "アクティブユーザー数を取得できませんでした。"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "全ての状態をリセットする際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "状態を保存する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "状態を更新する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "ユーザーの最終活動日時を更新できません。"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "システム設定値を探す際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "システム変数が見付かりませんでした。"
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "システムテーブルのエントリーを完全に削除できませんでした。"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "システム設定値を保存する際にエラーが発生しました。"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "システム設定値を更新する際にエラーが発生しました。"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5666,20 +5466,8 @@
         "translation": "その電子メールアドレスを持つアカウントは既に存在しています。"
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "このアカウントはAD/LDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "このアカウントはSAML認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "既存のユーザーの更新をしなくてはいけません。"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値を上げるよう依頼してください。"
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5688,14 +5476,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "そのユーザー名を持つアカウントは既に存在しています。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6118,10 +5898,6 @@
         "translation": "非公開チームをカウントできませんでした。"
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "データベーストランザクションをコミットできませんでした。"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "投稿の返信数を取得できませんでした"
     },
@@ -6138,28 +5914,12 @@
         "translation": "ダイレクト投稿を取得できませんでした。"
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "全てのプラグインキーを一覧化できませんでした。"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "変更のない値とともに実行された KVCompareAndSet の後、MySQLから1つ以上の行が見つかりました。"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "変更のない値とともに実行されたKVCompareAndSetの後、MySQLの既存の行への問い合わせが失敗しました。"
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "ユーザーID \"{{.UserId}}\" のグループメンバーを削除できませんでした。"
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "クエリーを構築できませんでした。"
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "オプションのファイル情報を取得できませんでした"
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7823,11 +7583,11 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-        "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。Mattermost Enterprise E20で利用可能なSAML 2.0連携の詳細についてはサポートまでお問い合わせください。\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください"
+        "translation": "あなたのMattermostには400ユーザーが登録しています。Mattermostをあなたの組織のシングルサインオンプロバイダーに接続することで、ユーザーは再度認証情報を入力することなくMattermostへアクセスできるようになります。Mattermost Enterpriseエディションで利用可能なSAML 2.0連携の詳細についてはサポートまでお問い合わせください。\n\nSAML 2.0連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)を参照してください\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-        "translation": "あなたのMattermostには200ユーザーが登録しています。ユーザーが増加するにつれ、新規アカウントの払い出しに時間がかかる可能性があります。Mattermost Enterprise E10へアップグレードし、あなたの組織のActive Directory/LDAPと連携することをお勧めします。ユーザーは新たにユーザー名とパスワードを設定する必要なくログインすることができるようになるため、管理者のアカウント払い出しや管理にかかる時間を短縮できます。\nAD/LDAP連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください"
+        "translation": "あなたのMattermostには200ユーザーが登録しています。ユーザーが増加するにつれ、新規アカウントの払い出しに時間がかかる可能性があります。Mattermost Enterpriseエディションへアップグレードし、あなたの組織のActive Directory/LDAPと連携することをお勧めします。ユーザーは新たにユーザー名とパスワードを設定する必要なくログインすることができるようになるため、管理者のアカウント払い出しや管理にかかる時間を短縮できます。\n\nAD/LDAP連携について詳しくは[説明文書](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)を参照してください\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
     },
     {
         "id": "model.command.is_valid.plugin_id.app_error",
@@ -7895,7 +7655,7 @@
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-        "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能を持つMattermost Enterprise E20へのアップグレードを強く推奨します。"
+        "translation": "500ユーザーを超える場合は、ユーザー管理やサーバーのクラスタリング、パフォーマンスモニタリング機能を持つMattermost Enterpriseエディションへのアップグレードを強く推奨します。\n\nサポートを受けるにはあなたの連絡先をMattermost Inc. へ送信してください。詳しくは [説明文書](https://mattermost.com/pl/default-admin-advisory)を参照してください"
     },
     {
         "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
@@ -8016,5 +7776,185 @@
     {
         "id": "app.role.get.app_error",
         "translation": "役割を取得できませんでした。"
+    },
+    {
+        "id": "model.config.is_valid.directory.app_error",
+        "translation": "不正なローカルストレージディレクトリです。何か文字を入力してください。"
+    },
+    {
+        "id": "app.user.convert_bot_to_user.app_error",
+        "translation": "Botをユーザーへ変換できませんでした。"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "投稿を更新できませんでした。"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "既存の投稿は更新できません。"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "投稿を保存できませんでした。"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "ユーザーの削除すべき投稿を選択できませんでした。"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "チャンネルから投稿を削除できませんでした。"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "投稿を取得できませんでした。"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "役割を削除できませんでした。"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "その状態のエントリは存在しません。"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "状態を取得する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "プラグインのキーを保存、更新できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "全てのプラグインキーを一覧化できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "プラグインのキーを取得できませんでした。"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "プラグインのキーを削除できませんでした。"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "システム設定値を保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "システム設定値を保存する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "システムテーブルのエントリーを完全に削除できませんでした。"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "システム変数が見付かりませんでした。"
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "システム設定値を探す際にエラーが発生しました。"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "空の電子メールアドレスでのSAMLログインを完了できませんでした。"
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "このアカウントはSAML認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "このユーザー名を使ったアカウントは既に存在しています。システム管理者に連絡してください。"
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "このアカウントはAD/LDAP認証を使用していません。電子メールアドレスとパスワードを使ってサインインしてください。"
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP同期処理がタイムアウトしました。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "メッセージエクスポートジョブのExportFromTimestampを解析できませんでした。"
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "メッセージエクスポートジョブのBatchSizeを解析できませんでした。"
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "サーバーに接続中にエラーになりました。"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "クラスターAPIエンドポイントが見つかりませんでした。"
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " がファイルを添付しました。"
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "エクスポート情報をXMLへ変換できませんでした。"
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "ジョブを更新できませんでした。"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "ジョブを保存できませんでした。"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "状態と種類から最新のジョブを取得することができませんでした。"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "状態と種類からジョブ数を取得することができませんでした。"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "ジョブを取得できませんでした。"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "ジョブを取得できませんでした。"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "複数のファイル情報を完全に削除する際にエラーが発生しました。"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "ファイル情報を保存できませんでした。"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "ユーザーの添付ファイルを削除できませんでした。"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "オプションのファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "投稿のファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "ファイル情報を取得できませんでした。"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "チーム削除機能は有効になっていません。システム管理者に連絡してください。"
     }
 ]

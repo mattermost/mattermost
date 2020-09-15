@@ -48,10 +48,6 @@
         "translation": "Septembre"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Impossible de convertir l'export en XML."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "Aucun fichier dans le champ « certificate » de la requête."
     },
@@ -2539,10 +2535,6 @@
         "translation": "%s a mis à jour la description du canal en : %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Le nœud d'API cluster est introuvable."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Une erreur s'est produite lors de l'écriture des données d'exportation."
     },
@@ -3223,10 +3215,6 @@
         "translation": "Cette équipe a atteint la limite du nombre maximum de comptes autorisés. Veuillez contacter votre administrateur système pour augmenter cette limite."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Impossible de terminer la connexion via SAML avec une adresse e-mail vide."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Les jetons d'accès personnel sont désactivés sur ce serveur. Veuillez contacter votre administrateur système pour plus d'informations."
     },
@@ -3381,10 +3369,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Impossible d'indexer le message"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Impossible de récupérer le message le plus ancien de la base de données."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3687,24 +3671,12 @@
         "translation": "Impossible de signer l'identifiant généré du déclencheur utilisé par la boite de dialogue interactive."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Impossible d'interpréter le paramètre ExportFromTimestamp de la tâche d'exportation de messages."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Impossible de demander l'annulation de la tâche, elle se trouve dans un état qui ne peut être annulé."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Impossible de définir le statut de la tâche sur erreur"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3877,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Id utilisateur invalide"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Une erreur s'est produite lors de la connexion au serveur"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5163,46 +5131,6 @@
         "translation": "Impossible de récupérer la commande"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Impossible de supprimer les fichiers joints de l'utilisateur"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Impossible de lier les informations du fichier au message"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Impossible de supprimer les informations du fichier du message"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Impossible de récupérer les informations du fichier"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Impossible de récupérer les informations du fichier par chemin"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Impossible de récupérer les informations du fichier du message"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Impossible de récupérer les informations du fichier de l'utilisateur"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Impossible de supprimer définitivement les informations du fichier"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Une erreur s'est produite lors de la suppression définitive du lot d'informations de fichier"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Impossible de sauvegarder les informations du fichier"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "le groupe à synchroniser a déjà été supprimé"
     },
@@ -5219,46 +5147,6 @@
         "translation": "membre du groupe déjà existant"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Impossible de supprimer la tâche"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Impossible de récupérer la tâche"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Impossible de récupérer les tâches"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Impossible de récupérer le nombre de tâches par statut et par type"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Impossible de récupérer la tâche la plus récente par statut et par type"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Impossible de sauvegarder la tâche"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Impossible de modifier la tâche"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Impossible de supprimer le couple clé-valeur du plugin"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Impossible de récupérer le couple clé-valeur du plugin"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Impossible de supprimer ou mettre à jour le couple clé-valeur du plugin"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Impossible de récupérer le nombre de messages"
     },
@@ -5269,14 +5157,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Impossible de récupérer le nombre d'utilisateurs ayant envoyé des messages"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Impossible de supprimer le message"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Impossible de récupérer le message"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5203,12 @@
         "translation": "Impossible d'écraser le message"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Impossible de supprimer le message"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Impossible de supprimer les commentaires de l'utilisateur"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Une erreur s'est produite lors de la suppression définitive du lot de messages"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Impossible de supprimer les messages par canal"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Impossible de sélectionner les messages à supprimer pour l'utilisateur spécifié"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Impossible de sélectionner les messages à supprimer pour l'utilisateur (ils sont trop nombreux), veuillez relancer l'opération"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Impossible de sauvegarder le message"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Vous ne pouvez pas mettre à jour un message existant"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "La recherche a été désactivée sur ce serveur. Veuillez contacter votre administrateur."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Impossible de modifier le message"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Une erreur s'est produite lors de la récupération du statut"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Aucune entrée pour ce statut."
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Impossible de compter les utilisateurs actifs"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Une erreur s'est produite lors de la réinitialisation de tous les statuts"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Une erreur s'est produite lors de l'enregistrement du statut"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Une erreur s'est produite lors de la modification du statut"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Impossible de mettre à jour la date et heure de dernière activité de l'utilisateur"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Une erreur s'est produite lors de la recherche des propriétés système"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Impossible de trouver la variable système."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Impossible de supprimer définitivement l'entrée de la table système"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Une erreur s'est produite lors de l'enregistrement de la propriété système"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Une erreur s'est produite lors de la modification de la propriété système"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5471,8 @@
         "translation": "Un compte avec cette adresse e-mail existe déjà."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Ce compte n'utilise pas l'authentification AD/LDAP. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Ce compte n'utilise pas l'authentification SAML. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "La mise à jour doit être appelée pour un utilisateur existant"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Cette équipe a atteint la limite du nombre maximum de comptes autorisés. Veuillez contacter votre administrateur système pour augmenter cette limite."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5481,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Un compte avec ce nom d'utilisateur existe déjà."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6123,10 +5903,6 @@
         "translation": "Impossible de compter les équipes privées."
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Impossible de valider la transaction de la base de données"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
     },
@@ -6143,28 +5919,12 @@
         "translation": "Impossible de récupérer les messages personnels."
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Impossible de lister toutes les clés du plugin."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "A trouvé plus d'une ligne de réponse dans MySQL après que la requête KVCompareAndSet ait été exécutée alors que la valeur a été inchangée."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Impossible de construire la requête pour la ligne actuelle dans MySQL après que la requête KVCompareAndSet ait été exécutée alors que la valeur a été inchangée."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Impossible de retirer le membre du groupe portant l'identifiant utilisateur « {{.UserId}} »."
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "Impossible de construire la requête."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Impossible de récupérer les informations du fichier disposant d'options."
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7725,5 +7485,177 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Impossible de récupérer le rôle."
+    },
+    {
+        "id": "api.job.unable_to_download_job",
+        "translation": "Impossible de télécharger ce travail"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Impossible de modifier le message"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Vous ne pouvez pas mettre à jour un message existant"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Impossible de sauvegarder le message"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Impossible de sélectionner les messages à supprimer pour l'utilisateur spécifié"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Impossible de supprimer les messages par canal"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Impossible de récupérer le message"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Impossible de supprimer le message"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Aucune entrée pour ce statut."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Une erreur s'est produite lors de la récupération du statut"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Impossible de supprimer ou mettre à jour le couple clé-valeur du plugin"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Impossible de lister toutes les clés du plugin."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Impossible de récupérer le couple clé-valeur du plugin"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Impossible de supprimer le couple clé-valeur du plugin"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Une erreur s'est produite lors de l'enregistrement de la propriété système"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Une erreur s'est produite lors de l'enregistrement de la propriété système"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Impossible de supprimer définitivement l'entrée de la table système"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Impossible de trouver la variable système."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Une erreur s'est produite lors de la recherche des propriétés système"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Impossible de terminer la connexion via SAML avec une adresse e-mail vide."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Ce compte n'utilise pas l'authentification SAML. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Un compte avec ce nom d'utilisateur existe déjà. Veuillez contacter votre administrateur."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Ce compte n'utilise pas l'authentification AD/LDAP. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Temps d'attente pour la tâche de synchronisation AD/LDAP atteint."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Impossible d'interpréter le paramètre ExportFromTimestamp de la tâche d'exportation de messages."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Impossible d'interpréter le paramètre BatchSize de la tâche d'exportation de messages."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Une erreur s'est produite lors de la connexion au serveur"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Le nœud d'API cluster est introuvable."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " a joint un fichier."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Impossible de convertir l'export en XML."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Impossible de modifier la tâche."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Impossible d'enregistrer la tâche."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Impossible de récupérer la tâche la plus récente par statut et par type."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Impossible de récupérer le nombre de tâches par statut et par type."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Impossible de récupérer les tâches."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Impossible de récupérer la tâche."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Une erreur s'est produite lors de la suppression définitive du lot d'informations de fichier."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Impossible d'enregistrer les informations du fichier."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Impossible de supprimer les fichiers joints de l'utilisateur."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Impossible de récupérer les informations du fichier disposant d'options."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Impossible de récupérer les informations du fichier du message."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Impossible de récupérer les informations du fichier."
     }
 ]

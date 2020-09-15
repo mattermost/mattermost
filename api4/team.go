@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH    = 20
+	MAX_ADD_MEMBERS_BATCH    = 256
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
 	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
 )

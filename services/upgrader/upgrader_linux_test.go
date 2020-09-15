@@ -35,12 +35,41 @@ func TestCanIUpgradeToE0(t *testing.T) {
 }
 
 func TestGetCurrentVersionTgzUrl(t *testing.T) {
-	currentVersion := model.CurrentVersion
-	model.CurrentVersion = "5.22.0"
-	defer func() {
-		model.CurrentVersion = currentVersion
-	}()
-	require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+	t.Run("get release version in regular version", func(t *testing.T) {
+		currentVersion := model.CurrentVersion
+		buildNumber := model.CurrentVersion
+		model.CurrentVersion = "5.22.0"
+		model.BuildNumber = "5.22.0"
+		defer func() {
+			model.CurrentVersion = currentVersion
+			model.BuildNumber = buildNumber
+		}()
+		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+	})
+
+	t.Run("get release version in dev version", func(t *testing.T) {
+		currentVersion := model.CurrentVersion
+		buildNumber := model.CurrentVersion
+		model.CurrentVersion = "5.22.0"
+		model.BuildNumber = "5.22.0-dev"
+		defer func() {
+			model.CurrentVersion = currentVersion
+			model.BuildNumber = buildNumber
+		}()
+		require.Equal(t, "https://releases.mattermost.com/5.22.0/mattermost-5.22.0-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+	})
+
+	t.Run("get release version in rc version", func(t *testing.T) {
+		currentVersion := model.CurrentVersion
+		buildNumber := model.CurrentVersion
+		model.CurrentVersion = "5.22.0"
+		model.BuildNumber = "5.22.0-rc2"
+		defer func() {
+			model.CurrentVersion = currentVersion
+			model.BuildNumber = buildNumber
+		}()
+		require.Equal(t, "https://releases.mattermost.com/5.22.0-rc2/mattermost-5.22.0-rc2-linux-amd64.tar.gz", getCurrentVersionTgzUrl())
+	})
 }
 
 func TestExtractBinary(t *testing.T) {

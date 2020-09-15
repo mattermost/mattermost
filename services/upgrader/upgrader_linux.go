@@ -16,6 +16,7 @@ import (
 	"path"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"syscall"
 
@@ -69,7 +70,12 @@ func (wc *writeCounter) Write(p []byte) (int, error) {
 }
 
 func getCurrentVersionTgzUrl() string {
-	return "https://releases.mattermost.com/" + model.CurrentVersion + "/mattermost-" + model.CurrentVersion + "-linux-amd64.tar.gz"
+	version := model.CurrentVersion
+	if strings.HasPrefix(model.BuildNumber, version+"-rc") {
+		version = model.BuildNumber
+	}
+
+	return "https://releases.mattermost.com/" + version + "/mattermost-" + version + "-linux-amd64.tar.gz"
 }
 
 func verifySignature(filename string, sigfilename string, publicKey string) error {

@@ -341,6 +341,8 @@ type AppIface interface {
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
+	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
+	AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -358,6 +360,7 @@ type AppIface interface {
 	AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError)
 	AdjustImage(file io.Reader) (*bytes.Buffer, *model.AppError)
 	AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeRequest) (string, *model.AppError)
+	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	AsymmetricSigningKey() *ecdsa.PrivateKey
 	AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError
 	AttachSessionCookies(w http.ResponseWriter, r *http.Request)
@@ -425,6 +428,7 @@ type AppIface interface {
 	CreateTeam(team *model.Team) (*model.Team, *model.AppError)
 	CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.AppError)
 	CreateTermsOfService(text, userId string) (*model.TermsOfService, *model.AppError)
+	CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
 	CreateUserAsAdmin(user *model.User, redirect string) (*model.User, *model.AppError)
 	CreateUserFromSignup(user *model.User, redirect string) (*model.User, *model.AppError)
@@ -457,7 +461,6 @@ type AppIface interface {
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
 	DeleteSidebarCategory(userId, teamId, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
-	DiagnosticId() string
 	DisableAutoResponder(userId string, asAdmin bool) *model.AppError
 	DisableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	DoAppMigrations()
@@ -669,6 +672,8 @@ type AppIface interface {
 	GetTeamsForUser(userId string) ([]*model.Team, *model.AppError)
 	GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError)
 	GetTermsOfService(id string) (*model.TermsOfService, *model.AppError)
+	GetUploadSession(uploadId string) (*model.UploadSession, *model.AppError)
+	GetUploadSessionsForUser(userId string) ([]*model.UploadSession, *model.AppError)
 	GetUser(userId string) (*model.User, *model.AppError)
 	GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError)
 	GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError)
@@ -808,6 +813,8 @@ type AppIface interface {
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
+	RemoveLdapPrivateCertificate() *model.AppError
+	RemoveLdapPublicCertificate() *model.AppError
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
 	RemoveSamlIdpCertificate() *model.AppError
@@ -885,7 +892,6 @@ type AppIface interface {
 	SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap)
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
-	SetDiagnosticId(id string)
 	SetIpAddress(s string)
 	SetLog(l *mlog.Logger)
 	SetPath(s string)
@@ -925,6 +931,7 @@ type AppIface interface {
 	T(translationID string, args ...interface{}) string
 	TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, *model.AppError)
 	TeamMembersToRemove(teamID *string) ([]*model.TeamMember, *model.AppError)
+	TelemetryId() string
 	TestElasticsearch(cfg *model.Config) *model.AppError
 	TestEmail(userId string, cfg *model.Config) *model.AppError
 	TestLdap() *model.AppError
@@ -977,6 +984,7 @@ type AppIface interface {
 	UpdateUserAuth(userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.AppError)
 	UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError)
 	UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError)
+	UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo, *model.AppError)
 	UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError
 	UploadMultipartFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, now time.Time) (*model.FileUploadResponse, *model.AppError)
 	UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError)

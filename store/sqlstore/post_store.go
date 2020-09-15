@@ -6,14 +6,19 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
+
 	"github.com/pkg/errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -611,7 +616,7 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 	replyCountQuery2 := ""
 	if options.SkipFetchThreads {
 		replyCountQuery1 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p1.RootId = '' THEN p1.Id ELSE p1.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
-		replyCountQuery2 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN p2.RootId = '' THEN p2.Id ELSE p2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
+		replyCountQuery2 = `, (SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId = (CASE WHEN cte.RootId = '' THEN cte.Id ELSE cte.RootId END) AND Posts.DeleteAt = 0) as ReplyCount`
 	}
 	var query string
 
@@ -645,32 +650,17 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 			) j ON p1.Id = j.Id
           ORDER BY CreateAt DESC`
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = `
-			(SELECT
-                       *` + replyCountQuery1 + `
-               FROM
-                       Posts p1
-               WHERE
-                       (UpdateAt > :Time
-                               AND ChannelId = :ChannelId)
-                       LIMIT 1000)
-               UNION
-                       (SELECT
-                           *` + replyCountQuery2 + `
-                       FROM
-                           Posts p2
-                       WHERE
-                           Id
-                       IN
-                           (SELECT * FROM (SELECT
-                               RootId
-                           FROM
-                               Posts
-                           WHERE
-                               UpdateAt > :Time
-                                               AND ChannelId = :ChannelId
-                               LIMIT 1000) temp_tab))
-               ORDER BY CreateAt DESC`
+		query = `WITH cte AS (SELECT
+		       *
+		FROM
+		       Posts
+		WHERE
+		       UpdateAt > :Time AND ChannelId = :ChannelId
+		       LIMIT 1000)
+		(SELECT *` + replyCountQuery2 + ` FROM cte)
+		UNION
+		(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
+		ORDER BY CreateAt DESC`
 	}
 	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"ChannelId": options.ChannelId, "Time": options.Time})
 

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID                          = "DiagnosticId"
+	SYSTEM_TELEMETRY_ID                           = "DiagnosticId"
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
@@ -99,7 +99,7 @@ var WarnMetricsTable = map[string]WarnMetric{
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
 		Limit:     500,
 		IsBotOnly: false,
-		IsRunOnce: false,
+		IsRunOnce: true,
 	},
 }
 

@@ -47,12 +47,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		privateChan := make(chan store.StoreResult, 1)
 		go func() {
 			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-			openChan <- store.StoreResult{Data: count, Err: err2}
+			openChan <- store.StoreResult{Data: count, NErr: err2}
 			close(openChan)
 		}()
 		go func() {
 			count, err2 := a.Srv().Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-			privateChan <- store.StoreResult{Data: count, Err: err2}
+			privateChan <- store.StoreResult{Data: count, NErr: err2}
 			close(privateChan)
 		}()
 
@@ -106,14 +106,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}()
 
 		r := <-openChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[0].Value = float64(r.Data.(int64))
 
 		r = <-privateChan
-		if r.Err != nil {
-			return nil, r.Err
+		if r.NErr != nil {
+			return nil, model.NewAppError("GetAnalytics", "app.channel.analytics_type_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 		}
 		rows[1].Value = float64(r.Data.(int64))
 
