@@ -108,10 +108,17 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 	if us.FileOffset == 0 {
 		// new upload
 		written, err = a.WriteFile(lr, us.Path)
+		if err != nil && written == 0 {
+			return nil, err
+		}
 		if written < minFirstPartSize && written != us.FileSize {
 			a.RemoveFile(us.Path)
+			var errStr string
+			if err != nil {
+				errStr = err.Error()
+			}
 			return nil, model.NewAppError("UploadData", "app.upload.upload_data.first_part_too_small.app_error",
-				map[string]interface{}{"Size": minFirstPartSize}, "", http.StatusBadRequest)
+				map[string]interface{}{"Size": minFirstPartSize}, errStr, http.StatusBadRequest)
 		}
 	} else if us.FileOffset < us.FileSize {
 		// resume upload

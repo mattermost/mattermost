@@ -114,6 +114,24 @@ func TestUploadData(t *testing.T) {
 	_, err2 := rand.Read(data)
 	require.NoError(t, err2)
 
+	t.Run("write error", func(t *testing.T) {
+		rd := &io.LimitedReader{
+			R: bytes.NewReader(data),
+			N: 1024 * 1024,
+		}
+
+		ok, err := th.App.FileExists(us.Path)
+		require.False(t, ok)
+		require.Nil(t, err)
+
+		u := *us
+		u.Path = ""
+		info, err := th.App.UploadData(&u, rd)
+		require.Nil(t, info)
+		require.NotNil(t, err)
+		require.NotEqual(t, "app.upload.upload_data.first_part_too_small.app_error", err.Id)
+	})
+
 	t.Run("first part too small", func(t *testing.T) {
 		rd := &io.LimitedReader{
 			R: bytes.NewReader(data),
@@ -128,6 +146,10 @@ func TestUploadData(t *testing.T) {
 		require.Nil(t, info)
 		require.NotNil(t, err)
 		require.Equal(t, "app.upload.upload_data.first_part_too_small.app_error", err.Id)
+
+		ok, err = th.App.FileExists(us.Path)
+		require.False(t, ok)
+		require.Nil(t, err)
 	})
 
 	t.Run("resume success", func(t *testing.T) {
