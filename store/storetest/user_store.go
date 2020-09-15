@@ -554,6 +554,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		DeleteAt: model.GetMillis(),
 		Roles:    "system_user_manager system_user",
 	})
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u8.Id)) }()
 
 	u9, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -561,6 +562,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		DeleteAt: model.GetMillis(),
 		Roles:    "system_manager system_user",
 	})
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u9.Id)) }()
 
 	u10, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -568,6 +570,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		DeleteAt: model.GetMillis(),
 		Roles:    "system_read_only_admin system_user",
 	})
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u10.Id)) }()
 
 	t.Run("filter by system_user_manager role", func(t *testing.T) {
 		actual, err := ss.User().GetAllProfiles(&model.UserGetOptions{
