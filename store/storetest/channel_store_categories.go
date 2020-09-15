@@ -144,8 +144,8 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.Nil(t, nErr)
 
 		// Get and check the categories for channels
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
-		require.Nil(t, err)
+		categories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Equal(t, []string{channel1.Id}, categories.Categories[0].Channels)
@@ -207,8 +207,8 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.Nil(t, nErr)
 
 		// Get and check the categories for channels
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
-		require.Nil(t, err)
+		categories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Equal(t, []string{channel2.Id, channel1.Id}, categories.Categories[0].Channels)
@@ -312,8 +312,8 @@ func testCreateInitialSidebarCategories(t *testing.T, ss store.Store) {
 		require.Nil(t, nErr)
 
 		// Get and check the categories for channels
-		categories, err := ss.Channel().GetSidebarCategories(userId, teamId)
-		require.Nil(t, err)
+		categories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
 		require.Len(t, categories.Categories, 3)
 		assert.Equal(t, model.SidebarCategoryFavorites, categories.Categories[0].Type)
 		assert.Equal(t, []string{}, categories.Categories[0].Channels)
@@ -1370,8 +1370,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		require.Nil(t, nErr)
 
 		// And some categories
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
-		require.Nil(t, err)
+		initialCategories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
 		dmsCategory := initialCategories.Categories[2]
@@ -1391,8 +1391,8 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 			},
 		}
 
-		updatedCategories, err := ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
-		assert.Nil(t, err)
+		updatedCategories, nErr := ss.Channel().UpdateSidebarCategories(userId, teamId, categoriesToUpdate)
+		assert.Nil(t, nErr)
 
 		// The channels should still exist in the category because they would otherwise be orphaned
 		assert.Equal(t, []string{channel.Id}, updatedCategories[0].Channels)
@@ -1510,17 +1510,17 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 		nErr = ss.Channel().CreateInitialSidebarCategories(userId, teamId)
 		require.Nil(t, nErr)
 
-		initialCategories, err := ss.Channel().GetSidebarCategories(userId, teamId)
-		require.Nil(t, err)
+		initialCategories, nErr := ss.Channel().GetSidebarCategories(userId, teamId)
+		require.Nil(t, nErr)
 
 		channelsCategory := initialCategories.Categories[1]
 		require.Equal(t, []string{channel.Id}, channelsCategory.Channels)
 
-		customCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
-		require.Nil(t, err)
+		customCategory, nErr := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
+		require.Nil(t, nErr)
 
 		// Move the channel one way
-		updatedCategories, err := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, nErr := ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{},
@@ -1530,13 +1530,13 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				Channels:        []string{channel.Id},
 			},
 		})
-		assert.Nil(t, err)
+		assert.Nil(t, nErr)
 
 		assert.Equal(t, []string{}, updatedCategories[0].Channels)
 		assert.Equal(t, []string{channel.Id}, updatedCategories[1].Channels)
 
 		// And then the other
-		updatedCategories, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
+		updatedCategories, nErr = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
 			{
 				SidebarCategory: channelsCategory.SidebarCategory,
 				Channels:        []string{channel.Id},
@@ -1546,7 +1546,7 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 				Channels:        []string{},
 			},
 		})
-		assert.Nil(t, err)
+		assert.Nil(t, nErr)
 		assert.Equal(t, []string{channel.Id}, updatedCategories[0].Channels)
 		assert.Equal(t, []string{}, updatedCategories[1].Channels)
 	})

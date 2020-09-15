@@ -231,8 +231,8 @@ func TestExportDMChannel(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
 	th1.TearDown()
@@ -240,8 +240,8 @@ func TestExportDMChannel(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
@@ -250,8 +250,8 @@ func TestExportDMChannel(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	// Ensure the Members of the imported DM channel is the same was from the exported
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
 }
@@ -267,15 +267,15 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
@@ -283,8 +283,8 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(channels))
 	assert.Equal(t, 1, len((*channels[0].Members)))
 	assert.Equal(t, th1.BasicUser.Username, (*channels[0].Members)[0])
@@ -305,8 +305,8 @@ func TestExportGMChannel(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
 	th1.TearDown()
@@ -314,8 +314,8 @@ func TestExportGMChannel(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 0, len(channels))
 }
 
@@ -337,8 +337,8 @@ func TestExportGMandDMChannels(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	channels, err := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr := th1.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 2, len(channels))
 
 	th1.TearDown()
@@ -346,8 +346,8 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 0, len(channels))
 
 	// import the exported channel
@@ -356,8 +356,8 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	// Ensure the Members of the imported GM channel is the same was from the exported
-	channels, err = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
-	require.Nil(t, err)
+	channels, nErr = th2.App.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	require.Nil(t, nErr)
 
 	// Adding some deteminism so its possible to assert on slice index
 	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })

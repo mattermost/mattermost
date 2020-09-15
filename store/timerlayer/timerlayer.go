@@ -458,7 +458,7 @@ func (s *TimerLayerBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError) {
+func (s *TimerLayerChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AnalyticsDeletedTypeCount(teamId, channelType)
@@ -490,7 +490,7 @@ func (s *TimerLayerChannelStore) AnalyticsTypeCount(teamId string, channelType s
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
@@ -506,7 +506,7 @@ func (s *TimerLayerChannelStore) AutocompleteInTeam(teamId string, term string, 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
@@ -522,7 +522,7 @@ func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamId string, user
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) ClearAllCustomRoleAssignments() *model.AppError {
+func (s *TimerLayerChannelStore) ClearAllCustomRoleAssignments() error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.ClearAllCustomRoleAssignments()
@@ -617,7 +617,7 @@ func (s *TimerLayerChannelStore) CreateInitialSidebarCategories(userId string, t
 	return err
 }
 
-func (s *TimerLayerChannelStore) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (s *TimerLayerChannelStore) CreateSidebarCategory(userId string, teamId string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.CreateSidebarCategory(userId, teamId, newCategory)
@@ -649,7 +649,7 @@ func (s *TimerLayerChannelStore) Delete(channelId string, time int64) error {
 	return err
 }
 
-func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryId string) *model.AppError {
+func (s *TimerLayerChannelStore) DeleteSidebarCategory(categoryId string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.DeleteSidebarCategory(categoryId)
@@ -777,7 +777,7 @@ func (s *TimerLayerChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpt
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetAllChannelsForExportAfter(limit, afterId)
@@ -793,7 +793,7 @@ func (s *TimerLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterId
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError) {
+func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterId)
@@ -873,7 +873,7 @@ func (s *TimerLayerChannelStore) GetChannelCounts(teamId string, userId string) 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelMembersForExport(userId, teamId)
@@ -905,7 +905,7 @@ func (s *TimerLayerChannelStore) GetChannelMembersTimezones(channelId string) ([
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId string) (*model.ChannelUnread, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelUnread(channelId string, userId string) (*model.ChannelUnread, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelUnread(channelId, userId)
@@ -937,7 +937,7 @@ func (s *TimerLayerChannelStore) GetChannels(teamId string, userId string, inclu
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelsBatchForIndexing(startTime, endTime, limit)
@@ -969,7 +969,7 @@ func (s *TimerLayerChannelStore) GetChannelsByIds(channelIds []string, includeDe
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetChannelsByScheme(schemeId, offset, limit)
@@ -1161,7 +1161,7 @@ func (s *TimerLayerChannelStore) GetMembers(channelId string, offset int, limit 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+func (s *TimerLayerChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetMembersByIds(channelId, userIds)
@@ -1305,7 +1305,7 @@ func (s *TimerLayerChannelStore) GetPublicChannelsForTeam(teamId string, offset 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, *model.AppError) {
+func (s *TimerLayerChannelStore) GetSidebarCategories(userId string, teamId string) (*model.OrderedSidebarCategories, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSidebarCategories(userId, teamId)
@@ -1321,7 +1321,7 @@ func (s *TimerLayerChannelStore) GetSidebarCategories(userId string, teamId stri
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, *model.AppError) {
+func (s *TimerLayerChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCategoryWithChannels, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSidebarCategory(categoryId)
@@ -1337,7 +1337,7 @@ func (s *TimerLayerChannelStore) GetSidebarCategory(categoryId string) (*model.S
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userId string, teamId string) ([]string, *model.AppError) {
+func (s *TimerLayerChannelStore) GetSidebarCategoryOrder(userId string, teamId string) ([]string, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GetSidebarCategoryOrder(userId, teamId)
@@ -1369,7 +1369,7 @@ func (s *TimerLayerChannelStore) GetTeamChannels(teamId string) (*model.ChannelL
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, *model.AppError) {
+func (s *TimerLayerChannelStore) GroupSyncedChannelCount() (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.GroupSyncedChannelCount()
@@ -1522,7 +1522,7 @@ func (s *TimerLayerChannelStore) IsUserInChannelUseCache(userId string, channelI
 	return result
 }
 
-func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, *model.AppError) {
+func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.MigrateChannelMembers(fromChannelId, fromUserId)
@@ -1618,7 +1618,7 @@ func (s *TimerLayerChannelStore) PermanentDeleteMembersByUser(userId string) *mo
 	return err
 }
 
-func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
+func (s *TimerLayerChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.RemoveAllDeactivatedMembers(channelId)
@@ -1666,7 +1666,7 @@ func (s *TimerLayerChannelStore) RemoveMembers(channelId string, userIds []strin
 	return err
 }
 
-func (s *TimerLayerChannelStore) ResetAllChannelSchemes() *model.AppError {
+func (s *TimerLayerChannelStore) ResetAllChannelSchemes() error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.ResetAllChannelSchemes()
@@ -1762,7 +1762,7 @@ func (s *TimerLayerChannelStore) SaveMultipleMembers(members []*model.ChannelMem
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, error) {
 	start := timemodule.Now()
 
 	result, resultVar1, err := s.ChannelStore.SearchAllChannels(term, opts)
@@ -1778,7 +1778,7 @@ func (s *TimerLayerChannelStore) SearchAllChannels(term string, opts store.Chann
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.SearchArchivedInTeam(teamId, term, userId)
@@ -1794,7 +1794,7 @@ func (s *TimerLayerChannelStore) SearchArchivedInTeam(teamId string, term string
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.SearchForUserInTeam(userId, teamId, term, includeDeleted)
@@ -1810,7 +1810,7 @@ func (s *TimerLayerChannelStore) SearchForUserInTeam(userId string, teamId strin
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchGroupChannels(userId string, term string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.SearchGroupChannels(userId, term)
@@ -1826,7 +1826,7 @@ func (s *TimerLayerChannelStore) SearchGroupChannels(userId string, term string)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.SearchInTeam(teamId, term, includeDeleted)
@@ -1842,7 +1842,7 @@ func (s *TimerLayerChannelStore) SearchInTeam(teamId string, term string, includ
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
+func (s *TimerLayerChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.SearchMore(userId, teamId, term)
@@ -1938,7 +1938,7 @@ func (s *TimerLayerChannelStore) UpdateMember(member *model.ChannelMember) (*mod
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateMembersRole(channelID string, userIDs []string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.UpdateMembersRole(channelID, userIDs)
@@ -1970,7 +1970,7 @@ func (s *TimerLayerChannelStore) UpdateMultipleMembers(members []*model.ChannelM
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
+func (s *TimerLayerChannelStore) UpdateSidebarCategories(userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.UpdateSidebarCategories(userId, teamId, categories)
@@ -1986,7 +1986,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarCategories(userId string, teamId s
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) *model.AppError {
+func (s *TimerLayerChannelStore) UpdateSidebarCategoryOrder(userId string, teamId string, categoryOrder []string) error {
 	start := timemodule.Now()
 
 	err := s.ChannelStore.UpdateSidebarCategoryOrder(userId, teamId, categoryOrder)
@@ -2034,7 +2034,7 @@ func (s *TimerLayerChannelStore) UpdateSidebarChannelsByPreferences(preferences 
 	return err
 }
 
-func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
+func (s *TimerLayerChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, error) {
 	start := timemodule.Now()
 
 	result, err := s.ChannelStore.UserBelongsToChannels(userId, channelIds)

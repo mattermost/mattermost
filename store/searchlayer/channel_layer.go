@@ -128,9 +128,10 @@ func (c *SearchChannelStore) SaveDirectChannel(directchannel *model.Channel, mem
 	return channel, err
 }
 
-func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, error) {
 	var channelList *model.ChannelList
 	var err *model.AppError
+	var nErr error
 
 	allFailed := true
 	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
@@ -148,9 +149,9 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 
 	if allFailed {
 		mlog.Debug("Using database search because no other search engine is available")
-		channelList, err = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
-		if err != nil {
-			return nil, err
+		channelList, nErr = c.ChannelStore.AutocompleteInTeam(teamId, term, includeDeleted)
+		if nErr != nil {
+			return nil, model.NewAppError("AutocompleteInTeam", "app.channel.search.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	return channelList, err
@@ -185,7 +186,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(userId string) *model.
 	return err
 }
 
-func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
+func (c *SearchChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(channelId, true)
 	if errProfiles != nil {
 		mlog.Error("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))

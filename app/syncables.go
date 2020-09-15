@@ -204,20 +204,19 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 		mlog.Any("permitted_admins", permittedAdmins),
 	)
 
-	var updateFunc func(string, []string) *model.AppError
-
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
-		updateFunc = a.Srv().Store.Team().UpdateMembersRole
+		err = a.Srv().Store.Team().UpdateMembersRole(syncableID, permittedAdmins)
+		if err != nil {
+			return err
+		}
 	case model.GroupSyncableTypeChannel:
-		updateFunc = a.Srv().Store.Channel().UpdateMembersRole
+		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
+		if nErr != nil {
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	default:
 		return model.NewAppError("App.SyncSyncableRoles", "groups.unsupported_syncable_type", map[string]interface{}{"Value": syncableType}, "", http.StatusInternalServerError)
-	}
-
-	err = updateFunc(syncableID, permittedAdmins)
-	if err != nil {
-		return err
 	}
 
 	return nil

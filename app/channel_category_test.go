@@ -129,6 +129,6 @@ func TestGetSidebarCategories(t *testing.T) {
 		categories, appErr := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
 		assert.Nil(t, categories)
 		assert.NotNil(t, appErr)
-		assert.Equal(t, "store.sql_channel.sidebar_categories.app_error", appErr.Id)
+		assert.Equal(t, "app.channel.sidebar_categories.app_error", appErr.Id)
 	})
 }

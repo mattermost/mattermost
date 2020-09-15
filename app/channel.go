@@ -1690,7 +1690,12 @@ func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.App
 }
 
 func (a *App) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
-	return a.Srv().Store.Channel().GetMembersByIds(channelId, userIds)
+	members, err := a.Srv().Store.Channel().GetMembersByIds(channelId, userIds)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelMembersByIds", "app.channel.get_members_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return members, nil
 }
 
 func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
@@ -1737,7 +1742,13 @@ func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCoun
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
 	channelUnread, err := a.Srv().Store.Channel().GetChannelUnread(channelId, userId)
 	if err != nil {
-		return nil, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetChannelUnread", "app.channel.get_unread.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
@@ -2210,7 +2221,12 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
+	channelList, err := a.Srv().Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -2218,7 +2234,12 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
+	channelList, err := a.Srv().Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
@@ -2242,7 +2263,12 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().SearchAllChannels(term, storeOpts)
+	channelList, totalCount, err := a.Srv().Store.Channel().SearchAllChannels(term, storeOpts)
+	if err != nil {
+		return nil, 0, model.NewAppError("SearchAllChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, totalCount, nil
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
@@ -2250,13 +2276,23 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+	channelList, err := a.Srv().Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+	if err != nil {
+		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (a *App) SearchArchivedChannels(teamId string, term string, userId string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().SearchArchivedInTeam(teamId, term, userId)
+	channelList, err := a.Srv().Store.Channel().SearchArchivedInTeam(teamId, term, userId)
+	if err != nil {
+		return nil, model.NewAppError("SearchArchivedChannels", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.ChannelList, *model.AppError) {
@@ -2264,7 +2300,12 @@ func (a *App) SearchChannelsForUser(userId, teamId, term string) (*model.Channel
 
 	term = strings.TrimSpace(term)
 
-	return a.Srv().Store.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
+	channelList, err := a.Srv().Store.Channel().SearchForUserInTeam(userId, teamId, term, includeDeleted)
+	if err != nil {
+		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
@@ -2274,14 +2315,19 @@ func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *mod
 
 	channelList, err := a.Srv().Store.Channel().SearchGroupChannels(userId, term)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("SearchGroupChannels", "app.channel.search_group_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return channelList, nil
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
-	return a.Srv().Store.Channel().SearchMore(userId, teamId, term)
+	channelList, err := a.Srv().Store.Channel().SearchMore(userId, teamId, term)
+	if err != nil {
+		return nil, model.NewAppError("SearchChannelsUserNotIn", "app.channel.search.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return channelList, nil
 }
 
 func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
@@ -2398,7 +2444,12 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 }
 
 func (a *App) RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError {
-	return a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id)
+	err := a.Srv().Store.Channel().RemoveAllDeactivatedMembers(channel.Id)
+	if err != nil {
+		return model.NewAppError("RemoveAllDeactivatedMembersFromChannel", "app.channel.remove_all_deactivated_members.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 // MoveChannel method is prone to data races if someone joins to channel during the move process. However this
