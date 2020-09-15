@@ -427,6 +427,10 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 		return nil, store.NewErrNotFound("SidebarCategories", categoryId)
 	}
 
+	if len(categories) == 0 {
+		return nil, store.NewErrNotFound("SidebarCategories", categoryId)
+	}
+
 	result := &model.SidebarCategoryWithChannels{
 		SidebarCategory: categories[0].SidebarCategory,
 		Channels:        make([]string, 0),
