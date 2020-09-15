@@ -41,6 +41,7 @@ type Store interface {
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
+	UploadSession() UploadSessionStore
 	Reaction() ReactionStore
 	Role() RoleStore
 	Scheme() SchemeStore
@@ -162,39 +163,39 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
 	GetForPost(postId string) (*model.Channel, error)
-	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
-	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
-	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
-	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
-	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
-	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
-	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
-	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError)
+	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
+	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
+	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, error)
+	GetMember(channelId string, userId string) (*model.ChannelMember, error)
+	GetChannelMembersTimezones(channelId string) ([]model.StringMap, error)
+	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
+	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
-	GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError)
+	GetMemberForPost(postId string, userId string) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
-	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
-	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
+	GetMemberCount(channelId string, allowFromCache bool) (int64, error)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, error)
 	InvalidateGuestCount(channelId string)
-	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
-	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
-	RemoveMember(channelId string, userId string) *model.AppError
-	RemoveMembers(channelId string, userIds []string) *model.AppError
-	PermanentDeleteMembersByUser(userId string) *model.AppError
-	PermanentDeleteMembersByChannel(channelId string) *model.AppError
-	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
-	CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError)
-	IncrementMentionCount(channelId string, userId string) *model.AppError
-	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
-	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
-	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetGuestCount(channelId string, allowFromCache bool) (int64, error)
+	GetPinnedPosts(channelId string) (*model.PostList, error)
+	RemoveMember(channelId string, userId string) error
+	RemoveMembers(channelId string, userIds []string) error
+	PermanentDeleteMembersByUser(userId string) error
+	PermanentDeleteMembersByChannel(channelId string) error
+	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error)
+	CountPostsAfter(channelId string, timestamp int64, userId string) (int, error)
+	IncrementMentionCount(channelId string, userId string) error
+	AnalyticsTypeCount(teamId string, channelType string) (int64, error)
+	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, error)
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, error)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
@@ -547,6 +548,14 @@ type FileInfoStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userId string) (int64, error)
 	ClearCaches()
+}
+
+type UploadSessionStore interface {
+	Save(session *model.UploadSession) (*model.UploadSession, error)
+	Update(session *model.UploadSession) error
+	Get(id string) (*model.UploadSession, error)
+	GetForUser(userId string) ([]*model.UploadSession, error)
+	Delete(id string) error
 }
 
 type ReactionStore interface {
