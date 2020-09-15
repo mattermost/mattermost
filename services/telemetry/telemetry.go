@@ -29,6 +29,8 @@ const (
 	RUDDER_KEY           = "placeholder_rudder_key"
 	RUDDER_DATAPLANE_URL = "placeholder_rudder_dataplane_url"
 
+	ENV_VAR_INSTALL_TYPE = "MM_INSTALL_TYPE"
+
 	TRACK_CONFIG_SERVICE            = "config_service"
 	TRACK_CONFIG_TEAM               = "config_team"
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
@@ -850,10 +852,11 @@ func (ts *TelemetryService) trackPlugins() {
 
 func (ts *TelemetryService) trackServer() {
 	data := map[string]interface{}{
-		"edition":          model.BuildEnterpriseReady,
-		"version":          model.CurrentVersion,
-		"database_type":    *ts.srv.Config().SqlSettings.DriverName,
-		"operating_system": runtime.GOOS,
+		"edition":           model.BuildEnterpriseReady,
+		"version":           model.CurrentVersion,
+		"database_type":     *ts.srv.Config().SqlSettings.DriverName,
+		"operating_system":  runtime.GOOS,
+		"installation_type": os.Getenv(ENV_VAR_INSTALL_TYPE),
 	}
 
 	if scr, err := ts.dbStore.User().AnalyticsGetSystemAdminCount(); err == nil {
