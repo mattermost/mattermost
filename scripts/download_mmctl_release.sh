@@ -8,16 +8,9 @@ else
   PLATFORM=$(uname)
 fi
 
-# When using the output of get_latest_release.sh
-if [[ "$1" == *"error"* ]]
-then
-  echo "$1"
-  exit 1;
-else
-  # strip whitespace
-  RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
-  echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$RELEASE_TO_DOWNLOAD";
-fi
+# strip whitespace
+RELEASE_TO_DOWNLOAD=$(echo "$1" | xargs echo)
+echo "Downloading prepackaged binary: https://github.com/mattermost/mmctl/releases/$RELEASE_TO_DOWNLOAD";
 
 case "$PLATFORM" in
 
