@@ -912,6 +912,44 @@ func TestDeleteBotIconImage(t *testing.T) {
 	})
 }
 
+func TestGetWarnMetricsBot(t *testing.T) {
+	t.Run("An error should be returned if there are no sysadmins in the instance", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		require.Nil(t, th.App.PermanentDeleteAllUsers())
+
+		_, err := th.App.GetWarnMetricsBot()
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", err.Id)
+	})
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("The bot should be created the first time it's retrieved", func(t *testing.T) {
+		// assert no bot with username exists
+		_, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		require.NotNil(t, err)
+
+		bot, err := th.App.GetWarnMetricsBot()
+		require.Nil(t, err)
+		require.Equal(t, bot.Username, model.BOT_WARN_METRIC_BOT_USERNAME)
+	})
+
+	t.Run("The bot should be correctly retrieved if it exists already", func(t *testing.T) {
+		// assert that the bot is now present
+		botUser, err := th.App.GetUserByUsername(model.BOT_WARN_METRIC_BOT_USERNAME)
+		require.Nil(t, err)
+		require.True(t, botUser.IsBot)
+
+		bot, err := th.App.GetWarnMetricsBot()
+		require.Nil(t, err)
+		require.Equal(t, bot.Username, model.BOT_WARN_METRIC_BOT_USERNAME)
+		require.Equal(t, bot.UserId, botUser.Id)
+	})
+}
+
 func sToP(s string) *string {
 	return &s
 }

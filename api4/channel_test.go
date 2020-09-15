@@ -1732,7 +1732,8 @@ func TestConvertChannelToPrivate(t *testing.T) {
 func TestUpdateChannelPrivacy(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
+
+	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
 
 	type testTable []struct {
 		name            string
@@ -1740,100 +1741,112 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 		expectedPrivacy string
 	}
 
-	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, th.BasicTeam.Id, false)
-	privateChannel := th.CreatePrivateChannel()
-	publicChannel := th.CreatePublicChannel()
+	t.Run("Should get a forbidden response if not logged in", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		publicChannel := th.CreatePublicChannel()
 
-	tt := testTable{
-		{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
-		{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
-		{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
-	}
+		tt := testTable{
+			{"Updating default channel should fail with forbidden status if not logged in", defaultChannel, model.CHANNEL_OPEN},
+			{"Updating private channel should fail with forbidden status if not logged in", privateChannel, model.CHANNEL_PRIVATE},
+			{"Updating public channel should fail with forbidden status if not logged in", publicChannel, model.CHANNEL_OPEN},
+		}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
-			CheckForbiddenStatus(t, resp)
-		})
-	}
+		for _, tc := range tt {
+			t.Run(tc.name, func(t *testing.T) {
+				_, resp := th.Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+				CheckForbiddenStatus(t, resp)
+			})
+		}
+	})
 
-	th.LoginTeamAdmin()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		privateChannel := th.CreatePrivateChannel()
+		publicChannel := th.CreatePublicChannel()
 
-	tt = testTable{
-		{"Converting default channel to private should fail", defaultChannel, model.CHANNEL_PRIVATE},
-		{"Updating privacy to an invalid setting should fail", publicChannel, "invalid"},
-	}
+		tt := testTable{
+			{"Converting default channel to private should fail", defaultChannel, model.CHANNEL_PRIVATE},
+			{"Updating privacy to an invalid setting should fail", publicChannel, "invalid"},
+		}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			_, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
-			CheckBadRequestStatus(t, resp)
-		})
-	}
+		for _, tc := range tt {
+			t.Run(tc.name, func(t *testing.T) {
+				_, resp := client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+				CheckBadRequestStatus(t, resp)
+			})
+		}
 
-	tt = testTable{
-		{"Default channel should stay public", defaultChannel, model.CHANNEL_OPEN},
-		{"Public channel should stay public", publicChannel, model.CHANNEL_OPEN},
-		{"Private channel should stay private", privateChannel, model.CHANNEL_PRIVATE},
-		{"Public channel should convert to private", publicChannel, model.CHANNEL_PRIVATE},
-		{"Private channel should convert to public", privateChannel, model.CHANNEL_OPEN},
-	}
+		tt = testTable{
+			{"Default channel should stay public", defaultChannel, model.CHANNEL_OPEN},
+			{"Public channel should stay public", publicChannel, model.CHANNEL_OPEN},
+			{"Private channel should stay private", privateChannel, model.CHANNEL_PRIVATE},
+			{"Public channel should convert to private", publicChannel, model.CHANNEL_PRIVATE},
+			{"Private channel should convert to public", privateChannel, model.CHANNEL_OPEN},
+		}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			updatedChannel, resp := Client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
-			CheckNoError(t, resp)
-			assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
-			updatedChannel, err := th.App.GetChannel(tc.channel.Id)
-			require.Nil(t, err)
-			assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
-		})
-	}
+		for _, tc := range tt {
+			t.Run(tc.name, func(t *testing.T) {
+				updatedChannel, resp := client.UpdateChannelPrivacy(tc.channel.Id, tc.expectedPrivacy)
+				CheckNoError(t, resp)
+				assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
+				updatedChannel, err := th.App.GetChannel(tc.channel.Id)
+				require.Nil(t, err)
+				assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
+			})
+		}
+	})
 
 	t.Run("Enforces convert channel permissions", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		publicChannel := th.CreatePublicChannel()
+
+		th.LoginTeamAdmin()
+
 		th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
 		th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC.Id, model.TEAM_ADMIN_ROLE_ID)
 
-		_, resp := Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+		_, resp := th.Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
 		CheckForbiddenStatus(t, resp)
-		_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
+		_, resp = th.Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
 		CheckForbiddenStatus(t, resp)
 
 		th.AddPermissionToRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC.Id, model.TEAM_ADMIN_ROLE_ID)
 
-		_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
+		_, resp = th.Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
 		CheckNoError(t, resp)
-		_, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+		_, resp = th.Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
 		CheckNoError(t, resp)
 	})
-
 }
 
 func TestRestoreChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
 	publicChannel1 := th.CreatePublicChannel()
-	Client.DeleteChannel(publicChannel1.Id)
+	th.Client.DeleteChannel(publicChannel1.Id)
 
 	privateChannel1 := th.CreatePrivateChannel()
-	Client.DeleteChannel(privateChannel1.Id)
+	th.Client.DeleteChannel(privateChannel1.Id)
 
-	_, resp := Client.RestoreChannel(publicChannel1.Id)
+	_, resp := th.Client.RestoreChannel(publicChannel1.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.RestoreChannel(privateChannel1.Id)
+	_, resp = th.Client.RestoreChannel(privateChannel1.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginTeamAdmin()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		defer func() {
+			client.DeleteChannel(publicChannel1.Id)
+			client.DeleteChannel(privateChannel1.Id)
+		}()
 
-	_, resp = Client.RestoreChannel(publicChannel1.Id)
-	CheckOKStatus(t, resp)
+		_, resp = client.RestoreChannel(publicChannel1.Id)
+		CheckOKStatus(t, resp)
 
-	_, resp = Client.RestoreChannel(privateChannel1.Id)
-	CheckOKStatus(t, resp)
+		_, resp = client.RestoreChannel(privateChannel1.Id)
+		CheckOKStatus(t, resp)
+	})
 }
 
 func TestGetChannelByName(t *testing.T) {
@@ -1940,7 +1953,6 @@ func TestGetChannelMembers(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-
 		members, resp := client.GetChannelMembers(th.BasicChannel.Id, 0, 60, "")
 		CheckNoError(t, resp)
 		require.Len(t, *members, 3, "should only be 3 users in channel")
