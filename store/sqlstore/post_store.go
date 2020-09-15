@@ -6,24 +6,20 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
