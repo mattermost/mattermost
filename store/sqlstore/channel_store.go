@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
