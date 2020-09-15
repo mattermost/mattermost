@@ -40,23 +40,23 @@ type GetFileInfosOptions struct {
 }
 
 type FileInfo struct {
-	Id              string `json:"id"`
-	CreatorId       string `json:"user_id"`
-	PostId          string `json:"post_id,omitempty"`
-	CreateAt        int64  `json:"create_at"`
-	UpdateAt        int64  `json:"update_at"`
-	DeleteAt        int64  `json:"delete_at"`
-	Path            string `json:"-"` // not sent back to the client
-	ThumbnailPath   string `json:"-"` // not sent back to the client
-	PreviewPath     string `json:"-"` // not sent back to the client
-	Name            string `json:"name"`
-	Extension       string `json:"extension"`
-	Size            int64  `json:"size"`
-	MimeType        string `json:"mime_type"`
-	Width           int    `json:"width,omitempty"`
-	Height          int    `json:"height,omitempty"`
-	HasPreviewImage bool   `json:"has_preview_image,omitempty"`
-	MiniPreview     []byte `json:"mini_preview"`
+	Id              string  `json:"id"`
+	CreatorId       string  `json:"user_id"`
+	PostId          string  `json:"post_id,omitempty"`
+	CreateAt        int64   `json:"create_at"`
+	UpdateAt        int64   `json:"update_at"`
+	DeleteAt        int64   `json:"delete_at"`
+	Path            string  `json:"-"` // not sent back to the client
+	ThumbnailPath   string  `json:"-"` // not sent back to the client
+	PreviewPath     string  `json:"-"` // not sent back to the client
+	Name            string  `json:"name"`
+	Extension       string  `json:"extension"`
+	Size            int64   `json:"size"`
+	MimeType        string  `json:"mime_type"`
+	Width           int     `json:"width,omitempty"`
+	Height          int     `json:"height,omitempty"`
+	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
+	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
 }
 
 func (fi *FileInfo) ToJson() string {
@@ -155,7 +155,7 @@ func NewInfo(name string) *FileInfo {
 	return info
 }
 
-func GenerateMiniPreviewImage(img image.Image) []byte {
+func GenerateMiniPreviewImage(img image.Image) *[]byte {
 	preview := imaging.Resize(img, 16, 16, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
@@ -165,7 +165,7 @@ func GenerateMiniPreviewImage(img image.Image) []byte {
 		return nil
 	}
 	data := buf.Bytes()
-	return data
+	return &data
 }
 
 func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
