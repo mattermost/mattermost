@@ -3263,8 +3263,16 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Unable to get channel type counts."
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Unable to count messages since given date."
   },
   {
     "id": "app.channel.create_channel.internal_error",
@@ -3363,6 +3371,18 @@
     "translation": "Unable to get the channel for the given post."
   },
   {
+    "id": "app.channel.get_member.app_error",
+    "translation": "Unable to get the channel member."
+  },
+  {
+    "id": "app.channel.get_member.missing.app_error",
+    "translation": "No channel member found for that user ID and channel ID."
+  },
+  {
+    "id": "app.channel.get_member_count.app_error",
+    "translation": "Unable to get the channel member count."
+  },
+  {
     "id": "app.channel.get_members.app_error",
     "translation": "Unable to get the channel members."
   },
@@ -3373,6 +3393,10 @@
   {
     "id": "app.channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels."
+  },
+  {
+    "id": "app.channel.get_pinnedpost_count.app_error",
+    "translation": "Unable to get the channel pinned post count."
   },
   {
     "id": "app.channel.get_private_channels.get.app_error",
@@ -3387,6 +3411,10 @@
     "translation": "Unable to get the channel unread messages."
   },
   {
+    "id": "app.channel.increment_mention_count.app_error",
+    "translation": "Unable to increment the mention count."
+  },
+  {
     "id": "app.channel.migrate_channel_members.select.app_error",
     "translation": "Failed to select the batch of channel members."
   },
@@ -3397,6 +3425,14 @@
   {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
+  },
+  {
+    "id": "app.channel.permanent_delete_members_by_user.app_error",
+    "translation": "Unable to remove the channel member."
+  },
+  {
+    "id": "app.channel.pinned_posts.app_error",
+    "translation": "Unable to find the pinned posts."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3423,12 +3459,20 @@
     "translation": "We could not remove the deactivated users from the channel."
   },
   {
+    "id": "app.channel.remove_member.app_error",
+    "translation": "Unable to remove the channel member."
+  },
+  {
     "id": "app.channel.reset_all_channel_schemes.app_error",
     "translation": "We could not reset the channel schemes."
   },
   {
     "id": "app.channel.restore.app_error",
     "translation": "Unable to restore the channel."
+  },
+  {
+    "id": "app.channel.save_member.exists.app_error",
+    "translation": ""
   },
   {
     "id": "app.channel.search.app_error",
@@ -3449,6 +3493,14 @@
   {
     "id": "app.channel.update_channel.internal_error",
     "translation": "Unable to update channel."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at.app_error",
+    "translation": "Unable to update the last viewed at time."
+  },
+  {
+    "id": "app.channel.update_last_viewed_at_post.app_error",
+    "translation": "Unable to mark channel as unread."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -7287,64 +7339,12 @@
     "translation": "Bot does not exist."
   },
   {
-    "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Unable to get channel type counts."
-  },
-  {
-    "id": "store.sql_channel.count_posts_since.app_error",
-    "translation": "Unable to count messages since given date."
-  },
-  {
     "id": "store.sql_channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
     "translation": "We encountered an error finding the channel."
-  },
-  {
-    "id": "store.sql_channel.get_member.app_error",
-    "translation": "Unable to get the channel member."
-  },
-  {
-    "id": "store.sql_channel.get_member.missing.app_error",
-    "translation": "No channel member found for that user ID and channel ID."
-  },
-  {
-    "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Unable to get the channel member count."
-  },
-  {
-    "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Unable to get the channel member for the given post."
-  },
-  {
-    "id": "store.sql_channel.get_pinnedpost_count.app_error",
-    "translation": "Unable to get the channel pinned post count."
-  },
-  {
-    "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Unable to remove the channel member."
-  },
-  {
-    "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Unable to find the pinned posts."
-  },
-  {
-    "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Unable to remove the channel member."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
@@ -7369,30 +7369,6 @@
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
     "translation": "Not a direct channel attempted to be created with SaveDirectChannel."
-  },
-  {
-    "id": "store.sql_channel.save_member.commit_transaction.app_error",
-    "translation": "Unable to commit transaction."
-  },
-  {
-    "id": "store.sql_channel.save_member.exists.app_error",
-    "translation": "A channel member with that ID already exists."
-  },
-  {
-    "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Unable to open transaction."
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Unable to update the last viewed at time."
-  },
-  {
-    "id": "store.sql_channel.update_last_viewed_at_post.app_error",
-    "translation": "Unable to mark channel as unread."
-  },
-  {
-    "id": "store.sql_channel.update_member.app_error",
-    "translation": "We encountered an error updating the channel member."
   },
   {
     "id": "store.sql_command.get.missing.app_error",

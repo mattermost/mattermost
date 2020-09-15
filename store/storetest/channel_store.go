@@ -198,8 +198,8 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 	require.Nil(t, nErr, "couldn't save direct channel", nErr)
 
-	members, err := ss.Channel().GetMembers(o1.Id, 0, 100)
-	require.Nil(t, err)
+	members, nErr := ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, nErr)
 	require.Len(t, *members, 2, "should have saved 2 members")
 
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
@@ -234,8 +234,8 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	_, nErr = ss.Channel().SaveDirectChannel(&o1, &m1, &m1)
 	require.Nil(t, nErr, "couldn't save direct channel", nErr)
 
-	members, err = ss.Channel().GetMembers(o1.Id, 0, 100)
-	require.Nil(t, err)
+	members, nErr = ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, nErr)
 	require.Len(t, *members, 1, "should have saved just 1 member")
 
 	// Manually truncate Channels table until testlib can handle cleanups
@@ -266,8 +266,8 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 		ss.Channel().PermanentDelete(c1.Id)
 	}()
 
-	members, err := ss.Channel().GetMembers(c1.Id, 0, 100)
-	require.Nil(t, err)
+	members, nErr := ss.Channel().GetMembers(c1.Id, 0, 100)
+	require.Nil(t, nErr)
 	require.Len(t, *members, 2, "should have saved 2 members")
 }
 
@@ -838,25 +838,25 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&o1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&o1)
+	require.Nil(t, nErr)
 
 	o2 := model.ChannelMember{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u2.Id
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&o2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&o2)
+	require.Nil(t, nErr)
 
 	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	count, err := ss.Channel().GetMemberCount(o1.ChannelId, true)
-	require.Nil(t, err)
+	count, nErr := ss.Channel().GetMemberCount(o1.ChannelId, true)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 2, count, "should have saved 2 members")
 
-	count, err = ss.Channel().GetMemberCount(o1.ChannelId, true)
-	require.Nil(t, err)
+	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, true)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 2, count, "should have saved 2 members")
 	require.EqualValues(
 		t,
@@ -870,15 +870,15 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		ss.Channel().GetMemberCountFromCache("junk"),
 		"should have saved 0 members")
 
-	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
-	require.Nil(t, err)
+	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 2, count, "should have saved 2 members")
 
-	err = ss.Channel().RemoveMember(o2.ChannelId, o2.UserId)
-	require.Nil(t, err)
+	nErr = ss.Channel().RemoveMember(o2.ChannelId, o2.UserId)
+	require.Nil(t, nErr)
 
-	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
-	require.Nil(t, err)
+	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 1, count, "should have removed 1 member")
 
 	c1t3, _ := ss.Channel().Get(c1.Id, false)
@@ -887,8 +887,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	member, _ := ss.Channel().GetMember(o1.ChannelId, o1.UserId)
 	require.Equal(t, o1.ChannelId, member.ChannelId, "should have go member")
 
-	_, err = ss.Channel().SaveMember(&o1)
-	require.NotNil(t, err, "should have been a duplicate")
+	_, nErr = ss.Channel().SaveMember(&o1)
+	require.NotNil(t, nErr, "should have been a duplicate")
 
 	c1t4, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
@@ -901,20 +901,22 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMember(member)
-		require.NotNil(t, err)
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+		_, nErr := ss.Channel().SaveMember(member)
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMember(m1)
-		require.Nil(t, err)
+		_, nErr := ss.Channel().SaveMember(m1)
+		require.Nil(t, nErr)
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMember(m2)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+		_, nErr = ss.Channel().SaveMember(m2)
+		require.NotNil(t, nErr)
+		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -1056,8 +1058,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 					ExplicitRoles: tc.ExplicitRoles,
 					NotifyProps:   defaultNotifyProps,
 				}
-				member, err = ss.Channel().SaveMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().SaveMember(member)
+				require.Nil(t, nErr)
 				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -1217,8 +1219,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 					ExplicitRoles: tc.ExplicitRoles,
 					NotifyProps:   defaultNotifyProps,
 				}
-				member, err = ss.Channel().SaveMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().SaveMember(member)
+				require.Nil(t, nErr)
 				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -1377,8 +1379,8 @@ func testChannelSaveMember(t *testing.T, ss store.Store) {
 					ExplicitRoles: tc.ExplicitRoles,
 					NotifyProps:   defaultNotifyProps,
 				}
-				member, err = ss.Channel().SaveMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().SaveMember(member)
+				require.Nil(t, nErr)
 				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -1400,18 +1402,20 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid channel member", func(t *testing.T) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, err)
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, nErr)
+		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -1563,8 +1567,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 					NotifyProps:   defaultNotifyProps,
 				}
 				var members []*model.ChannelMember
-				members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
-				require.Nil(t, err)
+				members, nErr = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
@@ -1738,8 +1742,8 @@ func testChannelSaveMultipleMembers(t *testing.T, ss store.Store) {
 					NotifyProps:   defaultNotifyProps,
 				}
 				var members []*model.ChannelMember
-				members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
-				require.Nil(t, err)
+				members, nErr = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 				defer ss.Channel().RemoveMember(channel.Id, u1.Id)
@@ -1935,9 +1939,11 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid channel member", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().UpdateMember(member)
-		require.NotNil(t, err)
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+		_, nErr := ss.Channel().UpdateMember(member)
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("insert member correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -1966,8 +1972,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			UserId:      u1.Id,
 			NotifyProps: defaultNotifyProps,
 		}
-		member, err = ss.Channel().SaveMember(member)
-		require.Nil(t, err)
+		member, nErr = ss.Channel().SaveMember(member)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -2082,8 +2088,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 				member.SchemeUser = tc.SchemeUser
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
-				member, err = ss.Channel().UpdateMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().UpdateMember(member)
+				require.Nil(t, nErr)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
 				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
@@ -2129,8 +2135,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			UserId:      u1.Id,
 			NotifyProps: defaultNotifyProps,
 		}
-		member, err = ss.Channel().SaveMember(member)
-		require.Nil(t, err)
+		member, nErr = ss.Channel().SaveMember(member)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -2245,8 +2251,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 				member.SchemeUser = tc.SchemeUser
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
-				member, err = ss.Channel().UpdateMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().UpdateMember(member)
+				require.Nil(t, nErr)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
 				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
@@ -2291,8 +2297,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 			UserId:      u1.Id,
 			NotifyProps: defaultNotifyProps,
 		}
-		member, err = ss.Channel().SaveMember(member)
-		require.Nil(t, err)
+		member, nErr = ss.Channel().SaveMember(member)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -2407,8 +2413,8 @@ func testChannelUpdateMember(t *testing.T, ss store.Store) {
 				member.SchemeUser = tc.SchemeUser
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
-				member, err = ss.Channel().UpdateMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Channel().UpdateMember(member)
+				require.Nil(t, nErr)
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
 				assert.Equal(t, tc.ExpectedSchemeGuest, member.SchemeGuest)
@@ -2429,18 +2435,20 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid channel member", func(t *testing.T) {
 		m1 := &model.ChannelMember{ChannelId: "wrong", UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: model.NewId(), UserId: u2.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, err)
-		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", err.Id)
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.channel_member.is_valid.channel_id.app_error", appErr.Id)
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		channelID1 := model.NewId()
 		m1 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		m2 := &model.ChannelMember{ChannelId: channelID1, UserId: u1.Id, NotifyProps: defaultNotifyProps}
-		_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_channel.save_member.exists.app_error", err.Id)
+		_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
+		require.NotNil(t, nErr)
+		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
 	t.Run("insert members correctly (in channel without channel scheme and team without scheme)", func(t *testing.T) {
@@ -2467,8 +2475,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		var members []*model.ChannelMember
-		members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
-		require.Nil(t, err)
+		members, nErr = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		require.Nil(t, nErr)
 		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
 		require.Len(t, members, 2)
@@ -2589,8 +2597,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 				var members []*model.ChannelMember
-				members, err = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
-				require.Nil(t, err)
+				members, nErr = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 
@@ -2637,8 +2645,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 		member := &model.ChannelMember{ChannelId: channel.Id, UserId: u1.Id, NotifyProps: defaultNotifyProps}
 		otherMember := &model.ChannelMember{ChannelId: channel.Id, UserId: u2.Id, NotifyProps: defaultNotifyProps}
 		var members []*model.ChannelMember
-		members, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
-		require.Nil(t, err)
+		members, nErr = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{member, otherMember})
+		require.Nil(t, nErr)
 		defer ss.Channel().RemoveMember(channel.Id, u1.Id)
 		defer ss.Channel().RemoveMember(channel.Id, u2.Id)
 		require.Len(t, members, 2)
@@ -2759,8 +2767,8 @@ func testChannelUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 				var members []*model.ChannelMember
-				members, err = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
-				require.Nil(t, err)
+				members, nErr = ss.Channel().UpdateMultipleMembers([]*model.ChannelMember{member, otherMember})
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 
@@ -2956,34 +2964,34 @@ func testChannelRemoveMember(t *testing.T, ss store.Store) {
 	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
 	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
 	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
-	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
-	require.Nil(t, err)
+	_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, nErr)
 
 	t.Run("remove member from not existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMember("not-existing-channel", u1.Id)
+		require.Nil(t, nErr)
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing member from an existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMember(channelID, model.NewId())
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMember(channelID, model.NewId())
+		require.Nil(t, nErr)
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove existing member from an existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMember(channelID, u1.Id)
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMember(channelID, u1.Id)
+		require.Nil(t, nErr)
 		defer ss.Channel().SaveMember(m1)
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(3), membersCount)
 	})
 }
@@ -3003,39 +3011,39 @@ func testChannelRemoveMembers(t *testing.T, ss store.Store) {
 	m2 := &model.ChannelMember{ChannelId: channelID, UserId: u2.Id, NotifyProps: defaultNotifyProps}
 	m3 := &model.ChannelMember{ChannelId: channelID, UserId: u3.Id, NotifyProps: defaultNotifyProps}
 	m4 := &model.ChannelMember{ChannelId: channelID, UserId: u4.Id, NotifyProps: defaultNotifyProps}
-	_, err = ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
-	require.Nil(t, err)
+	_, nErr := ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3, m4})
+	require.Nil(t, nErr)
 
 	t.Run("remove members from not existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMembers("not-existing-channel", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.Nil(t, nErr)
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing members from an existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMembers(channelID, []string{model.NewId(), model.NewId()})
+		require.Nil(t, nErr)
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(4), membersCount)
 	})
 
 	t.Run("remove not existing and not existing members from an existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		require.Nil(t, nErr)
 		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2})
 		var membersCount int64
-		membersCount, err = ss.Channel().GetMemberCount(channelID, false)
-		require.Nil(t, err)
+		membersCount, nErr = ss.Channel().GetMemberCount(channelID, false)
+		require.Nil(t, nErr)
 		require.Equal(t, int64(2), membersCount)
 	})
 	t.Run("remove existing members from an existing channel", func(t *testing.T) {
-		err = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, u3.Id})
-		require.Nil(t, err)
+		nErr = ss.Channel().RemoveMembers(channelID, []string{u1.Id, u2.Id, u3.Id})
+		require.Nil(t, nErr)
 		defer ss.Channel().SaveMultipleMembers([]*model.ChannelMember{m1, m2, m3})
 		membersCount, err := ss.Channel().GetMemberCount(channelID, false)
 		require.Nil(t, err)
@@ -3075,35 +3083,35 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	o1.ChannelId = c1.Id
 	o1.UserId = u1.Id
 	o1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&o1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&o1)
+	require.Nil(t, nErr)
 
 	o2 := model.ChannelMember{}
 	o2.ChannelId = c1.Id
 	o2.UserId = u2.Id
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(&o2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&o2)
+	require.Nil(t, nErr)
 
 	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	count, err := ss.Channel().GetMemberCount(o1.ChannelId, false)
-	require.Nil(t, err)
+	count, nErr := ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 2, count, "should have saved 2 members")
 
-	err = ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
-	require.Nil(t, err)
+	nErr = ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
+	require.Nil(t, nErr)
 
-	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
-	require.Nil(t, err)
+	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 1, count, "should have removed 1 member")
 
-	err = ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId)
-	require.Nil(t, err, err)
+	nErr = ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId)
+	require.Nil(t, nErr)
 
-	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
-	require.Nil(t, err)
+	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, nErr)
 	require.EqualValues(t, 0, count, "should have removed all members")
 }
 
@@ -4362,8 +4370,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&m1)
+	require.Nil(t, nErr)
 
 	count, channelErr := ss.Channel().GetMemberCount(c1.Id, false)
 	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
@@ -4383,8 +4391,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&m2)
+	require.Nil(t, nErr)
 
 	count, channelErr = ss.Channel().GetMemberCount(c1.Id, false)
 	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
@@ -4405,8 +4413,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m3)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&m3)
+	require.Nil(t, nErr)
 
 	count, channelErr = ss.Channel().GetMemberCount(c1.Id, false)
 	require.Nilf(t, channelErr, "failed to get member count: %v", channelErr)
@@ -4427,11 +4435,11 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 		UserId:      u4.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m4)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&m4)
+	require.Nil(t, nErr)
 
-	count, err = ss.Channel().GetMemberCount(c1.Id, false)
-	require.Nilf(t, err, "failed to get member count: %v", err)
+	count, nErr = ss.Channel().GetMemberCount(c1.Id, false)
+	require.Nilf(t, nErr, "failed to get member count: %v", nErr)
 	require.EqualValuesf(t, 2, count, "got incorrect member count %v", count)
 }
 
@@ -4471,13 +4479,13 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(&m1)
+	require.Nil(t, nErr)
 
 	t.Run("empty slice for channel with no groups", func(t *testing.T) {
-		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{}
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
@@ -4485,7 +4493,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("returns memberCountsByGroup without timezones", func(t *testing.T) {
-		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4493,12 +4501,12 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 				ChannelMemberTimezonesCount: 0,
 			},
 		}
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
 	t.Run("returns memberCountsByGroup with timezones when no timezones set", func(t *testing.T) {
-		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4506,7 +4514,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 				ChannelMemberTimezonesCount: 0,
 			},
 		}
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		require.Equal(t, expectedMemberCounts, memberCounts)
 	})
 
@@ -4542,8 +4550,8 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			UserId:      u.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
-		_, err = ss.Channel().SaveMember(&m)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m)
+		require.Nil(t, nErr)
 
 		_, err = ss.Group().UpsertMember(g2.Id, u.Id)
 		require.Nil(t, err)
@@ -4593,15 +4601,15 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 			UserId:      u.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
-		_, err = ss.Channel().SaveMember(&m)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m)
+		require.Nil(t, nErr)
 
 		_, err = ss.Group().UpsertMember(g3.Id, u.Id)
 		require.Nil(t, err)
 	}
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users without timezones", func(t *testing.T) {
-		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, false)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4619,12 +4627,12 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 				ChannelMemberTimezonesCount: 0,
 			},
 		}
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
 	})
 
 	t.Run("returns memberCountsByGroup for multiple groups with lots of users with timezones", func(t *testing.T) {
-		memberCounts, err = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
+		memberCounts, nErr = ss.Channel().GetMemberCountsByGroup(c1.Id, true)
 		expectedMemberCounts := []*model.ChannelMemberCountByGroup{
 			{
 				GroupId:                     g1.Id,
@@ -4642,7 +4650,7 @@ func testGetMemberCountsByGroup(t *testing.T, ss store.Store) {
 				ChannelMemberTimezonesCount: 3,
 			},
 		}
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 		require.ElementsMatch(t, expectedMemberCounts, memberCounts)
 	})
 }
@@ -4685,8 +4693,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: false,
 		}
-		_, err = ss.Channel().SaveMember(&m1)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m1)
+		require.Nil(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -4710,8 +4718,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		_, err = ss.Channel().SaveMember(&m2)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m2)
+		require.Nil(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -4735,8 +4743,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		_, err = ss.Channel().SaveMember(&m3)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m3)
+		require.Nil(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -4760,8 +4768,8 @@ func testGetGuestCount(t *testing.T, ss store.Store) {
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 			SchemeGuest: true,
 		}
-		_, err = ss.Channel().SaveMember(&m4)
-		require.Nil(t, err)
+		_, nErr = ss.Channel().SaveMember(&m4)
+		require.Nil(t, nErr)
 
 		count, channelErr := ss.Channel().GetGuestCount(c1.Id, false)
 		require.Nil(t, channelErr)
@@ -5554,12 +5562,12 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	for _, userId := range userIds {
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   gc1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 	}
 
 	userIds = []string{u1.Id, u4.Id}
