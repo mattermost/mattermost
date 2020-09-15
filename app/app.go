@@ -321,6 +321,12 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 }
 
 func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bool) *model.AppError {
+	// get warn metrics bot
+	warnMetricsBot, err := a.GetWarnMetricsBot()
+	if err != nil {
+		return err
+	}
+
 	perPage := 25
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -348,25 +354,12 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}
 	}
 
-	T := utils.GetUserTranslations(sysAdmins[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdmins[0].Id,
-	}
-
-	bot, err := a.getOrCreateWarnMetricsBot(warnMetricsBot)
-	if err != nil {
-		return err
-	}
-
 	for _, sysAdmin := range sysAdmins {
 		T := utils.GetUserTranslations(sysAdmin.Locale)
-		bot.DisplayName = T("app.system.warn_metric.bot_displayname")
-		bot.Description = T("app.system.warn_metric.bot_description")
+		warnMetricsBot.DisplayName = T("app.system.warn_metric.bot_displayname")
+		warnMetricsBot.Description = T("app.system.warn_metric.bot_description")
 
-		channel, appErr := a.GetOrCreateDirectChannel(bot.UserId, sysAdmin.Id)
+		channel, appErr := a.GetOrCreateDirectChannel(warnMetricsBot.UserId, sysAdmin.Id)
 		if appErr != nil {
 			mlog.Error("Cannot create channel for system bot notification!", mlog.String("Admin Id", sysAdmin.Id))
 			return appErr
@@ -378,7 +371,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}
 
 		botPost := &model.Post{
-			UserId:    bot.UserId,
+			UserId:    warnMetricsBot.UserId,
 			ChannelId: channel.Id,
 			Type:      model.POST_SYSTEM_WARN_METRIC_STATUS,
 			Message:   "",
@@ -414,7 +407,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 				},
 				Integration: &model.PostActionIntegration{
 					Context: model.StringInterface{
-						"bot_user_id": bot.UserId,
+						"bot_user_id": warnMetricsBot.UserId,
 						"force_ack":   false,
 					},
 					URL: postActionUrl,

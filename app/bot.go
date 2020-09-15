@@ -84,6 +84,36 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	return savedBot, nil
 }
 
+// Gets or creates the Warn Metrics Bot
+func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+	perPage := 1
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  perPage,
+		Role:     model.SYSTEM_ADMIN_ROLE_ID,
+		Inactive: false,
+	}
+
+	sysAdminList, err := a.GetUsers(userOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sysAdminList) == 0 {
+		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	T := utils.GetUserTranslations(sysAdminList[0].Locale)
+	warnMetricsBot := &model.Bot{
+		Username:    model.BOT_WARN_METRIC_BOT_USERNAME,
+		DisplayName: T("app.system.warn_metric.bot_displayname"),
+		Description: "",
+		OwnerId:     sysAdminList[0].Id,
+	}
+
+	return a.getOrCreateWarnMetricsBot(warnMetricsBot)
+}
+
 func (a *App) getOrCreateWarnMetricsBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {

@@ -196,6 +196,8 @@ type AppIface interface {
 	GetTeamSchemeChannelRoles(teamId string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
 	// GetTotalUsersStats is used for the DM list total
 	GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError)
+	// Gets or creates the Warn Metrics Bot
+	GetWarnMetricsBot() (*model.Bot, *model.AppError)
 	// HubRegister registers a connection to a hub.
 	HubRegister(webConn *WebConn)
 	// HubStart starts all the hubs.
