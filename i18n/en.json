@@ -4884,7 +4884,7 @@
   },
   {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
-    "translation": "Failed to upload data. First part must be at least {{.Size}} MBs."
+    "translation": "Failed to upload data. First part must be at least {{.Size}} Bytes."
   },
   {
     "id": "app.upload.upload_data.large_image.app_error",
