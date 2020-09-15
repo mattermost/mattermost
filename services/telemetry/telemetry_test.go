@@ -473,4 +473,30 @@ func TestRudderTelemetry(t *testing.T) {
 			// Did not receive telemetry
 		}
 	})
+
+	t.Run("TestInstallationType", func(t *testing.T) {
+		os.Unsetenv(ENV_VAR_INSTALL_TYPE)
+		telemetryService.sendDailyTelemetry(true)
+
+		var batches []batch
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_SERVER {
+				assert.Equal(t, b.Properties["installation_type"], "")
+			}
+		}
+
+		os.Setenv(ENV_VAR_INSTALL_TYPE, "docker")
+		defer os.Unsetenv(ENV_VAR_INSTALL_TYPE)
+
+		batches = []batch{}
+		collectBatches(&batches)
+
+		for _, b := range batches {
+			if b.Event == TRACK_SERVER {
+				assert.Equal(t, b.Properties["installation_type"], "docker")
+			}
+		}
+	})
 }

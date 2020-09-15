@@ -341,6 +341,8 @@ type AppIface interface {
 	AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError)
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(teamId string, user *model.User) *model.AppError
+	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
+	AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -811,6 +813,8 @@ type AppIface interface {
 	RemoveAllDeactivatedMembersFromChannel(channel *model.Channel) *model.AppError
 	RemoveConfigListener(id string)
 	RemoveFile(path string) *model.AppError
+	RemoveLdapPrivateCertificate() *model.AppError
+	RemoveLdapPublicCertificate() *model.AppError
 	RemovePlugin(id string) *model.AppError
 	RemovePluginFromData(data model.PluginEventData)
 	RemoveSamlIdpCertificate() *model.AppError

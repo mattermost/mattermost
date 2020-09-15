@@ -116,7 +116,7 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
-	licenseMutex   sync.Mutex
+	licenseMutex   sync.RWMutex
 }
 
 type TraceOnAdapter struct{}
@@ -333,7 +333,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
-	if ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
 		return ss.GetMaster()
 	}
 
@@ -346,7 +349,10 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
 		return ss.GetMaster()
 	}
 

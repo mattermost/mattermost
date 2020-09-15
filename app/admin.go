@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -59,6 +60,10 @@ func (s *Server) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) 
 	var lines []string
 
 	if *s.Config().LogSettings.EnableFile {
+		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), mlog.DefaultFlushTimeout)
+		defer timeoutCancel()
+		mlog.Flush(timeoutCtx)
+
 		logFile := utils.GetLogFileLocation(*s.Config().LogSettings.FileLocation)
 		file, err := os.Open(logFile)
 		if err != nil {
