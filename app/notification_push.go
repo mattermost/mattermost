@@ -142,6 +142,13 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
+	// We check if the consumer is closing.
+	select {
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
+	default:
+	}
+
 	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType:   notificationTypeMessage,
 		post:               post,
@@ -215,6 +222,13 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 }
 
 func (a *App) clearPushNotification(currentSessionId, userId, channelId string) {
+	// We check if the consumer is closing.
+	select {
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
+	default:
+	}
+
 	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
@@ -242,6 +256,13 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 }
 
 func (a *App) UpdateMobileAppBadge(userId string) {
+	// We check if the consumer is closing.
+	select {
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
+	default:
+	}
+
 	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeUpdateBadge,
 		userId:           userId,
@@ -322,7 +343,7 @@ func (hub *PushNotificationsHub) stop() {
 			notificationType: notificationTypeDummy,
 		}
 	}
-	hub.stopChan <- struct{}{}
+	close(hub.stopChan)
 	close(hub.notificationsChan)
 	hub.wg.Wait()
 }

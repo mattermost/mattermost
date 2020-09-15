@@ -711,6 +711,7 @@ func (s *Server) Shutdown() error {
 	s.StopHTTPServer()
 	s.stopLocalModeServer()
 	// Push notification hub needs to be shutdown after HTTP server
+	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
 
 	s.WaitForGoroutines()
