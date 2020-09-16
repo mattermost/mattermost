@@ -3231,6 +3231,10 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
+    "id": "api.warn_metrics.invalid_edition.app_error",
+    "translation": "Invalid Mattermost edition for Admin Advisor method invocation."
+  },
+  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "Failed to upgrade websocket connection."
   },
@@ -7771,12 +7775,12 @@
     "translation": "Unable to get the active users during the requested period."
   },
   {
-    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
-    "translation": "We could not count the inactive users."
-  },
-  {
     "id": "store.sql_user.analytics_get_external_users.app_error",
     "translation": "We could not "
+  },
+  {
+    "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
+    "translation": "We could not count the inactive users."
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",

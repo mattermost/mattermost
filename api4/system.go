@@ -703,6 +703,11 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if model.BuildEnterpriseReady == "true" {
+		c.Err = model.NewAppError("requestTrialLicenseAndAckWarnMetric", "api.warn_metrics.invalid_edition.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	user, appErr := c.App.GetUser(c.App.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -731,6 +736,11 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 
 	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if model.BuildEnterpriseReady != "true" {
+		c.Err = model.NewAppError("requestTrialLicenseAndAckWarnMetric", "api.warn_metrics.invalid_edition.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
