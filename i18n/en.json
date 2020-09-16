@@ -4967,8 +4967,64 @@
     "translation": "Unable to convert bot to user."
   },
   {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "Failed to update the user."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "We encountered an error while finding user profiles."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "We encountered an error while finding user profiles."
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Unable to find the user."
+  },
+  {
     "id": "app.user.permanentdeleteuser.internal_error",
     "translation": "Unable to delete user."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Failed to update the user."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Unable to save the account."
+  },
+  {
+    "id": "app.user.save.existing.app_error",
+    "translation": "Must call update for existing user."
+  },
+  {
+    "id": "app.user.update.find.app_error",
+    "translation": "Unable to find the existing account to update."
+  },
+  {
+    "id": "app.user.update.finding.app_error",
+    "translation": "We encountered an error finding the account."
+  },
+  {
+    "id": "app.user.update_auth_data.app_error",
+    "translation": "Unable to update the auth data."
+  },
+  {
+    "id": "app.user.update_auth_data.email_exists.app_error",
+    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+  },
+  {
+    "id": "app.user.update_password.app_error",
+    "translation": "Unable to update the user password."
+  },
+  {
+    "id": "app.user.update_update.app_error",
+    "translation": "Unable to update the date of the last update of the user."
   },
   {
     "id": "app.user_access_token.delete.app_error",
@@ -7771,30 +7827,6 @@
     "translation": "UserCountOptions don't make sense."
   },
   {
-    "id": "store.sql_user.demote_user_to_guest.channel_members_update.app_error",
-    "translation": "Failed to update the user channels memberships."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.team_members_update.app_error",
-    "translation": "Failed to update the user teams memberships."
-  },
-  {
-    "id": "store.sql_user.demote_user_to_guest.user_update.app_error",
-    "translation": "Failed to update the user."
-  },
-  {
-    "id": "store.sql_user.get.app_error",
-    "translation": "We encountered an error finding the account."
-  },
-  {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
     "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
@@ -7821,14 +7853,6 @@
   {
     "id": "store.sql_user.get_new_users.app_error",
     "translation": "We encountered an error while finding the new users."
-  },
-  {
-    "id": "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error",
-    "translation": "We encountered an error while finding user profiles."
-  },
-  {
-    "id": "store.sql_user.get_profiles.app_error",
-    "translation": "We encountered an error while finding user profiles."
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
@@ -7867,84 +7891,20 @@
     "translation": "Unable to get the users batch for indexing."
   },
   {
-    "id": "store.sql_user.missing_account.const",
-    "translation": "Unable to find the user."
-  },
-  {
     "id": "store.sql_user.permanent_delete.app_error",
     "translation": "Unable to delete the existing account."
-  },
-  {
-    "id": "store.sql_user.promote_guest.channel_members_update.app_error",
-    "translation": "Failed to update the user channels memberships."
-  },
-  {
-    "id": "store.sql_user.promote_guest.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_user.promote_guest.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_user.promote_guest.team_members_update.app_error",
-    "translation": "Failed to update the user teams memberships."
-  },
-  {
-    "id": "store.sql_user.promote_guest.user_update.app_error",
-    "translation": "Failed to update the user."
-  },
-  {
-    "id": "store.sql_user.save.app_error",
-    "translation": "Unable to save the account."
-  },
-  {
-    "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "An account with that email already exists."
-  },
-  {
-    "id": "store.sql_user.save.existing.app_error",
-    "translation": "Must call update for existing user."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
     "translation": "Failed to get current team member count."
   },
   {
-    "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "An account with that username already exists."
-  },
-  {
     "id": "store.sql_user.search.app_error",
     "translation": "Unable to find any user matching the search parameters."
   },
   {
-    "id": "store.sql_user.update.app_error",
-    "translation": "Unable to update the account."
-  },
-  {
-    "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Can not change fields set by AD/LDAP."
-  },
-  {
     "id": "store.sql_user.update.email_taken.app_error",
     "translation": "This email is already taken. Please choose another."
-  },
-  {
-    "id": "store.sql_user.update.find.app_error",
-    "translation": "Unable to find the existing account to update."
-  },
-  {
-    "id": "store.sql_user.update.finding.app_error",
-    "translation": "We encountered an error finding the account."
-  },
-  {
-    "id": "store.sql_user.update.updating.app_error",
-    "translation": "We encountered an error updating the account."
-  },
-  {
-    "id": "store.sql_user.update.username_taken.app_error",
-    "translation": "This username is already taken. Please choose another."
   },
   {
     "id": "store.sql_user.update_active_for_multiple_users.getting_changed_users.app_error",
@@ -7955,36 +7915,8 @@
     "translation": "Unable to deactivate guests."
   },
   {
-    "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Unable to update the auth data."
-  },
-  {
-    "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
-  },
-  {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
     "translation": "Unable to update the failed_attempts."
-  },
-  {
-    "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Unable to update the update_at."
-  },
-  {
-    "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "We encountered an error updating the user's MFA active status."
-  },
-  {
-    "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "We encountered an error updating the user's MFA secret."
-  },
-  {
-    "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password."
-  },
-  {
-    "id": "store.sql_user.update_update.app_error",
-    "translation": "Unable to update the date of the last update of the user."
   },
   {
     "id": "store.sql_user.verify_email.app_error",

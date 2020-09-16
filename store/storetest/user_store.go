@@ -1674,13 +1674,11 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	t.Run("get by empty email", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByEmail("unknown")
 		require.NotNil(t, err)
-		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 }
 
@@ -3753,12 +3751,12 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	u2.Email = MakeEmail()
 	u2.Username = model.NewId()
 
-	_, err = ss.User().Save(&u1)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr := ss.User().Save(&u1)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	_, err = ss.User().Save(&u2)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u2)
+	require.Nil(t, nErr, "couldn't save user")
 
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
@@ -3787,16 +3785,16 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	u3.Username = model.NewId()
 	u3.Roles = "system_guest"
 
-	_, err = ss.User().Save(&u1)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr := ss.User().Save(&u1)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	_, err = ss.User().Save(&u2)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u2)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	_, err = ss.User().Save(&u3)
-	require.Nil(t, err, "couldn't save user")
+	_, nErr = ss.User().Save(&u3)
+	require.Nil(t, nErr, "couldn't save user")
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 
 	result, err := ss.User().AnalyticsGetGuestCount()

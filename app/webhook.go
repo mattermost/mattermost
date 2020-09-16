@@ -676,7 +676,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv().Store.User().Get(hook.UserId)
-		uchan <- store.StoreResult{Data: user, Err: err}
+		uchan <- store.StoreResult{Data: user, NErr: err}
 		close(uchan)
 	}()
 
@@ -757,8 +757,8 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	}
 
 	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusForbidden)
+	if result := <-uchan; result.NErr != nil {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, result.NErr.Error(), http.StatusForbidden)
 	} else {
 		user = result.Data.(*model.User)
 	}

@@ -473,9 +473,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	_, err = th.App.Srv().Store.User().UpdateAuthData(
+	_, nErr := th.App.Srv().Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true)
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	redirect, resp = ApiClient.AuthorizeOAuthApp(authRequest)
 	require.Nil(t, resp.Error)

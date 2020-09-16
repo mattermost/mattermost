@@ -398,8 +398,8 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, err)
+		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		assert.Nil(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
@@ -441,8 +441,8 @@ func TestUpdateUserEmail(t *testing.T) {
 			Username: model.NewId(),
 			IsBot:    true,
 		}
-		_, err = th.App.Srv().Store.User().Save(&botuser)
-		assert.Nil(t, err)
+		_, nErr := th.App.Srv().Store.User().Save(&botuser)
+		assert.Nil(t, nErr)
 
 		newBotEmail := th.MakeEmail()
 		botuser.Email = newBotEmail
