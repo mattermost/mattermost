@@ -133,9 +133,8 @@ func (be *BulkExporter) exportAllTeams(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		teams, err := be.s.Team().GetAllForExportAfter(1000, afterId)
-
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(teams) == 0 {
@@ -272,7 +271,7 @@ func (be *BulkExporter) buildUserTeamAndChannelMemberships(userId string) (*[]Us
 	members, err := be.s.Team().GetTeamMembersForExport(userId)
 
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, member := range members {

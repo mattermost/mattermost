@@ -82,7 +82,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 
 		_, err = th.App.GetChannelMember(publicChannel.Id, th.BasicUser.Id)
 		assert.NotNil(t, err)
-		assert.NotNil(t, err.Id, "store.sql_channel.get_member.missing.app_error")
+		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
 
 	t.Run("Leave a private channel", func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 
 		_, err = th.App.GetChannelMember(defaultChannel.Id, guest.Id)
 		assert.NotNil(t, err)
-		assert.NotNil(t, err.Id, "store.sql_channel.get_member.missing.app_error")
+		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
 
 	t.Run("Should redirect to the team if is the last channel", func(t *testing.T) {
@@ -142,6 +142,6 @@ func TestLeaveProviderDoCommand(t *testing.T) {
 
 		_, err = th.App.GetChannelMember(publicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
-		assert.NotNil(t, err.Id, "store.sql_channel.get_member.missing.app_error")
+		assert.NotNil(t, err.Id, "app.channel.get_member.missing.app_error")
 	})
 }

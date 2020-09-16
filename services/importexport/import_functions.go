@@ -826,9 +826,9 @@ func (bi *BulkImporter) importUserChannels(user *model.User, team *model.Team, t
 	isGuestByChannelId := map[string]bool{}
 	isUserByChannelId := map[string]bool{}
 	isAdminByChannelId := map[string]bool{}
-	existingMemberships, err := bi.s.Channel().GetMembersForUser(team.Id, user.Id)
-	if err != nil {
-		return err
+	existingMemberships, nErr := bi.s.Channel().GetMembersForUser(team.Id, user.Id)
+	if nErr != nil {
+		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByChannelId := map[string]model.ChannelMember{}
 	for _, channelMembership := range *existingMemberships {
@@ -917,16 +917,37 @@ func (bi *BulkImporter) importUserChannels(user *model.User, team *model.Team, t
 		}
 	}
 
-	oldMembers, err := bi.s.Channel().UpdateMultipleMembers(oldChannelMembers)
-	if err != nil {
-		return err
+	oldMembers, nErr := bi.s.Channel().UpdateMultipleMembers(oldChannelMembers)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return appErr
+		case errors.As(nErr, &nfErr):
+			return model.NewAppError("importUserChannels", "app.channel.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("importUserChannels", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	newMembers := []*model.ChannelMember{}
 	if len(newChannelMembers) > 0 {
-		newMembers, err = bi.s.Channel().SaveMultipleMembers(newChannelMembers)
-		if err != nil {
-			return err
+		newMembers, nErr = bi.s.Channel().SaveMultipleMembers(newChannelMembers)
+		if nErr != nil {
+			var cErr *store.ErrConflict
+			var appErr *model.AppError
+			switch {
+			case errors.As(nErr, &cErr):
+				switch cErr.Resource {
+				case "ChannelMembers":
+					return model.NewAppError("importUserChannels", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+				}
+			case errors.As(nErr, &appErr):
+				return appErr
+			default:
+				return model.NewAppError("importUserChannels", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 

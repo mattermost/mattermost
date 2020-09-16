@@ -35,7 +35,7 @@ func (s LocalCacheTeamStore) InvalidateAllTeamIdsForUser(userId string) {
 	}
 }
 
-func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
+func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, error) {
 	if !allowFromCache {
 		return s.TeamStore.GetUserTeamIds(userID, allowFromCache)
 	}

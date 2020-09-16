@@ -4,7 +4,6 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
 	"image"
 	"image/gif"
@@ -151,10 +150,10 @@ func NewInfo(name string) *FileInfo {
 	return info
 }
 
-func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
+func GetInfoForBytes(name string, data io.ReadSeeker, size int) (*FileInfo, *AppError) {
 	info := &FileInfo{
 		Name: name,
-		Size: int64(len(data)),
+		Size: int64(size),
 	}
 	var err *AppError
 
@@ -170,16 +169,17 @@ func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {
 
 	if info.IsImage() {
 		// Only set the width and height if it's actually an image that we can understand
-		if config, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
+		if config, _, err := image.DecodeConfig(data); err == nil {
 			info.Width = config.Width
 			info.Height = config.Height
 
 			if info.MimeType == "image/gif" {
 				// Just show the gif itself instead of a preview image for animated gifs
-				if gifConfig, err := gif.DecodeAll(bytes.NewReader(data)); err != nil {
+				data.Seek(0, io.SeekStart)
+				if gifConfig, err := gif.DecodeAll(data); err != nil {
 					// Still return the rest of the info even though it doesn't appear to be an actual gif
 					info.HasPreviewImage = true
-					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, "name="+name, http.StatusBadRequest)
+					return info, NewAppError("GetInfoForBytes", "model.file_info.get.gif.app_error", nil, err.Error(), http.StatusBadRequest)
 				} else {
 					info.HasPreviewImage = len(gifConfig.Image) == 1
 				}

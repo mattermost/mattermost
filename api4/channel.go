@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 func (api *API) InitChannel() {
@@ -1473,7 +1473,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isNewMembership := false
 	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		if err.Id == store.MISSING_CHANNEL_MEMBER_ERROR {
+		if err.Id == app.MISSING_CHANNEL_MEMBER_ERROR {
 			isNewMembership = true
 		} else {
 			c.Err = err
@@ -1730,7 +1730,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 
 	channelMemberCounts, err := c.App.Srv().Store.Channel().GetMemberCountsByGroup(c.Params.ChannelId, includeTimezones)
 	if err != nil {
-		c.Err = err
+		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

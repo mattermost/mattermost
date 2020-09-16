@@ -511,7 +511,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	q := model.Team{}
 	q.DisplayName = "FOOBARDISPLAYNAME"
-	q.Name = "whatever"
+	q.Name = "averylongname"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
 	q.AllowOpenInvite = false
@@ -545,13 +545,13 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search FooBar by  name from text at the beginning name",
-			"what",
+			"averyl",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by  name from text at the end of name",
-			"ever",
+			"ongname",
 			1,
 			q.Id,
 		},
@@ -1240,8 +1240,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, ms, 2)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
 	require.Nil(t, err)
@@ -2730,8 +2730,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Len(t, result, 1)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
@@ -3030,8 +3030,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 
 	require.Equal(t, 10, int(ms2[0].MsgCount), "subtraction failed")
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 }
 
 func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {

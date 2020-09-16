@@ -94,6 +94,7 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-response-v0.6.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -243,6 +244,10 @@ store-mocks: ## Creates mock files.
 importexport-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir services/importexport -all -output services/importexport/mocks -note 'Regenerate this file using `make importexport-mocks`.'
+
+telemetry-mocks: ## Creates mock files.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
