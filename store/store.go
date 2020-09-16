@@ -108,26 +108,26 @@ type TeamStore interface {
 	RemoveMember(teamId string, userId string) *model.AppError
 	RemoveMembers(teamId string, userIds []string) *model.AppError
 	RemoveAllMembersByTeam(teamId string) *model.AppError
-	RemoveAllMembersByUser(userId string) *model.AppError
-	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
-	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
-	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
-	ResetAllTeamSchemes() *model.AppError
-	ClearAllCustomRoleAssignments() *model.AppError
-	AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError)
-	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
-	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
-	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
-	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
+	RemoveAllMembersByUser(userId string) error
+	UpdateLastTeamIconUpdate(teamId string, curTime int64) error
+	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error)
+	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, error)
+	ResetAllTeamSchemes() error
+	ClearAllCustomRoleAssignments() error
+	AnalyticsGetTeamCountForScheme(schemeId string) (int64, error)
+	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error)
+	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error)
+	UserBelongsToTeams(userId string, teamIds []string) (bool, error)
+	GetUserTeamIds(userId string, allowFromCache bool) ([]string, error)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+	UpdateMembersRole(teamID string, userIDs []string) error
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
-	GroupSyncedTeamCount() (int64, *model.AppError)
+	GroupSyncedTeamCount() (int64, error)
 }
 
 type ChannelStore interface {
@@ -302,8 +302,8 @@ type UserStore interface {
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
+	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
