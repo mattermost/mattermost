@@ -1111,7 +1111,7 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 
 func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
 	if len(userIds) == 0 {
-		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "app.team.get_members_by_ids.app_error", nil, "Invalid list of user ids", http.StatusInternalServerError)
+		return nil, errors.New("invalid list of user ids")
 	}
 
 	query := s.getTeamMembersWithSchemeSelectQuery().
