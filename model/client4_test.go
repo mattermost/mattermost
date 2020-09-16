@@ -12,6 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// https://github.com/mattermost/mattermost-plugin-starter-template/issues/115
+func TestClient4TrimTrailingSlash(t *testing.T) {
+	client := NewAPIv4Client("https://foo.com:1234/")
+	assert.False(t, strings.HasSuffix(client.Url, "/"))
+}
+
 // https://github.com/mattermost/mattermost-server/v5/issues/8205
 func TestClient4CreatePost(t *testing.T) {
 	post := &Post{
