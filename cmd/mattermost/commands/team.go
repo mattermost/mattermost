@@ -144,7 +144,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -187,7 +187,7 @@ func removeUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -223,7 +223,7 @@ func addUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -258,7 +258,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -304,7 +304,7 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	teams, err2 := a.GetAllTeams()
 	if err2 != nil {
@@ -327,7 +327,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	var teams []*model.Team
 
@@ -358,7 +358,7 @@ func restoreTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
@@ -399,7 +399,7 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	foundTeams := getTeamsFromTeamArgs(a, args)
 	for i, team := range foundTeams {
@@ -424,7 +424,7 @@ func renameTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -463,7 +463,7 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {

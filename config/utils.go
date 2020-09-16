@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -32,30 +33,41 @@ func desanitize(actual, target *model.Config) {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
+	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FAKE_SETTING {
+		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
+	}
+
+	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FAKE_SETTING {
+		target.Office365Settings.Secret = actual.Office365Settings.Secret
+	}
+
 	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-
-	if len(target.SqlSettings.DataSourceReplicas) == 1 && target.SqlSettings.DataSourceReplicas[0] == model.FAKE_SETTING {
-		target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
-		for i := range target.SqlSettings.DataSourceReplicas {
-			target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
-		}
-	}
-
-	if len(target.SqlSettings.DataSourceSearchReplicas) == 1 && target.SqlSettings.DataSourceSearchReplicas[0] == model.FAKE_SETTING {
-		target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
-		for i := range target.SqlSettings.DataSourceSearchReplicas {
-			target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
-		}
-	}
-
 	if *target.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		target.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 
 	if *target.ElasticsearchSettings.Password == model.FAKE_SETTING {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
+	}
+
+	target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
+	for i := range target.SqlSettings.DataSourceReplicas {
+		target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
+	}
+
+	target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
+	for i := range target.SqlSettings.DataSourceSearchReplicas {
+		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
+	}
+
+	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
+		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	}
+
+	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FAKE_SETTING {
+		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
 	}
 }
 
@@ -71,7 +83,7 @@ func fixConfig(cfg *model.Config) bool {
 
 	// Ensure the directory for a local file store has a trailing slash.
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
+		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
 			changed = true
 		}
@@ -165,4 +177,18 @@ func stripPassword(dsn, schema string) string {
 	}
 
 	return prefix + dsn[:i+1] + dsn[j:]
+}
+
+func IsJsonMap(data string) bool {
+	var m map[string]interface{}
+	return json.Unmarshal([]byte(data), &m) == nil
+}
+
+func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
+	cfg := make(mlog.LogTargetCfg)
+	err := json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }

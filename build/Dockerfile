@@ -1,10 +1,10 @@
-FROM alpine:3.11
+FROM alpine:3.12
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/5.22.2/mattermost-5.22.2-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/5.26.0/mattermost-5.26.0-linux-amd64.tar.gz?src=docker"
 
 
 # Install some needed packages
@@ -31,7 +31,7 @@ RUN mkdir -p /mattermost/data /mattermost/plugins /mattermost/client/plugins \
 USER mattermost
 
 #Healthcheck to make sure container is ready
-HEALTHCHECK --interval=5m --timeout=3s \
+HEALTHCHECK --interval=30s --timeout=10s \
   CMD curl -f http://localhost:8065/api/v4/system/ping || exit 1
 
 

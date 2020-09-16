@@ -12,4 +12,10 @@ import (
 
 	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
 	_ "github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine/indexer"
+
+	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
+	_ "github.com/mattermost/mattermost-server/v5/jobs/expirynotify"
+
+	// This is a placeholder so this package can be imported in Team Edition when it will be otherwise empty.
+	_ "github.com/mattermost/mattermost-server/v5/jobs/active_users"
 )

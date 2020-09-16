@@ -19,6 +19,36 @@ import (
 	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
+// This test was used to consistently reproduce the race
+// before the fix in MM-28397.
+// Keeping it here to help avoiding future regressions.
+func TestSupplierLicenseRace(t *testing.T) {
+	settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+	settings.DataSourceReplicas = []string{":memory:"}
+	settings.DataSourceSearchReplicas = []string{":memory:"}
+	supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+	wg := sync.WaitGroup{}
+	wg.Add(3)
+
+	go func() {
+		supplier.UpdateLicense(&model.License{})
+		wg.Done()
+	}()
+
+	go func() {
+		supplier.GetReplica()
+		wg.Done()
+	}()
+
+	go func() {
+		supplier.GetSearchReplica()
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+
 func TestGetReplica(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -75,13 +105,14 @@ func TestGetReplica(t *testing.T) {
 
 	for _, testCase := range testCases {
 		testCase := testCase
-		t.Run(testCase.Description, func(t *testing.T) {
+		t.Run(testCase.Description+" with license", func(t *testing.T) {
 			t.Parallel()
 
 			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
 			settings.DataSourceReplicas = testCase.DataSourceReplicas
 			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
 			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+			supplier.UpdateLicense(&model.License{})
 
 			replicas := make(map[*gorp.DbMap]bool)
 			for i := 0; i < 5; i++ {
@@ -117,6 +148,59 @@ func TestGetReplica(t *testing.T) {
 					for replica := range replicas {
 						assert.NotEqual(t, searchReplica, replica)
 					}
+				}
+
+			} else if len(testCase.DataSourceReplicas) > 0 {
+				// If no search replicas were defined, but replicas were, ensure they are equal.
+				assert.Equal(t, replicas, searchReplicas)
+
+			} else if assert.Len(t, searchReplicas, 1) {
+				// Otherwise ensure the search replicas contains the master.
+				for searchReplica := range searchReplicas {
+					assert.Equal(t, supplier.GetMaster(), searchReplica)
+				}
+			}
+		})
+
+		t.Run(testCase.Description+" without license", func(t *testing.T) {
+			t.Parallel()
+
+			settings := makeSqlSettings(model.DATABASE_DRIVER_SQLITE)
+			settings.DataSourceReplicas = testCase.DataSourceReplicas
+			settings.DataSourceSearchReplicas = testCase.DataSourceSearchReplicas
+			supplier := sqlstore.NewSqlSupplier(*settings, nil)
+
+			replicas := make(map[*gorp.DbMap]bool)
+			for i := 0; i < 5; i++ {
+				replicas[supplier.GetReplica()] = true
+			}
+
+			searchReplicas := make(map[*gorp.DbMap]bool)
+			for i := 0; i < 5; i++ {
+				searchReplicas[supplier.GetSearchReplica()] = true
+			}
+
+			if len(testCase.DataSourceReplicas) > 0 {
+				// If replicas were defined, ensure none are the master.
+				assert.Len(t, replicas, 1)
+
+				for replica := range replicas {
+					assert.Same(t, supplier.GetMaster(), replica)
+				}
+
+			} else if assert.Len(t, replicas, 1) {
+				// Otherwise ensure the replicas contains only the master.
+				for replica := range replicas {
+					assert.Equal(t, supplier.GetMaster(), replica)
+				}
+			}
+
+			if len(testCase.DataSourceSearchReplicas) > 0 {
+				// If search replicas were defined, ensure none are the master nor the replicas.
+				assert.Len(t, searchReplicas, 1)
+
+				for searchReplica := range searchReplicas {
+					assert.Same(t, supplier.GetMaster(), searchReplica)
 				}
 
 			} else if len(testCase.DataSourceReplicas) > 0 {
@@ -185,10 +269,22 @@ func TestRecycleDBConns(t *testing.T) {
 			assert.Equal(t, 0, int(stats.MaxLifetimeClosed), "unexpected number of connections closed due to maxlifetime")
 
 			supplier.RecycleDBConnections(2 * time.Second)
-			// We cannot reliably control exactly how many open connections are there. So we
-			// just do a basic check and confirm that atleast one has been closed.
-			stats = supplier.GetMaster().Db.Stats()
-			assert.Greater(t, int(stats.MaxLifetimeClosed), 0, "unexpected number of connections closed due to maxlifetime")
+			var success bool
+			// We try 3 times to let the connections be closed.
+			// Because sometimes, there can be significant goroutine contention which does not
+			// give enough time for the connection cleaner goroutine to run.
+			for i := 0; i < 3; i++ {
+				// We cannot reliably control exactly how many open connections are there. So we
+				// just do a basic check and confirm that atleast one has been closed.
+				stats = supplier.GetMaster().Db.Stats()
+				if int(stats.MaxLifetimeClosed) == 0 {
+					time.Sleep(2 * time.Second)
+					continue
+				}
+				success = true
+				break
+			}
+			assert.True(t, success, "No connections were closed due to maxlifetime")
 		})
 	}
 }

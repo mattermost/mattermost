@@ -65,6 +65,7 @@ type SqlStore interface {
 	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
+	CreateUniqueCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
 	CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	RemoveIndexIfExists(indexName string, tableName string) bool
 	GetAllConns() []*gorp.DbMap
@@ -91,6 +92,7 @@ type SqlStore interface {
 	Emoji() store.EmojiStore
 	Status() store.StatusStore
 	FileInfo() store.FileInfoStore
+	UploadSession() store.UploadSessionStore
 	Reaction() store.ReactionStore
 	Job() store.JobStore
 	Plugin() store.PluginStore

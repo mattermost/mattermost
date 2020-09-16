@@ -59,6 +59,11 @@ const (
 	USER_LOCALE_MAX_LENGTH    = 5
 )
 
+//msgp:tuple User
+
+// User contains the details about the user.
+// This struct's serializer methods are auto-generated. If a new field is added/removed,
+// please run make gen-serialized.
 type User struct {
 	Id                     string    `json:"id"`
 	CreateAt               int64     `json:"create_at,omitempty"`
@@ -124,6 +129,7 @@ type UserForIndexing struct {
 	Nickname    string   `json:"nickname"`
 	FirstName   string   `json:"first_name"`
 	LastName    string   `json:"last_name"`
+	Roles       string   `json:"roles"`
 	CreateAt    int64    `json:"create_at"`
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`

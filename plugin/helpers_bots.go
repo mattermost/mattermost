@@ -231,9 +231,21 @@ func (p *HelpersImpl) ensureBot(bot *model.Bot) (retBotID string, retErr error) 
 		return "", errors.Wrap(kvGetErr, "failed to get bot")
 	}
 
-	// If the bot has already been created, there is nothing to do.
+	// If the bot has already been created, use it
 	if botIDBytes != nil {
 		botID := string(botIDBytes)
+
+		// ensure existing bot is synced with what is being created
+		botPatch := &model.BotPatch{
+			Username:    &bot.Username,
+			DisplayName: &bot.DisplayName,
+			Description: &bot.Description,
+		}
+
+		if _, err := p.API.PatchBot(botID, botPatch); err != nil {
+			return "", errors.Wrap(err, "failed to patch bot")
+		}
+
 		return botID, nil
 	}
 

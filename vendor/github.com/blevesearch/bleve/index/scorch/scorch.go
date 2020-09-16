@@ -77,6 +77,8 @@ type Scorch struct {
 
 	pauseCount uint64
 
+	forceMergeRequestCh chan *mergerCtrl
+
 	segPlugin segment.Plugin
 }
 
@@ -101,18 +103,15 @@ func NewScorch(storeName string,
 		nextSnapshotEpoch:    1,
 		closeCh:              make(chan struct{}),
 		ineligibleForRemoval: map[string]bool{},
+		forceMergeRequestCh:  make(chan *mergerCtrl, 1),
 		segPlugin:            defaultSegmentPlugin,
 	}
 
-	// check if the caller has requested a specific segment type/version
-	forcedSegmentVersion, ok := config["forceSegmentVersion"].(int)
-	if ok {
-		forcedSegmentType, ok2 := config["forceSegmentType"].(string)
-		if !ok2 {
-			return nil, fmt.Errorf(
-				"forceSegmentVersion set to %d, must also specify forceSegmentType", forcedSegmentVersion)
-		}
-
+	forcedSegmentType, forcedSegmentVersion, err := configForceSegmentTypeVersion(config)
+	if err != nil {
+		return nil, err
+	}
+	if forcedSegmentType != "" && forcedSegmentVersion != 0 {
 		err := rv.loadSegmentPlugin(forcedSegmentType,
 			uint32(forcedSegmentVersion))
 		if err != nil {
@@ -138,6 +137,23 @@ func NewScorch(storeName string,
 		rv.onAsyncError = RegistryAsyncErrorCallbacks[aecbName]
 	}
 	return rv, nil
+}
+
+// configForceSegmentTypeVersion checks if the caller has requested a
+// specific segment type/version
+func configForceSegmentTypeVersion(config map[string]interface{}) (string, uint32, error) {
+	forcedSegmentVersion, err := parseToInteger(config["forceSegmentVersion"])
+	if err != nil {
+		return "", 0, nil
+	}
+
+	forcedSegmentType, ok := config["forceSegmentType"].(string)
+	if !ok {
+		return "", 0, fmt.Errorf(
+			"forceSegmentVersion set to %d, must also specify forceSegmentType", forcedSegmentVersion)
+	}
+
+	return forcedSegmentType, uint32(forcedSegmentVersion), nil
 }
 
 func (s *Scorch) paused() uint64 {
@@ -181,7 +197,7 @@ func (s *Scorch) Open() error {
 	}
 
 	s.asyncTasks.Add(1)
-	go s.mainLoop()
+	go s.introducerLoop()
 
 	if !s.readOnly && s.path != "" {
 		s.asyncTasks.Add(1)
@@ -241,6 +257,7 @@ func (s *Scorch) openBolt() error {
 	s.introducerNotifier = make(chan *epochWatcher, 1)
 	s.persisterNotifier = make(chan *epochWatcher, 1)
 	s.closeCh = make(chan struct{})
+	s.forceMergeRequestCh = make(chan *mergerCtrl, 1)
 
 	if !s.readOnly && s.path != "" {
 		err := s.removeOldZapFiles() // Before persister or merger create any new files.
@@ -567,6 +584,10 @@ func (s *Scorch) StatsMap() map[string]interface{} {
 }
 
 func (s *Scorch) Analyze(d *document.Document) *index.AnalysisResult {
+	return analyze(d)
+}
+
+func analyze(d *document.Document) *index.AnalysisResult {
 	rv := &index.AnalysisResult{
 		Document: d,
 		Analyzed: make([]analysis.TokenFrequencies, len(d.Fields)+len(d.CompositeFields)),

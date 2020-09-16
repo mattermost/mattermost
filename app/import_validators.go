@@ -100,7 +100,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	if data.Permissions != nil {
 		for _, permission := range *data.Permissions {
 			permissionValidated := false
-			for _, p := range model.ALL_PERMISSIONS {
+			for _, p := range append(model.AllPermissions, model.DeprecatedPermissions...) {
 				if permission == p.Id {
 					permissionValidated = true
 					break
@@ -455,6 +455,10 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 			reply := reply
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
+	}
+
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJson(*data.Props)) > model.POST_PROPS_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

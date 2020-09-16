@@ -18,8 +18,10 @@
 package ini
 
 import (
+	"os"
 	"regexp"
 	"runtime"
+	"strings"
 )
 
 const (
@@ -55,8 +57,10 @@ var (
 	DefaultFormatRight = ""
 )
 
+var inTest = len(os.Args) > 0 && strings.HasSuffix(strings.TrimSuffix(os.Args[0], ".exe"), ".test")
+
 func init() {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" && !inTest {
 		LineBreak = "\r\n"
 	}
 }
@@ -67,6 +71,10 @@ type LoadOptions struct {
 	Loose bool
 	// Insensitive indicates whether the parser forces all section and key names to lowercase.
 	Insensitive bool
+	// InsensitiveSections indicates whether the parser forces all section to lowercase.
+	InsensitiveSections bool
+	// InsensitiveKeys indicates whether the parser forces all key names to lowercase.
+	InsensitiveKeys bool
 	// IgnoreContinuation indicates whether to ignore continuation lines while parsing.
 	IgnoreContinuation bool
 	// IgnoreInlineComment indicates whether to ignore comments at the end of value and treat it as part of value.
@@ -105,6 +113,8 @@ type LoadOptions struct {
 	KeyValueDelimiters string
 	// KeyValueDelimiters is the delimiter that are used to separate key and value output. By default, it is "=".
 	KeyValueDelimiterOnWrite string
+	// ChildSectionDelimiter is the delimiter that is used to separate child sections. By default, it is ".".
+	ChildSectionDelimiter string
 	// PreserveSurroundedQuote indicates whether to preserve surrounded quote (single and double quotes).
 	PreserveSurroundedQuote bool
 	// DebugFunc is called to collect debug information (currently only useful to debug parsing Python-style multiline values).
