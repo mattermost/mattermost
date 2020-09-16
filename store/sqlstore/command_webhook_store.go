@@ -69,7 +69,7 @@ func (s SqlCommandWebhookStore) Get(id string) (*model.CommandWebhook, error) {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "audits_tosql")
+		return nil, errors.Wrap(err, "get_tosql")
 	}
 
 	if err := s.GetReplica().SelectOne(&webhook, queryString, args...); err != nil {
@@ -91,7 +91,7 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) error {
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return errors.Wrap(err, "audits_tosql")
+		return errors.Wrap(err, "tryuse_tosql")
 	}
 
 	if sqlResult, err := s.GetMaster().Exec(queryString, args...); err != nil {
