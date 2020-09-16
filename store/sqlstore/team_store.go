@@ -6,12 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
