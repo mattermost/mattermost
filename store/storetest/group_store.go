@@ -1875,12 +1875,12 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 	require.Nil(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, err)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, nErr)
 }
 
 func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
@@ -2027,12 +2027,12 @@ func testChannelMembersToRemove(t *testing.T, ss store.Store) {
 	require.Nil(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, err)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, nErr)
 }
 
 func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
@@ -2076,20 +2076,20 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 	}
 
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel2.Id,
 		UserId:      user3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	channelMembers, err := ss.Group().ChannelMembersToRemove(nil)
 	require.Nil(t, err)

@@ -596,6 +596,22 @@ func (_m *Store) UnlockFromMaster() {
 	_m.Called()
 }
 
+// UploadSession provides a mock function with given fields:
+func (_m *Store) UploadSession() store.UploadSessionStore {
+	ret := _m.Called()
+
+	var r0 store.UploadSessionStore
+	if rf, ok := ret.Get(0).(func() store.UploadSessionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UploadSessionStore)
+		}
+	}
+
+	return r0
+}
+
 // User provides a mock function with given fields:
 func (_m *Store) User() store.UserStore {
 	ret := _m.Called()
