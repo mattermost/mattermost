@@ -415,6 +415,9 @@ func (s SqlChannelStore) GetSidebarCategory(categoryId string) (*model.SidebarCa
 	if _, err := s.GetReplica().Select(&categories, sql, args...); err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, err.Error(), http.StatusNotFound)
 	}
+	if len(categories) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetSidebarCategory", "store.sql_channel.sidebar_categories.app_error", nil, "", http.StatusNotFound)
+	}
 	result := &model.SidebarCategoryWithChannels{
 		SidebarCategory: categories[0].SidebarCategory,
 		Channels:        make([]string, 0),

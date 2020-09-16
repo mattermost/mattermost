@@ -305,6 +305,6 @@ func (_m *LdapInterface) SwitchToLdap(userId string, ldapId string, ldapPassword
 }
 
 // UpdateProfilePictureIfNecessary provides a mock function with given fields: _a0, _a1
-func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 *model.User, _a1 *model.Session) {
+func (_m *LdapInterface) UpdateProfilePictureIfNecessary(_a0 model.User, _a1 *model.Session) {
 	_m.Called(_a0, _a1)
 }
