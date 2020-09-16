@@ -19,6 +19,29 @@ type FileBackend struct {
 	mock.Mock
 }
 
+// AppendFile provides a mock function with given fields: fr, path
+func (_m *FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	ret := _m.Called(fr, path)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(io.Reader, string) int64); ok {
+		r0 = rf(fr, path)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(io.Reader, string) *model.AppError); ok {
+		r1 = rf(fr, path)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CopyFile provides a mock function with given fields: oldPath, newPath
 func (_m *FileBackend) CopyFile(oldPath string, newPath string) *model.AppError {
 	ret := _m.Called(oldPath, newPath)

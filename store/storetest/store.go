@@ -35,6 +35,7 @@ type Store struct {
 	EmojiStore                mocks.EmojiStore
 	StatusStore               mocks.StatusStore
 	FileInfoStore             mocks.FileInfoStore
+	UploadSessionStore        mocks.UploadSessionStore
 	ReactionStore             mocks.ReactionStore
 	JobStore                  mocks.JobStore
 	UserAccessTokenStore      mocks.UserAccessTokenStore
@@ -71,6 +72,7 @@ func (s *Store) Token() store.TokenStore                           { return &s.T
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }
+func (s *Store) UploadSession() store.UploadSessionStore           { return &s.UploadSessionStore }
 func (s *Store) Reaction() store.ReactionStore                     { return &s.ReactionStore }
 func (s *Store) Job() store.JobStore                               { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore       { return &s.UserAccessTokenStore }
@@ -121,6 +123,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.EmojiStore,
 		&s.StatusStore,
 		&s.FileInfoStore,
+		&s.UploadSessionStore,
 		&s.ReactionStore,
 		&s.JobStore,
 		&s.UserAccessTokenStore,
