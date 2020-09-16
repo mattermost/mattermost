@@ -505,16 +505,16 @@ func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) stri
 	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfilesNotInTeam(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	return a.Srv().Store.User().GetProfilesInChannel(channelId, offset, limit)
+func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return a.Srv().Store.User().GetProfilesInChannel(options)
 }
 
-func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	return a.Srv().Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
+func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return a.Srv().Store.User().GetProfilesInChannelByStatus(options)
 }
 
-func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(channelId, offset, limit)
+func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
@@ -529,16 +529,16 @@ func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAd
 	return userMap, nil
 }
 
-func (a *App) GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(channelId, page*perPage, perPage)
+func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannelByStatus(options)
 	if err != nil {
 		return nil, err
 	}
@@ -1514,7 +1514,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Group().PermanentDeleteMembersByUser(user.Id); err != nil {
@@ -2028,7 +2028,7 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 
 	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(userId, true, true)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	channelIds := []string{}
