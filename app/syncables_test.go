@@ -142,7 +142,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
-	if err.Id != "store.sql_channel.get_member.missing.app_error" {
+	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
@@ -184,7 +184,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	_, err = th.App.GetChannelMember(experimentsChannel.Id, scientist1.Id)
-	if err.Id != "store.sql_channel.get_member.missing.app_error" {
+	if err.Id != "app.channel.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 

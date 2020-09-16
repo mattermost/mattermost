@@ -92,6 +92,7 @@ type SqlStore interface {
 	Emoji() store.EmojiStore
 	Status() store.StatusStore
 	FileInfo() store.FileInfoStore
+	UploadSession() store.UploadSessionStore
 	Reaction() store.ReactionStore
 	Job() store.JobStore
 	Plugin() store.PluginStore
