@@ -386,6 +386,18 @@ func (c *Context) RequireFileId() *Context {
 	return c
 }
 
+func (c *Context) RequireUploadId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.UploadId) {
+		c.SetInvalidUrlParam("upload_id")
+	}
+
+	return c
+}
+
 func (c *Context) RequireFilename() *Context {
 	if c.Err != nil {
 		return c
