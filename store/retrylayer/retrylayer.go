@@ -6708,7 +6708,21 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, *model.AppError) {
 
 func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) error {
 
-	return s.UserStore.DemoteUserToGuest(userID)
+	tries := 0
+	for {
+		err := s.UserStore.DemoteUserToGuest(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -6824,7 +6838,21 @@ func (s *RetryLayerUserStore) GetByAuth(authData *string, authService string) (*
 
 func (s *RetryLayerUserStore) GetByEmail(email string) (*model.User, error) {
 
-	return s.UserStore.GetByEmail(email)
+	tries := 0
+	for {
+		result, err := s.UserStore.GetByEmail(email)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -7110,7 +7138,21 @@ func (s *RetryLayerUserStore) PermanentDelete(userId string) *model.AppError {
 
 func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) error {
 
-	return s.UserStore.PromoteGuestToUser(userID)
+	tries := 0
+	for {
+		err := s.UserStore.PromoteGuestToUser(userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
