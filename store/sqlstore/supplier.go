@@ -89,6 +89,7 @@ type SqlSupplierStores struct {
 	emoji                store.EmojiStore
 	status               store.StatusStore
 	fileInfo             store.FileInfoStore
+	uploadSession        store.UploadSessionStore
 	reaction             store.ReactionStore
 	job                  store.JobStore
 	userAccessToken      store.UserAccessTokenStore
@@ -115,7 +116,7 @@ type SqlSupplier struct {
 	lockedToMaster bool
 	context        context.Context
 	license        *model.License
-	licenseMutex   sync.Mutex
+	licenseMutex   sync.RWMutex
 }
 
 type TraceOnAdapter struct{}
@@ -157,6 +158,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.emoji = newSqlEmojiStore(supplier, metrics)
 	supplier.stores.status = newSqlStatusStore(supplier)
 	supplier.stores.fileInfo = newSqlFileInfoStore(supplier, metrics)
+	supplier.stores.uploadSession = newSqlUploadSessionStore(supplier)
 	supplier.stores.job = newSqlJobStore(supplier)
 	supplier.stores.userAccessToken = newSqlUserAccessTokenStore(supplier)
 	supplier.stores.channelMemberHistory = newSqlChannelMemberHistoryStore(supplier)
@@ -202,6 +204,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.emoji.(*SqlEmojiStore).createIndexesIfNotExists()
 	supplier.stores.status.(*SqlStatusStore).createIndexesIfNotExists()
 	supplier.stores.fileInfo.(*SqlFileInfoStore).createIndexesIfNotExists()
+	supplier.stores.uploadSession.(*SqlUploadSessionStore).createIndexesIfNotExists()
 	supplier.stores.job.(*SqlJobStore).createIndexesIfNotExists()
 	supplier.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
 	supplier.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
@@ -330,7 +333,10 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
-	if ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
 		return ss.GetMaster()
 	}
 
@@ -343,7 +349,10 @@ func (ss *SqlSupplier) GetSearchReplica() *gorp.DbMap {
 }
 
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
-	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || ss.license == nil {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster || license == nil {
 		return ss.GetMaster()
 	}
 
@@ -1126,6 +1135,10 @@ func (ss *SqlSupplier) Status() store.StatusStore {
 
 func (ss *SqlSupplier) FileInfo() store.FileInfoStore {
 	return ss.stores.fileInfo
+}
+
+func (ss *SqlSupplier) UploadSession() store.UploadSessionStore {
+	return ss.stores.uploadSession
 }
 
 func (ss *SqlSupplier) Reaction() store.ReactionStore {

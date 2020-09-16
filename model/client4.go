@@ -313,6 +313,14 @@ func (c *Client4) GetFileRoute(fileId string) string {
 	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
 }
 
+func (c *Client4) GetUploadsRoute() string {
+	return "/uploads"
+}
+
+func (c *Client4) GetUploadRoute(uploadId string) string {
+	return fmt.Sprintf("%s/%s", c.GetUploadsRoute(), uploadId)
+}
+
 func (c *Client4) GetPluginsRoute() string {
 	return "/plugins"
 }
@@ -3671,7 +3679,7 @@ func (c *Client4) GetSamlMetadata() (string, *Response) {
 	return buf.String(), BuildResponse(r)
 }
 
-func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
+func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -3694,7 +3702,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3706,7 +3714,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3718,7 +3726,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -4072,6 +4080,48 @@ func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]
 		"auto":    auto,
 		"matches": usersMap,
 	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
+func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PUBIC_CERTIFICATE_NAME)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/public", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
+func (c *Client4) UploadLdapPrivateCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PRIVATE_KEY_NAME)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/private", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// DeleteLdapPublicCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPublicCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/public")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DeleteLDAPPrivateCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPrivateCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/private")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -5488,4 +5538,47 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	return results, BuildResponse(r)
+}
+
+// CreateUpload creates a new upload session.
+func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
+	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUpload returns the upload session for the specified uploadId.
+func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUploadRoute(uploadId), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUploadsForUser returns the upload sessions created by the specified
+// userId.
+func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/uploads", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionsFromJson(r.Body), BuildResponse(r)
+}
+
+// UploadData performs an upload. On success it returns
+// a FileInfo object.
+func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
+	url := c.GetUploadRoute(uploadId)
+	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoFromJson(r.Body), BuildResponse(r)
 }
