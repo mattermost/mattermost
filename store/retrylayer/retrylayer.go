@@ -6844,15 +6844,15 @@ func (s *RetryLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 
 }
 
-func (s *RetryLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (s *RetryLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 
-	return s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+	return s.UserStore.GetProfilesInChannel(options)
 
 }
 
-func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 
-	return s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+	return s.UserStore.GetProfilesInChannelByStatus(options)
 
 }
 
