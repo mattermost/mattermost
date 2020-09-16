@@ -37,7 +37,7 @@ func (s SearchTeamStore) RemoveMember(teamId string, userId string) *model.AppEr
 	return err
 }
 
-func (s SearchTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
+func (s SearchTeamStore) RemoveAllMembersByUser(userId string) error {
 	err := s.TeamStore.RemoveAllMembersByUser(userId)
 	if err == nil {
 		s.rootStore.indexUserFromID(userId)
