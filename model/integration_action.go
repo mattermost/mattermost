@@ -123,7 +123,25 @@ func (p *PostAction) Equals(input *PostAction) bool {
 		return false
 	}
 
-	return reflect.DeepEqual(p.Integration.Context, input.Integration.Context)
+	for key, value := range p.Integration.Context {
+		inputValue, ok := input.Integration.Context[key]
+		if !ok {
+			return false
+		}
+
+		switch inputValue.(type) {
+		case string, bool, int, float64:
+			if value != inputValue {
+				return false
+			}
+		default:
+			if !reflect.DeepEqual(value, inputValue) {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 // PostActionCookie is set by the server, serialized and encrypted into
