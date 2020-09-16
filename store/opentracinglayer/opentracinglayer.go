@@ -8215,7 +8215,7 @@ func (s *OpenTracingLayerUserStore) GetProfilesByUsernames(usernames []string, v
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetProfilesInChannel")
 	s.Root.Store.SetContext(newCtx)
@@ -8224,7 +8224,7 @@ func (s *OpenTracingLayerUserStore) GetProfilesInChannel(channelId string, offse
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+	result, err := s.UserStore.GetProfilesInChannel(options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -8233,7 +8233,7 @@ func (s *OpenTracingLayerUserStore) GetProfilesInChannel(channelId string, offse
 	return result, err
 }
 
-func (s *OpenTracingLayerUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *OpenTracingLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetProfilesInChannelByStatus")
 	s.Root.Store.SetContext(newCtx)
@@ -8242,7 +8242,7 @@ func (s *OpenTracingLayerUserStore) GetProfilesInChannelByStatus(channelId strin
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+	result, err := s.UserStore.GetProfilesInChannelByStatus(options)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

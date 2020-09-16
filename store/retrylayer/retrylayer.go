@@ -6984,11 +6984,11 @@ func (s *RetryLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 
 }
 
-func (s *RetryLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+		result, err := s.UserStore.GetProfilesInChannel(options)
 		if err == nil {
 			return result, nil
 		}
@@ -7004,11 +7004,11 @@ func (s *RetryLayerUserStore) GetProfilesInChannel(channelId string, offset int,
 
 }
 
-func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *RetryLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+		result, err := s.UserStore.GetProfilesInChannelByStatus(options)
 		if err == nil {
 			return result, nil
 		}

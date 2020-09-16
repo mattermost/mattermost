@@ -7426,10 +7426,10 @@ func (s *TimerLayerUserStore) GetProfilesByUsernames(usernames []string, viewRes
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetProfilesInChannel(channelId, offset, limit)
+	result, err := s.UserStore.GetProfilesInChannel(options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -7442,10 +7442,10 @@ func (s *TimerLayerUserStore) GetProfilesInChannel(channelId string, offset int,
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, error) {
+func (s *TimerLayerUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error) {
 	start := timemodule.Now()
 
-	result, err := s.UserStore.GetProfilesInChannelByStatus(channelId, offset, limit)
+	result, err := s.UserStore.GetProfilesInChannelByStatus(options)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
