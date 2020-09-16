@@ -15,7 +15,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -1202,23 +1201,6 @@ func doCheckWarnMetricStatus(a *App) {
 		return
 	}
 
-	firstRun, err := strconv.ParseInt(systemDataList[model.SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY], 10, 64)
-	if err != nil {
-		mlog.Error("Cannot parse the server first runtime value", mlog.Err(err))
-		return
-	}
-
-	currentTime := utils.MillisFromTime(time.Now())
-	//TODO - remove
-	fmt.Println((currentTime - firstRun) / (1000 * 3600 * 24 * 90))
-	fmt.Println(time.Unix(firstRun/1000, 0))
-	fmt.Println(time.Unix(currentTime/1000, 0))
-
-	if (currentTime-firstRun)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
-		mlog.Debug("No advisories should be shown in the first 90 days of server runtime")
-		return
-	}
-
 	warnMetricStatusFromStore := make(map[string]string)
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
@@ -1256,9 +1238,6 @@ func doCheckWarnMetricStatus(a *App) {
 	if err4 != nil {
 		mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
 	}
-
-	//CITOMAI
-	numberOfActiveUsers = 4
 
 	//If an account is created with a different email domain
 	//search for an entry that has an email account different from the current domain

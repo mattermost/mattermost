@@ -38,7 +38,6 @@ const (
 	WARN_METRIC_STATUS_RUNONCE       = "runonce"
 	WARN_METRIC_STATUS_ACK           = "ack"
 	WARN_METRIC_STATUS_STORE_PREFIX  = "warn_metric_"
-	WARN_METRIC_JOB_WAIT_TIME        = 1000 * 3600 * 24 * 90 // 90 days in ms
 	WARN_METRIC_JOB_INTERVAL         = 24 * 7
 )
 
@@ -94,61 +93,61 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 var WarnMetricsTable = map[string]WarnMetric{
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25,
-		Limit:     1, //25 CITOMAI
+		Limit:     25,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_MFA: {
 		Id:        SYSTEM_WARN_METRIC_MFA,
-		Limit:     -1, //CITOMAI
+		Limit:     -1,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_EMAIL_DOMAIN: {
 		Id:        SYSTEM_WARN_METRIC_EMAIL_DOMAIN,
-		Limit:     -1, //CITOMAI
+		Limit:     -1,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5,
-		Limit:     2, //5 CITOMAI
+		Limit:     5,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50,
-		Limit:     3, //50 CITOMAI
+		Limit:     50,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100,
-		Limit:     3, //100 CITOMAI
+		Limit:     100,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200,
-		Limit:     5, //200 CITOMAI
+		Limit:     200,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300,
-		Limit:     5, //300 CITOMAI
+		Limit:     300,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
-		Limit:     7, //500 CITOMAI
+		Limit:     500,
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K,
-		Limit:     500000, //500 CITOMAI
+		Limit:     500000,
 		IsBotOnly: true,
 		IsRunOnce: true,
 	},
