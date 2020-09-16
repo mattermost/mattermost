@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.user.login.not_verified.app_error",
-    "translation": "Inloggen is niet gelukt, omdat het e-mail adres nog niet geverifieerd is"
+    "translation": "Inloggen is niet gelukt, omdat het e-mail adres nog niet geverifieerd is."
   },
   {
     "id": "api.user.login.use_auth_service.app_error",
@@ -2400,31 +2400,31 @@
   },
   {
     "id": "api.user.upload_profile_user.array.app_error",
-    "translation": "Lege data bij 'licentie' in aanvraag"
+    "translation": "Lege data bij 'image' in aanvraag."
   },
   {
     "id": "api.user.upload_profile_user.decode.app_error",
-    "translation": "Kan het profiel figuur niet decoderen"
+    "translation": "Kan de profielafbeelding niet decoderen."
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "translation": "Kan de profielafbeelding niet bewaren. Bestand lijkt geen geldige afbeelding te zijn."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
-    "translation": "Kan het profiel figuur niet coderen"
+    "translation": "Kan de profielafbeelding niet encoderen."
   },
   {
     "id": "api.user.upload_profile_user.no_file.app_error",
-    "translation": "Geen bestand bij 'licentie' in aanvraag"
+    "translation": "Geen bestand bij 'afbeelding' in aanvraag."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
-    "translation": "Kan licentie bestand niet openen"
+    "translation": "Kan afbeeldingsbestand niet openen."
   },
   {
     "id": "api.user.upload_profile_user.parse.app_error",
-    "translation": "Kan het 'multipart form' niet verwerken"
+    "translation": "Kan het 'multipart form' niet verwerken."
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
@@ -2436,7 +2436,7 @@
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "Kan de profiel figuur niet uploaden"
+    "translation": "Kan de profielafbeelding niet uploaden."
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -2444,7 +2444,7 @@
   },
   {
     "id": "api.user.verify_email.broken_token.app_error",
-    "translation": "Bad verify email token type."
+    "translation": "Foutief verificatie e-mail token type."
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
@@ -2452,27 +2452,27 @@
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Fout bij het verwerken van het date token voor e-mail verificicatie"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Upgraden naar websocket verbinding is mislukt"
+    "translation": "Upgraden naar websocket verbinding is mislukt."
   },
   {
     "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Unknown WebSocket action."
+    "translation": "Onbekende WebSocket actie."
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
-    "translation": "Invalid sequence for WebSocket message."
+    "translation": "Ongeldige volgorde voor WebSocket-bericht."
   },
   {
     "id": "api.web_socket_router.no_action.app_error",
-    "translation": "No websocket action."
+    "translation": "Geen websocket actie."
   },
   {
     "id": "api.web_socket_router.not_authenticated.app_error",
-    "translation": "WebSocket connection is not authenticated. Please log in and try again."
+    "translation": "WebSocket connectie is niet geauthenticeerd. Log in en probeer opnieuw."
   },
   {
     "id": "api.webhook.create_outgoing.intersect.app_error",
@@ -2488,15 +2488,15 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd"
+    "translation": "Ofwel trigger_words of channel_id moet worden geconfigueerd."
   },
   {
     "id": "api.webhook.incoming.error",
-    "translation": "Could not decode the multipart payload of incoming webhook."
+    "translation": "Kan de multipart payload van de inkomende webhook niet decoderen."
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Fout bij het bijwerken van commando's voor meerdere teams"
+    "translation": "Fout bij het bijwerken van webhook over meerdere teams."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2504,19 +2504,19 @@
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
-    "translation": "Ongeldige {{.Name}} parameter"
+    "translation": "Ongeldige {{.Name}} parameter."
   },
   {
     "id": "app.admin.test_email.failure",
-    "translation": "Connection unsuccessful: {{.Error}}"
+    "translation": "Connectie niet geslaagd: {{.Error}}"
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
-    "translation": "Must specify the team ID to create a channel"
+    "translation": "Je moet een team ID opgeven als je een kanaal aanmaakt."
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Unable to move a channel unless all its members are already members of the destination team."
+    "translation": "Kan het kanaal niet verplaatsen tot alle leden lid zijn van het doelteam."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2540,23 +2540,23 @@
   },
   {
     "id": "app.cluster.404.app_error",
-    "translation": "Cluster API endpoint not found."
+    "translation": "Cluster API endpoint niet gevonden."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "Er trad een fout op bij het wegschrijven van de export data."
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occurred marshalling the JSON data for export."
+    "translation": "Er is een fout opgetreden bij het samenvoegen van de JSON-gegevens voor de export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Error reading the file at: \"{{.FilePath}}\""
+    "translation": "Fout bij het lezen van het bestand : \"{{.FilePath}}\""
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Error uploading the file: \"{{.FilePath}}\""
+    "translation": "Fout bij het uploaden van bestand: \"{{.FilePath}}\""
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
@@ -6184,7 +6184,7 @@
   },
   {
     "id": "app.channel.get_more_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "web.error.unsupported_browser.system_browser_or",
@@ -7072,7 +7072,7 @@
   },
   {
     "id": "app.channel.get_channels.get.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan de kanalen niet ophalen."
   },
   {
     "id": "app.channel.get_by_name.missing.app_error",
@@ -7080,19 +7080,19 @@
   },
   {
     "id": "app.channel.get_by_name.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het kanaal kon niet gevonden worden."
   },
   {
     "id": "app.channel.get_all_channels.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "Kan niet alle kanalen ophalen."
   },
   {
     "id": "app.channel.get.find.app_error",
-    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal"
+    "translation": "Er is een probleem opgetreden bij het zoeken naar het kanaal."
   },
   {
     "id": "app.channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het kanaal kon niet gevonden worden."
   },
   {
     "id": "app.channel.delete.app_error",
@@ -7556,19 +7556,19 @@
   },
   {
     "id": "app.audit.save.saving.app_error",
-    "translation": "Fout bij het opslaan van de audit data"
+    "translation": "Fout bij het opslaan van de audit data."
   },
   {
     "id": "app.audit.permanent_delete_by_user.app_error",
-    "translation": "Fout opgestreden bij het verwijderen van de audit data"
+    "translation": "Fout opgestreden bij het verwijderen van de audit data."
   },
   {
     "id": "app.audit.get.limit.app_error",
-    "translation": "Grens bereikt voor opdelen in pagina's"
+    "translation": "Limiet bereikt bij het opdelen in pagina's."
   },
   {
     "id": "app.audit.get.finding.app_error",
-    "translation": "Er is een fout gevonden bij het zoeken naar de audit data"
+    "translation": "Er is een fout gevonden bij het zoeken naar de audit data."
   },
   {
     "id": "bleveengine.delete_channel_posts.error",
@@ -7860,7 +7860,7 @@
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "Contacteer ons"
+    "translation": "Bevestig"
   },
   {
     "id": "api.server.warn_metric.bot_response.notification_success.message",
@@ -7936,27 +7936,27 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Upgrade naar Mattermost Enterprise editie"
+    "translation": "Opschalen met Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers upgraden naar Mattermost Enterprise Edition, die functies biedt zoals gebruikersbeheer, serverclustering en prestatiemonitoring.\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost beveelt ten zeerste aan dat implementaties van meer dan 500 gebruikers functies gebruiken zoals gebruikersbeheer, serverclustering en prestatiemonitoring. Contacteer ons voor meer informatie en hoe we je kunnen helpen.\n\nDoor te klikken op Bevestig, verstuur je jouw gegevens naar Mattermost, Inc. [Voor meer informatie over upgraden](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integratie van SAML 2.0"
+    "translation": "Opschalen van Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. Neem contact op met ondersteuning voor meer informatie over integratie met SAML 2.0, beschikbaar in Mattermost Enterprise Edition.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Je Mattermost systeem heeft nu 400 gebruikers. Wanneer je Mattermost verbindt met de single sign-on provider van jouw organisatie, hebben gebruikers toegang tot Mattermost zonder dat ze hun gegevens opnieuw hoeven in te voeren. We raden je integratie met SAML 2.0, aan beschikbaar in je Mattermost Server.\n\n[Meer informatie over integratie met SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nDoor te klikken op Bevestiging, verstuur je jouw gegevens naar Mattermost, Inc. [Voor meer informatie over upgraden](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integreer AD/LDAP"
+    "translation": "Schalen met AD/LDAP"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan te upgraden naar Mattermost Enterprise Edition en de Active Directory/LDAP van uw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. Gebruikers kunnen inloggen zonder dat ze nieuwe gebruikersnamen en wachtwoorden hoeven aan te maken en beheerders besparen tijd bij het aanmaken en beheren van accounts.\n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAls je contact opneemt met de klantenservice, verstuur je jouw contactgegevens naar Mattermost, Inc. [Meer informatie](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Je Mattermost systeem heeft nu 200 gebruikers. Naarmate je gebruikersbasis groeit, kan het aanmaken van nieuwe accounts tijdrovend worden. We raden je aan om de Active Directory/LDAP van jouw organisatie te integreren, waardoor iedereen met een account toegang krijgt tot Mattermost. \n\n[Meer informatie over de integratie met AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nDoor te klikken op Bevestig verstuur je jouw contactgegevens naar Mattermost, Inc. [Om meer te weten over upgraden](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_us",
@@ -7964,7 +7964,7 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contacteer ons"
+    "translation": "Bevestigen"
   },
   {
     "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",

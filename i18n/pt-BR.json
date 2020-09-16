@@ -133,7 +133,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Não foi possível adicionar o usuário no canal"
+    "translation": "Não foi possível adicionar o usuário no canal."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -141,7 +141,7 @@
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
-    "translation": "Não foi possível adicionar usuário para este tipo de canal"
+    "translation": "Não foi possível adicionar usuário para este tipo de canal."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -161,11 +161,11 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas"
+    "translation": "Deve-se usar a API de serviço createDirectChannel para criação do canal de mensagens diretas."
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual"
+    "translation": "Não é possível criar mais de {{.MaxChannelsPerTeam}} canais para a equipe atual."
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -177,15 +177,15 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "ID de usuário inválido para a criação do canal direto"
+    "translation": "ID de usuário inválido para a criação do canal direto."
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Os canais de grupo de mensagem deve conter pelo menos 3 e não mais que 8 usuários"
+    "translation": "Os canais de grupo de mensagem deve conter pelo menos 3 e não mais que 8 usuários."
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "Um dos usuários fornecidos não existe"
+    "translation": "Um dos usuários fornecidos não existe."
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -193,11 +193,11 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Não é possível excluir o canal padrão {{.Channel}}"
+    "translation": "Não é possível excluir o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
-    "translation": "O canal foi arquivado ou excluído"
+    "translation": "O canal foi arquivado ou excluído."
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
@@ -205,7 +205,7 @@
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
-    "translation": "Você não tem a permissão apropriada"
+    "translation": "Você não tem a permissão apropriada."
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
@@ -213,11 +213,11 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Não pode deixar o canal padrão {{.Channel}}"
+    "translation": "Não pode deixar o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Não é possível sair de um canal de mensagem direta"
+    "translation": "Não é possível sair de um canal de mensagem direta."
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -229,7 +229,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
-    "translation": "Falha ao atualizar o canal"
+    "translation": "Falha ao atualizar o canal."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -273,7 +273,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Não é possível remover usuário do canal padrão {{.Channel}}"
+    "translation": "Não é possível remover usuário do canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -285,23 +285,23 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "Você não pode renomear um canal de mensagens diretas"
+    "translation": "Você não pode renomear um canal de mensagens diretas."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
-    "translation": "Você não pode renomear um canal de mensagens de grupo"
+    "translation": "Você não pode renomear um canal de mensagens de grupo."
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
-    "translation": "O canal foi deletado ou arquivado"
+    "translation": "O canal foi deletado ou arquivado."
   },
   {
     "id": "api.channel.update_channel.tried.app_error",
-    "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}"
+    "translation": "Tentou executar uma atualização inválida para o canal padrão {{.Channel}}."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um Membro do Canal."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um integrante da equipe"
+    "translation": "A função fornecida é gerenciada por um esquema e, portanto, não pode ser aplicada diretamente a um integrante da equipe."
   },
   {
     "id": "api.command.admin_only.app_error",
@@ -337,15 +337,15 @@
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' falhou"
+    "translation": "Comando com um gatilho de '{{.Trigger}}' falhou."
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou uma resposta vazia"
+    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou uma resposta vazia."
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou a resposta {{.Status}}"
+    "translation": "Comando com um gatilho de '{{.Trigger}}' retornou a resposta {{.Status}}."
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
@@ -353,7 +353,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Nenhum comando disparador encontrado"
+    "translation": "Nenhum comando gatilho encontrado."
   },
   {
     "id": "api.command.invite_people.desc",
@@ -393,7 +393,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Não é possível atualizar os comandos entre equipes"
+    "translation": "Não é possível atualizar os comandos entre equipes."
   },
   {
     "id": "api.command_away.desc",
@@ -501,11 +501,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Nome do canal deve ter {{.Length}} caracteres ou menos"
+    "translation": "Nome do canal deve ter {{.Length}} caracteres ou menos."
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Nome do canal deve ter {{.Length}} caracteres ou mais"
+    "translation": "Nome do canal deve ter {{.Length}} caracteres ou mais."
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -561,7 +561,7 @@
   },
   {
     "id": "api.command_echo.delay.app_error",
-    "translation": "Os atrasos devem ser abaixo de 10000 segundos"
+    "translation": "Os atrasos devem ser abaixo de 10000 segundos."
   },
   {
     "id": "api.command_echo.desc",
@@ -569,7 +569,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Alto volume de solicitações de echo, não foi possível processar a requisição"
+    "translation": "Alto volume de solicitações de echo, não foi possível processar a requisição."
   },
   {
     "id": "api.command_echo.hint",
@@ -597,7 +597,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Um erro ocorreu ao expandir as visualizações"
+    "translation": "Um erro ocorreu ao expandir as visualizações."
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -720,7 +720,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Não foi possível achar o canal"
+    "translation": "Não foi possível achar o canal."
   },
   {
     "id": "api.command_join.name",
@@ -780,7 +780,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Não foi possível achar o usuário"
+    "translation": "Não foi possível encontrar o usuário."
   },
   {
     "id": "api.command_msg.name",
@@ -7420,7 +7420,7 @@
   },
   {
     "id": "api.channel.patch_channel_moderations.license.error",
-    "translation": "Licença não suporta Retenção de Dados."
+    "translation": "Sua licença não suporta moderação de canal"
   },
   {
     "id": "api.channel.guest_join_channel.post_and_forget",
@@ -7428,7 +7428,7 @@
   },
   {
     "id": "api.channel.get_channel_moderations.license.error",
-    "translation": "Licença não suporta Retenção de Dados."
+    "translation": "Sua licença não suporta moderação de canal"
   },
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
@@ -7868,11 +7868,11 @@
   },
   {
     "id": "api.server.warn_metric.contacting_us",
-    "translation": "Contatando-Nos"
+    "translation": "Reconhecendo"
   },
   {
     "id": "api.server.warn_metric.contact_us",
-    "translation": "Contate-Nos"
+    "translation": "Reconhecer"
   },
   {
     "id": "api.server.warn_metric.bot_response.number_of_users.mailto_body",
@@ -8000,27 +8000,27 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Atualizar para Mattermost Enterprise edition"
+    "translation": "Escalando com Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "A Mattermost recomenda enfaticamente que as implantações de mais de 500 usuários atualizem para o Mattermost Enterprise Edition, que oferece recursos como gerenciamento de usuários, cluster de servidores e monitoramento de desempenho.\n\nEntre em contato com o suporte e envie suas informações de contato para Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Mattermost recomenda enfaticamente que as implantações de mais de 500 usuários aproveitem as vantagens de recursos como gerenciamento de usuários, cluster de servidor e monitoramento de desempenho. Entre em contato para saber mais e nos diga como podemos ajudar.\n\nAo clicar em Reconhecer, você estará compartilhando suas informações com a Mattermost Inc., para saber mais sobre a atualização. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_title",
-    "translation": "Integrar SAML 2.0"
+    "translation": "Escalando com Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_400.notification_body",
-    "translation": "Seu sistema Mattermost agora possui 400 usuários. Quando você conecta o Mattermost ao provedor de login único da sua organização, os usuários podem acessar o Mattermost sem precisar redigitar suas credenciais. Entre em contato com o suporte para saber mais sobre a integração com o SAML 2.0, disponível no Mattermost Enterprise Edition.\n\n[Saiba mais sobre a integração com o SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nEntre em contato com o suporte e envie suas informações de contato para Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Seu sistema Mattermost agora possui 400 usuários. Quando você conecta o Mattermost ao provedor de login único da sua organização, os usuários podem acessar o Mattermost sem precisar redigitar suas credenciais. Nós recomendamos a integração com um provedor SAML 2.0 com o seu servidor Mattermost.\n\n[Saiba mais sobre a integração com o SAML 2.0](https://docs.mattermost.com/deployment/sso-saml.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nAo clicar em Reconhecer, você estará compartilhando suas informações com a Mattermost Inc., para aprender mais sobre atualização. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Integrar AD/LDAP"
+    "translation": "Escalando com Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Seu sistema Mattermost agora tem 200 usuários. À medida que sua base de usuários cresce, o provisionamento de novas contas pode consumir muito tempo. Recomendamos que você atualize para o Mattermost Enterprise Edition e integre o Active Directory/LDAP da sua organização, o que permitirá que qualquer pessoa com uma conta acesse o Mattermost. Os usuários podem efetuar login sem precisar criar novos nomes de usuário e senhas, e os administradores economizam tempo em provisionar e gerenciar contas.\n\n[Saiba mais sobre a integração com o AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nEntre em contato com o suporte e envie suas informações de contato para a Mattermost, Inc. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Seu sistema Mattermost agora tem 200 usuários. À medida que sua base de usuários cresce, o provisionamento de novas contas pode consumir muito tempo. Recomendamos que você integre o Active Directory/LDAP da sua organização, o que permitirá que qualquer pessoa com uma conta acesse o Mattermost. \n\n[Saiba mais sobre a integração com o AD/LDAP](https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nAo clicar em Reconhecer, você estará compartilhando suas informações com a Mattermost Inc., para aprender mais sobre como atualizar. [Saiba mais](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -8049,5 +8049,25 @@
   {
     "id": "api.upgrade_to_enterprise.already-done.app_error",
     "translation": "Você já atualizou para o Mattermost Enterprise Edition. Reinicie o servidor para concluir a atualização."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. O usuário do sistema Mattermost {{.MattermostUsername}} não tem acesso de gravação ao arquivo binário necessário. Um administrador de sistema pode atualizar as permissões do arquivo executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do arquivo, tente atualizar o Mattermost novamente. Quando você tiver atualizado e reiniciado, lembre-se de restaurar as permissões do arquivo binário original: \n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. O usuário do sistema Mattermost {{.MattermostUsername}} não tem acesso de gravação ao arquivo binário necessário. Um administrador de sistema pode atualizar as permissões do arquivo executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do arquivo, tente atualizar o Mattermost novamente. Quando você tiver atualizado e reiniciado, lembre-se de restaurar as permissões do arquivo binário original: \n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "api.upgrade_to_enterprise.system_not_supported.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. Este recurso funcionará apenas em sistemas Linux com arquitetura x86-64."
+  },
+  {
+    "id": "api.upgrade_to_enterprise_status.signature.app_error",
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. A assinatura digital do arquivo binário baixado não pôde ser verificada."
   }
 ]
