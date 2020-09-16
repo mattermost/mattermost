@@ -16,6 +16,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -122,19 +123,7 @@ func (p *PostAction) Equals(input *PostAction) bool {
 		return false
 	}
 
-	for key, value := range p.Integration.Context {
-		inputValue, ok := input.Integration.Context[key]
-
-		if !ok {
-			return false
-		}
-
-		if value != inputValue {
-			return false
-		}
-	}
-
-	return true
+	return reflect.DeepEqual(p.Integration.Context, input.Integration.Context)
 }
 
 // PostActionCookie is set by the server, serialized and encrypted into

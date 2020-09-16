@@ -161,3 +161,27 @@ func TestSubmitDialogResponseToJson(t *testing.T) {
 		assert.Nil(t, r)
 	})
 }
+
+func TestPostActionIntegrationEquals(t *testing.T) {
+	pa1 := &PostAction{
+		Integration: &PostActionIntegration{
+			Context: map[string]interface{}{
+				"a": map[string]interface{}{
+					"a": 0,
+				},
+			},
+		},
+	}
+	pa2 := &PostAction{
+		Integration: &PostActionIntegration{
+			Context: map[string]interface{}{
+				"a": map[string]interface{}{
+					"a": 0,
+				},
+			},
+		},
+	}
+	if !pa1.Equals(pa2) {
+		t.Error("should be equal")
+	}
+}
