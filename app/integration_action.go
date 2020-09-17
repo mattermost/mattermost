@@ -447,12 +447,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 	if isE0Edition {
 		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.start_trial_success.message")
 		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			attachements := []*model.SlackAttachment{{
-				AuthorName: "",
-				Title:      "",
-				Text:       utils.T("api.server.warn_metric.bot_response.start_trial_failure.body"),
-			}}
-			model.ParseSlackAttachment(botPost, attachements)
+			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.body")
 		}
 	} else {
 		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
