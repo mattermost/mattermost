@@ -740,6 +740,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if model.BuildEnterpriseReady != "true" {
+		mlog.Debug("Not Enterprise Edition, skip.")
 		c.Err = model.NewAppError("requestTrialLicenseAndAckWarnMetric", "api.warn_metrics.invalid_edition.app_error", nil, "", http.StatusForbidden)
 		return
 	}

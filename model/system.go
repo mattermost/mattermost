@@ -148,7 +148,7 @@ var WarnMetricsTable = map[string]WarnMetric{
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K: {
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K,
 		Limit:     500000,
-		IsBotOnly: true,
+		IsBotOnly: false,
 		IsRunOnce: true,
 	},
 }

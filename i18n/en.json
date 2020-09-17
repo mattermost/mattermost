@@ -2027,6 +2027,18 @@
     "translation": "Mattermost Contact Us request. My team has now {{.Limit}} users and I am considering Mattermost Enterprise Edition.\r\n"
   },
   {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.body",
+    "translation": "Trial could not be started."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
+    "translation": "Trial could not be started."
+  },
+  {
+    "id": "api.server.warn_metric.bot_response.start_trial_success.message",
+    "translation": "Thank you for starting trial with Mattermost."
+  },
+  {
     "id": "api.server.warn_metric.contact_us",
     "translation": "Acknowledge"
   },
@@ -2035,11 +2047,11 @@
     "translation": "Acknowledging"
   },
   {
-    "id": "api.server.warn_metric.email.domain_body",
-    "translation": "test"
+    "id": "api.server.warn_metric.email_domain.notification_body",
+    "translation": "TODO"
   },
   {
-    "id": "api.server.warn_metric.email.domain_title",
+    "id": "api.server.warn_metric.email_domain.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
@@ -2047,11 +2059,19 @@
     "translation": "Email us"
   },
   {
-    "id": "api.server.warn_metric.mfa_body",
-    "translation": "test"
+    "id": "api.server.warn_metric.mfa.notification_body",
+    "translation": "TODO"
   },
   {
-    "id": "api.server.warn_metric.mfa_title",
+    "id": "api.server.warn_metric.mfa.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.mfa.start_trial.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
@@ -2063,27 +2083,51 @@
     "translation": "Scaling with Mattermost"
   },
   {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "test"
+    "translation": "TODO"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
     "id": "api.server.warn_metric.number_of_active_users_25.notification_body",
-    "translation": "test"
+    "translation": "TODO"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_25.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "test"
+    "id": "api.server.warn_metric.number_of_active_users_25.start_trial.notification_body",
+    "translation": "TODO"
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_title",
+    "id": "api.server.warn_metric.number_of_active_users_25.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
@@ -2095,36 +2139,68 @@
     "translation": "Scaling with Mattermost"
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "test"
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
+    "translation": "TODO"
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
+    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_500k.notification_body",
-    "translation": "test"
+    "translation": "TODO"
   },
   {
     "id": "api.server.warn_metric.number_of_posts_500k.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
+    "id": "api.server.warn_metric.number_of_posts_500k.start_trial.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_posts_500k.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
     "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "test"
+    "translation": "TODO"
   },
   {
     "id": "api.server.warn_metric.number_of_teams_5.notification_title",
     "translation": "Scaling with Mattermost"
   },
   {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_title",
+    "translation": "Scaling with Mattermost"
+  },
+  {
     "id": "api.server.warn_metric.start_trial",
-    "translation": ""
+    "translation": "Start trial"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial.email_domain.notification_body",
+    "translation": "TODO"
+  },
+  {
+    "id": "api.server.warn_metric.start_trial.email_domain.notification_title",
+    "translation": "Scaling with Mattermost"
   },
   {
     "id": "api.server.warn_metric.starting_trial",
-    "translation": ""
+    "translation": "Getting trial"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -7776,7 +7852,7 @@
   },
   {
     "id": "store.sql_user.analytics_get_external_users.app_error",
-    "translation": "We could not "
+    "translation": "We could not count the users with non local domain emails"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

@@ -223,7 +223,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
 				if !warnMetric.IsBotOnly && value == model.WARN_METRIC_STATUS_LIMIT_REACHED {
-					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil)
+					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil, false)
 				}
 			}
 		}
@@ -232,7 +232,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
+func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc, forStartTrial bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
 	var warnMetricStatus *model.WarnMetricStatus
 	var warnMetricDisplayTexts = &model.WarnMetricDisplayTexts{}
 
@@ -253,35 +253,85 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 
 		switch warnMetricId {
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_MFA:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email.domain_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email.domain_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.start_trial.email_domain.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.start_trial.email_domain.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email_domain.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email_domain.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
+			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
-			warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.notification_body")
+			if forStartTrial {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_body")
+			} else {
+				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.notification_body")
+			}
 		default:
 			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))
 			return nil, nil
@@ -344,7 +394,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 			return appErr
 		}
 
-		warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
+		warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, isE0Edition)
 		if warnMetricStatus == nil {
 			return model.NewAppError("NotifyAdminsOfWarnMetricStatus", "app.system.warn_metric.notification.invalid_metric.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -402,7 +452,7 @@ func (a *App) notifyAdminsOfWarnMetricStatus(warnMetricId string, isE0Edition bo
 		}}
 		model.ParseSlackAttachment(botPost, attachments)
 
-		mlog.Debug("Send admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
+		mlog.Debug("Post admin advisory for metric", mlog.String("warnMetricId", warnMetricId), mlog.String("userid", botPost.UserId))
 		if _, err := a.CreatePostAsUser(botPost, a.Session().Id, true); err != nil {
 			return err
 		}
@@ -444,7 +494,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			bodyPage.Props["TelemetryIdValue"] = a.TelemetryId()
 			bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
-			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
+			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 			if warnMetricStatus == nil {
 				return model.NewAppError("NotifyAndSetWarnMetricAck", "api.email.send_warn_metric_ack.invalid_warn_metric.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -481,7 +531,7 @@ func (a *App) setWarnMetricsStatus(status string) *model.AppError {
 }
 
 func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *model.AppError {
-	mlog.Info("Storing user acknowledgement for warn metric", mlog.String("warnMetricId", warnMetricId))
+	mlog.Info("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
 	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
 		Name:  warnMetricId,
 		Value: status,

@@ -443,20 +443,20 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		HasReactions: true,
 	}
 
-	botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
-
 	isE0Edition := (model.BuildEnterpriseReady == "true")
 	if isE0Edition {
+		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.start_trial_success.message")
 		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			botPost.Message = utils.T("api.server.warn_metric.bot_response.notification_failure.message")
+			botPost.Message = utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
 			attachements := []*model.SlackAttachment{{
 				AuthorName: "",
 				Title:      "",
-				Text:       utils.T("api.server.warn_metric.bot_response.notification_failure.body"),
+				Text:       utils.T("api.server.warn_metric.bot_response.start_trial_failure.body"),
 			}}
 			model.ParseSlackAttachment(botPost, attachements)
 		}
 	} else {
+		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
 		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
 			if forceAck {
@@ -521,7 +521,7 @@ func (mlc *MailToLinkContent) ToJson() string {
 
 func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
 	T := utils.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.BotMailToBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})

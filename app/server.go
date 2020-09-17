@@ -1220,18 +1220,9 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
-	channelOpenCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
 		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
-	}
-
-	totalChannelCount := channelOpenCount
-	if channelOpenCount < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit {
-		channelPrivateCount, err3 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_PRIVATE)
-		if err3 != nil {
-			mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
-		}
-		totalChannelCount += channelPrivateCount
 	}
 
 	postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
@@ -1239,10 +1230,9 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
 	}
 
-	//If an account is created with a different email domain
-	//search for an entry that has an email account different from the current domain
-
-	//get domain account from site url
+	// If an account is created with a different email domain
+	// Search for an entry that has an email account different from the current domain
+	// Get domain account from site url
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err5 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err5 != nil {
@@ -1250,11 +1240,12 @@ func doCheckWarnMetricStatus(a *App) {
 	}
 
 	warnMetrics := []model.WarnMetric{}
+
 	if numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25].Limit {
 		return
 	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
-	} else if totalChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50]) {
+	} else if openChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
 	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_MFA], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA]) {
 		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
@@ -1271,12 +1262,12 @@ func doCheckWarnMetricStatus(a *App) {
 		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300]) {
 			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
 		} else if !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]) {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500])
-		}
+			tWarnMetric := model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
 
-		//TODO - which group does it belong?
-		if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]) {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K])
+			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]) {
+				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]
+			}
+			warnMetrics = append(warnMetrics, tWarnMetric)
 		}
 	}
 
@@ -1289,7 +1280,7 @@ func doCheckWarnMetricStatus(a *App) {
 			continue
 		}
 
-		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil)
+		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
 		if !warnMetric.IsBotOnly {
 			// Banner and bot metrics - send websocket event
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
