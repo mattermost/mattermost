@@ -612,9 +612,9 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 
 	updatedCategories := []*model.SidebarCategoryWithChannels{}
 	for _, category := range categories {
-		originalCategory, nErr := s.GetSidebarCategory(category.Id)
-		if nErr != nil {
-			return nil, errors.Wrap(nErr, "failed to find SidebarCategories")
+		originalCategory, err2 := s.GetSidebarCategory(category.Id)
+		if err2 != nil {
+			return nil, errors.Wrap(err2, "failed to find SidebarCategories")
 		}
 
 		// Copy category to avoid modifying an argument
@@ -652,7 +652,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			// Remove any SidebarChannels entries that were either:
 			// - previously in this category (and any ones that are still in the category will be recreated below)
 			// - in another category and are being added to this category
-			query, args, nErr := s.getQueryBuilder().
+			query, args, err2 := s.getQueryBuilder().
 				Delete("SidebarChannels").
 				Where(
 					sq.And{
@@ -664,8 +664,8 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 					},
 				).ToSql()
 
-			if nErr != nil {
-				return nil, errors.Wrap(nErr, "update_sidebar_catetories_tosql")
+			if err2 != nil {
+				return nil, errors.Wrap(err2, "update_sidebar_catetories_tosql")
 			}
 
 			if _, err = transaction.Exec(query, args...); err != nil {
