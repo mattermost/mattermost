@@ -2,8 +2,12 @@ package logger
 
 import "time"
 
-const timed = "__since"
-const elapsed = "Elapsed"
+const (
+	timed   = "__since"
+	elapsed = "Elapsed"
+
+	ErrorKey = "error"
+)
 
 // LogLevel defines the level of log messages
 type LogLevel string
@@ -26,6 +30,8 @@ type LogContext map[string]interface{}
 type Logger interface {
 	// With adds a logContext to the logger.
 	With(LogContext) Logger
+	// WithError adds an Error to the logger.
+	WithError(error) Logger
 	// Context returns the current context
 	Context() LogContext
 	// Timed add a timed log context.

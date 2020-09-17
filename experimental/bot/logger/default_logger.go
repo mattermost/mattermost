@@ -39,6 +39,15 @@ func (l *defaultLogger) With(logContext LogContext) Logger {
 	return &newLogger
 }
 
+func (l *defaultLogger) WithError(err error) Logger {
+	newLogger := *l
+	if len(newLogger.logContext) == 0 {
+		newLogger.logContext = map[string]interface{}{}
+	}
+	newLogger.logContext[ErrorKey] = err.Error()
+	return &newLogger
+}
+
 func (l *defaultLogger) Context() LogContext {
 	return l.logContext
 }
