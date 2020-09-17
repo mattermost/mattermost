@@ -1282,12 +1282,12 @@ func doCheckWarnMetricStatus(a *App) {
 
 		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
 		if !warnMetric.IsBotOnly {
-			// Banner and bot metrics - send websocket event
+			// Banner and bot metric types - send websocket event every interval
 			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
 			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
 			a.Publish(message)
 
-			// Bot and banner metrics, do not send the bot message again
+			// Banner and bot metric types, send the bot message only once
 			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
 				continue
 			}
