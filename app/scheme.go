@@ -171,7 +171,7 @@ func (a *App) GetTeamsForScheme(scheme *model.Scheme, offset int, limit int) ([]
 
 	teams, err := a.Srv().Store.Team().GetTeamsByScheme(scheme.Id, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetTeamsForScheme", "app.team.get_by_scheme.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return teams, nil
 }
