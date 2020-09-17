@@ -443,11 +443,10 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		HasReactions: true,
 	}
 
-	isE0Edition := (model.BuildEnterpriseReady == "true")
+	isE0Edition := (model.BuildEnterpriseReady == "true") && (a.Srv().License() == nil)
 	if isE0Edition {
 		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.start_trial_success.message")
 		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			botPost.Message = utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
 			attachements := []*model.SlackAttachment{{
 				AuthorName: "",
 				Title:      "",

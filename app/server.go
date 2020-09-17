@@ -1263,7 +1263,6 @@ func doCheckWarnMetricStatus(a *App) {
 			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
 		} else if !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]) {
 			tWarnMetric := model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
-
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]) {
 				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]
 			}
@@ -1271,7 +1270,7 @@ func doCheckWarnMetricStatus(a *App) {
 		}
 	}
 
-	isE0Edition := (model.BuildEnterpriseReady == "true")
+	isE0Edition := (model.BuildEnterpriseReady == "true") //license == nil was already validated upstream
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
