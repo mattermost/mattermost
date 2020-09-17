@@ -139,7 +139,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 		return err
 	}
 
-	appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, false, isBot)
+	appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true, isBot)
 	if appErr != nil {
 		return appErr
 	}
