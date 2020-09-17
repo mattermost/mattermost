@@ -4811,6 +4811,10 @@
     "translation": "We encountered an error finding the team."
   },
   {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Unable to count the team members."
+  },
+  {
     "id": "app.team.get_all.app_error",
     "translation": "We could not get all teams."
   },
@@ -4843,8 +4847,28 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
+    "id": "app.team.get_member.app_error",
+    "translation": "Unable to get the team member."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "No team member found for that user ID and team ID."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Unable to count the team members."
+  },
+  {
     "id": "app.team.get_members.app_error",
     "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Unable to get the teams unread messages."
   },
   {
     "id": "app.team.get_user_team_ids.app_error",
@@ -4905,6 +4929,10 @@
   {
     "id": "app.team.save.existing.app_error",
     "translation": "Must call update for existing team."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Unable to save the team member."
   },
   {
     "id": "app.team.search_all_team.app_error",
@@ -7671,36 +7699,8 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
-    "id": "store.sql_team.get_active_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_member.app_error",
-    "translation": "Unable to get the team member."
-  },
-  {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "No team member found for that user ID and team ID."
-  },
-  {
-    "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Unable to get the team members."
-  },
-  {
-    "id": "store.sql_team.get_unread.app_error",
-    "translation": "Unable to get the teams unread messages."
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
-  },
-  {
-    "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Unable to save the team member."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -7873,10 +7873,6 @@
   {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Failed to get current team member count."
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",
