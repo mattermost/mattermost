@@ -1565,6 +1565,10 @@
     "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com."
   },
   {
+    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
+    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
+  },
+  {
     "id": "api.license.request_trial_license.no-site-url.app_error",
     "translation": "Unable to request a trial license. Please configure a Site URL in the web server section of the Mattermost System Console."
   },
@@ -2028,10 +2032,6 @@
   },
   {
     "id": "api.server.warn_metric.bot_response.start_trial_failure.body",
-    "translation": "Trial could not be started."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
     "translation": "Trial could not be started."
   },
   {

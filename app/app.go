@@ -112,12 +112,18 @@ func (a *App) InitServer() {
 
 func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
 	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("requestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
 	currentUser, appErr := a.GetUser(a.Session().UserId)
 	if appErr != nil {
 		return appErr
+	}
+
+	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
@@ -126,13 +132,13 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 		Email:                 currentUser.Email,
 		SiteName:              *a.Config().TeamSettings.SiteName,
 		SiteURL:               *a.Config().ServiceSettings.SiteURL,
-		Users:                 30,
+		Users:                 int(registeredUsersCount),
 		TermsAccepted:         true,
 		ReceiveEmailsAccepted: true,
 	}
 
 	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestTrialLicense", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
