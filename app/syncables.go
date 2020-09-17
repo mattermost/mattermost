@@ -215,7 +215,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 	case model.GroupSyncableTypeChannel:
 		nErr := a.Srv().Store.Channel().UpdateMembersRole(syncableID, permittedAdmins)
 		if nErr != nil {
-			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("App.SyncSyncableRoles", "store.update_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 		return nil
 	default:

@@ -2034,7 +2034,7 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 
 	_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId})
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Channel with channelId=%s", channelId)
+		return errors.Wrapf(err, "failed to delete ChannelMembers with channelId=%s", channelId)
 	}
 	return nil
 }

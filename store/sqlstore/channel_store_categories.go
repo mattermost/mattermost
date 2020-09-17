@@ -404,7 +404,7 @@ func (s SqlChannelStore) completePopulatingCategoryChannelsT(transation *gorp.Tr
 	}
 
 	if _, err = transation.Select(&channels, sql, args...); err != nil {
-		return nil, store.NewErrNotFound("ChannelMembers", "TooManyFilters")
+		return nil, store.NewErrNotFound("ChannelMembers", "<too many fields>")
 	}
 
 	category.Channels = append(channels, category.Channels...)

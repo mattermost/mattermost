@@ -156,7 +156,7 @@ func (c *SearchChannelStore) AutocompleteInTeam(teamId string, term string, incl
 	}
 
 	if appErr != nil {
-		return nil, appErr
+		return channelList, appErr
 	}
 
 	return channelList, nil

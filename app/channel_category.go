@@ -64,13 +64,10 @@ func (a *App) waitForSidebarCategories(userId, teamId string) (*model.OrderedSid
 		time.Sleep(100 * time.Millisecond)
 
 		categories, err := a.Srv().Store.Channel().GetSidebarCategories(userId, teamId)
-		if err != nil {
-			return nil, err
-		}
 
-		if len(categories.Categories) > 0 {
+		if err != nil || len(categories.Categories) > 0 {
 			// We've found something, so return
-			return categories, nil
+			return categories, err
 		}
 	}
 
