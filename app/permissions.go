@@ -20,7 +20,7 @@ const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents coll
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
 	if err := a.Srv().Store.Team().ResetAllTeamSchemes(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Channels to not have a scheme.
@@ -35,7 +35,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Reset all Custom Role assignments to TeamMembers.
 	if err := a.Srv().Store.Team().ClearAllCustomRoleAssignments(); err != nil {
-		return err
+		return model.NewAppError("ResetPermissionsSystem", "app.team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Custom Role assignments to ChannelMembers.

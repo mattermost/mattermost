@@ -1055,9 +1055,9 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedTeamCount, err := ts.dbStore.Team().GroupSyncedTeamCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedTeamCount, nErr := ts.dbStore.Team().GroupSyncedTeamCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupSyncedChannelCount, nErr := ts.dbStore.Channel().GroupSyncedChannelCount()

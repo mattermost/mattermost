@@ -97,18 +97,6 @@ type AppOptionCreator func() []AppOption
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
 		a.srv = s
-		a.log = s.Log
-		a.notificationsLog = s.NotificationsLog
-
-		a.cluster = s.Cluster
-		a.compliance = s.Compliance
-		a.dataRetention = s.DataRetention
 		a.searchEngine = s.SearchEngine
-		a.messageExport = s.MessageExport
-		a.metrics = s.Metrics
-
-		a.httpService = s.HTTPService
-		a.imageProxy = s.ImageProxy
-		a.timezones = s.timezones
 	}
 }

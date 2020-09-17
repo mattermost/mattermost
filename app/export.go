@@ -124,9 +124,8 @@ func (a *App) exportAllTeams(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		teams, err := a.Srv().Store.Team().GetAllForExportAfter(1000, afterId)
-
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(teams) == 0 {
@@ -263,7 +262,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 	members, err := a.Srv().Store.Team().GetTeamMembersForExport(userId)
 
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("buildUserTeamAndChannelMemberships", "app.team.get_members.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, member := range members {

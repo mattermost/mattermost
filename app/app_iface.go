@@ -296,6 +296,8 @@ type AppIface interface {
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
 	SyncSyncableRoles(syncableID string, syncableType model.GroupSyncableType) *model.AppError
+	// TODO: change this to make a server method.
+	SetLog(l *mlog.Logger)
 	// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
 	// groups.
 	//
@@ -688,11 +690,11 @@ type AppIface interface {
 	GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError)
 	GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetUsersEtag(restrictionsHash string) string
-	GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError)
-	GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError)
-	GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError)
+	GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
+	GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetUsersInTeamEtag(teamId string, restrictionsHash string) string
 	GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
@@ -893,7 +895,6 @@ type AppIface interface {
 	SetContext(c context.Context)
 	SetDefaultProfileImage(user *model.User) *model.AppError
 	SetIpAddress(s string)
-	SetLog(l *mlog.Logger)
 	SetPath(s string)
 	SetPhase2PermissionsMigrationStatus(isComplete bool) error
 	SetPluginKey(pluginId string, key string, value []byte) *model.AppError
