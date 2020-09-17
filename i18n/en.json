@@ -5447,6 +5447,10 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": "We encountered an error permanently deleting the batch of posts."
+  },
+  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
@@ -5545,6 +5549,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": "Unable to get the posts batch for indexing."
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
