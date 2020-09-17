@@ -7863,10 +7863,6 @@
     "translation": "Unable to delete the existing account."
   },
   {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Failed to get current team member count."
-  },
-  {
     "id": "store.sql_user.search.app_error",
     "translation": "Unable to find any user matching the search parameters."
   },
