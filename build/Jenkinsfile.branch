@@ -51,33 +51,13 @@ pipeline {
               platformStages.platformCheckoutRedux(env.BRANCH_NAME)
               SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
               try {
-                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
+                platformStages.cloudWithRudderBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
               } finally {
                 platformStages.platformPublishResults()
                 platformStages.platformCleanDockerCompose(rndEE)
               }
             }
             stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eedist'
-          }
-        }
-        stage ('Build TE') {
-          agent {
-            label 'default-mm-builder'
-          }
-          steps {
-            script {
-              forcefullyCleanWorkspace(mmBuilderServer)
-              platformStages.platformCheckoutTE(env.BRANCH_NAME)
-              platformStages.platformCheckoutRedux(env.BRANCH_NAME)
-              SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
-              try {
-                platformStages.after5Dot20AddGOBINBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
-              } finally {
-                platformStages.platformPublishResults()
-                platformStages.platformCleanDockerCompose(rndTE)
-              }
-            }
-            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'tedist'
           }
         }
       }
@@ -94,17 +74,7 @@ pipeline {
         }
       }
     }
-    stage ('Push TE') {
-      steps {
-        node('master') {
-          forcefullyCleanWorkspace(mmBuilderServer)
-          unstash 'tedist'
-          script {
-            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME, 'mattermost-team-*',false)
-          }
-        }
-      }
-    }
+
     stage ('CleanCloudfront') {
       steps {
         node('master') {
@@ -115,7 +85,7 @@ pipeline {
       }
     }
 
-    stage ('Build Docker Images') {
+    stage ('Build Docker Images Cloud Beta') {
       agent {
         label 'default-mm-builder'
       }
@@ -125,17 +95,15 @@ pipeline {
           platformStages.platformCheckoutTE(env.BRANCH_NAME)
         }
         dir('src/github.com/mattermost/mattermost-server') {
-          withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS'), string(credentialsId: 'mattermost-enterprise-docker-trust-pass', variable: 'DCT_ENTERPRISE_PASS')]) {
             sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
             sh """
-            export TAG='${env.BRANCH_NAME}'
-            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mattermost-enterprise-edition:\${TAG} build
-            docker push mattermost/mattermost-enterprise-edition:\${TAG}
-            """
-            sh """
-            export TAG='${env.BRANCH_NAME}'
-            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-team-linux-amd64.tar.gz -t mattermost/mattermost-team-edition:\${TAG} build
-            docker push mattermost/mattermost-team-edition:\${TAG}
+            export TAG=$(git rev-parse --short=7 HEAD)
+            docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mm-cloud-ee:\${TAG} -t mattermost/mm-cloud-ee:latest build
+
+            export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE=${DCT_ENTERPRISE_PASS}
+            docker push mattermost/mm-cloud-ee:\${TAG}
+            docker push mattermost/mm-cloud-ee:latest
             docker logout
             """
           }
