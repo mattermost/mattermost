@@ -80,7 +80,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
@@ -94,6 +94,7 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-incident-response-v0.6.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -115,7 +116,7 @@ ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+MMCTL_REL_TO_DOWNLOAD:=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
@@ -188,6 +189,10 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+	@exit 1
+endif
 # Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
@@ -228,9 +233,17 @@ i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
 
+i18n-check: ## Exit on empty translation strings except in english base file
+	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
+	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
+
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+
+telemetry-mocks: ## Creates mock files.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store

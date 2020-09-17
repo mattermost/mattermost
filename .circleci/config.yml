@@ -22,13 +22,13 @@ jobs:
       - checkout
       - run: |
           cd ../
-          git clone https://github.com/mattermost/mattermost-webapp.git
+          git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-webapp.git
           cd mattermost-webapp
           git checkout $CIRCLE_BRANCH || git checkout master
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'npm ci && make build' ERR
+          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
           trap - ERR
@@ -53,7 +53,7 @@ jobs:
           at: ~/mattermost/
       - run:
           name: Checkout config
-          command: cd .. && git clone https://github.com/mattermost/security-automation-config
+          command: cd .. && git clone --depth=1 https://github.com/mattermost/security-automation-config
       - run:
           name: Install Go
           command: sudo apt-get update && sudo apt-get install golang
@@ -65,7 +65,12 @@ jobs:
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
-                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                command: |
+                  if ! ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly; then
+                    # Update failed, probably due to a bad DB version; delete cached DB and try again
+                    rm -rv ~/.owasp/dependency-check-data/*.db
+                    ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                  fi
             - owasp/store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
@@ -134,7 +139,7 @@ jobs:
           at: ~/mattermost/
       - run:
           command: |
-            git clone https://github.com/mattermost/mattermost-api-reference.git
+            git clone --depth=1 --no-single-branch https://github.com/mattermost/mattermost-api-reference.git
             cd mattermost-api-reference
             echo "Trying to checkout the same branch on mattermost-api-reference as mattermost-server"
             git checkout ${CIRCLE_BRANCH} || true

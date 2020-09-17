@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	SYSTEM_DIAGNOSTIC_ID                          = "DiagnosticId"
+	SYSTEM_TELEMETRY_ID                           = "DiagnosticId"
 	SYSTEM_RAN_UNIT_TESTS                         = "RanUnitTests"
 	SYSTEM_LAST_SECURITY_TIME                     = "LastSecurityTime"
 	SYSTEM_ACTIVE_LICENSE_ID                      = "ActiveLicenseId"
@@ -20,6 +20,7 @@ const (
 	SYSTEM_INSTALLATION_DATE_KEY                  = "InstallationDate"
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
+	SYSTEM_UPGRADED_FROM_TE_ID                    = "UpgradedFromTE"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200 = "warn_metric_number_of_active_users_200"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_400 = "warn_metric_number_of_active_users_400"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
@@ -98,7 +99,7 @@ var WarnMetricsTable = map[string]WarnMetric{
 		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500,
 		Limit:     500,
 		IsBotOnly: false,
-		IsRunOnce: false,
+		IsRunOnce: true,
 	},
 }
 

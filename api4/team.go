@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	MAX_ADD_MEMBERS_BATCH    = 20
+	MAX_ADD_MEMBERS_BATCH    = 256
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
 	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
 )
@@ -392,8 +392,8 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if c.App.Session().UserId != c.Params.UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_USERS)
 		return
 	}
 
@@ -503,8 +503,8 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_READ_OTHER_USERS_TEAMS) {
+		c.SetPermissionError(model.PERMISSION_READ_OTHER_USERS_TEAMS)
 		return
 	}
 
@@ -1177,6 +1177,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailList := model.ArrayFromJson(r.Body)
+
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
 	}
@@ -1193,7 +1194,21 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("emails", emailList)
 
 	if graceful {
-		invitesWithError, err := c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
+		var invitesOverLimit []*model.EmailInviteWithError
+		if cloudUserLimit > 0 && c.IsSystemAdmin() {
+			emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
+		}
+		var invitesWithError []*model.EmailInviteWithError
+		var err *model.AppError
+		if emailList != nil {
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.App.Session().UserId)
+		}
+
+		if len(invitesOverLimit) > 0 {
+			invitesWithError = append(invitesWithError, invitesOverLimit...)
+		}
+
 		if invitesWithError != nil {
 			errList := make([]string, 0, len(invitesWithError))
 			for _, inv := range invitesWithError {
@@ -1462,8 +1477,8 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), c.Params.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -1522,8 +1537,8 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		groupIDs = append(groupIDs, gid)
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 		return
 	}
 

@@ -667,12 +667,18 @@ func (us SqlUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {}
 
 func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {}
 
-func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
-		Where("cm.ChannelId = ?", channelId).
+		Where("cm.ChannelId = ?", options.InChannelId).
 		OrderBy("u.Username ASC").
-		Offset(uint64(offset)).Limit(uint64(limit))
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+	if options.Inactive {
+		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active {
+		query = query.Where("u.DeleteAt = 0")
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -691,11 +697,11 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
+func (us SqlUserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
 		LeftJoin("Status s ON ( s.UserId = u.Id )").
-		Where("cm.ChannelId = ?", channelId).
+		Where("cm.ChannelId = ?", options.InChannelId).
 		OrderBy(`
 			CASE s.Status
 				WHEN 'online' THEN 1
@@ -705,7 +711,13 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 			END
 			`).
 		OrderBy("u.Username ASC").
-		Offset(uint64(offset)).Limit(uint64(limit))
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+	if options.Inactive && !options.Active {
+		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active && !options.Inactive {
+		query = query.Where("u.DeleteAt = 0")
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -1134,7 +1146,7 @@ func (us SqlUserStore) GetByUsername(username string) (*model.User, *model.AppEr
 
 	var user *model.User
 	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error", nil, err.Error()+" -- "+queryString, http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlUserStore.GetByUsername", "store.sql_user.get_by_username.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return user, nil

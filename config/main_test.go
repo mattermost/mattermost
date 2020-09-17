@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/testlib"
 	"github.com/stretchr/testify/require"
@@ -20,6 +21,8 @@ func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
 		EnableStore: true,
 	}
+
+	mlog.DisableZap()
 
 	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()

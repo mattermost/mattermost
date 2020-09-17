@@ -313,6 +313,14 @@ func (c *Client4) GetFileRoute(fileId string) string {
 	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
 }
 
+func (c *Client4) GetUploadsRoute() string {
+	return "/uploads"
+}
+
+func (c *Client4) GetUploadRoute(uploadId string) string {
+	return fmt.Sprintf("%s/%s", c.GetUploadsRoute(), uploadId)
+}
+
 func (c *Client4) GetPluginsRoute() string {
 	return "/plugins"
 }
@@ -1178,6 +1186,17 @@ func (c *Client4) GenerateMfaSecret(userId string) (*MfaSecret, *Response) {
 // UpdateUserPassword updates a user's password. Must be logged in as the user or be a system administrator.
 func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *Response) {
 	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// UpdateUserHashedPassword updates a user's password with an already-hashed password. Must be a system administrator.
+func (c *Client4) UpdateUserHashedPassword(userId, newHashedPassword string) (bool, *Response) {
+	requestBody := map[string]string{"already_hashed": "true", "new_password": newHashedPassword}
 	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
@@ -3660,7 +3679,7 @@ func (c *Client4) GetSamlMetadata() (string, *Response) {
 	return buf.String(), BuildResponse(r)
 }
 
-func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
+func fileToMultipart(data []byte, filename string) ([]byte, *multipart.Writer, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
@@ -3683,7 +3702,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlIdpCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3695,7 +3714,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPublicCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3707,7 +3726,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
 // The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
-	body, writer, err := samlFileToMultipart(data, filename)
+	body, writer, err := fileToMultipart(data, filename)
 	if err != nil {
 		return false, &Response{Error: NewAppError("UploadSamlPrivateCertificate", "model.client.upload_saml_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
@@ -3875,7 +3894,19 @@ func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 
-	return GroupsFromJson(r.Body), BuildResponse(r)
+	responseData := struct {
+		Count  int      `json:"count"`
+		Groups []*Group `json:"groups"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+		appErr := NewAppError("Api4.GetLdapGroups", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	for i := range responseData.Groups {
+		responseData.Groups[i].DisplayName = *responseData.Groups[i].Name
+	}
+
+	return responseData.Groups, BuildResponse(r)
 }
 
 // LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
@@ -4028,6 +4059,74 @@ func (c *Client4) GetGroupsByUserId(userId string) ([]*Group, *Response) {
 	}
 	defer closeBody(r)
 	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/migrate_auth/ldap", StringInterfaceToJson(map[string]interface{}{
+		"from":        fromAuthService,
+		"force":       force,
+		"match_field": matchField,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+func (c *Client4) MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/migrate_auth/saml", StringInterfaceToJson(map[string]interface{}{
+		"from":    fromAuthService,
+		"auto":    auto,
+		"matches": usersMap,
+	}))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// UploadLdapPublicCertificate will upload a public certificate for LDAP and set the config to use it.
+func (c *Client4) UploadLdapPublicCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PUBIC_CERTIFICATE_NAME)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPublicCertificate", "model.client.upload_ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/public", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// UploadLdapPrivateCertificate will upload a private key for LDAP and set the config to use it.
+func (c *Client4) UploadLdapPrivateCertificate(data []byte) (bool, *Response) {
+	body, writer, err := fileToMultipart(data, LDAP_PRIVATE_KEY_NAME)
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLdapPrivateCertificate", "model.client.upload_Ldap_cert.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	_, resp := c.DoUploadFile(c.GetLdapRoute()+"/certificate/private", body, writer.FormDataContentType())
+	return resp.Error == nil, resp
+}
+
+// DeleteLdapPublicCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPublicCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/public")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DeleteLDAPPrivateCertificate deletes the LDAP IDP certificate from the server and updates the config to not use it and disable LDAP.
+func (c *Client4) DeleteLdapPrivateCertificate() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetLdapRoute() + "/certificate/private")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
 }
 
 // Audits Section
@@ -5356,6 +5455,24 @@ func (c *Client4) CreateSidebarCategoryForTeamForUser(userID, teamID string, cat
 	return cat, BuildResponse(r)
 }
 
+func (c *Client4) UpdateSidebarCategoriesForTeamForUser(userID, teamID string, categories []*SidebarCategoryWithChannels) ([]*SidebarCategoryWithChannels, *Response) {
+	payload, _ := json.Marshal(categories)
+	route := c.GetUserCategoryRoute(userID, teamID)
+
+	r, appErr := c.doApiPutBytes(route, payload)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	categories, err := SidebarCategoriesFromJson(r.Body)
+	if err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
+	}
+
+	return categories, BuildResponse(r)
+}
+
 func (c *Client4) GetSidebarCategoryOrderForTeamForUser(userID, teamID, etag string) ([]string, *Response) {
 	route := c.GetUserCategoryRoute(userID, teamID) + "/order"
 	r, err := c.DoApiGet(route, etag)
@@ -5386,7 +5503,7 @@ func (c *Client4) GetSidebarCategoryForTeamForUser(userID, teamID, categoryID, e
 	defer closeBody(r)
 	cat, err := SidebarCategoryFromJson(r.Body)
 	if err != nil {
-		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(c.GetUserRoute(userID), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 
 	return cat, BuildResponse(r)
@@ -5402,7 +5519,7 @@ func (c *Client4) UpdateSidebarCategoryForTeamForUser(userID, teamID, categoryID
 	defer closeBody(r)
 	cat, err := SidebarCategoryFromJson(r.Body)
 	if err != nil {
-		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(c.GetUserRoute(userID), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+		return nil, BuildErrorResponse(r, NewAppError("Client4.UpdateSidebarCategoriesForTeamForUser", "model.utils.decode_json.app_error", nil, err.Error(), r.StatusCode))
 	}
 
 	return cat, BuildResponse(r)
@@ -5421,4 +5538,47 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	return results, BuildResponse(r)
+}
+
+// CreateUpload creates a new upload session.
+func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
+	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUpload returns the upload session for the specified uploadId.
+func (c *Client4) GetUpload(uploadId string) (*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUploadRoute(uploadId), "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionFromJson(r.Body), BuildResponse(r)
+}
+
+// GetUploadsForUser returns the upload sessions created by the specified
+// userId.
+func (c *Client4) GetUploadsForUser(userId string) ([]*UploadSession, *Response) {
+	r, err := c.DoApiGet(c.GetUserRoute(userId)+"/uploads", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UploadSessionsFromJson(r.Body), BuildResponse(r)
+}
+
+// UploadData performs an upload. On success it returns
+// a FileInfo object.
+func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Response) {
+	url := c.GetUploadRoute(uploadId)
+	r, err := c.doApiRequestReader("POST", c.ApiUrl+url, data, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return FileInfoFromJson(r.Body), BuildResponse(r)
 }

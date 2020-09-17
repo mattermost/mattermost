@@ -1071,8 +1071,8 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err := ss.Team().Save(t1)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(t1)
+	require.Nil(t, nErr)
 
 	// New GroupSyncable, happy path
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -1108,8 +1108,8 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err := ss.Team().Save(t1)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(t1)
+	require.Nil(t, nErr)
 
 	// Create GroupSyncable
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -1157,8 +1157,8 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 			Type:            model.TEAM_OPEN,
 		}
 		var team *model.Team
-		team, err = ss.Team().Save(t1)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(t1)
+		require.Nil(t, nErr)
 
 		// create groupteam
 		var groupTeam *model.GroupSyncable
@@ -1208,8 +1208,8 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err := ss.Team().Save(t1)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(t1)
+	require.Nil(t, nErr)
 
 	// New GroupSyncable, happy path
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -1274,8 +1274,8 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err := ss.Team().Save(t1)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(t1)
+	require.Nil(t, nErr)
 
 	// Create GroupSyncable
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -1339,8 +1339,8 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(team)
+	require.Nil(t, nErr)
 
 	// Create GroupTeam
 	syncable, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
@@ -1416,16 +1416,16 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 
 	// No result if Team deleted
 	team.DeleteAt = model.GetMillis()
-	team, err = ss.Team().Update(team)
-	require.Nil(t, err)
+	team, nErr = ss.Team().Update(team)
+	require.Nil(t, nErr)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Empty(t, teamMembers)
 
 	// reset state of team and verify
 	team.DeleteAt = 0
-	team, err = ss.Team().Update(team)
-	require.Nil(t, err)
+	team, nErr = ss.Team().Update(team)
+	require.Nil(t, nErr)
 	teamMembers, err = ss.Group().TeamMembersToAdd(0, nil)
 	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
@@ -1459,7 +1459,7 @@ func testTeamMembersToAdd(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 1)
 
 	// adding team membership stops returning result
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
 	}, 999)
@@ -1524,8 +1524,8 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team1, err = ss.Team().Save(team1)
-	require.Nil(t, err)
+	team1, nErr := ss.Team().Save(team1)
+	require.Nil(t, nErr)
 
 	team2 := &model.Team{
 		DisplayName:     "Name",
@@ -1537,8 +1537,8 @@ func testTeamMembersToAddSingleTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team2, err = ss.Team().Save(team2)
-	require.Nil(t, err)
+	team2, nErr = ss.Team().Save(team2)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group1.Id, team1.Id, true))
 	require.Nil(t, err)
@@ -1875,12 +1875,12 @@ func testTeamMembersToRemove(t *testing.T, ss store.Store) {
 	require.Nil(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, err)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, nErr)
 }
 
 func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
@@ -1916,8 +1916,8 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		Type:             model.TEAM_OPEN,
 		GroupConstrained: model.NewBool(true),
 	}
-	team1, err = ss.Team().Save(team1)
-	require.Nil(t, err)
+	team1, nErr := ss.Team().Save(team1)
+	require.Nil(t, nErr)
 
 	team2 := &model.Team{
 		DisplayName:      "Name",
@@ -1930,18 +1930,18 @@ func testTeamMembersToRemoveSingleTeam(t *testing.T, ss store.Store) {
 		Type:             model.TEAM_OPEN,
 		GroupConstrained: model.NewBool(true),
 	}
-	team2, err = ss.Team().Save(team2)
-	require.Nil(t, err)
+	team2, nErr = ss.Team().Save(team2)
+	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, nErr := ss.Team().SaveMember(&model.TeamMember{
+		_, nErr = ss.Team().SaveMember(&model.TeamMember{
 			TeamId: team1.Id,
 			UserId: user.Id,
 		}, 999)
 		require.Nil(t, nErr)
 	}
 
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team2.Id,
 		UserId: user3.Id,
 	}, 999)
@@ -2027,12 +2027,12 @@ func testChannelMembersToRemove(t *testing.T, ss store.Store) {
 	require.Nil(t, res)
 	res = ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, err)
-	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, err)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, nErr)
+	nErr = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, nErr)
 }
 
 func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
@@ -2076,20 +2076,20 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 	}
 
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel2.Id,
 		UserId:      user3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	channelMembers, err := ss.Group().ChannelMembersToRemove(nil)
 	require.Nil(t, err)
@@ -2189,8 +2189,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.TEAM_INVITE,
 		GroupConstrained: model.NewBool(true),
 	}
-	teamConstrained, err = ss.Team().Save(teamConstrained)
-	require.Nil(t, err)
+	teamConstrained, nErr = ss.Team().Save(teamConstrained)
+	require.Nil(t, nErr)
 
 	teamUnconstrained := &model.Team{
 		DisplayName:     "Name",
@@ -2202,8 +2202,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_INVITE,
 	}
-	teamUnconstrained, err = ss.Team().Save(teamUnconstrained)
-	require.Nil(t, err)
+	teamUnconstrained, nErr = ss.Team().Save(teamUnconstrained)
+	require.Nil(t, nErr)
 
 	// create groupteams
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, teamConstrained.Id, true))
@@ -3900,8 +3900,8 @@ func groupTestAdminRoleGroupsForSyncableMemberTeam(t *testing.T, ss store.Store)
 		Name:        "zz" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(team)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:     true,
@@ -4003,8 +4003,8 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	team, err = ss.Team().Save(team)
-	require.Nil(t, err)
+	team, nErr := ss.Team().Save(team)
+	require.Nil(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:     true,

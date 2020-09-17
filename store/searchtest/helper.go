@@ -164,9 +164,9 @@ func (th *SearchTestHelper) deleteTeam(team *model.Team) error {
 	if appError != nil {
 		return errors.New(appError.Error())
 	}
-	appError = th.Store.Team().PermanentDelete(team.Id)
-	if appError != nil {
-		return errors.New(appError.Error())
+	err := th.Store.Team().PermanentDelete(team.Id)
+	if err != nil {
+		return err
 	}
 
 	return nil

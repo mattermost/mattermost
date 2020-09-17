@@ -169,7 +169,7 @@ func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) string {
 }
 
 // GetFlaggedPosts provides a mock function with given fields: userId, offset, limit
-func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, offset, limit)
 
 	var r0 *model.PostList
@@ -181,20 +181,18 @@ func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*mod
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int, int) error); ok {
 		r1 = rf(userId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetFlaggedPostsForChannel provides a mock function with given fields: userId, channelId, offset, limit
-func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, channelId, offset, limit)
 
 	var r0 *model.PostList
@@ -206,20 +204,18 @@ func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, 
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(userId, channelId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetFlaggedPostsForTeam provides a mock function with given fields: userId, teamId, offset, limit
-func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset int, limit int) (*model.PostList, error) {
 	ret := _m.Called(userId, teamId, offset, limit)
 
 	var r0 *model.PostList
@@ -231,13 +227,11 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string, int, int) error); ok {
 		r1 = rf(userId, teamId, offset, limit)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -331,7 +325,7 @@ func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*mod
 }
 
 // GetPostAfterTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
+func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 *model.Post
@@ -343,20 +337,18 @@ func (_m *PostStore) GetPostAfterTime(channelId string, time int64) (*model.Post
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(channelId, time)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetPostIdAfterTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, *model.AppError) {
+func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 string
@@ -366,20 +358,18 @@ func (_m *PostStore) GetPostIdAfterTime(channelId string, time int64) (string, *
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(channelId, time)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
 }
 
 // GetPostIdBeforeTime provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, *model.AppError) {
+func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, error) {
 	ret := _m.Called(channelId, time)
 
 	var r0 string
@@ -389,13 +379,11 @@ func (_m *PostStore) GetPostIdBeforeTime(channelId string, time int64) (string, 
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
 		r1 = rf(channelId, time)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -427,7 +415,7 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 }
 
 // GetPostsAfter provides a mock function with given fields: options
-func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostList, error) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
@@ -439,13 +427,11 @@ func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions) (*model.PostLi
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -477,7 +463,7 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // GetPostsBefore provides a mock function with given fields: options
-func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostList, error) {
 	ret := _m.Called(options)
 
 	var r0 *model.PostList
@@ -489,13 +475,11 @@ func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions) (*model.PostL
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsOptions) error); ok {
 		r1 = rf(options)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -552,7 +536,7 @@ func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.P
 }
 
 // GetPostsSince provides a mock function with given fields: options, allowFromCache
-func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	ret := _m.Called(options, allowFromCache)
 
 	var r0 *model.PostList
@@ -564,13 +548,11 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool) *model.AppError); ok {
+	var r1 error
+	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool) error); ok {
 		r1 = rf(options, allowFromCache)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -815,13 +797,13 @@ func (_m *PostStore) Search(teamId string, userId string, params *model.SearchPa
 	return r0, r1
 }
 
-// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage
-func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
-	ret := _m.Called(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+// SearchPostsInTeamForUser provides a mock function with given fields: paramsList, userId, teamId, page, perPage
+func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId string, teamId string, page int, perPage int) (*model.PostSearchResults, *model.AppError) {
+	ret := _m.Called(paramsList, userId, teamId, page, perPage)
 
 	var r0 *model.PostSearchResults
-	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, bool, bool, int, int) *model.PostSearchResults); ok {
-		r0 = rf(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
+		r0 = rf(paramsList, userId, teamId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostSearchResults)
@@ -829,8 +811,8 @@ func (_m *PostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, 
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, bool, bool, int, int) *model.AppError); ok {
-		r1 = rf(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
+	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) *model.AppError); ok {
+		r1 = rf(paramsList, userId, teamId, page, perPage)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
