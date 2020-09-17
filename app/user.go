@@ -436,15 +436,12 @@ func (a *App) IsUsernameTaken(name string) bool {
 func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
 	user, err := a.Srv().Store.User().Get(userId)
 	if err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
+		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(err, &appErr):
-			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetUser", "app.user.save.existing.app_error", nil, invErr.Error(), http.StatusBadRequest)
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetUser", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return nil, model.NewAppError("GetUser", "app.user.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetUser", "app.user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
