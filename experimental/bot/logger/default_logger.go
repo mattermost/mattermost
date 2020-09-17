@@ -52,23 +52,23 @@ func (l *defaultLogger) Timed() Logger {
 func (l *defaultLogger) Debugf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.logAPI.Debug(message, toKeyValuePairs(l.logContext)...)
+	l.logAPI.LogDebug(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Errorf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.logAPI.Error(message, toKeyValuePairs(l.logContext)...)
+	l.logAPI.LogError(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Infof(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.logAPI.Info(message, toKeyValuePairs(l.logContext)...)
+	l.logAPI.LogInfo(message, toKeyValuePairs(l.logContext)...)
 }
 
 func (l *defaultLogger) Warnf(format string, args ...interface{}) {
 	measure(l.logContext)
 	message := fmt.Sprintf(format, args...)
-	l.logAPI.Warn(message, toKeyValuePairs(l.logContext)...)
+	l.logAPI.LogWarn(message, toKeyValuePairs(l.logContext)...)
 }
