@@ -34,6 +34,7 @@ type PushNotificationsHub struct {
 	sema              chan struct{}
 	stopChan          chan struct{}
 	wg                *sync.WaitGroup
+	semaWg            *sync.WaitGroup
 	buffer            int
 }
 
@@ -270,6 +271,7 @@ func (s *Server) createPushNotificationsHub() {
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
+		semaWg:            new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
 		stopChan:          make(chan struct{}),
 		buffer:            buffer,
@@ -279,11 +281,13 @@ func (s *Server) createPushNotificationsHub() {
 }
 
 func (hub *PushNotificationsHub) start() {
+	hub.wg.Add(1)
+	defer hub.wg.Done()
 	for {
 		select {
 		case notification := <-hub.notificationsChan:
 			// Adding to the waitgroup first.
-			hub.wg.Add(1)
+			hub.semaWg.Add(1)
 			// Get token.
 			hub.sema <- struct{}{}
 			go func(notification PushNotification) {
@@ -291,7 +295,7 @@ func (hub *PushNotificationsHub) start() {
 					// Release token.
 					<-hub.sema
 					// Now marking waitgroup as done.
-					hub.wg.Done()
+					hub.semaWg.Done()
 				}()
 
 				var err *model.AppError
@@ -334,9 +338,14 @@ func (hub *PushNotificationsHub) stop() {
 			notificationType: notificationTypeDummy,
 		}
 	}
-	hub.stopChan <- struct{}{}
 	close(hub.stopChan)
+	// We need to wait for the outer for loop to exit first.
+	// We cannot just send struct{}{} to stopChan because there are
+	// other listeners to the channel. And sending just once
+	// will cause a race.
 	hub.wg.Wait()
+	// And then we wait for the semaphore to finish.
+	hub.semaWg.Wait()
 }
 
 func (s *Server) StopPushNotificationsHubWorkers() {
