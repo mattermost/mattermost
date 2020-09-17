@@ -7491,10 +7491,6 @@
     "translation": "select error"
   },
   {
-    "id": "store.sql.build_query.app_error",
-    "translation": "failed to build query."
-  },
-  {
     "id": "store.sql.convert_string_array",
     "translation": "FromDb: Unable to convert StringArray to *string"
   },
