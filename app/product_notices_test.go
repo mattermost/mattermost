@@ -54,6 +54,7 @@ func TestNoticeValidation(t *testing.T) {
 		cloud                bool
 		teamAdmin            bool
 		systemAdmin          bool
+		serverVersion        string
 		notice               *model.ProductNotice
 	}
 	messages := map[string]model.NoticeMessageInternal{
@@ -181,6 +182,19 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  false,
+		},
+		{
+			name: "notice with server version check that matches a const",
+			args: args{
+				serverVersion: "99.1.1",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						ServerVersion: []string{"> 99.0.0"},
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
 		},
 		{
 			name: "notice with server version check that is invalid",
@@ -418,6 +432,10 @@ func TestNoticeValidation(t *testing.T) {
 			clientVersion := tt.args.clientVersion
 			if clientVersion == "" {
 				clientVersion = "1.2.3"
+			}
+			model.BuildNumber = tt.args.serverVersion
+			if model.BuildNumber == "" {
+				model.BuildNumber = "5.26.1"
 			}
 			if ok, err := noticeMatchesConditions(th.App.Config(), th.App.Srv().Store.Preference(), "test", tt.args.client, clientVersion, tt.args.locale, tt.args.postCount, tt.args.userCount, tt.args.systemAdmin, tt.args.teamAdmin, tt.args.cloud, tt.args.sku, tt.args.notice); (err != nil) != tt.wantErr {
 				t.Errorf("noticeMatchesConditions() error = %v, wantErr %v", err, tt.wantErr)
