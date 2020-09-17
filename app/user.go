@@ -1675,7 +1675,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Team().RemoveAllMembersByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	mlog.Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
@@ -2089,7 +2089,7 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 	if len(restrictions.Teams) > 0 {
 		result, err := a.Srv().Store.Team().UserBelongsToTeams(otherUserId, restrictions.Teams)
 		if err != nil {
-			return false, err
+			return false, model.NewAppError("UserCanSeeOtherUser", "app.team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if result {
 			return true, nil
@@ -2118,9 +2118,9 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	teamIds, getTeamErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
-	if getTeamErr != nil {
-		return nil, getTeamErr
+	teamIds, nErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("GetViewUsersRestrictions", "app.team.get_user_team_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	teamIdsWithPermission := []string{}
