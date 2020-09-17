@@ -260,7 +260,7 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  false,
 		},
 		{
-			name: "notice with audience check",
+			name: "notice with audience check (admin)",
 			args: args{
 				systemAdmin: true,
 				notice: &model.ProductNotice{
@@ -271,6 +271,70 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  true,
+		},
+		{
+			name: "notice with failing audience check (admin)",
+			args: args{
+				systemAdmin: false,
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Audience: model.NewNoticeAudience(model.NoticeAudience_Sysadmin),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice with audience check (team)",
+			args: args{
+				teamAdmin: true,
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with failing audience check (team)",
+			args: args{
+				teamAdmin: false,
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Audience: model.NewNoticeAudience(model.NoticeAudience_TeamAdmin),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
+		},
+		{
+			name: "notice with audience check (member)",
+			args: args{
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
+		},
+		{
+			name: "notice with failing audience check (member)",
+			args: args{
+				systemAdmin: true,
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Audience: model.NewNoticeAudience(model.NoticeAudience_Member),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  false,
 		},
 		{
 			name: "notice with correct sku",
@@ -297,6 +361,19 @@ func TestNoticeValidation(t *testing.T) {
 			},
 			wantErr: false,
 			wantOk:  false,
+		},
+		{
+			name: "notice with team sku",
+			args: args{
+				sku: "",
+				notice: &model.ProductNotice{
+					Conditions: model.Conditions{
+						Sku: model.NewNoticeSKU(model.NoticeSKU_Team),
+					},
+				},
+			},
+			wantErr: false,
+			wantOk:  true,
 		},
 		{
 			name: "notice with sku check for all",

@@ -177,7 +177,7 @@ func (c *NoticeSKU) Matches(s string) bool {
 	switch *c {
 	case NoticeSKU_All:
 		return true
-	case NoticeSKU_E0:
+	case NoticeSKU_E0, NoticeSKU_Team:
 		return s == ""
 	default:
 		return s == string(*c)
