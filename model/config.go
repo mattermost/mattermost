@@ -2549,7 +2549,7 @@ type PluginSettings struct {
 	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable"`
 	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable"`
 	MarketplaceUrl              *string                           `access:"plugins,write_restrictable"`
-	SignaturePublicKeyFiles     []string                          `access:"plugins"`
+	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
