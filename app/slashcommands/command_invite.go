@@ -144,7 +144,7 @@ func (me *InviteProvider) DoCommand(a *app.App, args *model.CommandArgs, message
 		var text string
 		if err.Id == "api.channel.add_members.user_denied" {
 			text = args.T("api.command_invite.group_constrained_user_denied")
-		} else if err.Id == "store.sql_team.get_member.missing.app_error" ||
+		} else if err.Id == "app.team.get_member.missing.app_error" ||
 			err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 			text = args.T("api.command_invite.user_not_in_team.app_error", map[string]interface{}{
 				"Username": userProfile.Username,
