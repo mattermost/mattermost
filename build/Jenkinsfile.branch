@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-@Library('shared-pipelines@cloud-beta') _
+@Library('shared-pipelines') _
 import org.mattermost.Utils
 import java.util.*;
 def utils = new org.mattermost.Utils()
