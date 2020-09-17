@@ -28,7 +28,7 @@ func (a *App) createDefaultChannelMemberships(since int64, channelID *string) er
 		}
 
 		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
-		if err != nil && err.Id != "store.sql_team.get_member.missing.app_error" {
+		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
 			return err
 		}
 
