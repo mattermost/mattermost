@@ -1270,7 +1270,7 @@ func doCheckWarnMetricStatus(a *App) {
 		}
 	}
 
-	isE0Edition := (model.BuildEnterpriseReady == "true") //license == nil was already validated upstream
+	isE0Edition := model.BuildEnterpriseReady == "true" //license == nil was already validated upstream
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
@@ -1305,7 +1305,7 @@ func doCheckWarnMetricStatus(a *App) {
 }
 
 func hasBeenAckedOrShown(metricStatusFromStore string, warnMetric model.WarnMetric) bool {
-	return (metricStatusFromStore == model.WARN_METRIC_STATUS_ACK || (warnMetric.IsBotOnly && metricStatusFromStore == model.WARN_METRIC_STATUS_RUNONCE))
+	return (metricStatusFromStore == model.WARN_METRIC_STATUS_ACK) || (warnMetric.IsBotOnly && metricStatusFromStore == model.WARN_METRIC_STATUS_RUNONCE)
 }
 
 func doLicenseExpirationCheck(a *App) {
