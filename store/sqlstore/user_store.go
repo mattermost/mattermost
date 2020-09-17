@@ -111,10 +111,10 @@ func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
 
 	if err := us.GetMaster().Insert(user); err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			return nil, store.NewErrInvalidInput("User", "email", user.Email)
 		}
 		if IsUniqueConstraintError(err, []string{"Username", "users_username_key", "idx_users_username_unique"}) {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			return nil, store.NewErrInvalidInput("User", "username", user.Username)
 		}
 		return nil, errors.Wrapf(err, "failed to save User with userId=%s", user.Id)
 	}
