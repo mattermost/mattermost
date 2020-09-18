@@ -48,10 +48,6 @@
         "translation": "Eylül"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "İstekte 'sertifika' altında bir dosya yok."
     },
@@ -2539,10 +2535,6 @@
         "translation": "%s kanal amacını %s olarak güncelledi"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Küme API uç noktası bulunamadı."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Dışa aktarma verileri yazılırken bir sorun çıktı."
     },
@@ -3223,10 +3215,6 @@
         "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için Sistem Yöneticiniz ile görüşün."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "E-posta adresi boş olduğundan SAML oturumu açılamadı."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Bu sunucu üzerinde kişisel erişim kodları devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
     },
@@ -3381,10 +3369,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "İleti dizine eklenemedi"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Veritabanından en eski ileti alınamadı"
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3687,24 +3671,12 @@
         "translation": "Etkileşim penceresi için üretilen tetikleyici kodu imzalanamadı."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "İş durumu iptal edilebilir olmadığından iptal isteğinde bulunulamadı."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "İş durumu hata olarak ayarlanamadı"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3905,10 +3877,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Kullanıcı kodu geçersiz."
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5163,46 +5131,6 @@
         "translation": "Komut alınamadı."
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Kullanıcının ek dosyaları silinemedi."
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Ek dosya bilgileri iletiye eklenemedi."
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Ek dosya bilgileri iletiden silinemedi."
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Dosya bilgileri alınamadı."
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Yola göre dosya bilgileri alınamadı."
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "İletinin dosya bilgileri alınamadı."
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Kullanıcının dosya bilgileri alınamadı."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Dosya bilgileri kalıcı olarak silinemedi."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Toplu dosya bilgileri kalıcı olarak silinirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Dosya bilgileri kaydedilemedi."
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "grup eşitlenebilirliği zaten silinmiş"
     },
@@ -5219,46 +5147,6 @@
         "translation": "grup üyesi zaten var"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Görev silinemedi."
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Görev alınamadı."
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Görevler alınamadı."
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Durum ve türe göre görev sayısı alınamadı."
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Durum ve türe göre en son görev alınamadı."
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Görev kaydedilemedi."
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Görev güncellenemedi."
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Uygulama eki anahtarı değeri silinemedi."
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Uygulama eki anahtarı değeri alınamadı."
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Uygulama eki anahtarı değeri kaydedilemedi ya da güncellenemedi."
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "İleti sayıları alınamadı."
     },
@@ -5269,14 +5157,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "İletilerin kullanıcı sayıları alınamadı."
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "İleti silinemedi."
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "İleti alınamadı."
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5323,92 +5203,12 @@
         "translation": "İletinin üzerine yazılamadı."
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "İleti silinemedi."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Kullanıcının yorumları silinemedi."
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı."
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Kanalın iletileri silinemedi."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Kullanıcının silinecek iletileri seçilemedi."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Kullanıcının silinecek iletileri seçilemedi (çok fazla), lütfen yeniden çalıştırın."
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "İleti kaydedilemedi."
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Var olan bir iletiyi güncelleyemezsiniz."
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Bu sunucu üzerinde arama özelliği devre dışı bırakılmış. Lütfen sistem yöneticiniz ile görüşün."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "İleti güncellenemedi."
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Durum alınırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Bu durum için bir kayıt yok."
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Etkin kullanıcılar sayılamadı."
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Tüm durumlar sıfırlanırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Durum kaydedilirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Durum güncellenirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Kullanıcının son etkinlik tarih ve saati güncellenemedi."
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Sistem özellikleri aranırken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Sistem değişkeni bulunamadı."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Sistem tablosu kaydı kalıcı olarak silinemedi."
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Sistem özelliği kaydedilirken bir sorun çıktı."
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Sistem özelliği güncellenirken bir sorun çıktı."
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5671,20 +5471,8 @@
         "translation": "Aynı e-posta adresini kullanan bir hesap zaten var."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Bu hesap AD/LDAP kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Bu hesap SAML kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Güncelleme var olan kullanıcı için çağrılmalı."
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için Sistem Yöneticiniz ile görüşün."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5693,14 +5481,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6699,16 +6479,8 @@
         "translation": "Kullanıcının kanal üyeliği olup olmadığı belirlenemedi."
     },
     {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Dosya bilgileri seçenekler ile alınamadı"
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "\"{{.UserId}}\" kullanıcı kodlu grup üyesi çıkarılamadı."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Değişmeyen KVCompareAndSet değerinden sonra MySQL üzerinde var olan satır sorgulanamadı."
     },
     {
         "id": "store.sql_post.get_oldest_entity_creation_time.app_error",
@@ -7151,14 +6923,6 @@
         "translation": "sorgu oluşturulamadı."
     },
     {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Değişmeyen KVCompareAndSet değerinden sonra MySQL üzerinde 1 taneden fazla satır bulundu."
-    },
-    {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Tüm uygulama eki anahtarları listelenemedi."
-    },
-    {
         "id": "store.sql_post.get_direct_posts.app_error",
         "translation": "Doğrudan iletiler alınamadı."
     },
@@ -7169,10 +6933,6 @@
     {
         "id": "store.sql_post.get_post_id_around.app_error",
         "translation": "İlgili gönderim civarı süresi alınamadı."
-    },
-    {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Veritabanı işlemi yapılamadı."
     },
     {
         "id": "store.sql_team.analytics_private_team_count.app_error",
@@ -8029,5 +7789,213 @@
     {
         "id": "app.user.convert_bot_to_user.app_error",
         "translation": "Bot kullanıcıya dönüştürülemedi."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "İleti güncellenemedi."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Var olan bir iletiyi güncelleyemezsiniz."
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "İleti kaydedilemedi."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Kullanıcının silinecek iletileri seçilemedi."
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Kanalın iletileri silinemedi."
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "İleti alınamadı."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "İleti silinemedi."
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Uygulama eki anahtarı değeri silinemedi."
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.conflict.app_error",
+        "translation": "Zaten var olduğundan, yeni takım üyeliği içe aktarılamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.max_accounts.app_error",
+        "translation": "Bu takıma başka üye kabul edilmediğinden, varsayılan takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.conflict.app_error",
+        "translation": "Zaten var olduğundan, varsayılan takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.create_basic_user.save_member.app_error",
+        "translation": "Varsayılan takım üyelikleri oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.max_accounts.app_error",
+        "translation": "Takım üye sayısı sınırına ulaşıldığından yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.conflict.app_error",
+        "translation": "Zaten var olduğundan yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.team.join_user_to_team.save_member.app_error",
+        "translation": "Yeni takım üyeliği oluşturulamadı"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+        "translation": "Bu takıma başka üye kabul edilmediğinden takım üyeliği içe aktarılamadı"
+    },
+    {
+        "id": "app.import.import_user_teams.save_members.error",
+        "translation": "Yeni takım üyelikleri içe aktarılamadı"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Uygulama eki anahtarı değeri alınamadı."
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Uygulama eki anahtarı değeri kaydedilemedi ya da güncellenemedi."
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Tüm uygulama eki anahtarları listelenemedi."
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Sistem özelliği kaydedilirken bir sorun çıktı."
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Sistem özelliği kaydedilirken bir sorun çıktı."
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Sistem tablosu kaydı kalıcı olarak silinemedi."
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Sistem değişkeni bulunamadı."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Sistem özellikleri aranırken bir sorun çıktı."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Bu durum için bir kayıt yok."
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Durum alınırken bir sorun çıktı."
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "E-posta adresi boş olduğundan SAML oturumu açılamadı."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Bu hesap SAML kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Aynı kullanıcı adını kullanan bir hesap zaten var. Lütfen yöneticiniz ile görüşün."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Bu hesap AD/LDAP kimlik doğrulamasını kullanmıyor. Lütfen e-posta ve parola kullanarak oturum açın."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "AD/LDAP eşitleme görevi zaman aşımına uğradı."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "İleti dışa aktarma görevinde ExportFromTimestamp değeri çözümlenemedi."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "İleti dışa aktarma görevinde Toplu İşlem Boyutu değeri çözümlenemedi."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Sunucu ile bağlantı kurulurken bir sorun çıktı."
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Küme API uç noktası bulunamadı."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": " bir dosya ekledi."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Görev güncellenemedi."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Görev kaydedilemedi."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Durum ve türe göre en son görev alınamadı."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Durum ve türe göre görev sayısı alınamadı."
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Görevler alınamadı."
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Görev alınamadı."
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Toplu dosya bilgileri kalıcı olarak silinirken bir sorun çıktı."
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Dosya bilgileri kaydedilemedi."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Kullanıcının ek dosyaları silinemedi."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Yola göre dosya bilgileri alınamadı."
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "İletinin dosya bilgileri alınamadı."
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Dosya bilgileri alınamadı."
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "Kalıcı takım silme özelliği etkinleştirilmemiş. Lütfen BT yöneticiniz ile görüşün."
     }
 ]

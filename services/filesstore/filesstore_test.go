@@ -89,6 +89,9 @@ func (s *FileBackendTestSuite) SetupTest() {
 	backend, err := NewFileBackend(&s.settings, true)
 	require.Nil(s.T(), err)
 	s.backend = backend
+
+	// This is needed to create the bucket if it doesn't exist.
+	s.Nil(s.backend.TestConnection())
 }
 
 func (s *FileBackendTestSuite) TestConnection() {
@@ -307,4 +310,57 @@ func (s *FileBackendTestSuite) TestRemoveDirectory() {
 	s.Error(err)
 	_, err = s.backend.ReadFile("tests2/asdf")
 	s.Error(err)
+}
+
+func (s *FileBackendTestSuite) TestAppendFile() {
+	s.Run("should fail if target file is missing", func() {
+		path := "tests/" + model.NewId()
+		b := make([]byte, 1024)
+		written, err := s.backend.AppendFile(bytes.NewReader(b), path)
+		s.Error(err)
+		s.Zero(written)
+	})
+
+	s.Run("should correctly append the data", func() {
+		// First part needs to be at least 5MB for the S3 implementation to work.
+		size := 5 * 1024 * 1024
+		b := make([]byte, size)
+		for i := range b {
+			b[i] = 'A'
+		}
+		path := "tests/" + model.NewId()
+
+		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+		s.Nil(err)
+		s.EqualValues(len(b), written)
+		defer s.backend.RemoveFile(path)
+
+		b2 := make([]byte, 1024)
+		for i := range b2 {
+			b2[i] = 'B'
+		}
+
+		written, err = s.backend.AppendFile(bytes.NewReader(b2), path)
+		s.Nil(err)
+		s.EqualValues(int64(len(b2)), written)
+
+		read, err := s.backend.ReadFile(path)
+		s.Nil(err)
+		s.EqualValues(len(b)+len(b2), len(read))
+		s.EqualValues(append(b, b2...), read)
+
+		b3 := make([]byte, 1024)
+		for i := range b3 {
+			b3[i] = 'C'
+		}
+
+		written, err = s.backend.AppendFile(bytes.NewReader(b3), path)
+		s.Nil(err)
+		s.EqualValues(int64(len(b3)), written)
+
+		read, err = s.backend.ReadFile(path)
+		s.Nil(err)
+		s.EqualValues(len(b)+len(b2)+len(b3), len(read))
+		s.EqualValues(append(append(b, b2...), b3...), read)
+	})
 }

@@ -48,10 +48,6 @@
         "translation": "Вересень"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "Не вдалося перетворити експорт в XML. "
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "У запиті відсутній файл під атрибутом \"сертифікат\". "
     },
@@ -1241,7 +1237,7 @@
     },
     {
         "id": "api.ldap_groups.license_error",
-        "translation": "your license does not support ldap groups"
+        "translation": "Редакція не підтримує Elasticsearch. "
     },
     {
         "id": "api.license.add_license.array.app_error",
@@ -2544,10 +2540,6 @@
         "translation": "%s оновив заголовок каналу на: %s"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Не знайдена кінцева точка API кластера."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "Виникла помилка запису даних експорту."
     },
@@ -3228,10 +3220,6 @@
         "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "Токени особистого доступу вимикаються на цьому сервері. Зверніться до свого системного адміністратора, щоб дізнатись більше."
     },
@@ -3386,10 +3374,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "Не вдалося індексувати публікацію"
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "Найстаріший запис не може бути завантажений з бази даних."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3692,24 +3676,12 @@
         "translation": "Не вдалося підписати сформований ідентифікатор тригер для інтерактивного діалогу."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Не вдалося скасувати запит на роботу, яка не перебуває у скасовуваному стані."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Не вдалося встановити статус роботи до помилки"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3910,10 +3882,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "Невірний ідентифікатор користувача"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "Ми виявили помилку при підключенні до сервера"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5168,46 +5136,6 @@
         "translation": "Не вдається отримати команду"
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Не вдалося видалити вкладення користувача"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "Ми не могли прикріпити інформацію про фото до посту"
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "Ми не змогли видалити інформацію про фото в пості"
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "Не вдається отримати інформацію про файл"
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "Не вдається отримати інформацію про файл для користувача"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Ми не змогли назавжди видалити інформацію про файл"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "Не вдається зберегти інформацію про файл"
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "group syncable was already deleted"
     },
@@ -5224,46 +5152,6 @@
         "translation": "group member already exists"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "Не вдається видалити завдання"
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "Не вдається отримати схему"
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "Неможливо зберегти схему"
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "Не вдається оновити схему"
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Не вдалося видалити значення клавіші плагіна"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Не вдалося отримати значення ключа плагіна"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Не вдається отримати кількість постів"
     },
@@ -5274,14 +5162,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Неможливо отримати кількість користувачів із повідомленнями"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "Неможливо видалити публікацію"
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "Не вдається отримати повідомлення"
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5328,92 +5208,12 @@
         "translation": "Неможливо видалити роль"
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "Неможливо видалити роль"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "Невдала спроба видалити коментарі користувача"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "Неможливо видалити повідомлення з каналу"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "Не вдалося вибрати повідомлення, які потрібно видалити для користувача"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "Не вдається вибрати повідомлення, які потрібно видалити для користувача (забагато), будь ласка, повторно запустіть"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "Не вдається зберегти публікацію"
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "Ви не можете оновити існуючу публікацію "
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Пошук на цьому сервері вимкнено. Будь ласка, зв'яжіться зі своїм системним адміністратором."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "Не вдається оновити повідомлення"
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Виникла помилка при отриманні статусу"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "Не існує запису для даного статусу"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "Не вдалося підрахувати активних користувачів"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Виникла проблема при скиданні всіх статусів"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Виникла помилка при збереженні статусу"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Виникла помилка при оновленні статусу"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Не вдається оновити останню дату та час дії користувача"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "Виникла помилка при пошуку властивостей системи"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Не вдається знайти системну змінну."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "Ми не змогли назавжди видалити запис системної таблиці"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "Виникла помилка при збереженні властивості системи"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "Виникла помилка при оновленні властивості системи"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5676,20 +5476,8 @@
         "translation": "Обліковий запис з такою електронною поштою вже існує."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Необхідно викликати оновлення для існуючого користувача"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "Ця команда досягла максимальної кількості дозволених акаунтів. Зверніться до системного адміністратора, щоб встановити більшу межу."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5698,14 +5486,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "Обліковий запис з таким ім'ям користувача вже існує."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з адміністратором."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6128,10 +5908,6 @@
         "translation": "Неможливо підрахувати команди"
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Не вдалося здійснити транзакцію бази даних"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
     },
@@ -6148,18 +5924,6 @@
         "translation": "Не вдається отримати повідомлення"
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "Unable to list all the plugin keys."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "Unable to remove the group member with UserID \"{{.UserId}}\"."
     },
@@ -6168,12 +5932,8 @@
         "translation": "failed to build query."
     },
     {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
-    },
-    {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
-        "translation": "Unable to determine if the user belongs to a list of channels."
+        "translation": "."
     },
     {
         "id": "store.sql_channel.update_last_viewed_at_post.app_error",
@@ -7028,10 +6788,6 @@
         "translation": "ID Loaded Push Notifications are not configured or supported on this server."
     },
     {
-        "id": "api.slackimport.slack_import.zip.file_too_large",
-        "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
-    },
-    {
         "id": "api.push_notifications_ack.message.parse.app_error",
         "translation": "An error occurred building the push notification ack message."
     },
@@ -7730,5 +7486,173 @@
     {
         "id": "app.role.get.app_error",
         "translation": "Неможливо отримати роль"
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "Не вдається оновити повідомлення"
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "Ви не можете оновити існуючу публікацію "
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "Не вдається зберегти публікацію"
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "Не вдалося вибрати повідомлення, які потрібно видалити для користувача"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "Неможливо видалити повідомлення з каналу"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "Не вдається отримати повідомлення"
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "Неможливо видалити публікацію"
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "Не існує запису для даного статусу"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Виникла помилка при отриманні статусу"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Не вдалося зберегти або оновити значення клавіші плагіна"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "Unable to list all the plugin keys."
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Не вдалося отримати значення ключа плагіна"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Не вдалося видалити значення клавіші плагіна"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "Виникла помилка при збереженні властивості системи"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "Виникла помилка при збереженні властивості системи"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "Ми не змогли назавжди видалити запис системної таблиці"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Не вдається знайти системну змінну."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "Виникла помилка при пошуку властивостей системи"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "Цей обліковий запис не використовує аутентифікацію SAML. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "Обліковий запис з таким ім'ям користувача вже існує. Будь ласка, зв'яжіться з Адміністратором."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "Цей обліковий запис не використовує аутентифікацію AD/LDAP. Будь ласка, увійдіть, використовуючи електронну пошту і пароль."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Досягнута тайм-аут завдання синхронізації AD / LDAP."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Не вдалося проаналізувати завдання експортування повідомлень ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Не вдалося проаналізувати BatchSize завдання експортування повідомлення."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "Ми виявили помилку при підключенні до сервера"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Не знайдена кінцева точка API кластера."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": "додається файл."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "Не вдалося перетворити експорт в XML. "
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "Не вдається оновити схему"
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "Неможливо зберегти схему"
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "Ми не змогли отримати останню роботу за статусом та типом"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "Не вдається отримати схему"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "Не вдається отримати схему"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "Ми зіткнулися з помилкою, остаточно видаляючи пакет перевірок"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "Не вдається зберегти інформацію про файл"
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "Не вдалося видалити вкладення користувача"
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "Ми не змогли отримати інформацію про фото до повідомлення"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "Не вдається отримати інформацію про файл"
     }
 ]

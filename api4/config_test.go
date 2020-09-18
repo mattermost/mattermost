@@ -4,7 +4,6 @@
 package api4
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -146,7 +145,7 @@ func TestUpdateConfig(t *testing.T) {
 		require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 		t.Run("Should set defaults for missing fields", func(t *testing.T) {
-			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), fmt.Sprintf(`{"ServiceSettings":{"SiteURL":"%s"}}`, *cfg.ServiceSettings.SiteURL))
+			_, appErr := th.SystemAdminClient.DoApiPut(th.SystemAdminClient.GetConfigRoute(), "{}")
 			require.Nil(t, appErr)
 		})
 
@@ -671,11 +670,9 @@ func TestPatchConfig(t *testing.T) {
 		CheckNoError(t, resp)
 		require.Equal(t, nonEmptyURL, *cfg.ServiceSettings.SiteURL)
 
-		// Check that sending an empty config returns an error.
+		// Check that sending an empty config returns no error.
 		_, resp = th.SystemAdminClient.PatchConfig(&model.Config{})
-		require.NotNil(t, resp.Error)
-		CheckBadRequestStatus(t, resp)
-		assert.Equal(t, "api.config.update_config.clear_siteurl.app_error", resp.Error.Id)
+		CheckNoError(t, resp)
 	})
 }
 
