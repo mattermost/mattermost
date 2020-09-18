@@ -344,12 +344,7 @@ type ServiceSettings struct {
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
-		// If the site URL is also not present then assume this is a clean install
-		if s.SiteURL == nil {
-			s.EnableEmailInvitations = NewBool(false)
-		} else {
-			s.EnableEmailInvitations = NewBool(true)
-		}
+		s.EnableEmailInvitations = NewBool(true)
 	}
 
 	if s.SiteURL == nil {
