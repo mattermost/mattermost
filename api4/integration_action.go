@@ -91,32 +91,32 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func dialogSelectOption(c *Context, w http.ResponseWriter, r *http.Request) {
-	var submit model.DialogSelectOptionRequest
+	var body model.DialogSelectOptionRequest
 
-	jsonErr := json.NewDecoder(r.Body).Decode(&submit)
+	jsonErr := json.NewDecoder(r.Body).Decode(&body)
 	if jsonErr != nil {
-		c.SetInvalidParam("dialog")
+		c.SetInvalidParam("body")
 		return
 	}
 
-	if submit.URL == "" {
+	if body.URL == "" {
 		c.SetInvalidParam("url")
 		return
 	}
 
-	submit.UserId = c.App.Session().UserId
+	body.UserId = c.App.Session().UserId
 
-	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(*c.App.Session(), body.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), submit.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(*c.App.Session(), body.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
 
-	resp, err := c.App.SelectInteractiveDialogOption(submit)
+	resp, err := c.App.SelectInteractiveDialogOption(body)
 	if err != nil {
 		c.Err = err
 		return

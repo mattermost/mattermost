@@ -633,17 +633,15 @@ func (a *App) ExecutePluginAction(request model.PluginIntegrationActionRequest) 
 		return nil, model.NewAppError("ExecutePluginAction", "app.submit_interactive_dialog.json_error", nil, jsonErr.Error(), http.StatusBadRequest)
 	}
 
-	_, err := a.DoActionRequest(url, b)
+	resp, err := a.DoActionRequest(url, b)
 	// resp, err := a.DoActionRequest(url, b)
 	if err != nil {
 		return nil, err
 	}
-
-	// defer resp.Body.Close()
+	defer resp.Body.Close()
 
 	// var response model.PluginIntegrationActionResponse
 	// if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-	// 	// Don't fail, an empty response is acceptable
 	// 	return &response, nil
 	// }
 
@@ -653,22 +651,3 @@ func (a *App) ExecutePluginAction(request model.PluginIntegrationActionRequest) 
 
 	return &response, nil
 }
-
-/*
-clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
-	if appErr != nil {
-		mlog.Error("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
-	}
-
-	args.TriggerId = triggerId
-
-	// Plugins can override built in and custom commands
-	cmd, response, appErr := a.tryExecutePluginCommand(args)
-	if appErr != nil {
-		return nil, appErr
-	} else if cmd != nil && response != nil {
-		response.TriggerId = clientTriggerId
-		return a.HandleCommandResponse(cmd, args, response, true)
-	}
-
-	*/
