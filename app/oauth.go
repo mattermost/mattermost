@@ -576,11 +576,15 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	}
 
 	authUser, err1 := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
-	if err1 != nil || *authUser.AuthData == "" {
+	if err1 != nil {
+		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, err.Error(), http.StatusBadRequest)
+	}
+
+	if *authUser.AuthData == "" {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
-
 	user, err := a.GetUserByAuth(model.NewString(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
@@ -623,7 +627,12 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 	}
 
 	ssoUser, err1 := provider.GetUserFromJson(userData)
-	if err1 != nil || *ssoUser.AuthData == "" {
+	if err1 != nil {
+		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, err.Error(), http.StatusBadRequest)
+	}
+
+	if *ssoUser.AuthData == "" {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
