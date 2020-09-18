@@ -893,15 +893,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})
