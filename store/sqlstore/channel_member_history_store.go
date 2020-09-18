@@ -52,9 +52,11 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	query, params, err := s.getQueryBuilder().
 		Update("ChannelMemberHistory").
 		Set("LeaveTime", leaveTime).
-		Where(sq.Eq{"UserId": userId}).
-		Where(sq.Eq{"ChannelId": channelId}).
-		Where(sq.Eq{"LeaveTime": nil}).ToSql()
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"ChannelId": channelId},
+			sq.Eq{"LeaveTime": nil},
+		}).ToSql()
 	if err != nil {
 		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
 	}
@@ -120,11 +122,13 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 		From("ChannelMemberHistory cmh").
 		Join("Users u ON cmh.UserId = u.Id").
 		LeftJoin("Bots ON Bots.UserId = u.Id").
-		Where(sq.Eq{"cmh.ChannelId": channelId}).
-		Where(sq.LtOrEq{"cmh.JoinTime": endTime}).
-		Where(sq.Or{
-			sq.Eq{"cmh.LeaveTime": nil},
-			sq.GtOrEq{"cmh.LeaveTime": startTime},
+		Where(sq.And{
+			sq.Eq{"cmh.ChannelId": channelId},
+			sq.LtOrEq{"cmh.JoinTime": endTime},
+			sq.Or{
+				sq.Eq{"cmh.LeaveTime": nil},
+				sq.GtOrEq{"cmh.LeaveTime": startTime},
+			},
 		}).
 		OrderBy("cmh.JoinTime ASC").ToSql()
 	if err != nil {
@@ -139,7 +143,8 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 }
 
 func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
-	query, args, err := s.getQueryBuilder().Select("ch.ChannelId, ch.UserId, u.Email, u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt").
+	query, args, err := s.getQueryBuilder().
+		Select("ch.ChannelId, ch.UserId, u.Email, u.Username, Bots.UserId IS NOT NULL AS IsBot, u.DeleteAt AS UserDeleteAt").
 		Distinct().
 		From("ChannelMembers ch").
 		Join("Users u ON ch.UserId = u.id").
@@ -189,8 +194,10 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 	} else {
 		query, args, err = s.getQueryBuilder().
 			Delete("ChannelMemberHistory").
-			Where(sq.NotEq{"LeaveTime": nil}).
-			Where(sq.LtOrEq{"LeaveTime": endTime}).
+			Where(sq.And{
+				sq.NotEq{"LeaveTime": nil},
+				sq.LtOrEq{"LeaveTime": endTime},
+			}).
 			Limit(uint64(limit)).ToSql()
 	}
 	if err != nil {
