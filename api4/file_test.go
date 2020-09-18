@@ -365,6 +365,30 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
+		// Extremely wide image test
+		{
+			title:                       "Happy image thumbnail/preview 10",
+			names:                       []string{"10000x1.png"},
+			expectedImageThumbnailNames: []string{"10000x1_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"10000x1_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{10000},
+			expectedImageHeights:        []int{1},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// Extremely high image test
+		{
+			title:                       "Happy image thumbnail/preview 11",
+			names:                       []string{"1x10000.png"},
+			expectedImageThumbnailNames: []string{"1x10000_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"1x10000_expected_preview.jpeg"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{1},
+			expectedImageHeights:        []int{10000},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
 		{
 			title:             "Happy admin",
 			client:            th.SystemAdminClient,
