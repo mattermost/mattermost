@@ -399,6 +399,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 				team, err := a.Srv().Store.Team().Get(mentioned.TeamId)
 				if err != nil {
 					mlog.Error("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+					continue
 				}
 				channelMentionsProp[mentioned.Name] = map[string]interface{}{
 					"display_name": mentioned.DisplayName,
@@ -1291,12 +1292,12 @@ func (a *App) countMentionsFromPost(user *model.User, post *model.Post) (int, *m
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		// In a DM channel, every post made by the other user is a mention
-		count, countErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
-		if countErr != nil {
-			return 0, countErr
+		count, nErr := a.Srv().Store.Channel().CountPostsAfter(post.ChannelId, post.CreateAt-1, channel.GetOtherUserIdForDM(user.Id))
+		if nErr != nil {
+			return 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 		}
 
-		return count, countErr
+		return count, nil
 	}
 
 	channelMember, err := a.GetChannelMember(channel.Id, user.Id)

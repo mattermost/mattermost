@@ -1943,9 +1943,11 @@ type LdapSettings struct {
 	SyncIntervalMinutes *int `access:"authentication"`
 
 	// Advanced
-	SkipCertificateVerification *bool `access:"authentication"`
-	QueryTimeout                *int  `access:"authentication"`
-	MaxPageSize                 *int  `access:"authentication"`
+	SkipCertificateVerification *bool   `access:"authentication"`
+	PublicCertificateFile       *string `access:"authentication"`
+	PrivateKeyFile              *string `access:"authentication"`
+	QueryTimeout                *int    `access:"authentication"`
+	MaxPageSize                 *int    `access:"authentication"`
 
 	// Customization
 	LoginFieldName *string `access:"authentication"`
@@ -1981,6 +1983,14 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.ConnectionSecurity == nil {
 		s.ConnectionSecurity = NewString("")
+	}
+
+	if s.PublicCertificateFile == nil {
+		s.PublicCertificateFile = NewString("")
+	}
+
+	if s.PrivateKeyFile == nil {
+		s.PrivateKeyFile = NewString("")
 	}
 
 	if s.BaseDN == nil {
@@ -2578,6 +2588,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
+		// Enable the incident response plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

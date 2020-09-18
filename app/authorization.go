@@ -71,8 +71,8 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		}
 	}
 
-	channel, err := a.GetChannel(channelId)
-	if err != nil && err.StatusCode == http.StatusNotFound {
+	channel, appErr := a.GetChannel(channelId)
+	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
 
