@@ -457,11 +457,11 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
 
-func applyMultiRoleFilters(query sq.SelectBuilder, roles []string, teamRoles []string, channelRoles []string, isPostgreSQL bool) sq.SelectBuilder {
+func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRoles []string, channelRoles []string, isPostgreSQL bool) sq.SelectBuilder {
 	sqOr := sq.Or{}
 
-	if len(roles) > 0 && roles[0] != "" {
-		for _, role := range roles {
+	if len(systemRoles) > 0 && systemRoles[0] != "" {
+		for _, role := range systemRoles {
 			queryRole := wildcardSearchTerm(role)
 			switch role {
 			case model.SYSTEM_USER_ROLE_ID:
