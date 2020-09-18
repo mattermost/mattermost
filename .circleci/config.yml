@@ -167,9 +167,6 @@ jobs:
             cd mattermost-server
             make config-reset
             make check-style BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}' MM_NO_ENTERPRISE_LINT=true MM_VET_OPENSPEC_PATH='${PWD}/../mattermost-api-reference/v4/html/static/mattermost-openapi-v4.yaml'
-            export NOTICES_JSON_URL=https://raw.githubusercontent.com/reflog/notices-experiment/master/notices.json
-            export NOTICES_FETCH_SECS=10
-            export NOTICES_SKIP_CACHE=true
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
