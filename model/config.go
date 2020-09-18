@@ -2865,7 +2865,7 @@ func (o *Config) SetDefaults() {
 	o.SamlSettings.SetDefaults()
 
 	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
+		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_FULLNAME)
 	}
 
 	o.SqlSettings.SetDefaults(isUpdate)
