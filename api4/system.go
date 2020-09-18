@@ -704,7 +704,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if model.BuildEnterpriseReady == "true" {
-		c.Err = model.NewAppError("requestTrialLicenseAndAckWarnMetric", "api.warn_metrics.invalid_edition.app_error", nil, "", http.StatusForbidden)
+		mlog.Debug("Enterprise Edition, skip.")
 		return
 	}
 

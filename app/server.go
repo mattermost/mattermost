@@ -1225,18 +1225,13 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
-	postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	if err4 != nil {
-		mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
-	}
-
 	// If an account is created with a different email domain
 	// Search for an entry that has an email account different from the current domain
 	// Get domain account from site url
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
-	isDiffEmailAccount, err5 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
-	if err5 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err5))
+	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
+	if err3 != nil {
+		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1263,6 +1258,12 @@ func doCheckWarnMetricStatus(a *App) {
 			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
 		} else if !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]) {
 			tWarnMetric := model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
+
+			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+			if err4 != nil {
+				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+			}
+
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && !hasBeenAckedOrShown(warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K], model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]) {
 				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]
 			}
