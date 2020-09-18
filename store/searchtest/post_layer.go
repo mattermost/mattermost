@@ -116,7 +116,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support search with wildcards",
 		Fn:   testSupportWildcards,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should not support search with preceding wildcards",
@@ -126,7 +126,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
-		Tags: []string{ENGINE_POSTGRES, ENGINE_MYSQL, ENGINE_ELASTICSEARCH},
+		Tags: []string{ENGINE_ALL},
 	},
 	{
 		Name: "Should support terms with dash",
@@ -1025,21 +1025,34 @@ func testSupportStemming(t *testing.T, th *SearchTestHelper) {
 func testSupportWildcards(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "search post", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
-	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching post", "", model.POST_DEFAULT, 0, false)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "searching", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "another post", "", model.POST_DEFAULT, 0, false)
 	require.Nil(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	params := &model.SearchParams{
-		Terms: "search*",
-	}
-	results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-	require.Nil(t, apperr)
+	t.Run("Simple wildcard-only search", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "search*",
+		}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.Nil(t, apperr)
 
-	require.Len(t, results.Posts, 2)
-	th.checkPostInSearchResults(t, p1.Id, results.Posts)
-	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Wildcard search with another term placed after", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "sear* post",
+		}
+		results, apperr := th.Store.Post().SearchPostsInTeamForUser([]*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.Nil(t, apperr)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
 }
 
 func testNotSupportPrecedingWildcards(t *testing.T, th *SearchTestHelper) {
