@@ -5878,9 +5878,23 @@ func (s *RetryLayerTeamStore) Get(id string) (*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s *RetryLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 
-	return s.TeamStore.GetActiveMemberCount(teamId, restrictions)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetActiveMemberCount(teamId, restrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -6104,33 +6118,103 @@ func (s *RetryLayerTeamStore) GetByNames(name []string) ([]*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) ([]*model.ChannelUnread, *model.AppError) {
+func (s *RetryLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) ([]*model.ChannelUnread, error) {
 
-	return s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
-
-}
-
-func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*model.ChannelUnread, *model.AppError) {
-
-	return s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
-
-}
-
-func (s *RetryLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
-
-	return s.TeamStore.GetMember(teamId, userId)
-
-}
-
-func (s *RetryLayerTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
-
-	return s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*model.ChannelUnread, error) {
 
-	return s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetMember(teamId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -6194,21 +6278,63 @@ func (s *RetryLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
 
-	return s.TeamStore.GetTeamsForUser(userId)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetTeamsForUser(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerTeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, error) {
 
-	return s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
-func (s *RetryLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s *RetryLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 
-	return s.TeamStore.GetTotalMemberCount(teamId, restrictions)
+	tries := 0
+	for {
+		result, err := s.TeamStore.GetTotalMemberCount(teamId, restrictions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -6298,9 +6424,23 @@ func (s *RetryLayerTeamStore) PermanentDelete(teamId string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
+func (s *RetryLayerTeamStore) RemoveAllMembersByTeam(teamId string) error {
 
-	return s.TeamStore.RemoveAllMembersByTeam(teamId)
+	tries := 0
+	for {
+		err := s.TeamStore.RemoveAllMembersByTeam(teamId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -6324,15 +6464,43 @@ func (s *RetryLayerTeamStore) RemoveAllMembersByUser(userId string) error {
 
 }
 
-func (s *RetryLayerTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
+func (s *RetryLayerTeamStore) RemoveMember(teamId string, userId string) error {
 
-	return s.TeamStore.RemoveMember(teamId, userId)
+	tries := 0
+	for {
+		err := s.TeamStore.RemoveMember(teamId, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
-func (s *RetryLayerTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppError {
+func (s *RetryLayerTeamStore) RemoveMembers(teamId string, userIds []string) error {
 
-	return s.TeamStore.RemoveMembers(teamId, userIds)
+	tries := 0
+	for {
+		err := s.TeamStore.RemoveMembers(teamId, userIds)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
 
 }
 
@@ -6536,9 +6704,23 @@ func (s *RetryLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime in
 
 }
 
-func (s *RetryLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
 
-	return s.TeamStore.UpdateMember(member)
+	tries := 0
+	for {
+		result, err := s.TeamStore.UpdateMember(member)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 
@@ -6562,9 +6744,23 @@ func (s *RetryLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string)
 
 }
 
-func (s *RetryLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError) {
+func (s *RetryLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {
 
-	return s.TeamStore.UpdateMultipleMembers(members)
+	tries := 0
+	for {
+		result, err := s.TeamStore.UpdateMultipleMembers(members)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
 
 }
 

@@ -5973,7 +5973,7 @@ func (s *TimerLayerTeamStore) Get(id string) (*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetActiveMemberCount(teamId, restrictions)
@@ -6165,7 +6165,7 @@ func (s *TimerLayerTeamStore) GetByNames(name []string) ([]*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) ([]*model.ChannelUnread, *model.AppError) {
+func (s *TimerLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) ([]*model.ChannelUnread, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetChannelUnreadsForAllTeams(excludeTeamId, userId)
@@ -6181,7 +6181,7 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string,
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*model.ChannelUnread, *model.AppError) {
+func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId string) ([]*model.ChannelUnread, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetChannelUnreadsForTeam(teamId, userId)
@@ -6197,7 +6197,7 @@ func (s *TimerLayerTeamStore) GetChannelUnreadsForTeam(teamId string, userId str
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetMember(teamId, userId)
@@ -6213,7 +6213,7 @@ func (s *TimerLayerTeamStore) GetMember(teamId string, userId string) (*model.Te
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetMembers(teamId, offset, limit, teamMembersGetOptions)
@@ -6229,7 +6229,7 @@ func (s *TimerLayerTeamStore) GetMembers(teamId string, offset int, limit int, t
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetMembersByIds(teamId, userIds, restrictions)
@@ -6293,7 +6293,7 @@ func (s *TimerLayerTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, er
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetTeamsForUser(userId)
@@ -6309,7 +6309,7 @@ func (s *TimerLayerTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMembe
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetTeamsForUserWithPagination(userId, page, perPage)
@@ -6325,7 +6325,7 @@ func (s *TimerLayerTeamStore) GetTeamsForUserWithPagination(userId string, page 
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s *TimerLayerTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.GetTotalMemberCount(teamId, restrictions)
@@ -6420,7 +6420,7 @@ func (s *TimerLayerTeamStore) PermanentDelete(teamId string) error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
+func (s *TimerLayerTeamStore) RemoveAllMembersByTeam(teamId string) error {
 	start := timemodule.Now()
 
 	err := s.TeamStore.RemoveAllMembersByTeam(teamId)
@@ -6452,7 +6452,7 @@ func (s *TimerLayerTeamStore) RemoveAllMembersByUser(userId string) error {
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
+func (s *TimerLayerTeamStore) RemoveMember(teamId string, userId string) error {
 	start := timemodule.Now()
 
 	err := s.TeamStore.RemoveMember(teamId, userId)
@@ -6468,7 +6468,7 @@ func (s *TimerLayerTeamStore) RemoveMember(teamId string, userId string) *model.
 	return err
 }
 
-func (s *TimerLayerTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppError {
+func (s *TimerLayerTeamStore) RemoveMembers(teamId string, userIds []string) error {
 	start := timemodule.Now()
 
 	err := s.TeamStore.RemoveMembers(teamId, userIds)
@@ -6644,7 +6644,7 @@ func (s *TimerLayerTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime in
 	return err
 }
 
-func (s *TimerLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.UpdateMember(member)
@@ -6676,7 +6676,7 @@ func (s *TimerLayerTeamStore) UpdateMembersRole(teamID string, userIDs []string)
 	return err
 }
 
-func (s *TimerLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError) {
+func (s *TimerLayerTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {
 	start := timemodule.Now()
 
 	result, err := s.TeamStore.UpdateMultipleMembers(members)
