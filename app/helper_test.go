@@ -112,6 +112,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
+	// Restoring defaults expected for tests
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.RestrictSystemAdmin = false
+		*cfg.EmailSettings.RequireEmailVerification = false
+		*cfg.ClusterSettings.UseExperimentalGossip = false
+		*cfg.ClusterSettings.UseExperimentalGossip = false
+	})
+
 	if enterprise {
 		th.App.Srv().SetLicense(model.NewTestLicense())
 	} else {
