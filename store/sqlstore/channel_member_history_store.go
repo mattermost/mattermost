@@ -58,7 +58,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 			sq.Eq{"LeaveTime": nil},
 		}).ToSql()
 	if err != nil {
-		return errors.Wrapf(err, "LogLeaveEvent userId=%s channelId=%s leaveTime=%d", userId, channelId, leaveTime)
+		return errors.Wrapf(err, "channel_member_history_to_sql")
 	}
 	sqlResult, err := s.GetMaster().Exec(query, params...)
 	if err != nil {
@@ -103,7 +103,7 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 	}
 	query, _, err := s.getQueryBuilder().Select("MIN(JoinTime) as Min").From("ChannelMemberHistory").ToSql()
 	if err != nil {
-		return false, err
+		return false, errors.Wrapf(err, "channel_member_history_to_sql")
 	}
 	var result NullableCountResult
 	if err := s.GetReplica().SelectOne(&result, query); err != nil {
@@ -132,7 +132,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 		}).
 		OrderBy("cmh.JoinTime ASC").ToSql()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "channel_member_history_to_sql")
 	}
 	var histories []*model.ChannelMemberHistoryResult
 	if _, err := s.GetReplica().Select(&histories, query, args...); err != nil {
@@ -151,7 +151,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 		LeftJoin("Bots ON Bots.UserId = u.id").
 		Where(sq.Eq{"ch.ChannelId": channelId}).ToSql()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "channel_member_history_to_sql")
 	}
 
 	var histories []*model.ChannelMemberHistoryResult
@@ -184,7 +184,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			}).Limit(uint64(limit)).
 			ToSql()
 		if err != nil {
-			return 0, errors.Wrapf(err, "PermanentDeleteBatch innerquery endTime=%d limit=%d", endTime, limit)
+			return 0, errors.Wrapf(err, "channel_member_history_to_sql")
 		}
 		query, _, err = s.getQueryBuilder().
 			Delete("ChannelMemberHistory").
@@ -201,7 +201,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			Limit(uint64(limit)).ToSql()
 	}
 	if err != nil {
-		return 0, errors.Wrapf(err, "PermanentDeleteBatch generate query endTime=%d limit=%d", endTime, limit)
+		return 0, errors.Wrapf(err, "channel_member_history_to_sql")
 	}
 	sqlResult, err := s.GetMaster().Exec(query, args...)
 	if err != nil {
