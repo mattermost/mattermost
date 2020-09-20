@@ -444,13 +444,14 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") && (a.Srv().License() == nil)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, utils.T, isE0Edition)
+	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
+
 	if isE0Edition {
-		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.start_trial_success.message")
 		if appErr = a.RequestLicenseAndAckWarnMetric(warnMetricId, true); appErr != nil {
-			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.body")
+			botPost.Message = ":warning: " + utils.T("api.server.warn_metric.bot_response.start_trial_failure.message")
 		}
 	} else {
-		botPost.Message = ":white_check_mark: " + utils.T("api.server.warn_metric.bot_response.notification_success.message")
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
 		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
 			if forceAck {
@@ -517,7 +518,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	T := utils.GetUserTranslations(user.Locale)
 	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
 
-	mailBody := warnMetricDisplayTexts.BotMailToBody
+	mailBody := warnMetricDisplayTexts.EmailBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]interface{}{"Contact": user.GetFullName()})
 	mailBody += "\r\n"
 	mailBody += T("api.server.warn_metric.bot_response.mailto_email_header", map[string]interface{}{"Email": user.Email})

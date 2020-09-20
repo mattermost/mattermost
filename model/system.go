@@ -161,10 +161,10 @@ type WarnMetric struct {
 }
 
 type WarnMetricDisplayTexts struct {
-	BotTitle       string
-	BotMessageBody string
-	BotMailToBody  string
-	EmailBody      string
+	BotTitle          string
+	BotMessageBody    string
+	BotSuccessMessage string
+	EmailBody         string
 }
 type WarnMetricStatus struct {
 	Id          string `json:"id"`

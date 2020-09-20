@@ -229,7 +229,7 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 	return result, nil
 }
 
-func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc, forStartTrial bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
+func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18n.TranslateFunc, isE0Edition bool) (*model.WarnMetricStatus, *model.WarnMetricDisplayTexts) {
 	var warnMetricStatus *model.WarnMetricStatus
 	var warnMetricDisplayTexts = &model.WarnMetricDisplayTexts{}
 
@@ -245,88 +245,88 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 			return warnMetricStatus, nil
 		}
 
-		warnMetricDisplayTexts.BotMailToBody = T("api.server.warn_metric.bot_response.number_of_users.mailto_body", map[string]interface{}{"Limit": warnMetric.Limit})
-		warnMetricDisplayTexts.EmailBody = T("api.templates.warn_metric_ack.number_of_active_users.body", map[string]interface{}{"Limit": warnMetric.Limit})
+		warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.bot_response.notification_success.message")
 
 		switch warnMetricId {
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_teams_5.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_teams_5.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_teams_5.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
-			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
-			}
 		case model.SYSTEM_WARN_METRIC_MFA:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.mfa.start_trial_notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.mfa.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.mfa.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.mfa.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.start_trial.email_domain.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.start_trial.email_domain.notification_body")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email_domain.notification_title")
+			if isE0Edition {
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email_domain.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.email_domain.start_trial_notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.email_domain.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.email_domain.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.email_domain.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.start_trial.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.start_trial.notification_body")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_channels_50.notification_title")
+			if isE0Edition {
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_25.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_25.notification_body")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_channels_50.contact_us.email_body")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_channels_50.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_100.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_100.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_100.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_200.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_200.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_200.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
+			if isE0Edition {
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_300.start_trial.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_300.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_300.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_active_users_500.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_500.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
 			}
 		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K:
-			if forStartTrial {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_title")
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
+			if isE0Edition {
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_500k.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.notification_body")
 			}
 		default:
