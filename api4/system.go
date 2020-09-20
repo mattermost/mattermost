@@ -708,11 +708,6 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		mlog.Debug("Enterprise Edition, skip.")
-		return
-	}
-
 	user, appErr := c.App.GetUser(c.App.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr

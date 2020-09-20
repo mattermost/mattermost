@@ -21,7 +21,6 @@ const (
 	SYSTEM_FIRST_SERVER_RUN_TIMESTAMP_KEY         = "FirstServerRunTimestamp"
 	SYSTEM_CLUSTER_ENCRYPTION_KEY                 = "ClusterEncryptionKey"
 	SYSTEM_UPGRADED_FROM_TE_ID                    = "UpgradedFromTE"
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25  = "warn_metric_number_of_active_users_25"
 	SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5          = "warn_metric_number_of_teams_5"
 	SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50      = "warn_metric_number_of_channels_50"
 	SYSTEM_WARN_METRIC_MFA                        = "warn_metric_mfa"
@@ -34,11 +33,12 @@ const (
 )
 
 const (
-	WARN_METRIC_STATUS_LIMIT_REACHED = "true"
-	WARN_METRIC_STATUS_RUNONCE       = "runonce"
-	WARN_METRIC_STATUS_ACK           = "ack"
-	WARN_METRIC_STATUS_STORE_PREFIX  = "warn_metric_"
-	WARN_METRIC_JOB_INTERVAL         = 24 * 7
+	WARN_METRIC_STATUS_LIMIT_REACHED      = "true"
+	WARN_METRIC_STATUS_RUNONCE            = "runonce"
+	WARN_METRIC_STATUS_ACK                = "ack"
+	WARN_METRIC_STATUS_STORE_PREFIX       = "warn_metric_"
+	WARN_METRIC_JOB_INTERVAL              = 24 * 7
+	WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25 = 25
 )
 
 type System struct {
@@ -91,12 +91,6 @@ func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
 }
 
 var WarnMetricsTable = map[string]WarnMetric{
-	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25: {
-		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25,
-		Limit:     25,
-		IsBotOnly: true,
-		IsRunOnce: true,
-	},
 	SYSTEM_WARN_METRIC_MFA: {
 		Id:        SYSTEM_WARN_METRIC_MFA,
 		Limit:     -1,
