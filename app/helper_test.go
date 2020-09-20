@@ -116,8 +116,11 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ExperimentalSettings.RestrictSystemAdmin = false
 		*cfg.EmailSettings.RequireEmailVerification = false
+		*cfg.EmailSettings.ConnectionSecurity = ""
+
 		*cfg.ClusterSettings.UseExperimentalGossip = false
 		*cfg.ClusterSettings.UseExperimentalGossip = false
+
 	})
 
 	if enterprise {
