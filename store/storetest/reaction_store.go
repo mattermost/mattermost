@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/retrylayer"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -429,6 +430,8 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 // testReactionDeadlock is a best-case attempt to recreate the deadlock scenario.
 // It at least deadlocks 2 times out of 5.
 func testReactionDeadlock(t *testing.T, ss store.Store) {
+	ss = retrylayer.New(ss)
+
 	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),

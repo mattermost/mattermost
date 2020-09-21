@@ -30,6 +30,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequiredDisableWhenBusy(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/stats/filtered", api.ApiSessionRequired(getFilteredUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
@@ -45,6 +46,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/password", api.ApiSessionRequired(updatePassword)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/promote", api.ApiSessionRequired(promoteGuestToUser)).Methods("POST")
 	api.BaseRoutes.User.Handle("/demote", api.ApiSessionRequired(demoteUserToGuest)).Methods("POST")
+	api.BaseRoutes.User.Handle("/convert_to_bot", api.ApiSessionRequired(convertUserToBot)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset", api.ApiHandler(resetPassword)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/password/reset/send", api.ApiHandler(sendPasswordReset)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
@@ -61,6 +63,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/login", api.ApiHandler(login)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/login/switch", api.ApiHandler(switchAccountType)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login/cws", api.ApiHandlerTrustRequester(loginCWS)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/logout", api.ApiHandler(logout)).Methods("POST")
 
 	api.BaseRoutes.UserByUsername.Handle("", api.ApiSessionRequired(getUserByUsername)).Methods("GET")
@@ -83,6 +86,11 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/typing", api.ApiSessionRequiredDisableWhenBusy(publishUserTyping)).Methods("POST")
+
+	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -96,6 +104,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	tokenId := r.URL.Query().Get("t")
 	inviteId := r.URL.Query().Get("iid")
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("createUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -107,10 +116,16 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		var token *model.Token
-		token, err = c.App.Srv().Store.Token().GetByToken(tokenId)
-		if err != nil {
-			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
+		if nErr != nil {
+			var status int
+			switch nErr.(type) {
+			case *store.ErrNotFound:
+				status = http.StatusNotFound
+			default:
+				status = http.StatusInternalServerError
+			}
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, nErr.Error(), status)
 			return
 		}
 		auditRec.AddMeta("token_type", token.Type)
@@ -127,12 +142,12 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		ruser, err = c.App.CreateUserWithToken(user, token)
 	} else if len(inviteId) > 0 {
-		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
+		ruser, err = c.App.CreateUserWithInviteId(user, inviteId, redirect)
 	} else if c.IsSystemAdmin() {
-		ruser, err = c.App.CreateUserAsAdmin(user)
+		ruser, err = c.App.CreateUserAsAdmin(user, redirect)
 		auditRec.AddMeta("admin", true)
 	} else {
-		ruser, err = c.App.CreateUserFromSignup(user)
+		ruser, err = c.App.CreateUserFromSignup(user, redirect)
 	}
 
 	if err != nil {
@@ -506,6 +521,68 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(stats.ToJson()))
 }
 
+func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("in_team")
+	channelID := r.URL.Query().Get("in_channel")
+	includeDeleted := r.URL.Query().Get("include_deleted")
+	includeBotAccounts := r.URL.Query().Get("include_bots")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
+
+	includeDeletedBool, _ := strconv.ParseBool(includeDeleted)
+	includeBotAccountsBool, _ := strconv.ParseBool(includeBotAccounts)
+
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(channelID) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(teamID) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
+	options := &model.UserCountOptions{
+		IncludeDeleted:     includeDeletedBool,
+		IncludeBotAccounts: includeBotAccountsBool,
+		TeamId:             teamID,
+		ChannelId:          channelID,
+		Roles:              roles,
+		ChannelRoles:       channelRoles,
+		TeamRoles:          teamRoles,
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	stats, err := c.App.GetFilteredUsersStats(options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(stats.ToJson()))
+}
+
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelIds := model.ArrayFromJson(r.Body)
 
@@ -536,6 +613,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	active := r.URL.Query().Get("active")
 	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
+	rolesString := r.URL.Query().Get("roles")
+	channelRolesString := r.URL.Query().Get("channel_roles")
+	teamRolesString := r.URL.Query().Get("team_roles")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
 		c.SetInvalidUrlParam("team_id")
@@ -567,6 +647,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidUrlParam("inactive")
 	}
 
+	roles := []string{}
+	var rolesValid bool
+	if rolesString != "" {
+		roles, rolesValid = model.CleanRoleNames(strings.Split(rolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("roles")
+			return
+		}
+	}
+	channelRoles := []string{}
+	if channelRolesString != "" && len(inChannelId) != 0 {
+		channelRoles, rolesValid = model.CleanRoleNames(strings.Split(channelRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("channelRoles")
+			return
+		}
+	}
+	teamRoles := []string{}
+	if teamRolesString != "" && len(inTeamId) != 0 {
+		teamRoles, rolesValid = model.CleanRoleNames(strings.Split(teamRolesString, ","))
+		if !rolesValid {
+			c.SetInvalidParam("teamRoles")
+			return
+		}
+	}
+
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -584,6 +690,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		Inactive:         inactiveBool,
 		Active:           activeBool,
 		Role:             role,
+		Roles:            roles,
+		ChannelRoles:     channelRoles,
+		TeamRoles:        teamRoles,
 		Sort:             sort,
 		Page:             c.Params.Page,
 		PerPage:          c.Params.PerPage,
@@ -643,9 +752,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if len(inGroupId) > 0 {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
@@ -653,8 +762,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS) {
+			c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_GROUPS)
 			return
 		}
 
@@ -818,6 +927,9 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		GroupConstrained: props.GroupConstrained,
 		Limit:            props.Limit,
 		Role:             props.Role,
+		Roles:            props.Roles,
+		ChannelRoles:     props.ChannelRoles,
+		TeamRoles:        props.TeamRoles,
 	}
 
 	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
@@ -1087,7 +1199,16 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if _, err = c.App.UpdateActive(user, false); err != nil {
+	if c.Params.Permanent {
+		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
+			err = c.App.PermanentDeleteUser(user)
+		} else {
+			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		}
+	} else {
+		_, err = c.App.UpdateActive(user, false)
+	}
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1108,6 +1229,18 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.IsValidUserRoles(newRoles) {
 		c.SetInvalidParam("roles")
 		return
+	}
+
+	// require license feature to assign "new system roles"
+	for _, roleName := range strings.Fields(newRoles) {
+		for _, id := range model.NewSystemRoleIDs {
+			if roleName == id {
+				if license := c.App.Srv().License(); license == nil || !*license.Features.CustomPermissionsSchemes {
+					c.Err = model.NewAppError("updateUserRoles", "api.user.update_user_roles.license.app_error", nil, "", http.StatusBadRequest)
+					return
+				}
+			}
+		}
 	}
 
 	auditRec := c.MakeAuditRecord("updateUserRoles", audit.Fail)
@@ -1185,7 +1318,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if isSelfDeactive {
 		c.App.Srv().Go(func() {
-			if err = c.App.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
+			if err = c.App.Srv().EmailService.SendDeactivateAccountEmail(user.Email, user.Locale, c.App.GetSiteURL()); err != nil {
 				mlog.Error(err.Error())
 			}
 		})
@@ -1365,18 +1498,31 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	if c.Params.UserId == c.App.Session().UserId {
-		currentPassword := props["current_password"]
-		if len(currentPassword) <= 0 {
-			c.SetInvalidParam("current_password")
-			return
-		}
 
-		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
-	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+	// There are two main update flows depending on whether the provided password
+	// is already hashed or not.
+	if props["already_hashed"] == "true" {
+		if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			err = c.App.UpdateHashedPasswordByUserId(c.Params.UserId, newPassword)
+		} else if c.Params.UserId == c.App.Session().UserId {
+			err = model.NewAppError("updatePassword", "api.user.update_password.user_and_hashed.app_error", nil, "", http.StatusUnauthorized)
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	} else {
-		err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		if c.Params.UserId == c.App.Session().UserId {
+			currentPassword := props["current_password"]
+			if len(currentPassword) <= 0 {
+				c.SetInvalidParam("current_password")
+				return
+			}
+
+			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+		} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.App.T("api.user.reset_password.method"))
+		} else {
+			err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
+		}
 	}
 
 	if err != nil {
@@ -1509,7 +1655,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}()
 
 	props := model.MapFromJson(r.Body)
-
 	id := props["id"]
 	loginId := props["login_id"]
 	password := props["password"]
@@ -1543,7 +1688,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
 
-	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, "", ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -1591,6 +1736,48 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	w.Write([]byte(user.ToJson()))
+}
+
+func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
+		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
+		return
+	}
+	r.ParseForm()
+	var loginID string
+	var token string
+	if len(r.Form) > 0 {
+		for key, value := range r.Form {
+			if key == "login_id" {
+				loginID = value[0]
+			}
+			if key == "cws_token" {
+				token = value[0]
+			}
+		}
+	}
+
+	auditRec := c.MakeAuditRecord("login", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("login_id", loginID)
+	user, err := c.App.AuthenticateUserForLogin("", loginID, "", "", token, false)
+	if err != nil {
+		c.LogAuditWithUserId("", "failure - login_id="+loginID)
+		mlog.Error("CWS authentication error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	auditRec.AddMeta("user", user)
+	c.LogAuditWithUserId(user.Id, "authenticated")
+	err = c.App.DoLogin(w, r, user, "", false, false, false)
+	if err != nil {
+		mlog.Error("CWS login error", mlog.Err(err))
+		http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
+		return
+	}
+	c.LogAuditWithUserId(user.Id, "success")
+	c.App.AttachSessionCookies(w, r)
+	http.Redirect(w, r, *c.App.Config().ServiceSettings.SiteURL, 302)
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1748,7 +1935,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.App.Session().UserId)
-	c.App.Session().SetExpireInDays(*c.App.Config().ServiceSettings.SessionLengthMobileInDays)
+	c.App.SetSessionExpireInDays(c.App.Session(), *c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
@@ -1847,6 +2034,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("email")
 		return
 	}
+	redirect := r.URL.Query().Get("r")
 
 	auditRec := c.MakeAuditRecord("sendVerificationEmail", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -1860,7 +2048,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", user)
 
-	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
+	if err = c.App.SendEmailVerification(user, user.Email, redirect); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)
@@ -2380,4 +2568,175 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	c.LogAudit("user verified")
 
 	w.Write([]byte(user.ToJson()))
+}
+
+func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("convertUserToBot", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("user", user)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	bot, err := c.App.ConvertUserToBot(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddMeta("convertedTo", bot)
+
+	w.Write(bot.ToJson())
+}
+
+func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId {
+		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UploadSessionsToJson(uss)))
+}
+
+func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "saml" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	force, ok := props["force"].(bool)
+	if !ok {
+		c.SetInvalidParam("force")
+		return
+	}
+
+	matchField, ok := props["match_field"].(string)
+	if !ok {
+		c.SetInvalidParam("match_field")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("migrateAuthToLdap", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("match_field", matchField)
+	auditRec.AddMeta("force", force)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAP {
+		c.Err = model.NewAppError("api.migrateAuthToLDAP", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToLdap(from, matchField, force, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToLdap", "api.admin.ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.StringInterfaceFromJson(r.Body)
+	from, ok := props["from"].(string)
+	if !ok {
+		c.SetInvalidParam("from")
+		return
+	}
+	if len(from) == 0 || (from != "email" && from != "gitlab" && from != "ldap" && from != "google" && from != "office365") {
+		c.SetInvalidParam("from")
+		return
+	}
+
+	auto, ok := props["auto"].(bool)
+	if !ok {
+		c.SetInvalidParam("auto")
+		return
+	}
+	matches, ok := props["matches"].(map[string]interface{})
+	if !ok {
+		c.SetInvalidParam("matches")
+		return
+	}
+	usersMap := model.MapFromJson(strings.NewReader(model.StringInterfaceToJson(matches)))
+
+	auditRec := c.MakeAuditRecord("migrateAuthToSaml", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("from", from)
+	auditRec.AddMeta("matches", matches)
+	auditRec.AddMeta("auto", auto)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.SAML {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	// Email auth in Mattermost system is represented by ""
+	if from == "email" {
+		from = ""
+	}
+
+	if migrate := c.App.AccountMigration(); migrate != nil {
+		if err := migrate.MigrateToSaml(from, usersMap, auto, false); err != nil {
+			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		c.Err = model.NewAppError("api.migrateAuthToSaml", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }

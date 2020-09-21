@@ -88,7 +88,7 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 	if *a.Config().ServiceSettings.EnableCommands {
 		teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("ListAutocompleteCommands", "app.command.listautocompletecommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		for _, cmd := range teamCmds {
@@ -119,7 +119,12 @@ func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Command().GetByTeam(teamId)
+	teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
+	if err != nil {
+		return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teamCmds, nil
 }
 
 func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
@@ -146,7 +151,7 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	if *a.Config().ServiceSettings.EnableCommands {
 		teamCmds, err := a.Srv().Store.Command().GetByTeam(teamId)
 		if err != nil {
-			return nil, err
+			return nil, model.NewAppError("ListAllCommands", "app.command.listallcommands.internal_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
@@ -210,9 +215,9 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
-// mentionsToTeamMembers returns all the @ mentions found in message that
+// MentionsToTeamMembers returns all the @ mentions found in message that
 // belong to users in the specified team, linking them to their users
-func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap {
+func (a *App) MentionsToTeamMembers(message, teamId string) model.UserMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -281,9 +286,9 @@ func (a *App) mentionsToTeamMembers(message, teamId string) model.UserMentionMap
 	return atMentionMap
 }
 
-// mentionsToPublicChannels returns all the mentions to public channels,
+// MentionsToPublicChannels returns all the mentions to public channels,
 // linking them to their channels
-func (a *App) mentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
+func (a *App) MentionsToPublicChannels(message, teamId string) model.ChannelMentionMap {
 	type mentionMapItem struct {
 		Name string
 		Id   string
@@ -355,7 +360,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	teamChan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv().Store.Team().Get(args.TeamId)
-		teamChan <- store.StoreResult{Data: team, Err: err}
+		teamChan <- store.StoreResult{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
@@ -368,12 +373,18 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(args.TeamId)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.command.tryexecutecustomcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	tr := <-teamChan
-	if tr.Err != nil {
-		return nil, nil, tr.Err
+	if tr.NErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(tr.NErr, &nfErr):
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, tr.NErr.Error(), http.StatusInternalServerError)
+		}
 	}
 	team := tr.Data.(*model.Team)
 
@@ -426,12 +437,12 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	p.Set("trigger_id", args.TriggerId)
 
-	userMentionMap := a.mentionsToTeamMembers(message, team.Id)
+	userMentionMap := a.MentionsToTeamMembers(message, team.Id)
 	for key, values := range userMentionMap.ToURLValues() {
 		p[key] = values
 	}
 
-	channelMentionMap := a.mentionsToPublicChannels(message, team.Id)
+	channelMentionMap := a.MentionsToPublicChannels(message, team.Id)
 	for key, values := range channelMentionMap.ToURLValues() {
 		p[key] = values
 	}
@@ -442,10 +453,10 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.doCommandRequest(cmd, p)
+	return a.DoCommandRequest(cmd, p)
 }
 
-func (a *App) doCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Prepare the request
 	var req *http.Request
 	var err error
@@ -598,11 +609,15 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		return nil, model.NewAppError("CreateCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	return a.createCommand(cmd)
+}
+
+func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
 	teamCmds, err := a.Srv().Store.Command().GetByTeam(cmd.TeamId)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, existingCommand := range teamCmds {
@@ -618,7 +633,18 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		}
 	}
 
-	return a.Srv().Store.Command().Save(cmd)
+	command, nErr := a.Srv().Store.Command().Save(cmd)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateCommand", "app.command.createcommand.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return command, nil
 }
 
 func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
@@ -626,13 +652,17 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	cmd, err := a.Srv().Store.Command().Get(commandId)
+	command, err := a.Srv().Store.Command().Get(commandId)
 	if err != nil {
-		err.StatusCode = http.StatusNotFound
-		return nil, err
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.get.missing.app_error", map[string]interface{}{"command_id": commandId}, "", http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("GetCommand", "app.command.getcommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
-
-	return cmd, nil
+	return command, nil
 }
 
 func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError) {
@@ -647,9 +677,24 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.UpdateAt = model.GetMillis()
 	updatedCmd.DeleteAt = oldCmd.DeleteAt
 	updatedCmd.CreatorId = oldCmd.CreatorId
+	updatedCmd.PluginId = oldCmd.PluginId
 	updatedCmd.TeamId = oldCmd.TeamId
 
-	return a.Srv().Store.Command().Update(updatedCmd)
+	command, err := a.Srv().Store.Command().Update(updatedCmd)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": updatedCmd.Id}, "", http.StatusNotFound)
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("UpdateCommand", "app.command.updatecommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return command, nil
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
@@ -657,7 +702,16 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 
 	_, err := a.Srv().Store.Command().Update(command)
 	if err != nil {
-		return err
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &nfErr):
+			return model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": command.Id}, "", http.StatusNotFound)
+		case errors.As(err, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("MoveCommand", "app.command.movecommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	return nil
@@ -670,7 +724,21 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 
 	cmd.Token = model.NewId()
 
-	return a.Srv().Store.Command().Update(cmd)
+	command, err := a.Srv().Store.Command().Update(cmd)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.update.missing.app_error", map[string]interface{}{"command_id": cmd.Id}, "", http.StatusNotFound)
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("RegenCommandToken", "app.command.regencommandtoken.internal_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	return command, nil
 }
 
 func (a *App) DeleteCommand(commandId string) *model.AppError {
@@ -678,5 +746,10 @@ func (a *App) DeleteCommand(commandId string) *model.AppError {
 		return model.NewAppError("DeleteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv().Store.Command().Delete(commandId, model.GetMillis())
+	err := a.Srv().Store.Command().Delete(commandId, model.GetMillis())
+	if err != nil {
+		return model.NewAppError("DeleteCommand", "app.command.deletecommand.internal_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }

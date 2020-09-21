@@ -4,7 +4,8 @@
 package filesstore
 
 import (
-	"bytes"
+	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,24 +13,25 @@ import (
 	"path/filepath"
 	"strings"
 
-	s3 "github.com/minio/minio-go/v6"
-	"github.com/minio/minio-go/v6/pkg/credentials"
-	"github.com/minio/minio-go/v6/pkg/encrypt"
+	s3 "github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/minio/minio-go/v7/pkg/encrypt"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type S3FileBackend struct {
-	endpoint  string
-	accessKey string
-	secretKey string
-	secure    bool
-	signV2    bool
-	region    string
-	bucket    string
-	encrypt   bool
-	trace     bool
+	endpoint   string
+	accessKey  string
+	secretKey  string
+	secure     bool
+	signV2     bool
+	region     string
+	bucket     string
+	pathPrefix string
+	encrypt    bool
+	trace      bool
 }
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -48,7 +50,12 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV4)
 	}
 
-	s3Clnt, err := s3.NewWithCredentials(b.endpoint, creds, b.secure, b.region)
+	opts := s3.Options{
+		Creds:  creds,
+		Secure: b.secure,
+		Region: b.region,
+	}
+	s3Clnt, err := s3.New(b.endpoint, &opts)
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +73,14 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	exists, err := s3Clnt.BucketExists(b.bucket)
+	exists, err := s3Clnt.BucketExists(context.Background(), b.bucket)
 	if err != nil {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if !exists {
 		mlog.Warn("Bucket specified does not exist. Attempting to create...")
-		err := s3Clnt.MakeBucket(b.bucket, b.region)
+		err := s3Clnt.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
 		if err != nil {
 			mlog.Error("Unable to create bucket.")
 			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -89,10 +96,13 @@ func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	minioObject, err := s3Clnt.GetObject(b.bucket, path, s3.GetObjectOptions{})
+
+	path = filepath.Join(b.pathPrefix, path)
+	minioObject, err := s3Clnt.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	return minioObject, nil
 }
 
@@ -101,10 +111,13 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	minioObject, err := s3Clnt.GetObject(b.bucket, path, s3.GetObjectOptions{})
+
+	path = filepath.Join(b.pathPrefix, path)
+	minioObject, err := s3Clnt.GetObject(context.Background(), b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	defer minioObject.Close()
 	if f, err := ioutil.ReadAll(minioObject); err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -119,13 +132,16 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 	if err != nil {
 		return false, model.NewAppError("FileExists", "api.file.file_exists.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	_, err = s3Clnt.StatObject(b.bucket, path, s3.StatObjectOptions{})
+
+	path = filepath.Join(b.pathPrefix, path)
+	_, err = s3Clnt.StatObject(context.Background(), b.bucket, path, s3.StatObjectOptions{})
 
 	if err == nil {
 		return true, nil
 	}
 
-	if err.(s3.ErrorResponse).Code == "NoSuchKey" {
+	var s3Err s3.ErrorResponse
+	if errors.As(err, &s3Err); s3Err.Code == "NoSuchKey" {
 		return false, nil
 	}
 
@@ -138,12 +154,19 @@ func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
 		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
-	if err != nil {
-		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	oldPath = filepath.Join(b.pathPrefix, oldPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
+	srcOpts := s3.CopySrcOptions{
+		Bucket:     b.bucket,
+		Object:     oldPath,
+		Encryption: encrypt.NewSSE(),
 	}
-	if err = s3Clnt.CopyObject(destination, source); err != nil {
+	dstOpts := s3.CopyDestOptions{
+		Bucket:     b.bucket,
+		Object:     newPath,
+		Encryption: encrypt.NewSSE(),
+	}
+	if _, err = s3Clnt.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
@@ -155,17 +178,27 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
-	destination, err := s3.NewDestinationInfo(b.bucket, newPath, encrypt.NewSSE(), nil)
-	if err != nil {
-		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	oldPath = filepath.Join(b.pathPrefix, oldPath)
+	newPath = filepath.Join(b.pathPrefix, newPath)
+	srcOpts := s3.CopySrcOptions{
+		Bucket:     b.bucket,
+		Object:     oldPath,
+		Encryption: encrypt.NewSSE(),
 	}
-	if err = s3Clnt.CopyObject(destination, source); err != nil {
+	dstOpts := s3.CopyDestOptions{
+		Bucket:     b.bucket,
+		Object:     newPath,
+		Encryption: encrypt.NewSSE(),
+	}
+
+	if _, err = s3Clnt.CopyObject(context.Background(), dstOpts, srcOpts); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if err = s3Clnt.RemoveObject(b.bucket, oldPath); err != nil {
+
+	if err = s3Clnt.RemoveObject(context.Background(), b.bucket, oldPath, s3.RemoveObjectOptions{}); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
 	return nil
 }
 
@@ -176,6 +209,7 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	}
 
 	var contentType string
+	path = filepath.Join(b.pathPrefix, path)
 	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
 		contentType = model.GetImageMimeType(ext)
 	} else {
@@ -183,17 +217,71 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(fr)
+	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, fr, -1, options)
 	if err != nil {
-		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	written, err := s3Clnt.PutObject(b.bucket, path, &buf, int64(buf.Len()), options)
-	if err != nil {
-		return written, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return info.Size, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return written, nil
+	return info.Size, nil
+}
+
+func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	s3Clnt, err := b.s3New()
+	if err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	fp := filepath.Join(b.pathPrefix, path)
+	if _, err = s3Clnt.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var contentType string
+	if ext := filepath.Ext(fp); model.IsFileExtImage(ext) {
+		contentType = model.GetImageMimeType(ext)
+	} else {
+		contentType = "binary/octet-stream"
+	}
+
+	var sse encrypt.ServerSide
+	if b.encrypt {
+		sse = encrypt.NewSSE()
+	}
+	options := s3.PutObjectOptions{
+		ContentType:          contentType,
+		ServerSideEncryption: sse,
+	}
+
+	partName := fp + ".part"
+	info, err := s3Clnt.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
+	defer s3Clnt.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
+	if info.Size > 0 {
+		src1Opts := s3.CopySrcOptions{
+			Bucket: b.bucket,
+			Object: fp,
+		}
+		src2Opts := s3.CopySrcOptions{
+			Bucket: b.bucket,
+			Object: partName,
+		}
+		dstOpts := s3.CopyDestOptions{
+			Bucket:     b.bucket,
+			Object:     fp,
+			Encryption: sse,
+		}
+		_, err = s3Clnt.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
+		if err != nil {
+			return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return info.Size, nil
+	}
+
+	var errString string
+	if err != nil {
+		errString = err.Error()
+	}
+
+	return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, errString, http.StatusInternalServerError)
 }
 
 func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
@@ -202,15 +290,16 @@ func (b *S3FileBackend) RemoveFile(path string) *model.AppError {
 		return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := s3Clnt.RemoveObject(b.bucket, path); err != nil {
+	path = filepath.Join(b.pathPrefix, path)
+	if err := s3Clnt.RemoveObject(context.Background(), b.bucket, path, s3.RemoveObjectOptions{}); err != nil {
 		return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
-func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
-	out := make(chan string, 1)
+func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
+	out := make(chan s3.ObjectInfo, 1)
 
 	go func() {
 		defer close(out)
@@ -222,7 +311,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 				break
 			}
 
-			out <- info.Key
+			out <- info
 		}
 	}()
 
@@ -237,15 +326,17 @@ func (b *S3FileBackend) ListDirectory(path string) (*[]string, *model.AppError) 
 		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	doneCh := make(chan struct{})
-	defer close(doneCh)
-
+	path = filepath.Join(b.pathPrefix, path)
 	if !strings.HasSuffix(path, "/") && len(path) > 0 {
 		// s3Clnt returns only the path itself when "/" is not present
 		// appending "/" to make it consistent across all filesstores
 		path = path + "/"
 	}
-	for object := range s3Clnt.ListObjects(b.bucket, path, false, doneCh) {
+
+	opts := s3.ListObjectsOptions{
+		Prefix: path,
+	}
+	for object := range s3Clnt.ListObjects(context.Background(), b.bucket, opts) {
 		if object.Err != nil {
 			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
 		}
@@ -260,17 +351,18 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 	if err != nil {
 		return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	doneCh := make(chan struct{})
-
-	for err := range s3Clnt.RemoveObjects(b.bucket, getPathsFromObjectInfos(s3Clnt.ListObjects(b.bucket, path, true, doneCh))) {
+	opts := s3.ListObjectsOptions{
+		Prefix:    filepath.Join(b.pathPrefix, path),
+		Recursive: true,
+	}
+	list := s3Clnt.ListObjects(context.Background(), b.bucket, opts)
+	objectsCh := s3Clnt.RemoveObjects(context.Background(), b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
+	for err := range objectsCh {
 		if err.Err != nil {
-			doneCh <- struct{}{}
 			return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Err.Error(), http.StatusInternalServerError)
 		}
 	}
 
-	close(doneCh)
 	return nil
 }
 

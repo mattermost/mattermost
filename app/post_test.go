@@ -459,6 +459,7 @@ func TestImageProxy(t *testing.T) {
 	mockPostStore := storemocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := storemocks.SystemStore{}
+	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
@@ -892,15 +893,15 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberBefore, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, appErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
-		require.Nil(t, appErr)
+		channelMemberAfter, nErr := th.App.Srv().Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
+		require.Nil(t, nErr)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
 	})

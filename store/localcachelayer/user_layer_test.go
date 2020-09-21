@@ -91,16 +91,13 @@ func TestUserStoreCache(t *testing.T) {
 
 		for i := 0; i < len(storedUsers); i++ {
 			assert.Equal(t, storedUsers[i].Id, cachedUsers[i].Id)
-			if storedUsers[i] == cachedUsers[i] {
-				assert.Fail(t, "should be different pointers")
-			}
-			cachedUsers[i].NotifyProps["key"] = "othervalue"
-			assert.NotEqual(t, storedUsers[i], cachedUsers[i])
 		}
 
 		cachedUsers, err = cachedStore.User().GetProfileByIds(fakeUserIds, &store.UserGetByIdsOpts{}, true)
 		require.Nil(t, err)
 		for i := 0; i < len(storedUsers); i++ {
+			storedUsers[i].Props = model.StringMap{}
+			storedUsers[i].Timezone = model.StringMap{}
 			assert.Equal(t, storedUsers[i], cachedUsers[i])
 			if storedUsers[i] == cachedUsers[i] {
 				assert.Fail(t, "should be different pointers")
@@ -235,12 +232,9 @@ func TestUserStoreGetCache(t *testing.T) {
 		cachedUser, err := cachedStore.User().Get(fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, storedUser, cachedUser)
-		if storedUser == cachedUser {
-			assert.Fail(t, "should be different pointers")
-		}
-		cachedUser.NotifyProps["key"] = "othervalue"
-		assert.NotEqual(t, storedUser, cachedUser)
 
+		storedUser.Props = model.StringMap{}
+		storedUser.Timezone = model.StringMap{}
 		cachedUser, err = cachedStore.User().Get(fakeUserId)
 		require.Nil(t, err)
 		assert.Equal(t, storedUser, cachedUser)

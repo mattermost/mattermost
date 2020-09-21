@@ -135,6 +135,20 @@ func (watcher *Watcher) PollAndNotify() {
 				default:
 				}
 			}
+		} else if job.Type == model.JOB_TYPE_PRODUCT_NOTICES {
+			if watcher.workers.ProductNotices != nil {
+				select {
+				case watcher.workers.ProductNotices.JobChannel() <- *job:
+				default:
+				}
+			}
+		} else if job.Type == model.JOB_TYPE_ACTIVE_USERS {
+			if watcher.workers.ActiveUsers != nil {
+				select {
+				case watcher.workers.ActiveUsers.JobChannel() <- *job:
+				default:
+				}
+			}
 		}
 	}
 }

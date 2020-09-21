@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-quick test-server-race
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race start-docker-check
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -9,7 +9,6 @@ else
 endif
 
 IS_CI ?= false
-MM_NO_DOCKER ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -23,7 +22,6 @@ BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
-LDAP_DATA ?= test
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
@@ -51,6 +49,11 @@ else
 	BUILD_CLIENT = false
 endif
 
+# these variables are used by QA to override location of InProduct Notices
+NOTICES_JSON_URL ?= https://notices.mattermost.com/
+NOTICES_FETCH_SECS ?= 3600
+NOTICES_SKIP_CACHE ?= false
+
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
@@ -63,6 +66,10 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_URL=$(NOTICES_JSON_URL)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS=$(NOTICES_FETCH_SECS)"
+LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_SKIP_CACHE=$(NOTICES_SKIP_CACHE)"
+
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 MINIMUM_SUPPORTED_GO_MAJOR_VERSION = 1
@@ -82,7 +89,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 # Packages lists
-TE_PACKAGES=$(shell $(GO) list ./...)
+TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
 PLUGIN_PACKAGES?=mattermost-plugin-zoom-v1.3.1
@@ -96,7 +103,7 @@ PLUGIN_PACKAGES += mattermost-plugin-antivirus-v0.1.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v2.3.2
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
-
+PLUGIN_PACKAGES += mattermost-plugin-incident-response-v0.6.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -118,11 +125,32 @@ ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 # Decide what version of prebuilt binaries to download. This will use the release-* branch names or change to the latest.
-MMCTL_REL_TO_DOWNLOAD = $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
+MMCTL_REL_TO_DOWNLOAD:=$(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-')
 
 all: run ## Alias for 'run'.
 
+-include config.override.mk
+include config.mk
 include build/*.mk
+
+RUN_IN_BACKGROUND ?=
+ifeq ($(RUN_SERVER_IN_BACKGROUND),true)
+	RUN_IN_BACKGROUND := &
+endif
+
+start-docker-check:
+ifeq (,$(findstring minio,$(ENABLED_DOCKER_SERVICES)))
+  TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) minio
+endif
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ifeq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) openldap
+  endif
+  ifeq (,$(findstring elasticsearch,$(ENABLED_DOCKER_SERVICES)))
+    TEMP_DOCKER_SERVICES:=$(TEMP_DOCKER_SERVICES) elasticsearch
+  endif
+endif
+ENABLED_DOCKER_SERVICES:=$(ENABLED_DOCKER_SERVICES) $(TEMP_DOCKER_SERVICES)
 
 start-docker: ## Starts the docker containers for local development.
 ifneq ($(IS_CI),false)
@@ -132,8 +160,10 @@ else ifeq ($(MM_NO_DOCKER),true)
 else
 	@echo Starting docker containers
 
-	docker-compose run --rm start_dependencies
-	cat tests/${LDAP_DATA}-data.ldif | docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker-compose -f docker-compose.makefile.yml -f /dev/stdin run --rm start_dependencies
+ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
+	cat tests/${LDAP_DATA}-data.ldif | docker-compose -f docker-compose.makefile.yml exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+endif
 endif
 
 stop-docker: ## Stops the docker containers for local development.
@@ -168,6 +198,10 @@ prepackaged-plugins: ## Populate the prepackaged-plugins directory
 	done
 
 prepackaged-binaries: ## Populate the prepackaged-binaries to the bin directory
+ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
+	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
+	@exit 1
+endif
 # Externally built binaries
 ifeq ($(shell test -f bin/mmctl && printf "yes"),yes)
 	@echo mmctl installed
@@ -202,15 +236,23 @@ endif
 app-layers: ## Extract interface from App struct
 	$(GO) get -modfile=go.tools.mod github.com/reflog/struct2interface
 	$(GOBIN)/struct2interface -f "app" -o "app/app_iface.go" -p "app" -s "App" -i "AppIface" -t ./app/layer_generators/app_iface.go.tmpl
-	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
+	$(GO) run ./app/layer_generators -in ./app/app_iface.go -out ./app/opentracing/opentracing_layer.go -template ./app/layer_generators/opentracing_layer.go.tmpl
 
 i18n-extract: ## Extract strings for translation from the source code
 	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
-	$(GOBIN)/mmgotool i18n extract
+	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+
+i18n-check: ## Exit on empty translation strings except in english base file
+	$(GO) get -modfile=go.tools.mod github.com/mattermost/mattermost-utilities/mmgotool
+	$(GOBIN)/mmgotool i18n clean-empty --portal-dir="" --check
 
 store-mocks: ## Creates mock files.
 	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
 	$(GOBIN)/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+
+telemetry-mocks: ## Creates mock files.
+	$(GO) get -modfile=go.tools.mod github.com/vektra/mockery/...
+	$(GOBIN)/mockery -dir services/telemetry -all -output services/telemetry/mocks -note 'Regenerate this file using `make telemetry-mocks`.'
 
 store-layers: ## Generate layers for the store
 	$(GO) generate $(GOFLAGS) ./store
@@ -243,6 +285,11 @@ pluginapi: ## Generates api and hooks glue code for plugins
 check-prereqs: ## Checks prerequisite software status.
 	./scripts/prereq-check.sh
 
+check-prereqs-enterprise: ## Checks prerequisite software status for enterprise.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	./scripts/prereq-check-enterprise.sh
+endif
+
 check-style: golangci-lint plugin-checker vet ## Runs golangci against all packages
 
 test-te-race: ## Checks for race conditions in the team edition.
@@ -255,7 +302,7 @@ test-te-race: ## Checks for race conditions in the team edition.
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race: ## Checks for race conditions in the enterprise edition.
+test-ee-race: check-prereqs-enterprise ## Checks for race conditions in the enterprise edition.
 	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -306,15 +353,27 @@ gomodtidy:
 	fi;
 	@rm go.*.orig;
 
-test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+test-server: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
 	@echo Running only TE tests
 endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+  ifneq ($(IS_CI),true)
+    ifneq ($(MM_NO_DOCKER),true)
+      ifneq ($(TEMP_DOCKER_SERVICES),)
+	      @echo Stopping temporary docker services
+	      docker-compose stop $(TEMP_DOCKER_SERVICES)
+      endif
+    endif
+  endif
 
-test-server-quick: ## Runs only quick tests.
+test-server-ee: check-prereqs-enterprise start-docker-check start-docker go-junit-report do-cover-file ## Runs EE tests.
+	@echo Running only EE tests
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(EE_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)" "$(GOBIN)"
+
+test-server-quick: check-prereqs-enterprise ## Runs only quick tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 	$(GO) test $(GOFLAGS) -short $(ALL_PACKAGES)
@@ -368,7 +427,7 @@ run-server: prepackaged-binaries validate-go-version start-docker ## Starts the 
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) --disableconfigwatch 2>&1 | \
-	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus &
+	    $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) logs --logrus $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
@@ -517,7 +576,7 @@ vet: ## Run mattermost go vet specific checks
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off GOBIN=$(PWD)/bin go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
-	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -tFatal"; \
+	@VET_CMD="-license -structuredLogging -inconsistentReceiverName -inconsistentReceiverName.ignore=serialized_gen.go -tFatal"; \
 	if ! [ -z "${MM_VET_OPENSPEC_PATH}" ] && [ -f "${MM_VET_OPENSPEC_PATH}" ]; then \
 		VET_CMD="$$VET_CMD -openApiSync -openApiSync.spec=$$MM_VET_OPENSPEC_PATH"; \
 	else \
@@ -529,6 +588,13 @@ ifneq ($(MM_NO_ENTERPRISE_LINT),true)
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -enterpriseLicense -structuredLogging -tFatal ./enterprise/...
 endif
 endif
+
+gen-serialized: ## Generates serialization methods for hot structs
+	# This tool only works at a file level, not at a package level.
+	# So you would need to move the structs that need to be serialized temporarily
+	# to session.go and run the tool.
+	$(GO) get -modfile=go.tools.mod github.com/tinylib/msgp
+	$(GOBIN)/msgp -file=./model/session.go -tests=false -o=./model/serialized_gen.go
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
@@ -545,3 +611,6 @@ endif
 ## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@grep -E '^[0-9a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@echo
+	@echo You can modify the default settings for this Makefile creating a file config.mk based on the default-config.mk
+	@echo

@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -222,13 +223,24 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	p := model.Team{}
-	p.DisplayName = "ADisplayName" + model.NewId()
+	p.DisplayName = "BDisplayName" + model.NewId()
 	p.Name = "zzzzzz-" + model.NewId() + "a"
 	p.Email = MakeEmail()
 	p.Type = model.TEAM_OPEN
 	p.AllowOpenInvite = false
 
 	_, err = ss.Team().Save(&p)
+	require.Nil(t, err)
+
+	g := model.Team{}
+	g.DisplayName = "CDisplayName" + model.NewId()
+	g.Name = "zzzzzz-" + model.NewId() + "a"
+	g.Email = MakeEmail()
+	g.Type = model.TEAM_OPEN
+	g.AllowOpenInvite = false
+	g.GroupConstrained = model.NewBool(true)
+
+	_, err = ss.Team().Save(&g)
 	require.Nil(t, err)
 
 	q := model.Team{}
@@ -243,80 +255,130 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	testCases := []struct {
 		Name            string
-		Term            string
+		Opts            *model.TeamSearch
 		ExpectedLenth   int
-		ExpectedFirstId string
+		ExpectedTeamIds []string
 	}{
 		{
 			"Search chocolate by display name",
-			"ocola",
+			&model.TeamSearch{Term: "ocola"},
 			1,
-			q.Id,
+			[]string{q.Id},
 		},
 		{
 			"Search chocolate by display name",
-			"choc",
+			&model.TeamSearch{Term: "choc"},
 			1,
-			q.Id,
+			[]string{q.Id},
 		},
 		{
 			"Search chocolate by display name",
-			"late",
+			&model.TeamSearch{Term: "late"},
 			1,
-			q.Id,
+			[]string{q.Id},
 		},
 		{
 			"Search chocolate by  name",
-			"ilov",
+			&model.TeamSearch{Term: "ilov"},
 			1,
-			q.Id,
+			[]string{q.Id},
 		},
 		{
 			"Search chocolate by  name",
-			"ecake",
+			&model.TeamSearch{Term: "ecake"},
 			1,
-			q.Id,
+			[]string{q.Id},
 		},
 		{
 			"Search for open team name",
-			o.Name,
+			&model.TeamSearch{Term: o.Name},
 			1,
-			o.Id,
+			[]string{o.Id},
 		},
 		{
 			"Search for open team displayName",
-			o.DisplayName,
+			&model.TeamSearch{Term: o.DisplayName},
 			1,
-			o.Id,
+			[]string{o.Id},
 		},
 		{
 			"Search for open team without results",
-			"junk",
+			&model.TeamSearch{Term: "junk"},
 			0,
-			"",
+			[]string{},
 		},
 		{
 			"Search for private team",
-			p.DisplayName,
+			&model.TeamSearch{Term: p.DisplayName},
 			1,
-			p.Id,
+			[]string{p.Id},
 		},
 		{
-			"Search for both teams",
-			"zzzzzz",
+			"Search for all 3 z teams",
+			&model.TeamSearch{Term: "zzzzzz"},
+			3,
+			[]string{o.Id, p.Id, g.Id},
+		},
+		{
+			"Search for all 3 teams filter by allow open invite",
+			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(true)},
+			1,
+			[]string{o.Id},
+		},
+		{
+			"Search for all 3 teams filter by allow open invite = false",
+			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(false)},
+			1,
+			[]string{p.Id},
+		},
+		{
+			"Search for all 3 teams filter by group constrained",
+			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(true)},
+			1,
+			[]string{g.Id},
+		},
+		{
+			"Search for all 3 teams filter by group constrained = false",
+			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false)},
 			2,
-			"",
+			[]string{o.Id, p.Id},
+		},
+		{
+			"Search for all 3 teams filter by allow open invite and include group constrained",
+			&model.TeamSearch{Term: "zzzzzz", AllowOpenInvite: model.NewBool(true), GroupConstrained: model.NewBool(true)},
+			2,
+			[]string{o.Id, g.Id},
+		},
+		{
+			"Search for all 3 teams filter by group constrained and not open invite",
+			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			2,
+			[]string{g.Id, p.Id},
+		},
+		{
+			"Search for all 3 teams filter by group constrained false and open invite",
+			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(true)},
+			2,
+			[]string{o.Id, p.Id},
+		},
+		{
+			"Search for all 3 teams filter by group constrained false and open invite false",
+			&model.TeamSearch{Term: "zzzzzz", GroupConstrained: model.NewBool(false), AllowOpenInvite: model.NewBool(false)},
+			2,
+			[]string{p.Id, o.Id},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1, err := ss.Team().SearchAll(tc.Term)
+			response, err := ss.Team().SearchAll(tc.Opts.Term, tc.Opts)
 			require.Nil(t, err)
-			require.Equal(t, tc.ExpectedLenth, len(r1))
-			if tc.ExpectedFirstId != "" {
-				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
+			require.Equal(t, tc.ExpectedLenth, len(response))
+			responseTeamIds := []string{}
+			for _, team := range response {
+				responseTeamIds = append(responseTeamIds, team.Id)
 			}
+			require.ElementsMatch(t, tc.ExpectedTeamIds, responseTeamIds)
 		})
 	}
 }
@@ -450,7 +512,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	q := model.Team{}
 	q.DisplayName = "FOOBARDISPLAYNAME"
-	q.Name = "whatever"
+	q.Name = "averylongname"
 	q.Email = MakeEmail()
 	q.Type = model.TEAM_OPEN
 	q.AllowOpenInvite = false
@@ -484,13 +546,13 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 		},
 		{
 			"Search FooBar by  name from text at the beginning name",
-			"what",
+			"averyl",
 			1,
 			q.Id,
 		},
 		{
 			"Search FooBar by  name from text at the end of name",
-			"ever",
+			"ongname",
 			1,
 			q.Id,
 		},
@@ -569,8 +631,8 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	teams, err := ss.Team().GetTeamsByUserId(m1.UserId)
 	require.Nil(t, err)
@@ -1008,8 +1070,8 @@ func testGetMembers(t *testing.T, ss store.Store) {
 		m5 := &model.TeamMember{TeamId: teamId1, UserId: "44444444444444444444444444"}
 		m6 := &model.TeamMember{TeamId: teamId2, UserId: "00000000000000000000000000"}
 
-		_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, nErr)
 
 		// Gets users ordered by UserId
 		ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -1053,12 +1115,12 @@ func testGetMembers(t *testing.T, ss store.Store) {
 		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
 		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
 
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5, m6}, -1)
+		require.Nil(t, nErr)
 
 		// Gets users ordered by UserName
-		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME})
-		require.Nil(t, err)
+		ms, nErr := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME})
+		require.Nil(t, nErr)
 		assert.Len(t, ms, 5)
 		assert.Equal(t, u1.Id, ms[0].UserId)
 		assert.Equal(t, u3.Id, ms[1].UserId)
@@ -1067,8 +1129,8 @@ func testGetMembers(t *testing.T, ss store.Store) {
 		assert.Equal(t, u4.Id, ms[4].UserId)
 
 		// Gets users ordered by UserName and excludes deleted members
-		ms, err = ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME, ExcludeDeletedUsers: true})
-		require.Nil(t, err)
+		ms, nErr = ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{Sort: model.USERNAME, ExcludeDeletedUsers: true})
+		require.Nil(t, nErr)
 		assert.Len(t, ms, 2)
 		assert.Equal(t, u2.Id, ms[0].UserId)
 		assert.Equal(t, u4.Id, ms[1].UserId)
@@ -1105,22 +1167,22 @@ func testGetMembers(t *testing.T, ss store.Store) {
 		m5 := &model.TeamMember{TeamId: teamId1, UserId: u5.Id}
 		m6 := &model.TeamMember{TeamId: teamId2, UserId: u6.Id}
 
-		t1, err := ss.Team().SaveMember(m1, -1)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(m2, -1)
-		require.Nil(t, err)
-		t3, err := ss.Team().SaveMember(m3, -1)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(m4, -1)
-		require.Nil(t, err)
-		t5, err := ss.Team().SaveMember(m5, -1)
-		require.Nil(t, err)
-		_, err = ss.Team().SaveMember(m6, -1)
-		require.Nil(t, err)
+		t1, nErr := ss.Team().SaveMember(m1, -1)
+		require.Nil(t, nErr)
+		_, nErr = ss.Team().SaveMember(m2, -1)
+		require.Nil(t, nErr)
+		t3, nErr := ss.Team().SaveMember(m3, -1)
+		require.Nil(t, nErr)
+		_, nErr = ss.Team().SaveMember(m4, -1)
+		require.Nil(t, nErr)
+		t5, nErr := ss.Team().SaveMember(m5, -1)
+		require.Nil(t, nErr)
+		_, nErr = ss.Team().SaveMember(m6, -1)
+		require.Nil(t, nErr)
 
 		// Gets users ordered by UserName
-		ms, err := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
-		require.Nil(t, err)
+		ms, nErr := ss.Team().GetMembers(teamId1, 0, 100, &model.TeamMembersGetOptions{ExcludeDeletedUsers: true})
+		require.Nil(t, nErr)
 		assert.Len(t, ms, 3)
 		require.ElementsMatch(t, ms, [3]*model.TeamMember{t1, t3, t5})
 	})
@@ -1134,8 +1196,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
+	require.Nil(t, nErr)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
@@ -1159,8 +1221,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
 
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	err = ss.Team().RemoveAllMembersByTeam(teamId1)
 	require.Nil(t, err)
@@ -1172,15 +1234,15 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
+	require.Nil(t, nErr)
 
 	ms, err = ss.Team().GetTeamsForUser(uid)
 	require.Nil(t, err)
 	require.Len(t, ms, 2)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	ms, err = ss.Team().GetTeamsForUser(m1.UserId)
 	require.Nil(t, err)
@@ -1195,38 +1257,38 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid team member", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
-		_, err = ss.Team().SaveMember(member, -1)
-		require.NotNil(t, err)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		_, nErr := ss.Team().SaveMember(member, -1)
+		require.NotNil(t, nErr)
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
 	t.Run("too many members", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}
-		_, err = ss.Team().SaveMember(member, 0)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		_, nErr := ss.Team().SaveMember(member, 0)
+		require.NotNil(t, nErr)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 1 metadata: team members limit exceeded", nErr.Error())
 	})
 
 	t.Run("too many members because previous existing members", func(t *testing.T) {
 		teamID := model.NewId()
 
 		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
-		_, err = ss.Team().SaveMember(m1, 1)
+		_, nErr := ss.Team().SaveMember(m1, 1)
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
-		_, err = ss.Team().SaveMember(m2, 1)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		_, nErr = ss.Team().SaveMember(m2, 1)
+		require.NotNil(t, nErr)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		teamID1 := model.NewId()
 		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
-		_, err = ss.Team().SaveMember(m1, -1)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMember(m1, -1)
+		require.Nil(t, nErr)
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
-		_, err = ss.Team().SaveMember(m2, -1)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+		_, nErr = ss.Team().SaveMember(m2, -1)
+		require.NotNil(t, nErr)
+		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
@@ -1237,8 +1299,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1357,8 +1419,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 					SchemeAdmin:   tc.SchemeAdmin,
 					ExplicitRoles: tc.ExplicitRoles,
 				}
-				member, err = ss.Team().SaveMember(member, -1)
-				require.Nil(t, err)
+				member, nErr := ss.Team().SaveMember(member, -1)
+				require.Nil(t, nErr)
 				defer ss.Team().RemoveMember(team.Id, u1.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
@@ -1388,8 +1450,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1508,8 +1570,8 @@ func testTeamSaveMember(t *testing.T, ss store.Store) {
 					SchemeAdmin:   tc.SchemeAdmin,
 					ExplicitRoles: tc.ExplicitRoles,
 				}
-				member, err := ss.Team().SaveMember(member, -1)
-				require.Nil(t, err)
+				member, nErr := ss.Team().SaveMember(member, -1)
+				require.Nil(t, nErr)
 				defer ss.Team().RemoveMember(team.Id, u1.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
@@ -1535,18 +1597,18 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid team member", func(t *testing.T) {
 		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
-		require.NotNil(t, err)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+		require.NotNil(t, nErr)
+		require.Equal(t, "TeamMember.IsValid: model.team_member.is_valid.team_id.app_error, ", nErr.Error())
 	})
 
 	t.Run("too many members in one team", func(t *testing.T) {
 		teamID := model.NewId()
 		m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 0)
+		require.NotNil(t, nErr)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 2 metadata: team members limit exceeded", nErr.Error())
 	})
 
 	t.Run("too many members in one team because previous existing members", func(t *testing.T) {
@@ -1555,12 +1617,12 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 		m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
 		m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 3)
-		require.Nil(t, err)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 3)
+		require.Nil(t, nErr)
 
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m3, m4}, 3)
+		require.NotNil(t, nErr)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 4 metadata: team members limit exceeded", nErr.Error())
 	})
 
 	t.Run("too many members, but in different teams", func(t *testing.T) {
@@ -1571,18 +1633,18 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 		m3 := &model.TeamMember{TeamId: teamID1, UserId: u3.Id}
 		m4 := &model.TeamMember{TeamId: teamID2, UserId: u1.Id}
 		m5 := &model.TeamMember{TeamId: teamID2, UserId: u2.Id}
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_user.save.max_accounts.app_error", err.Id)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4, m5}, 2)
+		require.NotNil(t, nErr)
+		require.Equal(t, "limit exceeded: what: TeamMember count: 3 metadata: team members limit exceeded", nErr.Error())
 	})
 
 	t.Run("duplicated entries should fail", func(t *testing.T) {
 		teamID1 := model.NewId()
 		m1 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: teamID1, UserId: u1.Id}
-		_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
-		require.NotNil(t, err)
-		require.Equal(t, "store.sql_team.save_member.exists.app_error", err.Id)
+		_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, 10)
+		require.NotNil(t, nErr)
+		require.IsType(t, &store.ErrConflict{}, nErr)
 	})
 
 	t.Run("insert members correctly (in team without scheme)", func(t *testing.T) {
@@ -1593,8 +1655,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1722,8 +1784,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 					ExplicitRoles: tc.ExplicitRoles,
 				}
 				var members []*model.TeamMember
-				members, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
-				require.Nil(t, err)
+				members, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 				defer ss.Team().RemoveMember(team.Id, u1.Id)
@@ -1756,8 +1818,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -1884,8 +1946,8 @@ func testTeamSaveMultipleMembers(t *testing.T, ss store.Store) {
 					SchemeAdmin:   tc.SchemeAdmin,
 					ExplicitRoles: tc.ExplicitRoles,
 				}
-				members, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
-				require.Nil(t, err)
+				members, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 				defer ss.Team().RemoveMember(team.Id, u1.Id)
@@ -1907,9 +1969,11 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 
 	t.Run("not valid team member", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
-		_, err = ss.Team().UpdateMember(member)
-		require.NotNil(t, err)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		_, nErr := ss.Team().UpdateMember(member)
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
 	})
 
 	t.Run("insert member correctly (in team without scheme)", func(t *testing.T) {
@@ -1920,12 +1984,12 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
-		member, err = ss.Team().SaveMember(member, -1)
-		require.Nil(t, err)
+		member, nErr = ss.Team().SaveMember(member, -1)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -2041,8 +2105,8 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 
-				member, err = ss.Team().UpdateMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Team().UpdateMember(member)
+				require.Nil(t, nErr)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -2071,12 +2135,12 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 			SchemeId:    &ts.Id,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr = ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
-		member, err := ss.Team().SaveMember(member, -1)
-		require.Nil(t, err)
+		member, nErr = ss.Team().SaveMember(member, -1)
+		require.Nil(t, nErr)
 
 		testCases := []struct {
 			Name                  string
@@ -2192,8 +2256,8 @@ func testTeamUpdateMember(t *testing.T, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 
-				member, err = ss.Team().UpdateMember(member)
-				require.Nil(t, err)
+				member, nErr = ss.Team().UpdateMember(member)
+				require.Nil(t, nErr)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -2214,9 +2278,11 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 	t.Run("any not valid team member", func(t *testing.T) {
 		m1 := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
 		m2 := &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}
-		_, err = ss.Team().UpdateMultipleMembers([]*model.TeamMember{m1, m2})
-		require.NotNil(t, err)
-		require.Equal(t, "model.team_member.is_valid.team_id.app_error", err.Id)
+		_, nErr := ss.Team().UpdateMultipleMembers([]*model.TeamMember{m1, m2})
+		require.NotNil(t, nErr)
+		var appErr *model.AppError
+		require.True(t, errors.As(nErr, &appErr))
+		require.Equal(t, "model.team_member.is_valid.team_id.app_error", appErr.Id)
 	})
 
 	t.Run("update members correctly (in team without scheme)", func(t *testing.T) {
@@ -2227,14 +2293,14 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		team, err = ss.Team().Save(team)
-		require.Nil(t, err)
+		team, nErr := ss.Team().Save(team)
+		require.Nil(t, nErr)
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
 		var members []*model.TeamMember
-		members, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
-		require.Nil(t, err)
+		members, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+		require.Nil(t, nErr)
 		require.Len(t, members, 2)
 		member = members[0]
 		otherMember = members[1]
@@ -2354,8 +2420,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 				member.ExplicitRoles = tc.ExplicitRoles
 
 				var members []*model.TeamMember
-				members, err = ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
-				require.Nil(t, err)
+				members, nErr = ss.Team().UpdateMultipleMembers([]*model.TeamMember{member, otherMember})
+				require.Nil(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
 
@@ -2391,8 +2457,8 @@ func testTeamUpdateMultipleMembers(t *testing.T, ss store.Store) {
 
 		member := &model.TeamMember{TeamId: team.Id, UserId: u1.Id}
 		otherMember := &model.TeamMember{TeamId: team.Id, UserId: u2.Id}
-		members, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
-		require.Nil(t, err)
+		members, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{member, otherMember}, -1)
+		require.Nil(t, nErr)
 		require.Len(t, members, 2)
 		member = members[0]
 		otherMember = members[1]
@@ -2540,34 +2606,34 @@ func testTeamRemoveMember(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 	m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
 	m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
-	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
+	require.Nil(t, nErr)
 
 	t.Run("remove member from not existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMember("not-existing-team", u1.Id)
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMember("not-existing-team", u1.Id)
+		require.Nil(t, nErr)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 4)
 	})
 
 	t.Run("remove not existing member from an existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMember(teamID, model.NewId())
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMember(teamID, model.NewId())
+		require.Nil(t, nErr)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 4)
 	})
 
 	t.Run("remove existing member from an existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMember(teamID, u1.Id)
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMember(teamID, u1.Id)
+		require.Nil(t, nErr)
 		defer ss.Team().SaveMember(m1, -1)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 3)
 	})
 }
@@ -2586,43 +2652,43 @@ func testTeamRemoveMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamID, UserId: u2.Id}
 	m3 := &model.TeamMember{TeamId: teamID, UserId: u3.Id}
 	m4 := &model.TeamMember{TeamId: teamID, UserId: u4.Id}
-	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
+	require.Nil(t, nErr)
 
 	t.Run("remove members from not existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMembers("not-existing-team", []string{u1.Id, u2.Id, u3.Id, u4.Id})
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMembers("not-existing-team", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		require.Nil(t, nErr)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 4)
 	})
 
 	t.Run("remove not existing members from an existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMembers(teamID, []string{model.NewId(), model.NewId()})
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMembers(teamID, []string{model.NewId(), model.NewId()})
+		require.Nil(t, nErr)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 4)
 	})
 
 	t.Run("remove not existing and not existing members from an existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		require.Nil(t, nErr)
 		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 2)
 	})
 	t.Run("remove existing members from an existing team", func(t *testing.T) {
-		err = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, u3.Id})
-		require.Nil(t, err)
+		nErr = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, u3.Id})
+		require.Nil(t, nErr)
 		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 		var membersOtherTeam []*model.TeamMember
-		membersOtherTeam, err = ss.Team().GetMembers(teamID, 0, 100, nil)
-		require.Nil(t, err)
+		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
+		require.Nil(t, nErr)
 		require.Len(t, membersOtherTeam, 1)
 	})
 }
@@ -2635,8 +2701,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
+	require.Nil(t, nErr)
 
 	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
 	require.Nil(t, errTeam)
@@ -2647,14 +2713,14 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	e := ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, e)
 
-	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
 
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	err = ss.Team().RemoveAllMembersByTeam(teamId1)
 	require.Nil(t, err)
@@ -2662,15 +2728,15 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMultipleMembers([]*model.TeamMember{m4, m5}, -1)
+	require.Nil(t, nErr)
 
 	result, err := ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
 	require.Nil(t, err)
 	require.Len(t, result, 1)
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, err)
@@ -2704,11 +2770,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 			ss.User().PermanentDelete(userId)
 		}(userIds[i])
 
-		_, err = ss.Team().SaveMember(&model.TeamMember{
+		_, nErr := ss.Team().SaveMember(&model.TeamMember{
 			TeamId: team.Id,
 			UserId: userIds[i],
 		}, maxUsersPerTeam)
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		defer func(userId string) {
 			ss.Team().RemoveMember(team.Id, userId)
@@ -2729,11 +2795,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		ss.User().PermanentDelete(newUserId)
 	}()
 
-	_, err = ss.Team().SaveMember(&model.TeamMember{
+	_, nErr := ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: newUserId,
 	}, maxUsersPerTeam)
-	require.NotNil(t, err, "shouldn't be able to save member when at maximum members per team")
+	require.NotNil(t, nErr, "shouldn't be able to save member when at maximum members per team")
 
 	totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id, nil)
 	require.Nil(t, teamErr)
@@ -2751,8 +2817,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, teamErr)
 	require.Equal(t, maxUsersPerTeam-1, int(totalMemberCount), "should now only have 4 team members, had %v instead", totalMemberCount)
 
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam)
-	require.Nil(t, err, "should've been able to save new member after deleting one")
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam)
+	require.Nil(t, nErr, "should've been able to save new member after deleting one")
 
 	defer ss.Team().RemoveMember(team.Id, newUserId)
 
@@ -2773,8 +2839,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 	newUserId2 := user.Id
-	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam)
-	require.Nil(t, err, "should've been able to save new member after deleting one")
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam)
+	require.Nil(t, nErr, "should've been able to save new member after deleting one")
 
 	defer ss.Team().RemoveMember(team.Id, newUserId2)
 }
@@ -2783,11 +2849,11 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	var rm1 *model.TeamMember
-	rm1, err = ss.Team().GetMember(m1.TeamId, m1.UserId)
+	rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
 	require.Nil(t, err)
 
 	require.Equal(t, rm1.TeamId, m1.TeamId, "bad team id")
@@ -2807,25 +2873,25 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Description: model.NewId(),
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	}
-	s2, nErr := ss.Scheme().Save(s2)
+	s2, nErr = ss.Scheme().Save(s2)
 	require.Nil(t, nErr)
 	t.Log(s2)
 
-	t2, err := ss.Team().Save(&model.Team{
+	t2, nErr := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s2.Id,
 	})
-	require.Nil(t, err)
+	require.Nil(t, nErr)
 
 	defer func() {
 		ss.Team().PermanentDelete(t2.Id)
 	}()
 
 	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
 
 	m3, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
 	require.Nil(t, err)
@@ -2834,8 +2900,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
 
 	m4 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeGuest: true}
-	_, err = ss.Team().SaveMember(m4, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m4, -1)
+	require.Nil(t, nErr)
 
 	m5, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
 	require.Nil(t, err)
@@ -2847,11 +2913,11 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	var r []*model.TeamMember
-	r, err = ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil)
+	r, err := ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil)
 	require.Nil(t, err)
 	rm1 := r[0]
 
@@ -2859,8 +2925,8 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	require.Equal(t, rm1.UserId, m1.UserId, "bad user id")
 
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
 
 	rm, err := ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId, m2.UserId, model.NewId()}, nil)
 	require.Nil(t, err)
@@ -2885,33 +2951,33 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 
 	teamId1 := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
-	_, err = ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
 
 	var totalMemberCount int64
-	totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1, nil)
-	require.Nil(t, err)
+	totalMemberCount, nErr = ss.Team().GetTotalMemberCount(teamId1, nil)
+	require.Nil(t, nErr)
 	require.Equal(t, int(totalMemberCount), 2, "wrong count")
 
 	var result int64
-	result, err = ss.Team().GetActiveMemberCount(teamId1, nil)
-	require.Nil(t, err)
+	result, nErr = ss.Team().GetActiveMemberCount(teamId1, nil)
+	require.Nil(t, nErr)
 	require.Equal(t, 1, int(result), "wrong count")
 
 	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	_, err = ss.Team().SaveMember(m3, -1)
-	require.Nil(t, err)
+	_, nErr = ss.Team().SaveMember(m3, -1)
+	require.Nil(t, nErr)
 
-	totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1, nil)
-	require.Nil(t, err)
+	totalMemberCount, nErr = ss.Team().GetTotalMemberCount(teamId1, nil)
+	require.Nil(t, nErr)
 	require.Equal(t, 2, int(totalMemberCount), "wrong count")
 
-	result, err = ss.Team().GetActiveMemberCount(teamId1, nil)
-	require.Nil(t, err)
+	result, nErr = ss.Team().GetActiveMemberCount(teamId1, nil)
+	require.Nil(t, nErr)
 	require.Equal(t, 1, int(result), "wrong count")
 }
 
@@ -2922,13 +2988,13 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
-	_, err = ss.Team().SaveMember(m2, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
+	_, nErr = ss.Team().SaveMember(m2, -1)
+	require.Nil(t, nErr)
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, nErr := ss.Channel().Save(c1, -1)
+	_, nErr = ss.Channel().Save(c1, -1)
 	require.Nil(t, nErr)
 
 	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
@@ -2936,14 +3002,14 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, err = ss.Channel().SaveMember(cm1)
+	_, err := ss.Channel().SaveMember(cm1)
 	require.Nil(t, err)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	_, err = ss.Channel().SaveMember(cm2)
 	require.Nil(t, err)
 
-	ms1, err := ss.Team().GetChannelUnreadsForAllTeams("", uid)
-	require.Nil(t, err)
+	ms1, nErr := ss.Team().GetChannelUnreadsForAllTeams("", uid)
+	require.Nil(t, nErr)
 	membersMap := make(map[string]bool)
 	for i := range ms1 {
 		id := ms1[i].TeamId
@@ -2955,8 +3021,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 
 	require.Equal(t, 10, int(ms1[0].MsgCount), "subtraction failed")
 
-	ms2, err := ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid)
-	require.Nil(t, err)
+	ms2, nErr := ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid)
+	require.Nil(t, nErr)
 	membersMap = make(map[string]bool)
 	for i := range ms2 {
 		id := ms2[i].TeamId
@@ -2969,8 +3035,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 
 	require.Equal(t, 10, int(ms2[0].MsgCount), "subtraction failed")
 
-	err = ss.Team().RemoveAllMembersByUser(uid)
-	require.Nil(t, err)
+	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, nErr)
 }
 
 func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
@@ -2978,11 +3044,11 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 
 	uid := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
-	_, err := ss.Team().SaveMember(m1, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMember(m1, -1)
+	require.Nil(t, nErr)
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	_, nErr := ss.Channel().Save(c1, -1)
+	_, nErr = ss.Channel().Save(c1, -1)
 	require.Nil(t, nErr)
 
 	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
@@ -2990,11 +3056,11 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, err = ss.Channel().SaveMember(cm1)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(cm1)
+	require.Nil(t, nErr)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, err = ss.Channel().SaveMember(cm2)
-	require.Nil(t, err)
+	_, nErr = ss.Channel().SaveMember(cm2)
+	require.Nil(t, nErr)
 
 	ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId)
 	require.Nil(t, err)
@@ -3127,8 +3193,8 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		ExplicitRoles: "something_else",
 	}
 
-	memberships, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{tm1, tm2, tm3}, -1)
-	require.Nil(t, err)
+	memberships, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{tm1, tm2, tm3}, -1)
+	require.Nil(t, nErr)
 	require.Len(t, memberships, 3)
 	tm1 = memberships[0]
 	tm2 = memberships[1]
@@ -3236,8 +3302,8 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 		ExplicitRoles: "custom_only",
 	}
 
-	_, err := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3, m4}, -1)
+	require.Nil(t, nErr)
 
 	require.Nil(t, (ss.Team().ClearAllCustomRoleAssignments()))
 
@@ -3376,8 +3442,8 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
 	m2 := &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}
-	_, err = ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
-	require.Nil(t, err)
+	_, nErr := ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
+	require.Nil(t, nErr)
 
 	d1, err := ss.Team().GetTeamMembersForExport(u1.Id)
 	assert.Nil(t, err)

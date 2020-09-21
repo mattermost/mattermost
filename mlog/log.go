@@ -4,10 +4,15 @@
 package mlog
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"sync/atomic"
+	"time"
 
+	"github.com/mattermost/logr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -22,6 +27,19 @@ const (
 	LevelWarn = "warn"
 	// Errors are messages about things we know are problems
 	LevelError = "error"
+
+	// DefaultFlushTimeout is the default amount of time mlog.Flush will wait
+	// before timing out.
+	DefaultFlushTimeout = time.Second * 5
+)
+
+var (
+	// disableZap is set when Zap should be disabled and Logr used instead.
+	// This is needed for unit testing as Zap has no shutdown capabilities
+	// and holds file handles until process exit. Currently unit test create
+	// many server instances, and thus many Zap log files.
+	// This flag will be removed when Zap is permanently replaced.
+	disableZap int32
 )
 
 // Type and function aliases from zap to limit the libraries scope into MM code
@@ -38,6 +56,8 @@ var NamedErr = zap.NamedError
 var Bool = zap.Bool
 var Duration = zap.Duration
 
+type TargetInfo logr.TargetInfo
+
 type LoggerConfiguration struct {
 	EnableConsole bool
 	ConsoleJson   bool
@@ -52,6 +72,7 @@ type Logger struct {
 	zap          *zap.Logger
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
+	logrLogger   *logr.Logger
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -84,6 +105,7 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger := &Logger{
 		consoleLevel: zap.NewAtomicLevelAt(getZapLevel(config.ConsoleLevel)),
 		fileLevel:    zap.NewAtomicLevelAt(getZapLevel(config.FileLevel)),
+		logrLogger:   newLogr(),
 	}
 
 	if config.EnableConsole {
@@ -93,13 +115,33 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	}
 
 	if config.EnableFile {
-		writer := zapcore.AddSync(&lumberjack.Logger{
-			Filename: config.FileLocation,
-			MaxSize:  100,
-			Compress: true,
-		})
-		core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
-		cores = append(cores, core)
+		if atomic.LoadInt32(&disableZap) != 0 {
+			t := &LogTarget{
+				Type:         "file",
+				Format:       "json",
+				Levels:       mlogLevelToLogrLevels(config.FileLevel),
+				MaxQueueSize: DefaultMaxTargetQueue,
+				Options: []byte(fmt.Sprintf(`{"Filename":"%s", "MaxSizeMB":%d, "Compress":%t}`,
+					config.FileLocation, 100, true)),
+			}
+			if !config.FileJson {
+				t.Format = "plain"
+			}
+			if tgt, err := NewLogrTarget("mlogFile", t); err == nil {
+				logger.logrLogger.Logr().AddTarget(tgt)
+			} else {
+				Error("error creating mlogFile", Err(err))
+			}
+		} else {
+			writer := zapcore.AddSync(&lumberjack.Logger{
+				Filename: config.FileLocation,
+				MaxSize:  100,
+				Compress: true,
+			})
+
+			core := zapcore.NewCore(makeEncoder(config.FileJson), writer, logger.fileLevel)
+			cores = append(cores, core)
+		}
 	}
 
 	combinedCore := zapcore.NewTee(cores...)
@@ -107,7 +149,6 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	logger.zap = zap.New(combinedCore,
 		zap.AddCaller(),
 	)
-
 	return logger
 }
 
@@ -123,6 +164,10 @@ func (l *Logger) SetConsoleLevel(level string) {
 func (l *Logger) With(fields ...Field) *Logger {
 	newlogger := *l
 	newlogger.zap = newlogger.zap.With(fields...)
+	if newlogger.logrLogger != nil {
+		ll := newlogger.logrLogger.WithFields(zapToLogr(fields))
+		newlogger.logrLogger = &ll
+	}
 	return &newlogger
 }
 
@@ -161,20 +206,120 @@ func (l *Logger) Sugar() *SugarLogger {
 
 func (l *Logger) Debug(message string, fields ...Field) {
 	l.zap.Debug(message, fields...)
+	if isLevelEnabled(l.logrLogger, logr.Debug) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Debug(message)
+	}
 }
 
 func (l *Logger) Info(message string, fields ...Field) {
 	l.zap.Info(message, fields...)
+	if isLevelEnabled(l.logrLogger, logr.Info) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Info(message)
+	}
 }
 
 func (l *Logger) Warn(message string, fields ...Field) {
 	l.zap.Warn(message, fields...)
+	if isLevelEnabled(l.logrLogger, logr.Warn) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Warn(message)
+	}
 }
 
 func (l *Logger) Error(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
+	if isLevelEnabled(l.logrLogger, logr.Error) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	}
 }
 
 func (l *Logger) Critical(message string, fields ...Field) {
 	l.zap.Error(message, fields...)
+	if isLevelEnabled(l.logrLogger, logr.Error) {
+		l.logrLogger.WithFields(zapToLogr(fields)).Error(message)
+	}
+}
+
+func (l *Logger) Log(level LogLevel, message string, fields ...Field) {
+	l.logrLogger.WithFields(zapToLogr(fields)).Log(logr.Level(level), message)
+}
+
+func (l *Logger) LogM(levels []LogLevel, message string, fields ...Field) {
+	var logger *logr.Logger
+	for _, lvl := range levels {
+		if isLevelEnabled(l.logrLogger, logr.Level(lvl)) {
+			// don't create logger with fields unless at least one level is active.
+			if logger == nil {
+				l := l.logrLogger.WithFields(zapToLogr(fields))
+				logger = &l
+			}
+			logger.Log(logr.Level(lvl), message)
+		}
+	}
+}
+
+func (l *Logger) Flush(cxt context.Context) error {
+	return l.logrLogger.Logr().FlushWithTimeout(cxt)
+}
+
+// ShutdownAdvancedLogging stops the logger from accepting new log records and tries to
+// flush queues within the context timeout. Once complete all targets are shutdown
+// and any resources released.
+func (l *Logger) ShutdownAdvancedLogging(cxt context.Context) error {
+	err := l.logrLogger.Logr().ShutdownWithTimeout(cxt)
+	l.logrLogger = newLogr()
+	return err
+}
+
+// ConfigAdvancedLoggingConfig (re)configures advanced logging based on the
+// specified log targets. This is the easiest way to get the advanced logger
+// configured via a config source such as file.
+func (l *Logger) ConfigAdvancedLogging(targets LogTargetCfg) error {
+	if err := l.ShutdownAdvancedLogging(context.Background()); err != nil {
+		Error("error shutting down previous logger", Err(err))
+	}
+
+	err := logrAddTargets(l.logrLogger, targets)
+	return err
+}
+
+// AddTarget adds one or more logr.Target to the advanced logger. This is the preferred method
+// to add custom targets or provide configuration that cannot be expressed via a
+// config source.
+func (l *Logger) AddTarget(targets ...logr.Target) error {
+	return l.logrLogger.Logr().AddTarget(targets...)
+}
+
+// RemoveTargets selectively removes targets that were previously added to this logger instance
+// using the passed in filter function. The filter function should return true to remove the target
+// and false to keep it.
+func (l *Logger) RemoveTargets(ctx context.Context, f func(ti TargetInfo) bool) error {
+	// Use locally defined TargetInfo type so we don't spread Logr dependencies.
+	fc := func(tic logr.TargetInfo) bool {
+		return f(TargetInfo(tic))
+	}
+	return l.logrLogger.Logr().RemoveTargets(ctx, fc)
+}
+
+// EnableMetrics enables metrics collection by supplying a MetricsCollector.
+// The MetricsCollector provides counters and gauges that are updated by log targets.
+func (l *Logger) EnableMetrics(collector logr.MetricsCollector) error {
+	return l.logrLogger.Logr().SetMetricsCollector(collector)
+}
+
+// DisableZap is called to disable Zap, and Logr will be used instead. Any Logger
+// instances created after this call will only use Logr.
+//
+// This is needed for unit testing as Zap has no shutdown capabilities
+// and holds file handles until process exit. Currently unit tests create
+// many server instances, and thus many Zap log file handles.
+//
+// This method will be removed when Zap is permanently replaced.
+func DisableZap() {
+	atomic.StoreInt32(&disableZap, 1)
+}
+
+// EnableZap re-enables Zap such that any Logger instances created after this
+// call will allow Zap targets.
+func EnableZap() {
+	atomic.StoreInt32(&disableZap, 0)
 }

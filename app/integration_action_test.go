@@ -419,8 +419,8 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	newPost, err := th.App.Srv().Store.Post().GetSingle(post.Id)
-	require.Nil(t, err)
+	newPost, nErr := th.App.Srv().Store.Post().GetSingle(post.Id)
+	require.Nil(t, nErr)
 
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
@@ -956,7 +956,7 @@ func TestPostActionRelativePluginURL(t *testing.T) {
 }
 
 func TestDoPluginRequest(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
