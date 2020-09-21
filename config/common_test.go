@@ -39,6 +39,7 @@ func init() {
 			DefaultClientLocale: sToP("en"),
 		},
 	}
+	minimalConfig.SetDefaults()
 	invalidConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: sToP("invalid"),
@@ -71,16 +72,6 @@ func init() {
 			SiteURL: sToP("http://TestStoreNew"),
 		},
 	}
-}
-
-func prepareExpectedConfig(t *testing.T, expectedCfg *model.Config) *model.Config {
-	// These fields require special initialization for our tests.
-	expectedCfg = expectedCfg.Clone()
-	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
-	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
-	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
-
-	return expectedCfg
 }
 
 func TestMergeConfigs(t *testing.T) {
@@ -172,6 +163,23 @@ func TestRemoveEnvironmentOverrides(t *testing.T) {
 	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
 	newCfg := base.RemoveEnvironmentOverrides(oldCfg)
 	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
+}
+
+func TestRemoveNonPersistable(t *testing.T) {
+	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridden.ca")
+	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
+
+	base, err := config.NewMemoryStore()
+	require.NoError(t, err)
+	oldCfg := base.Get()
+	assert.Equal(t, "http://overridden.ca", *oldCfg.ServiceSettings.SiteURL)
+	oldCfg.FeatureFlags = &model.FeatureFlags{
+		TestFeature: "teststring",
+	}
+
+	newCfg := base.RemoveNonPersistable(oldCfg)
+	assert.Equal(t, "", *newCfg.ServiceSettings.SiteURL)
+	assert.Nil(t, newCfg.FeatureFlags)
 }
 
 func newBool(b bool) *bool       { return &b }
