@@ -670,9 +670,9 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	isGuestByTeamId := map[string]bool{}
 	isUserByTeamId := map[string]bool{}
 	isAdminByTeamId := map[string]bool{}
-	existingMemberships, err := a.Srv().Store.Team().GetTeamsForUser(user.Id)
-	if err != nil {
-		return err
+	existingMemberships, nErr := a.Srv().Store.Team().GetTeamsForUser(user.Id)
+	if nErr != nil {
+		return model.NewAppError("importUserTeams", "app.team.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByTeamId := map[string]*model.TeamMember{}
 	for _, teamMembership := range existingMemberships {
@@ -747,9 +747,15 @@ func (a *App) importUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 	}
 
-	oldMembers, err := a.Srv().Store.Team().UpdateMultipleMembers(oldTeamMembers)
-	if err != nil {
-		return err
+	oldMembers, nErr := a.Srv().Store.Team().UpdateMultipleMembers(oldTeamMembers)
+	if nErr != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return appErr
+		default:
+			return model.NewAppError("importUserTeams", "app.team.save_member.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	newMembers := []*model.TeamMember{}
@@ -822,9 +828,9 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 	isGuestByChannelId := map[string]bool{}
 	isUserByChannelId := map[string]bool{}
 	isAdminByChannelId := map[string]bool{}
-	existingMemberships, err := a.Srv().Store.Channel().GetMembersForUser(team.Id, user.Id)
-	if err != nil {
-		return err
+	existingMemberships, nErr := a.Srv().Store.Channel().GetMembersForUser(team.Id, user.Id)
+	if nErr != nil {
+		return model.NewAppError("importUserChannels", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	existingMembershipsByChannelId := map[string]model.ChannelMember{}
 	for _, channelMembership := range *existingMemberships {
@@ -913,16 +919,37 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 	}
 
-	oldMembers, err := a.Srv().Store.Channel().UpdateMultipleMembers(oldChannelMembers)
-	if err != nil {
-		return err
+	oldMembers, nErr := a.Srv().Store.Channel().UpdateMultipleMembers(oldChannelMembers)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		var appErr *model.AppError
+		switch {
+		case errors.As(nErr, &appErr):
+			return appErr
+		case errors.As(nErr, &nfErr):
+			return model.NewAppError("importUserChannels", MISSING_CHANNEL_MEMBER_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("importUserChannels", "app.channel.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	newMembers := []*model.ChannelMember{}
 	if len(newChannelMembers) > 0 {
-		newMembers, err = a.Srv().Store.Channel().SaveMultipleMembers(newChannelMembers)
-		if err != nil {
-			return err
+		newMembers, nErr = a.Srv().Store.Channel().SaveMultipleMembers(newChannelMembers)
+		if nErr != nil {
+			var cErr *store.ErrConflict
+			var appErr *model.AppError
+			switch {
+			case errors.As(nErr, &cErr):
+				switch cErr.Resource {
+				case "ChannelMembers":
+					return model.NewAppError("importUserChannels", "app.channel.save_member.exists.app_error", nil, cErr.Error(), http.StatusBadRequest)
+				}
+			case errors.As(nErr, &appErr):
+				return appErr
+			default:
+				return model.NewAppError("importUserChannels", "app.channel.create_direct_channel.internal_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 
