@@ -365,6 +365,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
@@ -372,6 +373,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u2" + model.NewId(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
@@ -420,6 +422,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u7" + model.NewId(),
 		DeleteAt: model.GetMillis(),
+		Roles:    model.SYSTEM_USER_ROLE_ID,
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u7.Id)) }()
@@ -600,6 +603,20 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 			sanitized(u6),
 			sanitized(u8),
 			sanitized(u9),
+		}, actual)
+	})
+
+	t.Run("filter by system_user only", func(t *testing.T) {
+		actual, userErr := ss.User().GetAllProfiles(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+			Roles:   []string{"system_user"},
+		})
+		require.Nil(t, userErr)
+		require.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+			sanitized(u7),
 		}, actual)
 	})
 }
@@ -2485,7 +2502,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u2 := &model.User{
 		Username: "jim2-bobby" + model.NewId(),
 		Email:    MakeEmail(),
-		Roles:    "system_user",
+		Roles:    "system_user system_user_manager",
 	}
 	_, err = ss.User().Save(u2)
 	require.Nil(t, err)

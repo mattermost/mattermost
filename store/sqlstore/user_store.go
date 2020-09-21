@@ -465,7 +465,7 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 			queryRole := wildcardSearchTerm(role)
 			switch role {
 			case model.SYSTEM_USER_ROLE_ID:
-				// If querying for a `system_user` ensure that the only role they have is `system_user`.
+				// If querying for a `system_user` ensure that the user is only a system_user.
 				sqOr = append(sqOr, sq.Eq{"u.Roles": role})
 			case model.SYSTEM_GUEST_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID, model.SYSTEM_USER_MANAGER_ROLE_ID, model.SYSTEM_READ_ONLY_ADMIN_ROLE_ID, model.SYSTEM_MANAGER_ROLE_ID:
 				// If querying for any other roles search using a wildcard.
@@ -483,9 +483,17 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 		for _, channelRole := range channelRoles {
 			switch channelRole {
 			case model.CHANNEL_ADMIN_ROLE_ID:
-				sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.Eq{"u.Roles": model.SYSTEM_USER_ROLE_ID}})
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
 			case model.CHANNEL_USER_ROLE_ID:
-				sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.Eq{"u.Roles": model.SYSTEM_USER_ROLE_ID}})
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"cm.SchemeUser": true}, sq.Eq{"cm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
 			case model.CHANNEL_GUEST_ROLE_ID:
 				sqOr = append(sqOr, sq.Eq{"cm.SchemeGuest": true})
 			}
@@ -496,9 +504,17 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 		for _, teamRole := range teamRoles {
 			switch teamRole {
 			case model.TEAM_ADMIN_ROLE_ID:
-				sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.Eq{"u.Roles": model.SYSTEM_USER_ROLE_ID}})
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeAdmin": true}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
 			case model.TEAM_USER_ROLE_ID:
-				sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.Eq{"u.Roles": model.SYSTEM_USER_ROLE_ID}})
+				if isPostgreSQL {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotILike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				} else {
+					sqOr = append(sqOr, sq.And{sq.Eq{"tm.SchemeUser": true}, sq.Eq{"tm.SchemeAdmin": false}, sq.NotLike{"u.Roles": wildcardSearchTerm(model.SYSTEM_ADMIN_ROLE_ID)}})
+				}
 			case model.TEAM_GUEST_ROLE_ID:
 				sqOr = append(sqOr, sq.Eq{"tm.SchemeGuest": true})
 			}
