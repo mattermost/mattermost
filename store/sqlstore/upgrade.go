@@ -850,6 +850,8 @@ func upgradeDatabaseToVersion528(sqlStore SqlStore) {
 	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Username", "varchar(255)", "varchar(255)")
 	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "IconURL", "text", "varchar(1024)")
 
+	sqlStore.AlterColumnTypeIfExists("Threads", "Who", "longtext", "text")
+
 	//saveSchemaVersion(sqlStore, VERSION_5_28_0)
 	//}
 }

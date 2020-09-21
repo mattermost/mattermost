@@ -33,6 +33,7 @@ type Store struct {
 	LicenseStore              mocks.LicenseStore
 	TokenStore                mocks.TokenStore
 	EmojiStore                mocks.EmojiStore
+	ThreadStore               mocks.ThreadStore
 	StatusStore               mocks.StatusStore
 	FileInfoStore             mocks.FileInfoStore
 	UploadSessionStore        mocks.UploadSessionStore
@@ -70,6 +71,7 @@ func (s *Store) Preference() store.PreferenceStore                 { return &s.P
 func (s *Store) License() store.LicenseStore                       { return &s.LicenseStore }
 func (s *Store) Token() store.TokenStore                           { return &s.TokenStore }
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
+func (s *Store) Thread() store.ThreadStore                         { return &s.ThreadStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }
 func (s *Store) UploadSession() store.UploadSessionStore           { return &s.UploadSessionStore }
@@ -131,5 +133,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PluginStore,
 		&s.RoleStore,
 		&s.SchemeStore,
+		&s.ThreadStore,
 	)
 }
