@@ -221,6 +221,9 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 }
 
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+	fmt.Println("CON_TYPE: " + con_type)
+	fmt.Println("DATA_SOURCE: " + dataSource)
+	fmt.Println("SQL_SETTINGS: " + fmt.Sprintf("%+v", settings))
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
