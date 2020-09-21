@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/mattermost-server/v5/mlog"
