@@ -224,6 +224,8 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	fmt.Println("CON_TYPE: " + con_type)
 	fmt.Println("DATA_SOURCE: " + dataSource)
 	fmt.Println("SQL_SETTINGS: " + fmt.Sprintf("%+v", settings))
+	fmt.Println("DRIVER: " + *settings.DriverName)
+	fmt.Println("DATA_SOURCE: " + *settings.DataSource)
 	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		mlog.Critical("Failed to open SQL connection to err.", mlog.Err(err))
