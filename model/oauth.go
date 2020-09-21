@@ -33,6 +33,15 @@ type OAuthApp struct {
 	IsTrusted    bool        `json:"is_trusted"`
 }
 
+type providerJSON struct {
+	Issuer      string   `json:"issuer"`
+	AuthURL     string   `json:"authorization_endpoint"`
+	TokenURL    string   `json:"token_endpoint"`
+	JWKSURL     string   `json:"jwks_uri"`
+	UserInfoURL string   `json:"userinfo_endpoint"`
+	Algorithms  []string `json:"id_token_signing_alg_values_supported"`
+}
+
 // IsValid validates the app and returns an error if it isn't configured
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {

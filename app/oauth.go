@@ -584,11 +584,25 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	}
 
 	if len(authData) == 0 {
+		provider = einterfaces.GetOauthProvider(model.SERVICE_OPENID)
+		authUser = provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
+		authData = ""
+		if authUser.AuthData != nil {
+			authData = *authUser.AuthData
+		}
+	}
+
+	if len(authData) == 0 {
 		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
+	fmt.Printf("\n\n\n\n\n\n\n\n\n\n AUTHDATA!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", authData)
 	user, err := a.GetUserByAuth(&authData, service)
+
+	fmt.Printf("\n\n\n\n\n\n\n\n\n\n USER!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", user)
+	fmt.Printf("\n\n\n\n\n\n\n\n\n\n ERROR!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", err)
+
 	if err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
 			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
@@ -694,6 +708,8 @@ func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 
 func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
 	sso := a.Config().GetSSOService(service)
+	fmt.Printf("\n\n\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", sso)
+
 	if sso == nil || !*sso.Enable {
 		return "", model.NewAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
 	}

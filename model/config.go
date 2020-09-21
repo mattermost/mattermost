@@ -6,7 +6,9 @@ package model
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"net"
 	"net/http"
@@ -209,10 +211,14 @@ const (
 	IMAGE_PROXY_TYPE_LOCAL      = "local"
 	IMAGE_PROXY_TYPE_ATMOS_CAMO = "atmos/camo"
 
-	GOOGLE_SETTINGS_DEFAULT_SCOPE             = "profile email"
-	GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://accounts.google.com/o/oauth2/v2/auth"
-	GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://www.googleapis.com/oauth2/v4/token"
-	GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
+	GITLAB_SETTINGS_DEFAULT_SCOPE              = "profile openid email read_user api read_api"
+	GITLAB_SETTINGS_DEFAULT_DISCOVERY_ENDPOINT = "https://gitlab.com/.well-known/openid-configuration"
+
+	GOOGLE_SETTINGS_DEFAULT_SCOPE              = "profile email"
+	GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT      = "https://accounts.google.com/o/oauth2/v2/auth"
+	GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT     = "https://www.googleapis.com/oauth2/v4/token"
+	GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT  = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
+	GOOGLE_SETTINGS_DEFAULT_DISCOVERY_ENDPOINT = "https://accounts.google.com/.well-known/openid-configuration"
 
 	OFFICE365_SETTINGS_DEFAULT_SCOPE             = "User.Read"
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
@@ -915,13 +921,14 @@ func (s *AnalyticsSettings) SetDefaults() {
 }
 
 type SSOSettings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
@@ -937,7 +944,7 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.Id = NewString("")
 	}
 
-	if s.Scope == nil {
+	if s.Scope == nil || *s.Scope == "" {
 		s.Scope = NewString(scope)
 	}
 
@@ -951,6 +958,10 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 
 	if s.UserApiEndpoint == nil {
 		s.UserApiEndpoint = NewString(userApiEndpoint)
+	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
 	}
 }
 
@@ -1012,14 +1023,13 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type OpenIdSettings struct {
-	Enable            *bool
-	Secret            *string
-	Id                *string
-	Scope             *string
-	DiscoveryEndpoint *string
-	AuthEndpoint      *string
-	TokenEndpoint     *string
-	UserApiEndpoint   *string
+	Enable          *bool
+	Secret          *string
+	Id              *string
+	Scope           *string
+	AuthEndpoint    *string
+	TokenEndpoint   *string
+	UserApiEndpoint *string
 }
 
 func (s *OpenIdSettings) setDefaults() {
@@ -1035,22 +1045,30 @@ func (s *OpenIdSettings) setDefaults() {
 		s.Secret = NewString("")
 	}
 
-	if s.DiscoveryEndpoint == nil {
-		s.DiscoveryEndpoint = NewString("")
-	}
 	s.Scope = NewString(OPENID_SETTINGS_DEFAULT_SCOPE)
 }
 
-func (s *OpenIdSettings) SSOSettings() *SSOSettings {
-	ssoSettings := SSOSettings{}
-	ssoSettings.Enable = s.Enable
-	ssoSettings.Secret = s.Secret
-	ssoSettings.Id = s.Id
-	ssoSettings.Scope = s.Scope
-	ssoSettings.AuthEndpoint = s.AuthEndpoint
-	ssoSettings.TokenEndpoint = s.TokenEndpoint
-	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
-	return &ssoSettings
+func (s *SSOSettings) SSOSettings() *SSOSettings {
+	if *s.DiscoveryEndpoint != "" {
+		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+		wellKnown := *s.DiscoveryEndpoint
+		resp, _ := http.Get(wellKnown)
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		var p providerJSON
+		json.Unmarshal(body, &p)
+
+		ssoSettings := SSOSettings{}
+		ssoSettings.Enable = s.Enable
+		ssoSettings.Secret = s.Secret
+		ssoSettings.Id = s.Id
+		ssoSettings.Scope = s.Scope
+		ssoSettings.AuthEndpoint = &p.AuthURL
+		ssoSettings.TokenEndpoint = &p.TokenURL
+		ssoSettings.UserApiEndpoint = &p.UserInfoURL
+		return &ssoSettings
+	}
+	return s
 }
 
 type SqlSettings struct {
@@ -2866,7 +2884,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
-	OpenIdSettings            OpenIdSettings
+	OpenIdSettings            SSOSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -2903,9 +2921,9 @@ func (o *Config) ToJson() string {
 func (o *Config) GetSSOService(service string) *SSOSettings {
 	switch service {
 	case SERVICE_GITLAB:
-		return &o.GitLabSettings
+		return o.GitLabSettings.SSOSettings()
 	case SERVICE_GOOGLE:
-		return &o.GoogleSettings
+		return o.GoogleSettings.SSOSettings()
 	case SERVICE_OFFICE365:
 		return o.Office365Settings.SSOSettings()
 	case SERVICE_OPENID:
@@ -2945,9 +2963,9 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults("", "", "", "")
+	o.GitLabSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.OpenIdSettings.setDefaults()
+	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
