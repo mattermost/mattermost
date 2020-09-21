@@ -1384,31 +1384,27 @@ func TestPushNotificationRace(t *testing.T) {
 		Store:       mockStore,
 	}
 	app := New(ServerConnector(s))
-	defer func() {
-		if r := recover(); r != nil {
-			require.Failf(t, "panic happened:", "%v", r)
+	require.NotPanics(t, func() {
+		s.createPushNotificationsHub()
+
+		s.StopPushNotificationsHubWorkers()
+
+		// Now we start sending messages after the PN hub is shut down.
+		// We test all 3 notification types.
+		app.clearPushNotification("currentSessionId", "userId", "channelId")
+
+		app.UpdateMobileAppBadge("userId")
+
+		notification := &PostNotification{
+			Post:    &model.Post{},
+			Channel: &model.Channel{},
+			ProfileMap: map[string]*model.User{
+				"userId": {},
+			},
+			Sender: &model.User{},
 		}
-	}()
-
-	s.createPushNotificationsHub()
-
-	s.StopPushNotificationsHubWorkers()
-
-	// Now we start sending messages after the PN hub is shut down.
-	// We test all 3 notification types.
-	app.clearPushNotification("currentSessionId", "userId", "channelId")
-
-	app.UpdateMobileAppBadge("userId")
-
-	notification := &PostNotification{
-		Post:    &model.Post{},
-		Channel: &model.Channel{},
-		ProfileMap: map[string]*model.User{
-			"userId": {},
-		},
-		Sender: &model.User{},
-	}
-	app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
+		app.sendPushNotification(notification, &model.User{}, true, false, model.COMMENTS_NOTIFY_ANY)
+	})
 }
 
 // Run it with | grep -v '{"level"' to prevent spamming the console.
