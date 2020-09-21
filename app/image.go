@@ -18,16 +18,16 @@ func genThumbnail(img image.Image) image.Image {
 		ratio := float64(h) / float64(w)
 		if ratio < ImageThumbnailRatio {
 			// we pre-calculate the thumbnail's width to make sure we are not upscaling.
-			tw := int(float64(ImageThumbnailHeight) * float64(w) / float64(h))
-			if tw <= w {
+			targetWidth := int(float64(ImageThumbnailHeight) * float64(w) / float64(h))
+			if targetWidth <= w {
 				thumb = imaging.Resize(img, 0, ImageThumbnailHeight, imaging.Lanczos)
 			} else {
 				thumb = imaging.Resize(img, ImageThumbnailWidth, 0, imaging.Lanczos)
 			}
 		} else {
 			// we pre-calculate the thumbnail's height to make sure we are not upscaling.
-			th := int(float64(ImageThumbnailWidth) * float64(h) / float64(w))
-			if th <= h {
+			targetHeight := int(float64(ImageThumbnailWidth) * float64(h) / float64(w))
+			if targetHeight <= h {
 				thumb = imaging.Resize(img, ImageThumbnailWidth, 0, imaging.Lanczos)
 			} else {
 				thumb = imaging.Resize(img, 0, ImageThumbnailHeight, imaging.Lanczos)
