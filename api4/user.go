@@ -752,9 +752,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if len(inGroupId) > 0 {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {

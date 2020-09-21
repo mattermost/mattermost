@@ -5540,6 +5540,29 @@ func (c *Client4) CheckIntegrity() ([]IntegrityCheckResult, *Response) {
 	return results, BuildResponse(r)
 }
 
+func (c *Client4) GetNotices(lastViewed int64, teamId string, client NoticeClientType, clientVersion, locale, etag string) (NoticeMessages, *Response) {
+	url := fmt.Sprintf("/system/notices/%s?lastViewed=%d&client=%s&clientVersion=%s&locale=%s", teamId, lastViewed, client, clientVersion, locale)
+	r, appErr := c.DoApiGet(url, etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	notices, err := UnmarshalProductNoticeMessages(r.Body)
+	if err != nil {
+		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
+	}
+	return notices, BuildResponse(r)
+}
+
+func (c *Client4) MarkNoticesViewed(ids []string) *Response {
+	r, err := c.DoApiPut("/system/notices/view", ArrayToJson(ids))
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
 // CreateUpload creates a new upload session.
 func (c *Client4) CreateUpload(us *UploadSession) (*UploadSession, *Response) {
 	r, err := c.DoApiPost(c.GetUploadsRoute(), us.ToJson())

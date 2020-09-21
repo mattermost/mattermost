@@ -89,6 +89,9 @@ func (s *FileBackendTestSuite) SetupTest() {
 	backend, err := NewFileBackend(&s.settings, true)
 	require.Nil(s.T(), err)
 	s.backend = backend
+
+	// This is needed to create the bucket if it doesn't exist.
+	s.Nil(s.backend.TestConnection())
 }
 
 func (s *FileBackendTestSuite) TestConnection() {

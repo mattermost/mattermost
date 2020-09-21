@@ -811,6 +811,15 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, nErr)
+
 	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
@@ -851,25 +860,78 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	require.Nil(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, nErr)
+
+	u4.DeleteAt = 1
+	_, err = ss.User().Update(u4, true)
+	require.Nil(t, err)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.Nil(t, nErr)
-	t.Run("get in channel 1, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannel(c1.Id, 0, 100)
+
+	t.Run("get all users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3), sanitized(u4)}, users)
+	})
+
+	t.Run("get only active users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Active:      true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, users)
 	})
 
-	t.Run("get in channel 1, offset 1, limit 2", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannel(c1.Id, 1, 2)
+	t.Run("get inactive users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Inactive:    true,
+		})
 		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u4)}, users)
+	})
+
+	t.Run("get in channel 1, offset 1, limit 2", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        1,
+			PerPage:     1,
+		})
+		require.Nil(t, err)
+		users_p2, err2 := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        2,
+			PerPage:     1,
+		})
+		require.Nil(t, err2)
+		users = append(users, users_p2...)
 		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, users)
 	})
 
 	t.Run("get in channel 2, offset 0, limit 1", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannel(c2.Id, 0, 1)
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c2.Id,
+			Page:        0,
+			PerPage:     1,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
@@ -916,6 +978,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4, err := ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	require.Nil(t, nErr)
+
 	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
@@ -956,6 +1027,17 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	require.Nil(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   c1.Id,
+		UserId:      u4.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, nErr)
+
+	u4.DeleteAt = 1
+	_, err = ss.User().Update(u4, true)
+	require.Nil(t, err)
+
+	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -974,14 +1056,44 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 		Status: model.STATUS_ONLINE,
 	}))
 
-	t.Run("get in channel 1 by status, offset 0, limit 100", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannelByStatus(c1.Id, 0, 100)
+	t.Run("get all users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3), sanitized(u4)}, users)
+	})
+
+	t.Run("get active in channel 1 by status, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannelByStatus(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Active:      true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u2), sanitized(u1)}, users)
 	})
 
+	t.Run("get inactive users in channel 1, offset 0, limit 100", func(t *testing.T) {
+		users, err := ss.User().GetProfilesInChannel(&model.UserGetOptions{
+			InChannelId: c1.Id,
+			Page:        0,
+			PerPage:     100,
+			Inactive:    true,
+		})
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{sanitized(u4)}, users)
+	})
+
 	t.Run("get in channel 2 by status, offset 0, limit 1", func(t *testing.T) {
-		users, err := ss.User().GetProfilesInChannelByStatus(c2.Id, 0, 1)
+		users, err := ss.User().GetProfilesInChannelByStatus(&model.UserGetOptions{
+			InChannelId: c2.Id,
+			Page:        0,
+			PerPage:     1,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, users)
 	})
@@ -4584,8 +4696,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4629,8 +4741,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4685,8 +4797,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 	})
@@ -4725,8 +4837,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4770,8 +4882,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4836,8 +4948,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId1, user1.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4850,8 +4962,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
-		require.Nil(t, err)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(teamId2, user2.Id)
+		require.Nil(t, nErr)
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
 
@@ -4899,8 +5011,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -4944,8 +5056,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5000,8 +5112,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 	})
@@ -5040,8 +5152,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5085,8 +5197,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5151,8 +5263,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId1, user1.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5165,8 +5277,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
-		require.Nil(t, err)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(teamId2, user2.Id)
+		require.Nil(t, nErr)
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)
 
