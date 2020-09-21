@@ -286,6 +286,12 @@ func (hub *PushNotificationsHub) start() {
 	for {
 		select {
 		case notification := <-hub.notificationsChan:
+			// We just ignore dummy notifications.
+			// These are used to pump out any remaining notifications
+			// before we stop the hub.
+			if notification.notificationType == notificationTypeDummy {
+				continue
+			}
 			// Adding to the waitgroup first.
 			hub.semaWg.Add(1)
 			// Get token.
@@ -315,8 +321,6 @@ func (hub *PushNotificationsHub) start() {
 					)
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(notification.userId)
-				case notificationTypeDummy:
-					return
 				default:
 					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}

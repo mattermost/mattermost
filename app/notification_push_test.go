@@ -1384,6 +1384,11 @@ func TestPushNotificationRace(t *testing.T) {
 		Store:       mockStore,
 	}
 	app := New(ServerConnector(s))
+	defer func() {
+		if r := recover(); r != nil {
+			require.Failf(t, "panic happened:", "%v", r)
+		}
+	}()
 
 	s.createPushNotificationsHub()
 
