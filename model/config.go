@@ -1023,13 +1023,29 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type OpenIdSettings struct {
-	Enable          *bool
-	Secret          *string
-	Id              *string
-	Scope           *string
-	AuthEndpoint    *string
-	TokenEndpoint   *string
-	UserApiEndpoint *string
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	LoginButtonColor  *string `access:"authentication"`
+	LoginButtonText   *string `access:"authentication"`
+}
+
+func (s *OpenIdSettings) SSOSettings() *SSOSettings {
+	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
+	return &ssoSettings
 }
 
 func (s *OpenIdSettings) setDefaults() {
@@ -1037,15 +1053,29 @@ func (s *OpenIdSettings) setDefaults() {
 		s.Enable = NewBool(false)
 	}
 
-	if s.Id == nil {
-		s.Id = NewString("")
-	}
-
 	if s.Secret == nil {
 		s.Secret = NewString("")
 	}
 
-	s.Scope = NewString(OPENID_SETTINGS_DEFAULT_SCOPE)
+	if s.Id == nil {
+		s.Id = NewString("")
+	}
+
+	if s.Scope == nil || *s.Scope == "" {
+		s.Scope = NewString(OPENID_SETTINGS_DEFAULT_SCOPE)
+	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
+	}
+
+	if s.LoginButtonColor == nil {
+		s.LoginButtonColor = NewString("#0079d6")
+	}
+
+	if s.LoginButtonText == nil {
+		s.LoginButtonText = NewString("Open ID")
+	}
 }
 
 func (s *SSOSettings) SSOSettings() *SSOSettings {
@@ -2884,7 +2914,7 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
-	OpenIdSettings            SSOSettings
+	OpenIdSettings            OpenIdSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
 	LocalizationSettings      LocalizationSettings
@@ -2965,7 +2995,7 @@ func (o *Config) SetDefaults() {
 	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.OpenIdSettings.setDefaults(OPENID_SETTINGS_DEFAULT_SCOPE, "", "", "")
+	o.OpenIdSettings.setDefaults()
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
