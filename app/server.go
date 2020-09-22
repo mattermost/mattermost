@@ -224,7 +224,7 @@ func NewServer(options ...Option) (*Server, error) {
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
 				Dsn:              SENTRY_DSN,
-				Release:          model.BuildNumber,
+				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
 					// sanitize data sent to sentry to reduce exposure of PII
