@@ -31,6 +31,8 @@ func TestMailConnectionFromConfig(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	*cfg.EmailSettings.ConnectionSecurity = ""
+
 	conn, err := ConnectToSMTPServer(cfg)
 	require.Nil(t, err, "Should connect to the SMTP Server %v", err)
 
@@ -38,7 +40,6 @@ func TestMailConnectionFromConfig(t *testing.T) {
 
 	require.Nil(t, err, "Should get new SMTP client")
 
-	*cfg.EmailSettings.ConnectionSecurity = ""
 	*cfg.EmailSettings.SMTPServer = "wrongServer"
 	*cfg.EmailSettings.SMTPPort = "553"
 
