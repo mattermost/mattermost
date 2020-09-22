@@ -863,6 +863,7 @@ type ExperimentalSettings struct {
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -890,6 +891,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 		// User limit 0 is treated as no limit
 		s.CloudUserLimit = NewInt64(0)
 	}
+
+	if s.CloudBilling == nil {
+		s.CloudBilling = NewBool(false)
+	}
+
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
 	}
@@ -1659,6 +1665,8 @@ type AnnouncementSettings struct {
 	BannerColor          *string `access:"site"`
 	BannerTextColor      *string `access:"site"`
 	AllowBannerDismissal *bool   `access:"site"`
+	AdminNoticesEnabled  *bool   `access:"site"`
+	UserNoticesEnabled   *bool   `access:"site"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1680,6 +1688,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 
 	if s.AllowBannerDismissal == nil {
 		s.AllowBannerDismissal = NewBool(true)
+	}
+
+	if s.AdminNoticesEnabled == nil {
+		s.AdminNoticesEnabled = NewBool(true)
+	}
+
+	if s.UserNoticesEnabled == nil {
+		s.UserNoticesEnabled = NewBool(true)
 	}
 }
 
@@ -1937,9 +1953,11 @@ type LdapSettings struct {
 	SyncIntervalMinutes *int `access:"authentication"`
 
 	// Advanced
-	SkipCertificateVerification *bool `access:"authentication"`
-	QueryTimeout                *int  `access:"authentication"`
-	MaxPageSize                 *int  `access:"authentication"`
+	SkipCertificateVerification *bool   `access:"authentication"`
+	PublicCertificateFile       *string `access:"authentication"`
+	PrivateKeyFile              *string `access:"authentication"`
+	QueryTimeout                *int    `access:"authentication"`
+	MaxPageSize                 *int    `access:"authentication"`
 
 	// Customization
 	LoginFieldName *string `access:"authentication"`
@@ -1975,6 +1993,14 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.ConnectionSecurity == nil {
 		s.ConnectionSecurity = NewString("")
+	}
+
+	if s.PublicCertificateFile == nil {
+		s.PublicCertificateFile = NewString("")
+	}
+
+	if s.PrivateKeyFile == nil {
+		s.PrivateKeyFile = NewString("")
 	}
 
 	if s.BaseDN == nil {
@@ -2520,7 +2546,7 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins"`
+	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable"`
@@ -2528,12 +2554,12 @@ type PluginSettings struct {
 	ClientDirectory             *string                           `access:"plugins,write_restrictable"`
 	Plugins                     map[string]map[string]interface{} `access:"plugins"`
 	PluginStates                map[string]*PluginState           `access:"plugins"`
-	EnableMarketplace           *bool                             `access:"plugins"`
-	EnableRemoteMarketplace     *bool                             `access:"plugins"`
-	AutomaticPrepackagedPlugins *bool                             `access:"plugins"`
-	RequirePluginSignature      *bool                             `access:"plugins"`
-	MarketplaceUrl              *string                           `access:"plugins"`
-	SignaturePublicKeyFiles     []string                          `access:"plugins"`
+	EnableMarketplace           *bool                             `access:"plugins,write_restrictable"`
+	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable"`
+	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable"`
+	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable"`
+	MarketplaceUrl              *string                           `access:"plugins,write_restrictable"`
+	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2572,6 +2598,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
+		// Enable the incident response plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {

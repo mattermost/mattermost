@@ -1686,6 +1686,13 @@ func TestConvertChannelToPrivate(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginTeamAdmin()
+	th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	_, resp = Client.ConvertChannelToPrivate(publicChannel.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.AddPermissionToRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
+
 	rchannel, resp := Client.ConvertChannelToPrivate(publicChannel.Id)
 	CheckOKStatus(t, resp)
 	require.Equal(t, model.CHANNEL_PRIVATE, rchannel.Type, "channel should be converted from public to private")
@@ -1790,6 +1797,25 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 			assert.Equal(t, tc.expectedPrivacy, updatedChannel.Type)
 		})
 	}
+
+	t.Run("Enforces convert channel permissions", func(t *testing.T) {
+		th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
+		th.RemovePermissionFromRole(model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC.Id, model.TEAM_ADMIN_ROLE_ID)
+
+		_, resp := Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+		CheckForbiddenStatus(t, resp)
+		_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
+		CheckForbiddenStatus(t, resp)
+
+		th.AddPermissionToRole(model.PERMISSION_CONVERT_PUBLIC_CHANNEL_TO_PRIVATE.Id, model.TEAM_ADMIN_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_CONVERT_PRIVATE_CHANNEL_TO_PUBLIC.Id, model.TEAM_ADMIN_ROLE_ID)
+
+		_, resp = Client.UpdateChannelPrivacy(privateChannel.Id, model.CHANNEL_OPEN)
+		CheckNoError(t, resp)
+		_, resp = Client.UpdateChannelPrivacy(publicChannel.Id, model.CHANNEL_PRIVATE)
+		CheckNoError(t, resp)
+	})
+
 }
 
 func TestRestoreChannel(t *testing.T) {
@@ -1881,6 +1907,11 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
+	require.Equal(t, th.BasicChannel.Name, channel.Name, "names did not match")
+
+	channel, resp = Client.GetChannelByNameForTeamName(th.BasicPrivateChannel.Name, th.BasicTeam.Name, "")
+	CheckNoError(t, resp)
+	require.Equal(t, th.BasicPrivateChannel.Name, channel.Name, "names did not match")
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
 	CheckNotFoundStatus(t, resp)
@@ -1888,6 +1919,14 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	channel, resp = Client.GetChannelByNameForTeamNameIncludeDeleted(th.BasicDeletedChannel.Name, th.BasicTeam.Name, "")
 	CheckNoError(t, resp)
 	require.Equal(t, th.BasicDeletedChannel.Name, channel.Name, "names did not match")
+
+	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
+	CheckNoError(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
+	_, resp = Client.GetChannelByNameForTeamName(th.BasicPrivateChannel.Name, th.BasicTeam.Name, "")
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, model.NewRandomString(15), "")
 	CheckNotFoundStatus(t, resp)
@@ -1902,7 +1941,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 	user := th.CreateUser()
 	Client.Login(user.Email, user.Password)
 	_, resp = Client.GetChannelByNameForTeamName(th.BasicChannel.Name, th.BasicTeam.Name, "")
-	CheckNotFoundStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetChannelMembers(t *testing.T) {

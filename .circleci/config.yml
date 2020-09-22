@@ -12,7 +12,6 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -28,7 +27,7 @@ jobs:
           export WEBAPP_GIT_COMMIT=$(git rev-parse HEAD)
           echo "$WEBAPP_GIT_COMMIT"
 
-          trap 'npm ci && make build' ERR
+          trap 'npm ci && cd node_modules/mattermost-redux && npm i && npm run build && cd - && make build' ERR
           curl -f -o ./dist.tar.gz https://pr-builds.mattermost.com/mattermost-webapp/commit/${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz
           mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1
           trap - ERR
@@ -65,7 +64,12 @@ jobs:
             - owasp/restore_owasp_cache
             - run:
                 name: Update OWASP Dependency-Check Database
-                command: ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                command: |
+                  if ! ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly; then
+                    # Update failed, probably due to a bad DB version; delete cached DB and try again
+                    rm -rv ~/.owasp/dependency-check-data/*.db
+                    ~/.owasp/dependency-check/bin/dependency-check.sh --data << parameters.cve_data_directory >> --updateonly
+                  fi
             - owasp/store_owasp_cache:
                 cve_data_directory: <<parameters.cve_data_directory>>
             - run:
@@ -169,6 +173,7 @@ jobs:
             export VERSION=$(sentry-cli releases propose-version)
             sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
             sentry-cli --log-level=debug releases set-commits --auto $VERSION
+
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -376,7 +381,7 @@ jobs:
 
   upload-s3:
     docker:
-    - image: 'circleci/python:2.7'
+      - image: 'circleci/python:2.7'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -415,9 +420,9 @@ workflows:
       - setup:
           filters:
             branches:
-                ignore:
-                  - master
-                  - /^release-.*/
+              ignore:
+                - master
+                - /^release-.*/
       - check-deps:
           context: sast-webhook
           requires:

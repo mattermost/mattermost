@@ -27,8 +27,10 @@ import (
 type App struct {
 	srv *Server
 
-	log              *mlog.Logger
-	notificationsLog *mlog.Logger
+	// XXX: This is required because removing this needs BleveEngine
+	// to be registered in (h *MainHelper) setupStore, but that creates
+	// a cyclic dependency as bleve tests themselves import testlib.
+	searchEngine *searchengine.Broker
 
 	t              goi18n.TranslateFunc
 	session        model.Session
@@ -37,17 +39,6 @@ type App struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
-
-	cluster       einterfaces.ClusterInterface
-	compliance    einterfaces.ComplianceInterface
-	dataRetention einterfaces.DataRetentionInterface
-	searchEngine  *searchengine.Broker
-	messageExport einterfaces.MessageExportInterface
-	metrics       einterfaces.MetricsInterface
-
-	httpService httpservice.HTTPService
-	imageProxy  *imageproxy.ImageProxy
-	timezones   *timezones.Timezones
 
 	context context.Context
 }
@@ -120,17 +111,19 @@ func (a *App) initJobs() {
 	if jobsExpiryNotifyInterface != nil {
 		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
 	}
+	if productNoticesJobInterface != nil {
+		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
+	}
 
+	if jobsActiveUsersInterface != nil {
+		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
+	}
 	a.srv.Jobs.Workers = a.srv.Jobs.InitWorkers()
 	a.srv.Jobs.Schedulers = a.srv.Jobs.InitSchedulers()
 }
 
-func (a *App) DiagnosticId() string {
-	return a.Srv().diagnosticId
-}
-
-func (a *App) SetDiagnosticId(id string) {
-	a.Srv().diagnosticId = id
+func (a *App) TelemetryId() string {
+	return a.Srv().TelemetryId()
 }
 
 func (s *Server) HTMLTemplates() *template.Template {
@@ -372,8 +365,8 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 			bodyPage.Props["SiteURLHeader"] = T("api.templates.warn_metric_ack.body.site_url_header")
 			bodyPage.Props["SiteURL"] = a.GetSiteURL()
-			bodyPage.Props["DiagnosticIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
-			bodyPage.Props["DiagnosticIdValue"] = a.DiagnosticId()
+			bodyPage.Props["TelemetryIdHeader"] = T("api.templates.warn_metric_ack.body.diagnostic_id_header")
+			bodyPage.Props["TelemetryIdValue"] = a.TelemetryId()
 			bodyPage.Props["Footer"] = T("api.templates.warn_metric_ack.footer")
 
 			warnMetricStatus, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T)
@@ -428,10 +421,10 @@ func (a *App) Srv() *Server {
 	return a.srv
 }
 func (a *App) Log() *mlog.Logger {
-	return a.log
+	return a.srv.Log
 }
 func (a *App) NotificationsLog() *mlog.Logger {
-	return a.notificationsLog
+	return a.srv.NotificationsLog
 }
 func (a *App) T(translationID string, args ...interface{}) string {
 	return a.t(translationID, args...)
@@ -458,13 +451,13 @@ func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.srv.AccountMigration
 }
 func (a *App) Cluster() einterfaces.ClusterInterface {
-	return a.cluster
+	return a.srv.Cluster
 }
 func (a *App) Compliance() einterfaces.ComplianceInterface {
-	return a.compliance
+	return a.srv.Compliance
 }
 func (a *App) DataRetention() einterfaces.DataRetentionInterface {
-	return a.dataRetention
+	return a.srv.DataRetention
 }
 func (a *App) SearchEngine() *searchengine.Broker {
 	return a.searchEngine
@@ -473,10 +466,10 @@ func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.srv.Ldap
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
-	return a.messageExport
+	return a.srv.MessageExport
 }
 func (a *App) Metrics() einterfaces.MetricsInterface {
-	return a.metrics
+	return a.srv.Metrics
 }
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.srv.Notification
@@ -485,13 +478,13 @@ func (a *App) Saml() einterfaces.SamlInterface {
 	return a.srv.Saml
 }
 func (a *App) HTTPService() httpservice.HTTPService {
-	return a.httpService
+	return a.srv.HTTPService
 }
 func (a *App) ImageProxy() *imageproxy.ImageProxy {
-	return a.imageProxy
+	return a.srv.ImageProxy
 }
 func (a *App) Timezones() *timezones.Timezones {
-	return a.timezones
+	return a.srv.timezones
 }
 func (a *App) Context() context.Context {
 	return a.context
@@ -528,6 +521,8 @@ func (a *App) SetServer(srv *Server) {
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
 }
+
+// TODO: change this to make a server method.
 func (a *App) SetLog(l *mlog.Logger) {
-	a.log = l
+	a.srv.Log = l
 }

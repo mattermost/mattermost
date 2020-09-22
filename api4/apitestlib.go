@@ -84,6 +84,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
 	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*config.AnnouncementSettings.AdminNoticesEnabled = false
+	*config.AnnouncementSettings.UserNoticesEnabled = false
 	if updateConfig != nil {
 		updateConfig(config)
 	}
@@ -117,6 +119,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
 		*cfg.EmailSettings.SendEmailNotifications = true
+		*cfg.ServiceSettings.SiteURL = ""
 
 		// Disable sniffing, otherwise elastic client fails to connect to docker node
 		// More details: https://github.com/olivere/elastic/wiki/Sniffing
