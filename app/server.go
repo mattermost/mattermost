@@ -1425,3 +1425,7 @@ func (s *Server) TelemetryId() string {
 func (s *Server) HttpService() httpservice.HTTPService {
 	return s.HTTPService
 }
+
+func (s *Server) SetLog(l *mlog.Logger) {
+	s.Log = l
+}

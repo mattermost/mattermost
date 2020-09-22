@@ -13250,21 +13250,6 @@ func (a *OpenTracingAppLayer) SetDefaultProfileImage(user *model.User) *model.Ap
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SetLog(l *mlog.Logger) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetLog")
-
-	a.ctx = newCtx
-	a.app.Srv().Store.SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store.SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	a.app.SetLog(l)
-}
-
 func (a *OpenTracingAppLayer) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SetPhase2PermissionsMigrationStatus")

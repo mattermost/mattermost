@@ -521,8 +521,3 @@ func (a *App) SetServer(srv *Server) {
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
 }
-
-// TODO: change this to make a server method.
-func (a *App) SetLog(l *mlog.Logger) {
-	a.srv.Log = l
-}
