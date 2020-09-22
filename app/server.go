@@ -513,6 +513,11 @@ func NewServer(options ...Option) (*Server, error) {
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
+	// if enabled - perform initial product notices fetch
+	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
+		go fakeApp.UpdateProductNotices()
+	}
+
 	return s, nil
 }
 
@@ -1216,7 +1221,6 @@ func doCheckWarnMetricStatus(a *App) {
 	}
 
 	// If any warn metric has already been acked, we return
-	mlog.Debug("CITOMAI metrics have been acked", mlog.Bool("areWarnMetricsAcked", areWarnMetricsAcked))
 	if areWarnMetricsAcked {
 		mlog.Debug("Warn metrics have been acked, return")
 		return

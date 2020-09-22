@@ -50,6 +50,7 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	ProductNotices() ProductNoticesStore
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
@@ -646,6 +647,13 @@ type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error)
 	GetLatest(allowFromCache bool) (*model.TermsOfService, error)
 	Get(id string, allowFromCache bool) (*model.TermsOfService, error)
+}
+
+type ProductNoticesStore interface {
+	View(userId string, notices []string) error
+	Clear(notices []string) error
+	ClearOldNotices(currentNotices *model.ProductNotices) error
+	GetViews(userId string) ([]model.ProductNoticeViewState, error)
 }
 
 type UserTermsOfServiceStore interface {

@@ -7161,6 +7161,28 @@ func (a *OpenTracingAppLayer) GetPrivateChannelsForTeam(teamId string, offset in
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) GetProductNotices(userId string, teamId string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProductNotices")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetProductNotices(userId, teamId, client, clientVersion, locale)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetProfileImage")
@@ -14769,6 +14791,28 @@ func (a *OpenTracingAppLayer) UpdatePreferences(userId string, preferences model
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) UpdateProductNotices() *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateProductNotices")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateProductNotices()
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateRole")
@@ -15112,6 +15156,28 @@ func (a *OpenTracingAppLayer) UpdateUserRoles(userId string, newRoles string, se
 	}
 
 	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) UpdateViewedProductNotices(userId string, noticeIds []string) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.UpdateViewedProductNotices")
+
+	a.ctx = newCtx
+	a.app.Srv().Store.SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store.SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.UpdateViewedProductNotices(userId, noticeIds)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) UpdateWebConnUserActivity(session model.Session, activityAt int64) {

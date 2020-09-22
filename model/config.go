@@ -1665,6 +1665,8 @@ type AnnouncementSettings struct {
 	BannerColor          *string `access:"site"`
 	BannerTextColor      *string `access:"site"`
 	AllowBannerDismissal *bool   `access:"site"`
+	AdminNoticesEnabled  *bool   `access:"site"`
+	UserNoticesEnabled   *bool   `access:"site"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1686,6 +1688,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 
 	if s.AllowBannerDismissal == nil {
 		s.AllowBannerDismissal = NewBool(true)
+	}
+
+	if s.AdminNoticesEnabled == nil {
+		s.AdminNoticesEnabled = NewBool(true)
+	}
+
+	if s.UserNoticesEnabled == nil {
+		s.UserNoticesEnabled = NewBool(true)
 	}
 }
 
