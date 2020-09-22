@@ -5605,3 +5605,13 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	defer closeBody(r)
 	return FileInfoFromJson(r.Body), BuildResponse(r)
 }
+
+// InvalidateAllEmailInvites invalidates all email invites.
+func (c *Client4) InvalidateAllEmailInvites() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
