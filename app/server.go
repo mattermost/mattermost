@@ -1201,12 +1201,40 @@ func doCheckWarnMetricStatus(a *App) {
 		return
 	}
 
+	var areWarnMetricsAcked bool
 	warnMetricStatusFromStore := make(map[string]string)
+
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
 				warnMetricStatusFromStore[key] = value
+				if value == model.WARN_METRIC_STATUS_ACK {
+					areWarnMetricsAcked = true
+				}
 			}
+		}
+	}
+
+	// If any warn metric has already been acked, we return
+	mlog.Debug("CITOMAI metrics have been acked", mlog.Bool("areWarnMetricsAcked", areWarnMetricsAcked))
+	if areWarnMetricsAcked {
+		mlog.Debug("Warn metrics have been acked, return")
+		return
+	}
+
+	lastWarnMetricRunTimestamp, err := a.Srv().getLastWarnMetricTimestamp()
+	if err != nil {
+		mlog.Debug("Cannot obtain last admin advisory run timestamp", mlog.Err(err))
+	} else {
+		currentTime := utils.MillisFromTime(time.Now())
+		fmt.Println((currentTime - lastWarnMetricRunTimestamp) / model.WARN_METRIC_JOB_WAIT_TIME)
+		fmt.Println(time.Unix(lastWarnMetricRunTimestamp/1000, 0))
+		fmt.Println(time.Unix(currentTime/1000, 0))
+
+		// If the last admin advisory has been shown
+		if (currentTime-lastWarnMetricRunTimestamp)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
+			mlog.Debug("No advisories should be shown in the last 7 days days of server runtime")
+			return
 		}
 	}
 
@@ -1278,7 +1306,7 @@ func doCheckWarnMetricStatus(a *App) {
 		}
 	}
 
-	isE0Edition := model.BuildEnterpriseReady == "true" //license == nil was already validated upstream
+	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
 
 	for _, warnMetric := range warnMetrics {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)

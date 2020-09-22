@@ -2044,7 +2044,7 @@
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Projects often involve people both inside and outside of your organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Projects often involve people both inside and outside of your organization. With Guest Accounts, you can bring external partners into your Mattermost system and specify who they can work with and what they can see.\r\n\r\n[Learn more about enabling Guest Accounts](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.email_domain.notification_title",
@@ -2068,7 +2068,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system, you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc., to learn more about upgrading. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.server.warn_metric.mfa.notification_title",
@@ -2076,7 +2076,7 @@
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system, you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "translation": "Your Mattermost system has multi-factor authentication enabled, giving users the choice to secure their accounts with additional means of authentication beyond a password. To improve security across the system you can require all Mattermost accounts to use multi-factor authentication.\r\n\r\n[Learn more about enforcing Multi-Factor Authentication](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
     "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",

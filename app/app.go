@@ -209,6 +209,18 @@ func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
 	return value, nil
 }
 
+func (s *Server) getLastWarnMetricTimestamp() (int64, *model.AppError) {
+	systemData, err := s.Store.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	if err != nil {
+		return 0, model.NewAppError("getLastWarnMetricTimestamp", "app.system.get_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	value, err := strconv.ParseInt(systemData.Value, 10, 64)
+	if err != nil {
+		return 0, model.NewAppError("getLastWarnMetricTimestamp", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
+}
+
 func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model.AppError) {
 	systemDataList, nErr := a.Srv().Store.System().Get()
 	if nErr != nil {
@@ -529,7 +541,7 @@ func (a *App) setWarnMetricsStatus(status string) *model.AppError {
 
 func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *model.AppError {
 	mlog.Info("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
-	if err := a.Srv().Store.System().SaveOrUpdate(&model.System{
+	if err := a.Srv().Store.System().SaveOrUpdateWithWarnMetricHandling(&model.System{
 		Name:  warnMetricId,
 		Value: status,
 	}); err != nil {

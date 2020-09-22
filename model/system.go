@@ -30,6 +30,7 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300 = "warn_metric_number_of_active_users_300"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
 	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K       = "warn_metric_number_of_posts_500k"
+	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
 )
 
 const (
@@ -39,6 +40,7 @@ const (
 	WARN_METRIC_STATUS_STORE_PREFIX       = "warn_metric_"
 	WARN_METRIC_JOB_INTERVAL              = 24 * 7
 	WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25 = 25
+	WARN_METRIC_JOB_WAIT_TIME             = 1000 * 3600 * 24 * 7 // 7 days
 )
 
 type System struct {
