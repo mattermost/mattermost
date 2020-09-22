@@ -278,7 +278,7 @@ func TestRudderTelemetry(t *testing.T) {
 			if event != "" {
 				assert.Equal(t, event, actual.Batch[0].Event)
 			}
-			assert.False(t, actual.Batch[0].Timestamp.IsZero(), "batch timestamp should not be the zero value")
+			assert.False(t, actual.Batch[0].Timestamp.IsZero(), "batch timestamp should not be the zero sendFieldValue")
 			if properties != nil {
 				assert.Equal(t, properties, actual.Batch[0].Properties)
 			}
@@ -322,7 +322,7 @@ func TestRudderTelemetry(t *testing.T) {
 	}
 
 	t.Run("Send", func(t *testing.T) {
-		testValue := "test-send-value-6789"
+		testValue := "test-send-sendFieldValue-6789"
 		telemetryService.sendTelemetry("Testing Telemetry", map[string]interface{}{
 			"hey": testValue,
 		})
