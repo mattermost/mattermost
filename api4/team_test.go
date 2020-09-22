@@ -3348,7 +3348,7 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 }
 
 func TestInvalidateAllEmailInvites(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
