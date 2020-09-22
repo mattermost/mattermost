@@ -442,7 +442,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 	for users == nil {
 		if usersBatch, err := worker.jobServer.Store.User().GetUsersBatchForIndexing(progress.LastEntityTime, endTime, BATCH_SIZE); err != nil {
 			if tries >= 10 {
-				return progress, err
+				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 			} else {
 				mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
 

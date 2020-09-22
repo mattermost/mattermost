@@ -1199,9 +1199,9 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 		return
 	}
 
-	numberOfActiveUsers, err := a.Srv().Store.User().Count(model.UserCountOptions{})
-	if err != nil {
-		mlog.Error("Error to get active registered users.", mlog.Err(err))
+	numberOfActiveUsers, nErr := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if nErr != nil {
+		mlog.Error("Error to get active registered users.", mlog.Err(nErr))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1235,7 +1235,7 @@ func doCheckNumberOfActiveUsersWarnMetricStatus(a *App) {
 			}
 		}
 
-		if err = a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
+		if err := a.notifyAdminsOfWarnMetricStatus(warnMetric.Id); err != nil {
 			mlog.Error("Failed to send notifications to admin users.", mlog.Err(err))
 		}
 
