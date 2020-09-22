@@ -984,5 +984,6 @@ func TestGetPublicFile(t *testing.T) {
 	th.cleanupTestFile(info)
 	link = th.App.GeneratePublicLink(Client.Url, info)
 	resp, err = http.Get(link)
+	require.Nil(t, err)
 	require.Equal(t, http.StatusNotFound, resp.StatusCode, "should've failed to get file after it is deleted")
 }
