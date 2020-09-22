@@ -111,6 +111,10 @@ func (a *App) initJobs() {
 	if jobsExpiryNotifyInterface != nil {
 		a.srv.Jobs.ExpiryNotify = jobsExpiryNotifyInterface(a)
 	}
+	if productNoticesJobInterface != nil {
+		a.srv.Jobs.ProductNotices = productNoticesJobInterface(a)
+	}
+
 	if jobsActiveUsersInterface != nil {
 		a.srv.Jobs.ActiveUsers = jobsActiveUsersInterface(a)
 	}
