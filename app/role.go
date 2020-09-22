@@ -125,6 +125,8 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return nil, err
 	}
 
+	a.sendUpdatedRoleEvent(role)
+
 	return role, err
 }
 
