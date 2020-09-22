@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -31,6 +32,9 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("getCloudProducts", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	products, appErr := c.App.Cloud().GetCloudProducts()
 	if appErr != nil {
@@ -58,6 +62,9 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createCustomerPayment", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	intent, appErr := c.App.Cloud().CreateCustomerPayment()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -83,6 +90,9 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("confirmCustomerPayment", audit.Fail)
+	defer c.LogAuditRec(auditRec)
 
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
