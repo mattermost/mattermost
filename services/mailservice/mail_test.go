@@ -38,6 +38,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 
 	require.Nil(t, err, "Should get new SMTP client")
 
+	*cfg.EmailSettings.ConnectionSecurity = ""
 	*cfg.EmailSettings.SMTPServer = "wrongServer"
 	*cfg.EmailSettings.SMTPPort = "553"
 
@@ -51,6 +52,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	*cfg.EmailSettings.ConnectionSecurity = ""
 
 	conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -134,6 +136,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	*cfg.EmailSettings.ConnectionSecurity = ""
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -173,6 +176,7 @@ func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	*cfg.EmailSettings.ConnectionSecurity = ""
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -218,6 +222,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	require.Nil(t, err)
 
 	cfg := fs.Get()
+	*cfg.EmailSettings.ConnectionSecurity = ""
 
 	//Delete all the messages before check the sample email
 	DeleteMailBox("test2@example.com")
