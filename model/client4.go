@@ -5605,3 +5605,13 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	defer closeBody(r)
 	return FileInfoFromJson(r.Body), BuildResponse(r)
 }
+
+func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) *Response {
+	requestBody := map[string]string{"current_password": currentPassword, "new_password": newPassword}
+	r, err := c.DoApiPut(c.GetUserRoute(userId)+"/password", MapToJson(requestBody))
+	if err != nil {
+		return BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}

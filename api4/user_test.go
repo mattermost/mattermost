@@ -5208,3 +5208,28 @@ func TestMigrateAuthToSAML(t *testing.T) {
 		CheckNotImplementedStatus(t, err)
 	})
 }
+func TestUpdatePassword(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
+		res := th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system user with requisite system permission, except if requested user is system admin", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_USERS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		res := th.Client.UpdatePassword(th.TeamAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
+
+		res = th.Client.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system admin, even if requested user is system admin", func(t *testing.T) {
+		res := th.SystemAdminClient.UpdatePassword(th.SystemAdminUser.Id, "Pa$$word11", "foobar")
+		CheckOKStatus(t, res)
+	})
+}
