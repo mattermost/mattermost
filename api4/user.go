@@ -94,6 +94,7 @@ func (api *API) InitUser() {
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	panic("test panic")
 	user := model.UserFromJson(r.Body)
 	if user == nil {
 		c.SetInvalidParam("user")

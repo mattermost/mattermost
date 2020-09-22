@@ -9,6 +9,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"io"
 	"io/ioutil"
 	"net"
@@ -70,6 +71,12 @@ type AppError struct {
 }
 
 func (er *AppError) Error() string {
+	// below is a short-circuit to avoid crashing during error reporting
+	// if by some chance the error is nil, we don't want crash, but we do report the problem to Sentry
+	if er == nil {
+		sentry.CaptureMessage("Error() is called on a nil AppError instance")
+		return "Error() is called on a nil AppError instance"
+	}
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 

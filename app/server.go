@@ -224,8 +224,18 @@ func NewServer(options ...Option) (*Server, error) {
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
 				Dsn:              SENTRY_DSN,
-				Release:          model.BuildHash,
+				Release:          model.BuildNumber,
 				AttachStacktrace: true,
+				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+					// sanitize data sent to sentry to reduce exposure of PII
+					if event.Request != nil {
+						event.Request.Cookies = ""
+						event.Request.QueryString = ""
+						event.Request.Headers = nil
+						event.Request.Data = ""
+					}
+					return event
+				},
 			}); err != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
 			}
