@@ -91,11 +91,6 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
-	api.BaseRoutes.Users.Handle("/crash_test", api.ApiHandler(crashTest)).Methods("POST")
-}
-
-func crashTest(c *Context, w http.ResponseWriter, r *http.Request) {
-	panic("test panic")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2609,23 +2604,25 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	if c.Params.UserId != c.App.Session().UserId {
-		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Write([]byte(model.UploadSessionsToJson(uss)))
+	panic("test panic")
+	//
+	//c.RequireUserId()
+	//if c.Err != nil {
+	//	return
+	//}
+	//
+	//if c.Params.UserId != c.App.Session().UserId {
+	//	c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
+	//	return
+	//}
+	//
+	//uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	//if err != nil {
+	//	c.Err = err
+	//	return
+	//}
+	//
+	//w.Write([]byte(model.UploadSessionsToJson(uss)))
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
