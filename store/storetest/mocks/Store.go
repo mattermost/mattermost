@@ -395,6 +395,22 @@ func (_m *Store) Preference() store.PreferenceStore {
 	return r0
 }
 
+// ProductNotices provides a mock function with given fields:
+func (_m *Store) ProductNotices() store.ProductNoticesStore {
+	ret := _m.Called()
+
+	var r0 store.ProductNoticesStore
+	if rf, ok := ret.Get(0).(func() store.ProductNoticesStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ProductNoticesStore)
+		}
+	}
+
+	return r0
+}
+
 // Reaction provides a mock function with given fields:
 func (_m *Store) Reaction() store.ReactionStore {
 	ret := _m.Called()
@@ -594,6 +610,22 @@ func (_m *Store) TotalSearchDbConnections() int {
 // UnlockFromMaster provides a mock function with given fields:
 func (_m *Store) UnlockFromMaster() {
 	_m.Called()
+}
+
+// UploadSession provides a mock function with given fields:
+func (_m *Store) UploadSession() store.UploadSessionStore {
+	ret := _m.Called()
+
+	var r0 store.UploadSessionStore
+	if rf, ok := ret.Get(0).(func() store.UploadSessionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UploadSessionStore)
+		}
+	}
+
+	return r0
 }
 
 // User provides a mock function with given fields:

@@ -277,6 +277,12 @@ func TestGetLogs(t *testing.T) {
 		require.NotEmpty(t, logs, "should not be empty")
 	})
 
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp := th.Client.GetLogs(0, 10)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	_, resp := th.Client.GetLogs(0, 10)
 	CheckForbiddenStatus(t, resp)
 

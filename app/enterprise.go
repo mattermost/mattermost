@@ -102,6 +102,12 @@ func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInte
 	jobsExpiryNotifyInterface = f
 }
 
+var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
+
+func RegisterProductNoticesJobInterface(f func(*App) tjobs.ProductNoticesJobInterface) {
+	productNoticesJobInterface = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
