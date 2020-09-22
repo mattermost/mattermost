@@ -756,6 +756,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		c.Err = err
 		return
 	}
+
 	auditRec.Success()
 	ReturnStatusOK(w)
 }
@@ -795,4 +796,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
