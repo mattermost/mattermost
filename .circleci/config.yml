@@ -170,9 +170,9 @@ jobs:
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
-            echo Sentry will use version '${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server '${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
-            sentry-cli --log-level=debug releases set-commits --auto '${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
+            echo Sentry will use version "${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}"
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server "${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}"
+            sentry-cli --log-level=debug releases set-commits --auto "${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}"
 
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
