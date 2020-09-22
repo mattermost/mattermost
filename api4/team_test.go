@@ -3356,7 +3356,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		CheckForbiddenStatus(t, res)
 	})
 
-	t.Run("OK when request performed by system admin with requisite system permission", func(t *testing.T) {
+	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
 		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
 		_, res := th.Client.InvalidateAllEmailInvites()
