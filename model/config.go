@@ -107,7 +107,7 @@ const (
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
 
-	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable"
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
 
@@ -1024,7 +1024,7 @@ type SqlSettings struct {
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.DriverName == nil {
-		s.DriverName = NewString(DATABASE_DRIVER_MYSQL)
+		s.DriverName = NewString(DATABASE_DRIVER_POSTGRES)
 	}
 
 	if s.DataSource == nil {
