@@ -101,7 +101,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError.Message 
+	job.Data["error"] = jobError.Message
 	if len(jobError.DetailedError) > 0 {
 		job.Data["error"] += " — " + jobError.DetailedError
 	}
