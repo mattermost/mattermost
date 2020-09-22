@@ -423,14 +423,14 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
-      - hold:
+      - require-staff-approval:
           type: approval
           requires:
             - setup
       - check-deps:
           context: sast-webhook
           requires:
-            - hold
+            - require-staff-approval
       # - check-i18n:
       #     requires:
       #       - setup
@@ -449,7 +449,7 @@ workflows:
             - check-app-layers
             - check-store-layers
             - build-api-spec
-            - hold
+            - require-staff-approval
       - upload-s3-sha:
           context: mattermost-ci-pr-builds-s3
           requires:
