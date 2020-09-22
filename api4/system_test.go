@@ -67,32 +67,32 @@ func TestGetPing(t *testing.T) {
 	})
 
 	t.Run("ping feature flag test", func(t *testing.T) {
-		resp, err := th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
-		require.Nil(t, err)
+		resp, appErr := th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err2 := ioutil.ReadAll(resp.Body)
-		require.Nil(t, err2)
+		respBytes, err := ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
 		respString := string(respBytes)
 		require.NotContains(t, respString, "TestFeatureFlag")
 
 		// Run the enviroment variable override code to test
 		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalue")
 		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
-		memoryStore, cerr := config.NewMemoryStore()
-		require.Nil(t, cerr)
+		memoryStore, err := config.NewMemoryStore()
+		require.Nil(t, err)
 		retrievedConfig := memoryStore.Get()
 
 		// replace config with generated config
 		oldConfig := th.App.Config().Clone()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
 
-		resp, err3 := th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
-		require.Nil(t, err3)
+		resp, appErr = th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
-		respBytes, err4 := ioutil.ReadAll(resp.Body)
-		require.Nil(t, err4)
-		respString2 := string(respBytes)
-		require.Contains(t, respString2, "testvalue")
+		respBytes, err = ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		respString = string(respBytes)
+		require.Contains(t, respString, "testvalue")
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
 	})
 }
