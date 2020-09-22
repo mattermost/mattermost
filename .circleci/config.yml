@@ -423,10 +423,14 @@ workflows:
               ignore:
                 - master
                 - /^release-.*/
+      - hold:
+          type: approval
+          requires:
+            - setup
       - check-deps:
           context: sast-webhook
           requires:
-            - setup
+            - hold
       # - check-i18n:
       #     requires:
       #       - setup
