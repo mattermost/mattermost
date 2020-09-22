@@ -91,10 +91,14 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/crash_test", api.ApiHandler(crashTest)).Methods("POST")
+}
+
+func crashTest(c *Context, w http.ResponseWriter, r *http.Request) {
+	panic("test panic")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	panic("test panic")
 	user := model.UserFromJson(r.Body)
 	if user == nil {
 		c.SetInvalidParam("user")
