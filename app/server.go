@@ -513,6 +513,11 @@ func NewServer(options ...Option) (*Server, error) {
 	s.searchConfigListenerId = searchConfigListenerId
 	s.searchLicenseListenerId = searchLicenseListenerId
 
+	// if enabled - perform initial product notices fetch
+	if *s.Config().AnnouncementSettings.AdminNoticesEnabled || *s.Config().AnnouncementSettings.UserNoticesEnabled {
+		go fakeApp.UpdateProductNotices()
+	}
+
 	return s, nil
 }
 
