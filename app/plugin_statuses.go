@@ -21,13 +21,17 @@ func (s *Server) GetPluginStatus(id string) (*model.PluginStatus, *model.AppErro
 		return nil, model.NewAppError("GetPluginStatus", "app.plugin.get_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	// Add our cluster ID
 	for _, status := range pluginStatuses {
-		if status.PluginId == id && s.Cluster != nil {
-			status.ClusterId = s.Cluster.GetClusterId()
+		if status.PluginId == id {
+			// Add our cluster ID
+			if s.Cluster != nil {
+				status.ClusterId = s.Cluster.GetClusterId()
+			}
+
 			return status, nil
 		}
 	}
+
 	return nil, model.NewAppError("GetPluginStatus", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 }
 
