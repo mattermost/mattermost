@@ -523,20 +523,21 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 func (s *SqlPostStore) permanentDelete(postId string) error {
 	var post model.Post
 	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return store.NewErrNotFound("Post", postId)
+	if err != nil && err != sql.ErrNoRows {
+		if err != sql.ErrNoRows {
+			return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 		}
 
+		if err = s.Thread().Cleanup(post.Id, post.RootId, post.UserId); err != nil {
+			return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
+		}
+	}
+
+	if _, err = s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId}); err != nil {
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
 	}
 
-	_, err = s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete Post with id=%s", postId)
-	}
-
-	return s.Thread().Cleanup(post.Id, post.RootId, post.UserId)
+	return nil
 }
 
 type postIds struct {
