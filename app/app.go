@@ -101,49 +101,6 @@ func (a *App) InitServer() {
 	})
 }
 
-func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
-	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-	}
-
-	currentUser, appErr := a.GetUser(a.Session().UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
-	if err != nil {
-		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	trialLicenseRequest := &model.TrialLicenseRequest{
-		ServerID:              a.TelemetryId(),
-		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
-		Email:                 currentUser.Email,
-		SiteName:              *a.Config().TeamSettings.SiteName,
-		SiteURL:               *a.Config().ServiceSettings.SiteURL,
-		Users:                 int(registeredUsersCount),
-		TermsAccepted:         true,
-		ReceiveEmailsAccepted: true,
-	}
-
-	if trialLicenseRequest.SiteURL == "" {
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
-		return err
-	}
-
-	appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true, isBot)
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
-
 func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.srv.Jobs.LdapSync = jobsLdapSyncInterface(a)
@@ -521,22 +478,27 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 			}
 		}
 
-		mlog.Debug("Disable the monitoring of all warn metrics")
-		err := a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK)
-		if err != nil {
+		if err := a.setWarnMetricsStatusAndNotify(warnMetric.Id); err != nil {
 			return err
-		}
-
-		if !warnMetric.IsBotOnly && !isBot {
-			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
-			message.Add("warnMetricId", warnMetric.Id)
-			a.Publish(message)
 		}
 	}
 	return nil
 }
 
+func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError {
+	if err := a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK); err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
+	message.Add("warnMetricId", warnMetricId)
+	a.Publish(message)
+
+	return nil
+}
+
 func (a *App) setWarnMetricsStatus(status string) *model.AppError {
+	mlog.Debug("Set monitoring sttus for all warn metrics", mlog.String("status", status))
 	for _, warnMetric := range model.WarnMetricsTable {
 		a.setWarnMetricsStatusForId(warnMetric.Id, status)
 	}
@@ -544,7 +506,7 @@ func (a *App) setWarnMetricsStatus(status string) *model.AppError {
 }
 
 func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *model.AppError {
-	mlog.Info("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
+	mlog.Debug("Store status for warn metric", mlog.String("warnMetricId", warnMetricId), mlog.String("status", status))
 	if err := a.Srv().Store.System().SaveOrUpdateWithWarnMetricHandling(&model.System{
 		Name:  warnMetricId,
 		Value: status,
@@ -552,6 +514,53 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 		mlog.Error("Unable to write to database.", mlog.Err(err))
 		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError)
 	}
+	return nil
+}
+
+func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError {
+	if *a.Config().ExperimentalSettings.RestrictSystemAdmin {
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+	}
+
+	currentUser, appErr := a.GetUser(a.Session().UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	trialLicenseRequest := &model.TrialLicenseRequest{
+		ServerID:              a.TelemetryId(),
+		Name:                  currentUser.GetDisplayName(model.SHOW_FULLNAME),
+		Email:                 currentUser.Email,
+		SiteName:              *a.Config().TeamSettings.SiteName,
+		SiteURL:               *a.Config().ServiceSettings.SiteURL,
+		Users:                 int(registeredUsersCount),
+		TermsAccepted:         true,
+		ReceiveEmailsAccepted: true,
+	}
+
+	if trialLicenseRequest.SiteURL == "" {
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.no-site-url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := a.Srv().RequestTrialLicense(trialLicenseRequest); err != nil {
+		// turn off warn metric warning even in case of StartTrial failure
+		if nerr := a.setWarnMetricsStatusAndNotify(warnMetricId); nerr != nil {
+			return nerr
+		}
+
+		return err
+	}
+
+	if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, currentUser, true, isBot); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
