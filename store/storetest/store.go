@@ -35,6 +35,7 @@ type Store struct {
 	EmojiStore                mocks.EmojiStore
 	StatusStore               mocks.StatusStore
 	FileInfoStore             mocks.FileInfoStore
+	UploadSessionStore        mocks.UploadSessionStore
 	ReactionStore             mocks.ReactionStore
 	JobStore                  mocks.JobStore
 	UserAccessTokenStore      mocks.UserAccessTokenStore
@@ -46,6 +47,7 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
+	ProductNoticesStore       mocks.ProductNoticesStore
 	context                   context.Context
 }
 
@@ -56,6 +58,7 @@ func (s *Store) Channel() store.ChannelStore                       { return &s.C
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
 func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
+func (s *Store) ProductNotices() store.ProductNoticesStore         { return &s.ProductNoticesStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
@@ -71,6 +74,7 @@ func (s *Store) Token() store.TokenStore                           { return &s.T
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
 func (s *Store) FileInfo() store.FileInfoStore                     { return &s.FileInfoStore }
+func (s *Store) UploadSession() store.UploadSessionStore           { return &s.UploadSessionStore }
 func (s *Store) Reaction() store.ReactionStore                     { return &s.ReactionStore }
 func (s *Store) Job() store.JobStore                               { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore       { return &s.UserAccessTokenStore }
@@ -121,6 +125,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.EmojiStore,
 		&s.StatusStore,
 		&s.FileInfoStore,
+		&s.UploadSessionStore,
 		&s.ReactionStore,
 		&s.JobStore,
 		&s.UserAccessTokenStore,
@@ -128,5 +133,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.PluginStore,
 		&s.RoleStore,
 		&s.SchemeStore,
+		&s.ProductNoticesStore,
 	)
 }
