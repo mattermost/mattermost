@@ -7051,12 +7051,12 @@
     "translation": "An error occurred while trying to execute this command."
   },
   {
-	"id": "model.plugin_command_error.error.app_error",
-	"translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
   },
   {
-	  "id": "model.plugin_command_crash.error.app_error",
-	  "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
