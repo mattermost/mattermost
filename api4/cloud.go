@@ -33,9 +33,6 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getCloudProducts", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-
 	products, appErr := c.App.Cloud().GetCloudProducts()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -77,6 +74,8 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	w.Write(json)
 }
 
@@ -111,6 +110,8 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }
