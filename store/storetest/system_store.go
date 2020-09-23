@@ -66,11 +66,21 @@ func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.St
 	assert.NotNil(t, err)
 
 	system.Name = "warn_metric_number_of_active_users_100"
+	system.Value = model.WARN_METRIC_STATUS_RUNONCE
 	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
 	require.Nil(t, err)
 
-	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
-	assert.Nil(t, err)
+	val1, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.Nil(t, nerr)
+
+	system.Name = "warn_metric_number_of_active_users_100"
+	system.Value = model.WARN_METRIC_STATUS_ACK
+	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	val2, nerr := ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.Nil(t, nerr)
+	assert.Equal(t, val1, val2)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {

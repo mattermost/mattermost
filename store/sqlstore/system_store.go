@@ -67,7 +67,7 @@ func (s SqlSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System)
 		}
 	}
 
-	if strings.HasPrefix(system.Name, model.WARN_METRIC_STATUS_STORE_PREFIX) && system.Value != model.WARN_METRIC_STATUS_ACK {
+	if strings.HasPrefix(system.Name, model.WARN_METRIC_STATUS_STORE_PREFIX) && (system.Value == model.WARN_METRIC_STATUS_RUNONCE || system.Value == model.WARN_METRIC_STATUS_LIMIT_REACHED) {
 		if err := s.SaveOrUpdate(&model.System{Name: model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY, Value: strconv.FormatInt(utils.MillisFromTime(time.Now()), 10)}); err != nil {
 			return errors.Wrapf(err, "failed to save system property with name=%s", model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
 		}
