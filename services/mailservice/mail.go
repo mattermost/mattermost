@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package mailservice
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -18,16 +19,17 @@ import (
 	"net/http"
 
 	"github.com/jaytaylor/html2text"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/filesstore"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type mailData struct {
 	mimeTo        string
 	smtpTo        string
 	from          mail.Address
+	cc            string
 	replyTo       mail.Address
 	subject       string
 	htmlBody      string
@@ -54,6 +56,7 @@ type SmtpConnectionInfo struct {
 	SmtpServerName       string
 	SmtpServerHost       string
 	SmtpPort             string
+	SmtpServerTimeout    int
 	SkipCertVerification bool
 	ConnectionSecurity   string
 	Auth                 bool
@@ -115,18 +118,22 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 	var err error
 
 	smtpAddress := connectionInfo.SmtpServerHost + ":" + connectionInfo.SmtpPort
+	dialer := &net.Dialer{
+		Timeout: time.Duration(connectionInfo.SmtpServerTimeout) * time.Second,
+	}
+
 	if connectionInfo.ConnectionSecurity == model.CONN_SECURITY_TLS {
 		tlsconfig := &tls.Config{
 			InsecureSkipVerify: connectionInfo.SkipCertVerification,
 			ServerName:         connectionInfo.SmtpServerName,
 		}
 
-		conn, err = tls.Dial("tcp", smtpAddress, tlsconfig)
+		conn, err = tls.DialWithDialer(dialer, "tcp", smtpAddress, tlsconfig)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		conn, err = net.Dial("tcp", smtpAddress)
+		conn, err = dialer.Dial("tcp", smtpAddress)
 		if err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -143,19 +150,39 @@ func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 			SmtpServerName:       *config.EmailSettings.SMTPServer,
 			SmtpServerHost:       *config.EmailSettings.SMTPServer,
 			SmtpPort:             *config.EmailSettings.SMTPPort,
+			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
 		},
 	)
 }
 
-func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
-	c, err := smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
-	if err != nil {
-		mlog.Error("Failed to open a connection to SMTP server", mlog.Err(err))
+func NewSMTPClientAdvanced(ctx context.Context, conn net.Conn, hostname string, connectionInfo *SmtpConnectionInfo) (*smtp.Client, *model.AppError) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	var c *smtp.Client
+	ec := make(chan error)
+	go func() {
+		var err error
+		c, err = smtp.NewClient(conn, connectionInfo.SmtpServerName+":"+connectionInfo.SmtpPort)
+		if err != nil {
+			ec <- err
+			return
+		}
+		cancel()
+	}()
+
+	select {
+	case <-ctx.Done():
+		err := ctx.Err()
+		if err != nil && err.Error() != "context canceled" {
+			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	case err := <-ec:
 		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if hostname != "" {
-		err = c.Hello(hostname)
+		err := c.Hello(hostname)
 		if err != nil {
 			mlog.Error("Failed to to set the HELO to SMTP server", mlog.Err(err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -171,15 +198,16 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	}
 
 	if connectionInfo.Auth {
-		if err = c.Auth(&authChooser{connectionInfo: connectionInfo}); err != nil {
+		if err := c.Auth(&authChooser{connectionInfo: connectionInfo}); err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return c, nil
 }
 
-func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
+func NewSMTPClient(ctx context.Context, conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
 	return NewSMTPClientAdvanced(
+		ctx,
 		conn,
 		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
@@ -188,6 +216,7 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 			SmtpServerName:       *config.EmailSettings.SMTPServer,
 			SmtpServerHost:       *config.EmailSettings.SMTPServer,
 			SmtpPort:             *config.EmailSettings.SMTPPort,
+			SmtpServerTimeout:    *config.EmailSettings.SMTPServerTimeout,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
 			SmtpUsername:         *config.EmailSettings.SMTPUsername,
 			SmtpPassword:         *config.EmailSettings.SMTPPassword,
@@ -195,28 +224,34 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	)
 }
 
-func TestConnection(config *model.Config) {
+func TestConnection(config *model.Config) *model.AppError {
 	if !*config.EmailSettings.SendEmailNotifications {
-		return
+		return &model.AppError{Message: "SendEmailNotifications is not true"}
 	}
 
-	conn, err1 := ConnectToSMTPServer(config)
-	if err1 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err1))
-		return
+	conn, err := ConnectToSMTPServer(config)
+	if err != nil {
+		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings.", DetailedError: err.DetailedError}
 	}
 	defer conn.Close()
 
-	c, err2 := NewSMTPClient(conn, config)
-	if err2 != nil {
-		mlog.Error("SMTP server settings do not appear to be configured properly", mlog.Err(err2))
-		return
+	sec := *config.EmailSettings.SMTPServerTimeout
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
+	defer cancel()
+
+	c, err := NewSMTPClient(ctx, conn, config)
+	if err != nil {
+		return &model.AppError{Message: "Could not connect to SMTP server, check SMTP server settings."}
 	}
-	defer c.Quit()
-	defer c.Close()
+	c.Close()
+	c.Quit()
+
+	return nil
 }
 
-func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
 	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
 	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
@@ -224,6 +259,7 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 		mimeTo:        to,
 		smtpTo:        to,
 		from:          fromMail,
+		cc:            ccMail,
 		replyTo:       replyTo,
 		subject:       subject,
 		htmlBody:      htmlBody,
@@ -233,8 +269,8 @@ func SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody string, embedded
 	return sendMailUsingConfigAdvanced(mail, config, enableComplianceFeatures)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures)
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool, ccMail string) *model.AppError {
+	return SendMailWithEmbeddedFilesUsingConfig(to, subject, htmlBody, nil, config, enableComplianceFeatures, ccMail)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
@@ -249,7 +285,13 @@ func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComp
 	}
 	defer conn.Close()
 
-	c, err := NewSMTPClient(conn, config)
+	sec := *config.EmailSettings.SMTPServerTimeout
+
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(sec)*time.Second)
+	defer cancel()
+
+	c, err := NewSMTPClient(ctx, conn, config)
 	if err != nil {
 		return err
 	}
@@ -286,6 +328,10 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 
 	if len(mail.replyTo.Address) > 0 {
 		headers["Reply-To"] = []string{mail.replyTo.String()}
+	}
+
+	if len(mail.cc) > 0 {
+		headers["CC"] = []string{mail.cc}
 	}
 
 	for k, v := range mail.mimeHeaders {

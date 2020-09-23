@@ -1,12 +1,13 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitOAuth() {
@@ -29,16 +30,19 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	auditRec := c.MakeAuditRecord("createOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		oauthApp.IsTrusted = false
 	}
 
-	oauthApp.CreatorId = c.App.Session.UserId
+	oauthApp.CreatorId = c.App.Session().UserId
 
 	rapp, err := c.App.CreateOAuthApp(oauthApp)
 	if err != nil {
@@ -46,7 +50,10 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("oauth_app", rapp)
 	c.LogAudit("client_id=" + rapp.Id)
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rapp.ToJson()))
 }
@@ -57,7 +64,12 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	auditRec := c.MakeAuditRecord("updateOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("oauth_app_id", c.Params.AppId)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
@@ -74,17 +86,20 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAudit("attempt")
-
 	oldOauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("oauth_app", oldOauthApp)
 
-	if c.App.Session.UserId != oldOauthApp.CreatorId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if c.App.Session().UserId != oldOauthApp.CreatorId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
 		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		oauthApp.IsTrusted = oldOauthApp.IsTrusted
 	}
 
 	updatedOauthApp, err := c.App.UpdateOauthApp(oldOauthApp, oauthApp)
@@ -93,23 +108,25 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddMeta("update", updatedOauthApp)
 	c.LogAudit("success")
 
 	w.Write([]byte(updatedOauthApp.ToJson()))
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.Err = model.NewAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
 	var apps []*model.OAuthApp
 	var err *model.AppError
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		apps, err = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
-	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
-		apps, err = c.App.GetOAuthAppsByCreator(c.App.Session.UserId, c.Params.Page, c.Params.PerPage)
+	} else if c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
+		apps, err = c.App.GetOAuthAppsByCreator(c.App.Session().UserId, c.Params.Page, c.Params.PerPage)
 	} else {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
@@ -129,7 +146,7 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
@@ -140,7 +157,7 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oauthApp.CreatorId != c.App.Session.UserId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if oauthApp.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
 		return
 	}
@@ -170,9 +187,12 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("deleteOAuthApp", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
@@ -182,8 +202,9 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("oauth_app", oauthApp)
 
-	if c.App.Session.UserId != oauthApp.CreatorId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if c.App.Session().UserId != oauthApp.CreatorId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
 		return
 	}
@@ -194,7 +215,9 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	ReturnStatusOK(w)
 }
 
@@ -204,7 +227,11 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OAUTH) {
+	auditRec := c.MakeAuditRecord("regenerateOAuthAppSecret", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("oauth_app_id", c.Params.AppId)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
 	}
@@ -214,8 +241,9 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("oauth_app", oauthApp)
 
-	if oauthApp.CreatorId != c.App.Session.UserId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+	if oauthApp.CreatorId != c.App.Session().UserId && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
 		return
 	}
@@ -226,7 +254,9 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("success")
+
 	w.Write([]byte(oauthApp.ToJson()))
 }
 
@@ -236,7 +266,7 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

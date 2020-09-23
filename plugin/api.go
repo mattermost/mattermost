@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package plugin
 
@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	plugin "github.com/hashicorp/go-plugin"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // The API can be used to retrieve data or perform actions on behalf of the plugin. Most methods
@@ -36,6 +36,12 @@ type API interface {
 	// @tag Command
 	// Minimum server version: 5.2
 	UnregisterCommand(teamId, trigger string) error
+
+	// ExecuteSlashCommand executes a slash command with the given parameters.
+	//
+	// @tag Command
+	// Minimum server version: 5.26
+	ExecuteSlashCommand(commandArgs *model.CommandArgs) (*model.CommandResponse, error)
 
 	// GetSession returns the session object for the Session ID
 	//
@@ -103,6 +109,12 @@ type API interface {
 	// Minimum server version: 5.10
 	GetDiagnosticId() string
 
+	// GetTelemetryId returns a unique identifier used by the server for telemetry reports.
+	//
+	// @tag Server
+	// Minimum server version: 5.28
+	GetTelemetryId() string
+
 	// CreateUser creates a user.
 	//
 	// @tag User
@@ -151,6 +163,27 @@ type API interface {
 	// @tag Team
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError)
+
+	// GetPreferencesForUser gets a user's preferences.
+	//
+	// @tag User
+	// @tag Preference
+	// Minimum server version: 5.26
+	GetPreferencesForUser(userId string) ([]model.Preference, *model.AppError)
+
+	// UpdatePreferencesForUser updates a user's preferences.
+	//
+	// @tag User
+	// @tag Preference
+	// Minimum server version: 5.26
+	UpdatePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
+
+	// DeletePreferencesForUser deletes a user's preferences.
+	//
+	// @tag User
+	// @tag Preference
+	// Minimum server version: 5.26
+	DeletePreferencesForUser(userId string, preferences []model.Preference) *model.AppError
 
 	// GetTeamIcon gets the team icon.
 	//
@@ -288,6 +321,13 @@ type API interface {
 	// Minimum server version: 5.2
 	CreateTeamMembers(teamId string, userIds []string, requestorId string) ([]*model.TeamMember, *model.AppError)
 
+	// CreateTeamMembersGracefully creates a team membership for all provided user ids and reports the users that were not added.
+	//
+	// @tag Team
+	// @tag User
+	// Minimum server version: 5.20
+	CreateTeamMembersGracefully(teamId string, userIds []string, requestorId string) ([]*model.TeamMemberWithError, *model.AppError)
+
 	// DeleteTeamMember deletes a team membership.
 	//
 	// @tag Team
@@ -415,6 +455,12 @@ type API interface {
 	// @tag Team
 	// Minimum server version: 5.10
 	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
+
+	// SearchPostsInTeamForUser returns a list of posts by team and user that match the given
+	// search parameters.
+	// @tag Post
+	// Minimum server version: 5.26
+	SearchPostsInTeamForUser(teamId string, userId string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError)
 
 	// AddChannelMember joins a user to a channel (as if they joined themselves)
 	// This means the user will not receive notifications for joining the channel.
@@ -652,6 +698,12 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFileInfos gets File Infos with options
+	//
+	// @tag File
+	// Minimum server version: 5.22
+	GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError)
+
 	// GetFile gets content of a file by it's ID
 	//
 	// @tag File
@@ -758,13 +810,12 @@ type API interface {
 	KVCompareAndDelete(key string, oldValue []byte) (bool, *model.AppError)
 
 	// KVSetWithOptions stores a key-value pair, unique per plugin, according to the given options.
-	// If options.EncodeJSON is not true, the type of newValue must be of type []byte.
 	// Returns (false, err) if DB error occurred
 	// Returns (false, nil) if the value was not set
 	// Returns (true, nil) if the value was set
 	//
-	// Minimum server version: 5.18
-	KVSetWithOptions(key string, newValue interface{}, options model.PluginKVSetOptions) (bool, *model.AppError)
+	// Minimum server version: 5.20
+	KVSetWithOptions(key string, value []byte, options model.PluginKVSetOptions) (bool, *model.AppError)
 
 	// KVSet stores a key-value pair with an expiry time, unique per plugin.
 	//
@@ -920,6 +971,72 @@ type API interface {
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
+
+	// PublishUserTyping publishes a user is typing WebSocket event.
+	// The parentId parameter may be an empty string, the other parameters are required.
+	//
+	// @tag User
+	// Minimum server version: 5.26
+	PublishUserTyping(userId, channelId, parentId string) *model.AppError
+
+	// CreateCommand creates a server-owned slash command that is not handled by the plugin
+	// itself, and which will persist past the life of the plugin. The command will have its
+	// CreatorId set to "" and its PluginId set to the id of the plugin that created it.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	CreateCommand(cmd *model.Command) (*model.Command, error)
+
+	// ListCommands returns the list of all slash commands for teamID. E.g., custom commands
+	// (those created through the integrations menu, the REST api, or the plugin api CreateCommand),
+	// plugin commands (those created with plugin api RegisterCommand), and builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCommands(teamID string) ([]*model.Command, error)
+
+	// ListCustomCommands returns the list of slash commands for teamID that where created
+	// through the integrations menu, the REST api, or the plugin api CreateCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListCustomCommands(teamID string) ([]*model.Command, error)
+
+	// ListPluginCommands returns the list of slash commands for teamID that were created
+	// with the plugin api RegisterCommand.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListPluginCommands(teamID string) ([]*model.Command, error)
+
+	// ListBuiltInCommands returns the list of slash commands that are builtin commands
+	// (those added internally through RegisterCommandProvider).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	ListBuiltInCommands() ([]*model.Command, error)
+
+	// GetCommand returns the command definition based on a command id string.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	GetCommand(commandID string) (*model.Command, error)
+
+	// UpdateCommand updates a single command (commandID) with the information provided in the
+	// updatedCmd model.Command struct. The following fields in the command cannot be updated:
+	// Id, Token, CreateAt, DeleteAt, and PluginId. If updatedCmd.TeamId is blank, it
+	// will be set to commandID's TeamId.
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	UpdateCommand(commandID string, updatedCmd *model.Command) (*model.Command, error)
+
+	// DeleteCommand deletes a slash command (commandID).
+	//
+	// @tag SlashCommand
+	// Minimum server version: 5.28
+	DeleteCommand(commandID string) error
 }
 
 var handshake = plugin.HandshakeConfig{

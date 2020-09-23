@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -26,17 +26,6 @@ func TestTeamMemberIsValid(t *testing.T) {
 	o.TeamId = NewId()
 
 	require.Error(t, o.IsValid(), "should be invalid")
-
-	/*o.UserId = NewId()
-	o.Roles = "blahblah"
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}
-
-	o.Roles = ""
-	if err := o.IsValid(); err != nil {
-		t.Fatal(err)
-	}*/
 }
 
 func TestUnreadMemberJson(t *testing.T) {

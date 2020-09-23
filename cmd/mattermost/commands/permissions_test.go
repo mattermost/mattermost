@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -8,11 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func TestPermissionsExport_rejectsUnlicensed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	actual, _ := th.RunCommandWithOutput(t, "permissions", "export")
@@ -20,7 +20,7 @@ func TestPermissionsExport_rejectsUnlicensed(t *testing.T) {
 }
 
 func TestPermissionsImport_rejectsUnlicensed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	actual, _ := th.RunCommandWithOutput(t, "permissions", "import")

@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -9,7 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 var RolesCmd = &cobra.Command{
@@ -46,7 +47,7 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
@@ -78,11 +79,16 @@ func makeSystemAdminCmdF(command *cobra.Command, args []string) error {
 			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true); err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(roles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-	}
 
+		auditRec := a.MakeAuditRecord("makeSystemAdmin", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }
 
@@ -91,7 +97,7 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
@@ -122,10 +128,15 @@ func makeMemberCmdF(command *cobra.Command, args []string) error {
 			newRoles = append(roles, model.SYSTEM_USER_ROLE_ID)
 		}
 
-		if _, err := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true); err != nil {
-			return err
+		updatedUser, errUpdate := a.UpdateUserRoles(user.Id, strings.Join(newRoles, " "), true)
+		if errUpdate != nil {
+			return errUpdate
 		}
-	}
 
+		auditRec := a.MakeAuditRecord("makeMember", audit.Success)
+		auditRec.AddMeta("user", user)
+		auditRec.AddMeta("update", updatedUser)
+		a.LogAuditRec(auditRec, nil)
+	}
 	return nil
 }

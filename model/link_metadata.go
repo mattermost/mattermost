@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -171,9 +171,9 @@ func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 
 // FloorToNearestHour takes a timestamp (in milliseconds) and returns it rounded to the previous hour in UTC.
 func FloorToNearestHour(ms int64) int64 {
-	t := time.Unix(0, ms*int64(1000*1000))
+	t := time.Unix(0, ms*int64(1000*1000)).UTC()
 
-	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, t.Location()).UnixNano() / int64(time.Millisecond)
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, time.UTC).UnixNano() / int64(time.Millisecond)
 }
 
 // isRoundedToNearestHour returns true if the given timestamp (in milliseconds) has been rounded to the nearest hour in UTC.

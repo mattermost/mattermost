@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -8,8 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -18,43 +19,53 @@ const systemSchemeName = "00000000-0000-0000-0000-000000000000" // Prevents coll
 
 func (a *App) ResetPermissionsSystem() *model.AppError {
 	// Reset all Teams to not have a scheme.
-	if err := a.Srv.Store.Team().ResetAllTeamSchemes(); err != nil {
-		return err
+	if err := a.Srv().Store.Team().ResetAllTeamSchemes(); err != nil {
+		return model.NewAppError("ResetPermissionsSystem", "app.team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Channels to not have a scheme.
-	if err := a.Srv.Store.Channel().ResetAllChannelSchemes(); err != nil {
+	if err := a.Srv().Store.Channel().ResetAllChannelSchemes(); err != nil {
 		return err
 	}
 
 	// Reset all Custom Role assignments to Users.
-	if err := a.Srv.Store.User().ClearAllCustomRoleAssignments(); err != nil {
+	if err := a.Srv().Store.User().ClearAllCustomRoleAssignments(); err != nil {
 		return err
 	}
 
 	// Reset all Custom Role assignments to TeamMembers.
-	if err := a.Srv.Store.Team().ClearAllCustomRoleAssignments(); err != nil {
-		return err
+	if err := a.Srv().Store.Team().ClearAllCustomRoleAssignments(); err != nil {
+		return model.NewAppError("ResetPermissionsSystem", "app.team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Reset all Custom Role assignments to ChannelMembers.
-	if err := a.Srv.Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
+	if err := a.Srv().Store.Channel().ClearAllCustomRoleAssignments(); err != nil {
 		return err
 	}
 
 	// Purge all schemes from the database.
-	if err := a.Srv.Store.Scheme().PermanentDeleteAll(); err != nil {
-		return err
+	if err := a.Srv().Store.Scheme().PermanentDeleteAll(); err != nil {
+		return model.NewAppError("ResetPermissionsSystem", "app.scheme.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Purge all roles from the database.
-	if err := a.Srv.Store.Role().PermanentDeleteAll(); err != nil {
-		return err
+	if err := a.Srv().Store.Role().PermanentDeleteAll(); err != nil {
+		return model.NewAppError("ResetPermissionsSystem", "app.role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.
-	if _, err := a.Srv.Store.System().PermanentDeleteByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
-		return err
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(model.ADVANCED_PERMISSIONS_MIGRATION_KEY); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Remove the "System" table entry that marks the emoji permissions migration as done.
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Remove the "System" table entry that marks the guest roles permissions migration as done.
+	if _, err := a.Srv().Store.System().PermanentDeleteByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
@@ -65,7 +76,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 func (a *App) ExportPermissions(w io.Writer) error {
 
-	next := a.SchemesIterator(permissionsExportBatchSize)
+	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {

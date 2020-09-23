@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -11,12 +11,18 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
+	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
+	"github.com/mattermost/mattermost-server/v5/testlib"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +31,7 @@ var ApiClient *model.Client4
 var URL string
 
 type TestHelper struct {
-	App    *app.App
+	App    app.AppIface
 	Server *app.Server
 	Web    *Web
 
@@ -36,36 +42,63 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	tempWorkspace string
+
+	IncludeCacheLayer bool
 }
 
-func Setup() *TestHelper {
+func SetupWithStoreMock(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	store := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(tb, store, false)
+	emptyMockStore := mocks.Store{}
+	emptyMockStore.On("Close").Return(nil)
+	th.App.Srv().Store = &emptyMockStore
+	return th
+}
+
+func Setup(tb testing.TB) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
 	store := mainHelper.GetStore()
 	store.DropAllTables()
+	return setupTestHelper(tb, store, true)
+}
 
+func setupTestHelper(t testing.TB, store store.Store, includeCacheLayer bool) *TestHelper {
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
 	if err != nil {
 		panic("failed to initialize memory store: " + err.Error())
 	}
-
+	*memoryStore.Get().AnnouncementSettings.AdminNoticesEnabled = false
+	*memoryStore.Get().AnnouncementSettings.UserNoticesEnabled = false
 	var options []app.Option
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	mlog.DisableZap()
 
 	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
-	a := s.FakeApp()
-	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	if includeCacheLayer {
+		// Adds the cache layer to the test store
+		s.Store = localcachelayer.NewLocalCacheLayer(s.Store, s.Metrics, s.Cluster, s.CacheProvider)
+	}
+
+	prevListenAddress := *s.Config().ServiceSettings.ListenAddress
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
-	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
 	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PasswordSettings.MinimumLength = 5
 		*cfg.PasswordSettings.Lowercase = false
 		*cfg.PasswordSettings.Uppercase = false
@@ -73,22 +106,24 @@ func Setup() *TestHelper {
 		*cfg.PasswordSettings.Number = false
 	})
 
+	a := app.New(app.ServerConnector(s))
+	a.InitServer()
+
 	web := New(s, s.AppOptions, s.Router)
-	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
+	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAppMigrations()
+	s.Store.MarkSystemRanUnitTests()
 
-	a.Srv.Store.MarkSystemRanUnitTests()
-
-	a.UpdateConfig(func(cfg *model.Config) {
+	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.EnableOpenServer = true
 	})
 
 	th := &TestHelper{
-		App:    a,
-		Server: s,
-		Web:    web,
+		App:               a,
+		Server:            s,
+		Web:               web,
+		IncludeCacheLayer: includeCacheLayer,
 	}
 
 	return th
@@ -122,14 +157,101 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
-	th.Server.Shutdown()
-	if err := recover(); err != nil {
-		panic(err)
+	if th.IncludeCacheLayer {
+		// Clean all the caches
+		th.App.Srv().InvalidateAllCaches()
 	}
+	th.Server.Shutdown()
+}
+
+func TestStaticFilesRequest(t *testing.T) {
+	th := Setup(t).InitPlugins()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.sample"
+
+	// Setup the directory directly in the plugin working path.
+	pluginDir := filepath.Join(*th.App.Config().PluginSettings.Directory, pluginID)
+	err := os.MkdirAll(pluginDir, 0777)
+	require.NoError(t, err)
+	pluginDir, err = filepath.Abs(pluginDir)
+	require.NoError(t, err)
+
+	// Compile the backend
+	backend := filepath.Join(pluginDir, "backend.exe")
+	pluginCode := `
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/v5/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+`
+	utils.CompileGo(t, pluginCode, backend)
+
+	// Write out the frontend
+	mainJS := `var x = alert();`
+	mainJSPath := filepath.Join(pluginDir, "main.js")
+	require.NoError(t, err)
+	err = ioutil.WriteFile(mainJSPath, []byte(mainJS), 0777)
+	require.NoError(t, err)
+
+	// Write the plugin.json manifest
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "webapp": {"bundle_path":"main.js"}, "settings_schema": {"settings": []}}`
+	ioutil.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginManifest), 0600)
+
+	// Activate the plugin
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Verify access to the bundle with requisite headers
+	req, _ := http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, http.StatusOK, res.Code)
+	assert.Equal(t, mainJS, res.Body.String())
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	// Verify cached access to the bundle with an If-Modified-Since timestamp in the future
+	future := time.Now().Add(24 * time.Hour)
+	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req.Header.Add("If-Modified-Since", future.Format(time.RFC850))
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, http.StatusNotModified, res.Code)
+	assert.Empty(t, res.Body.String())
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	// Verify access to the bundle with an If-Modified-Since timestamp in the past
+	past := time.Now().Add(-24 * time.Hour)
+	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/com.mattermost.sample_724ed0e2ebb2b841_bundle.js", nil)
+	req.Header.Add("If-Modified-Since", past.Format(time.RFC850))
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, http.StatusOK, res.Code)
+	assert.Equal(t, mainJS, res.Body.String())
+	assert.Equal(t, []string{"max-age=31556926, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
+
+	// Verify handling of 404.
+	req, _ = http.NewRequest("GET", "/static/plugins/com.mattermost.sample/404.js", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, http.StatusNotFound, res.Code)
+	assert.Equal(t, "404 page not found\n", res.Body.String())
+	assert.Equal(t, []string{"no-cache, public"}, res.Result().Header[http.CanonicalHeaderKey("Cache-Control")])
 }
 
 func TestPublicFilesRequest(t *testing.T) {
-	th := Setup().InitPlugins()
+	th := Setup(t).InitPlugins()
 	defer th.TearDown()
 
 	pluginDir, err := ioutil.TempDir("", "")
@@ -139,7 +261,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	defer os.RemoveAll(pluginDir)
 	defer os.RemoveAll(webappPluginDir)
 
-	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log(), nil)
 	require.NoError(t, err)
 
 	pluginID := "com.mattermost.sample"
@@ -148,7 +270,7 @@ func TestPublicFilesRequest(t *testing.T) {
 	package main
 
 	import (
-		"github.com/mattermost/mattermost-server/plugin"
+		"github.com/mattermost/mattermost-server/v5/plugin"
 	)
 
 	type MyPlugin struct {

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package api4
 
 import (
@@ -6,11 +9,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
 
@@ -37,71 +40,74 @@ func TestGetOldClientLicense(t *testing.T) {
 	license, resp = th.SystemAdminClient.GetOldClientLicense("")
 	CheckNoError(t, resp)
 
-	if len(license["IsLicensed"]) == 0 {
-		t.Fatal("license not returned correctly")
-	}
+	require.NotEmpty(t, license["IsLicensed"], "license not returned correctly")
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
+	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 
-	t.Run("as system admin user", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.UploadLicenseFile([]byte{})
 		CheckBadRequestStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
-	})
+		require.False(t, ok)
+	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
+	})
+
+	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		ok, resp := LocalClient.UploadLicenseFile([]byte{})
+		CheckBadRequestStatus(t, resp)
+		require.False(t, ok)
 	})
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 	Client := th.Client
+	LocalClient := th.LocalClient
 
 	t.Run("as system user", func(t *testing.T) {
 		ok, resp := Client.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
 	})
 
-	t.Run("as system admin user", func(t *testing.T) {
-		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		ok, resp := c.RemoveLicenseFile()
 		CheckNoError(t, resp)
-		if !ok {
-			t.Fatal("should pass")
-		}
-	})
+		require.True(t, ok)
+	}, "as system admin user")
 
 	t.Run("as restricted system admin user", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
 
 		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
 		CheckForbiddenStatus(t, resp)
-		if ok {
-			t.Fatal("should fail")
-		}
+		require.False(t, ok)
+	})
+
+	t.Run("restricted admin setting not honoured through local client", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := LocalClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		require.True(t, ok)
 	})
 }

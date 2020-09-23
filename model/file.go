@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	MaxImageSize = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
+	MaxImageSize = int64(6048 * 4032) // 24 megapixels, roughly 36MB as a raw image
 )
 
 var (

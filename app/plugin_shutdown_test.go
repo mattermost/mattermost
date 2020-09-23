@@ -1,8 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package app
 
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPluginShutdownTest(t *testing.T) {
@@ -10,7 +15,7 @@ func TestPluginShutdownTest(t *testing.T) {
 		t.Skip("skipping test to verify forced shutdown of slow plugin")
 	}
 
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -19,7 +24,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
 			type MyPlugin struct {
@@ -34,7 +39,7 @@ func TestPluginShutdownTest(t *testing.T) {
 			package main
 
 			import (
-				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/v5/plugin"
 			)
 
 			type MyPlugin struct {
@@ -58,12 +63,12 @@ func TestPluginShutdownTest(t *testing.T) {
 	done := make(chan bool)
 	go func() {
 		defer close(done)
-		th.App.ShutDownPlugins()
+		th.App.Srv().ShutDownPlugins()
 	}()
 
 	select {
 	case <-done:
 	case <-time.After(15 * time.Second):
-		t.Fatal("failed to force plugin shutdown after 10 seconds")
+		require.Fail(t, "failed to force plugin shutdown after 10 seconds")
 	}
 }

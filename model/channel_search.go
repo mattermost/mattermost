@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -11,9 +11,18 @@ import (
 const CHANNEL_SEARCH_DEFAULT_LIMIT = 50
 
 type ChannelSearch struct {
-	Term                   string `json:"term"`
-	ExcludeDefaultChannels bool   `json:"exclude_default_channels"`
-	NotAssociatedToGroup   string `json:"not_associated_to_group"`
+	Term                    string   `json:"term"`
+	ExcludeDefaultChannels  bool     `json:"exclude_default_channels"`
+	NotAssociatedToGroup    string   `json:"not_associated_to_group"`
+	TeamIds                 []string `json:"team_ids"`
+	GroupConstrained        bool     `json:"group_constrained"`
+	ExcludeGroupConstrained bool     `json:"exclude_group_constrained"`
+	Public                  bool     `json:"public"`
+	Private                 bool     `json:"private"`
+	IncludeDeleted          bool     `json:"include_deleted"`
+	Deleted                 bool     `json:"deleted"`
+	Page                    *int     `json:"page,omitempty"`
+	PerPage                 *int     `json:"per_page,omitempty"`
 }
 
 // ToJson convert a Channel to a json string

@@ -1,10 +1,11 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -43,14 +44,16 @@ func ldapSyncCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
-	if ldapI := a.Ldap; ldapI != nil {
+	if ldapI := a.Ldap(); ldapI != nil {
 		job, err := ldapI.StartSynchronizeJob(true)
 		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
 			CommandPrintErrorln("ERROR: AD/LDAP Synchronization please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP Synchronization Complete")
+			auditRec := a.MakeAuditRecord("ldapSync", audit.Success)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
 
@@ -62,14 +65,16 @@ func ldapIdMigrateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	toAttribute := args[0]
-	if ldapI := a.Ldap; ldapI != nil {
+	if ldapI := a.Ldap(); ldapI != nil {
 		if err := ldapI.MigrateIDAttribute(toAttribute); err != nil {
 			CommandPrintErrorln("ERROR: AD/LDAP IdAttribute migration failed! Error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("SUCCESS: AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
+			auditRec := a.MakeAuditRecord("ldapMigrate", audit.Success)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
 

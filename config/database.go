@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -12,8 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	// Load the MySQL driver
 	_ "github.com/go-sql-driver/mysql"
@@ -70,6 +70,11 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 //
 // Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func initializeConfigurationsTable(db *sqlx.DB) error {
+	mysqlCharset := ""
+	if db.DriverName() == "mysql" {
+		mysqlCharset = "DEFAULT CHARACTER SET utf8mb4"
+	}
+
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Configurations (
 		    Id VARCHAR(26) PRIMARY KEY,
@@ -77,7 +82,8 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 		    CreateAt BIGINT NOT NULL,
 		    Active BOOLEAN NULL UNIQUE
 		)
-	`)
+	` + mysqlCharset)
+
 	if err != nil {
 		return errors.Wrap(err, "failed to create Configurations table")
 	}
@@ -89,22 +95,31 @@ func initializeConfigurationsTable(db *sqlx.DB) error {
 		    CreateAt BIGINT NOT NULL,
 		    UpdateAt BIGINT NOT NULL
 		)
-	`)
+	` + mysqlCharset)
 	if err != nil {
 		return errors.Wrap(err, "failed to create ConfigurationFiles table")
 	}
 
 	// Change from TEXT (65535 limit) to MEDIUM TEXT (16777215) on MySQL. This is a
 	// backwards-compatible migration for any existing schema.
+	// Also fix using the wrong encoding initially
 	if db.DriverName() == "mysql" {
 		_, err = db.Exec(`ALTER TABLE Configurations MODIFY Value MEDIUMTEXT`)
 		if err != nil {
 			return errors.Wrap(err, "failed to alter Configurations table")
 		}
+		_, err = db.Exec(`ALTER TABLE Configurations CONVERT TO CHARACTER SET utf8mb4`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter Configurations table character set")
+		}
 
 		_, err = db.Exec(`ALTER TABLE ConfigurationFiles MODIFY Data MEDIUMTEXT`)
 		if err != nil {
 			return errors.Wrap(err, "failed to alter ConfigurationFiles table")
+		}
+		_, err = db.Exec(`ALTER TABLE ConfigurationFiles CONVERT TO CHARACTER SET utf8mb4`)
+		if err != nil {
+			return errors.Wrap(err, "failed to alter ConfigurationFiles table character set")
 		}
 	}
 
@@ -124,7 +139,7 @@ func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)
 	if len(s) != 2 {
-		errors.New("failed to parse DSN as URL")
+		return "", "", errors.New("failed to parse DSN as URL")
 	}
 
 	scheme := s[0]
@@ -258,7 +273,7 @@ func (ds *DatabaseStore) GetFile(name string) ([]byte, error) {
 	}
 
 	var data []byte
-	row := ds.db.QueryRowx(query, args...)
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&data); err != nil {
 		return nil, errors.Wrapf(err, "failed to scan data from row for %s", name)
 	}
@@ -309,8 +324,8 @@ func (ds *DatabaseStore) HasFile(name string) (bool, error) {
 		return false, err
 	}
 
-	var count int
-	row := ds.db.QueryRowx(query, args...)
+	var count int64
+	row := ds.db.QueryRowx(ds.db.Rebind(query), args...)
 	if err = row.Scan(&count); err != nil {
 		return false, errors.Wrapf(err, "failed to scan count of rows for %s", name)
 	}

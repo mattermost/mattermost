@@ -1,12 +1,13 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitScheme() {
@@ -26,13 +27,17 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
+	auditRec := c.MakeAuditRecord("createScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("scheme", scheme)
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -41,6 +46,9 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("scheme", scheme) // overwrite meta
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(scheme.ToJson()))
@@ -52,8 +60,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -67,8 +75,8 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -93,8 +101,8 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_TEAMS)
 		return
 	}
 
@@ -124,8 +132,8 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_READ_USERMANAGEMENT_CHANNELS)
 		return
 	}
 
@@ -161,7 +169,10 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
+	auditRec := c.MakeAuditRecord("patchScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.PatchScheme", "api.scheme.patch_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -171,9 +182,10 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("scheme", scheme)
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
@@ -182,8 +194,11 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("patch", scheme)
 
+	auditRec.Success()
 	c.LogAudit("")
+
 	w.Write([]byte(scheme.ToJson()))
 }
 
@@ -193,20 +208,27 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.License() == nil || !*c.App.License().Features.CustomPermissionsSchemes {
+	auditRec := c.MakeAuditRecord("deleteScheme", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.CustomPermissionsSchemes {
 		c.Err = model.NewAppError("Api4.DeleteScheme", "api.scheme.delete_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_USERMANAGEMENT_PERMISSIONS)
 		return
 	}
 
-	if _, err := c.App.DeleteScheme(c.Params.SchemeId); err != nil {
+	scheme, err := c.App.DeleteScheme(c.Params.SchemeId)
+	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddMeta("scheme", scheme)
 
 	ReturnStatusOK(w)
 }

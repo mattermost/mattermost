@@ -1,13 +1,14 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -63,5 +64,7 @@ func testDeleteUserTermsOfService(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	_, err = ss.UserTermsOfService().GetByUser(userTermsOfService.UserId)
-	assert.Equal(t, "store.sql_user_terms_of_service.get_by_user.no_rows.app_error", err.Id)
+	var nfErr *store.ErrNotFound
+	assert.NotNil(t, err)
+	assert.True(t, errors.As(err, &nfErr))
 }

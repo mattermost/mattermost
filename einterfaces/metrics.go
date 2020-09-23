@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package einterfaces
+
+import "github.com/mattermost/logr"
 
 type MetricsInterface interface {
 	StartServer()
@@ -16,7 +18,6 @@ type MetricsInterface interface {
 
 	IncrementHttpRequest()
 	IncrementHttpError()
-	ObserveHttpRequestDuration(elapsed float64)
 
 	IncrementClusterRequest()
 	ObserveClusterRequestDuration(elapsed float64)
@@ -37,12 +38,27 @@ type MetricsInterface interface {
 
 	IncrementWebsocketEvent(eventType string)
 	IncrementWebSocketBroadcast(eventType string)
+	IncrementWebSocketBroadcastBufferSize(hub string, amount float64)
+	DecrementWebSocketBroadcastBufferSize(hub string, amount float64)
+	IncrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
+	DecrementWebSocketBroadcastUsersRegistered(hub string, amount float64)
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
 
 	IncrementPostsSearchCounter()
 	ObservePostsSearchDuration(elapsed float64)
-	ObserveStoreMethodDuration(method string, success string, elapsed float64)
-	ObserveApiEndpointDuration(endpoint string, elapsed float64)
+	ObserveStoreMethodDuration(method, success string, elapsed float64)
+	ObserveApiEndpointDuration(endpoint, method, statusCode string, elapsed float64)
+	IncrementPostIndexCounter()
+	IncrementUserIndexCounter()
+	IncrementChannelIndexCounter()
+
+	ObservePluginHookDuration(pluginID, hookName string, success bool, elapsed float64)
+	ObservePluginMultiHookIterationDuration(pluginID string, elapsed float64)
+	ObservePluginMultiHookDuration(elapsed float64)
+	ObservePluginApiDuration(pluginID, apiName string, success bool, elapsed float64)
+
+	ObserveEnabledUsers(users int64)
+	GetLoggerMetricsCollector() logr.MetricsCollector
 }

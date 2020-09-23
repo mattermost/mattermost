@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -37,7 +37,7 @@ type OAuthApp struct {
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {
 
-	if len(a.Id) != 26 {
+	if !IsValidId(a.Id) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -49,7 +49,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.update_at.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if len(a.CreatorId) != 26 {
+	if !IsValidId(a.CreatorId) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 

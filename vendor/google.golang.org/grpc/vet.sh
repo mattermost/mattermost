@@ -1,12 +1,14 @@
 #!/bin/bash
 
-if [[ `uname -a` = *"Darwin"* ]]; then
-  echo "It seems you are running on Mac. This script does not work on Mac. See https://github.com/grpc/grpc-go/issues/2047"
-  exit 1
-fi
-
 set -ex  # Exit on error; debugging enabled.
 set -o pipefail  # Fail a pipe if any sub-command fails.
+
+# not makes sure the command passed to it does not exit with a return code of 0.
+not() {
+  # This is required instead of the earlier (! $COMMAND) because subshells and
+  # pipefail don't work the same on Darwin as in Linux.
+  ! "$@"
+}
 
 die() {
   echo "$@" >&2
@@ -14,7 +16,7 @@ die() {
 }
 
 fail_on_output() {
-  tee /dev/stderr | (! read)
+  tee /dev/stderr | not read
 }
 
 # Check to make sure it's safe to modify the user's git repo.
@@ -31,12 +33,14 @@ PATH="${GOPATH}/bin:${GOROOT}/bin:${PATH}"
 if [[ "$1" = "-install" ]]; then
   # Check for module support
   if go help mod >& /dev/null; then
+    # Install the pinned versions as defined in module tools.
+    pushd ./test/tools
     go install \
       golang.org/x/lint/golint \
       golang.org/x/tools/cmd/goimports \
       honnef.co/go/tools/cmd/staticcheck \
-      github.com/client9/misspell/cmd/misspell \
-      github.com/golang/protobuf/protoc-gen-go
+      github.com/client9/misspell/cmd/misspell
+    popd
   else
     # Ye olde `go get` incantation.
     # Note: this gets the latest version of all tools (vs. the pinned versions
@@ -45,8 +49,7 @@ if [[ "$1" = "-install" ]]; then
       golang.org/x/lint/golint \
       golang.org/x/tools/cmd/goimports \
       honnef.co/go/tools/cmd/staticcheck \
-      github.com/client9/misspell/cmd/misspell \
-      github.com/golang/protobuf/protoc-gen-go
+      github.com/client9/misspell/cmd/misspell
   fi
   if [[ -z "${VET_SKIP_PROTO}" ]]; then
     if [[ "${TRAVIS}" = "true" ]]; then
@@ -57,7 +60,7 @@ if [[ "$1" = "-install" ]]; then
       unzip ${PROTOC_FILENAME}
       bin/protoc --version
       popd
-    elif ! which protoc > /dev/null; then
+    elif not which protoc > /dev/null; then
       die "Please install protoc into your path"
     fi
   fi
@@ -67,18 +70,24 @@ elif [[ "$#" -ne 0 ]]; then
 fi
 
 # - Ensure all source files contain a copyright message.
-(! git grep -L "\(Copyright [0-9]\{4,\} gRPC authors\)\|DO NOT EDIT" -- '*.go')
+not git grep -L "\(Copyright [0-9]\{4,\} gRPC authors\)\|DO NOT EDIT" -- '*.go'
 
 # - Make sure all tests in grpc and grpc/test use leakcheck via Teardown.
-(! grep 'func Test[^(]' *_test.go)
-(! grep 'func Test[^(]' test/*.go)
+not grep 'func Test[^(]' *_test.go
+not grep 'func Test[^(]' test/*.go
+
+# - Do not import x/net/context.
+not git grep -l 'x/net/context' -- "*.go"
 
 # - Do not import math/rand for real library code.  Use internal/grpcrand for
 #   thread safety.
-git grep -l '"math/rand"' -- "*.go" 2>&1 | (! grep -v '^examples\|^stress\|grpcrand\|wrr_test')
+git grep -l '"math/rand"' -- "*.go" 2>&1 | not grep -v '^examples\|^stress\|grpcrand\|^benchmark\|wrr_test'
 
 # - Ensure all ptypes proto packages are renamed when importing.
-(! git grep "\(import \|^\s*\)\"github.com/golang/protobuf/ptypes/" -- "*.go")
+not git grep "\(import \|^\s*\)\"github.com/golang/protobuf/ptypes/" -- "*.go"
+
+# - Ensure all xds proto imports are renamed to *pb or *grpc.
+git grep '"github.com/envoyproxy/go-control-plane/envoy' -- '*.go' | not grep -v 'pb "\|grpc "'
 
 # - Check imports that are illegal in appengine (until Go 1.11).
 # TODO: Remove when we drop Go 1.10 support
@@ -86,9 +95,11 @@ go list -f {{.Dir}} ./... | xargs go run test/go_vet/vet.go
 
 # - gofmt, goimports, golint (with exceptions for generated code), go vet.
 gofmt -s -d -l . 2>&1 | fail_on_output
-goimports -l . 2>&1 | (! grep -vE "(_mock|\.pb)\.go") | fail_on_output
-golint ./... 2>&1 | (! grep -vE "(_mock|\.pb)\.go:")
-go vet -all .
+goimports -l . 2>&1 | not grep -vE "(_mock|\.pb)\.go"
+golint ./... 2>&1 | not grep -vE "(_mock|\.pb)\.go:"
+go vet -all ./...
+
+misspell -error .
 
 # - Check that generated proto files are up to date.
 if [[ -z "${VET_SKIP_PROTO}" ]]; then
@@ -97,39 +108,83 @@ if [[ -z "${VET_SKIP_PROTO}" ]]; then
     (git status; git --no-pager diff; exit 1)
 fi
 
-# - Check that our module is tidy.
+# - Check that our modules are tidy.
 if go help mod >& /dev/null; then
-  go mod tidy && \
-    git status --porcelain 2>&1 | fail_on_output || \
+  find . -name 'go.mod' | xargs -IXXX bash -c 'cd $(dirname XXX); go mod tidy'
+  git status --porcelain 2>&1 | fail_on_output || \
     (git status; git --no-pager diff; exit 1)
 fi
 
 # - Collection of static analysis checks
-# TODO(dfawley): don't use deprecated functions in examples.
-staticcheck -go 1.9 -checks 'inherit,-ST1015' -ignore '
-google.golang.org/grpc/balancer.go:SA1019
-google.golang.org/grpc/balancer/grpclb/grpclb_remote_balancer.go:SA1019
-google.golang.org/grpc/balancer/roundrobin/roundrobin_test.go:SA1019
-google.golang.org/grpc/xds/internal/balancer/edsbalancer/balancergroup.go:SA1019
-google.golang.org/grpc/xds/internal/resolver/xds_resolver.go:SA1019
-google.golang.org/grpc/xds/internal/balancer/xds.go:SA1019
-google.golang.org/grpc/xds/internal/balancer/xds_client.go:SA1019
-google.golang.org/grpc/balancer_conn_wrappers.go:SA1019
-google.golang.org/grpc/balancer_test.go:SA1019
-google.golang.org/grpc/benchmark/benchmain/main.go:SA1019
-google.golang.org/grpc/benchmark/worker/benchmark_client.go:SA1019
-google.golang.org/grpc/clientconn.go:S1024
-google.golang.org/grpc/clientconn_state_transition_test.go:SA1019
-google.golang.org/grpc/clientconn_test.go:SA1019
-google.golang.org/grpc/examples/features/debugging/client/main.go:SA1019
-google.golang.org/grpc/examples/features/load_balancing/client/main.go:SA1019
-google.golang.org/grpc/internal/transport/handler_server.go:SA1019
-google.golang.org/grpc/internal/transport/handler_server_test.go:SA1019
-google.golang.org/grpc/resolver/dns/dns_resolver.go:SA1019
-google.golang.org/grpc/stats/stats_test.go:SA1019
-google.golang.org/grpc/test/balancer_test.go:SA1019
-google.golang.org/grpc/test/channelz_test.go:SA1019
-google.golang.org/grpc/test/end2end_test.go:SA1019
-google.golang.org/grpc/test/healthcheck_test.go:SA1019
-' ./...
-misspell -error .
+#
+# TODO(dfawley): don't use deprecated functions in examples or first-party
+# plugins.
+SC_OUT="$(mktemp)"
+staticcheck -go 1.9 -checks 'inherit,-ST1015' ./... > "${SC_OUT}" || true
+# Error if anything other than deprecation warnings are printed.
+not grep -v "is deprecated:.*SA1019" "${SC_OUT}"
+# Only ignore the following deprecated types/fields/functions.
+not grep -Fv '.CredsBundle
+.HeaderMap
+.Metadata is deprecated: use Attributes
+.NewAddress
+.NewServiceConfig
+.Type is deprecated: use Attributes
+balancer.ErrTransientFailure
+balancer.Picker
+grpc.CallCustomCodec
+grpc.Code
+grpc.Compressor
+grpc.CustomCodec
+grpc.Decompressor
+grpc.MaxMsgSize
+grpc.MethodConfig
+grpc.NewGZIPCompressor
+grpc.NewGZIPDecompressor
+grpc.RPCCompressor
+grpc.RPCDecompressor
+grpc.ServiceConfig
+grpc.WithBalancerName
+grpc.WithCompressor
+grpc.WithDecompressor
+grpc.WithDialer
+grpc.WithMaxMsgSize
+grpc.WithServiceConfig
+grpc.WithTimeout
+http.CloseNotifier
+info.SecurityVersion
+resolver.Backend
+resolver.GRPCLB' "${SC_OUT}"
+
+# - special golint on package comments.
+lint_package_comment_per_package() {
+  # Number of files in this go package.
+  fileCount=$(go list -f '{{len .GoFiles}}' $1)
+  if [ ${fileCount} -eq 0 ]; then
+    return 0
+  fi
+  # Number of package errors generated by golint.
+  lintPackageCommentErrorsCount=$(golint --min_confidence 0 $1 | grep -c "should have a package comment")
+  # golint complains about every file that's missing the package comment. If the
+  # number of files for this package is greater than the number of errors, there's
+  # at least one file with package comment, good. Otherwise, fail.
+  if [ ${fileCount} -le ${lintPackageCommentErrorsCount} ]; then
+    echo "Package $1 (with ${fileCount} files) is missing package comment"
+    return 1
+  fi
+}
+lint_package_comment() {
+  set +ex
+
+  count=0
+  for i in $(go list ./...); do
+    lint_package_comment_per_package "$i"
+    ((count += $?))
+  done
+
+  set -ex
+  return $count
+}
+lint_package_comment
+
+echo SUCCESS

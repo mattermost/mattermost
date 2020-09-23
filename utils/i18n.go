@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -7,13 +7,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var T i18n.TranslateFunc
@@ -32,7 +33,13 @@ func TranslationsPreInit() error {
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
-	return InitTranslationsWithDir("i18n")
+
+	translationsDir := "i18n"
+	if mattermostPath := os.Getenv("MM_SERVER_PATH"); mattermostPath != "" {
+		translationsDir = filepath.Join(mattermostPath, "i18n")
+	}
+
+	return InitTranslationsWithDir(translationsDir)
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) error {
@@ -44,9 +51,9 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := fileutils.FindDir(dir)
+	i18nDirectory, found := fileutils.FindDirRelBinary(dir)
 	if !found {
-		return fmt.Errorf("Unable to find i18n directory")
+		return fmt.Errorf(fmt.Sprintf("Unable to find i18n directory at %q", dir))
 	}
 
 	files, _ := ioutil.ReadDir(i18nDirectory)

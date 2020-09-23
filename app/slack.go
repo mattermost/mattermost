@@ -1,21 +1,44 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
+	"bytes"
+	"mime/multipart"
 	"regexp"
 
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/slackimport"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
+
+func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
+	actions := slackimport.Actions{
+		UpdateActive:           a.UpdateActive,
+		AddUserToChannel:       a.AddUserToChannel,
+		JoinUserToTeam:         a.JoinUserToTeam,
+		CreateDirectChannel:    a.createDirectChannel,
+		CreateGroupChannel:     a.createGroupChannel,
+		CreateChannel:          a.CreateChannel,
+		DoUploadFile:           a.DoUploadFile,
+		GenerateThumbnailImage: a.generateThumbnailImage,
+		GeneratePreviewImage:   a.generatePreviewImage,
+		InvalidateAllCaches:    func() { a.srv.InvalidateAllCaches() },
+		MaxPostSize:            func() int { return a.srv.MaxPostSize() },
+		PrepareImage:           prepareImage,
+	}
+
+	importer := slackimport.New(a.srv.Store, actions, a.Config())
+	return importer.SlackImport(fileData, fileSize, teamID)
+}
 
 func (a *App) ProcessSlackText(text string) string {
 	text = expandAnnouncement(text)
-	text = replaceUserIds(a.Srv.Store.User(), text)
+	text = replaceUserIds(a.Srv().Store.User(), text)
 
 	return text
 }
@@ -24,17 +47,17 @@ func (a *App) ProcessSlackText(text string) string {
 // can be found in the text attribute, or in the pretext, text, title and value
 // attributes of the attachment structure. The Slack attachment structure is
 // documented here: https://api.slack.com/docs/attachments
-func (app *App) ProcessSlackAttachments(a []*model.SlackAttachment) []*model.SlackAttachment {
-	var nonNilAttachments = model.StringifySlackFieldValue(a)
-	for _, attachment := range a {
-		attachment.Pretext = app.ProcessSlackText(attachment.Pretext)
-		attachment.Text = app.ProcessSlackText(attachment.Text)
-		attachment.Title = app.ProcessSlackText(attachment.Title)
+func (a *App) ProcessSlackAttachments(attachments []*model.SlackAttachment) []*model.SlackAttachment {
+	var nonNilAttachments = model.StringifySlackFieldValue(attachments)
+	for _, attachment := range attachments {
+		attachment.Pretext = a.ProcessSlackText(attachment.Pretext)
+		attachment.Text = a.ProcessSlackText(attachment.Text)
+		attachment.Title = a.ProcessSlackText(attachment.Title)
 
 		for _, field := range attachment.Fields {
 			if field.Value != nil {
 				// Ensure the value is set to a string if it is set
-				field.Value = app.ProcessSlackText(fmt.Sprintf("%v", field.Value))
+				field.Value = a.ProcessSlackText(fmt.Sprintf("%v", field.Value))
 			}
 		}
 	}

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func validateSchemeImportData(data *SchemeImportData) *model.AppError {
@@ -100,7 +100,7 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 	if data.Permissions != nil {
 		for _, permission := range *data.Permissions {
 			permissionValidated := false
-			for _, p := range model.ALL_PERMISSIONS {
+			for _, p := range append(model.AllPermissions, model.DeprecatedPermissions...) {
 				if permission == p.Id {
 					permissionValidated = true
 					break
@@ -217,6 +217,17 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 
 	if data.AuthData != nil && len(*data.AuthData) > model.USER_AUTH_DATA_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	blank := func(str *string) bool {
+		if str == nil {
+			return true
+		}
+		return len(*str) == 0
+	}
+
+	if (!blank(data.AuthService) && blank(data.AuthData)) || (blank(data.AuthService) && !blank(data.AuthData)) {
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
 	if data.Password != nil && len(*data.Password) == 0 {
@@ -434,14 +445,20 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
+			reaction := reaction
 			validateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
+			reply := reply
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
+	}
+
+	if data.Props != nil && utf8.RuneCountInString(model.StringInterfaceToJson(*data.Props)) > model.POST_PROPS_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.props_too_large.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -528,12 +545,14 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
+			reaction := reaction
 			validateReactionImportData(&reaction, *data.CreateAt)
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
+			reply := reply
 			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
 		}
 	}

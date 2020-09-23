@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package storetest
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,6 +20,7 @@ func TestOAuthStore(t *testing.T, ss store.Store) {
 	t.Run("OAuthUpdateAccessData", func(t *testing.T) { testOAuthUpdateAccessData(t, ss) })
 	t.Run("GetAccessData", func(t *testing.T) { testOAuthStoreGetAccessData(t, ss) })
 	t.Run("RemoveAccessData", func(t *testing.T) { testOAuthStoreRemoveAccessData(t, ss) })
+	t.Run("RemoveAllAccessData", func(t *testing.T) { testOAuthStoreRemoveAllAccessData(t, ss) })
 	t.Run("SaveAuthData", func(t *testing.T) { testOAuthStoreSaveAuthData(t, ss) })
 	t.Run("GetAuthData", func(t *testing.T) { testOAuthStoreGetAuthData(t, ss) })
 	t.Run("RemoveAuthData", func(t *testing.T) { testOAuthStoreRemoveAuthData(t, ss) })
@@ -71,7 +72,7 @@ func testOAuthStoreGetApp(t *testing.T, ss store.Store) {
 	// Lets try and get the app from a user that hasn't created any apps
 	apps, err := ss.OAuth().GetAppByUser("fake0123456789abcderfgret1", 0, 1000)
 	require.Nil(t, err)
-	assert.Len(t, apps, 0, "Should have failed. Fake user hasn't created any apps")
+	assert.Empty(t, apps, "Should have failed. Fake user hasn't created any apps")
 
 	_, err = ss.OAuth().GetAppByUser(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)
@@ -213,7 +214,7 @@ func testOAuthStoreRemoveAccessData(t *testing.T, ss store.Store) {
 	require.Nil(t, result, "did not delete access token")
 }
 
-func TestOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
+func testOAuthStoreRemoveAllAccessData(t *testing.T, ss store.Store) {
 	a1 := model.AccessData{}
 	a1.ClientId = model.NewId()
 	a1.UserId = model.NewId()
@@ -294,7 +295,7 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	// Lets try and get an Authorized app for a user who hasn't authorized it
 	apps, err := ss.OAuth().GetAuthorizedApps("fake0123456789abcderfgret1", 0, 1000)
 	require.Nil(t, err)
-	assert.Len(t, apps, 0, "Should have failed. Fake user hasn't authorized the app")
+	assert.Empty(t, apps, "Should have failed. Fake user hasn't authorized the app")
 
 	// allow the app
 	p := model.Preference{}
@@ -302,8 +303,8 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	err = ss.Preference().Save(&model.Preferences{p})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, nErr)
 
 	apps, err = ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)
@@ -325,8 +326,8 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	err = ss.Preference().Save(&model.Preferences{p})
-	require.Nil(t, err)
+	nErr := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, nErr)
 
 	apps, err := ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000)
 	require.Nil(t, err)
@@ -366,8 +367,8 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	s1.Token = model.NewId()
 	s1.IsOAuth = true
 
-	s1, err = ss.Session().Save(s1)
-	require.Nil(t, err)
+	s1, nErr := ss.Session().Save(s1)
+	require.Nil(t, nErr)
 
 	ad1 := model.AccessData{}
 	ad1.ClientId = a1.Id
@@ -382,8 +383,8 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	err = ss.OAuth().DeleteApp(a1.Id)
 	require.Nil(t, err)
 
-	_, err = ss.Session().Get(s1.Token)
-	require.NotNil(t, err, "should error - session should be deleted")
+	_, nErr = ss.Session().Get(s1.Token)
+	require.NotNil(t, nErr, "should error - session should be deleted")
 
 	_, err = ss.OAuth().GetAccessData(s1.Token)
 	require.NotNil(t, err, "should error - access data should be deleted")

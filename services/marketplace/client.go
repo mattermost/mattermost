@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package marketplace
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/httpservice"
 	"github.com/pkg/errors"
 )
 
@@ -62,16 +64,29 @@ func (c *Client) GetPlugins(request *model.MarketplacePluginFilter) ([]*model.Ba
 	}
 }
 
+func (c *Client) GetPlugin(filter *model.MarketplacePluginFilter, pluginVersion string) (*model.BaseMarketplacePlugin, error) {
+	plugins, err := c.GetPlugins(filter)
+	if err != nil {
+		return nil, err
+	}
+	for _, plugin := range plugins {
+		if plugin.Manifest.Version == pluginVersion {
+			return plugin, nil
+		}
+	}
+	return nil, errors.New("plugin not found")
+}
+
 // closeBody ensures the Body of an http.Response is properly closed.
 func closeBody(r *http.Response) {
 	if r.Body != nil {
-		_, _ = ioutil.ReadAll(r.Body)
+		_, _ = io.Copy(ioutil.Discard, r.Body)
 		_ = r.Body.Close()
 	}
 }
 
 func (c *Client) buildURL(urlPath string, args ...interface{}) string {
-	return fmt.Sprintf("%s%s", c.address, fmt.Sprintf(urlPath, args...))
+	return fmt.Sprintf("%s/%s", strings.TrimRight(c.address, "/"), strings.TrimLeft(fmt.Sprintf(urlPath, args...), "/"))
 }
 
 func (c *Client) doGet(u string) (*http.Response, error) {

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 )
 
@@ -77,7 +77,7 @@ func (cs *commonStore) set(newCfg *model.Config, allowEnvironmentOverrides bool,
 		}
 	}
 
-	if err := persist(cs.removeEnvOverrides(newCfg)); err != nil {
+	if err := persist(cs.RemoveEnvironmentOverrides(newCfg)); err != nil {
 		return nil, errors.Wrap(err, "failed to persist")
 	}
 
@@ -164,7 +164,7 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	return nil
 }
 
-// removeEnvOverrides returns a new config without the given environment overrides.
-func (cs *commonStore) removeEnvOverrides(cfg *model.Config) *model.Config {
+// RemoveEnvironmentOverrides returns a new config without the given environment overrides.
+func (cs *commonStore) RemoveEnvironmentOverrides(cfg *model.Config) *model.Config {
 	return removeEnvOverrides(cfg, cs.configWithoutOverrides, cs.environmentOverrides)
 }

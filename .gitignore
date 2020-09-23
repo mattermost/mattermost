@@ -19,13 +19,14 @@ config/active.dat
 config/config.json
 /plugins
 
-# Enteprise imports file
+# Enterprise imports file
 imports/imports.go
 
 # Build Targets
 .prebuild
 .npminstall
 .yarninstall
+/prepackaged_plugins
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
@@ -35,7 +36,7 @@ imports/imports.go
 # Folders
 _obj
 _test
-.vscode
+testfiles
 
 # Architecture specific extensions/prefixes
 [568vq].out
@@ -53,9 +54,13 @@ _testmain.go
 *.prof
 
 # Log files
-*mattermost.log*
-*mattermost.log.jsonl
-*npm-debug.log*
+*.log
+*.log.jsonl
+*.log.gz
+
+# Fuzz binaries and working dir
+*fuzz.zip
+app/workdir
 
 .tmp
 
@@ -66,6 +71,10 @@ _testmain.go
 Session.vim
 .netrwhist
 *~
+
+# VSCode project files
+.vscode
+*.code-workspace
 
 # Gogland project files
 mattermost-server.iml
@@ -92,12 +101,17 @@ ecover.out
 cprofile.out
 *.test
 webapp/coverage
+/report.xml
 
 .agignore
 .ctags
-tags
+/tags
 .idea
 
 debug
 client
 notifications.log
+__debug_bin
+report.xml
+go.*.orig
+config.override.mk

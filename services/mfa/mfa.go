@@ -1,23 +1,23 @@
-// Copyright (c) 2016 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package mfa
 
 import (
-	b32 "encoding/base32"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/dgryski/dgoogauth"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/rsc/qr"
 )
 
 const (
+	// This will result in 160 bits of entropy (base32 encoded), as recommended by rfc4226.
 	MFA_SECRET_SIZE = 20
 )
 
@@ -58,7 +58,7 @@ func (m *Mfa) GenerateSecret(user *model.User) (string, []byte, *model.AppError)
 
 	issuer := getIssuerFromUrl(*m.ConfigService.Config().ServiceSettings.SiteURL)
 
-	secret := b32.StdEncoding.EncodeToString([]byte(model.NewRandomString(MFA_SECRET_SIZE)))
+	secret := model.NewRandomBase32String(MFA_SECRET_SIZE)
 
 	authLink := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s", issuer, user.Email, secret, issuer)
 

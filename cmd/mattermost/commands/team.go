@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -142,7 +144,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -153,6 +155,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Display Name is required")
 	}
 	email, _ := command.Flags().GetString("email")
+	email = strings.ToLower(email)
 	useprivate, _ := command.Flags().GetBool("private")
 
 	teamType := model.TEAM_OPEN
@@ -167,9 +170,14 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	if _, err := a.CreateTeam(team); err != nil {
-		return errors.New("Team creation failed: " + err.Error())
+	createdTeam, errCreate := a.CreateTeam(team)
+	if errCreate != nil {
+		return errors.New("Team creation failed: " + errCreate.Error())
 	}
+
+	auditRec := a.MakeAuditRecord("createTeam", audit.Success)
+	auditRec.AddMeta("team", createdTeam)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -179,7 +187,7 @@ func removeUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -201,7 +209,13 @@ func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg 
 	}
 	if err := a.LeaveTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
+		return
 	}
+
+	auditRec := a.MakeAuditRecord("removeUserFromTeam", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 }
 
 func addUsersCmdF(command *cobra.Command, args []string) error {
@@ -209,7 +223,7 @@ func addUsersCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -220,7 +234,6 @@ func addUsersCmdF(command *cobra.Command, args []string) error {
 	for i, user := range users {
 		addUserToTeam(a, team, user, args[i+1])
 	}
-
 	return nil
 }
 
@@ -231,7 +244,13 @@ func addUserToTeam(a *app.App, team *model.Team, user *model.User, userArg strin
 	}
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
+		return
 	}
+
+	auditRec := a.MakeAuditRecord("addUserToTeam", audit.Success)
+	auditRec.AddMeta("user", user)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
 }
 
 func deleteTeamsCmdF(command *cobra.Command, args []string) error {
@@ -239,7 +258,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -267,9 +286,12 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted team '" + team.Name + "'")
+
+			auditRec := a.MakeAuditRecord("deleteTeams", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -282,7 +304,7 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	teams, err2 := a.GetAllTeams()
 	if err2 != nil {
@@ -305,12 +327,12 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, err := a.SearchAllTeams(searchTerm)
+		foundTeams, _, err := a.SearchAllTeams(&model.TeamSearch{Term: searchTerm})
 		if err != nil {
 			return err
 		}
@@ -336,7 +358,7 @@ func restoreTeamsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
@@ -347,6 +369,10 @@ func restoreTeamsCmdF(command *cobra.Command, args []string) error {
 		err := a.RestoreTeam(team.Id)
 		if err != nil {
 			CommandPrintErrorln("Unable to restore team '" + team.Name + "' error: " + err.Error())
+		} else {
+			auditRec := a.MakeAuditRecord("restoreTeams", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
 	return nil
@@ -373,7 +399,7 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	foundTeams := getTeamsFromTeamArgs(a, args)
 	for i, team := range foundTeams {
@@ -383,9 +409,12 @@ func archiveTeamCmdF(command *cobra.Command, args []string) error {
 		}
 		if err := a.SoftDeleteTeam(team.Id); err != nil {
 			CommandPrintErrorln("Unable to archive team '"+team.Name+"' error: ", err)
+		} else {
+			auditRec := a.MakeAuditRecord("archiveTeam", audit.Success)
+			auditRec.AddMeta("team", team)
+			a.LogAuditRec(auditRec, nil)
 		}
 	}
-
 	return nil
 }
 
@@ -395,7 +424,7 @@ func renameTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -416,10 +445,15 @@ func renameTeamCmdF(command *cobra.Command, args []string) error {
 		return errdn
 	}
 
-	_, errrt := a.RenameTeam(team, newTeamName, newDisplayName)
+	updatedTeam, errrt := a.RenameTeam(team, newTeamName, newDisplayName)
 	if errrt != nil {
 		CommandPrintErrorln("Unable to rename team to '"+newTeamName+"' error: ", errrt)
 	}
+
+	auditRec := a.MakeAuditRecord("renameTeam", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("update", updatedTeam)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -429,7 +463,7 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -454,6 +488,12 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 	if err := a.UpdateTeamPrivacy(team.Id, team.Type, team.AllowOpenInvite); err != nil {
 		return errors.New("Failed to update privacy for team" + args[0])
 	}
+
+	auditRec := a.MakeAuditRecord("modifyTeam", audit.Success)
+	auditRec.AddMeta("team", team)
+	auditRec.AddMeta("type", team.Type)
+	auditRec.AddMeta("allow_open_invite", team.AllowOpenInvite)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }

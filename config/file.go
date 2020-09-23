@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -13,12 +13,13 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 var (
+	// ErrReadOnlyConfiguration is returned when an attempt to modify a read-only configuration is made.
 	ErrReadOnlyConfiguration = errors.New("configuration is read-only")
 )
 
@@ -122,7 +123,7 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = ioutil.WriteFile(fs.path, b, 0644)
+	err = ioutil.WriteFile(fs.path, b, 0600)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
@@ -180,11 +181,17 @@ func (fs *FileStore) GetFile(name string) ([]byte, error) {
 	return data, nil
 }
 
+// GetFilePath returns the resolved path of a configuration file.
+// The file may not necessarily exist.
+func (fs *FileStore) GetFilePath(name string) string {
+	return fs.resolveFilePath(name)
+}
+
 // SetFile sets or replaces the contents of a configuration file.
 func (fs *FileStore) SetFile(name string, data []byte) error {
 	resolvedPath := fs.resolveFilePath(name)
 
-	err := ioutil.WriteFile(resolvedPath, data, 0777)
+	err := ioutil.WriteFile(resolvedPath, data, 0600)
 	if err != nil {
 		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}
@@ -227,7 +234,7 @@ func (fs *FileStore) RemoveFile(name string) error {
 		return errors.Wrap(err, "failed to remove file")
 	}
 
-	return err
+	return nil
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.

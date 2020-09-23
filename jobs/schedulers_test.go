@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 package jobs
 
 import (
@@ -8,12 +8,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/einterfaces/mocks"
-	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/v5/einterfaces/mocks"
+	"github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/utils/testutils"
 )
 
 type MockScheduler struct {
@@ -52,7 +52,7 @@ func TestScheduler(t *testing.T) {
 		Type:     model.JOB_TYPE_MESSAGE_EXPORT,
 	}
 	// mock job store doesn't return a previously successful job, forcing fallback to config
-	mockStore.JobStore.On("GetNewestJobByStatusAndType", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(job, nil)
+	mockStore.JobStore.On("GetNewestJobByStatusesAndType", mock.AnythingOfType("[]string"), mock.AnythingOfType("string")).Return(job, nil)
 	mockStore.JobStore.On("GetCountByStatusAndType", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(int64(1), nil)
 
 	jobServer := &JobServer{

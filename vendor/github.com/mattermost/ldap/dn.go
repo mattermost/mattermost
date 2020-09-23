@@ -48,7 +48,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/asn1-ber.v1"
+	"github.com/go-asn1-ber/asn1-ber"
 )
 
 // AttributeTypeAndValue represents an attributeTypeAndValue from https://tools.ietf.org/html/rfc4514

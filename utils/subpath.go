@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package utils
 
@@ -17,9 +17,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
 
 // getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
@@ -45,14 +45,14 @@ func GetSubpathScriptHash(subpath string) string {
 	return fmt.Sprintf(" 'sha256-%s'", base64.StdEncoding.EncodeToString(scriptHash[:]))
 }
 
-// UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
-// at the given subpath instead of at the root. No changes are written unless necessary.
-func UpdateAssetsSubpath(subpath string) error {
+// UpdateAssetsSubpathInDir rewrites assets in the given directory to assume the application is
+// hosted at the given subpath instead of at the root. No changes are written unless necessary.
+func UpdateAssetsSubpathInDir(subpath, directory string) error {
 	if subpath == "" {
 		subpath = "/"
 	}
 
-	staticDir, found := fileutils.FindDir(model.CLIENT_DIR)
+	staticDir, found := fileutils.FindDir(directory)
 	if !found {
 		return errors.New("failed to find client dir")
 	}
@@ -85,13 +85,13 @@ func UpdateAssetsSubpath(subpath string) error {
 
 	newRootHtml := string(oldRootHtml)
 
-	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/([^"]*)">`)
+	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHtml, -1); len(results) == 0 {
 		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHtml = reCSP.ReplaceAllLiteralString(newRootHtml, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/%s">`,
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/%s">`,
 		GetSubpathScriptHash(subpath),
 	))
 
@@ -137,6 +137,12 @@ func UpdateAssetsSubpath(subpath string) error {
 	}
 
 	return nil
+}
+
+// UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
+// at the given subpath instead of at the root. No changes are written unless necessary.
+func UpdateAssetsSubpath(subpath string) error {
+	return UpdateAssetsSubpathInDir(subpath, model.CLIENT_DIR)
 }
 
 // UpdateAssetsSubpathFromConfig uses UpdateAssetsSubpath and any path defined in the SiteURL.

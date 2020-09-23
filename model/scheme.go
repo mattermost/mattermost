@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -107,7 +107,7 @@ func SchemesFromJson(data io.Reader) []*Scheme {
 }
 
 func (scheme *Scheme) IsValid() bool {
-	if len(scheme.Id) != 26 {
+	if !IsValidId(scheme.Id) {
 		return false
 	}
 

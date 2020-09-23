@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const CHANNEL_ARG_SEPARATOR = ":"
@@ -43,7 +43,7 @@ func getChannelFromChannelArg(a *app.App, channelArg string) *model.Channel {
 			return nil
 		}
 
-		if result, err := a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart, true); err == nil {
+		if result, err := a.Srv().Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart, true); err == nil {
 			channel = result
 		} else {
 			fmt.Println(err.Error())
@@ -51,7 +51,7 @@ func getChannelFromChannelArg(a *app.App, channelArg string) *model.Channel {
 	}
 
 	if channel == nil {
-		if ch, errCh := a.Srv.Store.Channel().Get(channelPart, true); errCh == nil {
+		if ch, errCh := a.Srv().Store.Channel().Get(channelPart, true); errCh == nil {
 			channel = ch
 		}
 	}

@@ -1,12 +1,13 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -121,7 +122,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -146,6 +147,10 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("channelGroupEnable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -154,7 +159,7 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -166,6 +171,10 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("channelGroupDisable", audit.Success)
+	auditRec.AddMeta("channel", channel)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -174,7 +183,7 @@ func channelGroupStatusCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -195,7 +204,7 @@ func channelGroupListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
@@ -219,7 +228,7 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -240,6 +249,10 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("teamGroupEnable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -248,7 +261,7 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -260,6 +273,10 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 		return appErr
 	}
 
+	auditRec := a.MakeAuditRecord("teamGroupDisable", audit.Success)
+	auditRec.AddMeta("team", team)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -268,7 +285,7 @@ func teamGroupStatusCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
@@ -289,7 +306,7 @@ func teamGroupListCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package web
 
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 const (
@@ -23,57 +23,63 @@ const (
 )
 
 type Params struct {
-	UserId                 string
-	TeamId                 string
-	InviteId               string
-	TokenId                string
-	ChannelId              string
-	PostId                 string
-	FileId                 string
-	Filename               string
-	PluginId               string
-	CommandId              string
-	HookId                 string
-	ReportId               string
-	EmojiId                string
-	AppId                  string
-	Email                  string
-	Username               string
-	TeamName               string
-	ChannelName            string
-	PreferenceName         string
-	EmojiName              string
-	Category               string
-	Service                string
-	JobId                  string
-	JobType                string
-	ActionId               string
-	RoleId                 string
-	RoleName               string
-	SchemeId               string
-	Scope                  string
-	GroupId                string
-	Page                   int
-	PerPage                int
-	LogsPerPage            int
-	Permanent              bool
-	RemoteId               string
-	SyncableId             string
-	SyncableType           model.GroupSyncableType
-	BotUserId              string
-	Q                      string
-	IsLinked               *bool
-	IsConfigured           *bool
-	NotAssociatedToTeam    string
-	NotAssociatedToChannel string
-	Paginate               *bool
-	IncludeMemberCount     bool
-	NotAssociatedToGroup   string
-	ExcludeDefaultChannels bool
-	LimitAfter             int
-	LimitBefore            int
-	GroupIDs               string
-	IncludeTotalCount      bool
+	UserId                    string
+	TeamId                    string
+	InviteId                  string
+	TokenId                   string
+	ChannelId                 string
+	PostId                    string
+	FileId                    string
+	Filename                  string
+	UploadId                  string
+	PluginId                  string
+	CommandId                 string
+	HookId                    string
+	ReportId                  string
+	EmojiId                   string
+	AppId                     string
+	Email                     string
+	Username                  string
+	TeamName                  string
+	ChannelName               string
+	PreferenceName            string
+	EmojiName                 string
+	Category                  string
+	Service                   string
+	JobId                     string
+	JobType                   string
+	ActionId                  string
+	RoleId                    string
+	RoleName                  string
+	SchemeId                  string
+	Scope                     string
+	GroupId                   string
+	Page                      int
+	PerPage                   int
+	LogsPerPage               int
+	Permanent                 bool
+	RemoteId                  string
+	SyncableId                string
+	SyncableType              model.GroupSyncableType
+	BotUserId                 string
+	Q                         string
+	IsLinked                  *bool
+	IsConfigured              *bool
+	NotAssociatedToTeam       string
+	NotAssociatedToChannel    string
+	Paginate                  *bool
+	IncludeMemberCount        bool
+	NotAssociatedToGroup      string
+	ExcludeDefaultChannels    bool
+	LimitAfter                int
+	LimitBefore               int
+	GroupIDs                  string
+	IncludeTotalCount         bool
+	IncludeDeleted            bool
+	FilterAllowReference      bool
+	FilterParentTeamPermitted bool
+	CategoryId                string
+	WarnMetricId              string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -88,6 +94,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["team_id"]; ok {
 		params.TeamId = val
+	}
+
+	if val, ok := props["category_id"]; ok {
+		params.CategoryId = val
 	}
 
 	if val, ok := props["invite_id"]; ok {
@@ -113,6 +123,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.Filename = query.Get("filename")
+
+	if val, ok := props["upload_id"]; ok {
+		params.UploadId = val
+	}
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val
@@ -276,6 +290,14 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 
+	if val, err := strconv.ParseBool(query.Get("filter_allow_reference")); err == nil {
+		params.FilterAllowReference = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("filter_parent_team_permitted")); err == nil {
+		params.FilterParentTeamPermitted = val
+	}
+
 	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
 		params.Paginate = &val
 	}
@@ -294,6 +316,14 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
 		params.IncludeTotalCount = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("include_deleted")); err == nil {
+		params.IncludeDeleted = val
+	}
+
+	if val, ok := props["warn_metric_id"]; ok {
+		params.WarnMetricId = val
 	}
 
 	return params

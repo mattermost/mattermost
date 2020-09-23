@@ -12,13 +12,13 @@ import (
 type deleteData struct {
 	PlaceholderFormat PlaceholderFormat
 	RunWith           BaseRunner
-	Prefixes          exprs
+	Prefixes          []Sqlizer
 	From              string
 	WhereParts        []Sqlizer
 	OrderBys          []string
 	Limit             string
 	Offset            string
-	Suffixes          exprs
+	Suffixes          []Sqlizer
 }
 
 func (d *deleteData) Exec() (sql.Result, error) {
@@ -37,7 +37,11 @@ func (d *deleteData) ToSql() (sqlStr string, args []interface{}, err error) {
 	sql := &bytes.Buffer{}
 
 	if len(d.Prefixes) > 0 {
-		args, _ = d.Prefixes.AppendToSql(sql, " ", args)
+		args, err = appendToSql(d.Prefixes, sql, " ", args)
+		if err != nil {
+			return
+		}
+
 		sql.WriteString(" ")
 	}
 
@@ -69,7 +73,10 @@ func (d *deleteData) ToSql() (sqlStr string, args []interface{}, err error) {
 
 	if len(d.Suffixes) > 0 {
 		sql.WriteString(" ")
-		args, _ = d.Suffixes.AppendToSql(sql, " ", args)
+		args, err = appendToSql(d.Suffixes, sql, " ", args)
+		if err != nil {
+			return
+		}
 	}
 
 	sqlStr, err = d.PlaceholderFormat.ReplacePlaceholders(sql.String())
@@ -116,7 +123,12 @@ func (b DeleteBuilder) ToSql() (string, []interface{}, error) {
 
 // Prefix adds an expression to the beginning of the query
 func (b DeleteBuilder) Prefix(sql string, args ...interface{}) DeleteBuilder {
-	return builder.Append(b, "Prefixes", Expr(sql, args...)).(DeleteBuilder)
+	return b.PrefixExpr(Expr(sql, args...))
+}
+
+// PrefixExpr adds an expression to the very beginning of the query
+func (b DeleteBuilder) PrefixExpr(expr Sqlizer) DeleteBuilder {
+	return builder.Append(b, "Prefixes", expr).(DeleteBuilder)
 }
 
 // From sets the table to be deleted from.
@@ -148,7 +160,12 @@ func (b DeleteBuilder) Offset(offset uint64) DeleteBuilder {
 
 // Suffix adds an expression to the end of the query
 func (b DeleteBuilder) Suffix(sql string, args ...interface{}) DeleteBuilder {
-	return builder.Append(b, "Suffixes", Expr(sql, args...)).(DeleteBuilder)
+	return b.SuffixExpr(Expr(sql, args...))
+}
+
+// SuffixExpr adds an expression to the end of the query
+func (b DeleteBuilder) SuffixExpr(expr Sqlizer) DeleteBuilder {
+	return builder.Append(b, "Suffixes", expr).(DeleteBuilder)
 }
 
 func (b DeleteBuilder) Query() (*sql.Rows, error) {

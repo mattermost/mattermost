@@ -17,8 +17,9 @@ ldapsearch_cmd=ldapsearch
 
 if [[ -z ${1} ]]; then
 	echo "We could not find a username";
-	echo "usage: ./ldap-check.sh [username]"
-	echo "example: ./ldap-check.sh john"
+	echo "usage: ./ldap-check.sh -u/-g [username/groupname]"
+	echo "example: ./ldap-check.sh -u john"
+	echo "example: ./ldap-check.sh -g admin-staff"
 	exit 1;
 fi
 
@@ -54,14 +55,35 @@ UserFilter=`cat $config_file | jq -r .LdapSettings.UserFilter`
 EmailAttribute=`cat $config_file | jq -r .LdapSettings.EmailAttribute`
 UsernameAttribute=`cat $config_file | jq -r .LdapSettings.UsernameAttribute`
 IdAttribute=`cat $config_file | jq -r .LdapSettings.IdAttribute`
+GroupFilter=`cat $config_file | jq -r .LdapSettings.GroupFilter`
+GroupIdAttribute=`cat $config_file | jq -r .LdapSettings.GroupIdAttribute`
 
 if [[ -z ${UserFilter} ]]; then
-	UserFilter="($IdAttribute=$1)"
+	UserFilter="($IdAttribute=$2)"
 else
-	UserFilter="(&($IdAttribute=$1)$UserFilter)"
+	UserFilter="(&($IdAttribute=$2)$UserFilter)"
 fi
+
+if [[ -z ${GroupFilter} ]]; then
+	GroupFilter="($GroupIdAttribute=$2)"
+else
+	GroupFilter="(&($GroupIdAttribute=$2)$GroupFilter)"
+fi
+
+if [[ $1 == '-u' ]]; then
 
 cmd_to_run="$ldapsearch_cmd -LLL -x -h $LdapServer -p $LdapPort -D \"$BindUsername\" -w \"$BindPassword\" -b \"$BaseDN\" \"$UserFilter\" $IdAttribute $UsernameAttribute $EmailAttribute"
 echo $cmd_to_run
 echo "-------------------------"
 eval $cmd_to_run
+
+elif [[ $1 == '-g' ]]; then
+
+cmd_to_run="$ldapsearch_cmd -LLL -x -h $LdapServer -p $LdapPort -D \"$BindUsername\" -w \"$BindPassword\" -b \"$BaseDN\" \"$GroupFilter\""
+echo $cmd_to_run
+echo "-------------------------"
+eval $cmd_to_run
+
+else 
+	echo "User or Group not specified"
+fi

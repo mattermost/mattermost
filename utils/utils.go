@@ -1,9 +1,11 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package utils
 
 import (
+	"github.com/pkg/errors"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -17,6 +19,29 @@ func StringInSlice(a string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// RemoveStringFromSlice removes the first occurrence of a from slice.
+func RemoveStringFromSlice(a string, slice []string) []string {
+	for i, str := range slice {
+		if str == a {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
+// RemoveStringsFromSlice removes all occurrences of strings from slice.
+func RemoveStringsFromSlice(slice []string, strings ...string) []string {
+	newSlice := []string{}
+
+	for _, item := range slice {
+		if !StringInSlice(item, strings) {
+			newSlice = append(newSlice, item)
+		}
+	}
+
+	return newSlice
 }
 
 func StringArrayIntersection(arr1, arr2 []string) []string {
@@ -97,4 +122,53 @@ func GetHostnameFromSiteURL(siteURL string) string {
 	}
 
 	return u.Hostname()
+}
+
+type RequestCache struct {
+	Data []byte
+	Date string
+	Key  string
+}
+
+// Fetch JSON data from the notices server
+// if skip is passed, does a fetch without touching the cache
+func GetUrlWithCache(url string, cache *RequestCache, skip bool) ([]byte, error) {
+	// Build a GET Request, including optional If-None-Match header.
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+	if !skip && cache.Data != nil {
+		req.Header.Add("If-None-Match", cache.Key)
+		req.Header.Add("If-Modified-Since", cache.Date)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+	defer resp.Body.Close()
+	// No change from latest known Etag?
+	if resp.StatusCode == http.StatusNotModified {
+		return cache.Data, nil
+	}
+
+	if resp.StatusCode != 200 {
+		cache.Data = nil
+		return nil, errors.Errorf("Fetching notices failed with status code %d", resp.StatusCode)
+	}
+
+	cache.Data, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		cache.Data = nil
+		return nil, err
+	}
+
+	// If etags headers are missing, ignore.
+	cache.Key = resp.Header.Get("ETag")
+	cache.Date = resp.Header.Get("Date")
+	return cache.Data, err
 }

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config_test
 
@@ -15,9 +15,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
@@ -660,7 +660,7 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"SqlSettings": map[string]interface{}{"DataSourceReplicas": true}}, fs.GetEnvironmentOverrides())
 		// check that on disk config does not include overwritten variable
 		actualConfig := getActualFileConfig(t, path)
-		assert.Equal(t, []string(nil), actualConfig.SqlSettings.DataSourceReplicas)
+		assert.Equal(t, []string{}, actualConfig.SqlSettings.DataSourceReplicas)
 	})
 
 	t.Run("do not persist environment variables - string slice beginning with slice of three", func(t *testing.T) {
@@ -924,6 +924,14 @@ func TestFileSetFile(t *testing.T) {
 		require.Equal(t, []byte("new file"), data)
 	})
 
+	t.Run("should set right permissions", func(t *testing.T) {
+		absolutePath := filepath.Join(filepath.Dir(path), "new")
+		err := fs.SetFile(absolutePath, []byte("data"))
+		require.NoError(t, err)
+		fi, err := os.Stat(absolutePath)
+		require.NoError(t, err)
+		require.Equal(t, os.FileMode(0600), fi.Mode().Perm())
+	})
 }
 
 func TestFileHasFile(t *testing.T) {

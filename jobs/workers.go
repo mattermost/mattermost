@@ -1,14 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package jobs
 
 import (
 	"sync"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/configservice"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/services/configservice"
 )
 
 type Workers struct {
@@ -23,6 +23,10 @@ type Workers struct {
 	LdapSync                 model.Worker
 	Migrations               model.Worker
 	Plugins                  model.Worker
+	BleveIndexing            model.Worker
+	ExpiryNotify             model.Worker
+	ProductNotices           model.Worker
+	ActiveUsers              model.Worker
 
 	listenerId string
 }
@@ -61,6 +65,21 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Plugins = pluginsInterface.MakeWorker()
 	}
 
+	if bleveIndexerInterface := srv.BleveIndexer; bleveIndexerInterface != nil {
+		workers.BleveIndexing = bleveIndexerInterface.MakeWorker()
+	}
+
+	if expiryNotifyInterface := srv.ExpiryNotify; expiryNotifyInterface != nil {
+		workers.ExpiryNotify = expiryNotifyInterface.MakeWorker()
+	}
+
+	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
+		workers.ActiveUsers = activeUsersInterface.MakeWorker()
+	}
+
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		workers.ProductNotices = productNoticesInterface.MakeWorker()
+	}
 	return workers
 }
 
@@ -94,6 +113,22 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Plugins != nil {
 			go workers.Plugins.Run()
+		}
+
+		if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing && *workers.ConfigService.Config().BleveSettings.IndexDir != "" {
+			go workers.BleveIndexing.Run()
+		}
+
+		if workers.ExpiryNotify != nil {
+			go workers.ExpiryNotify.Run()
+		}
+
+		if workers.ActiveUsers != nil {
+			go workers.ActiveUsers.Run()
+		}
+
+		if workers.ProductNotices != nil {
+			go workers.ProductNotices.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -146,6 +181,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.LdapSync.Stop()
 		}
 	}
+
+	if workers.BleveIndexing != nil {
+		if !*oldConfig.BleveSettings.EnableIndexing && *newConfig.BleveSettings.EnableIndexing {
+			go workers.BleveIndexing.Run()
+		} else if *oldConfig.BleveSettings.EnableIndexing && !*newConfig.BleveSettings.EnableIndexing {
+			workers.BleveIndexing.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
@@ -179,6 +222,21 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Plugins != nil {
 		workers.Plugins.Stop()
+	}
+
+	if workers.BleveIndexing != nil && *workers.ConfigService.Config().BleveSettings.EnableIndexing {
+		workers.BleveIndexing.Stop()
+	}
+
+	if workers.ExpiryNotify != nil {
+		workers.ExpiryNotify.Stop()
+	}
+
+	if workers.ActiveUsers != nil {
+		workers.ActiveUsers.Stop()
+	}
+	if workers.ProductNotices != nil {
+		workers.ProductNotices.Stop()
 	}
 
 	mlog.Info("Stopped workers")

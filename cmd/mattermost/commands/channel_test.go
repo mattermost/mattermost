@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -7,15 +7,14 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestJoinChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -30,28 +29,60 @@ func TestJoinChannel(t *testing.T) {
 }
 
 func TestRemoveChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
 
-	th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should fail because channel does not exist", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
+	})
 
-	// should fail because channel does not exist
-	require.Error(t, th.RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
+	t.Run("should remove user from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		isMember, _ := th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.True(t, isMember)
 
-	time.Sleep(time.Second)
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		isMember, _ = th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.False(t, isMember)
+	})
 
-	th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should not fail removing non member user from channel", func(t *testing.T) {
+		isMember, _ := th.App.Srv().Store.Channel().UserBelongsToChannels(th.BasicUser2.Id, []string{channel.Id})
+		assert.False(t, isMember)
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	})
 
-	time.Sleep(time.Second)
+	t.Run("should throw error if both --all-users flag and user email are passed", func(t *testing.T) {
+		require.Error(t, th.RunCommand(t, "channel", "remove", "--all-users", th.BasicUser.Email))
+	})
 
-	// Leaving twice should succeed
-	th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+	t.Run("should remove all users from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email)
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		count, _ := th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(2))
+
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, "--all-users")
+		count, _ = th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(0))
+	})
+
+	t.Run("should remove multiple users from channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email)
+		th.CheckCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+		count, _ := th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(2))
+
+		th.CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser.Email, th.BasicUser2.Email)
+		count, _ = th.App.Srv().Store.Channel().GetMemberCount(channel.Id, false)
+		assert.Equal(t, count, int64(0))
+	})
 }
 
 func TestMoveChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team1 := th.BasicTeam
@@ -77,7 +108,7 @@ func TestMoveChannel(t *testing.T) {
 }
 
 func TestListChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -100,7 +131,7 @@ func TestListChannels(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -113,20 +144,71 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestCreateChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
-	name := "name" + id
+	commonName := "name" + id
+	team, _ := th.App.Srv().Store.Team().GetByName(th.BasicTeam.Name)
 
-	th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name)
+	t.Run("should create public channel", func(t *testing.T) {
+		th.CheckCommand(t, "channel", "create", "--display_name", commonName, "--team", th.BasicTeam.Name, "--name", commonName)
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, commonName, false)
+		assert.Equal(t, commonName, channel.Name)
+		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+	})
 
-	name = name + "-private"
-	th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--private", "--name", name)
+	t.Run("should create private channel", func(t *testing.T) {
+		name := commonName + "-private"
+		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--private")
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
+		assert.Equal(t, name, channel.Name)
+		assert.Equal(t, model.CHANNEL_PRIVATE, channel.Type)
+	})
+
+	t.Run("should create channel with header and purpose", func(t *testing.T) {
+		name := commonName + "-withhp"
+		th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name, "--header", "this is a header", "--purpose", "this is the purpose")
+		channel, _ := th.App.Srv().Store.Channel().GetByName(team.Id, name, false)
+		assert.Equal(t, name, channel.Name)
+		assert.Equal(t, model.CHANNEL_OPEN, channel.Type)
+		assert.Equal(t, "this is a header", channel.Header)
+		assert.Equal(t, "this is the purpose", channel.Purpose)
+	})
+
+	t.Run("should not create channel if name already exists on the same team", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "channel", "create", "--display_name", commonName, "--team", th.BasicTeam.Name, "--name", commonName)
+		require.Error(t, err)
+		require.Contains(t, output, "A channel with that name already exists on the same team.")
+	})
+
+	t.Run("should not create channel without display name", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "channel", "create", "--display_name", "", "--team", th.BasicTeam.Name, "--name", commonName)
+		require.Error(t, err)
+		require.Contains(t, output, "Display Name is required")
+	})
+
+	t.Run("should not create channel without name", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "channel", "create", "--display_name", commonName, "--team", th.BasicTeam.Name, "--name", "")
+		require.Error(t, err)
+		require.Contains(t, output, "Name is required")
+	})
+
+	t.Run("should not create channel without team", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "channel", "create", "--display_name", commonName, "--team", "", "--name", commonName)
+		require.Error(t, err)
+		require.Contains(t, output, "Team is required")
+	})
+
+	t.Run("should not create channel with unexisting team", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "channel", "create", "--display_name", commonName, "--team", th.BasicTeam.Name+"-unexisting", "--name", commonName)
+		require.Error(t, err)
+		require.Contains(t, output, "Unable to find team:")
+	})
 }
 
 func TestRenameChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -139,7 +221,7 @@ func TestRenameChannel(t *testing.T) {
 }
 
 func Test_searchChannelCmdF(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.CreatePublicChannel()
@@ -226,4 +308,31 @@ func Test_searchChannelCmdF(t *testing.T) {
 			assert.Contains(t, th.CheckCommand(t, test.Args...), test.Expected)
 		})
 	}
+}
+
+func TestModifyChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel1 := th.CreatePrivateChannel()
+	channel2 := th.CreatePrivateChannel()
+
+	th.CheckCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel1.Name, "--username", th.BasicUser2.Email)
+	res, err := th.App.Srv().Store.Channel().Get(channel1.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, model.CHANNEL_OPEN, res.Type)
+
+	// should fail because user doesn't exist
+	require.Error(t, th.RunCommand(t, "channel", "modify", "--public", th.BasicTeam.Name+":"+channel2.Name, "--username", "idonotexist"))
+
+	pchannel1 := th.CreatePublicChannel()
+	pchannel2 := th.CreatePublicChannel()
+
+	th.CheckCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel1.Name, "--username", th.BasicUser2.Email)
+	res, err = th.App.Srv().Store.Channel().Get(pchannel1.Id, false)
+	require.Nil(t, err)
+	assert.Equal(t, model.CHANNEL_PRIVATE, res.Type)
+
+	// should fail because user doesn't exist
+	require.Error(t, th.RunCommand(t, "channel", "modify", "--private", th.BasicTeam.Name+":"+pchannel2.Name, "--username", "idonotexist"))
 }

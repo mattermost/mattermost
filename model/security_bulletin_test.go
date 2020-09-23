@@ -1,12 +1,13 @@
-// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
 import (
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecurityBulletinToFromJson(t *testing.T) {
@@ -48,5 +49,5 @@ func TestSecurityBulletinsToFromJson(t *testing.T) {
 	s2 := `{"wat"`
 	b2 := SecurityBulletinsFromJson(strings.NewReader(s2))
 
-	require.Len(t, b2, 0)
+	require.Empty(t, b2)
 }

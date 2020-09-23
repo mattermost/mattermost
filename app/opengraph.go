@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -11,27 +11,27 @@ import (
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"golang.org/x/net/html/charset"
 
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const MaxOpenGraphResponseSize = 1024 * 1024 * 50
 
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
-	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
+	res, err := a.HTTPService().MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Debug("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 		return nil
 	}
 	defer res.Body.Close()
-	return a.ParseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+	return a.parseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 }
 
-func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
+func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
-		mlog.Warn("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
@@ -40,7 +40,7 @@ func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
-		og = OpenGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
+		og = openGraphDataWithProxyAddedToImageURLs(og, toProxyURL)
 	}
 
 	// The URL should be the link the user provided in their message, not a redirected one.
@@ -103,7 +103,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 	}
 }
 
-func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
+func openGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxyURL func(string) string) *opengraph.OpenGraph {
 	for _, image := range ogdata.Images {
 		var url string
 		if image.SecureURL != "" {

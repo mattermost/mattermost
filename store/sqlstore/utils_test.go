@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package sqlstore
 
 import (
@@ -30,6 +33,24 @@ func TestMapStringsToQueryParams(t *testing.T) {
 	})
 }
 
+var keys string
+var params map[string]interface{}
+
+func BenchmarkMapStringsToQueryParams(b *testing.B) {
+	b.Run("one item", func(b *testing.B) {
+		input := []string{"apple"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Fruit")
+		}
+	})
+	b.Run("multiple items", func(b *testing.B) {
+		input := []string{"carrot", "tomato", "potato"}
+		for i := 0; i < b.N; i++ {
+			keys, params = MapStringsToQueryParams(input, "Vegetable")
+		}
+	})
+}
+
 func TestSanitizeSearchTerm(t *testing.T) {
 	term := "test"
 	result := sanitizeSearchTerm(term, "\\")
@@ -54,4 +75,31 @@ func TestSanitizeSearchTerm(t *testing.T) {
 	expected = "test*_*%"
 	result = sanitizeSearchTerm(term, "*")
 	require.Equal(t, result, expected)
+}
+
+func TestRemoveNonAlphaNumericUnquotedTerms(t *testing.T) {
+	const (
+		sep           = " "
+		chineseHello  = "你好"
+		japaneseHello = "こんにちは"
+	)
+	tests := []struct {
+		term string
+		want string
+		name string
+	}{
+		{term: "", want: "", name: "empty"},
+		{term: "h", want: "h", name: "singleChar"},
+		{term: "hello", want: "hello", name: "multiChar"},
+		{term: `hel*lo "**" **& hello`, want: `hel*lo "**" hello`, name: "quoted_unquoted_english"},
+		{term: japaneseHello + chineseHello, want: japaneseHello + chineseHello, name: "japanese_chinese"},
+		{term: japaneseHello + ` "*" ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: `quoted_japanese_and_chinese`},
+		{term: japaneseHello + ` "*" &&* ` + chineseHello, want: japaneseHello + ` "*" ` + chineseHello, name: "quoted_unquoted_japanese_and_chinese"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := removeNonAlphaNumericUnquotedTerms(test.term, sep)
+			require.Equal(t, test.want, got)
+		})
+	}
 }

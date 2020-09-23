@@ -89,6 +89,11 @@ func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
 		return strings.Fields(afterVersion)[0]
 	}
 
+	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
+		afterVersion := userAgentString[index+len("mmctl/"):]
+		return strings.Fields(afterVersion)[0]
+	}
+
 	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
 		afterVersion := userAgentString[index+len("Franz/"):]
 		return strings.Fields(afterVersion)[0]
@@ -120,6 +125,10 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 
 	if strings.Contains(userAgentString, "Mattermost") {
 		return "Desktop App"
+	}
+
+	if strings.Contains(userAgentString, "mmctl") {
+		return "mmctl"
 	}
 
 	if browser == uasurfer.BrowserIE && ua.Browser.Version.Major > 11 {

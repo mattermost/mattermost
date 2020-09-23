@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -28,12 +28,6 @@ func TestChannelMemberIsValid(t *testing.T) {
 
 	o.NotifyProps = GetDefaultChannelNotifyProps()
 	o.UserId = NewId()
-	/*o.Roles = "missing"
-	o.NotifyProps = GetDefaultChannelNotifyProps()
-	o.UserId = NewId()
-	if err := o.IsValid(); err == nil {
-		t.Fatal("should be invalid")
-	}*/
 
 	o.NotifyProps["desktop"] = "junk"
 	require.Error(t, o.IsValid(), "should be invalid")

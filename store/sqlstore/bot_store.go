@@ -1,36 +1,40 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
+	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+
+	"github.com/pkg/errors"
 )
 
 // bot is a subset of the model.Bot type, omitting the model.User fields.
 type bot struct {
-	UserId      string `json:"user_id"`
-	Description string `json:"description"`
-	OwnerId     string `json:"owner_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	UserId         string `json:"user_id"`
+	Description    string `json:"description"`
+	OwnerId        string `json:"owner_id"`
+	LastIconUpdate int64  `json:"last_icon_update"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
 }
 
 func botFromModel(b *model.Bot) *bot {
 	return &bot{
-		UserId:      b.UserId,
-		Description: b.Description,
-		OwnerId:     b.OwnerId,
-		CreateAt:    b.CreateAt,
-		UpdateAt:    b.UpdateAt,
-		DeleteAt:    b.DeleteAt,
+		UserId:         b.UserId,
+		Description:    b.Description,
+		OwnerId:        b.OwnerId,
+		LastIconUpdate: b.LastIconUpdate,
+		CreateAt:       b.CreateAt,
+		UpdateAt:       b.UpdateAt,
+		DeleteAt:       b.DeleteAt,
 	}
 }
 
@@ -42,8 +46,8 @@ type SqlBotStore struct {
 	metrics einterfaces.MetricsInterface
 }
 
-// NewSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
-func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
+// newSqlBotStore creates an instance of SqlBotStore, registering the table schema in question.
+func newSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.BotStore {
 	us := &SqlBotStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
@@ -59,24 +63,11 @@ func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) sto
 	return us
 }
 
-func (us SqlBotStore) CreateIndexesIfNotExists() {
-}
-
-// traceBot is a helper function for adding to a bot trace when logging.
-func traceBot(bot *model.Bot, extra map[string]interface{}) map[string]interface{} {
-	trace := make(map[string]interface{})
-	for key, value := range bot.Trace() {
-		trace[key] = value
-	}
-	for key, value := range extra {
-		trace[key] = value
-	}
-
-	return trace
+func (us SqlBotStore) createIndexesIfNotExists() {
 }
 
 // Get fetches the given bot in the database.
-func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, error) {
 	var excludeDeletedSql = "AND b.DeleteAt = 0"
 	if includeDeleted {
 		excludeDeletedSql = ""
@@ -89,6 +80,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 			u.FirstName AS DisplayName,
 			b.Description,
 			b.OwnerId,
+			COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			b.CreateAt,
 			b.UpdateAt,
 			b.DeleteAt
@@ -103,16 +95,16 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, *m
 
 	var bot *model.Bot
 	if err := us.GetReplica().SelectOne(&bot, query, map[string]interface{}{"user_id": botUserId}); err == sql.ErrNoRows {
-		return nil, model.MakeBotNotFoundError(botUserId)
+		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
-		return nil, model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "selectone: user_id=%s", botUserId)
 	}
 
 	return bot, nil
 }
 
 // GetAll fetches from all bots in the database.
-func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
 	params := map[string]interface{}{
 		"offset": options.Page * options.PerPage,
 		"limit":  options.PerPage,
@@ -145,6 +137,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 			    u.FirstName AS DisplayName,
 			    b.Description,
 			    b.OwnerId,
+			    COALESCE(b.LastIconUpdate, 0) AS LastIconUpdate,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt
@@ -165,7 +158,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 
 	var bots []*model.Bot
 	if _, err := us.GetReplica().Select(&bots, sql, params); err != nil {
-		return nil, model.NewAppError("SqlBotStore.GetAll", "store.sql_bot.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "select")
 	}
 
 	return bots, nil
@@ -173,16 +166,16 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, *model
 
 // Save persists a new bot to the database.
 // It assumes the corresponding user was saved via the user store.
-func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 	bot = bot.Clone()
 	bot.PreSave()
 
-	if err := bot.IsValid(); err != nil {
+	if err := bot.IsValid(); err != nil { // TODO: change to return error in v6.
 		return nil, err
 	}
 
 	if err := us.GetMaster().Insert(botFromModel(bot)); err != nil {
-		return nil, model.NewAppError("SqlBotStore.Save", "store.sql_bot.save.app_error", bot.Trace(), err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "insert: user_id=%s", bot.UserId)
 	}
 
 	return bot, nil
@@ -190,11 +183,11 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, *model.AppError) {
 
 // Update persists an updated bot to the database.
 // It assumes the corresponding user was updated via the user store.
-func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
+func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	bot = bot.Clone()
 
 	bot.PreUpdate()
-	if err := bot.IsValid(); err != nil {
+	if err := bot.IsValid(); err != nil { // TODO: needs to return error in v6
 		return nil, err
 	}
 
@@ -205,14 +198,15 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 
 	oldBot.Description = bot.Description
 	oldBot.OwnerId = bot.OwnerId
+	oldBot.LastIconUpdate = bot.LastIconUpdate
 	oldBot.UpdateAt = bot.UpdateAt
 	oldBot.DeleteAt = bot.DeleteAt
 	bot = oldBot
 
 	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {
-		return nil, model.NewAppError("SqlBotStore.Update", "store.sql_bot.update.updating.app_error", bot.Trace(), err.Error(), http.StatusInternalServerError)
-	} else if count != 1 {
-		return nil, model.NewAppError("SqlBotStore.Update", "store.sql_bot.update.app_error", traceBot(bot, map[string]interface{}{"count": count}), "", http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)
+	} else if count > 1 {
+		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
 	}
 
 	return bot, nil
@@ -220,10 +214,10 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 
 // PermanentDelete removes the bot from the database altogether.
 // If the corresponding user is to be deleted, it must be done via the user store.
-func (us SqlBotStore) PermanentDelete(botUserId string) *model.AppError {
+func (us SqlBotStore) PermanentDelete(botUserId string) error {
 	query := "DELETE FROM Bots WHERE UserId = :user_id"
 	if _, err := us.GetMaster().Exec(query, map[string]interface{}{"user_id": botUserId}); err != nil {
-		return model.NewAppError("SqlBotStore.Update", "store.sql_bot.delete.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusBadRequest)
+		return store.NewErrInvalidInput("Bot", "UserId", botUserId)
 	}
 	return nil
 }

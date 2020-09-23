@@ -1,27 +1,25 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
 import (
 	"database/sql"
-	"net/http"
-	"strconv"
+	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-)
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
-const (
-	MISSING_STATUS_ERROR = "store.sql_status.get.missing.app_error"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type SqlStatusStore struct {
 	SqlStore
 }
 
-func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
+func newSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	s := &SqlStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -34,27 +32,27 @@ func NewSqlStatusStore(sqlStore SqlStore) store.StatusStore {
 	return s
 }
 
-func (s SqlStatusStore) CreateIndexesIfNotExists() {
+func (s SqlStatusStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_user_id", "Status", "UserId")
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
-func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+func (s SqlStatusStore) SaveOrUpdate(status *model.Status) error {
 	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
 		if _, err := s.GetMaster().Update(status); err != nil {
-			return model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "failed to update Status")
 		}
 	} else {
 		if err := s.GetMaster().Insert(status); err != nil {
 			if !(strings.Contains(err.Error(), "for key 'PRIMARY'") && strings.Contains(err.Error(), "Duplicate entry")) {
-				return model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return errors.Wrap(err, "failed in save Status")
 			}
 		}
 	}
 	return nil
 }
 
-func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+func (s SqlStatusStore) Get(userId string) (*model.Status, error) {
 	var status model.Status
 
 	if err := s.GetReplica().SelectOne(&status,
@@ -65,52 +63,61 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
 		WHERE
 			UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("Status", fmt.Sprintf("userId=%s", userId))
 		}
-		return nil, model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to get Status with userId=%s", userId)
 	}
 	return &status, nil
 }
 
-func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
-	props := make(map[string]interface{})
-	idQuery := ""
-
-	for index, userId := range userIds {
-		if len(idQuery) > 0 {
-			idQuery += ", "
-		}
-
-		props["userId"+strconv.Itoa(index)] = userId
-		idQuery += ":userId" + strconv.Itoa(index)
+func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, error) {
+	query := s.getQueryBuilder().
+		Select("UserId, Status, Manual, LastActivityAt").
+		From("Status").
+		Where(sq.Eq{"UserId": userIds})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "status_tosql")
 	}
-
+	rows, err := s.GetReplica().Db.Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Statuses")
+	}
 	var statuses []*model.Status
-	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE UserId IN ("+idQuery+")", props); err != nil {
-		return nil, model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	defer rows.Close()
+	for rows.Next() {
+		var status model.Status
+		if err = rows.Scan(&status.UserId, &status.Status, &status.Manual, &status.LastActivityAt); err != nil {
+			return nil, errors.Wrap(err, "unable to scan from rows")
+		}
+		statuses = append(statuses, &status)
 	}
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed while iterating over rows")
+	}
+
 	return statuses, nil
 }
 
-func (s SqlStatusStore) ResetAll() *model.AppError {
+func (s SqlStatusStore) ResetAll() error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
-		return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to update Statuses")
 	}
 	return nil
 }
 
-func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, error) {
 	time := model.GetMillis() - (1000 * 60 * 60 * 24)
 	count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time})
 	if err != nil {
-		return count, model.NewAppError("SqlStatusStore.GetTotalActiveUsersCount", "store.sql_status.get_total_active_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return count, errors.Wrap(err, "failed to count active users")
 	}
 	return count, nil
 }
 
-func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) *model.AppError {
+func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) error {
 	if _, err := s.GetMaster().Exec("UPDATE Status SET LastActivityAt = :Time WHERE UserId = :UserId", map[string]interface{}{"UserId": userId, "Time": lastActivityAt}); err != nil {
-		return model.NewAppError("SqlStatusStore.UpdateLastActivityAt", "store.sql_status.update_last_activity_at.app_error", nil, "", http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to update last activity for userId=%s", userId)
 	}
 
 	return nil

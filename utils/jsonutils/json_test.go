@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package jsonutils_test
 
@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/utils/jsonutils"
+	"github.com/mattermost/mattermost-server/v5/utils/jsonutils"
 )
 
 func TestHumanizeJsonError(t *testing.T) {

@@ -1,5 +1,5 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -21,7 +21,7 @@ type TermsOfService struct {
 }
 
 func (t *TermsOfService) IsValid() *AppError {
-	if len(t.Id) != 26 {
+	if !IsValidId(t.Id) {
 		return InvalidTermsOfServiceError("id", "")
 	}
 
@@ -29,7 +29,7 @@ func (t *TermsOfService) IsValid() *AppError {
 		return InvalidTermsOfServiceError("create_at", t.Id)
 	}
 
-	if len(t.UserId) != 26 {
+	if !IsValidId(t.UserId) {
 		return InvalidTermsOfServiceError("user_id", t.Id)
 	}
 

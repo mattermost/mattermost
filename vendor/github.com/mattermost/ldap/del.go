@@ -6,10 +6,9 @@
 package ldap
 
 import (
-	"errors"
 	"log"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // DelRequest implements an LDAP deletion request
@@ -20,15 +19,20 @@ type DelRequest struct {
 	Controls []Control
 }
 
-func (d DelRequest) encode() *ber.Packet {
-	request := ber.Encode(ber.ClassApplication, ber.TypePrimitive, ApplicationDelRequest, d.DN, "Del Request")
-	request.Data.Write([]byte(d.DN))
-	return request
+func (req *DelRequest) appendTo(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypePrimitive, ApplicationDelRequest, req.DN, "Del Request")
+	pkt.Data.Write([]byte(req.DN))
+
+	envelope.AppendChild(pkt)
+	if len(req.Controls) > 0 {
+		envelope.AppendChild(encodeControls(req.Controls))
+	}
+
+	return nil
 }
 
 // NewDelRequest creates a delete request for the given DN and controls
-func NewDelRequest(DN string,
-	Controls []Control) *DelRequest {
+func NewDelRequest(DN string, Controls []Control) *DelRequest {
 	return &DelRequest{
 		DN:       DN,
 		Controls: Controls,
@@ -37,37 +41,15 @@ func NewDelRequest(DN string,
 
 // Del executes the given delete request
 func (l *Conn) Del(delRequest *DelRequest) error {
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
-	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, l.nextMessageID(), "MessageID"))
-	packet.AppendChild(delRequest.encode())
-	if len(delRequest.Controls) > 0 {
-		packet.AppendChild(encodeControls(delRequest.Controls))
-	}
-
-	l.Debug.PrintPacket(packet)
-
-	msgCtx, err := l.sendMessage(packet)
+	msgCtx, err := l.doRequest(delRequest)
 	if err != nil {
 		return err
 	}
 	defer l.finishMessage(msgCtx)
 
-	l.Debug.Printf("%d: waiting for response", msgCtx.id)
-	packetResponse, ok := <-msgCtx.responses
-	if !ok {
-		return NewError(ErrorNetwork, errors.New("ldap: response channel closed"))
-	}
-	packet, err = packetResponse.ReadPacket()
-	l.Debug.Printf("%d: got response %p", msgCtx.id, packet)
+	packet, err := l.readPacket(msgCtx)
 	if err != nil {
 		return err
-	}
-
-	if l.Debug {
-		if err := addLDAPDescriptions(packet); err != nil {
-			return err
-		}
-		ber.PrintPacket(packet)
 	}
 
 	if packet.Children[1].Tag == ApplicationDelResponse {
@@ -78,7 +60,5 @@ func (l *Conn) Del(delRequest *DelRequest) error {
 	} else {
 		log.Printf("Unexpected Response: %d", packet.Children[1].Tag)
 	}
-
-	l.Debug.Printf("%d: returning", msgCtx.id)
 	return nil
 }

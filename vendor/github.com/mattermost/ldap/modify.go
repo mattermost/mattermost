@@ -26,10 +26,9 @@
 package ldap
 
 import (
-	"errors"
 	"log"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // Change operation choices
@@ -84,40 +83,43 @@ type ModifyRequest struct {
 }
 
 // Add appends the given attribute to the list of changes to be made
-func (m *ModifyRequest) Add(attrType string, attrVals []string) {
-	m.appendChange(AddAttribute, attrType, attrVals)
+func (req *ModifyRequest) Add(attrType string, attrVals []string) {
+	req.appendChange(AddAttribute, attrType, attrVals)
 }
 
 // Delete appends the given attribute to the list of changes to be made
-func (m *ModifyRequest) Delete(attrType string, attrVals []string) {
-	m.appendChange(DeleteAttribute, attrType, attrVals)
+func (req *ModifyRequest) Delete(attrType string, attrVals []string) {
+	req.appendChange(DeleteAttribute, attrType, attrVals)
 }
 
 // Replace appends the given attribute to the list of changes to be made
-func (m *ModifyRequest) Replace(attrType string, attrVals []string) {
-	m.appendChange(ReplaceAttribute, attrType, attrVals)
+func (req *ModifyRequest) Replace(attrType string, attrVals []string) {
+	req.appendChange(ReplaceAttribute, attrType, attrVals)
 }
 
-func (m *ModifyRequest) appendChange(operation uint, attrType string, attrVals []string) {
-	m.Changes = append(m.Changes, Change{operation, PartialAttribute{Type: attrType, Vals: attrVals}})
+func (req *ModifyRequest) appendChange(operation uint, attrType string, attrVals []string) {
+	req.Changes = append(req.Changes, Change{operation, PartialAttribute{Type: attrType, Vals: attrVals}})
 }
 
-func (m ModifyRequest) encode() *ber.Packet {
-	request := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationModifyRequest, nil, "Modify Request")
-	request.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, m.DN, "DN"))
+func (req *ModifyRequest) appendTo(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationModifyRequest, nil, "Modify Request")
+	pkt.AppendChild(ber.NewString(ber.ClassUniversal, ber.TypePrimitive, ber.TagOctetString, req.DN, "DN"))
 	changes := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Changes")
-	for _, change := range m.Changes {
+	for _, change := range req.Changes {
 		changes.AppendChild(change.encode())
 	}
-	request.AppendChild(changes)
-	return request
+	pkt.AppendChild(changes)
+
+	envelope.AppendChild(pkt)
+	if len(req.Controls) > 0 {
+		envelope.AppendChild(encodeControls(req.Controls))
+	}
+
+	return nil
 }
 
 // NewModifyRequest creates a modify request for the given DN
-func NewModifyRequest(
-	dn string,
-	controls []Control,
-) *ModifyRequest {
+func NewModifyRequest(dn string, controls []Control) *ModifyRequest {
 	return &ModifyRequest{
 		DN:       dn,
 		Controls: controls,
@@ -126,37 +128,15 @@ func NewModifyRequest(
 
 // Modify performs the ModifyRequest
 func (l *Conn) Modify(modifyRequest *ModifyRequest) error {
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
-	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, l.nextMessageID(), "MessageID"))
-	packet.AppendChild(modifyRequest.encode())
-	if len(modifyRequest.Controls) > 0 {
-		packet.AppendChild(encodeControls(modifyRequest.Controls))
-	}
-
-	l.Debug.PrintPacket(packet)
-
-	msgCtx, err := l.sendMessage(packet)
+	msgCtx, err := l.doRequest(modifyRequest)
 	if err != nil {
 		return err
 	}
 	defer l.finishMessage(msgCtx)
 
-	l.Debug.Printf("%d: waiting for response", msgCtx.id)
-	packetResponse, ok := <-msgCtx.responses
-	if !ok {
-		return NewError(ErrorNetwork, errors.New("ldap: response channel closed"))
-	}
-	packet, err = packetResponse.ReadPacket()
-	l.Debug.Printf("%d: got response %p", msgCtx.id, packet)
+	packet, err := l.readPacket(msgCtx)
 	if err != nil {
 		return err
-	}
-
-	if l.Debug {
-		if err := addLDAPDescriptions(packet); err != nil {
-			return err
-		}
-		ber.PrintPacket(packet)
 	}
 
 	if packet.Children[1].Tag == ApplicationModifyResponse {
@@ -167,7 +147,5 @@ func (l *Conn) Modify(modifyRequest *ModifyRequest) error {
 	} else {
 		log.Printf("Unexpected Response: %d", packet.Children[1].Tag)
 	}
-
-	l.Debug.Printf("%d: returning", msgCtx.id)
 	return nil
 }

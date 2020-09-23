@@ -6,10 +6,9 @@
 package ldap
 
 import (
-	"errors"
 	"fmt"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 const (
@@ -36,25 +35,28 @@ type PasswordModifyResult struct {
 	Referral string
 }
 
-func (r *PasswordModifyRequest) encode() (*ber.Packet, error) {
-	request := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationExtendedRequest, nil, "Password Modify Extended Operation")
-	request.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, passwordModifyOID, "Extended Request Name: Password Modify OID"))
+func (req *PasswordModifyRequest) appendTo(envelope *ber.Packet) error {
+	pkt := ber.Encode(ber.ClassApplication, ber.TypeConstructed, ApplicationExtendedRequest, nil, "Password Modify Extended Operation")
+	pkt.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, passwordModifyOID, "Extended Request Name: Password Modify OID"))
+
 	extendedRequestValue := ber.Encode(ber.ClassContext, ber.TypePrimitive, 1, nil, "Extended Request Value: Password Modify Request")
 	passwordModifyRequestValue := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "Password Modify Request")
-	if r.UserIdentity != "" {
-		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, r.UserIdentity, "User Identity"))
+	if req.UserIdentity != "" {
+		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 0, req.UserIdentity, "User Identity"))
 	}
-	if r.OldPassword != "" {
-		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 1, r.OldPassword, "Old Password"))
+	if req.OldPassword != "" {
+		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 1, req.OldPassword, "Old Password"))
 	}
-	if r.NewPassword != "" {
-		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 2, r.NewPassword, "New Password"))
+	if req.NewPassword != "" {
+		passwordModifyRequestValue.AppendChild(ber.NewString(ber.ClassContext, ber.TypePrimitive, 2, req.NewPassword, "New Password"))
 	}
-
 	extendedRequestValue.AppendChild(passwordModifyRequestValue)
-	request.AppendChild(extendedRequestValue)
 
-	return request, nil
+	pkt.AppendChild(extendedRequestValue)
+
+	envelope.AppendChild(pkt)
+
+	return nil
 }
 
 // NewPasswordModifyRequest creates a new PasswordModifyRequest
@@ -84,46 +86,18 @@ func NewPasswordModifyRequest(userIdentity string, oldPassword string, newPasswo
 
 // PasswordModify performs the modification request
 func (l *Conn) PasswordModify(passwordModifyRequest *PasswordModifyRequest) (*PasswordModifyResult, error) {
-	packet := ber.Encode(ber.ClassUniversal, ber.TypeConstructed, ber.TagSequence, nil, "LDAP Request")
-	packet.AppendChild(ber.NewInteger(ber.ClassUniversal, ber.TypePrimitive, ber.TagInteger, l.nextMessageID(), "MessageID"))
-
-	encodedPasswordModifyRequest, err := passwordModifyRequest.encode()
-	if err != nil {
-		return nil, err
-	}
-	packet.AppendChild(encodedPasswordModifyRequest)
-
-	l.Debug.PrintPacket(packet)
-
-	msgCtx, err := l.sendMessage(packet)
+	msgCtx, err := l.doRequest(passwordModifyRequest)
 	if err != nil {
 		return nil, err
 	}
 	defer l.finishMessage(msgCtx)
 
-	result := &PasswordModifyResult{}
-
-	l.Debug.Printf("%d: waiting for response", msgCtx.id)
-	packetResponse, ok := <-msgCtx.responses
-	if !ok {
-		return nil, NewError(ErrorNetwork, errors.New("ldap: response channel closed"))
-	}
-	packet, err = packetResponse.ReadPacket()
-	l.Debug.Printf("%d: got response %p", msgCtx.id, packet)
+	packet, err := l.readPacket(msgCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	if packet == nil {
-		return nil, NewError(ErrorNetwork, errors.New("ldap: could not retrieve message"))
-	}
-
-	if l.Debug {
-		if err := addLDAPDescriptions(packet); err != nil {
-			return nil, err
-		}
-		ber.PrintPacket(packet)
-	}
+	result := &PasswordModifyResult{}
 
 	if packet.Children[1].Tag == ApplicationExtendedResponse {
 		err := GetLDAPError(packet)

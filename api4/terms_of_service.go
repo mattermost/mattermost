@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitTermsOfService() {
@@ -26,19 +27,22 @@ func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if license := c.App.License(); license == nil || !*license.Features.CustomTermsOfService {
+	if license := c.App.Srv().License(); license == nil || !*license.Features.CustomTermsOfService {
 		c.Err = model.NewAppError("createTermsOfService", "api.create_terms_of_service.custom_terms_of_service_disabled.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createTermsOfService", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
-	userId := c.App.Session.UserId
+	userId := c.App.Session().UserId
 
 	if text == "" {
 		c.Err = model.NewAppError("Config.IsValid", "api.create_terms_of_service.empty_text.app_error", nil, "", http.StatusBadRequest)
@@ -62,4 +66,5 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(oldTermsOfService.ToJson()))
 	}
+	auditRec.Success()
 }

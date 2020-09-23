@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package filesstore
 
@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 type FileBackendTestSuite struct {
@@ -27,7 +27,7 @@ type FileBackendTestSuite struct {
 
 func TestLocalFileBackendTestSuite(t *testing.T) {
 	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
+	// The global logger will be stomped by apps initializing but that's fine for testing. Ideally this won't happen.
 	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
 		EnableConsole: true,
 		ConsoleJson:   true,
@@ -63,7 +63,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 
 	s3Port := os.Getenv("CI_MINIO_PORT")
 	if s3Port == "" {
-		s3Port = "9001"
+		s3Port = "9000"
 	}
 
 	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
@@ -76,6 +76,7 @@ func runBackendTest(t *testing.T, encrypt bool) {
 			AmazonS3Bucket:          model.NewString(model.MINIO_BUCKET),
 			AmazonS3Region:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3PathPrefix:      model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 			AmazonS3SSE:             model.NewBool(encrypt),
 		},
@@ -88,6 +89,9 @@ func (s *FileBackendTestSuite) SetupTest() {
 	backend, err := NewFileBackend(&s.settings, true)
 	require.Nil(s.T(), err)
 	s.backend = backend
+
+	// This is needed to create the bucket if it doesn't exist.
+	s.Nil(s.backend.TestConnection())
 }
 
 func (s *FileBackendTestSuite) TestConnection() {
@@ -157,11 +161,14 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	s.Nil(err)
 	defer s.backend.RemoveFile(path2)
 
-	_, err = s.backend.ReadFile(path1)
+	data1, err := s.backend.ReadFile(path1)
 	s.Nil(err)
 
-	_, err = s.backend.ReadFile(path2)
+	data2, err := s.backend.ReadFile(path2)
 	s.Nil(err)
+
+	s.Equal(b, data1)
+	s.Equal(b, data2)
 }
 
 func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
@@ -201,8 +208,10 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	_, err = s.backend.ReadFile(path1)
 	s.Error(err)
 
-	_, err = s.backend.ReadFile(path2)
+	data, err := s.backend.ReadFile(path2)
 	s.Nil(err)
+
+	s.Equal(b, data)
 }
 
 func (s *FileBackendTestSuite) TestRemoveFile() {
@@ -301,4 +310,57 @@ func (s *FileBackendTestSuite) TestRemoveDirectory() {
 	s.Error(err)
 	_, err = s.backend.ReadFile("tests2/asdf")
 	s.Error(err)
+}
+
+func (s *FileBackendTestSuite) TestAppendFile() {
+	s.Run("should fail if target file is missing", func() {
+		path := "tests/" + model.NewId()
+		b := make([]byte, 1024)
+		written, err := s.backend.AppendFile(bytes.NewReader(b), path)
+		s.Error(err)
+		s.Zero(written)
+	})
+
+	s.Run("should correctly append the data", func() {
+		// First part needs to be at least 5MB for the S3 implementation to work.
+		size := 5 * 1024 * 1024
+		b := make([]byte, size)
+		for i := range b {
+			b[i] = 'A'
+		}
+		path := "tests/" + model.NewId()
+
+		written, err := s.backend.WriteFile(bytes.NewReader(b), path)
+		s.Nil(err)
+		s.EqualValues(len(b), written)
+		defer s.backend.RemoveFile(path)
+
+		b2 := make([]byte, 1024)
+		for i := range b2 {
+			b2[i] = 'B'
+		}
+
+		written, err = s.backend.AppendFile(bytes.NewReader(b2), path)
+		s.Nil(err)
+		s.EqualValues(int64(len(b2)), written)
+
+		read, err := s.backend.ReadFile(path)
+		s.Nil(err)
+		s.EqualValues(len(b)+len(b2), len(read))
+		s.EqualValues(append(b, b2...), read)
+
+		b3 := make([]byte, 1024)
+		for i := range b3 {
+			b3[i] = 'C'
+		}
+
+		written, err = s.backend.AppendFile(bytes.NewReader(b3), path)
+		s.Nil(err)
+		s.EqualValues(int64(len(b3)), written)
+
+		read, err = s.backend.ReadFile(path)
+		s.Nil(err)
+		s.EqualValues(len(b)+len(b2)+len(b3), len(read))
+		s.EqualValues(append(append(b, b2...), b3...), read)
+	})
 }

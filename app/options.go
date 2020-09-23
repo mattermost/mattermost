@@ -1,14 +1,14 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/v5/config"
+	"github.com/mattermost/mattermost-server/v5/store"
 )
 
 type Option func(s *Server) error
@@ -16,7 +16,7 @@ type Option func(s *Server) error
 // By default, the app will use the store specified by the configuration. This allows you to
 // construct an app with a different store.
 //
-// The override parameter must be either a store.Store or func(App) store.Store.
+// The override parameter must be either a store.Store or func(App) store.Store().
 func StoreOverride(override interface{}) Option {
 	return func(s *Server) error {
 		switch o := override.(type) {
@@ -78,8 +78,8 @@ func StartMetrics(s *Server) error {
 	return nil
 }
 
-func StartElasticsearch(s *Server) error {
-	s.startElasticsearch = true
+func StartSearchEngine(s *Server) error {
+	s.startSearchEngine = true
 
 	return nil
 }
@@ -96,23 +96,7 @@ type AppOptionCreator func() []AppOption
 
 func ServerConnector(s *Server) AppOption {
 	return func(a *App) {
-		a.Srv = s
-
-		a.Log = s.Log
-		a.NotificationsLog = s.NotificationsLog
-
-		a.AccountMigration = s.AccountMigration
-		a.Cluster = s.Cluster
-		a.Compliance = s.Compliance
-		a.DataRetention = s.DataRetention
-		a.Elasticsearch = s.Elasticsearch
-		a.Ldap = s.Ldap
-		a.MessageExport = s.MessageExport
-		a.Metrics = s.Metrics
-		a.Saml = s.Saml
-
-		a.HTTPService = s.HTTPService
-		a.ImageProxy = s.ImageProxy
-		a.Timezones = s.timezones
+		a.srv = s
+		a.searchEngine = s.SearchEngine
 	}
 }

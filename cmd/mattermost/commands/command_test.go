@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
@@ -131,7 +131,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestShowCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	url := "http://localhost:8000/test-command"
@@ -179,7 +179,7 @@ func TestDeleteCommand(t *testing.T) {
 	// Skipped due to v5.6 RC build issues.
 	t.Skip()
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	url := "http://localhost:8000/test-command"
 	team := th.BasicTeam
@@ -215,7 +215,7 @@ func TestDeleteCommand(t *testing.T) {
 }
 
 func TestModifyCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// set config

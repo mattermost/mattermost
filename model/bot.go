@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -8,27 +8,30 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
 const (
-	BOT_DISPLAY_NAME_MAX_RUNES = USER_FIRST_NAME_MAX_RUNES
-	BOT_DESCRIPTION_MAX_RUNES  = 1024
-	BOT_CREATOR_ID_MAX_RUNES   = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
+	BOT_DISPLAY_NAME_MAX_RUNES   = USER_FIRST_NAME_MAX_RUNES
+	BOT_DESCRIPTION_MAX_RUNES    = 1024
+	BOT_CREATOR_ID_MAX_RUNES     = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
+	BOT_WARN_METRIC_BOT_USERNAME = "mattermost-advisor"
 )
 
 // Bot is a special type of User meant for programmatic interactions.
 // Note that the primary key of a bot is the UserId, and matches the primary key of the
 // corresponding user.
 type Bot struct {
-	UserId      string `json:"user_id"`
-	Username    string `json:"username"`
-	DisplayName string `json:"display_name,omitempty"`
-	Description string `json:"description,omitempty"`
-	OwnerId     string `json:"owner_id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
+	UserId         string `json:"user_id"`
+	Username       string `json:"username"`
+	DisplayName    string `json:"display_name,omitempty"`
+	Description    string `json:"description,omitempty"`
+	OwnerId        string `json:"owner_id"`
+	LastIconUpdate int64  `json:"last_icon_update,omitempty"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
 }
 
 // BotPatch is a description of what fields to update on an existing bot.
@@ -216,4 +219,16 @@ func (l *BotList) Etag() string {
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
 	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+}
+
+func IsBotDMChannel(channel *Channel, botUserID string) bool {
+	if channel.Type != CHANNEL_DIRECT {
+		return false
+	}
+
+	if !strings.HasPrefix(channel.Name, botUserID+"__") && !strings.HasSuffix(channel.Name, "__"+botUserID) {
+		return false
+	}
+
+	return true
 }

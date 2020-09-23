@@ -1,12 +1,12 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitStatus() {
@@ -45,6 +45,13 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, userId := range userIds {
+		if len(userId) != 26 {
+			c.SetInvalidParam("user_ids")
+			return
+		}
+	}
+
 	// No permission check required
 
 	statusMap, err := c.App.GetUserStatusesByIds(userIds)
@@ -74,7 +81,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(*c.App.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

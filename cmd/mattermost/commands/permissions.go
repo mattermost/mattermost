@@ -1,5 +1,5 @@
-// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -10,7 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var PermissionsCmd = &cobra.Command{
@@ -86,6 +87,9 @@ func resetPermissionsCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Changes will take effect gradually as the server caches expire.")
 	CommandPrettyPrintln("For the changes to take effect immediately, go to the Mattermost System Console > General > Configuration and click \"Purge All Caches\".")
 
+	auditRec := a.MakeAuditRecord("resetPermissions", audit.Success)
+	a.LogAuditRec(auditRec, nil)
+
 	return nil
 }
 
@@ -94,15 +98,18 @@ func exportPermissionsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
-	if license := a.License(); license == nil {
+	if license := a.Srv().License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
 	if err = a.ExportPermissions(os.Stdout); err != nil {
 		return errors.New(err.Error())
 	}
+
+	auditRec := a.MakeAuditRecord("exportPermissions", audit.Success)
+	a.LogAuditRec(auditRec, nil)
 
 	return nil
 }
@@ -112,9 +119,9 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
-	if license := a.License(); license == nil {
+	if license := a.Srv().License(); license == nil {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -123,6 +130,10 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer file.Close()
+
+	auditRec := a.MakeAuditRecord("importPermissions", audit.Success)
+	auditRec.AddMeta("file", args[0])
+	a.LogAuditRec(auditRec, nil)
 
 	return a.ImportPermissions(file)
 }

@@ -31,17 +31,7 @@ package ccitt
 
 // modeDecodeTable represents Table 1 and the End-of-Line code.
 //
-//                              +=XXXXX
-// b015                       +-+
-//                            | +=v0010
-// b014                     +-+
-//                          | +=XXXXX
-// b013                   +-+
-//                        | +=XXXXX
-// b012                 +-+
-//                      | +=XXXXX
-// b011               +-+
-//                    | +=XXXXX
+//                    +=XXXXX
 // b009             +-+
 //                  | +=v0009
 // b007           +-+
@@ -72,13 +62,8 @@ var modeDecodeTable = [...][2]int16{
 	6:  {7, 8},
 	7:  {9, 10},
 	8:  {^7, ^4},
-	9:  {11, ^9},
+	9:  {0, ^9},
 	10: {^8, ^5},
-	11: {12, 0},
-	12: {13, 0},
-	13: {14, 0},
-	14: {15, 0},
-	15: {0, ^10},
 }
 
 // whiteDecodeTable represents Tables 2 and 3 for a white run.
@@ -733,17 +718,16 @@ type bitString struct {
 
 // modeEncodeTable represents Table 1 and the End-of-Line code.
 var modeEncodeTable = [...]bitString{
-	0:  {0x0001, 4},  // "0001"
-	1:  {0x0001, 3},  // "001"
-	2:  {0x0001, 1},  // "1"
-	3:  {0x0003, 3},  // "011"
-	4:  {0x0003, 6},  // "000011"
-	5:  {0x0003, 7},  // "0000011"
-	6:  {0x0002, 3},  // "010"
-	7:  {0x0002, 6},  // "000010"
-	8:  {0x0002, 7},  // "0000010"
-	9:  {0x0001, 7},  // "0000001"
-	10: {0x0001, 12}, // "000000000001"
+	0: {0x0001, 4}, // "0001"
+	1: {0x0001, 3}, // "001"
+	2: {0x0001, 1}, // "1"
+	3: {0x0003, 3}, // "011"
+	4: {0x0003, 6}, // "000011"
+	5: {0x0003, 7}, // "0000011"
+	6: {0x0002, 3}, // "010"
+	7: {0x0002, 6}, // "000010"
+	8: {0x0002, 7}, // "0000010"
+	9: {0x0001, 7}, // "0000001"
 }
 
 // whiteEncodeTable2 represents Table 2 for a white run.
@@ -983,7 +967,6 @@ const (
 	modeVL2         // Vertical-Left-2
 	modeVL3         // Vertical-Left-3
 	modeExt         // Extension
-	modeEOL         // End-of-Line
 )
 
 // COPY PASTE table.go END

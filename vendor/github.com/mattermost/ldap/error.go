@@ -3,7 +3,7 @@ package ldap
 import (
 	"fmt"
 
-	"gopkg.in/asn1-ber.v1"
+	ber "github.com/go-asn1-ber/asn1-ber"
 )
 
 // LDAP Result Codes
@@ -196,7 +196,9 @@ func (e *Error) Error() string {
 func GetLDAPError(packet *ber.Packet) error {
 	if packet == nil {
 		return &Error{ResultCode: ErrorUnexpectedResponse, Err: fmt.Errorf("Empty packet")}
-	} else if len(packet.Children) >= 2 {
+	}
+
+	if len(packet.Children) >= 2 {
 		response := packet.Children[1]
 		if response == nil {
 			return &Error{ResultCode: ErrorUnexpectedResponse, Err: fmt.Errorf("Empty response in packet")}

@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package sqlstore
 
 import (
+	"os"
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchtest"
+	"github.com/mattermost/mattermost-server/v5/store/storetest"
 )
 
 type storeType struct {
@@ -21,6 +23,13 @@ type storeType struct {
 
 var storeTypes []*storeType
 
+func newStoreType(name, driver string) *storeType {
+	return &storeType{
+		Name:        name,
+		SqlSettings: storetest.MakeSqlSettings(driver),
+	}
+}
+
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -30,7 +39,30 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store)
+		})
+	}
+}
+
+func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store, *searchtest.SearchTestEngine)) {
+	defer func() {
+		if err := recover(); err != nil {
+			tearDownStores()
+			panic(err)
+		}
+	}()
+
+	for _, st := range storeTypes {
+		st := st
+		searchTestEngine := &searchtest.SearchTestEngine{
+			Driver: *st.SqlSettings.DriverName,
+		}
+
+		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, searchTestEngine) })
 	}
 }
 
@@ -43,19 +75,32 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 	}()
 	for _, st := range storeTypes {
 		st := st
-		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+		t.Run(st.Name, func(t *testing.T) {
+			if testing.Short() {
+				t.SkipNow()
+			}
+			f(t, st.Store, st.SqlSupplier)
+		})
 	}
 }
 
 func initStores() {
-	storeTypes = append(storeTypes, &storeType{
-		Name:        "MySQL",
-		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
-	})
-	storeTypes = append(storeTypes, &storeType{
-		Name:        "PostgreSQL",
-		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
-	})
+	if testing.Short() {
+		return
+	}
+	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
+	// So we just run the tests for the current database set.
+	if os.Getenv("IS_CI") == "true" {
+		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
+		case "mysql":
+			storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL))
+		case "postgres":
+			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+		}
+	} else {
+		storeTypes = append(storeTypes, newStoreType("MySQL", model.DATABASE_DRIVER_MYSQL),
+			newStoreType("PostgreSQL", model.DATABASE_DRIVER_POSTGRES))
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -81,6 +126,9 @@ func initStores() {
 var tearDownStoresOnce sync.Once
 
 func tearDownStores() {
+	if testing.Short() {
+		return
+	}
 	tearDownStoresOnce.Do(func() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
@@ -89,6 +137,9 @@ func tearDownStores() {
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
+				}
+				if st.SqlSettings != nil {
+					storetest.CleanupSqlSettings(st.SqlSettings)
 				}
 				wg.Done()
 			}()

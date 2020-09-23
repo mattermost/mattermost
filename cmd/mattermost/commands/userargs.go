@@ -1,11 +1,11 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func getUsersFromUserArgs(a *app.App, userArgs []string) []*model.User {
@@ -18,17 +18,17 @@ func getUsersFromUserArgs(a *app.App, userArgs []string) []*model.User {
 }
 
 func getUserFromUserArg(a *app.App, userArg string) *model.User {
-	user, _ := a.Srv.Store.User().GetByEmail(userArg)
+	user, _ := a.Srv().Store.User().GetByEmail(userArg)
 
 	if user == nil {
 		var err *model.AppError
-		if user, err = a.Srv.Store.User().GetByUsername(userArg); err == nil {
+		if user, err = a.Srv().Store.User().GetByUsername(userArg); err == nil {
 			return user
 		}
 	}
 
 	if user == nil {
-		user, _ = a.Srv.Store.User().Get(userArg)
+		user, _ = a.Srv().Store.User().Get(userArg)
 	}
 
 	return user

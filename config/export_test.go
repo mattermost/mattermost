@@ -1,10 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package config
 
 import (
 	"io"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // MarshalConfig exposes the internal marshalConfig to tests only.

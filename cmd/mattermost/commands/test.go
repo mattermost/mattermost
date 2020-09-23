@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -12,10 +12,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v5/wsapi"
 	"github.com/spf13/cobra"
 )
 
@@ -50,16 +50,16 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.Srv.Start()
+	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.AppOptions, a.Srv.Router)
-	wsapi.Init(a, a.Srv.WebSocketRouter)
+	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
 
@@ -71,16 +71,16 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.Srv.Start()
+	serverErr := a.Srv().Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.AppOptions, a.Srv.Router)
-	wsapi.Init(a, a.Srv.WebSocketRouter)
+	api4.Init(a, a.Srv().AppOptions, a.Srv().Router)
+	wsapi.Init(a.Srv())
 	a.UpdateConfig(setupClientTests)
 
 	c := make(chan os.Signal, 1)

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package plugin
 
@@ -10,22 +10,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPluginHealthCheck(t *testing.T) {
 	for name, f := range map[string]func(*testing.T){
-		"PluginHealthCheck_Success": testPluginHealthCheck_Success,
-		"PluginHealthCheck_Panic":   testPluginHealthCheck_Panic,
+		"PluginHealthCheck_Success": testPluginHealthCheckSuccess,
+		"PluginHealthCheck_Panic":   testPluginHealthCheckPanic,
 	} {
 		t.Run(name, f)
 	}
 }
 
-func testPluginHealthCheck_Success(t *testing.T) {
+func testPluginHealthCheckSuccess(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -35,7 +35,7 @@ func testPluginHealthCheck_Success(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
 
 		type MyPlugin struct {
@@ -58,15 +58,16 @@ func testPluginHealthCheck_Success(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
+	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
 	require.Nil(t, err)
 }
 
-func testPluginHealthCheck_Panic(t *testing.T) {
+func testPluginHealthCheckPanic(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
@@ -76,8 +77,8 @@ func testPluginHealthCheck_Panic(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/mattermost-server/model"
-			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/v5/model"
+			"github.com/mattermost/mattermost-server/v5/plugin"
 		)
 
 		type MyPlugin struct {
@@ -104,9 +105,10 @@ func testPluginHealthCheck_Panic(t *testing.T) {
 		EnableFile:    false,
 	})
 
-	supervisor, err := newSupervisor(bundle, log, nil)
+	supervisor, err := newSupervisor(bundle, nil, log, nil)
 	require.Nil(t, err)
 	require.NotNil(t, supervisor)
+	defer supervisor.Shutdown()
 
 	err = supervisor.PerformHealthCheck()
 	require.Nil(t, err)
@@ -118,39 +120,36 @@ func testPluginHealthCheck_Panic(t *testing.T) {
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {
-	bundle := &model.BundleInfo{}
-	rp := newRegisteredPlugin(bundle)
-	require.NotNil(t, rp)
-
 	// No failures, don't restart
-	result := shouldDeactivatePlugin(rp)
+	ftime := []time.Time{}
+	result := shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 
 	now := time.Now()
 
 	// Failures are recent enough to restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10*2))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10*2))
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, true, result)
 
 	// Failures are too spaced out to warrant a restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2))
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*2))
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW*1))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 
 	// Not enough failures are present to warrant a restart
-	rp = newRegisteredPlugin(bundle)
-	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION/10))
-	rp.failTimeStamps = append(rp.failTimeStamps, now)
+	ftime = []time.Time{}
+	ftime = append(ftime, now.Add(-HEALTH_CHECK_DEACTIVATION_WINDOW/10))
+	ftime = append(ftime, now)
 
-	result = shouldDeactivatePlugin(rp)
+	result = shouldDeactivatePlugin(ftime)
 	require.Equal(t, false, result)
 }

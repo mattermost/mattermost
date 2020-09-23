@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package app
 
@@ -7,25 +7,26 @@ import (
 	"fmt"
 	"html"
 	"html/template"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/mattermost/go-i18n/i18n"
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
-func (a *App) sendNotificationEmail(notification *postNotification, user *model.User, team *model.Team) *model.AppError {
-	channel := notification.channel
-	post := notification.post
+func (a *App) sendNotificationEmail(notification *PostNotification, user *model.User, team *model.Team) *model.AppError {
+	channel := notification.Channel
+	post := notification.Post
 
 	if channel.IsGroupOrDirect() {
-		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		teams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
 		if err != nil {
-			return err
+			return model.NewAppError("sendNotificationEmail", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
@@ -48,7 +49,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
+		if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
@@ -57,7 +58,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 		}
 
 		if sendBatched {
-			if err := a.AddNotificationEmailToBatch(user, post, team); err == nil {
+			if err := a.Srv().EmailService.AddNotificationEmailToBatch(user, post, team); err == nil {
 				return nil
 			}
 		}
@@ -68,7 +69,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	translateFunc := utils.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
+	if data, err := a.Srv().Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
 		useMilitaryTime = true
 	} else {
 		useMilitaryTime = data.Value == "true"
@@ -80,7 +81,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
+	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
@@ -95,17 +96,17 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
 	}
 
-	teamURL := a.GetSiteURL() + "/" + team.Name
-	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
+	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
+	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
-	a.Srv.Go(func() {
-		if err := a.SendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+	a.Srv().Go(func() {
+		if err := a.Srv().EmailService.sendNotificationMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			mlog.Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(err))
 		}
 	})
 
-	if a.Metrics != nil {
-		a.Metrics.IncrementPostSentEmail()
+	if a.Metrics() != nil {
+		a.Metrics().IncrementPostSentEmail()
 	}
 
 	return nil
@@ -162,24 +163,24 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, teamURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
+func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_full", recipient.Locale)
 		postMessage := a.GetMessageForNotification(post, translateFunc)
 		postMessage = html.EscapeString(postMessage)
-		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
+		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, landingURL)
 		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
-		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
+		bodyPage = a.Srv().EmailService.newEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
 	bodyPage.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
-		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
+		bodyPage.Props["TeamLink"] = landingURL + "/pl/" + post.Id
 	} else {
-		bodyPage.Props["TeamLink"] = teamURL
+		bodyPage.Props["TeamLink"] = landingURL
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
@@ -312,13 +313,13 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 	return postMessage
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (s *Server) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
-	infos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false, true)
+	infos, err := s.Store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
@@ -342,4 +343,8 @@ func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.Tra
 		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
 	}
 	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
+}
+
+func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().GetMessageForNotification(post, translateFunc)
 }

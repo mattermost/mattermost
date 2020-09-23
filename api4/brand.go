@@ -1,5 +1,5 @@
-// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package api4
 
@@ -8,7 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (api *API) InitBrand() {
@@ -57,8 +58,11 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	auditRec := c.MakeAuditRecord("uploadBrandImage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_EDIT_BRAND) {
+		c.SetPermissionError(model.PERMISSION_EDIT_BRAND)
 		return
 	}
 
@@ -67,6 +71,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
@@ -74,8 +79,11 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	auditRec := c.MakeAuditRecord("deleteBrandImage", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_EDIT_BRAND) {
+		c.SetPermissionError(model.PERMISSION_EDIT_BRAND)
 		return
 	}
 
@@ -83,6 +91,8 @@ func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

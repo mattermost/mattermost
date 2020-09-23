@@ -1,14 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// See LICENSE.txt for license information.
 
 package config
 
 import (
+	"encoding/json"
+	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 // desanitize replaces fake settings with their actual values.
@@ -32,6 +34,14 @@ func desanitize(actual, target *model.Config) {
 		target.GitLabSettings.Secret = actual.GitLabSettings.Secret
 	}
 
+	if target.GoogleSettings.Secret != nil && *target.GoogleSettings.Secret == model.FAKE_SETTING {
+		target.GoogleSettings.Secret = actual.GoogleSettings.Secret
+	}
+
+	if target.Office365Settings.Secret != nil && *target.Office365Settings.Secret == model.FAKE_SETTING {
+		target.Office365Settings.Secret = actual.Office365Settings.Secret
+	}
+
 	if *target.SqlSettings.DataSource == model.FAKE_SETTING {
 		*target.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
@@ -43,14 +53,28 @@ func desanitize(actual, target *model.Config) {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
-	target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
-	for i := range target.SqlSettings.DataSourceReplicas {
-		target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
+	if len(target.SqlSettings.DataSourceReplicas) == len(actual.SqlSettings.DataSourceReplicas) {
+		for i, value := range target.SqlSettings.DataSourceReplicas {
+			if value == model.FAKE_SETTING {
+				target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
+			}
+		}
 	}
 
-	target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
-	for i := range target.SqlSettings.DataSourceSearchReplicas {
-		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
+	if len(target.SqlSettings.DataSourceSearchReplicas) == len(actual.SqlSettings.DataSourceSearchReplicas) {
+		for i, value := range target.SqlSettings.DataSourceSearchReplicas {
+			if value == model.FAKE_SETTING {
+				target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
+			}
+		}
+	}
+
+	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
+		*target.MessageExportSettings.GlobalRelaySettings.SmtpPassword = *actual.MessageExportSettings.GlobalRelaySettings.SmtpPassword
+	}
+
+	if target.ServiceSettings.GfycatApiSecret != nil && *target.ServiceSettings.GfycatApiSecret == model.FAKE_SETTING {
+		*target.ServiceSettings.GfycatApiSecret = *actual.ServiceSettings.GfycatApiSecret
 	}
 }
 
@@ -66,7 +90,7 @@ func fixConfig(cfg *model.Config) bool {
 
 	// Ensure the directory for a local file store has a trailing slash.
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
+		if *cfg.FileSettings.Directory != "" && !strings.HasSuffix(*cfg.FileSettings.Directory, "/") {
 			*cfg.FileSettings.Directory += "/"
 			changed = true
 		}
@@ -160,4 +184,63 @@ func stripPassword(dsn, schema string) string {
 	}
 
 	return prefix + dsn[:i+1] + dsn[j:]
+}
+
+func IsJsonMap(data string) bool {
+	var m map[string]interface{}
+	return json.Unmarshal([]byte(data), &m) == nil
+}
+
+func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
+	cfg := make(mlog.LogTargetCfg)
+	err := json.Unmarshal(data, &cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+	r := reflect.ValueOf(obj)
+	var val reflect.Value
+	if r.Kind() == reflect.Map {
+		val = r.MapIndex(reflect.ValueOf(path[0]))
+		if val.IsValid() {
+			val = val.Elem()
+		}
+	} else {
+		val = r.FieldByName(path[0])
+	}
+
+	if !val.IsValid() {
+		return nil, false
+	}
+
+	switch {
+	case len(path) == 1:
+		return val.Interface(), true
+	case val.Kind() == reflect.Struct:
+		return GetValueByPath(path[1:], val.Interface())
+	case val.Kind() == reflect.Map:
+		remainingPath := strings.Join(path[1:], ".")
+		mapIter := val.MapRange()
+		for mapIter.Next() {
+			key := mapIter.Key().String()
+			if strings.HasPrefix(remainingPath, key) {
+				i := strings.Count(key, ".") + 2 // number of dots + a dot on each side
+				mapVal := mapIter.Value()
+				// if no sub field path specified, return the object
+				if len(path[i:]) == 0 {
+					return mapVal.Interface(), true
+				}
+				data := mapVal.Interface()
+				if mapVal.Kind() == reflect.Ptr {
+					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
+				}
+				// pass subpath
+				return GetValueByPath(path[i:], data)
+			}
+		}
+	}
+	return nil, false
 }

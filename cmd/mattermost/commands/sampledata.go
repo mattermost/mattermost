@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package commands
 
@@ -16,8 +16,10 @@ import (
 	"time"
 
 	"github.com/icrowley/fake"
-	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/app"
+	"github.com/mattermost/mattermost-server/v5/audit"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -50,15 +52,6 @@ func init() {
 	SampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	SampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 	RootCmd.AddCommand(SampleDataCmd)
-}
-
-func sliceIncludes(vs []string, t string) bool {
-	for _, v := range vs {
-		if v == t {
-			return true
-		}
-	}
-	return false
 }
 
 func randomPastTime(seconds int) int64 {
@@ -150,7 +143,7 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	defer a.Shutdown()
+	defer a.Srv().Shutdown()
 
 	seed, err := command.Flags().GetInt64("seed")
 	if err != nil {
@@ -247,6 +240,10 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		return errors.New("You can't have more channel memberships than channels per team.")
 	}
 
+	if users < 6 && groupChannels > 0 {
+		return errors.New("You can't have group channels generation with less than 6 users. Use --group-channels 0 or increase the number of users.")
+	}
+
 	var bulkFile *os.File
 	switch bulk {
 	case "":
@@ -325,6 +322,11 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		user2 := allUsers[rand.Intn(len(allUsers))]
 		channelLine := createDirectChannel([]string{user1, user2})
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < directChannels; i++ {
+		user1 := allUsers[rand.Intn(len(allUsers))]
+		user2 := allUsers[rand.Intn(len(allUsers))]
 
 		dates := sortedRandomDates(postsPerDirectChannel)
 		for j := 0; j < postsPerDirectChannel; j++ {
@@ -338,12 +340,23 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		totalUsers := 3 + rand.Intn(3)
 		for len(users) < totalUsers {
 			user := allUsers[rand.Intn(len(allUsers))]
-			if !sliceIncludes(users, user) {
+			if !utils.StringInSlice(user, users) {
 				users = append(users, user)
 			}
 		}
 		channelLine := createDirectChannel(users)
 		encoder.Encode(channelLine)
+	}
+
+	for i := 0; i < groupChannels; i++ {
+		users := []string{}
+		totalUsers := 3 + rand.Intn(3)
+		for len(users) < totalUsers {
+			user := allUsers[rand.Intn(len(allUsers))]
+			if !utils.StringInSlice(user, users) {
+				users = append(users, user)
+			}
+		}
 
 		dates := sortedRandomDates(postsPerGroupChannel)
 		for j := 0; j < postsPerGroupChannel; j++ {
@@ -357,10 +370,15 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 		if err != nil {
 			return errors.New("Unable to read correctly the temporary file.")
 		}
+
+		var importErr *model.AppError
 		importErr, lineNumber := a.BulkImport(bulkFile, false, workers)
 		if importErr != nil {
 			return fmt.Errorf("%s: %s, %s (line: %d)", importErr.Where, importErr.Message, importErr.DetailedError, lineNumber)
 		}
+		auditRec := a.MakeAuditRecord("sampleData", audit.Success)
+		auditRec.AddMeta("file", bulkFile.Name())
+		a.LogAuditRec(auditRec, nil)
 	} else if bulk != "-" {
 		err := bulkFile.Close()
 		if err != nil {
@@ -549,9 +567,18 @@ func createChannelMembership(channelName string, guest bool) app.UserChannelImpo
 	}
 }
 
+func getSampleTeamName(idx int) string {
+	for {
+		name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+		if !model.IsReservedTeamName(name) {
+			return name
+		}
+	}
+}
+
 func createTeam(idx int) app.LineImportData {
 	displayName := fake.Word()
-	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
+	name := getSampleTeamName(idx)
 	allowOpenInvite := rand.Intn(2) == 0
 
 	description := fake.Paragraph()
