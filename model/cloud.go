@@ -5,19 +5,19 @@ package model
 
 // Product model represents a product on the cloud system.
 type Product struct {
-	ID             string   `json:"id"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	DollarsPerSeat float64  `json:"dollars_per_seat"`
-	AddOns         []*AddOn `json:"add_ons"`
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Description  string   `json:"description"`
+	PricePerSeat float64  `json:"price_per_seat"`
+	AddOns       []*AddOn `json:"add_ons"`
 }
 
 // AddOn represents an addon to a product.
 type AddOn struct {
-	ID             string  `json:"id"`
-	Name           string  `json:"name"`
-	DisplayName    string  `json:"display_name"`
-	DollarsPerSeat float64 `json:"dollars_per_seat"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	DisplayName  string  `json:"display_name"`
+	PricePerSeat float64 `json:"price_per_seat"`
 }
 
 // StripeSetupIntent represents the SetupIntent model from Stripe for updating payment methods.
