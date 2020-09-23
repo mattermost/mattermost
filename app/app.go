@@ -498,7 +498,7 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 }
 
 func (a *App) setWarnMetricsStatus(status string) *model.AppError {
-	mlog.Debug("Set monitoring sttus for all warn metrics", mlog.String("status", status))
+	mlog.Debug("Set monitoring status for all warn metrics", mlog.String("status", status))
 	for _, warnMetric := range model.WarnMetricsTable {
 		a.setWarnMetricsStatusForId(warnMetric.Id, status)
 	}
