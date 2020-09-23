@@ -3353,7 +3353,7 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 
 	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
 		ok, res := th.Client.InvalidateEmailInvites()
-		require.Equal(t, ok, false)
+		require.Equal(t, false, ok)
 		CheckForbiddenStatus(t, res)
 	})
 
@@ -3361,13 +3361,13 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
 		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
 		ok, res := th.Client.InvalidateEmailInvites()
-		require.Equal(t, ok, true)
+		require.Equal(t, true, ok)
 		CheckOKStatus(t, res)
 	})
 
 	t.Run("OK when request performed by system admin", func(t *testing.T) {
 		ok, res := th.SystemAdminClient.InvalidateEmailInvites()
-		require.Equal(t, ok, true)
+		require.Equal(t, true, ok)
 		CheckOKStatus(t, res)
 	})
 }
