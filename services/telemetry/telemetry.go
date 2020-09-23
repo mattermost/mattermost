@@ -5,7 +5,6 @@ package telemetry
 
 import (
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -321,7 +320,7 @@ func (ts *TelemetryService) trackActivity() {
 		"outgoing_webhooks":            outgoingWebhooksCount,
 	})
 }
-
+/*
 func (ts *TelemetryService) trackConfig() {
 	cfg := ts.srv.Config()
 	ts.sendTelemetry(TRACK_CONFIG_SERVICE, map[string]interface{}{
@@ -765,6 +764,7 @@ func (ts *TelemetryService) trackConfig() {
 		"bulk_indexing_time_window_seconds": *cfg.BleveSettings.BulkIndexingTimeWindowSeconds,
 	})
 }
+*/
 
 func (ts *TelemetryService) trackLicense() {
 	if license := ts.srv.License(); license != nil {

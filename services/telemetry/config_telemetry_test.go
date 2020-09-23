@@ -2,9 +2,6 @@ package telemetry
 
 import (
 	"fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"reflect"
 	"testing"
 
@@ -13,6 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// This is the main test that illustrates the point of this change - if a config setting doesn't have it's telemetry
+// mapping specified this unit test will pass, forcing anyone who adds a new config setting to explicitly set what
+// telemetry is sent for it in order to pass CI.
 func TestMapConfig(t *testing.T) {
 	config := model.Config{}
 	config.SetDefaults()
@@ -36,6 +36,19 @@ func TestMapConfig(t *testing.T) {
 	}
 }
 
+// FIXME: WIP.
+func TestConfigToMap(t *testing.T) {
+	config := model.Config{}
+	config.SetDefaults()
+	config.TeamSettings.ExperimentalDefaultChannels = []string{"Foo", "Bar"}
+
+	data := configToMap(config, "")
+	for k, v := range data {
+		t.Log(fmt.Sprintf("%v: %v", k, v))
+	}
+}
+
+// FIXME: WIP.
 func recursiveBuildConfigList(val reflect.Value, prefix string) []string {
 	var fields []string
 	for i := 0; i < val.Type().NumField(); i++ {
@@ -50,9 +63,9 @@ func recursiveBuildConfigList(val reflect.Value, prefix string) []string {
 	return fields
 }
 
-/*
+// FIXME: WIP.
 func buildTelemetryList() []string {
-	cm := makeConfigMap()
+	cm := makeConfigTelemetryMap()
 	var fieldNames []string
 	for _, fields := range cm {
 		for _, field := range fields {
@@ -60,22 +73,4 @@ func buildTelemetryList() []string {
 		}
 	}
 	return fieldNames
-}
-*/
-
-func buildTelemetryList() []string {
-	fset := token.NewFileSet()
-	file, err := parser.ParseFile(fset, "config_telemetry.go", nil, parser.ParseComments)
-	if err != nil {
-		panic(err)
-	}
-
-	ast.Inspect(file, func(n ast.Node) bool {
-		tp, ok := n.(*ast.DeclStmt)
-		if ok {
-			fmt.Println(tp.Decl)
-		}
-		return true
-	})
-	return []string{}
 }
