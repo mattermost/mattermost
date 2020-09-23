@@ -16,6 +16,14 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: postgres
+  cockroach:
+    container_name: mattermost-cockroach
+    ports:
+      - "8080:8080"
+      - "26257:26257"
+    extends:
+        file: build/docker-compose.common.yml
+        service: cockroach
   minio:
     restart: 'no'
     container_name: mattermost-minio

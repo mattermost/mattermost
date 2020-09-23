@@ -32,6 +32,7 @@ func main() {
 		"openldap":      389,
 		"elasticsearch": 9200,
 		"dejavu":        1358,
+		"cockroach":     26257,
 		"keycloak":      8080,
 	}
 	command := []string{}
