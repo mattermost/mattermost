@@ -131,8 +131,8 @@ func TestActivate(t *testing.T) {
 	t.Run("fail on store action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) *model.AppError {
-			return model.NewAppError("Activate", "mfa.activate.save_active.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
+			return errors.New("failed to update mfa active")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -145,7 +145,7 @@ func TestActivate(t *testing.T) {
 	t.Run("Successful activate", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) *model.AppError {
+		userStoreMock.On("UpdateMfaActive", user.Id, true).Return(func(userId string, active bool) error {
 			return nil
 		})
 		storeMock.On("User").Return(&userStoreMock)
