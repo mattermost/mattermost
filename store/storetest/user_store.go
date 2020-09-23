@@ -1930,13 +1930,13 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	t.Run("get by empty username", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("")
 		require.NotNil(t, err)
-		require.Contains(t, err.Error(), "failed to find User with username")
+		require.IsType(t, &store.ErrNotFound{}, err)
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("unknown")
 		require.NotNil(t, err)
-		require.Contains(t, err.Error(), "failed to find User with username")
+		require.IsType(t, &store.ErrNotFound{}, err)
 	})
 }
 

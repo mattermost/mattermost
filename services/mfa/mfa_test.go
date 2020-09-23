@@ -4,6 +4,7 @@
 package mfa
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -42,8 +43,8 @@ func TestGenerateSecret(t *testing.T) {
 	t.Run("fail on store action fail", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
-			return model.NewAppError("GenerateQrCode", "mfa.generate_qr_code.save_secret.app_error", nil, "", http.StatusInternalServerError)
+		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
+			return errors.New("failed to update mfa secret")
 		})
 		storeMock.On("User").Return(&userStoreMock)
 
@@ -56,7 +57,7 @@ func TestGenerateSecret(t *testing.T) {
 	t.Run("Successful generate secret", func(t *testing.T) {
 		storeMock := mocks.Store{}
 		userStoreMock := mocks.UserStore{}
-		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) *model.AppError {
+		userStoreMock.On("UpdateMfaSecret", user.Id, mock.AnythingOfType("string")).Return(func(userId string, secret string) error {
 			return nil
 		})
 		storeMock.On("User").Return(&userStoreMock)
