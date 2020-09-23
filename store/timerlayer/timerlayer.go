@@ -8,6 +8,7 @@ package timerlayer
 
 import (
 	"context"
+	"github.com/mattermost/gorp"
 	timemodule "time"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
@@ -6766,6 +6767,22 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) Cleanup(postId string, rootId string, userId string) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.Cleanup(postId, rootId, userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Cleanup", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) Delete(postId string) error {
 	start := timemodule.Now()
 
@@ -6844,6 +6861,22 @@ func (s *TimerLayerThreadStore) Update(thread *model.Thread) (*model.Thread, err
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Update", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerThreadStore) UpdateFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
+	start := timemodule.Now()
+
+	err := s.ThreadStore.UpdateFromPosts(transaction, posts)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.UpdateFromPosts", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerTokenStore) Cleanup() {
