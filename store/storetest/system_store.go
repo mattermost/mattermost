@@ -21,6 +21,7 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 	t.Run("InsertIfExists", func(t *testing.T) {
 		testInsertIfExists(t, ss)
 	})
+	t.Run("SaveOrUpdateWithWarnMetricHandling", func(t *testing.T) { testSystemStoreSaveOrUpdateWithWarnMetricHandling(t, ss) })
 }
 
 func testSystemStore(t *testing.T, ss store.Store) {
@@ -53,6 +54,23 @@ func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 
 	err = ss.System().SaveOrUpdate(system)
 	require.Nil(t, err)
+}
+
+func testSystemStoreSaveOrUpdateWithWarnMetricHandling(t *testing.T, ss store.Store) {
+	system := &model.System{Name: model.NewId(), Value: "value"}
+
+	err := ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.NotNil(t, err)
+
+	system.Name = "warn_metric_number_of_active_users_100"
+	err = ss.System().SaveOrUpdateWithWarnMetricHandling(system)
+	require.Nil(t, err)
+
+	_, err = ss.System().GetByName(model.SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY)
+	assert.Nil(t, err)
 }
 
 func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
