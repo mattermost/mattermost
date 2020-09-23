@@ -1424,6 +1424,24 @@ func TestAddMentionKeywordsForUser(t *testing.T) {
 		assert.NotContains(t, keywords["Robert"], user.Id)
 	})
 
+	t.Run("should not add case sensitive first name if enabled but empty First Name", func(t *testing.T) {
+		user := &model.User{
+			Id:        model.NewId(),
+			Username:  "user",
+			FirstName: "",
+			LastName:  "Robert",
+			NotifyProps: map[string]string{
+				model.FIRST_NAME_NOTIFY_PROP: "true",
+			},
+		}
+		channelNotifyProps := map[string]string{}
+
+		keywords := map[string][]string{}
+		addMentionKeywordsForUser(keywords, user, channelNotifyProps, nil, false)
+
+		assert.NotContains(t, keywords[""], user.Id)
+	})
+
 	t.Run("should not add case sensitive first name if disabled", func(t *testing.T) {
 		user := &model.User{
 			Id:        model.NewId(),
