@@ -674,7 +674,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.ExperimentalChannelSidebarOrganization == nil {
-		s.ExperimentalChannelSidebarOrganization = NewString("default_on")
+		s.ExperimentalChannelSidebarOrganization = NewString("always_on")
 	}
 
 	if s.ExperimentalDataPrefetch == nil {
