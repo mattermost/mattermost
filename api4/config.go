@@ -65,7 +65,11 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+	} else {
+		w.Write([]byte(cfg.ToJson()))
+	}
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
