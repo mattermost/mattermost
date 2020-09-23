@@ -2155,6 +2155,26 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Clearing old product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Fetching product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Parsing product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Validating product notice conditions failed"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": ""
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
