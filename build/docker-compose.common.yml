@@ -12,7 +12,7 @@ services:
       MYSQL_USER: mmuser
       MYSQL_DATABASE: mattermost_test
   postgres:
-    image: "postgres:9.4"
+    image: "postgres:10"
     restart: always
     networks:
       - mm-test
