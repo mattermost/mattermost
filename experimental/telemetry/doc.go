@@ -15,4 +15,37 @@
 // If you want to use your own data plane URL, add also this line and
 // make sure the MM_RUDDER_DATA_PLANE_URL environment variable is set.
 //   LDFLAGS += -X "github.com/mattermost/mattermost-plugin-api/experimental/telemetry.rudderDataPlaneURL=$(MM_RUDDER_DATA_PLANE_URL)"
+//
+// In order to use telemetry you should:
+// 1. Add the new fields to the plugin
+//   type Plugin struct {
+//     plugin.MattermostPlugin
+//     ...
+//     telemetryClient telemetry.Client
+//     tracker         telemetry.Tracker
+//   }
+// 2. Start the telemetry client on plugin activate
+//  func (p *Plugin) OnActivate() error {
+//    p.telemetryClient, err = telemetry.NewRudderClient()
+//	  if err != nil {
+//	    p.API.LogWarn("telemetry client not started", "error", err.Error())
+//	  }
+//  }
+// 3. Init and update the tracker on configuration change
+//  func (p *Plugin) OnConfigurationChange() error {
+//    ...
+//    p.tracker = telemetry.NewTracker(p.telemetryClient, p.API.GetDiagnosticId(), p.API.GetServerVersion(), manifest.Id,
+//      manifest.Version, "pluginName", enableDiagnostics, logger)
+//    return nil
+//  }
+// 4. Close the client on plugin deactivate
+//  func (p *Plugin) OnDeactivate() error {
+//	  if p.telemetryClient != nil {
+//	    err := p.telemetryClient.Close()
+//	    if err != nil {
+//	      p.API.LogWarn("OnDeactivate: failed to close telemetryClient", "error", err.Error())
+//	    }
+//	  }
+//	  return nil
+//  }
 package telemetry
