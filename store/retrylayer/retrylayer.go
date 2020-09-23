@@ -39,6 +39,7 @@ type RetryLayer struct {
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
 	PreferenceStore           store.PreferenceStore
+	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
@@ -126,6 +127,10 @@ func (s *RetryLayer) Post() store.PostStore {
 
 func (s *RetryLayer) Preference() store.PreferenceStore {
 	return s.PreferenceStore
+}
+
+func (s *RetryLayer) ProductNotices() store.ProductNoticesStore {
+	return s.ProductNoticesStore
 }
 
 func (s *RetryLayer) Reaction() store.ReactionStore {
@@ -275,6 +280,11 @@ type RetryLayerPostStore struct {
 
 type RetryLayerPreferenceStore struct {
 	store.PreferenceStore
+	Root *RetryLayer
+}
+
+type RetryLayerProductNoticesStore struct {
+	store.ProductNoticesStore
 	Root *RetryLayer
 }
 
@@ -4717,6 +4727,86 @@ func (s *RetryLayerPreferenceStore) Save(preferences *model.Preferences) error {
 
 }
 
+func (s *RetryLayerProductNoticesStore) Clear(notices []string) error {
+
+	tries := 0
+	for {
+		err := s.ProductNoticesStore.Clear(notices)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+
+	tries := 0
+	for {
+		err := s.ProductNoticesStore.ClearOldNotices(currentNotices)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
+func (s *RetryLayerProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeViewState, error) {
+
+	tries := 0
+	for {
+		result, err := s.ProductNoticesStore.GetViews(userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+	}
+
+}
+
+func (s *RetryLayerProductNoticesStore) View(userId string, notices []string) error {
+
+	tries := 0
+	for {
+		err := s.ProductNoticesStore.View(userId, notices)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+	}
+
+}
+
 func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 
 	tries := 0
@@ -8412,6 +8502,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PluginStore = &RetryLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &RetryLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PreferenceStore = &RetryLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
+	newStore.ProductNoticesStore = &RetryLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}

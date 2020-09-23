@@ -62,6 +62,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/restart", api.ApiSessionRequired(restart)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/status", api.ApiSessionRequired(getWarnMetricsStatus)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/warn_metrics/ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.ApiHandler(sendWarnMetricAckEmail)).Methods("POST")
+
+	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getProductNotices)).Methods("GET")
+	api.BaseRoutes.System.Handle("/notices/view", api.ApiSessionRequired(updateViewedProductNotices)).Methods("PUT")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -724,6 +727,45 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = appErr
 	}
 
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	client, parseError := model.NoticeClientTypeFromString(r.URL.Query().Get("client"))
+	if parseError != nil {
+		c.SetInvalidParam("client")
+		return
+	}
+	clientVersion := r.URL.Query().Get("clientVersion")
+	locale := r.URL.Query().Get("locale")
+
+	notices, err := c.App.GetProductNotices(c.App.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+	result, _ := notices.Marshal()
+	_, _ = w.Write(result)
+}
+
+func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("updateViewedProductNotices", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	ids := model.ArrayFromJson(r.Body)
+	err := c.App.UpdateViewedProductNotices(c.App.Session().UserId, ids)
+	if err != nil {
+		c.Err = err
+		return
+	}
 	auditRec.Success()
 	ReturnStatusOK(w)
 }

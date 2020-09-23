@@ -2155,12 +2155,36 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Clearing old product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Fetching product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Parsing product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Validating product notice conditions failed"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": ""
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
   {
     "id": "api.team.add_members.user_denied",
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
   },
   {
     "id": "api.team.add_user_to_team.added",

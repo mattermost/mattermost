@@ -37,6 +37,7 @@ type TimerLayer struct {
 	PluginStore               store.PluginStore
 	PostStore                 store.PostStore
 	PreferenceStore           store.PreferenceStore
+	ProductNoticesStore       store.ProductNoticesStore
 	ReactionStore             store.ReactionStore
 	RoleStore                 store.RoleStore
 	SchemeStore               store.SchemeStore
@@ -124,6 +125,10 @@ func (s *TimerLayer) Post() store.PostStore {
 
 func (s *TimerLayer) Preference() store.PreferenceStore {
 	return s.PreferenceStore
+}
+
+func (s *TimerLayer) ProductNotices() store.ProductNoticesStore {
+	return s.ProductNoticesStore
 }
 
 func (s *TimerLayer) Reaction() store.ReactionStore {
@@ -273,6 +278,11 @@ type TimerLayerPostStore struct {
 
 type TimerLayerPreferenceStore struct {
 	store.PreferenceStore
+	Root *TimerLayer
+}
+
+type TimerLayerProductNoticesStore struct {
+	store.ProductNoticesStore
 	Root *TimerLayer
 }
 
@@ -5026,6 +5036,70 @@ func (s *TimerLayerPreferenceStore) Save(preferences *model.Preferences) error {
 	return err
 }
 
+func (s *TimerLayerProductNoticesStore) Clear(notices []string) error {
+	start := timemodule.Now()
+
+	err := s.ProductNoticesStore.Clear(notices)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.Clear", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerProductNoticesStore) ClearOldNotices(currentNotices *model.ProductNotices) error {
+	start := timemodule.Now()
+
+	err := s.ProductNoticesStore.ClearOldNotices(currentNotices)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.ClearOldNotices", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerProductNoticesStore) GetViews(userId string) ([]model.ProductNoticeViewState, error) {
+	start := timemodule.Now()
+
+	result, err := s.ProductNoticesStore.GetViews(userId)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.GetViews", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerProductNoticesStore) View(userId string, notices []string) error {
+	start := timemodule.Now()
+
+	err := s.ProductNoticesStore.View(userId, notices)
+
+	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ProductNoticesStore.View", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
 	start := timemodule.Now()
 
@@ -8792,6 +8866,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PreferenceStore = &TimerLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
+	newStore.ProductNoticesStore = &TimerLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
