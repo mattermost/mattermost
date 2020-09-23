@@ -49,8 +49,8 @@ func TestDesanitize(t *testing.T) {
 	target.SqlSettings.DataSource = sToP(model.FAKE_SETTING)
 	target.SqlSettings.AtRestEncryptKey = sToP(model.FAKE_SETTING)
 	target.ElasticsearchSettings.Password = sToP(model.FAKE_SETTING)
-	target.SqlSettings.DataSourceReplicas = append(target.SqlSettings.DataSourceReplicas, "old_replica0")
-	target.SqlSettings.DataSourceSearchReplicas = append(target.SqlSettings.DataSourceReplicas, "old_search_replica0")
+	target.SqlSettings.DataSourceReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
+	target.SqlSettings.DataSourceSearchReplicas = []string{model.FAKE_SETTING, model.FAKE_SETTING}
 
 	actualClone := actual.Clone()
 	desanitize(actual, target)

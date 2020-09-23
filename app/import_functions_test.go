@@ -1711,8 +1711,8 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, err := th.App.Srv().Store.Team().GetTeamsForUser(user.Id)
-				require.Nil(t, err)
+				teamMembers, nErr := th.App.Srv().Store.Team().GetTeamsForUser(user.Id)
+				require.Nil(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
 					require.Equal(t, tc.expectedExplicitRoles, teamMembers[0].ExplicitRoles, "Not matching expected explicit roles")

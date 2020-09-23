@@ -1347,11 +1347,17 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	teamMember, err := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
-
-	if err != nil {
-		return nil, err
+	teamMember, nErr := a.Srv().Store.Team().GetMember(channel.TeamId, user.Id)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("AddUserToChannel", "app.team.get_member.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
+
 	if teamMember.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1974,18 +1980,18 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	}()
 
 	cresult := <-sc
-	if cresult.Err != nil {
-		return cresult.Err
-	}
-	uresult := <-uc
-	if uresult.NErr != nil {
+	if cresult.NErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(uresult.NErr, &nfErr):
+		case errors.As(cresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, cresult.NErr.Error(), http.StatusInternalServerError)
 		}
+	}
+	uresult := <-uc
+	if uresult.Err != nil {
+		return uresult.Err
 	}
 	ccresult := <-mcc
 	if ccresult.NErr != nil {
