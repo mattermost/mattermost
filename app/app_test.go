@@ -180,6 +180,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		},
 		"system_admin": allPermissionIDs,
 	}
+	assert.Contains(t, allPermissionIDs, model.PERMISSION_MANAGE_SHARED_CHANNELS.Id, "manage_shared_channels permission not found")
 
 	// Check the migration matches what's expected.
 	for name, permissions := range expected1 {

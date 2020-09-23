@@ -99,6 +99,7 @@ var PERMISSION_USE_CHANNEL_MENTIONS *Permission
 var PERMISSION_USE_GROUP_MENTIONS *Permission
 var PERMISSION_READ_OTHER_USERS_TEAMS *Permission
 var PERMISSION_EDIT_BRAND *Permission
+var PERMISSION_MANAGE_SHARED_CHANNELS *Permission
 
 var PERMISSION_SYSCONSOLE_READ_ABOUT *Permission
 var PERMISSION_SYSCONSOLE_WRITE_ABOUT *Permission
@@ -514,6 +515,12 @@ func initializePermissions() {
 		"delete_others_posts",
 		"authentication.permissions.delete_others_posts.name",
 		"authentication.permissions.delete_others_posts.description",
+		PermissionScopeChannel,
+	}
+	PERMISSION_MANAGE_SHARED_CHANNELS = &Permission{
+		"manage_shared_channels",
+		"authentication.permissions.manage_shared_channels.name",
+		"authentication.permissions.manage_shared_channels.description",
 		PermissionScopeChannel,
 	}
 	PERMISSION_REMOVE_USER_FROM_TEAM = &Permission{
@@ -967,6 +974,7 @@ func initializePermissions() {
 		PERMISSION_DELETE_OTHERS_POSTS,
 		PERMISSION_USE_CHANNEL_MENTIONS,
 		PERMISSION_USE_GROUP_MENTIONS,
+		PERMISSION_MANAGE_SHARED_CHANNELS,
 	}
 
 	DeprecatedPermissions = []*Permission{
