@@ -5748,7 +5748,7 @@
   },
   {
     "id": "ent.ldap.no.users.checkcertificate",
-    "translation": "No LDAP users found. Check user filter or if using certificate authentication, verify certificates are correct."
+    "translation": "No LDAP users found, check your user filter and certificates."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
