@@ -170,7 +170,7 @@ jobs:
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
-            echo Sentry will use version `git rev-parse HEAD`"
+            echo Sentry will use version `git rev-parse HEAD`
             sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
             sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
 
