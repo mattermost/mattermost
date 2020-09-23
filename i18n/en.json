@@ -2155,12 +2155,36 @@
     "translation": "ID Loaded Push Notifications are not configured or supported on this server."
   },
   {
+    "id": "api.system.update_notices.clear_failed",
+    "translation": "Clearing old product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.fetch_failed",
+    "translation": "Fetching product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.parse_failed",
+    "translation": "Parsing product notices failed"
+  },
+  {
+    "id": "api.system.update_notices.validating_failed",
+    "translation": "Validating product notice conditions failed"
+  },
+  {
+    "id": "api.system.update_viewed_notices.failed",
+    "translation": ""
+  },
+  {
     "id": "api.team.add_members.error",
     "translation": "Error adding team member(s)."
   },
   {
     "id": "api.team.add_members.user_denied",
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
+  },
+  {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -4799,12 +4823,20 @@
     "translation": "Unable to count the teams."
   },
   {
+    "id": "app.team.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Failed to retrieve the team members."
+  },
+  {
     "id": "app.team.get.find.app_error",
     "translation": "Unable to find the existing team."
   },
   {
     "id": "app.team.get.finding.app_error",
     "translation": "We encountered an error finding the team."
+  },
+  {
+    "id": "app.team.get_active_member_count.app_error",
+    "translation": "Unable to count the team members."
   },
   {
     "id": "app.team.get_all.app_error",
@@ -4835,6 +4867,38 @@
     "translation": "Unable to find the existing team."
   },
   {
+    "id": "app.team.get_by_scheme.app_error",
+    "translation": "Unable to get the channels for the provided scheme."
+  },
+  {
+    "id": "app.team.get_member.app_error",
+    "translation": "Unable to get the team member."
+  },
+  {
+    "id": "app.team.get_member.missing.app_error",
+    "translation": "No team member found for that user ID and team ID."
+  },
+  {
+    "id": "app.team.get_member_count.app_error",
+    "translation": "Unable to count the team members."
+  },
+  {
+    "id": "app.team.get_members.app_error",
+    "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_members_by_ids.app_error",
+    "translation": "Unable to get the team members."
+  },
+  {
+    "id": "app.team.get_unread.app_error",
+    "translation": "Unable to get the teams unread messages."
+  },
+  {
+    "id": "app.team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user."
+  },
+  {
     "id": "app.team.invite_id.group_constrained.error",
     "translation": "Unable to join a group-constrained team by invite."
   },
@@ -4859,6 +4923,10 @@
     "translation": "Unable to create the new team membership because the team has reached the limit of members"
   },
   {
+    "id": "app.team.migrate_team_members.update.app_error",
+    "translation": "Failed to update the team member."
+  },
+  {
     "id": "app.team.permanent_delete.app_error",
     "translation": "Unable to delete the existing team."
   },
@@ -4867,8 +4935,16 @@
     "translation": "Unable to delete team."
   },
   {
+    "id": "app.team.remove_member.app_error",
+    "translation": "Unable to remove the team member."
+  },
+  {
     "id": "app.team.rename_team.name_occupied",
     "translation": "Unable to rename the team, the name is already in use."
+  },
+  {
+    "id": "app.team.reset_all_team_schemes.app_error",
+    "translation": "We could not reset the team schemes."
   },
   {
     "id": "app.team.save.app_error",
@@ -4877,6 +4953,10 @@
   {
     "id": "app.team.save.existing.app_error",
     "translation": "Must call update for existing team."
+  },
+  {
+    "id": "app.team.save_member.save.app_error",
+    "translation": "Unable to save the team member."
   },
   {
     "id": "app.team.search_all_team.app_error",
@@ -4897,6 +4977,10 @@
   {
     "id": "app.team.update.updating.app_error",
     "translation": "We encountered an error updating the team."
+  },
+  {
+    "id": "app.team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
     "id": "app.terms_of_service.create.app_error",
@@ -7639,100 +7723,8 @@
     "translation": "Searching has been disabled on this server. Please contact your System Administrator."
   },
   {
-    "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
-    "translation": "Unable to get the channel count for the scheme."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error",
-    "translation": "Failed to begin the database transaction."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the team members."
-  },
-  {
-    "id": "store.sql_team.clear_all_custom_role_assignments.update.app_error",
-    "translation": "Failed to update the team member."
-  },
-  {
-    "id": "store.sql_team.get_active_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_by_scheme.app_error",
-    "translation": "Unable to get the channels for the provided scheme."
-  },
-  {
-    "id": "store.sql_team.get_member.app_error",
-    "translation": "Unable to get the team member."
-  },
-  {
-    "id": "store.sql_team.get_member.missing.app_error",
-    "translation": "No team member found for that user ID and team ID."
-  },
-  {
-    "id": "store.sql_team.get_member_count.app_error",
-    "translation": "Unable to count the team members."
-  },
-  {
-    "id": "store.sql_team.get_members.app_error",
-    "translation": "Unable to get the team members."
-  },
-  {
-    "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "Unable to get the team members."
-  },
-  {
-    "id": "store.sql_team.get_unread.app_error",
-    "translation": "Unable to get the teams unread messages."
-  },
-  {
-    "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
-    "translation": "Failed to commit the database transaction."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
-    "translation": "Failed to open the database transaction."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.select.app_error",
-    "translation": " Failed to select the batch of team members."
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.update.app_error",
-    "translation": "Failed to update the team member."
-  },
-  {
-    "id": "store.sql_team.remove_member.app_error",
-    "translation": "Unable to remove the team member."
-  },
-  {
-    "id": "store.sql_team.reset_all_team_schemes.app_error",
-    "translation": "We could not reset the team schemes."
-  },
-  {
     "id": "store.sql_team.save_member.exists.app_error",
     "translation": "A team member with that ID already exists."
-  },
-  {
-    "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Unable to save the team member."
-  },
-  {
-    "id": "store.sql_team.update_last_team_icon_update.app_error",
-    "translation": "Unable to update the date of the last team icon update."
-  },
-  {
-    "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -7905,10 +7897,6 @@
   {
     "id": "store.sql_user.save.existing.app_error",
     "translation": "Must call update for existing user."
-  },
-  {
-    "id": "store.sql_user.save.member_count.app_error",
-    "translation": "Failed to get current team member count."
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",

@@ -98,6 +98,7 @@ type SqlSupplierStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
+	productNotices       store.ProductNoticesStore
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
@@ -170,7 +171,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.role = newSqlRoleStore(supplier)
 	supplier.stores.scheme = newSqlSchemeStore(supplier)
 	supplier.stores.group = newSqlGroupStore(supplier)
-
+	supplier.stores.productNotices = newSqlProductNoticesStore(supplier)
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
 		mlog.Critical("Error creating database tables.", mlog.Err(err))
@@ -209,6 +210,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.stores.userAccessToken.(*SqlUserAccessTokenStore).createIndexesIfNotExists()
 	supplier.stores.plugin.(*SqlPluginStore).createIndexesIfNotExists()
 	supplier.stores.TermsOfService.(SqlTermsOfServiceStore).createIndexesIfNotExists()
+	supplier.stores.productNotices.(SqlProductNoticesStore).createIndexesIfNotExists()
 	supplier.stores.UserTermsOfService.(SqlUserTermsOfServiceStore).createIndexesIfNotExists()
 	supplier.stores.linkMetadata.(*SqlLinkMetadataStore).createIndexesIfNotExists()
 	supplier.stores.group.(*SqlGroupStore).createIndexesIfNotExists()
@@ -1167,6 +1169,10 @@ func (ss *SqlSupplier) Role() store.RoleStore {
 
 func (ss *SqlSupplier) TermsOfService() store.TermsOfServiceStore {
 	return ss.stores.TermsOfService
+}
+
+func (ss *SqlSupplier) ProductNotices() store.ProductNoticesStore {
+	return ss.stores.productNotices
 }
 
 func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {

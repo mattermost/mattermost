@@ -31,6 +31,10 @@ func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 	return nil
 }
 
+func (a *App) SetSearchEngine(se *searchengine.Broker) {
+	a.searchEngine = se
+}
+
 func (a *App) PurgeElasticsearchIndexes() *model.AppError {
 	engine := a.SearchEngine().ElasticsearchEngine
 	if engine == nil {
@@ -55,8 +59,4 @@ func (a *App) PurgeBleveIndexes() *model.AppError {
 		return err
 	}
 	return nil
-}
-
-func (a *App) SetSearchEngine(se *searchengine.Broker) {
-	a.searchEngine = se
 }
