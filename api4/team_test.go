@@ -1847,6 +1847,11 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
+	// Should return error with invalid JSON in body.
+	_, err = Client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
+	require.NotNil(t, err)
+	require.Equal(t, "api.team.add_team_member.invalid_body.app_error", err.Id)
+
 	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
