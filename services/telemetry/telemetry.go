@@ -681,6 +681,7 @@ func (ts *TelemetryService) trackConfig() {
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 		"use_new_saml_library":               *cfg.ExperimentalSettings.UseNewSAMLLibrary,
 		"cloud_billing":                      *cfg.ExperimentalSettings.CloudBilling,
+		"enable_shared_channels":             *cfg.ExperimentalSettings.EnableSharedChannels,
 	})
 
 	ts.sendTelemetry(TRACK_CONFIG_ANALYTICS, map[string]interface{}{

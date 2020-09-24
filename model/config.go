@@ -864,6 +864,7 @@ type ExperimentalSettings struct {
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
+	EnableSharedChannels            *bool   `access:"experimental"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -898,6 +899,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
+	}
+
+	if s.EnableSharedChannels == nil {
+		s.EnableSharedChannels = NewBool(false)
 	}
 }
 
