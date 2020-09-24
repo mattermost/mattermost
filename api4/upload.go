@@ -4,6 +4,9 @@
 package api4
 
 import (
+	"errors"
+	"io"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -95,18 +98,38 @@ func uploadData(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.ContentLength > (us.FileSize - us.FileOffset) {
-		c.Err = model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_length",
-			nil, "", http.StatusBadRequest)
-		return
-	}
-
 	if us.UserId != c.App.Session().UserId || !c.App.SessionHasPermissionToChannel(*c.App.Session(), us.ChannelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return
 	}
 
-	info, err := c.App.UploadData(us, r.Body)
+	boundary, parseErr := parseMultipartRequestHeader(r)
+	if parseErr != nil && !errors.Is(parseErr, http.ErrNotMultipart) {
+		c.Err = model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_type",
+			nil, parseErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var rd io.Reader
+	if boundary != "" {
+		mr := multipart.NewReader(r.Body, boundary)
+		p, partErr := mr.NextPart()
+		if partErr != nil {
+			c.Err = model.NewAppError("uploadData", "api.upload.upload_data.multipart_error",
+				nil, partErr.Error(), http.StatusBadRequest)
+			return
+		}
+		rd = p
+	} else {
+		if r.ContentLength > (us.FileSize - us.FileOffset) {
+			c.Err = model.NewAppError("uploadData", "api.upload.upload_data.invalid_content_length",
+				nil, "", http.StatusBadRequest)
+			return
+		}
+		rd = r.Body
+	}
+
+	info, err := c.App.UploadData(us, rd)
 	if err != nil {
 		c.Err = err
 		return
