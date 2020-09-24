@@ -5747,6 +5747,10 @@
     "translation": "Error creating key pair"
   },
   {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "No LDAP users found, check your user filter and certificates."
+  },
+  {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
     "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
   },
