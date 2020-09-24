@@ -1037,6 +1037,13 @@ type OpenIdSettings struct {
 
 func (s *OpenIdSettings) SSOSettings() *SSOSettings {
 	ssoSettings := SSOSettings{}
+	ssoSettings.Enable = s.Enable
+	ssoSettings.Secret = s.Secret
+	ssoSettings.Id = s.Id
+	ssoSettings.Scope = s.Scope
+	ssoSettings.AuthEndpoint = s.AuthEndpoint
+	ssoSettings.TokenEndpoint = s.TokenEndpoint
+	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
 	if *s.DiscoveryEndpoint != "" {
 		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 		wellKnown := *s.DiscoveryEndpoint
@@ -1045,11 +1052,6 @@ func (s *OpenIdSettings) SSOSettings() *SSOSettings {
 		body, _ := ioutil.ReadAll(resp.Body)
 		var p providerJSON
 		json.Unmarshal(body, &p)
-
-		ssoSettings.Enable = s.Enable
-		ssoSettings.Secret = s.Secret
-		ssoSettings.Id = s.Id
-		ssoSettings.Scope = s.Scope
 		ssoSettings.AuthEndpoint = &p.AuthURL
 		ssoSettings.TokenEndpoint = &p.TokenURL
 		ssoSettings.UserApiEndpoint = &p.UserInfoURL
