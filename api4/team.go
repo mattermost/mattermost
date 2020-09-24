@@ -569,6 +569,10 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	member := model.TeamMemberFromJson(r.Body)
+	if member == nil {
+		c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.invalid_body.app_error", nil, "Error in model.TeamMemberFromJson()", http.StatusBadRequest)
+		return
+	}
 	if member.TeamId != c.Params.TeamId {
 		c.SetInvalidParam("team_id")
 		return

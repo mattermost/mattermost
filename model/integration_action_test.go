@@ -161,3 +161,65 @@ func TestSubmitDialogResponseToJson(t *testing.T) {
 		assert.Nil(t, r)
 	})
 }
+
+func TestPostActionIntegrationEquals(t *testing.T) {
+	t.Run("equal uncomparable types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		require.True(t, pa1.Equals(pa2))
+	})
+
+	t.Run("equal comparable types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		require.True(t, pa1.Equals(pa2))
+	})
+
+	t.Run("non-equal types", func(t *testing.T) {
+		pa1 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": map[string]interface{}{
+						"a": 0,
+					},
+				},
+			},
+		}
+		pa2 := &PostAction{
+			Integration: &PostActionIntegration{
+				Context: map[string]interface{}{
+					"a": "test",
+				},
+			},
+		}
+		require.False(t, pa1.Equals(pa2))
+	})
+}
