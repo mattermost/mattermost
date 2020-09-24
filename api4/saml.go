@@ -62,8 +62,8 @@ func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart
 }
 
 func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -86,8 +86,8 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -110,8 +110,8 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -163,8 +163,8 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -181,8 +181,8 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 }
 
 func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -199,8 +199,8 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -217,8 +217,8 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
@@ -227,8 +227,8 @@ func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func getSamlMetadataFromIdp(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION) {
+		c.SetPermissionError(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION)
 		return
 	}
 
