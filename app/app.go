@@ -293,14 +293,14 @@ func (a *App) getWarnMetricStatusAndDisplayTextsForId(warnMetricId string, T i18
 				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_active_users_500.contact_us.email_body")
 				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_active_users_500.notification_body")
 			}
-		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K:
-			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_500k.notification_title")
+		case model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M:
+			warnMetricDisplayTexts.BotTitle = T("api.server.warn_metric.number_of_posts_2M.notification_title")
 			if isE0Edition {
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_body")
-				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_posts_500k.start_trial.notification_success.message")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.start_trial.notification_body")
+				warnMetricDisplayTexts.BotSuccessMessage = T("api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message")
 			} else {
-				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_500k.contact_us.email_body")
-				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_500k.notification_body")
+				warnMetricDisplayTexts.EmailBody = T("api.server.warn_metric.number_of_posts_2M.contact_us.email_body")
+				warnMetricDisplayTexts.BotMessageBody = T("api.server.warn_metric.number_of_posts_2M.notification_body")
 			}
 		default:
 			mlog.Error("Invalid metric id", mlog.String("id", warnMetricId))

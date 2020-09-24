@@ -29,7 +29,7 @@ const (
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200 = "warn_metric_number_of_active_users_200"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300 = "warn_metric_number_of_active_users_300"
 	SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500 = "warn_metric_number_of_active_users_500"
-	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K       = "warn_metric_number_of_posts_500k"
+	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M         = "warn_metric_number_of_posts_2M"
 	SYSTEM_WARN_METRIC_LAST_RUN_TIMESTAMP_KEY     = "LastWarnMetricRunTimestamp"
 )
 
@@ -141,9 +141,9 @@ var WarnMetricsTable = map[string]WarnMetric{
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},
-	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K: {
-		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K,
-		Limit:     500000,
+	SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M: {
+		Id:        SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M,
+		Limit:     2000000,
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},

@@ -1297,8 +1297,8 @@ func doCheckWarnMetricStatus(a *App) {
 				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
-			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K] != model.WARN_METRIC_STATUS_RUNONCE {
-				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_500K]
+			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
+				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M]
 			}
 
 			if tWarnMetric != (model.WarnMetric{}) {

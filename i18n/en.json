@@ -2183,23 +2183,23 @@
     "translation": "Your Enterprise trial is now active. Go to **System Console > User Management > Permissions** to enable Advanced Permissions."
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_500k.contact_us.email_body",
+    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
     "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\r\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_500k.notification_body",
-    "translation": "Your Mattermost system has a very high number of posts. Mattermost strongly recommends that you implement Elasticsearch in order to optimize search performance and prevent performance degradation and timeouts. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Contact Us, you'll be sharing your information with Mattermost, Inc. [Learn more](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_500k.notification_title",
+    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
     "translation": "Improving Performance"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_500k.start_trial.notification_body",
-    "translation": "Your Mattermost system has a very high number of posts. Mattermost strongly recommends that you implement Elasticsearch in order to optimize search performance and prevent performance degradation and timeouts. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
+    "translation": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.\r\n\r\n[Learn more about improving performance](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\r\n\r\nBy clicking Start trial, I agree to the [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/privacy-policy/), and receiving product emails."
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_500k.start_trial.notification_success.message",
+    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
     "translation": "Your Enterprise trial is now active. Once you have an Elasticsearch server, go to **System Console > Environment > Elasticsearch** to configure Elasticsearch."
   },
   {
