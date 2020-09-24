@@ -154,6 +154,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
+	c.Log.Debug("Site URL Header: " + siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
 	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.Srv().License() != nil))
@@ -211,6 +212,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("ip_addr", c.App.IpAddress()),
 		mlog.String("user_id", c.App.Session().UserId),
 		mlog.String("method", r.Method),
+		mlog.String("site_url_header", c.GetSiteURLHeader()),
 	)
 
 	if c.Err == nil && h.RequireSession {
