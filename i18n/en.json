@@ -2735,6 +2735,14 @@
     "translation": "Invalid Content-Length."
   },
   {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Invalid Content-Type for multipart upload."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Failed to process the multipart data."
+  },
+  {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
     "translation": "MFA is not available for this account type."
   },
