@@ -1065,6 +1065,12 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("updateUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
+	// Cannot update a system admin unless user making request is a systemadmin also.
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if !c.App.SessionHasPermissionToUser(*c.App.Session(), user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -1134,6 +1140,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddMeta("user", ouser)
 
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if ouser.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	if c.App.Session().IsOAuth && patch.Email != nil {
 		if ouser.Email != *patch.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
@@ -1198,6 +1210,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditRec.AddMeta("user", user)
+
+	// Cannot update a system admin unless user making request is a systemadmin also
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
 	if c.Params.Permanent {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
@@ -2499,6 +2517,12 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	if user.IsSystemAdmin() && !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
 	auditRec.AddMeta("user", user)
 
 	if user.IsGuest() {
