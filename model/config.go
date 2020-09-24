@@ -2869,7 +2869,7 @@ func (o *Config) ToJson() string {
 }
 
 func (o *Config) ToJsonFiltered(tagType, tagValue string) string {
-	filteredConfigMap := o.structToMapFilteredByTag(*o, tagType, tagValue)
+	filteredConfigMap := structToMapFilteredByTag(*o, tagType, tagValue)
 	for key, value := range filteredConfigMap {
 		v, ok := value.(map[string]interface{})
 		if ok && len(v) == 0 {
@@ -3583,7 +3583,7 @@ func (o *Config) Sanitize() {
 
 // structToMap converts a struct into a map removing those fields that has the tag passed
 // as argument
-func (o *Config) structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
+func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
 		if r := recover(); r != nil {
 			mlog.Error("Panicked in structToMapFilteredByTag. This should never happen.", mlog.Any("recover", r))
@@ -3604,7 +3604,7 @@ func (o *Config) structToMapFilteredByTag(t interface{}, typeOfTag, filterTag st
 
 		structField := elemField.Field(i)
 		tagPermissions := strings.Split(structField.Tag.Get(typeOfTag), ",")
-		if o.isTagPresent(filterTag, tagPermissions) {
+		if isTagPresent(filterTag, tagPermissions) {
 			continue
 		}
 
@@ -3612,11 +3612,11 @@ func (o *Config) structToMapFilteredByTag(t interface{}, typeOfTag, filterTag st
 
 		switch field.Kind() {
 		case reflect.Struct:
-			value = o.structToMapFilteredByTag(field.Interface(), typeOfTag, filterTag)
+			value = structToMapFilteredByTag(field.Interface(), typeOfTag, filterTag)
 		case reflect.Ptr:
 			indirectType := field.Elem()
 			if indirectType.Kind() == reflect.Struct {
-				value = o.structToMapFilteredByTag(indirectType.Interface(), typeOfTag, filterTag)
+				value = structToMapFilteredByTag(indirectType.Interface(), typeOfTag, filterTag)
 			} else if indirectType.Kind() != reflect.Invalid {
 				value = indirectType.Interface()
 			}
@@ -3630,7 +3630,7 @@ func (o *Config) structToMapFilteredByTag(t interface{}, typeOfTag, filterTag st
 	return out
 }
 
-func (o *Config) isTagPresent(tag string, tags []string) bool {
+func isTagPresent(tag string, tags []string) bool {
 	for _, val := range tags {
 		tagValue := strings.TrimSpace(val)
 		if tagValue != "" && tagValue == tag {
