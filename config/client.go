@@ -317,7 +317,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 
 		if *license.Features.OpenIdAuth {
-			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.SSOSettings().Enable)
+			props["EnableSignUpWithOpenId"] = strconv.FormatBool(*c.OpenIdSettings.Enable)
 			props["OpenIdButtonText"] = *c.OpenIdSettings.LoginButtonText
 			props["OpenIdButtonColor"] = *c.OpenIdSettings.LoginButtonColor
 
