@@ -1232,7 +1232,7 @@ func doCheckWarnMetricStatus(a *App) {
 		mlog.Debug("Cannot obtain last advisory run timestamp", mlog.Err(err))
 	} else {
 		currentTime := utils.MillisFromTime(time.Now())
-		// If the admin advisory has already been shown in the 7 days
+		// If the admin advisory has already been shown in the last 7 days
 		if (currentTime-lastWarnMetricRunTimestamp)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
 			mlog.Debug("No advisories should be shown during the wait interval time")
 			return

@@ -432,6 +432,12 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	license := a.Srv().License()
+	if license != nil {
+		mlog.Debug("License is present, skip this call")
+		return nil
+	}
+
 	user, appErr := a.GetUser(a.Session().UserId)
 	if appErr != nil {
 		return appErr
@@ -443,7 +449,7 @@ func (a *App) doLocalWarnMetricsRequest(rawURL string, upstreamRequest *model.Po
 		HasReactions: true,
 	}
 
-	isE0Edition := (model.BuildEnterpriseReady == "true") && (a.Srv().License() == nil)
+	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
 	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, utils.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 

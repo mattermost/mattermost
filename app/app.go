@@ -435,7 +435,7 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 	if warnMetric, ok := model.WarnMetricsTable[warnMetricId]; ok {
 		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
 		if nErr == nil && data != nil && data.Value == model.WARN_METRIC_STATUS_ACK {
-			mlog.Debug("This metric warning has already been acknowledged")
+			mlog.Debug("This metric warning has already been acknowledged", mlog.String("id", warnMetric.Id))
 			return nil
 		}
 
