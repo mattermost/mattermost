@@ -858,12 +858,12 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable            *bool   `access:"experimental"`
-	ClientSideCertCheck             *string `access:"experimental"`
+	ClientSideCertEnable            *bool   `access:"experimental,cloud_restrictable"`
+	ClientSideCertCheck             *string `access:"experimental,cloud_restrictable"`
 	EnableClickToReply              *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
-	UseNewSAMLLibrary               *bool   `access:"experimental"`
+	UseNewSAMLLibrary               *bool   `access:"experimental,cloud_restrictable"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable,cloud_restrictable"`
 	CloudBilling                    *bool   `access:"experimental,write_restrictable,cloud_restrictable"`
 }
@@ -1373,15 +1373,15 @@ type EmailSettings struct {
 	UseChannelInEmailNotifications    *bool   `access:"experimental"`
 	RequireEmailVerification          *bool   `access:"authentication"`
 	FeedbackName                      *string `access:"site"`
-	FeedbackEmail                     *string `access:"site"`
-	ReplyToAddress                    *string `access:"site"`
+	FeedbackEmail                     *string `access:"site,cloud_restrictable"`
+	ReplyToAddress                    *string `access:"site,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site"`
 	EnableSMTPAuth                    *bool   `access:"environment,write_restrictable,cloud_restrictable"`
 	SMTPUsername                      *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SMTPPassword                      *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SMTPServer                        *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SMTPPort                          *string `access:"environment,write_restrictable,cloud_restrictable"`
-	SMTPServerTimeout                 *int
+	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
 	ConnectionSecurity                *string `access:"environment,write_restrictable,cloud_restrictable"`
 	SendPushNotifications             *bool   `access:"environment"`
 	PushNotificationServer            *string `access:"environment"`
@@ -2801,6 +2801,9 @@ const ConfigAccessTagCloudRestrictable = "cloud_restrictable"
 //
 // PERMISSION_MANAGE_SYSTEM always grants read access.
 //
+// Config values with the access tag 'cloud_restrictable' mean that are marked to be filtered when it's used in a cloud licensed
+// environment with ExperimentalSettings.RestrictedSystemAdmin set to true.
+//
 // Example:
 //  type HairSettings struct {
 //      // Colour is writeable with either PERMISSION_SYSCONSOLE_WRITE_REPORTING or PERMISSION_SYSCONSOLE_WRITE_USER_MANAGEMENT_GROUPS.
@@ -3581,7 +3584,7 @@ func (o *Config) Sanitize() {
 	}
 }
 
-// structToMap converts a struct into a map removing those fields that has the tag passed
+// structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed
 // as argument
 func structToMapFilteredByTag(t interface{}, typeOfTag, filterTag string) map[string]interface{} {
 	defer func() {
