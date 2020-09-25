@@ -1931,8 +1931,8 @@ type LdapSettings struct {
 	UserFilter        *string `access:"authentication"`
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
-	EnableAdminFilter *bool   `access:"authentication"`
-	AdminFilter       *string `access:"authentication"`
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string `access:"authentication"`
