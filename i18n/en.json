@@ -2183,6 +2183,10 @@
     "translation": "This team is managed by groups.  This user is not part of a group that is synced to this team."
   },
   {
+    "id": "api.team.add_team_member.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -2729,6 +2733,14 @@
   {
     "id": "api.upload.upload_data.invalid_content_length",
     "translation": "Invalid Content-Length."
+  },
+  {
+    "id": "api.upload.upload_data.invalid_content_type",
+    "translation": "Invalid Content-Type for multipart upload."
+  },
+  {
+    "id": "api.upload.upload_data.multipart_error",
+    "translation": "Failed to process the multipart data."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
@@ -5745,6 +5757,10 @@
   {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "Error creating key pair"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": "No LDAP users found, check your user filter and certificates."
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
