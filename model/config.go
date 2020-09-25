@@ -966,14 +966,15 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 }
 
 type Office365Settings struct {
-	Enable          *bool   `access:"authentication"`
-	Secret          *string `access:"authentication"`
-	Id              *string `access:"authentication"`
-	Scope           *string `access:"authentication"`
-	AuthEndpoint    *string `access:"authentication"`
-	TokenEndpoint   *string `access:"authentication"`
-	UserApiEndpoint *string `access:"authentication"`
-	DirectoryId     *string `access:"authentication"`
+	Enable            *bool   `access:"authentication"`
+	Secret            *string `access:"authentication"`
+	Id                *string `access:"authentication"`
+	Scope             *string `access:"authentication"`
+	AuthEndpoint      *string `access:"authentication"`
+	TokenEndpoint     *string `access:"authentication"`
+	UserApiEndpoint   *string `access:"authentication"`
+	DirectoryId       *string `access:"authentication"`
+	DiscoveryEndpoint *string `access:"authentication"`
 }
 
 func (s *Office365Settings) setDefaults() {
@@ -1008,6 +1009,10 @@ func (s *Office365Settings) setDefaults() {
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewString("")
 	}
+
+	if s.DiscoveryEndpoint == nil {
+		s.DiscoveryEndpoint = NewString("")
+	}
 }
 
 func (s *Office365Settings) SSOSettings() *SSOSettings {
@@ -1019,6 +1024,19 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
+	if *s.DiscoveryEndpoint != "" {
+		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+		wellKnown := *s.DiscoveryEndpoint
+		resp, _ := http.Get(wellKnown)
+		defer resp.Body.Close()
+		body, _ := ioutil.ReadAll(resp.Body)
+		var p providerJSON
+		json.Unmarshal(body, &p)
+		*ssoSettings.Scope = *ssoSettings.Scope + " " + OPENID_SETTINGS_DEFAULT_SCOPE
+		ssoSettings.AuthEndpoint = &p.AuthURL
+		ssoSettings.TokenEndpoint = &p.TokenURL
+		ssoSettings.UserApiEndpoint = &p.UserInfoURL
+	}
 	return &ssoSettings
 }
 
