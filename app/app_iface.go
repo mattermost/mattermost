@@ -829,6 +829,7 @@ type AppIface interface {
 	RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
 	RequestId() string
+	RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	RestoreChannel(channel *model.Channel, userId string) (*model.Channel, *model.AppError)
