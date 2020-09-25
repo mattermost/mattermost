@@ -297,7 +297,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				continue
 			}
 			// ConfigAccessTagWriteRestrictable trumps all other permissions
-			if tagValue == model.ConfigAccessTagWriteRestrictable {
+			if tagValue == model.ConfigAccessTagWriteRestrictable || tagValue == model.ConfigAccessTagCloudRestrictable {
 				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
 					return false
 				}
