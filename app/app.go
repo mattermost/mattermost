@@ -494,7 +494,6 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 	}
 
 	// Inform client that this metric warning has been acked
-	mlog.Debug("CITOMAI setWarnMetricsStatusAndNotify!!!")
 	message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
