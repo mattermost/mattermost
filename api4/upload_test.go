@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"testing"
 
@@ -193,7 +194,12 @@ func TestUploadData(t *testing.T) {
 	})
 
 	t.Run("bad content-length", func(t *testing.T) {
-		info, resp := th.Client.UploadData(us.Id, bytes.NewReader(append(data, 0x00)))
+		u, resp := th.Client.CreateUpload(us)
+		require.Nil(t, resp.Error)
+		require.NotEmpty(t, u)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		info, resp := th.Client.UploadData(u.Id, bytes.NewReader(append(data, 0x00)))
 		require.Nil(t, info)
 		require.Error(t, resp.Error)
 		require.Equal(t, "api.upload.upload_data.invalid_content_length", resp.Error.Id)
@@ -232,6 +238,104 @@ func TestUploadData(t *testing.T) {
 
 		info, resp = th.Client.UploadData(u.Id, bytes.NewReader(data[5*1024*1024:]))
 		require.Nil(t, resp.Error)
+		require.NotEmpty(t, info)
+		require.Equal(t, u.Filename, info.Name)
+
+		file, resp := th.Client.GetFile(info.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, file, data)
+	})
+}
+
+func TestUploadDataMultipart(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	us := &model.UploadSession{
+		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
+		CreateAt:  model.GetMillis(),
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Filename:  "upload",
+		FileSize:  8 * 1024 * 1024,
+	}
+	us, resp := th.Client.CreateUpload(us)
+	require.Nil(t, resp.Error)
+	require.NotNil(t, us)
+	require.NotEmpty(t, us)
+
+	data := randomBytes(t, int(us.FileSize))
+
+	genMultipartData := func(t *testing.T, data []byte) (io.Reader, string) {
+		mpData := &bytes.Buffer{}
+		mpWriter := multipart.NewWriter(mpData)
+		part, err := mpWriter.CreateFormFile("data", us.Filename)
+		require.Nil(t, err)
+		n, err := part.Write(data)
+		require.Nil(t, err)
+		require.Equal(t, len(data), n)
+		err = mpWriter.Close()
+		require.Nil(t, err)
+		return mpData, mpWriter.FormDataContentType()
+	}
+
+	t.Run("bad content-type", func(t *testing.T) {
+		info, resp := th.Client.DoUploadFile("/uploads/"+us.Id, data, "multipart/form-data;")
+		require.Nil(t, info)
+		require.Error(t, resp.Error)
+		require.Equal(t, "api.upload.upload_data.invalid_content_type", resp.Error.Id)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		mpData, contentType := genMultipartData(t, data)
+
+		req, err := http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+us.Id, mpData)
+		require.Nil(t, err)
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err := th.Client.HttpClient.Do(req)
+		require.Nil(t, err)
+		info := model.FileInfoFromJson(res.Body)
+		res.Body.Close()
+		require.NotEmpty(t, info)
+		require.Equal(t, us.Filename, info.Name)
+
+		file, resp := th.Client.GetFile(info.Id)
+		require.Nil(t, resp.Error)
+		require.Equal(t, file, data)
+	})
+
+	t.Run("resume success", func(t *testing.T) {
+		mpData, contentType := genMultipartData(t, data[:5*1024*1024])
+
+		u, resp := th.Client.CreateUpload(us)
+		require.Nil(t, resp.Error)
+		require.NotNil(t, u)
+		require.NotEmpty(t, u)
+
+		req, err := http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+u.Id, mpData)
+		require.Nil(t, err)
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err := th.Client.HttpClient.Do(req)
+		require.Nil(t, err)
+		require.Equal(t, http.StatusNoContent, res.StatusCode)
+		require.Equal(t, int64(0), res.ContentLength)
+
+		mpData, contentType = genMultipartData(t, data[5*1024*1024:])
+
+		req, err = http.NewRequest("POST", th.Client.ApiUrl+"/uploads/"+u.Id, mpData)
+		require.Nil(t, err)
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
+		res, err = th.Client.HttpClient.Do(req)
+		require.Nil(t, err)
+		info := model.FileInfoFromJson(res.Body)
+		res.Body.Close()
 		require.NotEmpty(t, info)
 		require.Equal(t, u.Filename, info.Name)
 
