@@ -25,6 +25,7 @@ type Workers struct {
 	Plugins                  model.Worker
 	BleveIndexing            model.Worker
 	ExpiryNotify             model.Worker
+	ProductNotices           model.Worker
 	ActiveUsers              model.Worker
 
 	listenerId string
@@ -75,6 +76,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 	if activeUsersInterface := srv.ActiveUsers; activeUsersInterface != nil {
 		workers.ActiveUsers = activeUsersInterface.MakeWorker()
 	}
+
+	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
+		workers.ProductNotices = productNoticesInterface.MakeWorker()
+	}
 	return workers
 }
 
@@ -120,6 +125,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ActiveUsers != nil {
 			go workers.ActiveUsers.Run()
+		}
+
+		if workers.ProductNotices != nil {
+			go workers.ProductNotices.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -226,6 +235,10 @@ func (workers *Workers) Stop() *Workers {
 	if workers.ActiveUsers != nil {
 		workers.ActiveUsers.Stop()
 	}
+	if workers.ProductNotices != nil {
+		workers.ProductNotices.Stop()
+	}
+
 	mlog.Info("Stopped workers")
 
 	return workers
