@@ -2654,8 +2654,8 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	p1, nErr = ss.Post().Save(p1)
 	require.Nil(t, nErr)
 
-	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, err)
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, nErr)
 
 	assert.Equal(t, p1.Message, r1[0].Message)
 
@@ -2720,8 +2720,8 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	_, nErr = ss.Post().Update(o1a, p1)
 	require.Nil(t, nErr)
 
-	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, err)
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, nErr)
 
 	assert.Equal(t, 0, len(r1))
 

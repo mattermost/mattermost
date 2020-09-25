@@ -105,7 +105,7 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 	return list, err
 }
 
-func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
 	if !allowFromCache {
 		return s.PostStore.GetPosts(options, allowFromCache)
 	}
