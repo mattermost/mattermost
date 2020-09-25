@@ -1195,18 +1195,17 @@ func doSessionCleanup(s *Server) {
 func doCheckWarnMetricStatus(a *App) {
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this check")
+		mlog.Debug("License is present, skip")
 		return
 	}
 
 	// Get the system fields values from store
 	systemDataList, nErr := a.Srv().Store.System().Get()
 	if nErr != nil {
-		mlog.Error("No field values obtained", mlog.Err(nErr))
+		mlog.Error("No system properties obtained", mlog.Err(nErr))
 		return
 	}
 
-	var areWarnMetricsAcked bool
 	warnMetricStatusFromStore := make(map[string]string)
 
 	for key, value := range systemDataList {
@@ -1214,17 +1213,12 @@ func doCheckWarnMetricStatus(a *App) {
 			if _, ok := model.WarnMetricsTable[key]; ok {
 				warnMetricStatusFromStore[key] = value
 				if value == model.WARN_METRIC_STATUS_ACK {
-					areWarnMetricsAcked = true
-					break
+					// If any warn metric has already been acked, we return
+					mlog.Debug("Warn metrics have been acked, skip")
+					return
 				}
 			}
 		}
-	}
-
-	// If any warn metric has already been acked, we return
-	if areWarnMetricsAcked {
-		mlog.Debug("Warn metrics have been acked, return")
-		return
 	}
 
 	lastWarnMetricRunTimestamp, err := a.Srv().getLastWarnMetricTimestamp()

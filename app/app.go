@@ -188,12 +188,14 @@ func (a *App) GetWarnMetricsStatus() (map[string]*model.WarnMetricStatus, *model
 		return nil, model.NewAppError("GetWarnMetricsStatus", "app.system.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
+
 	result := map[string]*model.WarnMetricStatus{}
 	for key, value := range systemDataList {
 		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
 			if warnMetric, ok := model.WarnMetricsTable[key]; ok {
-				if !warnMetric.IsBotOnly && value == model.WARN_METRIC_STATUS_LIMIT_REACHED {
-					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil, false)
+				if !warnMetric.IsBotOnly && (value == model.WARN_METRIC_STATUS_RUNONCE || value == model.WARN_METRIC_STATUS_LIMIT_REACHED) {
+					result[key], _ = a.getWarnMetricStatusAndDisplayTextsForId(key, nil, isE0Edition)
 				}
 			}
 		}
@@ -486,10 +488,13 @@ func (a *App) NotifyAndSetWarnMetricAck(warnMetricId string, sender *model.User,
 }
 
 func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError {
+	// Ack all metric warnings on the server
 	if err := a.setWarnMetricsStatus(model.WARN_METRIC_STATUS_ACK); err != nil {
 		return err
 	}
 
+	// Inform client that this metric warning has been acked
+	mlog.Debug("CITOMAI setWarnMetricsStatusAndNotify!!!")
 	message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_REMOVED, "", "", "", nil)
 	message.Add("warnMetricId", warnMetricId)
 	a.Publish(message)
@@ -500,7 +505,9 @@ func (a *App) setWarnMetricsStatusAndNotify(warnMetricId string) *model.AppError
 func (a *App) setWarnMetricsStatus(status string) *model.AppError {
 	mlog.Debug("Set monitoring status for all warn metrics", mlog.String("status", status))
 	for _, warnMetric := range model.WarnMetricsTable {
-		a.setWarnMetricsStatusForId(warnMetric.Id, status)
+		if err := a.setWarnMetricsStatusForId(warnMetric.Id, status); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -512,7 +519,7 @@ func (a *App) setWarnMetricsStatusForId(warnMetricId string, status string) *mod
 		Value: status,
 	}); err != nil {
 		mlog.Error("Unable to write to database.", mlog.Err(err))
-		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, "", http.StatusInternalServerError)
+		return model.NewAppError("setWarnMetricsStatusForId", "app.system.warn_metric.store.app_error", map[string]interface{}{"WarnMetricName": warnMetricId}, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -530,7 +537,7 @@ func (a *App) RequestLicenseAndAckWarnMetric(warnMetricId string, isBot bool) *m
 	registeredUsersCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		mlog.Error("Error retrieving the number of registered users", mlog.Err(err))
-		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("RequestLicenseAndAckWarnMetric", "api.license.request_trial_license.fail_get_user_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	trialLicenseRequest := &model.TrialLicenseRequest{
