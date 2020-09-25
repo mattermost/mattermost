@@ -2321,7 +2321,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u1" + model.NewId(),
+		Username: "Yuka",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
@@ -2330,7 +2330,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u2, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u2" + model.NewId(),
+		Username: "Leia",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
@@ -2339,7 +2339,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 
 	u3, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
-		Username: "u3" + model.NewId(),
+		Username: "Ali",
 	})
 	require.Nil(t, err)
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
@@ -4641,8 +4641,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4686,8 +4686,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4742,8 +4742,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 	})
@@ -4782,8 +4782,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4827,8 +4827,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4893,8 +4893,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId1, user1.Id)
+		require.Nil(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 
@@ -4907,8 +4907,8 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
-		require.Nil(t, err)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(teamId2, user2.Id)
+		require.Nil(t, nErr)
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
 
@@ -4956,8 +4956,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5001,8 +5001,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5057,8 +5057,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 	})
@@ -5097,8 +5097,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5142,8 +5142,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId, user.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId, user.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5208,8 +5208,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, err := ss.Team().GetMember(teamId1, user1.Id)
-		require.Nil(t, err)
+		updatedTeamMember, nErr := ss.Team().GetMember(teamId1, user1.Id)
+		require.Nil(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 
@@ -5222,8 +5222,8 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, err := ss.Team().GetMember(teamId2, user2.Id)
-		require.Nil(t, err)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(teamId2, user2.Id)
+		require.Nil(t, nErr)
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)
 

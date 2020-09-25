@@ -388,6 +388,8 @@ func (ts *TelemetryService) trackConfig() {
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
+		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
+		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
@@ -1055,9 +1057,9 @@ func (ts *TelemetryService) trackGroups() {
 		mlog.Error(err.Error())
 	}
 
-	groupSyncedTeamCount, err := ts.dbStore.Team().GroupSyncedTeamCount()
-	if err != nil {
-		mlog.Error(err.Error())
+	groupSyncedTeamCount, nErr := ts.dbStore.Team().GroupSyncedTeamCount()
+	if nErr != nil {
+		mlog.Error(nErr.Error())
 	}
 
 	groupSyncedChannelCount, err := ts.dbStore.Channel().GroupSyncedChannelCount()
