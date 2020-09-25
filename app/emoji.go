@@ -124,7 +124,7 @@ func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *mode
 	if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
 		data := buf.Bytes()
 		newbuf := bytes.NewBuffer(nil)
-		info, err := model.GetInfoForBytes(imageData.Filename, data)
+		info, err := model.GetInfoForBytes(imageData.Filename, bytes.NewReader(data), len(data))
 		if err != nil {
 			return err
 		}

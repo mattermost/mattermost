@@ -6,12 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -924,7 +922,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) 
 	return members[0], nil
 }
 
-func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error) {
 	teams := []string{}
 	for _, member := range members {
 		member.PreUpdate()
@@ -934,7 +932,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 		}
 
 		if _, err := s.GetMaster().Update(NewTeamMemberFromModel(member)); err != nil {
-			return nil, model.NewAppError("SqlTeamStore.UpdateMember", "store.sql_team.save_member.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 		teams = append(teams, member.TeamId)
 	}
@@ -952,7 +950,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 
 	sqlQuery, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Save", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 	var defaultTeamsRoles []struct {
 		Id    string
@@ -962,7 +960,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	}
 	_, err = s.GetMaster().Select(&defaultTeamsRoles, sqlQuery, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
 	defaultTeamRolesByTeam := map[string]struct {
@@ -994,7 +992,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	return updatedMembers, nil
 }
 
-func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
 	members, err := s.UpdateMultipleMembers([]*model.TeamMember{member})
 	if err != nil {
 		return nil, err
@@ -1002,29 +1000,29 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember,
 	return members[0], nil
 }
 
-func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.UserId": userId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var dbMember teamMemberWithSchemeRoles
 	err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
+			return nil, store.NewErrNotFound("TeamMember", fmt.Sprintf("teamId=%s, userId=%s", teamId, userId))
 		}
-		return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with teamId=%s and userId=%s", teamId, userId)
 	}
 
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
 		Where(sq.Eq{"TeamMembers.DeleteAt": 0}).
@@ -1053,19 +1051,19 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, teamMembe
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembers", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
 	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with teamId=%s", teamId)
 	}
 
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
 		From("TeamMembers, Users").
@@ -1076,17 +1074,17 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string, restrictions *model.Vie
 	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return int64(0), model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return int64(0), errors.Wrap(err, "team_tosql")
 	}
 
 	count, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
-		return int64(0), model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+		return int64(0), errors.Wrap(err, "failed to count TeamMembers")
 	}
 	return count, nil
 }
 
-func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError) {
+func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("count(DISTINCT TeamMembers.UserId)").
 		From("TeamMembers, Users").
@@ -1098,20 +1096,20 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string, restrictions *model.Vi
 	query = applyTeamMemberViewRestrictionsFilterForStats(query, teamId, restrictions)
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.GetActiveMemberCount", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "team_tosql")
 	}
 
 	count, err := s.GetReplica().SelectInt(queryString, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_active_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "failed to count TeamMembers")
 	}
 
 	return count, nil
 }
 
-func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error) {
 	if len(userIds) == 0 {
-		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "Invalid list of user ids", http.StatusInternalServerError)
+		return nil, errors.New("invalid list of user ids")
 	}
 
 	query := s.getTeamMembersWithSchemeSelectQuery().
@@ -1123,29 +1121,29 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
 	if _, err = s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembers", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
 	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetMembers", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
 
 	return dbMembers.ToModel(), nil
@@ -1153,7 +1151,7 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) ([]*model.TeamMember, *mode
 
 // GetTeamsForUserWithPagination returns limited TeamMembers according to the perPage parameter specified.
 // It also offsets the records as per the page parameter supplied.
-func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId}).
 		Limit(uint64(perPage)).
@@ -1161,13 +1159,13 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamsForUserWithPagination", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var dbMembers teamMemberWithSchemeRolesList
 	_, err = s.GetReplica().Select(&dbMembers, queryString, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamsForUserWithPagination", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
 
 	return dbMembers.ToModel(), nil
@@ -1175,7 +1173,7 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 
 // GetChannelUnreadsForAllTeams returns unreads msg count, mention counts, and notifyProps
 // for all the channels in all the teams except the excluded ones.
-func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
+func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
 		From("Channels").
@@ -1184,20 +1182,20 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 		Where(sq.NotEq{"TeamId": excludeTeamId}).ToSql()
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForAllTeams", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 	var data []*model.ChannelUnread
 	_, err = s.GetReplica().Select(&data, query, args...)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForAllTeams", "store.sql_team.get_unread.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find Channels with userId=%s and teamId!=%s", userId, excludeTeamId)
 	}
 
 	return data, nil
 }
 
 // GetChannelUnreadsForTeam returns unreads msg count, mention counts and notifyProps for all the channels in a single team.
-func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
+func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("Channels.TeamId TeamId", "Channels.Id ChannelId", "(Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount", "ChannelMembers.MentionCount MentionCount", "ChannelMembers.NotifyProps NotifyProps").
 		From("Channels").
@@ -1205,102 +1203,102 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 		Where(sq.Eq{"UserId": userId, "TeamId": teamId, "DeleteAt": 0}).ToSql()
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForTeam", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var channels []*model.ChannelUnread
 	_, err = s.GetReplica().Select(&channels, query, args...)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForTeam", "store.sql_team.get_unread.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find Channels with teamId=%s and userId=%s", teamId, userId)
 	}
 	return channels, nil
 }
 
-func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) *model.AppError {
-	query := s.getQueryBuilder().
+func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
+	builder := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).
 		Where(sq.Eq{"UserId": userIds})
 
-	sql, args, err := query.ToSql()
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql.build_query.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql_team.remove_member.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s and userId in %v", teamId, userIds)
 	}
 	return nil
 }
 
 // RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
-func (s SqlTeamStore) RemoveMember(teamId string, userId string) *model.AppError {
+func (s SqlTeamStore) RemoveMember(teamId string, userId string) error {
 	return s.RemoveMembers(teamId, []string{userId})
 }
 
 // RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
-func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) *model.AppError {
-	sql, args, err := s.getQueryBuilder().
+func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) error {
+	query, args, err := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql.build_query.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "team_tosql")
 	}
 
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete TeamMembers with teamId=%s", teamId)
 	}
 	return nil
 }
 
 // RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
-func (s SqlTeamStore) RemoveAllMembersByUser(userId string) *model.AppError {
-	sql, args, err := s.getQueryBuilder().
+func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
+	query, args, err := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"UserId": userId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMembers", "store.sql.build_query.app_error", nil, "team_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "team_tosql")
 	}
-	_, err = s.GetMaster().Exec(sql, args...)
+	_, err = s.GetMaster().Exec(query, args...)
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.RemoveMember", "store.sql_team.remove_member.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		return errors.Wrapf(err, "failed to delete TeamMembers with userId=%s", userId)
 	}
 	return nil
 }
 
-func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError {
-	sql, args, err := s.getQueryBuilder().
+func (s SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) error {
+	query, args, err := s.getQueryBuilder().
 		Update("Teams").
 		SetMap(sq.Eq{"LastTeamIconUpdate": curTime, "UpdateAt": curTime}).
 		Where(sq.Eq{"Id": teamId}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "team_tosql")
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		return model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to update Team")
 	}
 	return nil
 }
 
 // GetTeamsByScheme returns from the database all teams that match the schemeId provided as parameter, up to
 // a total limit passed as paramater and paginated by offset number passed as parameter.
-func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError) {
+func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error) {
 	query, args, err := s.teamsQuery.Where(sq.Eq{"SchemeId": schemeId}).
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).
 		Offset(uint64(offset)).ToSql()
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamsByScheme", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 
 	var teams []*model.Team
 	_, err = s.GetReplica().Select(&teams, query, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamsByScheme", "store.sql_team.get_by_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find Teams with schemeId=%s", schemeId)
 	}
 	return teams, nil
 }
@@ -1309,18 +1307,18 @@ func (s SqlTeamStore) GetTeamsByScheme(schemeId string, offset int, limit int) (
 // in batches as a single transaction per batch to ensure consistency but to also minimise execution time to avoid
 // causing unnecessary table locks. **THIS FUNCTION SHOULD NOT BE USED FOR ANY OTHER PURPOSE.** Executing this function
 // *after* the new Schemes functionality has been used on an installation will have unintended consequences.
-func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError) {
+func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, error) {
 	var transaction *gorp.Transaction
 	var err error
 
 	if transaction, err = s.GetMaster().Begin(); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransaction(transaction)
 
 	var teamMembers []teamMember
 	if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find TeamMembers")
 	}
 
 	if len(teamMembers) == 0 {
@@ -1355,13 +1353,13 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 		member.Roles = strings.Join(newRoles, " ")
 
 		if _, err := transaction.Update(&member); err != nil {
-			return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, errors.Wrap(err, "failed to update TeamMember")
 		}
 
 	}
 
 	if err := transaction.Commit(); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	data := make(map[string]string)
@@ -1371,9 +1369,9 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) (
 	return data, nil
 }
 
-func (s SqlTeamStore) ResetAllTeamSchemes() *model.AppError {
+func (s SqlTeamStore) ResetAllTeamSchemes() error {
 	if _, err := s.GetMaster().Exec("UPDATE Teams SET SchemeId=''"); err != nil {
-		return model.NewAppError("SqlTeamStore.ResetAllTeamSchemes", "store.sql_team.reset_all_team_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "failed to update Teams")
 	}
 	return nil
 }
@@ -1383,7 +1381,7 @@ func (s SqlTeamStore) ClearCaches() {}
 
 func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {}
 
-func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
+func (s SqlTeamStore) ClearAllCustomRoleAssignments() error {
 
 	builtInRoles := model.MakeDefaultRoles()
 	lastUserId := strings.Repeat("0", 26)
@@ -1394,13 +1392,13 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 		var err error
 
 		if transaction, err = s.GetMaster().Begin(); err != nil {
-			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "begin_transaction")
 		}
 		defer finalizeTransaction(transaction)
 
 		var teamMembers []*teamMember
 		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
-			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "failed to find TeamMembers")
 		}
 
 		if len(teamMembers) == 0 {
@@ -1425,38 +1423,38 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() *model.AppError {
 			newRolesString := strings.Join(newRoles, " ")
 			if newRolesString != member.Roles {
 				if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
-					return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+					return errors.Wrap(err, "failed to update TeamMembers")
 				}
 			}
 		}
 
 		if err := transaction.Commit(); err != nil {
-			return model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return errors.Wrap(err, "commit_transaction")
 		}
 	}
 	return nil
 }
 
 // AnalyticsGetTeamCountForScheme returns the number of active teams that match the schemeId passed as parameter.
-func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError) {
+func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) (int64, error) {
 	query, args, err := s.getQueryBuilder().
 		Select("count(*)").
 		From("Teams").
 		Where(sq.Eq{"SchemeId": schemeId, "DeleteAt": 0}).ToSql()
 
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.AnalyticsGetTeamCountForScheme", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "team_tosql")
 	}
 	count, err := s.GetReplica().SelectInt(query, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.AnalyticsGetTeamCountForScheme", "store.sql_team.analytics_get_team_count_for_scheme.app_error", nil, "schemeId="+schemeId+" "+err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrapf(err, "failed to count Teams with schemdId=%s", schemeId)
 	}
 
 	return count, nil
 }
 
 // GetAllForExportAfter returns teams for export, up to a total limit passed as paramater where Teams.Id is greater than the afterId passed as parameter.
-func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError) {
+func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error) {
 	var data []*model.TeamForExport
 	query, args, err := s.getQueryBuilder().
 		Select("Teams.*", "Schemes.Name as SchemeName").
@@ -1467,36 +1465,36 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) ([]*model.
 		Limit(uint64(limit)).ToSql()
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 	if _, err = s.GetReplica().Select(&data, query, args...); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "app.team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "failed to find Teams")
 	}
 
 	return data, nil
 }
 
 // GetUserTeamIds get the team ids to which the user belongs to. allowFromCache parameter does not have any effect in this Store
-func (s SqlTeamStore) GetUserTeamIds(userID string, allowFromCache bool) ([]string, *model.AppError) {
+func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) ([]string, error) {
 	var teamIds []string
 	query, args, err := s.getQueryBuilder().
 		Select("TeamId").
 		From("TeamMembers").
 		Join("Teams ON TeamMembers.TeamId = Teams.Id").
-		Where(sq.Eq{"TeamMembers.UserId": userID, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0, "Teams.DeleteAt": 0}).ToSql()
 
 	if err != nil {
-		return []string{}, model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return []string{}, errors.Wrap(err, "team_tosql")
 	}
 	_, err = s.GetReplica().Select(&teamIds, query, args...)
 	if err != nil {
-		return []string{}, model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userID="+userID+" "+err.Error(), http.StatusInternalServerError)
+		return []string{}, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
 
 	return teamIds, nil
 }
 
-func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError) {
+func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error) {
 	var members []*model.TeamMemberForExport
 	query, args, err := s.getQueryBuilder().
 		Select("TeamMembers.TeamId", "TeamMembers.UserId", "TeamMembers.Roles", "TeamMembers.DeleteAt",
@@ -1507,16 +1505,16 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) ([]*model.TeamMembe
 		Where(sq.Eq{"TeamMembers.UserId": userId, "Teams.DeleteAt": 0}).ToSql()
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrap(err, "team_tosql")
 	}
 	_, err = s.GetReplica().Select(&members, query, args...)
 	if err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
 	return members, nil
 }
 
-func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
+func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool, error) {
 	idQuery := sq.Eq{
 		"UserId":   userId,
 		"TeamId":   teamIds,
@@ -1525,28 +1523,29 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 
 	query, params, err := s.getQueryBuilder().Select("Count(*)").From("TeamMembers").Where(idQuery).ToSql()
 	if err != nil {
-		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "team_tosql")
 	}
 
 	c, err := s.GetReplica().SelectInt(query, params...)
 	if err != nil {
-		return false, model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return false, errors.Wrap(err, "failed to count TeamMembers")
 	}
 
 	return c > 0, nil
 }
 
-func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) *model.AppError {
-	sql, args, err := s.getQueryBuilder().
+func (s SqlTeamStore) UpdateMembersRole(teamID string, userIDs []string) error {
+	query, args, err := s.getQueryBuilder().
 		Update("TeamMembers").
 		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": userIDs}, "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.UpdateMembersRole", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return errors.Wrap(err, "team_tosql")
 	}
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		return model.NewAppError("SqlTeamStore.UpdateMembersRole", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+
+	if _, err = s.GetMaster().Exec(query, args...); err != nil {
+		return errors.Wrap(err, "failed to update TeamMembers")
 	}
 
 	return nil
@@ -1612,17 +1611,17 @@ func applyTeamMemberViewRestrictionsFilterForStats(query sq.SelectBuilder, teamI
 	return resultQuery
 }
 
-func (s SqlTeamStore) GroupSyncedTeamCount() (int64, *model.AppError) {
-	query := s.getQueryBuilder().Select("COUNT(*)").From("Teams").Where(sq.Eq{"GroupConstrained": true, "DeleteAt": 0})
+func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
+	builder := s.getQueryBuilder().Select("COUNT(*)").From("Teams").Where(sq.Eq{"GroupConstrained": true, "DeleteAt": 0})
 
-	sql, args, err := query.ToSql()
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.GroupSyncedTeamCount", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "team_tosql")
 	}
 
-	count, err := s.GetReplica().SelectInt(sql, args...)
+	count, err := s.GetReplica().SelectInt(query, args...)
 	if err != nil {
-		return 0, model.NewAppError("SqlTeamStore.GroupSyncedTeamCount", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return 0, errors.Wrap(err, "failed to count Teams")
 	}
 
 	return count, nil

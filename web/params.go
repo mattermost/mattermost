@@ -31,6 +31,7 @@ type Params struct {
 	PostId                    string
 	FileId                    string
 	Filename                  string
+	UploadId                  string
 	PluginId                  string
 	CommandId                 string
 	HookId                    string
@@ -122,6 +123,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.Filename = query.Get("filename")
+
+	if val, ok := props["upload_id"]; ok {
+		params.UploadId = val
+	}
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val

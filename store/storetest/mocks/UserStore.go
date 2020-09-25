@@ -753,13 +753,13 @@ func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions
 	return r0, r1
 }
 
-// GetProfilesInChannel provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	ret := _m.Called(channelId, offset, limit)
+// GetProfilesInChannel provides a mock function with given fields: options
+func (_m *UserStore) GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(channelId, offset, limit)
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -767,8 +767,8 @@ func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit in
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(channelId, offset, limit)
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -778,13 +778,13 @@ func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit in
 	return r0, r1
 }
 
-// GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
-func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	ret := _m.Called(channelId, offset, limit)
+// GetProfilesInChannelByStatus provides a mock function with given fields: options
+func (_m *UserStore) GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.User
-	if rf, ok := ret.Get(0).(func(string, int, int) []*model.User); ok {
-		r0 = rf(channelId, offset, limit)
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -792,8 +792,8 @@ func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, 
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
-		r1 = rf(channelId, offset, limit)
+	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
