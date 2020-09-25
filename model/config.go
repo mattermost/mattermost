@@ -627,7 +627,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableCustomEmoji == nil {
-		s.EnableCustomEmoji = NewBool(false)
+		s.EnableCustomEmoji = NewBool(true)
 	}
 
 	if s.EnableEmojiPicker == nil {
