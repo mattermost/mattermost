@@ -306,6 +306,9 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			if tagValue == model.ConfigAccessTagWriteRestrictable {
 				continue
 			}
+			if tagValue == model.ConfigAccessTagCloudRestrictable {
+				continue
+			}
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)
 			if permission, ok := permissionMap[permissionID]; ok {
 				if c.App.SessionHasPermissionTo(*c.App.Session(), permission) {
