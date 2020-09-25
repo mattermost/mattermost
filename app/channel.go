@@ -1980,18 +1980,18 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	}()
 
 	cresult := <-sc
-	if cresult.Err != nil {
-		return cresult.Err
-	}
-	uresult := <-uc
-	if uresult.NErr != nil {
+	if cresult.NErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
-		case errors.As(uresult.NErr, &nfErr):
+		case errors.As(cresult.NErr, &nfErr):
 			return model.NewAppError("LeaveChannel", "app.channel.get.existing.app_error", nil, nfErr.Error(), http.StatusNotFound)
 		default:
-			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
+			return model.NewAppError("LeaveChannel", "app.channel.get.find.app_error", nil, cresult.NErr.Error(), http.StatusInternalServerError)
 		}
+	}
+	uresult := <-uc
+	if uresult.Err != nil {
+		return uresult.Err
 	}
 	ccresult := <-mcc
 	if ccresult.NErr != nil {

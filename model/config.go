@@ -618,7 +618,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableCustomEmoji == nil {
-		s.EnableCustomEmoji = NewBool(false)
+		s.EnableCustomEmoji = NewBool(true)
 	}
 
 	if s.EnableEmojiPicker == nil {
@@ -626,7 +626,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewBool(false)
+		s.EnableGifPicker = NewBool(true)
 	}
 
 	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
@@ -1665,6 +1665,8 @@ type AnnouncementSettings struct {
 	BannerColor          *string `access:"site"`
 	BannerTextColor      *string `access:"site"`
 	AllowBannerDismissal *bool   `access:"site"`
+	AdminNoticesEnabled  *bool   `access:"site"`
+	UserNoticesEnabled   *bool   `access:"site"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1686,6 +1688,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 
 	if s.AllowBannerDismissal == nil {
 		s.AllowBannerDismissal = NewBool(true)
+	}
+
+	if s.AdminNoticesEnabled == nil {
+		s.AdminNoticesEnabled = NewBool(true)
+	}
+
+	if s.UserNoticesEnabled == nil {
+		s.UserNoticesEnabled = NewBool(true)
 	}
 }
 
@@ -1889,7 +1899,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewBool(false)
+		s.ExperimentalViewArchivedChannels = NewBool(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
@@ -2536,7 +2546,7 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins"`
+	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable"`
@@ -2544,12 +2554,12 @@ type PluginSettings struct {
 	ClientDirectory             *string                           `access:"plugins,write_restrictable"`
 	Plugins                     map[string]map[string]interface{} `access:"plugins"`
 	PluginStates                map[string]*PluginState           `access:"plugins"`
-	EnableMarketplace           *bool                             `access:"plugins"`
-	EnableRemoteMarketplace     *bool                             `access:"plugins"`
-	AutomaticPrepackagedPlugins *bool                             `access:"plugins"`
-	RequirePluginSignature      *bool                             `access:"plugins"`
-	MarketplaceUrl              *string                           `access:"plugins"`
-	SignaturePublicKeyFiles     []string                          `access:"plugins"`
+	EnableMarketplace           *bool                             `access:"plugins,write_restrictable"`
+	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable"`
+	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable"`
+	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable"`
+	MarketplaceUrl              *string                           `access:"plugins,write_restrictable"`
+	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2701,7 +2711,7 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 
 	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(false)
+		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
