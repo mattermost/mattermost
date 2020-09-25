@@ -5,6 +5,7 @@ package config
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -52,14 +53,20 @@ func desanitize(actual, target *model.Config) {
 		*target.ElasticsearchSettings.Password = *actual.ElasticsearchSettings.Password
 	}
 
-	target.SqlSettings.DataSourceReplicas = make([]string, len(actual.SqlSettings.DataSourceReplicas))
-	for i := range target.SqlSettings.DataSourceReplicas {
-		target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
+	if len(target.SqlSettings.DataSourceReplicas) == len(actual.SqlSettings.DataSourceReplicas) {
+		for i, value := range target.SqlSettings.DataSourceReplicas {
+			if value == model.FAKE_SETTING {
+				target.SqlSettings.DataSourceReplicas[i] = actual.SqlSettings.DataSourceReplicas[i]
+			}
+		}
 	}
 
-	target.SqlSettings.DataSourceSearchReplicas = make([]string, len(actual.SqlSettings.DataSourceSearchReplicas))
-	for i := range target.SqlSettings.DataSourceSearchReplicas {
-		target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
+	if len(target.SqlSettings.DataSourceSearchReplicas) == len(actual.SqlSettings.DataSourceSearchReplicas) {
+		for i, value := range target.SqlSettings.DataSourceSearchReplicas {
+			if value == model.FAKE_SETTING {
+				target.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
+			}
+		}
 	}
 
 	if *target.MessageExportSettings.GlobalRelaySettings.SmtpPassword == model.FAKE_SETTING {
@@ -191,4 +198,49 @@ func JSONToLogTargetCfg(data []byte) (mlog.LogTargetCfg, error) {
 		return nil, err
 	}
 	return cfg, nil
+}
+
+func GetValueByPath(path []string, obj interface{}) (interface{}, bool) {
+	r := reflect.ValueOf(obj)
+	var val reflect.Value
+	if r.Kind() == reflect.Map {
+		val = r.MapIndex(reflect.ValueOf(path[0]))
+		if val.IsValid() {
+			val = val.Elem()
+		}
+	} else {
+		val = r.FieldByName(path[0])
+	}
+
+	if !val.IsValid() {
+		return nil, false
+	}
+
+	switch {
+	case len(path) == 1:
+		return val.Interface(), true
+	case val.Kind() == reflect.Struct:
+		return GetValueByPath(path[1:], val.Interface())
+	case val.Kind() == reflect.Map:
+		remainingPath := strings.Join(path[1:], ".")
+		mapIter := val.MapRange()
+		for mapIter.Next() {
+			key := mapIter.Key().String()
+			if strings.HasPrefix(remainingPath, key) {
+				i := strings.Count(key, ".") + 2 // number of dots + a dot on each side
+				mapVal := mapIter.Value()
+				// if no sub field path specified, return the object
+				if len(path[i:]) == 0 {
+					return mapVal.Interface(), true
+				}
+				data := mapVal.Interface()
+				if mapVal.Kind() == reflect.Ptr {
+					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
+				}
+				// pass subpath
+				return GetValueByPath(path[i:], data)
+			}
+		}
+	}
+	return nil, false
 }
