@@ -1292,7 +1292,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
 				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			} else {
 				for _, p := range marketplacePlugins {
