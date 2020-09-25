@@ -1327,7 +1327,7 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 	})
 }
 
-func TestSetDefaultFeatureFlagBehavour(t *testing.T) {
+func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
