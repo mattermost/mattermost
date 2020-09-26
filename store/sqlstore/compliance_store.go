@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -209,8 +210,16 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
 	props := map[string]interface{}{"StartTime": after, "Limit": limit}
-	query :=
-		`SELECT
+
+	var explictDeleteAtIndex, explictUpdateAtIndex string
+
+	if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		explictDeleteAtIndex = "FORCE INDEX (idx_posts_delete_at)"
+		explictUpdateAtIndex = "FORCE INDEX (idx_posts_update_at)"
+	}
+
+	query := fmt.Sprintf(`
+		SELECT
 			Posts.Id AS PostId,
 			Posts.CreateAt AS PostCreateAt,
 			Posts.UpdateAt AS PostUpdateAt,
@@ -220,7 +229,6 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.Props AS PostProps,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.RootId AS PostRootId,
-			Posts.Props AS PostProps,
 			Posts.FileIds AS PostFileIds,
 			Teams.Id AS TeamId,
 			Teams.Name AS TeamName,
@@ -244,10 +252,44 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
-			(Posts.CreateAt > :StartTime OR Posts.UpdateAt > :StartTime OR Posts.DeleteAt > :StartTime) AND
-			Posts.Type NOT LIKE 'system_%'
-		ORDER BY PostUpdateAt
-		LIMIT :Limit`
+			Posts.Id IN (
+				SELECT
+					*
+				FROM
+					(
+						(
+							SELECT
+								Id
+							FROM
+								Posts %s
+							WHERE
+								DeleteAt > :StartTime
+							ORDER BY
+								UpdateAt,
+								Id
+							LIMIT
+								:Limit
+						)
+						UNION
+						(
+							SELECT
+								Id
+							FROM
+								Posts %s
+							WHERE
+								UpdateAt > :StartTime
+							ORDER BY
+								UpdateAt,
+								Id
+							LIMIT
+								:Limit
+						)
+					) AS t1
+			)
+			AND Posts.Type NOT LIKE 'system_%%'
+		ORDER BY
+			Posts.UpdateAt;
+	`, explictDeleteAtIndex, explictUpdateAtIndex)
 
 	var cposts []*model.MessageExport
 	if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
