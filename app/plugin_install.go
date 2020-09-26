@@ -213,7 +213,7 @@ func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstall
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	var pluginFile, signatureFile io.ReadCloser
+	var pluginFile, signatureFile io.Reader
 
 	prepackagedPlugin, appErr := a.getPrepackagedPlugin(request.Id, request.Version)
 	if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
@@ -228,7 +228,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		defer fileReader.Close()
 
 		pluginFile = fileReader
-		signatureFile = ioutil.NopCloser(bytes.NewReader(prepackagedPlugin.Signature))
+		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
 	}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
@@ -247,7 +247,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		}
 		pluginFile = respBody
-		signatureFile = ioutil.NopCloser(signature)
+		signatureFile = signature
 	}
 
 	if pluginFile == nil {
