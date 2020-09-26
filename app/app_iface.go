@@ -204,9 +204,9 @@ type AppIface interface {
 	// from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 	InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError)
 	// InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-	InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError)
+	InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError)
 	// InstallPluginWithSignature verifies and installs plugin.
-	InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError)
+	InstallPluginWithSignature(pluginFile, signature io.Reader) (*model.Manifest, *model.AppError)
 	// IsUsernameTaken checks if the username is already used by another user. Return false if the username is invalid.
 	IsUsernameTaken(name string) bool
 	// LimitedClientConfigWithComputed gets the configuration in a format suitable for sending to the client.
@@ -334,7 +334,7 @@ type AppIface interface {
 	// admins in the given syncable.
 	UserIsInAdminRoleGroup(userID, syncableID string, syncableType model.GroupSyncableType) (bool, *model.AppError)
 	// VerifyPlugin checks that the given signature corresponds to the given plugin and matches a trusted certificate.
-	VerifyPlugin(plugin, signature io.ReadSeeker) *model.AppError
+	VerifyPlugin(plugin, signature io.Reader) *model.AppError
 	//GetUserStatusesByIds used by apiV4
 	GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError)
 	AcceptLanguage() string
@@ -476,7 +476,7 @@ type AppIface interface {
 	DoSystemConsoleRolesCreationMigration()
 	DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
-	DownloadFromURL(downloadURL string) ([]byte, error)
+	DownloadFromURL(downloadURL string) (io.ReadCloser, error)
 	EnableUserAccessToken(token *model.UserAccessToken) *model.AppError
 	EnvironmentConfig() map[string]interface{}
 	ExportPermissions(w io.Writer) error

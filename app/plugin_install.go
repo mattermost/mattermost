@@ -120,12 +120,12 @@ func (a *App) RemovePluginFromData(data model.PluginEventData) {
 }
 
 // InstallPluginWithSignature verifies and installs plugin.
-func (a *App) InstallPluginWithSignature(pluginFile, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPluginWithSignature(pluginFile, signature io.Reader) (*model.Manifest, *model.AppError) {
 	return a.installPlugin(pluginFile, signature, installPluginLocallyAlways)
 }
 
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it.
-func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
 	if replace {
 		installationStrategy = installPluginLocallyAlways
@@ -134,23 +134,54 @@ func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Mani
 	return a.installPlugin(pluginFile, nil, installationStrategy)
 }
 
-func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	manifest, appErr := a.installPluginLocally(pluginFile, signature, installationStrategy)
+func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+	var fWriteErr *model.AppError
+	fTempName := model.NewId()
+	fPipeReader, fPipeWriter := io.Pipe()
+	fReader := io.TeeReader(f, fPipeWriter)
+	go func() {
+		_, fWriteErr = a.WriteFile(fPipeReader, a.getBundleStorePath(fTempName))
+		if fWriteErr != nil {
+			fPipeWriter.CloseWithError(fWriteErr)
+		}
+	}()
+
+	var sigWriteErr *model.AppError
+	sigTempName := model.NewId()
+	sigPipeReader, sigPipeWriter := io.Pipe()
+	var sigReader io.Reader = sig
+	if sig != nil {
+		sigReader = io.TeeReader(f, sigPipeWriter)
+		go func() {
+			_, sigWriteErr = a.WriteFile(sigPipeReader, a.getBundleStorePath(sigTempName))
+			if sigWriteErr != nil {
+				fPipeWriter.CloseWithError(sigWriteErr)
+			}
+		}()
+	}
+
+	// installPluginLocally will read the (f, sig) input stream, and tee them to the file store
+	manifest, appErr := a.installPluginLocally(fReader, sigReader, installationStrategy)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if signature != nil {
-		signature.Seek(0, 0)
-		if _, appErr = a.WriteFile(signature, a.getSignatureStorePath(manifest.Id)); appErr != nil {
-			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
-		}
+	err := fPipeWriter.Close()
+	if err != nil {
+
+	}
+	if fWriteErr != nil {
+		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
 
-	// Store bundle in the file store to allow access from other servers.
-	pluginFile.Seek(0, 0)
-	if _, appErr := a.WriteFile(pluginFile, a.getBundleStorePath(manifest.Id)); appErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	if sig != nil {
+		sigPipeWriter.Close()
+		if err != nil {
+
+		}
+		if sigWriteErr != nil {
+			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	a.notifyClusterPluginEvent(
@@ -174,7 +205,7 @@ func (a *App) installPlugin(pluginFile, signature io.ReadSeeker, installationStr
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the plugin bundle
 // from the prepackaged folder, if available, or remotely if EnableRemoteMarketplace is true.
 func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.AppError) {
-	var pluginFile, signatureFile io.ReadSeeker
+	var pluginFile, signatureFile io.ReadCloser
 
 	prepackagedPlugin, appErr := a.getPrepackagedPlugin(request.Id, request.Version)
 	if appErr != nil && appErr.Id != "app.plugin.marketplace_plugins.not_found.app_error" {
@@ -189,7 +220,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		defer fileReader.Close()
 
 		pluginFile = fileReader
-		signatureFile = bytes.NewReader(prepackagedPlugin.Signature)
+		signatureFile = ioutil.NopCloser(bytes.NewReader(prepackagedPlugin.Signature))
 	}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && pluginFile == nil {
@@ -199,7 +230,7 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 			return nil, appErr
 		}
 
-		downloadedPluginBytes, err := a.DownloadFromURL(plugin.DownloadURL)
+		respBody, err := a.DownloadFromURL(plugin.DownloadURL)
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.install_marketplace_plugin.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -207,8 +238,8 @@ func (a *App) InstallMarketplacePlugin(request *model.InstallMarketplacePluginRe
 		if err != nil {
 			return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.signature_decode.app_error", nil, err.Error(), http.StatusNotImplemented)
 		}
-		pluginFile = bytes.NewReader(downloadedPluginBytes)
-		signatureFile = signature
+		pluginFile = respBody
+		signatureFile = ioutil.NopCloser(signature)
 	}
 
 	if pluginFile == nil {
@@ -237,7 +268,7 @@ const (
 	installPluginLocallyAlways
 )
 
-func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
+func (a *App) installPluginLocally(pluginFile, signature io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, model.NewAppError("installPluginLocally", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -269,8 +300,7 @@ func (a *App) installPluginLocally(pluginFile, signature io.ReadSeeker, installa
 	return manifest, nil
 }
 
-func extractPlugin(pluginFile io.ReadSeeker, extractDir string) (*model.Manifest, string, *model.AppError) {
-	pluginFile.Seek(0, 0)
+func extractPlugin(pluginFile io.Reader, extractDir string) (*model.Manifest, string, *model.AppError) {
 	if err := extractTarGz(pluginFile, extractDir); err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}

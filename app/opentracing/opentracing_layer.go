@@ -3350,7 +3350,7 @@ func (a *OpenTracingAppLayer) DoubleCheckPassword(user *model.User, password str
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) DownloadFromURL(downloadURL string) ([]byte, error) {
+func (a *OpenTracingAppLayer) DownloadFromURL(downloadURL string) (io.ReadCloser, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DownloadFromURL")
 
@@ -9536,7 +9536,7 @@ func (a *OpenTracingAppLayer) InstallMarketplacePlugin(request *model.InstallMar
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+func (a *OpenTracingAppLayer) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPlugin")
 
@@ -9573,7 +9573,7 @@ func (a *OpenTracingAppLayer) InstallPluginFromData(data model.PluginEventData) 
 	a.app.InstallPluginFromData(data)
 }
 
-func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.ReadSeeker, signature io.ReadSeeker) (*model.Manifest, *model.AppError) {
+func (a *OpenTracingAppLayer) InstallPluginWithSignature(pluginFile io.Reader, signature io.Reader) (*model.Manifest, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InstallPluginWithSignature")
 
@@ -15437,7 +15437,7 @@ func (a *OpenTracingAppLayer) VerifyEmailFromToken(userSuppliedTokenString strin
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.ReadSeeker, signature io.ReadSeeker) *model.AppError {
+func (a *OpenTracingAppLayer) VerifyPlugin(plugin io.Reader, signature io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.VerifyPlugin")
 

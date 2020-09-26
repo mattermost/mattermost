@@ -22,7 +22,7 @@ const (
 	HTTP_REQUEST_TIMEOUT = 1 * time.Hour
 )
 
-func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
+func (a *App) DownloadFromURL(downloadURL string) (io.ReadCloser, error) {
 	if !model.IsValidHttpUrl(downloadURL) {
 		return nil, errors.Errorf("invalid url %s", downloadURL)
 	}
@@ -58,7 +58,5 @@ func (a *App) DownloadFromURL(downloadURL string) ([]byte, error) {
 		return nil, errors.Wrap(err, "download failed after multiple retries.")
 	}
 
-	defer resp.Body.Close()
-
-	return ioutil.ReadAll(resp.Body)
+	return resp.Body, nil
 }
