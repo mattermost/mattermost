@@ -99,6 +99,19 @@ func TestCreateBot(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_user.save.username_exists.app_error", err.Id)
 	})
+
+	t.Run("create bot, without username", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		_, err := th.App.CreateBot(&model.Bot{
+			Username:    "",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.NotNil(t, err)
+		require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
+	})
 }
 
 func TestPatchBot(t *testing.T) {
