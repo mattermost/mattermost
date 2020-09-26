@@ -179,7 +179,7 @@ func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstall
 	}
 
 	if sig != nil {
-		sigPipeWriter.Close()
+		err = sigPipeWriter.Close()
 		if err != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
