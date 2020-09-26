@@ -135,27 +135,25 @@ func (a *App) InstallPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 }
 
 func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstallationStrategy) (*model.Manifest, *model.AppError) {
-	var fWriteErr *model.AppError
 	fTempName := model.NewId()
 	fPipeReader, fPipeWriter := io.Pipe()
 	fReader := io.TeeReader(f, fPipeWriter)
 	go func() {
-		_, fWriteErr = a.WriteFile(fPipeReader, a.getBundleStorePath(fTempName))
-		if fWriteErr != nil {
-			fPipeWriter.CloseWithError(fWriteErr)
+		_, writeErr := a.WriteFile(fPipeReader, a.getBundleStorePath(fTempName))
+		if writeErr != nil {
+			fPipeWriter.CloseWithError(writeErr)
 		}
 	}()
 
-	var sigWriteErr *model.AppError
 	sigTempName := model.NewId()
 	sigPipeReader, sigPipeWriter := io.Pipe()
 	var sigReader io.Reader = sig
 	if sig != nil {
 		sigReader = io.TeeReader(f, sigPipeWriter)
 		go func() {
-			_, sigWriteErr = a.WriteFile(sigPipeReader, a.getBundleStorePath(sigTempName))
-			if sigWriteErr != nil {
-				fPipeWriter.CloseWithError(sigWriteErr)
+			_, writeErr := a.WriteFile(sigPipeReader, a.getBundleStorePath(sigTempName))
+			if writeErr != nil {
+				fPipeWriter.CloseWithError(writeErr)
 			}
 		}()
 	}
@@ -170,9 +168,6 @@ func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstall
 	if err != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if fWriteErr != nil {
-		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, fWriteErr.Error(), http.StatusInternalServerError)
-	}
 	appErr = a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
 	if appErr != nil {
 		return nil, model.NewAppError("uploadPlugin", "app.plugin.store_bundle.app_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -182,9 +177,6 @@ func (a *App) installPlugin(f, sig io.Reader, installationStrategy pluginInstall
 		err = sigPipeWriter.Close()
 		if err != nil {
 			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		if sigWriteErr != nil {
-			return nil, model.NewAppError("saveSignature", "app.plugin.store_signature.app_error", nil, sigWriteErr.Error(), http.StatusInternalServerError)
 		}
 		appErr = a.MoveFile(a.getBundleStorePath(fTempName), a.getBundleStorePath(manifest.Id))
 		if appErr != nil {
