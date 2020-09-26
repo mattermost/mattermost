@@ -7401,6 +7401,7 @@ func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, end
 			return result, err
 		}
 	}
+
 }
 
 func (s *RetryLayerUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError) {

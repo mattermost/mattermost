@@ -7780,7 +7780,6 @@ func (s *OpenTracingLayerUserStore) AnalyticsActiveCount(time int64, options mod
 func (s *OpenTracingLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.AnalyticsActiveCountForPeriod")
-	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
@@ -7788,7 +7787,6 @@ func (s *OpenTracingLayerUserStore) AnalyticsActiveCountForPeriod(startTime int6
 
 	defer span.Finish()
 	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
-
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
