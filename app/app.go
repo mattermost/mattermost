@@ -630,6 +630,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.srv.Saml
 }
+func (a *App) Cloud() einterfaces.CloudInterface {
+	return a.srv.Cloud
+}
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.srv.HTTPService
 }
