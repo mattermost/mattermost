@@ -218,6 +218,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
+	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
@@ -1936,8 +1938,8 @@ type LdapSettings struct {
 	UserFilter        *string `access:"authentication"`
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
-	EnableAdminFilter *bool   `access:"authentication"`
-	AdminFilter       *string `access:"authentication"`
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string `access:"authentication"`
@@ -2546,6 +2548,16 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type CloudSettings struct {
+	CWSUrl *string `access:"environment,write_restrictable"`
+}
+
+func (s *CloudSettings) SetDefaults() {
+	if s.CWSUrl == nil {
+		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
@@ -2854,6 +2866,7 @@ type Config struct {
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
+	CloudSettings             CloudSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2940,6 +2953,7 @@ func (o *Config) SetDefaults() {
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
+	o.CloudSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
