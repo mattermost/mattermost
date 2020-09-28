@@ -89,6 +89,8 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.ApiSessionRequired(migrateAuthToLDAP)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.ApiSessionRequired(migrateAuthToSaml)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("/uploads", api.ApiSessionRequired(getUploadsForUser)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -750,9 +752,9 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if sort == "status" {
-			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPageByStatus(userGetOptions, c.IsSystemAdmin())
 		} else {
-			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInChannelPage(userGetOptions, c.IsSystemAdmin())
 		}
 	} else if len(inGroupId) > 0 {
 		if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.LDAPGroups {
@@ -2599,6 +2601,26 @@ func convertUserToBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("convertedTo", bot)
 
 	w.Write(bot.ToJson())
+}
+
+func getUploadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.UserId != c.App.Session().UserId {
+		c.Err = model.NewAppError("getUploadsForUser", "api.user.get_uploads_for_user.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	uss, err := c.App.GetUploadSessionsForUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UploadSessionsToJson(uss)))
 }
 
 func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
