@@ -236,6 +236,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(*c.GitLabSettings.Enable)
+	props["EnableSignUpWithGitLabOpenId"] = strconv.FormatBool(*c.GitLabOpenIdSettings.Enable)
 
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink
@@ -310,10 +311,12 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 		if *license.Features.GoogleOAuth {
 			props["EnableSignUpWithGoogle"] = strconv.FormatBool(*c.GoogleSettings.Enable)
+			props["EnableSignUpWithGoogleOpenId"] = strconv.FormatBool(*c.GoogleOpenIdSettings.Enable)
 		}
 
 		if *license.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(*c.Office365Settings.Enable)
+			props["EnableSignUpWithOffice365OpenId"] = strconv.FormatBool(*c.Office365OpenIdSettings.Enable)
 		}
 
 		if *license.Features.OpenIdAuth {

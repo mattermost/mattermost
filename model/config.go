@@ -2953,6 +2953,9 @@ type Config struct {
 	GitLabSettings            SSOSettings
 	GoogleSettings            SSOSettings
 	Office365Settings         Office365Settings
+	GitLabOpenIdSettings      SSOSettings
+	GoogleOpenIdSettings      SSOSettings
+	Office365OpenIdSettings   Office365Settings
 	OpenIdSettings            OpenIdSettings
 	LdapSettings              LdapSettings
 	ComplianceSettings        ComplianceSettings
@@ -3034,6 +3037,9 @@ func (o *Config) SetDefaults() {
 	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365OpenIdSettings.setDefaults()
+	o.GitLabOpenIdSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
+	o.GoogleOpenIdSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.OpenIdSettings.setDefaults()
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
