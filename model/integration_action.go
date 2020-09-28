@@ -16,6 +16,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -124,13 +125,19 @@ func (p *PostAction) Equals(input *PostAction) bool {
 
 	for key, value := range p.Integration.Context {
 		inputValue, ok := input.Integration.Context[key]
-
 		if !ok {
 			return false
 		}
 
-		if value != inputValue {
-			return false
+		switch inputValue.(type) {
+		case string, bool, int, float64:
+			if value != inputValue {
+				return false
+			}
+		default:
+			if !reflect.DeepEqual(value, inputValue) {
+				return false
+			}
 		}
 	}
 
