@@ -274,10 +274,9 @@ func (a *App) UpdateProductNotices() *model.AppError {
 		skip = false
 	}
 	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL), mlog.Bool("skip_cache", skip))
-	var appErr *model.AppError
-	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	if appErr != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", appErr.Error()))
+	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if err != nil {
+		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	var nErr error

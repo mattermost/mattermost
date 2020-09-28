@@ -1989,8 +1989,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, nErr)
 		require.Greater(t, len(users), 0)
 
-		postCount, err := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr := th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Greater(t, postCount, int64(0))
 
 		// Delete all users and their posts
@@ -2002,8 +2002,8 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 		require.Nil(t, nErr)
 		require.Len(t, users, 0)
 
-		postCount, err = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
-		require.Nil(t, err)
+		postCount, nErr = th.App.Srv().Store.Post().AnalyticsPostCount("", false, false)
+		require.Nil(t, nErr)
 		require.Equal(t, postCount, int64(0))
 
 		// Check that the channel and team created by the user were not deleted
