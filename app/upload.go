@@ -20,58 +20,60 @@ import (
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 
 func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
-	// call plugins upload hook
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		// using a pipe to avoid loading the whole file content in memory.
-		r, w := io.Pipe()
-		errChan := make(chan *model.AppError, 1)
-		go func() {
-			defer w.Close()
-			defer close(errChan)
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
-				if rejStr != "" {
-					errChan <- model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
-					return false
-				}
-				if newInfo != nil {
-					info = newInfo
-				}
-				return true
-			}, plugin.FileWillBeUploadedId)
-		}()
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil
+	}
 
-		tmpPath := info.Path + ".tmp"
-		written, err := a.WriteFile(r, tmpPath)
-		if err != nil {
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
+	// using a pipe to avoid loading the whole file content in memory.
+	r, w := io.Pipe()
+	errChan := make(chan *model.AppError, 1)
+	go func() {
+		defer w.Close()
+		defer close(errChan)
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
+			if rejStr != "" {
+				errChan <- model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
+				return false
 			}
-			return err
+			if newInfo != nil {
+				info = newInfo
+			}
+			return true
+		}, plugin.FileWillBeUploadedId)
+	}()
+
+	tmpPath := info.Path + ".tmp"
+	written, err := a.WriteFile(r, tmpPath)
+	if err != nil {
+		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
+		return err
+	}
 
-		if err = <-errChan; err != nil {
-			if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-			return err
+	if err = <-errChan; err != nil {
+		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
+		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+		}
+		return err
+	}
 
-		if written > 0 {
-			info.Size = written
-			if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
-				mlog.Error("Failed to move file", mlog.Err(fileErr))
-				return model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.move_fail",
-					nil, fileErr.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
+	if written > 0 {
+		info.Size = written
+		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
+			mlog.Error("Failed to move file", mlog.Err(fileErr))
+			return model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.move_fail",
+				nil, fileErr.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
