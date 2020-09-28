@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"reflect"
 	"strconv"
 	"strings"
@@ -274,6 +275,14 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 func configMigrateCmdF(command *cobra.Command, args []string) error {
 	from := args[0]
 	to := args[1]
+
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	utils.InitTranslationsWithDir(path.Join(cwd, "i18n"))
 
 	err := config.Migrate(from, to)
 
