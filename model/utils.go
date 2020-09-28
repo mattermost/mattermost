@@ -496,7 +496,7 @@ func IsValidHttpUrl(rawUrl string) bool {
 		return false
 	}
 
-	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+	if u, err := url.ParseRequestURI(rawUrl); err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
 
