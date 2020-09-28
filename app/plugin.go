@@ -233,6 +233,9 @@ func (a *App) SyncPlugins() *model.AppError {
 
 	var wg sync.WaitGroup
 	for _, plugin := range availablePlugins {
+		if plugin.Manifest == nil {
+			continue
+		}
 		wg.Add(1)
 		go func(pluginID string) {
 			defer wg.Done()
