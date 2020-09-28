@@ -19,6 +19,65 @@ import (
 
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 
+func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppError {
+	// call plugins upload hook
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		// using a pipe to avoid loading the whole file content in memory.
+		r, w := io.Pipe()
+		errChan := make(chan *model.AppError, 1)
+		go func() {
+			defer w.Close()
+			defer close(errChan)
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
+				if rejStr != "" {
+					errChan <- model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
+					return false
+				}
+				if newInfo != nil {
+					info = newInfo
+				}
+				return true
+			}, plugin.FileWillBeUploadedId)
+		}()
+
+		tmpPath := info.Path + ".tmp"
+		written, err := a.WriteFile(r, tmpPath)
+		if err != nil {
+			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+				mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			}
+			return err
+		}
+
+		if err = <-errChan; err != nil {
+			if fileErr := a.RemoveFile(info.Path); fileErr != nil {
+				mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			}
+			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+				mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			}
+			return err
+		}
+
+		if written > 0 {
+			info.Size = written
+			if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
+				mlog.Error("Failed to move file", mlog.Err(fileErr))
+				return model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.move_fail",
+					nil, fileErr.Error(), http.StatusInternalServerError)
+			}
+		} else {
+			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
+				mlog.Error("Failed to remove file", mlog.Err(fileErr))
+			}
+		}
+	}
+
+	return nil
+}
+
 func (a *App) CreateUploadSession(us *model.UploadSession) (*model.UploadSession, *model.AppError) {
 	if us.FileSize > *a.Config().FileSettings.MaxFileSize {
 		return nil, model.NewAppError("CreateUploadSession", "app.upload.create.upload_too_large.app_error",
@@ -154,58 +213,9 @@ func (a *App) UploadData(us *model.UploadSession, rd io.Reader) (*model.FileInfo
 	info.CreatorId = us.UserId
 	info.Path = us.Path
 
-	// call plugins upload hook
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		// using a pipe to avoid loading the whole file content in memory.
-		r, w := io.Pipe()
-		errChan := make(chan *model.AppError, 1)
-		go func() {
-			defer w.Close()
-			defer close(errChan)
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
-				if rejStr != "" {
-					errChan <- model.NewAppError("UploadData", "File rejected by plugin. "+rejStr, nil, "", http.StatusBadRequest)
-					return false
-				}
-				if newInfo != nil {
-					info = newInfo
-				}
-				return true
-			}, plugin.FileWillBeUploadedId)
-		}()
-
-		var written int64
-		tmpPath := us.Path + ".tmp"
-		written, err = a.WriteFile(r, tmpPath)
-		if err != nil {
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-			return nil, err
-		}
-
-		if err = <-errChan; err != nil {
-			if fileErr := a.RemoveFile(us.Path); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-			return nil, err
-		}
-
-		if written > 0 {
-			info.Size = written
-			if fileErr := a.MoveFile(tmpPath, us.Path); fileErr != nil {
-				mlog.Error("Failed to move file", mlog.Err(fileErr))
-			}
-		} else {
-			if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-				mlog.Error("Failed to remove file", mlog.Err(fileErr))
-			}
-		}
+	// run plugins upload hook
+	if err := a.runPluginsHook(info, file); err != nil {
+		return nil, err
 	}
 
 	// image post-processing

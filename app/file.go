@@ -623,30 +623,44 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		}
 	}
 
-	aerr = t.readAll()
+	written, aerr := t.writeFile(io.MultiReader(t.buf, t.limitedInput), t.fileinfo.Path)
 	if aerr != nil {
-		return t.fileinfo, aerr
+		return nil, aerr
 	}
 
-	aerr = t.runPlugins()
+	if written > t.maxFileSize {
+		a.RemoveFile(t.fileinfo.Path)
+		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
+	}
+
+	t.fileinfo.Size = written
+
+	file, aerr := a.FileReader(t.fileinfo.Path)
 	if aerr != nil {
-		return t.fileinfo, aerr
+		return nil, aerr
+	}
+	defer file.Close()
+
+	aerr = a.runPluginsHook(t.fileinfo, file)
+	if aerr != nil {
+		return nil, aerr
 	}
 
 	// Concurrently upload and update DB, and post-process the image.
 	wg := sync.WaitGroup{}
 
-	if !t.Raw && t.fileinfo.IsImage() {
+	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.HasPreviewImage {
+		file, aerr = a.FileReader(t.fileinfo.Path)
+		if aerr != nil {
+			return nil, aerr
+		}
+		defer file.Close()
 		wg.Add(1)
 		go func() {
-			t.postprocessImage()
+			t.postprocessImage(file)
 			wg.Done()
 		}()
-	}
-
-	_, aerr = t.writeFile(t.newReader(), t.fileinfo.Path)
-	if aerr != nil {
-		return nil, aerr
 	}
 
 	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
@@ -664,69 +678,10 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	return t.fileinfo, nil
 }
 
-func (t *UploadFileTask) readAll() *model.AppError {
-	_, err := t.buf.ReadFrom(t.limitedInput)
-	if err != nil {
-		// Ugly hack: the error is not exported from net/http.
-		if err.Error() == "http: request body too large" {
-			return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-				"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
-		}
-		return t.newAppError("api.file.upload_file.read_request.app_error",
-			err.Error(), http.StatusBadRequest)
-	}
-	if int64(t.buf.Len()) > t.limit {
-		return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
-	}
-	t.fileinfo.Size = int64(t.buf.Len())
-
-	t.limitedInput = nil
-	t.teeInput = nil
-	return nil
-}
-
-func (t *UploadFileTask) runPlugins() *model.AppError {
-	if t.pluginsEnvironment == nil {
-		return nil
-	}
-
-	pluginContext := &plugin.Context{}
-	var rejectionError *model.AppError
-
-	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		buf := &bytes.Buffer{}
-		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
-			t.fileinfo, t.newReader(), buf)
-		if rejectionReason != "" {
-			rejectionError = t.newAppError("api.file.upload_file.rejected_by_plugin.app_error",
-				rejectionReason, http.StatusForbidden, "Reason", rejectionReason)
-			return false
-		}
-		if replacementInfo != nil {
-			t.fileinfo = replacementInfo
-		}
-		if buf.Len() != 0 {
-			t.buf = buf
-			t.teeInput = nil
-			t.limitedInput = nil
-			t.fileinfo.Size = int64(buf.Len())
-		}
-
-		return true
-	}, plugin.FileWillBeUploadedId)
-
-	if rejectionError != nil {
-		return rejectionError
-	}
-
-	return nil
-}
-
 func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// If SVG, attempt to extract dimensions and then return
 	if t.fileinfo.MimeType == "image/svg+xml" {
-		svgInfo, err := parseSVG(t.newReader())
+		svgInfo, err := parseSVG(t.teeInput)
 		if err != nil {
 			mlog.Error("Failed to parse SVG", mlog.Err(err))
 		}
@@ -739,7 +694,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	}
 
 	// If we fail to decode, return "as is".
-	config, _, err := image.DecodeConfig(t.newReader())
+	config, _, err := image.DecodeConfig(t.teeInput)
 	if err != nil {
 		return nil
 	}
@@ -763,7 +718,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// check the image orientation with goexif; consume the bytes we
 	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = getImageOrientation(t.newReader()); err == nil &&
+	if t.imageOrientation, err = getImageOrientation(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)); err == nil &&
 		(t.imageOrientation == RotatedCWMirrored ||
 			t.imageOrientation == RotatedCCW ||
 			t.imageOrientation == RotatedCCWMirrored ||
@@ -774,13 +729,10 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		gifConfig, err := gif.DecodeAll(t.newReader())
+		gifConfig, err := gif.DecodeAll(io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput))
 		if err == nil {
-			if len(gifConfig.Image) >= 1 {
-				t.fileinfo.HasPreviewImage = false
-
-			}
 			if len(gifConfig.Image) > 0 {
+				t.fileinfo.HasPreviewImage = false
 				t.decoded = gifConfig.Image[0]
 				t.imageType = "gif"
 			}
@@ -790,7 +742,7 @@ func (t *UploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *UploadFileTask) postprocessImage() {
+func (t *UploadFileTask) postprocessImage(file io.Reader) {
 	// don't try to process SVG files
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		return
@@ -799,7 +751,7 @@ func (t *UploadFileTask) postprocessImage() {
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
-		decoded, typ, err = image.Decode(t.newReader())
+		decoded, typ, err = image.Decode(file)
 		if err != nil {
 			mlog.Error("Unable to decode image", mlog.Err(err))
 			return
@@ -866,14 +818,6 @@ func (t *UploadFileTask) postprocessImage() {
 		writeJPEG(preview, t.fileinfo.PreviewPath)
 	}()
 	wg.Wait()
-}
-
-func (t UploadFileTask) newReader() io.Reader {
-	if t.teeInput != nil {
-		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
-	} else {
-		return bytes.NewReader(t.buf.Bytes())
-	}
 }
 
 func (t UploadFileTask) pathPrefix() string {
