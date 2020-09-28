@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -1853,7 +1854,8 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
 		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
 		require.NotNil(t, err)
-		require.IsType(t, &store.ErrNotFound{}, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get by unknown auth, u1 service", func(t *testing.T) {

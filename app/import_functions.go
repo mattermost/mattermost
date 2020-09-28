@@ -296,7 +296,6 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	hasUserEmailVerifiedChanged := false
 
 	var user *model.User
-	var err *model.AppError
 	var nErr error
 	user, nErr = a.Srv().Store.User().GetByUsername(*data.Username)
 	if nErr != nil {
@@ -476,6 +475,7 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	var savedUser *model.User
+	var err *model.AppError
 	if user.Id == "" {
 		if savedUser, err = a.createUser(user); err != nil {
 			return err
@@ -983,16 +983,14 @@ func (a *App) importUserChannels(user *model.User, team *model.Team, teamMember 
 }
 
 func (a *App) importReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
-	var err *model.AppError
-	if err = validateReactionImportData(data, post.CreateAt); err != nil {
+	if err := validateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
 
 	var user *model.User
 	var nErr error
-	user, nErr = a.Srv().Store.User().GetByUsername(*data.User)
-	if nErr != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, err.Error(), http.StatusBadRequest)
+	if user, nErr = a.Srv().Store.User().GetByUsername(*data.User); nErr != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, nErr.Error(), http.StatusBadRequest)
 	}
 
 	reaction := &model.Reaction{

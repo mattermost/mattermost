@@ -33,7 +33,7 @@ func (s *SearchUserStore) deleteUserIndex(user *model.User) {
 	}
 }
 
-func (s *SearchUserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (s *SearchUserStore) Search(teamId, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
 			listOfAllowedChannels, err := s.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)

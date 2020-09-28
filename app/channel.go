@@ -1899,14 +1899,12 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 
 	uresult := <-userChan
 	if uresult.NErr != nil {
-		if uresult.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(uresult.NErr, &nfErr):
-				return model.NewAppError("CreateChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
-			}
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(uresult.NErr, &nfErr):
+			return model.NewAppError("CreateChannel", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return model.NewAppError("CreateChannel", "app.user.get.app_error", nil, uresult.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 

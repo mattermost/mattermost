@@ -587,14 +587,12 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	result = <-uchan
 	if result.NErr != nil {
-		if result.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result.NErr, &nfErr):
-				return nil, model.NewAppError("AddUserToTeamByToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
-			default:
-				return nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
-			}
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(result.NErr, &nfErr):
+			return nil, model.NewAppError("AddUserToTeamByToken", MISSING_ACCOUNT_ERROR, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("AddUserToTeamByToken", "app.user.get.app_error", nil, result.NErr.Error(), http.StatusInternalServerError)
 		}
 	}
 	user := result.Data.(*model.User)

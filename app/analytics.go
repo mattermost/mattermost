@@ -142,7 +142,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		} else {
 			r = <-userInactiveChan
 			if r.NErr != nil {
-				return nil, model.NewAppError("", "app.user.analytics_get_inactive_users_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
+				return nil, model.NewAppError("GetAnalytics", "app.user.analytics_get_inactive_users_count.app_error", nil, r.NErr.Error(), http.StatusInternalServerError)
 			}
 			rows[10].Value = float64(r.Data.(int64))
 		}
