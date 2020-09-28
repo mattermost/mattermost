@@ -36,6 +36,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v5/services/awsmeter"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
 	"github.com/mattermost/mattermost-server/v5/services/httpservice"
@@ -163,6 +164,7 @@ type Server struct {
 	DataRetention    einterfaces.DataRetentionInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
+	Cloud            einterfaces.CloudInterface
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
@@ -554,6 +556,10 @@ func (s *Server) RunJobs() {
 		}
 		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
 			s.Jobs.StartSchedulers()
+		}
+
+		if *s.Config().ServiceSettings.EnableAWSMetering {
+			runReportToAWSMeterJob(s)
 		}
 	}
 }
@@ -1164,6 +1170,24 @@ func runLicenseExpirationCheckJob(a *App) {
 	model.CreateRecurringTask("License Expiration Check", func() {
 		doLicenseExpirationCheck(a)
 	}, time.Hour*24)
+}
+
+func runReportToAWSMeterJob(s *Server) {
+	model.CreateRecurringTask("Collect and send usage report to AWS Metering Service", func() {
+		doReportUsageToAWSMeteringService(s)
+	}, time.Hour*model.AWS_METERING_REPORT_INTERVAL)
+}
+
+func doReportUsageToAWSMeteringService(s *Server) {
+	awsMeter := awsmeter.New(s.Store, s.Config())
+	if awsMeter == nil {
+		mlog.Error("Cannot obtain instance of AWS Metering Service.")
+		return
+	}
+
+	dimensions := []string{model.AWS_METERING_DIMENSION_USAGE_HRS}
+	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AWS_METERING_REPORT_INTERVAL*time.Hour).UTC())
+	awsMeter.ReportUserCategoryUsage(reports)
 }
 
 func runCheckWarnMetricStatusJob(a *App) {

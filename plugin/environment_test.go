@@ -37,8 +37,8 @@ func TestAvaliablePlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = f.WriteString(bundle1.Manifest.ToJson())
-		f.Close()
 		require.NoError(t, err)
+		f.Close()
 
 		env := Environment{
 			pluginDir: dir,
@@ -48,7 +48,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		require.Len(t, bundles, 1)
 	})
 
-	t.Run("Should not be able to load avaliable plugins without a valid manifest", func(t *testing.T) {
+	t.Run("Should not be able to load plugins without a valid manifest", func(t *testing.T) {
 		err := os.Mkdir(filepath.Join(dir, "plugin2"), 0700)
 		require.NoError(t, err)
 
@@ -57,8 +57,8 @@ func TestAvaliablePlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = f.WriteString("{}")
-		f.Close()
 		require.NoError(t, err)
+		f.Close()
 
 		env := Environment{
 			pluginDir: dir,
