@@ -98,7 +98,7 @@ pipeline {
           withCredentials([usernamePassword(credentialsId: 'matterbuild-docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
             sh 'docker login --username ${DOCKER_USER} --password ${DOCKER_PASS}'
             sh """
-            export TAG=\$(git rev-parse --short=7 HEAD)
+            export TAG=\$(git rev-parse --short=7 HEAD)-\${env.BUILD_NUMBER}
             docker build --no-cache --build-arg MM_PACKAGE=https://releases.mattermost.com/mattermost-platform/${env.BRANCH_NAME}/mattermost-enterprise-linux-amd64.tar.gz -t mattermost/mm-cloud-ee:\${TAG} -t mattermost/mm-cloud-ee:latest build
 
             docker push mattermost/mm-cloud-ee:\${TAG}
