@@ -30,7 +30,7 @@ func (o *oAuther) oauth2Complete(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 
 	var storedState string
-	err := o.store.Get(o.getStateKey(authedUserID), storedState)
+	err := o.store.Get(o.getStateKey(authedUserID), &storedState)
 	if err != nil {
 		o.logger.Warnf("oauth2Complete: cannot get state, err=%s", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -60,7 +60,7 @@ func (o *oAuther) oauth2Complete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var payload []byte
-	err = o.store.Get(o.getPayloadKey(userID), payload)
+	err = o.store.Get(o.getPayloadKey(userID), &payload)
 	if err != nil {
 		o.logger.Errorf("oauth2Complete: could not fetch payload, err=&s", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

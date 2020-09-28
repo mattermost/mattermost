@@ -142,7 +142,7 @@ func (o *oAuther) GetConnectURL() string {
 
 func (o *oAuther) GetToken(userID string) (*oauth2.Token, error) {
 	var token *oauth2.Token
-	err := o.store.Get(o.getTokenKey(userID), token)
+	err := o.store.Get(o.getTokenKey(userID), &token)
 	if err != nil {
 		return nil, err
 	}
