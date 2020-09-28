@@ -4,12 +4,13 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/v5/store"
 	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -17,7 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/pkg/errors"
-	"github.com/reflog/dateconstraints"
+	date_constraints "github.com/reflog/dateconstraints"
 )
 
 const MAX_REPEAT_VIEWINGS = 3
@@ -274,9 +275,9 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	}
 	mlog.Debug("Will fetch notices from", mlog.String("url", NOTICES_JSON_URL), mlog.Bool("skip_cache", skip))
 	var appErr *model.AppError
-	cachedPostCount, appErr = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-	if appErr != nil {
-		mlog.Error("Failed to fetch post count", mlog.String("error", appErr.Error()))
+	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
+	if err != nil {
+		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
 	cachedUserCount, appErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
