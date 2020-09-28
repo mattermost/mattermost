@@ -1474,6 +1474,14 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	return count, nil
 }
 
+func (us SqlUserStore) AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError) {
+	count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE LOWER(Email) NOT LIKE :HostDomain", map[string]interface{}{"HostDomain": "%@" + strings.ToLower(hostDomain)})
+	if err != nil {
+		return false, model.NewAppError("SqlUserStore.AnalyticsGetExternalUsers", "store.sql_user.analytics_get_external_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count > 0, nil
+}
+
 func (us SqlUserStore) AnalyticsGetGuestCount() (int64, *model.AppError) {
 	count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles and DeleteAt = 0", map[string]interface{}{"Roles": "%system_guest%"})
 	if err != nil {

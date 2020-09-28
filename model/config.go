@@ -635,7 +635,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewBool(false)
+		s.EnableGifPicker = NewBool(true)
 	}
 
 	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
@@ -2021,7 +2021,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewBool(false)
+		s.ExperimentalViewArchivedChannels = NewBool(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
@@ -2833,7 +2833,7 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 
 	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(false)
+		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
