@@ -5539,6 +5539,10 @@
     "translation": "Your license does not support Data Retention."
   },
   {
+    "id": "ent.data_retention.posts_permanent_delete_batch.internal_error",
+    "translation": ""
+  },
+  {
     "id": "ent.data_retention.reactions_batch.internal_error",
     "translation": "We encountered an error permanently deleting the batch of reactions."
   },
@@ -5611,6 +5615,10 @@
     "translation": "Failed to index the channel"
   },
   {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": "Unable to get the channels batch for indexing."
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
   },
@@ -5637,6 +5645,10 @@
   {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -5797,6 +5809,10 @@
   {
     "id": "ent.ldap.do_login.x509.app_error",
     "translation": "Error creating key pair"
+  },
+  {
+    "id": "ent.ldap.no.users.checkcertificate",
+    "translation": ""
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
