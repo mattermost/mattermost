@@ -35,7 +35,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
 			if rejStr != "" {
-				errChan <- model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
+				errChan <- model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
 				return false
 			}
 			if newInfo != nil {
@@ -68,7 +68,7 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		info.Size = written
 		if fileErr := a.MoveFile(tmpPath, info.Path); fileErr != nil {
 			mlog.Error("Failed to move file", mlog.Err(fileErr))
-			return model.NewAppError("runPluginsHook", "app.file.run_plugins_hook.move_fail",
+			return model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.move_fail",
 				nil, fileErr.Error(), http.StatusInternalServerError)
 		}
 	} else {
