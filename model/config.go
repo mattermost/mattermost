@@ -6,7 +6,6 @@ package model
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
@@ -42,10 +41,13 @@ const (
 	PASSWORD_MAXIMUM_LENGTH = 64
 	PASSWORD_MINIMUM_LENGTH = 5
 
-	SERVICE_GITLAB    = "gitlab"
-	SERVICE_GOOGLE    = "google"
-	SERVICE_OFFICE365 = "office365"
-	SERVICE_OPENID    = "openid"
+	SERVICE_GITLAB           = "gitlab"
+	SERVICE_GOOGLE           = "google"
+	SERVICE_OFFICE365        = "office365"
+	SERVICE_GITLAB_LEGACY    = "gitlabLegacy"
+	SERVICE_GOOGLE_LEGACY    = "googleLegacy"
+	SERVICE_OFFICE365_LEGACY = "office365Legacy"
+	SERVICE_OPENID           = "openid"
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
@@ -931,6 +933,22 @@ type SSOSettings struct {
 	UserApiEndpoint   *string `access:"authentication"`
 }
 
+func RetrieveDiscoveryDocument(url string) (ssoSettings *providerJSON, err error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var openIdResponse providerJSON
+	json.Unmarshal(responseData, &openIdResponse)
+	return &openIdResponse, nil
+}
+
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
@@ -944,7 +962,7 @@ func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEnd
 		s.Id = NewString("")
 	}
 
-	if s.Scope == nil || *s.Scope == "" {
+	if s.Scope == nil {
 		s.Scope = NewString(scope)
 	}
 
@@ -977,7 +995,7 @@ type Office365Settings struct {
 	DiscoveryEndpoint *string `access:"authentication"`
 }
 
-func (s *Office365Settings) setDefaults() {
+func (s *Office365Settings) setDefaults(isOpenId bool) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -990,28 +1008,46 @@ func (s *Office365Settings) setDefaults() {
 		s.Secret = NewString("")
 	}
 
-	if s.Scope == nil {
-		s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
-	}
-
-	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
-	}
-
-	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
-	}
-
-	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	}
-
 	if s.DirectoryId == nil {
 		s.DirectoryId = NewString("")
 	}
 
 	if s.DiscoveryEndpoint == nil {
 		s.DiscoveryEndpoint = NewString("")
+	}
+
+	if !isOpenId {
+		if s.Scope == nil {
+			s.Scope = NewString(OFFICE365_SETTINGS_DEFAULT_SCOPE)
+		}
+
+		if s.AuthEndpoint == nil {
+			s.AuthEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT)
+		}
+
+		if s.TokenEndpoint == nil {
+			s.TokenEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT)
+		}
+
+		if s.UserApiEndpoint == nil {
+			s.UserApiEndpoint = NewString(OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+		}
+	} else {
+		if s.Scope == nil {
+			s.Scope = NewString(OPENID_SETTINGS_DEFAULT_SCOPE)
+		}
+
+		if s.AuthEndpoint == nil {
+			s.AuthEndpoint = NewString("")
+		}
+
+		if s.TokenEndpoint == nil {
+			s.TokenEndpoint = NewString("")
+		}
+
+		if s.UserApiEndpoint == nil {
+			s.UserApiEndpoint = NewString("")
+		}
 	}
 }
 
@@ -1024,19 +1060,20 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
-	if *s.DiscoveryEndpoint != "" {
-		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-		wellKnown := *s.DiscoveryEndpoint
-		resp, _ := http.Get(wellKnown)
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		var p providerJSON
-		json.Unmarshal(body, &p)
-		*ssoSettings.Scope = *ssoSettings.Scope + " " + OPENID_SETTINGS_DEFAULT_SCOPE
-		ssoSettings.AuthEndpoint = &p.AuthURL
-		ssoSettings.TokenEndpoint = &p.TokenURL
-		ssoSettings.UserApiEndpoint = &p.UserInfoURL
-	}
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
+	// if *s.DiscoveryEndpoint != "" {
+	// 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+	// 	wellKnown := *s.DiscoveryEndpoint
+	// 	resp, _ := http.Get(wellKnown)
+	// 	defer resp.Body.Close()
+	// 	body, _ := ioutil.ReadAll(resp.Body)
+	// 	var p providerJSON
+	// 	json.Unmarshal(body, &p)
+	// 	*ssoSettings.Scope = *ssoSettings.Scope + " " + OPENID_SETTINGS_DEFAULT_SCOPE
+	// 	ssoSettings.AuthEndpoint = &p.AuthURL
+	// 	ssoSettings.TokenEndpoint = &p.TokenURL
+	// 	ssoSettings.UserApiEndpoint = &p.UserInfoURL
+	// }
 	return &ssoSettings
 }
 
@@ -1062,18 +1099,19 @@ func (s *OpenIdSettings) SSOSettings() *SSOSettings {
 	ssoSettings.AuthEndpoint = s.AuthEndpoint
 	ssoSettings.TokenEndpoint = s.TokenEndpoint
 	ssoSettings.UserApiEndpoint = s.UserApiEndpoint
-	if *s.DiscoveryEndpoint != "" {
-		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-		wellKnown := *s.DiscoveryEndpoint
-		resp, _ := http.Get(wellKnown)
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		var p providerJSON
-		json.Unmarshal(body, &p)
-		ssoSettings.AuthEndpoint = &p.AuthURL
-		ssoSettings.TokenEndpoint = &p.TokenURL
-		ssoSettings.UserApiEndpoint = &p.UserInfoURL
-	}
+	ssoSettings.DiscoveryEndpoint = s.DiscoveryEndpoint
+	// if *s.DiscoveryEndpoint != "" {
+	// 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+	// 	wellKnown := *s.DiscoveryEndpoint
+	// 	resp, _ := http.Get(wellKnown)
+	// 	defer resp.Body.Close()
+	// 	body, _ := ioutil.ReadAll(resp.Body)
+	// 	var p providerJSON
+	// 	json.Unmarshal(body, &p)
+	// 	ssoSettings.AuthEndpoint = &p.AuthURL
+	// 	ssoSettings.TokenEndpoint = &p.TokenURL
+	// 	ssoSettings.UserApiEndpoint = &p.UserInfoURL
+	// }
 	return &ssoSettings
 }
 
@@ -1108,25 +1146,25 @@ func (s *OpenIdSettings) setDefaults() {
 }
 
 func (s *SSOSettings) SSOSettings() *SSOSettings {
-	if *s.DiscoveryEndpoint != "" {
-		fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-		wellKnown := *s.DiscoveryEndpoint
-		resp, _ := http.Get(wellKnown)
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		var p providerJSON
-		json.Unmarshal(body, &p)
+	// if *s.DiscoveryEndpoint != "" {
+	// 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n WE ARE USING DISCOVERY ENDPOINT TO RETRIEVE SSO SETTINGS!!!!!!!!!!!!!!!!!!!!!!!! \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+	// 	wellKnown := *s.DiscoveryEndpoint
+	// 	resp, _ := http.Get(wellKnown)
+	// 	defer resp.Body.Close()
+	// 	body, _ := ioutil.ReadAll(resp.Body)
+	// 	var p providerJSON
+	// 	json.Unmarshal(body, &p)
 
-		ssoSettings := SSOSettings{}
-		ssoSettings.Enable = s.Enable
-		ssoSettings.Secret = s.Secret
-		ssoSettings.Id = s.Id
-		ssoSettings.Scope = s.Scope
-		ssoSettings.AuthEndpoint = &p.AuthURL
-		ssoSettings.TokenEndpoint = &p.TokenURL
-		ssoSettings.UserApiEndpoint = &p.UserInfoURL
-		return &ssoSettings
-	}
+	// 	ssoSettings := SSOSettings{}
+	// 	ssoSettings.Enable = s.Enable
+	// 	ssoSettings.Secret = s.Secret
+	// 	ssoSettings.Id = s.Id
+	// 	ssoSettings.Scope = s.Scope
+	// 	ssoSettings.AuthEndpoint = &p.AuthURL
+	// 	ssoSettings.TokenEndpoint = &p.TokenURL
+	// 	ssoSettings.UserApiEndpoint = &p.UserInfoURL
+	// 	return &ssoSettings
+	// }
 	return s
 }
 
@@ -2993,10 +3031,16 @@ func (o *Config) ToJson() string {
 func (o *Config) GetSSOService(service string) *SSOSettings {
 	switch service {
 	case SERVICE_GITLAB:
-		return o.GitLabSettings.SSOSettings()
+		return &o.GitLabOpenIdSettings
+	case SERVICE_GITLAB_LEGACY:
+		return &o.GitLabSettings
 	case SERVICE_GOOGLE:
-		return o.GoogleSettings.SSOSettings()
+		return &o.GoogleOpenIdSettings
+	case SERVICE_GOOGLE_LEGACY:
+		return &o.GoogleSettings
 	case SERVICE_OFFICE365:
+		return o.Office365OpenIdSettings.SSOSettings()
+	case SERVICE_OFFICE365_LEGACY:
 		return o.Office365Settings.SSOSettings()
 	case SERVICE_OPENID:
 		return o.OpenIdSettings.SSOSettings()
@@ -3034,10 +3078,10 @@ func (o *Config) SetDefaults() {
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
+	o.Office365Settings.setDefaults(false)
+	o.GitLabSettings.setDefaults("", "", "", "")
 	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.Office365OpenIdSettings.setDefaults()
+	o.Office365OpenIdSettings.setDefaults(true)
 	o.GitLabOpenIdSettings.setDefaults(GITLAB_SETTINGS_DEFAULT_SCOPE, "", "", "")
 	o.GoogleOpenIdSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.OpenIdSettings.setDefaults()

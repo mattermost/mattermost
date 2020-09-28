@@ -77,7 +77,7 @@ func TestCreateOAuthUser(t *testing.T) {
 	glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 
 	json := glUser.ToJson()
-	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB_LEGACY, strings.NewReader(json), th.BasicTeam.Id)
 	require.Nil(t, err)
 
 	require.Equal(t, glUser.Username, user.Username, "usernames didn't match")
@@ -86,7 +86,7 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	*th.App.Config().TeamSettings.EnableUserCreation = false
 
-	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB_LEGACY, strings.NewReader(json), th.BasicTeam.Id)
 	require.NotNil(t, err, "should have failed - user creation disabled")
 }
 

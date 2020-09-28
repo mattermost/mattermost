@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
+	oauthopenid "github.com/mattermost/mattermost-server/v5/enterprise/oauth/openid"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -26,7 +27,7 @@ type GitLabUser struct {
 
 func init() {
 	provider := &GitLabProvider{}
-	einterfaces.RegisterOauthProvider(model.USER_AUTH_SERVICE_GITLAB, provider)
+	einterfaces.RegisterOauthProvider(model.USER_AUTH_SERVICE_GITLAB_LEGACY, provider)
 }
 
 func userFromGitLabUser(glu *GitLabUser) *model.User {
@@ -50,7 +51,7 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	user.Email = strings.ToLower(user.Email)
 	userId := glu.getAuthData()
 	user.AuthData = &userId
-	user.AuthService = model.USER_AUTH_SERVICE_GITLAB
+	user.AuthService = oauthopenid.USER_AUTH_SERVICE_GITLAB
 
 	return user
 }

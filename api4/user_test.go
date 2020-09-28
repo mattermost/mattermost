@@ -3515,7 +3515,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	sr := &model.SwitchRequest{
 		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
-		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		Email:          th.BasicUser.Email,
 		Password:       th.BasicUser.Password,
 	}
@@ -3530,7 +3530,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
-		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 	}
 
 	_, resp = th.Client.SwitchAccountType(sr)
@@ -3569,11 +3569,11 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	_, err := th.App.Srv().Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true)
+	_, err := th.App.Srv().Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB_LEGACY, &fakeAuthData, th.BasicUser.Email, true)
 	require.Nil(t, err)
 
 	sr = &model.SwitchRequest{
-		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		NewService:     model.USER_AUTH_SERVICE_EMAIL,
 		Email:          th.BasicUser.Email,
 		NewPassword:    th.BasicUser.Password,
@@ -3590,7 +3590,7 @@ func TestSwitchAccount(t *testing.T) {
 	th.Client.Logout()
 
 	sr = &model.SwitchRequest{
-		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		NewService:     model.SERVICE_GOOGLE,
 	}
 
@@ -3599,7 +3599,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
-		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		Password:       th.BasicUser.Password,
 	}
 
@@ -3608,7 +3608,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
-		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		Email:          th.BasicUser.Email,
 	}
 
@@ -3616,7 +3616,7 @@ func TestSwitchAccount(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	sr = &model.SwitchRequest{
-		CurrentService: model.USER_AUTH_SERVICE_GITLAB,
+		CurrentService: model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		NewService:     model.USER_AUTH_SERVICE_EMAIL,
 		Email:          th.BasicUser.Email,
 		NewPassword:    th.BasicUser.Password,

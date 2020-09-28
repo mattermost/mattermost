@@ -28,6 +28,8 @@ const (
 	COOKIE_OAUTH                 = "MMOAUTH"
 )
 
+var OPENID_SERVICES = []string{model.SERVICE_OPENID, model.SERVICE_GITLAB, model.SERVICE_GOOGLE, model.SERVICE_OFFICE365}
+
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
@@ -584,21 +586,13 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	}
 
 	if len(authData) == 0 {
-		provider = einterfaces.GetOauthProvider(model.SERVICE_OPENID)
-		authUser = provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
-		authData = ""
-		if authUser.AuthData != nil {
-			authData = *authUser.AuthData
-		}
-	}
-
-	if len(authData) == 0 {
 		return nil, model.NewAppError("LoginByOAuth3", "api.user.login_by_oauth.parse.app_error",
 			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n AUTHDATA!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", authData)
-	user, err := a.GetUserByAuth(&authData, service)
+	serviceWithoutLegacyText := strings.Replace(service, "Legacy", "", -1)
+	user, err := a.GetUserByAuth(&authData, serviceWithoutLegacyText)
 
 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n USER!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", user)
 	fmt.Printf("\n\n\n\n\n\n\n\n\n\n ERROR!!!!!! %+v \n\n\n\n\n\n\n\n\n\n\n\n\n", err)
@@ -708,10 +702,19 @@ func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 
 func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
 	sso := a.Config().GetSSOService(service)
-	fmt.Printf("\n\n\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n", sso)
 
 	if sso == nil || !*sso.Enable {
 		return "", model.NewAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
+	}
+
+	if *sso.DiscoveryEndpoint != "" {
+		openIdMetaData, err := model.RetrieveDiscoveryDocument(*sso.DiscoveryEndpoint)
+		if err != nil {
+			return "", model.NewAppError("GetAuthorizationCode", "api.user.get_authorization_code.unable_to_retrieve_discovery_document", nil, err.Error(), http.StatusInternalServerError)
+		}
+		*sso.AuthEndpoint = openIdMetaData.AuthURL
+		*sso.TokenEndpoint = openIdMetaData.TokenURL
+		*sso.UserApiEndpoint = openIdMetaData.UserInfoURL
 	}
 
 	secure := false
@@ -757,7 +760,6 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	redirectUri := siteUrl + "/signup/" + service + "/complete"
-
 	authUrl := endpoint + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + url.QueryEscape(redirectUri) + "&state=" + url.QueryEscape(state)
 
 	if len(scope) > 0 {
@@ -775,6 +777,16 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	sso := a.Config().GetSSOService(service)
 	if sso == nil || !*sso.Enable {
 		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
+	}
+
+	if *sso.DiscoveryEndpoint != "" {
+		openIdMetaData, err := model.RetrieveDiscoveryDocument(*sso.DiscoveryEndpoint)
+		if err != nil {
+			return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unable_to_retrieve_discovery_document", nil, err.Error(), http.StatusInternalServerError)
+		}
+		*sso.AuthEndpoint = openIdMetaData.AuthURL
+		*sso.TokenEndpoint = openIdMetaData.TokenURL
+		*sso.UserApiEndpoint = openIdMetaData.UserInfoURL
 	}
 
 	b, strErr := b64.StdEncoding.DecodeString(state)
@@ -877,6 +889,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
 	mlog.Debug(*sso.UserApiEndpoint)
+	// HOSSEIN THIS IS WHERE THE USER END POINT IS CALLED!
 	req, requestErr = http.NewRequest("GET", *sso.UserApiEndpoint, strings.NewReader(""))
 	if requestErr != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, requestErr.Error(), http.StatusInternalServerError)

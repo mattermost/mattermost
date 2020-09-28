@@ -685,7 +685,7 @@ func (u *User) IsSSOUser() bool {
 }
 
 func (u *User) IsOAuthUser() bool {
-	return u.AuthService == USER_AUTH_SERVICE_GITLAB
+	return u.AuthService == SERVICE_GITLAB
 }
 
 func (u *User) IsLDAPUser() bool {

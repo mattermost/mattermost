@@ -1952,7 +1952,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:       MakeEmail(),
 		Username:    "u1" + model.NewId(),
-		AuthService: model.USER_AUTH_SERVICE_GITLAB,
+		AuthService: model.USER_AUTH_SERVICE_GITLAB_LEGACY,
 		AuthData:    &auth,
 	})
 
