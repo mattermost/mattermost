@@ -64,20 +64,27 @@ func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	team, err := a.Srv().Store.Team().Get(tokenData["teamId"])
-	if err != nil {
-		return nil, err
+	team, nErr := a.Srv().Store.Team().Get(tokenData["teamId"])
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreateUserWithToken", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreateUserWithToken", "app.team.get.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	channels, err := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
-	if err != nil {
-		return nil, err
+	channels, nErr := a.Srv().Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "), false)
+	if nErr != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "app.channel.get_channels_by_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
 	var ruser *model.User
+	var err *model.AppError
 	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
 		ruser, err = a.CreateUser(user)
 	} else {
@@ -114,9 +121,15 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId, redirect string
 		return nil, err
 	}
 
-	team, err := a.Srv().Store.Team().GetByInviteId(inviteId)
-	if err != nil {
-		return nil, err
+	team, nErr := a.Srv().Store.Team().GetByInviteId(inviteId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("CreateUserWithInviteId", "app.team.get_by_invite_id.finding.app_error", nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("CreateUserWithInviteId", "app.team.get_by_invite_id.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	if team.IsGroupConstrained() {
@@ -492,16 +505,16 @@ func (a *App) GetUsersNotInTeamEtag(teamId string, restrictionsHash string) stri
 	return fmt.Sprintf("%v.%v.%v.%v", a.Srv().Store.User().GetEtagForProfilesNotInTeam(teamId), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress, restrictionsHash)
 }
 
-func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	return a.Srv().Store.User().GetProfilesInChannel(channelId, offset, limit)
+func (a *App) GetUsersInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return a.Srv().Store.User().GetProfilesInChannel(options)
 }
 
-func (a *App) GetUsersInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	return a.Srv().Store.User().GetProfilesInChannelByStatus(channelId, offset, limit)
+func (a *App) GetUsersInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return a.Srv().Store.User().GetProfilesInChannelByStatus(options)
 }
 
-func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(channelId, offset, limit)
+func (a *App) GetUsersInChannelMap(options *model.UserGetOptions, asAdmin bool) (map[string]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
@@ -516,16 +529,16 @@ func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAd
 	return userMap, nil
 }
 
-func (a *App) GetUsersInChannelPage(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannel(channelId, page*perPage, perPage)
+func (a *App) GetUsersInChannelPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannel(options)
 	if err != nil {
 		return nil, err
 	}
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersInChannelPageByStatus(channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInChannelByStatus(channelId, page*perPage, perPage)
+func (a *App) GetUsersInChannelPageByStatus(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInChannelByStatus(options)
 	if err != nil {
 		return nil, err
 	}
@@ -1501,7 +1514,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.channel.permanent_delete_members_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := a.Srv().Store.Group().PermanentDeleteMembersByUser(user.Id); err != nil {
@@ -1567,7 +1580,7 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	}
 
 	if err := a.Srv().Store.Team().RemoveAllMembersByUser(user.Id); err != nil {
-		return err
+		return model.NewAppError("PermanentDeleteUser", "app.team.remove_member.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	mlog.Warn("Permanently deleted account", mlog.String("user_email", user.Email), mlog.String("user_id", user.Id))
@@ -1972,7 +1985,7 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 	if len(restrictions.Teams) > 0 {
 		result, err := a.Srv().Store.Team().UserBelongsToTeams(otherUserId, restrictions.Teams)
 		if err != nil {
-			return false, err
+			return false, model.NewAppError("UserCanSeeOtherUser", "app.team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if result {
 			return true, nil
@@ -2001,9 +2014,9 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	teamIds, getTeamErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
-	if getTeamErr != nil {
-		return nil, getTeamErr
+	teamIds, nErr := a.Srv().Store.Team().GetUserTeamIds(userId, true)
+	if nErr != nil {
+		return nil, model.NewAppError("GetViewUsersRestrictions", "app.team.get_user_team_ids.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	teamIdsWithPermission := []string{}
@@ -2015,7 +2028,7 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 
 	userChannelMembers, err := a.Srv().Store.Channel().GetAllChannelMembersForUser(userId, true, true)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("GetViewUsersRestrictions", "app.channel.get_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	channelIds := []string{}
@@ -2034,9 +2047,9 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	if err != nil {
 		return err
 	}
-	userTeams, err := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
-	if err != nil {
-		return err
+	userTeams, nErr := a.Srv().Store.Team().GetTeamsByUserId(user.Id)
+	if nErr != nil {
+		return model.NewAppError("PromoteGuestToUser", "app.team.get_all.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	for _, team := range userTeams {

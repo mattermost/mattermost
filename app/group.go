@@ -108,9 +108,15 @@ func (a *App) UpsertGroupSyncable(groupSyncable *model.GroupSyncable) (*model.Gr
 		}
 
 		var team *model.Team
-		team, err = a.Srv().Store.Team().Get(channel.TeamId)
-		if err != nil {
-			return nil, err
+		team, nErr = a.Srv().Store.Team().Get(channel.TeamId)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.team.get.find.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			default:
+				return nil, model.NewAppError("UpsertGroupSyncable", "app.team.get.finding.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+			}
 		}
 		if team.IsGroupConstrained() {
 			var teamGroups []*model.GroupWithSchemeAdmin

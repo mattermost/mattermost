@@ -218,6 +218,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 
+	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
+
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
 
@@ -340,6 +342,7 @@ type ServiceSettings struct {
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
+	EnableAWSMetering                                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -618,7 +621,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableCustomEmoji == nil {
-		s.EnableCustomEmoji = NewBool(false)
+		s.EnableCustomEmoji = NewBool(true)
 	}
 
 	if s.EnableEmojiPicker == nil {
@@ -626,7 +629,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewBool(false)
+		s.EnableGifPicker = NewBool(true)
 	}
 
 	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
@@ -753,6 +756,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.LocalModeSocketLocation == nil {
 		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
 	}
+
+	if s.EnableAWSMetering == nil {
+		s.EnableAWSMetering = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -863,6 +870,7 @@ type ExperimentalSettings struct {
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
 	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
+	CloudBilling                    *bool   `access:"experimental,write_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -890,6 +898,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 		// User limit 0 is treated as no limit
 		s.CloudUserLimit = NewInt64(0)
 	}
+
+	if s.CloudBilling == nil {
+		s.CloudBilling = NewBool(false)
+	}
+
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
 	}
@@ -1659,6 +1672,8 @@ type AnnouncementSettings struct {
 	BannerColor          *string `access:"site"`
 	BannerTextColor      *string `access:"site"`
 	AllowBannerDismissal *bool   `access:"site"`
+	AdminNoticesEnabled  *bool   `access:"site"`
+	UserNoticesEnabled   *bool   `access:"site"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1680,6 +1695,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 
 	if s.AllowBannerDismissal == nil {
 		s.AllowBannerDismissal = NewBool(true)
+	}
+
+	if s.AdminNoticesEnabled == nil {
+		s.AdminNoticesEnabled = NewBool(true)
+	}
+
+	if s.UserNoticesEnabled == nil {
+		s.UserNoticesEnabled = NewBool(true)
 	}
 }
 
@@ -1883,7 +1906,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewBool(false)
+		s.ExperimentalViewArchivedChannels = NewBool(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
@@ -1915,8 +1938,8 @@ type LdapSettings struct {
 	UserFilter        *string `access:"authentication"`
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
-	EnableAdminFilter *bool   `access:"authentication"`
-	AdminFilter       *string `access:"authentication"`
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string `access:"authentication"`
@@ -1937,9 +1960,11 @@ type LdapSettings struct {
 	SyncIntervalMinutes *int `access:"authentication"`
 
 	// Advanced
-	SkipCertificateVerification *bool `access:"authentication"`
-	QueryTimeout                *int  `access:"authentication"`
-	MaxPageSize                 *int  `access:"authentication"`
+	SkipCertificateVerification *bool   `access:"authentication"`
+	PublicCertificateFile       *string `access:"authentication"`
+	PrivateKeyFile              *string `access:"authentication"`
+	QueryTimeout                *int    `access:"authentication"`
+	MaxPageSize                 *int    `access:"authentication"`
 
 	// Customization
 	LoginFieldName *string `access:"authentication"`
@@ -1975,6 +2000,14 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.ConnectionSecurity == nil {
 		s.ConnectionSecurity = NewString("")
+	}
+
+	if s.PublicCertificateFile == nil {
+		s.PublicCertificateFile = NewString("")
+	}
+
+	if s.PrivateKeyFile == nil {
+		s.PrivateKeyFile = NewString("")
 	}
 
 	if s.BaseDN == nil {
@@ -2515,12 +2548,22 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type CloudSettings struct {
+	CWSUrl *string `access:"environment,write_restrictable"`
+}
+
+func (s *CloudSettings) SetDefaults() {
+	if s.CWSUrl == nil {
+		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins"`
+	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable"`
@@ -2528,12 +2571,12 @@ type PluginSettings struct {
 	ClientDirectory             *string                           `access:"plugins,write_restrictable"`
 	Plugins                     map[string]map[string]interface{} `access:"plugins"`
 	PluginStates                map[string]*PluginState           `access:"plugins"`
-	EnableMarketplace           *bool                             `access:"plugins"`
-	EnableRemoteMarketplace     *bool                             `access:"plugins"`
-	AutomaticPrepackagedPlugins *bool                             `access:"plugins"`
-	RequirePluginSignature      *bool                             `access:"plugins"`
-	MarketplaceUrl              *string                           `access:"plugins"`
-	SignaturePublicKeyFiles     []string                          `access:"plugins"`
+	EnableMarketplace           *bool                             `access:"plugins,write_restrictable"`
+	EnableRemoteMarketplace     *bool                             `access:"plugins,write_restrictable"`
+	AutomaticPrepackagedPlugins *bool                             `access:"plugins,write_restrictable"`
+	RequirePluginSignature      *bool                             `access:"plugins,write_restrictable"`
+	MarketplaceUrl              *string                           `access:"plugins,write_restrictable"`
+	SignaturePublicKeyFiles     []string                          `access:"plugins,write_restrictable"`
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2572,6 +2615,11 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.PluginStates["com.mattermost.nps"] == nil {
 		// Enable the NPS plugin by default if diagnostics are enabled
 		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
+	}
+
+	if s.PluginStates["com.mattermost.plugin-incident-response"] == nil {
+		// Enable the incident response plugin by default
+		s.PluginStates["com.mattermost.plugin-incident-response"] = &PluginState{Enable: true}
 	}
 
 	if s.EnableMarketplace == nil {
@@ -2680,7 +2728,7 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 
 	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(false)
+		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
@@ -2818,6 +2866,7 @@ type Config struct {
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
+	CloudSettings             CloudSettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2904,6 +2953,7 @@ func (o *Config) SetDefaults() {
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
+	o.CloudSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {

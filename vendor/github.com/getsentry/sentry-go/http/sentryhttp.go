@@ -50,30 +50,26 @@ func New(options Options) *Handler {
 
 // Handle wraps http.Handler and recovers from caught panics.
 func (h *Handler) Handle(handler http.Handler) http.Handler {
+	return h.handle(handler)
+}
+
+// Deprecated: Use the Handle method instead.
+func (h *Handler) HandleFunc(handler http.HandlerFunc) http.HandlerFunc {
+	return h.handle(handler)
+}
+
+func (h *Handler) handle(handler http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		hub := sentry.CurrentHub().Clone()
+		ctx := r.Context()
+		hub := sentry.GetHubFromContext(ctx)
+		if hub == nil {
+			hub = sentry.CurrentHub().Clone()
+		}
 		hub.Scope().SetRequest(r)
-		ctx := sentry.SetHubOnContext(
-			r.Context(),
-			hub,
-		)
+		ctx = sentry.SetHubOnContext(ctx, hub)
 		defer h.recoverWithSentry(hub, r)
 		handler.ServeHTTP(rw, r.WithContext(ctx))
 	})
-}
-
-// HandleFunc wraps http.HandleFunc and recovers from caught panics.
-func (h *Handler) HandleFunc(handler http.HandlerFunc) http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		hub := sentry.CurrentHub().Clone()
-		hub.Scope().SetRequest(r)
-		ctx := sentry.SetHubOnContext(
-			r.Context(),
-			hub,
-		)
-		defer h.recoverWithSentry(hub, r)
-		handler(rw, r.WithContext(ctx))
-	}
 }
 
 func (h *Handler) recoverWithSentry(hub *sentry.Hub, r *http.Request) {

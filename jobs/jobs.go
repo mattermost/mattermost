@@ -101,8 +101,10 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError.Message + " — " + jobError.DetailedError
-
+	job.Data["error"] = jobError.Message
+	if len(jobError.DetailedError) > 0 {
+		job.Data["error"] += " — " + jobError.DetailedError
+	}
 	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
 	if err != nil {
 		return model.NewAppError("SetJobError", "app.job.update.app_error", nil, err.Error(), http.StatusInternalServerError)
