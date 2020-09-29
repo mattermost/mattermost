@@ -472,6 +472,18 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
   },
   {
+    "id": "api.cloud.app_error",
+    "translation": "Internal error during cloud api request."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Your license does not support cloud requests."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Error processing request to CWS."
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -5569,6 +5581,18 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " attached a file."
+  },
+  {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "Unable to authenticate to CWS"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "Internal error marshaling request to CWS"
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "Error processing request to CWS"
   },
   {
     "id": "ent.cluster.404.app_error",
