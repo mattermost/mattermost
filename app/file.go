@@ -629,7 +629,9 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 
 	if written > t.maxFileSize {
-		a.RemoveFile(t.fileinfo.Path)
+		if fileErr := a.RemoveFile(t.fileinfo.Path); fileErr != nil {
+			mlog.Error("Failed to remove file", mlog.Err(fileErr))
+		}
 		return nil, t.newAppError("api.file.upload_file.too_large_detailed.app_error",
 			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
