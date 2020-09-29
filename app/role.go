@@ -125,6 +125,8 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return nil, err
 	}
 
+	a.sendUpdatedRoleEvent(role)
+
 	return role, err
 }
 
@@ -169,7 +171,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 		model.CHANNEL_ADMIN_ROLE_ID,
 	}
 
-	builtInRolesMinusChannelRoles := utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...)
+	builtInRolesMinusChannelRoles := append(utils.RemoveStringsFromSlice(model.BuiltInSchemeManagedRoleIDs, builtInChannelRoles...), model.NewSystemRoleIDs...)
 
 	if utils.StringInSlice(savedRole.Name, builtInRolesMinusChannelRoles) {
 		return savedRole, nil
@@ -209,7 +211,9 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	}
 
 	for _, ir := range impactedRoles {
-		a.sendUpdatedRoleEvent(ir)
+		if ir.Name != role.Name {
+			a.sendUpdatedRoleEvent(ir)
+		}
 	}
 
 	return savedRole, nil
