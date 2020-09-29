@@ -24,7 +24,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		pluginDir: dir,
 	}
 
- 	t.Run("Should be able to load available plugins", func(t *testing.T) { 
+	t.Run("Should be able to load available plugins", func(t *testing.T) {
 		bundle1 := model.BundleInfo{
 			ManifestPath: "",
 			Manifest: &model.Manifest{
@@ -49,7 +49,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		require.Len(t, bundles, 1)
 	})
 
-	t.Run("Should not be able to load plugins without a valid manifest", func(t *testing.T) {
+	t.Run("Should not be able to load plugins without a valid manifest file", func(t *testing.T) {
 		err := os.Mkdir(filepath.Join(dir, "plugin2"), 0700)
 		require.NoError(t, err)
 		defer os.RemoveAll(filepath.Join(dir, "plugin2"))
@@ -61,6 +61,16 @@ func TestAvaliablePlugins(t *testing.T) {
 		_, err = f.WriteString("{}")
 		require.NoError(t, err)
 		f.Close()
+
+		bundles, err := env.Available()
+		require.NoError(t, err)
+		require.Len(t, bundles, 0)
+	})
+
+	t.Run("Should not be able to load plugins without a manifest file", func(t *testing.T) {
+		err := os.Mkdir(filepath.Join(dir, "plugin3"), 0700)
+		require.NoError(t, err)
+		defer os.RemoveAll(filepath.Join(dir, "plugin3"))
 
 		bundles, err := env.Available()
 		require.NoError(t, err)

@@ -87,7 +87,7 @@ func scanSearchPath(path string) ([]*model.BundleInfo, error) {
 			continue
 		}
 		info := model.BundleInfoForPath(filepath.Join(path, file.Name()))
-		if info.Manifest != nil && info.Path != "" {
+		if info.Manifest != nil {
 			ret = append(ret, info)
 		}
 
