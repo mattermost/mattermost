@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -88,6 +89,9 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("createCustomerPayment", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	intent, appErr := c.App.Cloud().CreateCustomerPayment()
 	if appErr != nil {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
@@ -99,6 +103,8 @@ func createCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.Success()
 
 	w.Write(json)
 }
@@ -114,15 +120,18 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("confirmCustomerPayment", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	var confirmRequest *model.ConfirmPaymentMethodRequest
 	if err = json.Unmarshal(bodyBytes, &confirmRequest); err != nil {
-		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.confirmCustomerPayment", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -131,6 +140,8 @@ func confirmCustomerPayment(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("Api4.createCustomerPayment", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

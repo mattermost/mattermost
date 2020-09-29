@@ -49,11 +49,6 @@ else
 	BUILD_CLIENT = false
 endif
 
-# these variables are used by QA to override location of InProduct Notices
-NOTICES_JSON_URL ?= https://notices.mattermost.com/
-NOTICES_FETCH_SECS ?= 3600
-NOTICES_SKIP_CACHE ?= false
-
 # Go Flags
 GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
@@ -66,9 +61,6 @@ LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildDate=$(BUIL
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)"
 LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_URL=$(NOTICES_JSON_URL)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS=$(NOTICES_FETCH_SECS)"
-LDFLAGS += -X "github.com/mattermost/mattermost-server/v5/app.NOTICES_SKIP_CACHE=$(NOTICES_SKIP_CACHE)"
 
 GO_MAJOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f1)
 GO_MINOR_VERSION = $(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
