@@ -8,7 +8,6 @@ package retrylayer
 
 import (
 	"context"
-	"github.com/mattermost/gorp"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -7203,26 +7202,6 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 }
 
-func (s *RetryLayerThreadStore) Cleanup(postId string, rootId string, userId string) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.Cleanup(postId, rootId, userId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-	}
-
-}
-
 func (s *RetryLayerThreadStore) Delete(postId string) error {
 
 	tries := 0
@@ -7318,26 +7297,6 @@ func (s *RetryLayerThreadStore) Update(thread *model.Thread) (*model.Thread, err
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
-		}
-	}
-
-}
-
-func (s *RetryLayerThreadStore) UpdateFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
-
-	tries := 0
-	for {
-		err := s.ThreadStore.UpdateFromPosts(transaction, posts)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
 		}
 	}
 

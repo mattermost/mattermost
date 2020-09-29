@@ -7,7 +7,6 @@ package store
 
 import (
 	"context"
-	"github.com/mattermost/gorp"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -253,8 +252,6 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	Delete(postId string) error
-	Cleanup(postId, rootId, userId string) error
-	UpdateFromPosts(transaction *gorp.Transaction, posts []*model.Post) error
 }
 
 type PostStore interface {

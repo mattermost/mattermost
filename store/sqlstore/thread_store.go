@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
@@ -47,82 +46,6 @@ func threadToSlice(thread *model.Thread) []interface{} {
 func (s *SqlThreadStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_threads_last_reply_at", "Threads", "LastReplyAt")
 	s.CreateIndexIfNotExists("idx_threads_post_id", "Threads", "PostId")
-}
-
-func (s *SqlThreadStore) Cleanup(postId, rootId, userId string) error {
-	if len(rootId) > 0 {
-		thread, err := s.Get(rootId)
-		if err != nil {
-			if err != sql.ErrNoRows {
-				return errors.Wrap(err, "failed to get a thread")
-			}
-		}
-		if thread != nil {
-			thread.ReplyCount -= 1
-			thread.Who = thread.Who.Remove(userId)
-			if _, err = s.Update(thread); err != nil {
-				return errors.Wrap(err, "failed to update thread")
-			}
-		}
-	}
-	_, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId})
-	if err != nil {
-		return errors.Wrap(err, "failed to update Threads")
-	}
-	return nil
-}
-
-func (s *SqlThreadStore) UpdateFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
-	postsByRoot := map[string][]*model.Post{}
-	for _, post := range posts {
-		// skip if post is not a part of a thread
-		if len(post.RootId) == 0 {
-			continue
-		}
-		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
-	}
-	now := model.GetMillis()
-	for rootId, posts := range postsByRoot {
-		var thread model.Thread
-		if err := transaction.SelectOne(&thread, "SELECT * from Threads WHERE PostId=:PostId", map[string]interface{}{"PostId": rootId}); err != nil {
-			if err != sql.ErrNoRows {
-				return err
-			}
-			// calculate participants
-			var participants model.StringArray
-			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
-				return err
-			}
-			// calculate reply count
-			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId})
-			if err != nil {
-				return err
-			}
-			// no metadata entry, create one
-			thread = model.Thread{
-				PostId:      rootId,
-				ReplyCount:  count,
-				LastReplyAt: now,
-				Who:         participants,
-			}
-			if err := transaction.Insert(&thread); err != nil {
-				return err
-			}
-		} else {
-			for _, post := range posts {
-				// metadata exists, update it
-				thread.LastReplyAt = now
-				thread.ReplyCount += 1
-				if !thread.Who.Contains(post.UserId) {
-					thread.Who = append(thread.Who, post.UserId)
-				}
-			}
-			if _, err := transaction.Update(&thread); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func (s *SqlThreadStore) SaveMultiple(threads []*model.Thread) ([]*model.Thread, int, error) {

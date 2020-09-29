@@ -183,7 +183,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		}
 	}
 
-	if err = s.Thread().UpdateFromPosts(transaction, posts); err != nil {
+	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
 		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
 	}
 
@@ -516,7 +516,7 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) erro
 		return errors.Wrap(err, "failed to update Posts")
 	}
 
-	return s.Thread().Cleanup(post.Id, post.RootId, post.UserId)
+	return s.cleanupThreads(post.Id, post.RootId, post.UserId)
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) error {
@@ -527,7 +527,7 @@ func (s *SqlPostStore) permanentDelete(postId string) error {
 			return errors.Wrapf(err, "failed to get Post with id=%s", postId)
 		}
 
-		if err = s.Thread().Cleanup(post.Id, post.RootId, post.UserId); err != nil {
+		if err = s.cleanupThreads(post.Id, post.RootId, post.UserId); err != nil {
 			return errors.Wrapf(err, "failed to cleanup threads for Post with id=%s", postId)
 		}
 	}
@@ -553,7 +553,7 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.Thread().Cleanup(ids.Id, ids.RootId, userId); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, userId); err != nil {
 			return err
 		}
 	}
@@ -609,7 +609,7 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) error {
 	}
 
 	for _, ids := range results {
-		if err = s.Thread().Cleanup(ids.Id, ids.RootId, ids.UserId); err != nil {
+		if err = s.cleanupThreads(ids.Id, ids.RootId, ids.UserId); err != nil {
 			return err
 		}
 	}
@@ -1920,4 +1920,80 @@ func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
 		return -1, errors.Wrap(err, "unable to scan oldest entity creation time")
 	}
 	return oldest, nil
+}
+
+func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
+	if len(rootId) > 0 {
+		thread, err := s.Thread().Get(rootId)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				return errors.Wrap(err, "failed to get a thread")
+			}
+		}
+		if thread != nil {
+			thread.ReplyCount -= 1
+			thread.Who = thread.Who.Remove(userId)
+			if _, err = s.Thread().Update(thread); err != nil {
+				return errors.Wrap(err, "failed to update thread")
+			}
+		}
+	}
+	_, err := s.GetMaster().Exec("DELETE FROM Threads WHERE PostId = :Id", map[string]interface{}{"Id": postId})
+	if err != nil {
+		return errors.Wrap(err, "failed to update Threads")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
+	postsByRoot := map[string][]*model.Post{}
+	for _, post := range posts {
+		// skip if post is not a part of a thread
+		if len(post.RootId) == 0 {
+			continue
+		}
+		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
+	}
+	now := model.GetMillis()
+	for rootId, posts := range postsByRoot {
+		var thread model.Thread
+		if err := transaction.SelectOne(&thread, "SELECT * from Threads WHERE PostId=:PostId", map[string]interface{}{"PostId": rootId}); err != nil {
+			if err != sql.ErrNoRows {
+				return err
+			}
+			// calculate participants
+			var participants model.StringArray
+			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
+				return err
+			}
+			// calculate reply count
+			count, err := transaction.SelectInt("SELECT COUNT(Id) FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId})
+			if err != nil {
+				return err
+			}
+			// no metadata entry, create one
+			thread = model.Thread{
+				PostId:      rootId,
+				ReplyCount:  count,
+				LastReplyAt: now,
+				Who:         participants,
+			}
+			if err := transaction.Insert(&thread); err != nil {
+				return err
+			}
+		} else {
+			for _, post := range posts {
+				// metadata exists, update it
+				thread.LastReplyAt = now
+				thread.ReplyCount += 1
+				if !thread.Who.Contains(post.UserId) {
+					thread.Who = append(thread.Who, post.UserId)
+				}
+			}
+			if _, err := transaction.Update(&thread); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
