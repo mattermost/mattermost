@@ -225,19 +225,18 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
-		require.Nil(t, err)
-	} else {
-		autoResponderPostFound := false
-		for _, post := range list.Posts {
-			if post.Type == model.POST_AUTO_RESPONDER {
-				autoResponderPostFound = true
-				assert.Equal(t, savedPost.Id, post.RootId)
-				assert.Equal(t, savedPost.Id, post.ParentId)
-			}
+	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	require.Nil(t, err)
+
+	autoResponderPostFound := false
+	for _, post := range list.Posts {
+		if post.Type == model.POST_AUTO_RESPONDER {
+			autoResponderPostFound = true
+			assert.Equal(t, savedPost.Id, post.RootId)
+			assert.Equal(t, savedPost.Id, post.ParentId)
 		}
-		assert.True(t, autoResponderPostFound)
 	}
+	assert.True(t, autoResponderPostFound)
 }
 
 func TestSendAutoResponseSuccessOnThread(t *testing.T) {
@@ -276,19 +275,18 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
-		require.Nil(t, err)
-	} else {
-		autoResponderPostFound := false
-		for _, post := range list.Posts {
-			if post.Type == model.POST_AUTO_RESPONDER {
-				autoResponderPostFound = true
-				assert.Equal(t, savedPost.RootId, post.RootId)
-				assert.Equal(t, savedPost.ParentId, post.ParentId)
-			}
+	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	require.Nil(t, err)
+
+	autoResponderPostFound := false
+	for _, post := range list.Posts {
+		if post.Type == model.POST_AUTO_RESPONDER {
+			autoResponderPostFound = true
+			assert.Equal(t, savedPost.RootId, post.RootId)
+			assert.Equal(t, savedPost.ParentId, post.ParentId)
 		}
-		assert.True(t, autoResponderPostFound)
 	}
+	assert.True(t, autoResponderPostFound)
 }
 
 func TestSendAutoResponseFailure(t *testing.T) {
