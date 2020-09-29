@@ -388,6 +388,8 @@ func (ts *TelemetryService) trackConfig() {
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
+		"enable_api_user_deletion":                                *cfg.ServiceSettings.EnableAPIUserDeletion,
+		"enable_api_channel_deletion":                             *cfg.ServiceSettings.EnableAPIChannelDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
@@ -1290,7 +1292,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 			// If marketplace request failed, use predefined list
 			if marketplacePlugins == nil {
 				for _, id := range knownPluginIDs {
-					pluginConfigData["version_"+id] = pluginActivated(cfg.PluginSettings.PluginStates, id)
+					pluginConfigData["version_"+id] = pluginVersion(plugins, id)
 				}
 			} else {
 				for _, p := range marketplacePlugins {

@@ -295,6 +295,10 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
@@ -321,12 +325,6 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
