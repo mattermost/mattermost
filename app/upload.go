@@ -25,17 +25,20 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 		return nil
 	}
 
+	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
 	errChan := make(chan *model.AppError, 1)
 	go func() {
 		defer w.Close()
 		defer close(errChan)
+		var rejErr *model.AppError
 		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
 			if rejStr != "" {
-				errChan <- model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected", nil, rejStr, http.StatusBadRequest)
+				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
+					map[string]interface{}{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
 				return false
 			}
 			if newInfo != nil {
@@ -43,9 +46,12 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 			}
 			return true
 		}, plugin.FileWillBeUploadedId)
+		if rejErr != nil {
+			errChan <- rejErr
+		}
 	}()
 
-	tmpPath := info.Path + ".tmp"
+	tmpPath := filePath + ".tmp"
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
