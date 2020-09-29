@@ -1064,7 +1064,7 @@ func (us SqlUserStore) GetByEmail(email string) (*model.User, error) {
 	user := model.User{}
 	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("User", fmt.Sprintf("email=%s", email))
+			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("email=%s", email)), "failed to find User")
 		}
 
 		return nil, errors.Wrapf(err, "failed to get User with email=%s", email)
@@ -1143,7 +1143,7 @@ func (us SqlUserStore) GetByUsername(username string) (*model.User, error) {
 	var user *model.User
 	if err := us.GetReplica().SelectOne(&user, queryString, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("User", fmt.Sprintf("username=%s", username))
+			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("username=%s", username)), "failed to find User")
 		}
 
 		return nil, errors.Wrapf(err, "failed to find User with username=%s", username)

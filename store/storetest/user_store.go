@@ -1863,14 +1863,16 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
 		require.NotNil(t, err)
-		require.IsType(t, &store.ErrInvalidInput{}, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
 	})
 
 	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
 		unknownAuth := ""
 		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
 		require.NotNil(t, err)
-		require.IsType(t, &store.ErrInvalidInput{}, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
 	})
 }
 
@@ -1933,13 +1935,15 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	t.Run("get by empty username", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("")
 		require.NotNil(t, err)
-		require.IsType(t, &store.ErrNotFound{}, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
 		_, err := ss.User().GetByUsername("unknown")
 		require.NotNil(t, err)
-		require.IsType(t, &store.ErrNotFound{}, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
 	})
 }
 
