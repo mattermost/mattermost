@@ -21,7 +21,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/getsentry/sentry-go"
 	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
@@ -71,13 +70,6 @@ type AppError struct {
 }
 
 func (er *AppError) Error() string {
-	// below is a short-circuit to avoid crashing during error reporting
-	// if by some chance the error is nil, we don't want crash, but we do report the problem to Sentry
-	if er == nil {
-		msg := "Error() is called on a nil AppError instance"
-		sentry.CaptureMessage(msg)
-		return msg
-	}
 	return er.Where + ": " + er.Message + ", " + er.DetailedError
 }
 
