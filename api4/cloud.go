@@ -20,28 +20,31 @@ func (api *API) InitCloud() {
 	api.BaseRoutes.Cloud.Handle("/payment", api.ApiSessionRequired(createCustomerPayment)).Methods("POST")
 	api.BaseRoutes.Cloud.Handle("/payment/confirm", api.ApiSessionRequired(confirmCustomerPayment)).Methods("POST")
 
-	// GET /api/v4/cloud/subscriptionByInstallationId
-	api.BaseRoutes.Cloud.Handle("/subscriptionByInstallationId/{installation_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getSubscriptionByInstallationId)).Methods("GET")
+	// GET /api/v4/cloud/subscription
+	api.BaseRoutes.Cloud.Handle("/subscription", api.ApiSessionRequired(getSubscription)).Methods("GET")
 }
 
-func getSubscriptionByInstallationId(c *Context, w http.ResponseWriter, r *http.Request) {
+func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getSubscriptionByInstallationId", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	// TODO: Permission check?
+	if !c.App.SessionHasPermissionTo(*c.App.Session(), model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
 
-	subscription, appErr := c.App.Cloud().GetSubscriptionByInstallationID(c.Params.InstallationId)
+	subscription, appErr := c.App.Cloud().GetSubscription()
 
 	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionByInstallationId", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	json, err := json.Marshal(subscription)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionByInstallationId", "app.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscription", "app.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

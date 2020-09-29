@@ -13,5 +13,5 @@ type CloudInterface interface {
 	CreateCustomerPayment() (*model.StripeSetupIntent, *model.AppError)
 	ConfirmCustomerPayment(*model.ConfirmPaymentMethodRequest) *model.AppError
 
-	GetSubscriptionByInstallationID(string) (*model.Subscription, *model.AppError)
+	GetSubscription() (*model.Subscription, *model.AppError)
 }
