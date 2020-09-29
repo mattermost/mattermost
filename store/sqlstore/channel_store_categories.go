@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/store"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -813,6 +814,8 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *gorp.Transa
 	var channel *model.Channel
 	if obj, err := transaction.Get(&model.Channel{}, preference.Name); err != nil {
 		return errors.Wrapf(err, "Failed to get favorited channel with id=%s", preference.Name)
+	} else if obj == nil {
+		return store.NewErrNotFound("Channel", preference.Name)
 	} else {
 		channel = obj.(*model.Channel)
 	}
