@@ -1703,23 +1703,21 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, ss store.Store) {
 		assert.NoError(t, err)
 	})
 
-	t.Run("Should return ErrNotFound if channel is not found", func(t *testing.T) {
+	t.Run("Should not panic if channel is not found", func(t *testing.T) {
 		userId := model.NewId()
 		teamId := model.NewId()
 
 		nErr := ss.Channel().CreateInitialSidebarCategories(userId, teamId)
 		assert.Nil(t, nErr)
 
-		err := ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
-			model.Preference{
-				Name:     "fakeid",
-				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
-				Value:    "true",
-			},
+		require.NotPanics(t, func() {
+			_ = ss.Channel().UpdateSidebarChannelsByPreferences(&model.Preferences{
+				model.Preference{
+					Name:     "fakeid",
+					Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+					Value:    "true",
+				},
+			})
 		})
-		if assert.NotNil(t, err) {
-			var nfErr *store.ErrNotFound
-			require.True(t, errors.As(err, &nfErr))
-		}
 	})
 }
