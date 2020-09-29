@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -1268,6 +1269,30 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	v, err := us.GetReplica().SelectInt(queryStr, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to count Users")
+	}
+	return v, nil
+}
+
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > :StartTime AND LastActivityAt <= :EndTime", map[string]interface{}{"StartTime": startTime, "EndTime": endTime})
+
+	if !options.IncludeBotAccounts {
+		query = query.LeftJoin("Bots ON s.UserId = Bots.UserId").Where("Bots.UserId IS NULL")
+	}
+
+	if !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+	}
+
+	queryStr, args, err := query.ToSql()
+
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to build query.")
+	}
+
+	v, err := us.GetReplica().SelectInt(queryStr, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")
 	}
 	return v, nil
 }

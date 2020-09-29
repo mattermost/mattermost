@@ -327,6 +327,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(userId string) error
 	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, error)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
 	GetUnreadCount(userId string) (int64, error)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, error)
