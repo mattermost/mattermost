@@ -55,9 +55,9 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	}
 
 	for _, v := range clientVersions {
-		c, err := semver.NewConstraint(v)
-		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse version range %s", v)
+		c, err2 := semver.NewConstraint(v)
+		if err2 != nil {
+			return false, errors.Wrapf(err2, "Cannot parse version range %s", v)
 		}
 		if !c.Check(clientVersionParsed) {
 			return false, nil
@@ -67,9 +67,9 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
 		now := time.Now().UTC()
-		c, err := date_constraints.NewConstraint(*cnd.DisplayDate)
-		if err != nil {
-			return false, errors.Wrapf(err, "Cannot parse date range %s", *cnd.DisplayDate)
+		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
+		if err2 != nil {
+			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
 		}
 		if !c.Check(&now) {
 			return false, nil
