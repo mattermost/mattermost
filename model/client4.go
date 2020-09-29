@@ -5618,6 +5618,7 @@ func (c *Client4) UpdatePassword(userId, currentPassword, newPassword string) *R
 		return BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
+	return BuildResponse(r)
 }
 
 // Cloud Section
