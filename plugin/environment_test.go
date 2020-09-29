@@ -24,7 +24,7 @@ func TestAvaliablePlugins(t *testing.T) {
 		pluginDir: dir,
 	}
 
-	t.Run("Should be able to load avaliable plugins", func(t *testing.T) {
+ 	t.Run("Should be able to load available plugins", func(t *testing.T) { 
 		bundle1 := model.BundleInfo{
 			ManifestPath: "",
 			Manifest: &model.Manifest{
