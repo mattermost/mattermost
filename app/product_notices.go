@@ -6,19 +6,14 @@ package app
 import (
 	"net/http"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/store"
-
-	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/pkg/errors"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
@@ -271,17 +266,15 @@ func (a *App) UpdateProductNotices() *model.AppError {
 	url := *a.Srv().Config().AnnouncementSettings.NoticesURL
 	skip := *a.Srv().Config().AnnouncementSettings.NoticesSkipCache
 	mlog.Debug("Will fetch notices from", mlog.String("url", url), mlog.Bool("skip_cache", skip))
-	var appErr *model.AppError
 	var err error
 	cachedPostCount, err = a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 	if err != nil {
 		mlog.Error("Failed to fetch post count", mlog.String("error", err.Error()))
 	}
 
-	var nErr error
-	cachedUserCount, nErr = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
-	if nErr != nil {
-		mlog.Error("Failed to fetch user count", mlog.String("error", nErr.Error()))
+	cachedUserCount, err = a.Srv().Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
+	if err != nil {
+		mlog.Error("Failed to fetch user count", mlog.String("error", err.Error()))
 	}
 
 	data, err := utils.GetUrlWithCache(url, &noticesCache, skip)
