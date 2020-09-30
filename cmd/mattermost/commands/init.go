@@ -45,7 +45,7 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 
 	if model.BuildEnterpriseReady == "true" {
 		a.Srv().LoadLicense()
-		a.InitServer()
+		a.InitEnterprise()
 	}
 
 	return a, nil
