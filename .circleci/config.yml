@@ -282,10 +282,11 @@ jobs:
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
 
+            set -a
             source mattermost-server/build/dotenv/test-schema-validation-postgres.env
+            set +a
             docker run -it --net circleci_mm-test \
               --env-file="mattermost-server/build/dotenv/test-schema-validation-postgres.env" \
-              --env-file="mattermost-server/build/dotenv/test-schema-validation.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
@@ -311,10 +312,11 @@ jobs:
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
 
+            set -a
             source mattermost-server/build/dotenv/test-schema-validation-mysql.env
+            set +a
             docker run -it --net circleci_mm-test \
               --env-file="mattermost-server/build/dotenv/test-schema-validation-mysql.env" \
-              --env-file="mattermost-server/build/dotenv/test-schema-validation.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
