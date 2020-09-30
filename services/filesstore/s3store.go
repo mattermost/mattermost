@@ -80,20 +80,16 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 
 	exists := true
 	// If a path prefix is present, we attempt to test the bucket by listing objects under the path
-	// and breaking after the first non-nil error. This is because the BucketExists call is only at a bucket level
+	// and just checking the first response. This is because the BucketExists call is only at a bucket level
 	// and sometimes the user might only be allowed access to the specified path prefix.
 	if b.pathPrefix != "" {
-		objInfoChan := s3Clnt.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
-		for obj := range objInfoChan {
-			if obj.Err != nil {
-				typedErr := s3.ToErrorResponse(obj.Err)
-				if typedErr.Code == bucketNotFound {
-					exists = false
-					break
-				}
+		obj := <-s3Clnt.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
+		if obj.Err != nil {
+			typedErr := s3.ToErrorResponse(obj.Err)
+			if typedErr.Code != bucketNotFound {
 				return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.list_objects.app_error", nil, obj.Err.Error(), http.StatusInternalServerError)
 			}
-			break
+			exists = false
 		}
 	} else {
 		exists, err = s3Clnt.BucketExists(context.Background(), b.bucket)
