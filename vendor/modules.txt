@@ -4,7 +4,6 @@ code.sajari.com/docconv
 code.sajari.com/docconv/iWork
 code.sajari.com/docconv/snappy
 # github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198
-## explicit
 github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.0
 ## explicit
@@ -182,7 +181,6 @@ github.com/dyatlov/go-opengraph/opengraph
 # github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4
 ## explicit
 # github.com/fatih/color v1.9.0
-## explicit
 github.com/fatih/color
 # github.com/fatih/set v0.2.1
 github.com/fatih/set
@@ -341,7 +339,6 @@ github.com/lann/ps
 ## explicit
 github.com/ledongthuc/pdf
 # github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5
-## explicit
 github.com/levigross/exp-html
 # github.com/lib/pq v1.8.0
 ## explicit
@@ -349,7 +346,6 @@ github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
 # github.com/magiconair/properties v1.8.1
-## explicit
 github.com/magiconair/properties
 # github.com/mailru/easyjson v0.7.3
 ## explicit
@@ -388,12 +384,10 @@ github.com/mattermost/rsc/qr/coding
 ## explicit
 github.com/mattermost/viper
 # github.com/mattn/go-colorable v0.1.7
-## explicit
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.9
-## explicit
 github.com/mattn/go-runewidth
 # github.com/mattn/go-sqlite3 v2.0.3+incompatible
 ## explicit
@@ -450,7 +444,6 @@ github.com/nwaples/rardecode
 ## explicit
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.4
-## explicit
 github.com/olekukonko/tablewriter
 # github.com/olivere/elastic v6.2.34+incompatible
 ## explicit
@@ -546,10 +539,8 @@ github.com/spf13/cobra
 ## explicit
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
-## explicit
 github.com/spf13/pflag
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
-## explicit
 github.com/ssor/bom
 # github.com/steveyen/gtreap v0.1.0
 github.com/steveyen/gtreap
@@ -745,7 +736,6 @@ golang.org/x/tools/internal/imports
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
-## explicit
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/appengine v1.6.6
