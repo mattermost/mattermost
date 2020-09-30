@@ -165,14 +165,20 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		umc := make(chan *model.AppError, 1)
 		go func(userId string) {
+			defer close(umc)
 			nErr := a.Srv().Store.Channel().IncrementMentionCount(post.ChannelId, userId)
 			if nErr != nil {
 				umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-			} else {
-				umc <- nil
+				return
 			}
-
-			close(umc)
+			if *a.Config().ExperimentalSettings.ThreadAutoFollow && post.RootId != "" {
+				nErr = a.Srv().Store.Thread().UpdateMembershipFromMention(userId, post.RootId)
+				if nErr != nil {
+					umc <- model.NewAppError("SendNotifications", "app.channel.increment_mention_count.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+			umc <- nil
 		}(id)
 		updateMentionChans = append(updateMentionChans, umc)
 	}
