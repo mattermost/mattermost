@@ -217,8 +217,6 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            pwd
-            ls -al
             docker run -it --net circleci_mm-test \
               --env-file="mattermost-server/build/dotenv/test.env" \
               --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
@@ -276,21 +274,18 @@ jobs:
       - run:
           name: Postgres schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
             echo "Importing postgres dump from version 5.0"
             docker-compose --no-ansi exec -T postgres psql -U mmuser -d migrated < ../scripts/mattermost-postgresql-5.0.sql
-
-            pwd
-            ls -al
             set -a
-            source mattermost-server/build/dotenv/test-schema-validation-postgres.env
+            source dotenv/test-schema-validation-postgres.env
             set +a
             docker run -it --net circleci_mm-test \
-              --env-file="mattermost-server/build/dotenv/test-schema-validation-postgres.env" \
+              --env-file="dotenv/test-schema-validation-postgres.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
@@ -308,19 +303,19 @@ jobs:
       - run:
           name: MySQL schema migration validation
           command: |
+            cd mattermost-server/build
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
-            cd mattermost-server/build
             echo "Creating databases"
             docker-compose --no-ansi exec -T mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
             echo "Importing mysql dump from version 5.0"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest < ../scripts/mattermost-mysql-5.0.sql
 
             set -a
-            source mattermost-server/build/dotenv/test-schema-validation-mysql.env
+            source dotenv/test-schema-validation-mysql.env
             set +a
             docker run -it --net circleci_mm-test \
-              --env-file="mattermost-server/build/dotenv/test-schema-validation-mysql.env" \
+              --env-file="dotenv/test-schema-validation-mysql.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
