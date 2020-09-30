@@ -1326,3 +1326,21 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
 	})
 }
+
+func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "off", cfg.FeatureFlags.TestFeature)
+
+	cfg = Config{
+		FeatureFlags: &FeatureFlags{
+			TestFeature: "somevalue",
+		},
+	}
+	cfg.SetDefaults()
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
+
+}
