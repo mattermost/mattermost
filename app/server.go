@@ -228,6 +228,16 @@ func NewServer(options ...Option) (*Server, error) {
 				Dsn:              SENTRY_DSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
+				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+					// sanitize data sent to sentry to reduce exposure of PII
+					if event.Request != nil {
+						event.Request.Cookies = ""
+						event.Request.QueryString = ""
+						event.Request.Headers = nil
+						event.Request.Data = ""
+					}
+					return event
+				},
 			}); err != nil {
 				mlog.Warn("Sentry could not be initiated, probably bad DSN?", mlog.Err(err))
 			}
@@ -1537,4 +1547,8 @@ func (s *Server) TelemetryId() string {
 
 func (s *Server) HttpService() httpservice.HTTPService {
 	return s.HTTPService
+}
+
+func (s *Server) SetLog(l *mlog.Logger) {
+	s.Log = l
 }
