@@ -1365,12 +1365,7 @@ func TestAllPushNotifications(t *testing.T) {
 }
 
 func TestPushNotificationRace(t *testing.T) {
-	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
-		IgnoreEnvironmentOverrides: true,
-	})
-	require.NoError(t, err, "failed to initialize memory store")
-	defer memoryStore.Close()
-
+	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get",

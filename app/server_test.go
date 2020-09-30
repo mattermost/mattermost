@@ -65,7 +65,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			return nil
 		})
@@ -77,8 +78,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Read Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
-			server.configStore = configStore
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
 		})
@@ -90,7 +91,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas with no License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			return nil
 		})
@@ -102,7 +104,8 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 
 	t.Run("Search Replicas With License", func(t *testing.T) {
 		s, err := NewServer(func(server *Server) error {
-			configStore, _ := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: cfg.Clone()})
+			configStore := config.NewTestMemoryStore()
+			configStore.Set(&cfg)
 			server.configStore = configStore
 			server.licenseValue.Store(model.NewTestLicense())
 			return nil
@@ -112,27 +115,6 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		require.NotSame(t, s.sqlStore.GetMaster(), s.sqlStore.GetSearchReplica())
 		require.Len(t, s.Config().SqlSettings.DataSourceSearchReplicas, 1)
 	})
-}
-
-func TestStartServerRateLimiterCriticalError(t *testing.T) {
-	// Attempt to use Rate Limiter with an invalid config
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{
-		SkipValidation: true,
-	})
-	require.NoError(t, err)
-
-	config := ms.Get()
-	*config.RateLimitSettings.Enable = true
-	*config.RateLimitSettings.MaxBurst = -100
-	_, err = ms.Set(config)
-	require.NoError(t, err)
-
-	s, err := NewServer(ConfigStore(ms))
-	require.NoError(t, err)
-
-	serverErr := s.Start()
-	s.Shutdown()
-	require.Error(t, serverErr)
 }
 
 func TestStartServerPortUnavailable(t *testing.T) {
@@ -397,8 +379,7 @@ func TestSentry(t *testing.T) {
 
 	testDir, _ := fileutils.FindDir("tests")
 	s, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		server.configStore = configStore
+		server.configStore = config.NewTestMemoryStore()
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.LogSettings.EnableSentry = false
@@ -440,8 +421,7 @@ func TestSentry(t *testing.T) {
 	_, port, _ = net.SplitHostPort(server2.Listener.Addr().String())
 	SENTRY_DSN = fmt.Sprintf("http://test:test@localhost:%s/123", port)
 	s2, err := NewServer(func(server *Server) error {
-		configStore, _ := config.NewFileStore("config.json", true)
-		server.configStore = configStore
+		server.configStore = config.NewTestMemoryStore()
 		server.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ListenAddress = ":0"
 			*cfg.ServiceSettings.ConnectionSecurity = "TLS"

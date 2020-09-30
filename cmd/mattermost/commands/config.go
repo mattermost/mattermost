@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/viper"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -146,9 +145,7 @@ func getConfigStore(command *cobra.Command) (config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configDSN := viper.GetString("config")
-
-	configStore, err := config.NewStore(configDSN, false)
+	configStore, err := config.NewStore(getConfigDSN(command, config.GetEnviroment()), false)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize config store")
 	}

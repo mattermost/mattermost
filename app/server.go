@@ -178,6 +178,10 @@ type Server struct {
 	// and data corruption.
 	uploadLockMapMut sync.Mutex
 	uploadLockMap    map[string]bool
+
+	featureFlagSynchronizer *config.FeatureFlagSynchronizer
+	featureFlagStop         chan struct{}
+	featureFlagStopped      chan struct{}
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -200,7 +204,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.configStore == nil {
-		configStore, err := config.NewFileStore("config.json", true)
+		innerStore, err := config.NewFileStore("config.json", true)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load config")
+		}
+		configStore, err := config.NewStoreFromBacking(innerStore)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -365,7 +373,17 @@ func NewServer(options ...Option) (*Server, error) {
 		s.LoadLicense()
 	}
 
+	s.setupFeatureFlags()
+
 	s.initJobs()
+
+	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		if s.Jobs != nil && s.Jobs.Schedulers != nil {
+			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
+		}
+		s.setupFeatureFlags()
+	})
 
 	if s.joinCluster && s.Cluster != nil {
 		s.Cluster.StartInterNodeCommunication()
@@ -388,13 +406,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.regenerateClientConfig()
-
-	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
-		if s.Jobs != nil && s.Jobs.Schedulers != nil {
-			s.Jobs.Schedulers.HandleClusterLeaderChange(s.IsLeader())
-		}
-	})
 
 	subpath, err := utils.GetSubpathFromConfig(s.Config())
 	if err != nil {
@@ -480,7 +491,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.checkPushNotificationServerUrl()
 
 	license := s.License()
-
 	if license == nil {
 		s.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
@@ -618,11 +628,11 @@ func (s *Server) initLogging() error {
 		isJson := config.IsJsonMap(dsn)
 
 		// If this is a file based config we need the full path so it can be watched.
-		if !isJson {
+		/*if !isJson {
 			if fs, ok := s.configStore.(*config.FileStore); ok {
 				dsn = fs.GetFilePath(dsn)
 			}
-		}
+		}*/
 
 		cfg, err := config.NewLogConfigSrc(dsn, isJson, s.configStore)
 		if err != nil {
@@ -751,6 +761,8 @@ func (s *Server) Shutdown() error {
 	s.stopSearchEngine()
 
 	s.Audit.Shutdown()
+
+	s.stopFeatureFlagUpdateJob()
 
 	s.configStore.Close()
 

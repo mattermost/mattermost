@@ -79,20 +79,26 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	config := memoryStore.Get()
-	*config.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
-	*config.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	config.ServiceSettings.EnableLocalMode = model.NewBool(true)
-	*config.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
-	*config.AnnouncementSettings.AdminNoticesEnabled = false
-	*config.AnnouncementSettings.UserNoticesEnabled = false
+	memoryConfig := &model.Config{}
+	memoryConfig.SetDefaults()
+	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
+	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
+	memoryConfig.ServiceSettings.EnableLocalMode = model.NewBool(true)
+	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
+	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
+	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	if updateConfig != nil {
-		updateConfig(config)
+		updateConfig(memoryConfig)
 	}
-	memoryStore.Set(config)
+	memoryStore.Set(memoryConfig)
+
+	configStore, err := config.NewStoreFromBacking(memoryStore)
+	if err != nil {
+		panic(err)
+	}
 
 	var options []app.Option
-	options = append(options, app.ConfigStore(memoryStore))
+	options = append(options, app.ConfigStore(configStore))
 	options = append(options, app.StoreOverride(dbStore))
 
 	s, err := app.NewServer(options...)
@@ -107,7 +113,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s)),
 		Server:            s,
-		ConfigStore:       memoryStore,
+		ConfigStore:       configStore,
 		IncludeCacheLayer: includeCache,
 	}
 
@@ -168,7 +174,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th.Client.SetBoolString(true, trueString)
 	th.Client.SetBoolString(false, falseString)
 
-	th.LocalClient = th.CreateLocalClient(*config.ServiceSettings.LocalModeSocketLocation)
+	th.LocalClient = th.CreateLocalClient(*memoryConfig.ServiceSettings.LocalModeSocketLocation)
 
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
