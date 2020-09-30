@@ -43,12 +43,3 @@ type Subscription struct {
 	Seats      int      `json:"seats"`
 	DNS        string   `json:"dns"`
 }
-
-// Payment represents a payment for a subscription.
-type Payment struct {
-	ID            string  `json:"id"`
-	InvoiceNumber string  `json:"invoice_number"`
-	CreateAt      int64   `json:"create_at"`
-	Total         float64 `json:"total"`
-	State         string  `json:"state"`
-}

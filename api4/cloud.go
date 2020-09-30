@@ -71,7 +71,7 @@ func getCloudProducts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(products)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getCloudProducts", "app.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getCloudProducts", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
