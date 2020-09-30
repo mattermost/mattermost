@@ -59,3 +59,21 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
 	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PERMISSION_LIST_TEAM_CHANNELS))
 }
+
+func TestHasPermissionToCategory(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	require.Nil(t, err)
+
+	categories, err := th.App.GetSidebarCategories(th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, err)
+
+	_, err = th.App.GetSession(session.Token)
+	require.Nil(t, err)
+	require.True(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories.Order[0]))
+
+	categories2, err := th.App.GetSidebarCategories(th.BasicUser2.Id, th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.False(t, th.App.SessionHasPermissionToCategory(*session, th.BasicUser.Id, th.BasicTeam.Id, categories2.Order[0]))
+}
