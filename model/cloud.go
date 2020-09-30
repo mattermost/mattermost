@@ -33,18 +33,15 @@ type ConfirmPaymentMethodRequest struct {
 
 // Subscription model represents a subscription on the system.
 type Subscription struct {
-	ID                 string   `json:"id"`
-	CustomerID         string   `json:"customer_id"`
-	ProductID          string   `json:"product_id"`
-	AddOns             []string `json:"add_ons"`
-	StartAt            int64    `json:"start_at"`
-	EndAt              int64    `json:"end_at"`
-	CreateAt           int64    `json:"create_at"`
-	Seats              int      `json:"seats"`
-	DNS                string   `json:"dns"`
-	StripeClientSecret string   `json:"stripe_client_secret,omitempty"`
-	LicensePayload     string   `json:"license_payload"`
-	Payment            *Payment `json:"payment"`
+	ID         string   `json:"id"`
+	CustomerID string   `json:"customer_id"`
+	ProductID  string   `json:"product_id"`
+	AddOns     []string `json:"add_ons"`
+	StartAt    int64    `json:"start_at"`
+	EndAt      int64    `json:"end_at"`
+	CreateAt   int64    `json:"create_at"`
+	Seats      int      `json:"seats"`
+	DNS        string   `json:"dns"`
 }
 
 // Payment represents a payment for a subscription.
