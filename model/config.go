@@ -2882,6 +2882,7 @@ type Config struct {
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
 	CloudSettings             CloudSettings
+	FeatureFlags              *FeatureFlags `json:",omitempty"`
 }
 
 func (o *Config) Clone() *Config {
@@ -2969,6 +2970,10 @@ func (o *Config) SetDefaults() {
 	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 	o.CloudSettings.SetDefaults()
+	if o.FeatureFlags == nil {
+		o.FeatureFlags = &FeatureFlags{}
+		o.FeatureFlags.SetDefaults()
+	}
 }
 
 func (o *Config) IsValid() *AppError {
