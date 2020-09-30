@@ -533,8 +533,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	posts, err := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	require.Nil(t, err)
+	posts, nErr := th1.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(posts))
 
 	th1.TearDown()
@@ -542,8 +542,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	require.Nil(t, err)
+	posts, nErr = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
@@ -551,8 +551,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	posts, err = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	require.Nil(t, err)
+	posts, nErr = th2.App.Srv().Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, nErr)
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))
 	assert.Equal(t, th1.BasicUser.Username, (*posts[0].ChannelMembers)[0])

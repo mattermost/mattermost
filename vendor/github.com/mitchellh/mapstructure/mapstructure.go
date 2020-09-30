@@ -906,10 +906,21 @@ func (d *Decoder) decodeMapFromStruct(name string, dataVal reflect.Value, val re
 			mType := reflect.MapOf(vKeyType, vElemType)
 			vMap := reflect.MakeMap(mType)
 
-			err := d.decode(keyName, x.Interface(), vMap)
+			// Creating a pointer to a map so that other methods can completely
+			// overwrite the map if need be (looking at you decodeMapFromMap). The
+			// indirection allows the underlying map to be settable (CanSet() == true)
+			// where as reflect.MakeMap returns an unsettable map.
+			addrVal := reflect.New(vMap.Type())
+			reflect.Indirect(addrVal).Set(vMap)
+
+			err := d.decode(keyName, x.Interface(), reflect.Indirect(addrVal))
 			if err != nil {
 				return err
 			}
+
+			// the underlying map may have been completely overwritten so pull
+			// it indirectly out of the enclosing value.
+			vMap = reflect.Indirect(addrVal)
 
 			if squash {
 				for _, k := range vMap.MapKeys() {
@@ -1154,13 +1165,23 @@ func (d *Decoder) decodeStruct(name string, data interface{}, val reflect.Value)
 		// Not the most efficient way to do this but we can optimize later if
 		// we want to. To convert from struct to struct we go to map first
 		// as an intermediary.
-		m := make(map[string]interface{})
-		mval := reflect.Indirect(reflect.ValueOf(&m))
-		if err := d.decodeMapFromStruct(name, dataVal, mval, mval); err != nil {
+
+		// Make a new map to hold our result
+		mapType := reflect.TypeOf((map[string]interface{})(nil))
+		mval := reflect.MakeMap(mapType)
+
+		// Creating a pointer to a map so that other methods can completely
+		// overwrite the map if need be (looking at you decodeMapFromMap). The
+		// indirection allows the underlying map to be settable (CanSet() == true)
+		// where as reflect.MakeMap returns an unsettable map.
+		addrVal := reflect.New(mval.Type())
+
+		reflect.Indirect(addrVal).Set(mval)
+		if err := d.decodeMapFromStruct(name, dataVal, reflect.Indirect(addrVal), mval); err != nil {
 			return err
 		}
 
-		result := d.decodeStructFromMap(name, mval, val)
+		result := d.decodeStructFromMap(name, reflect.Indirect(addrVal), val)
 		return result
 
 	default:

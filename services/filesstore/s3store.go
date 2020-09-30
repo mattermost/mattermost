@@ -4,8 +4,8 @@
 package filesstore
 
 import (
-	"bytes"
 	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -140,7 +140,8 @@ func (b *S3FileBackend) FileExists(path string) (bool, *model.AppError) {
 		return true, nil
 	}
 
-	if err.(s3.ErrorResponse).Code == "NoSuchKey" {
+	var s3Err s3.ErrorResponse
+	if errors.As(err, &s3Err); s3Err.Code == "NoSuchKey" {
 		return false, nil
 	}
 
@@ -216,17 +217,71 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, *model.AppE
 	}
 
 	options := s3PutOptions(b.encrypt, contentType)
-	var buf bytes.Buffer
-	_, err = buf.ReadFrom(fr)
-	if err != nil {
-		return 0, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, &buf, int64(buf.Len()), options)
+	info, err := s3Clnt.PutObject(context.Background(), b.bucket, path, fr, -1, options)
 	if err != nil {
 		return info.Size, model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return info.Size, nil
+}
+
+func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.AppError) {
+	s3Clnt, err := b.s3New()
+	if err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	fp := filepath.Join(b.pathPrefix, path)
+	if _, err = s3Clnt.StatObject(context.Background(), b.bucket, fp, s3.StatObjectOptions{}); err != nil {
+		return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var contentType string
+	if ext := filepath.Ext(fp); model.IsFileExtImage(ext) {
+		contentType = model.GetImageMimeType(ext)
+	} else {
+		contentType = "binary/octet-stream"
+	}
+
+	var sse encrypt.ServerSide
+	if b.encrypt {
+		sse = encrypt.NewSSE()
+	}
+	options := s3.PutObjectOptions{
+		ContentType:          contentType,
+		ServerSideEncryption: sse,
+	}
+
+	partName := fp + ".part"
+	info, err := s3Clnt.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
+	defer s3Clnt.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
+	if info.Size > 0 {
+		src1Opts := s3.CopySrcOptions{
+			Bucket: b.bucket,
+			Object: fp,
+		}
+		src2Opts := s3.CopySrcOptions{
+			Bucket: b.bucket,
+			Object: partName,
+		}
+		dstOpts := s3.CopyDestOptions{
+			Bucket:     b.bucket,
+			Object:     fp,
+			Encryption: sse,
+		}
+		_, err = s3Clnt.ComposeObject(context.Background(), dstOpts, src1Opts, src2Opts)
+		if err != nil {
+			return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return info.Size, nil
+	}
+
+	var errString string
+	if err != nil {
+		errString = err.Error()
+	}
+
+	return 0, model.NewAppError("AppendFile", "api.file.append_file.s3.app_error", nil, errString, http.StatusInternalServerError)
 }
 
 func (b *S3FileBackend) RemoveFile(path string) *model.AppError {

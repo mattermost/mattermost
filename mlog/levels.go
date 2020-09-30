@@ -5,13 +5,15 @@ package mlog
 
 // Standard levels
 var (
-	LvlPanic = LogLevel{ID: 0, Name: "panic"}
-	LvlFatal = LogLevel{ID: 1, Name: "fatal"}
+	LvlPanic = LogLevel{ID: 0, Name: "panic", Stacktrace: true}
+	LvlFatal = LogLevel{ID: 1, Name: "fatal", Stacktrace: true}
 	LvlError = LogLevel{ID: 2, Name: "error"}
 	LvlWarn  = LogLevel{ID: 3, Name: "warn"}
 	LvlInfo  = LogLevel{ID: 4, Name: "info"}
 	LvlDebug = LogLevel{ID: 5, Name: "debug"}
 	LvlTrace = LogLevel{ID: 6, Name: "trace"}
+	// used by redirected standard logger
+	LvlStdLog = LogLevel{ID: 10, Name: "stdlog"}
 	// used only by the logger
 	LvlLogError = LogLevel{ID: 11, Name: "logerror", Stacktrace: true}
 )

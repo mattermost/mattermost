@@ -84,7 +84,7 @@ func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, erro
 	return post, err
 }
 
-func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, error) {
 	post, err := s.PostStore.Overwrite(post)
 	if err == nil {
 		s.indexPost(post)
@@ -131,7 +131,7 @@ func (s SearchPostStore) PermanentDeleteByChannel(channelID string) error {
 	return err
 }
 
-func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.SearchEngineInterface, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	if err := model.IsSearchParamsListValid(paramsList); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (s SearchPostStore) searchPostsInTeamForUserByEngine(engine searchengine.Se
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (s SearchPostStore) SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
 			results, err := s.searchPostsInTeamForUserByEngine(engine, paramsList, userId, teamId, page, perPage)

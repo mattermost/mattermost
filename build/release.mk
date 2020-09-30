@@ -66,10 +66,6 @@ build-client:
 
 package:
 	@ echo Packaging mattermost
-ifeq ($(MMCTL_REL_TO_DOWNLOAD),)
-	@echo "An error has occured trying to get the latest mmctl release. Aborting. Perhaps api.github.com is down?"
-	@exit 1
-endif
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
@@ -100,6 +96,9 @@ endif
 	@# Package webapp
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
+
+	$(eval MMCTL_REL_TO_DOWNLOAD := $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-'))
+	@echo "Using mmctl version $(MMCTL_REL_TO_DOWNLOAD)"
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)

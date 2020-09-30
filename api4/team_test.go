@@ -42,7 +42,7 @@ func TestCreateTeam(t *testing.T) {
 
 		rteam.Id = ""
 		_, resp = client.CreateTeam(rteam)
-		CheckErrorMessage(t, resp, "store.sql_team.save.domain_exists.app_error")
+		CheckErrorMessage(t, resp, "app.team.save.existing.app_error")
 		CheckBadRequestStatus(t, resp)
 
 		rteam.Name = ""
@@ -1847,6 +1847,11 @@ func TestAddTeamMember(t *testing.T) {
 	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
+	// Should return error with invalid JSON in body.
+	_, err = Client.DoApiPost("/teams/"+team.Id+"/members", "invalid")
+	require.NotNil(t, err)
+	require.Equal(t, "api.team.add_team_member.invalid_body.app_error", err.Id)
+
 	// by token
 	Client.Login(otherUser.Email, otherUser.Password)
 
@@ -2161,7 +2166,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 260; i++ {
 		testUserList = append(testUserList, GenerateTestId())
 	}
 	_, resp = Client.AddTeamMembers(team.Id, testUserList)
@@ -3345,4 +3350,29 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestInvalidateAllEmailInvites(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("Forbidden when request performed by system user", func(t *testing.T) {
+		ok, res := th.Client.InvalidateEmailInvites()
+		require.Equal(t, false, ok)
+		CheckForbiddenStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system user with requisite system permission", func(t *testing.T) {
+		th.AddPermissionToRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
+		defer th.RemovePermissionFromRole(model.PERMISSION_SYSCONSOLE_WRITE_AUTHENTICATION.Id, model.SYSTEM_USER_ROLE_ID)
+		ok, res := th.Client.InvalidateEmailInvites()
+		require.Equal(t, true, ok)
+		CheckOKStatus(t, res)
+	})
+
+	t.Run("OK when request performed by system admin", func(t *testing.T) {
+		ok, res := th.SystemAdminClient.InvalidateEmailInvites()
+		require.Equal(t, true, ok)
+		CheckOKStatus(t, res)
+	})
 }

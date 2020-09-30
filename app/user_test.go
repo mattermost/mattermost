@@ -528,7 +528,11 @@ func TestGetUsersByStatus(t *testing.T) {
 	onlineUser2 := createUserWithStatus("online2", model.STATUS_ONLINE)
 
 	t.Run("sorting by status then alphabetical", func(t *testing.T) {
-		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 8, true)
+		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(&model.UserGetOptions{
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     8,
+		}, true)
 		require.Nil(t, err)
 
 		expectedUsersByStatus := []*model.User{
@@ -550,7 +554,11 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 
 	t.Run("paging", func(t *testing.T) {
-		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 3, true)
+		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(&model.UserGetOptions{
+			InChannelId: channel.Id,
+			Page:        0,
+			PerPage:     3,
+		}, true)
 		require.Nil(t, err)
 
 		require.Equal(t, 3, len(usersByStatus), "received too many users")
@@ -563,9 +571,14 @@ func TestGetUsersByStatus(t *testing.T) {
 
 		require.Equal(t, awayUser1.Id, usersByStatus[2].Id, "expected to receive away users second")
 
-		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 3, true)
+		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(&model.UserGetOptions{
+			InChannelId: channel.Id,
+			Page:        1,
+			PerPage:     3,
+		}, true)
 		require.Nil(t, err)
 
+		require.NotEmpty(t, usersByStatus, "at least some users are expected")
 		require.Equal(t, awayUser2.Id, usersByStatus[0].Id, "expected to receive away users second")
 
 		require.False(
@@ -574,7 +587,11 @@ func TestGetUsersByStatus(t *testing.T) {
 			"expected to receive dnd users third",
 		)
 
-		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 4, true)
+		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(&model.UserGetOptions{
+			InChannelId: channel.Id,
+			Page:        1,
+			PerPage:     4,
+		}, true)
 		require.Nil(t, err)
 
 		require.Equal(t, 4, len(usersByStatus), "received too many users")
@@ -608,14 +625,14 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	t.Run("invalid invite id", func(t *testing.T) {
 		_, err := th.App.CreateUserWithInviteId(&user, "", "")
 		require.NotNil(t, err)
-		require.Contains(t, err.Id, "store.sql_team.get_by_invite_id")
+		require.Contains(t, err.Id, "app.team.get_by_invite_id")
 	})
 
 	t.Run("invalid domain", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "mattermost.com"
-		_, err := th.App.Srv().Store.Team().Update(th.BasicTeam)
-		require.Nil(t, err)
-		_, err = th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
+		_, nErr := th.App.Srv().Store.Team().Update(th.BasicTeam)
+		require.Nil(t, nErr)
+		_, err := th.App.CreateUserWithInviteId(&user, th.BasicTeam.InviteId, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.team.invite_members.invalid_email.app_error", err.Id)
 	})

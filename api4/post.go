@@ -295,6 +295,10 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
@@ -321,12 +325,6 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl.SortByCreateAt()
-
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
@@ -466,7 +464,11 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := model.SearchParameterFromJson(r.Body)
+	params, jsonErr := model.SearchParameterFromJson(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("searchPosts", "api.post.search_posts.invalid_body.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if params.Terms == nil || len(*params.Terms) == 0 {
 		c.SetInvalidParam("terms")

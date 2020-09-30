@@ -79,7 +79,7 @@ func (s LocalCachePostStore) GetEtag(channelId string, allowFromCache bool) stri
 	return result
 }
 
-func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool) (*model.PostList, error) {
 	if allowFromCache {
 		// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 		// we can safely return no posts.
@@ -105,7 +105,7 @@ func (s LocalCachePostStore) GetPostsSince(options model.GetPostsSinceOptions, a
 	return list, err
 }
 
-func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError) {
+func (s LocalCachePostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error) {
 	if !allowFromCache {
 		return s.PostStore.GetPosts(options, allowFromCache)
 	}

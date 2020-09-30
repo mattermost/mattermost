@@ -312,16 +312,6 @@ type Balancer interface {
 	Close()
 }
 
-// V2Balancer is temporarily defined for backward compatibility reasons.
-//
-// Deprecated: use Balancer directly instead.
-type V2Balancer = Balancer
-
-// V2Picker is temporarily defined for backward compatibility reasons.
-//
-// Deprecated: use Picker directly instead.
-type V2Picker = Picker
-
 // SubConnState describes the state of a SubConn.
 type SubConnState struct {
 	// ConnectivityState is the connectivity state of the SubConn.

@@ -48,10 +48,6 @@
         "translation": "9월"
     },
     {
-        "id": "actiance.export.marshalToXml.appError",
-        "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
-    },
-    {
         "id": "api.admin.add_certificate.array.app_error",
         "translation": "요청된 '인증서' 항목의 파일이 없습니다."
     },
@@ -2534,10 +2530,6 @@
         "translation": "%s이(가) 채널 헤더를 %s로 갱신했습니다"
     },
     {
-        "id": "app.cluster.404.app_error",
-        "translation": "Cluster API endpoint not found."
-    },
-    {
         "id": "app.export.export_write_line.io_writer.error",
         "translation": "An error occurred writing the export data."
     },
@@ -3218,10 +3210,6 @@
         "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
     },
     {
-        "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
-        "translation": "Unable to complete SAML login with an empty email address."
-    },
-    {
         "id": "app.user_access_token.disabled",
         "translation": "개인 액세스 토큰이 현재 서버에서 활성화 되어있지 않습니다. 시스템 관리자에게 연락하여 자세한 사항을 확인하시길 바랍니다."
     },
@@ -3376,10 +3364,6 @@
     {
         "id": "ent.elasticsearch.index_post.error",
         "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-        "translation": "The oldest post could not be retrieved from the database."
     },
     {
         "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3682,24 +3666,12 @@
         "translation": "대화식 대화 상자에서 생성된 트리거 ID 서명에 실패하였습니다."
     },
     {
-        "id": "jobs.do_job.batch_size.parse_error",
-        "translation": "Could not parse message export job BatchSize."
-    },
-    {
-        "id": "jobs.do_job.batch_start_timestamp.parse_error",
-        "translation": "Could not parse message export job ExportFromTimestamp."
-    },
-    {
         "id": "jobs.request_cancellation.status.error",
         "translation": "Could not request cancellation for job that is not in a cancelable state."
     },
     {
         "id": "jobs.set_job_error.update.error",
         "translation": "Failed to set job status to error"
-    },
-    {
-        "id": "jobs.start_synchronize_job.timeout",
-        "translation": "Reached AD/LDAP synchronization job timeout."
     },
     {
         "id": "manaultesting.manual_test.parse.app_error",
@@ -3900,10 +3872,6 @@
     {
         "id": "model.channel_member.is_valid.user_id.app_error",
         "translation": "잘못된 사용자 ID"
-    },
-    {
-        "id": "model.client.connecting.app_error",
-        "translation": "We encountered an error while connecting to the server"
     },
     {
         "id": "model.cluster.is_valid.create_at.app_error",
@@ -5158,46 +5126,6 @@
         "translation": "내용을 가져올수 없습니다."
     },
     {
-        "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-        "translation": "Unable to delete attachments of the user"
-    },
-    {
-        "id": "store.sql_file_info.attach_to_post.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.delete_for_post.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.get_by_path.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.get_for_post.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.get_for_user_id.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete.app_error",
-        "translation": "Unable to permanently delete the file info"
-    },
-    {
-        "id": "store.sql_file_info.permanent_delete_batch.app_error",
-        "translation": "We encountered an error permanently deleting the batch of file infos"
-    },
-    {
-        "id": "store.sql_file_info.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
         "id": "store.sql_group.group_syncable_already_deleted",
         "translation": "group syncable was already deleted"
     },
@@ -5214,46 +5142,6 @@
         "translation": "group member already exists"
     },
     {
-        "id": "store.sql_job.delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_job.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_job.get_all.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_job.get_count_by_status_and_type.app_error",
-        "translation": "Unable to get the job count by status and type"
-    },
-    {
-        "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-        "translation": "Unable to get the newest job by status and type"
-    },
-    {
-        "id": "store.sql_job.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_job.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_plugin_store.delete.app_error",
-        "translation": "Could not delete plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.get.app_error",
-        "translation": "Could not get plugin key value"
-    },
-    {
-        "id": "store.sql_plugin_store.save.app_error",
-        "translation": "Could not save or update plugin key value"
-    },
-    {
         "id": "store.sql_post.analytics_posts_count.app_error",
         "translation": "Unable to get post counts"
     },
@@ -5264,14 +5152,6 @@
     {
         "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
         "translation": "Unable to get user counts with posts"
-    },
-    {
-        "id": "store.sql_post.delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_post.get.app_error",
-        "translation": "내용을 가져올수 없습니다."
     },
     {
         "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5318,92 +5198,12 @@
         "translation": "내용을 가져올수 없습니다."
     },
     {
-        "id": "store.sql_post.permanent_delete.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-        "translation": "We couldn't delete the comments for user"
-    },
-    {
         "id": "store.sql_post.permanent_delete_batch.app_error",
         "translation": "We encountered an error permanently deleting the batch of posts"
     },
     {
-        "id": "store.sql_post.permanent_delete_by_channel.app_error",
-        "translation": "채널 업데이트에 실패하였습니다"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.app_error",
-        "translation": "We couldn't select the posts to delete for the user"
-    },
-    {
-        "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-        "translation": "We couldn't select the posts to delete for the user (too many), please re-run"
-    },
-    {
-        "id": "store.sql_post.save.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_post.save.existing.app_error",
-        "translation": "You cannot update an existing Post"
-    },
-    {
         "id": "store.sql_post.search.disabled",
         "translation": "Searching has been disabled on this server. Please contact your System Administrator."
-    },
-    {
-        "id": "store.sql_post.update.app_error",
-        "translation": "내용을 가져올수 없습니다."
-    },
-    {
-        "id": "store.sql_status.get.app_error",
-        "translation": "Encountered an error retrieving the status"
-    },
-    {
-        "id": "store.sql_status.get.missing.app_error",
-        "translation": "No entry for that status exists"
-    },
-    {
-        "id": "store.sql_status.get_total_active_users_count.app_error",
-        "translation": "채널을 찾을 수 없습니다"
-    },
-    {
-        "id": "store.sql_status.reset_all.app_error",
-        "translation": "Encountered an error resetting all the statuses"
-    },
-    {
-        "id": "store.sql_status.save.app_error",
-        "translation": "Encountered an error saving the status"
-    },
-    {
-        "id": "store.sql_status.update.app_error",
-        "translation": "Encountered an error updating the status"
-    },
-    {
-        "id": "store.sql_status.update_last_activity_at.app_error",
-        "translation": "Unable to update the last activity date and time of the user"
-    },
-    {
-        "id": "store.sql_system.get.app_error",
-        "translation": "We encountered an error finding the system properties"
-    },
-    {
-        "id": "store.sql_system.get_by_name.app_error",
-        "translation": "Unable to find the system variable."
-    },
-    {
-        "id": "store.sql_system.permanent_delete_by_name.app_error",
-        "translation": "We could not permanently delete the system table entry"
-    },
-    {
-        "id": "store.sql_system.save.app_error",
-        "translation": "We encountered an error saving the system property"
-    },
-    {
-        "id": "store.sql_system.update.app_error",
-        "translation": "We encountered an error updating the system property"
     },
     {
         "id": "store.sql_team.analytics_get_team_count_for_scheme.app_error",
@@ -5666,20 +5466,8 @@
         "translation": "An account with that email already exists."
     },
     {
-        "id": "store.sql_user.save.email_exists.ldap_app_error",
-        "translation": "This account does not use LDAP authentication. Please sign in using email and password."
-    },
-    {
-        "id": "store.sql_user.save.email_exists.saml_app_error",
-        "translation": "This account does not use SAML authentication. Please sign in using email and password."
-    },
-    {
         "id": "store.sql_user.save.existing.app_error",
         "translation": "Must call update for exisiting user"
-    },
-    {
-        "id": "store.sql_user.save.max_accounts.app_error",
-        "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
     },
     {
         "id": "store.sql_user.save.member_count.app_error",
@@ -5688,14 +5476,6 @@
     {
         "id": "store.sql_user.save.username_exists.app_error",
         "translation": "An account with that username already exists."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.ldap_app_error",
-        "translation": "An account with that username already exists. Please contact your Administrator."
-    },
-    {
-        "id": "store.sql_user.save.username_exists.saml_app_error",
-        "translation": "An account with that username already exists. Please contact your Administrator."
     },
     {
         "id": "store.sql_user.search.app_error",
@@ -6118,10 +5898,6 @@
         "translation": "채널 업데이트에 실패하였습니다"
     },
     {
-        "id": "store.sql_system.save.commit_transaction.app_error",
-        "translation": "Failed to commit the database transaction"
-    },
-    {
         "id": "store.sql_post.populate_reply_count.app_error",
         "translation": "Unable to get the post replies count"
     },
@@ -6138,28 +5914,12 @@
         "translation": "내용을 가져올수 없습니다."
     },
     {
-        "id": "store.sql_plugin_store.list.app_error",
-        "translation": "모든 플러그인 키를 나열 할 수 없습니다"
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.too_many_rows.app_error",
-        "translation": "Found more than 1 row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
-        "id": "store.sql_plugin_store.compare_and_set.mysql_select.app_error",
-        "translation": "Failed to query for existing row on MySQL after KVCompareAndSet with unchanged value."
-    },
-    {
         "id": "store.sql_group.permanent_delete_members_by_user.app_error",
         "translation": "사용자ID가 \"{{.UserId}}\"인 그룹 멤버를 제거 할 수 없습니다."
     },
     {
         "id": "store.sql_group.app_error",
         "translation": "쿼리를 작성하지 못했습니다."
-    },
-    {
-        "id": "store.sql_file_info.get_with_options.app_error",
-        "translation": "파일 정보 경로를 찾을 수 없음"
     },
     {
         "id": "store.sql_channel.user_belongs_to_channels.app_error",
@@ -7972,5 +7732,177 @@
     {
         "id": "app.role.get.app_error",
         "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.update.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.save.existing.app_error",
+        "translation": "You cannot update an existing Post"
+    },
+    {
+        "id": "app.post.save.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.permanent_delete_by_user.app_error",
+        "translation": "We couldn't select the posts to delete for the user"
+    },
+    {
+        "id": "app.post.permanent_delete_by_channel.app_error",
+        "translation": "채널 업데이트에 실패하였습니다"
+    },
+    {
+        "id": "app.post.get.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.post.delete.app_error",
+        "translation": "내용을 가져올수 없습니다."
+    },
+    {
+        "id": "app.status.get.missing.app_error",
+        "translation": "No entry for that status exists"
+    },
+    {
+        "id": "app.status.get.app_error",
+        "translation": "Encountered an error retrieving the status"
+    },
+    {
+        "id": "app.plugin_store.save.app_error",
+        "translation": "Could not save or update plugin key value"
+    },
+    {
+        "id": "app.plugin_store.list.app_error",
+        "translation": "모든 플러그인 키를 나열 할 수 없습니다"
+    },
+    {
+        "id": "app.plugin_store.get.app_error",
+        "translation": "Could not get plugin key value"
+    },
+    {
+        "id": "app.plugin_store.delete.app_error",
+        "translation": "Could not delete plugin key value"
+    },
+    {
+        "id": "migrations.system.save.app_error",
+        "translation": "We encountered an error saving the system property"
+    },
+    {
+        "id": "app.system.save.app_error",
+        "translation": "We encountered an error saving the system property"
+    },
+    {
+        "id": "app.system.permanent_delete_by_name.app_error",
+        "translation": "We could not permanently delete the system table entry"
+    },
+    {
+        "id": "app.system.get_by_name.app_error",
+        "translation": "Unable to find the system variable."
+    },
+    {
+        "id": "app.system.get.app_error",
+        "translation": "We encountered an error finding the system properties"
+    },
+    {
+        "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
+        "translation": "Unable to complete SAML login with an empty email address."
+    },
+    {
+        "id": "ent.saml.save_user.username_exists.saml_app_error",
+        "translation": "An account with that username already exists. Please contact your Administrator."
+    },
+    {
+        "id": "ent.saml.save_user.email_exists.saml_app_error",
+        "translation": "This account does not use SAML authentication. Please sign in using email and password."
+    },
+    {
+        "id": "ent.ldap.save_user.username_exists.ldap_app_error",
+        "translation": "An account with that username already exists. Please contact your Administrator."
+    },
+    {
+        "id": "ent.ldap.save_user.email_exists.ldap_app_error",
+        "translation": "This account does not use LDAP authentication. Please sign in using email and password."
+    },
+    {
+        "id": "ent.jobs.start_synchronize_job.timeout",
+        "translation": "Reached AD/LDAP synchronization job timeout."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_start_timestamp.parse_error",
+        "translation": "Could not parse message export job ExportFromTimestamp."
+    },
+    {
+        "id": "ent.jobs.do_job.batch_size.parse_error",
+        "translation": "Could not parse message export job BatchSize."
+    },
+    {
+        "id": "ent.cluster.model.client.connecting.app_error",
+        "translation": "We encountered an error while connecting to the server"
+    },
+    {
+        "id": "ent.cluster.404.app_error",
+        "translation": "Cluster API endpoint not found."
+    },
+    {
+        "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+        "translation": "파일을 첨부했습니다."
+    },
+    {
+        "id": "ent.actiance.export.marshalToXml.appError",
+        "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
+    },
+    {
+        "id": "app.job.update.app_error",
+        "translation": "작업을 업데이트 할 수 없습니다."
+    },
+    {
+        "id": "app.job.save.app_error",
+        "translation": "작업을 저장할 수 없습니다."
+    },
+    {
+        "id": "app.job.get_newest_job_by_status_and_type.app_error",
+        "translation": "상태 및 유형별로 최신 작업을 가져 올 수 없습니다."
+    },
+    {
+        "id": "app.job.get_count_by_status_and_type.app_error",
+        "translation": "상태 및 유형별로 작업 수를 가져올 수 없음"
+    },
+    {
+        "id": "app.job.get_all.app_error",
+        "translation": "작업을 가져올 수 없음"
+    },
+    {
+        "id": "app.job.get.app_error",
+        "translation": "직업을 가져올 수 없음"
+    },
+    {
+        "id": "ent.data_retention.file_infos_batch.internal_error",
+        "translation": "파일 정보 배치를 영구적으로 삭제하는 중 오류가 발생함"
+    },
+    {
+        "id": "app.file_info.save.app_error",
+        "translation": "파일 정보를 저장할 수 없습니다."
+    },
+    {
+        "id": "app.file_info.permanent_delete_by_user.app_error",
+        "translation": "사용자 첨부파일을 삭제 할수 없습니다."
+    },
+    {
+        "id": "app.file_info.get_with_options.app_error",
+        "translation": "파일 정보 경로를 찾을 수 없음"
+    },
+    {
+        "id": "app.file_info.get_for_post.app_error",
+        "translation": "게시물에 대한 파일 정보를 가져올 수 없음"
+    },
+    {
+        "id": "app.file_info.get.app_error",
+        "translation": "파일 정보를 가져올 수 없음"
+    },
+    {
+        "id": "api.user.delete_channel.not_enabled.app_error",
+        "translation": "영구 팀 삭제 기능이 활성화되어 있지 않습니다. 시스템 관리자에게 문의하십시오."
     }
 ]

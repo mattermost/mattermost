@@ -34,6 +34,7 @@ type PushNotificationsHub struct {
 	sema              chan struct{}
 	stopChan          chan struct{}
 	wg                *sync.WaitGroup
+	semaWg            *sync.WaitGroup
 	buffer            int
 }
 
@@ -142,7 +143,8 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
-	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType:   notificationTypeMessage,
 		post:               post,
 		user:               user,
@@ -152,6 +154,9 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 		explicitMention:    explicitMention,
 		channelWideMention: channelWideMention,
 		replyToThreadType:  replyToThreadType,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
@@ -215,11 +220,15 @@ func (a *App) clearPushNotificationSync(currentSessionId, userId, channelId stri
 }
 
 func (a *App) clearPushNotification(currentSessionId, userId, channelId string) {
-	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeClear,
 		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
@@ -242,9 +251,13 @@ func (a *App) updateMobileAppBadgeSync(userId string) *model.AppError {
 }
 
 func (a *App) UpdateMobileAppBadge(userId string) {
-	a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
+	select {
+	case a.Srv().PushNotificationsHub.notificationsChan <- PushNotification{
 		notificationType: notificationTypeUpdateBadge,
 		userId:           userId,
+	}:
+	case <-a.Srv().PushNotificationsHub.stopChan:
+		return
 	}
 }
 
@@ -258,6 +271,7 @@ func (s *Server) createPushNotificationsHub() {
 		notificationsChan: make(chan PushNotification, buffer),
 		app:               fakeApp,
 		wg:                new(sync.WaitGroup),
+		semaWg:            new(sync.WaitGroup),
 		sema:              make(chan struct{}, runtime.NumCPU()*8), // numCPU * 8 is a good amount of concurrency.
 		stopChan:          make(chan struct{}),
 		buffer:            buffer,
@@ -267,11 +281,19 @@ func (s *Server) createPushNotificationsHub() {
 }
 
 func (hub *PushNotificationsHub) start() {
+	hub.wg.Add(1)
+	defer hub.wg.Done()
 	for {
 		select {
 		case notification := <-hub.notificationsChan:
+			// We just ignore dummy notifications.
+			// These are used to pump out any remaining notifications
+			// before we stop the hub.
+			if notification.notificationType == notificationTypeDummy {
+				continue
+			}
 			// Adding to the waitgroup first.
-			hub.wg.Add(1)
+			hub.semaWg.Add(1)
 			// Get token.
 			hub.sema <- struct{}{}
 			go func(notification PushNotification) {
@@ -279,7 +301,7 @@ func (hub *PushNotificationsHub) start() {
 					// Release token.
 					<-hub.sema
 					// Now marking waitgroup as done.
-					hub.wg.Done()
+					hub.semaWg.Done()
 				}()
 
 				var err *model.AppError
@@ -299,8 +321,6 @@ func (hub *PushNotificationsHub) start() {
 					)
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(notification.userId)
-				case notificationTypeDummy:
-					return
 				default:
 					mlog.Error("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
 				}
@@ -322,9 +342,14 @@ func (hub *PushNotificationsHub) stop() {
 			notificationType: notificationTypeDummy,
 		}
 	}
-	hub.stopChan <- struct{}{}
-	close(hub.notificationsChan)
+	close(hub.stopChan)
+	// We need to wait for the outer for loop to exit first.
+	// We cannot just send struct{}{} to stopChan because there are
+	// other listeners to the channel. And sending just once
+	// will cause a race.
 	hub.wg.Wait()
+	// And then we wait for the semaphore to finish.
+	hub.semaWg.Wait()
 }
 
 func (s *Server) StopPushNotificationsHubWorkers() {
@@ -332,7 +357,7 @@ func (s *Server) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Session) error {
-	msg.ServerId = a.DiagnosticId()
+	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Info("Notification will be sent",
 		mlog.String("ackId", msg.AckId),
