@@ -194,7 +194,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		err = ss.Post().Delete(rootPost.Id, 123, model.NewId())
 		require.Nil(t, err)
 
-		thread2, err := ss.Thread().Get(rootPost.Id)
+		thread2, _ := ss.Thread().Get(rootPost.Id)
 		require.Nil(t, thread2)
 	})
 }

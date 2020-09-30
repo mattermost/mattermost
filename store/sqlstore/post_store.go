@@ -175,7 +175,7 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
 	}
 
-	if err := transaction.Commit(); err != nil {
+	if err = transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
 		return posts, -1, errors.Wrap(err, "commit_transaction")
 	}
