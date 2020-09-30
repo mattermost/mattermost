@@ -672,7 +672,7 @@ func (a *App) getBaseMarketplaceFilter() *model.MarketplacePluginFilter {
 		filter.BuildEnterpriseReady = true
 	}
 
-	filter.Architecture = runtime.GOOS + "-" + runtime.GOARCH
+	filter.Platform = runtime.GOOS + "-" + runtime.GOARCH
 
 	return filter
 }
