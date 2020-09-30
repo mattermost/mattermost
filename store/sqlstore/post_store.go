@@ -171,20 +171,25 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 		return nil, -1, errors.Wrap(err, "failed to save Post")
 	}
 
+	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
+		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
+	}
+
+	if err = transaction.Commit(); err != nil {
+		// don't need to rollback here since the transaction is already closed
+		return posts, -1, errors.Wrap(err, "commit_transaction")
+	}
+
 	for channelId, count := range channelNewPosts {
-		if _, err = transaction.Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
+		if _, err = s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + :Count WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": maxDateNewPosts[channelId], "ChannelId": channelId, "Count": count}); err != nil {
 			mlog.Error("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	for rootId := range rootIds {
-		if _, err = transaction.Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
+		if _, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": maxDateRootIds[rootId], "RootId": rootId}); err != nil {
 			mlog.Error("Error updating Post UpdateAt.", mlog.Err(err))
 		}
-	}
-
-	if err = s.updateThreadsFromPosts(transaction, posts); err != nil {
-		mlog.Error("Error updating posts, thread update failed", mlog.Err(err))
 	}
 
 	unknownRepliesPosts := []*model.Post{}
@@ -200,14 +205,9 @@ func (s *SqlPostStore) SaveMultiple(posts []*model.Post) ([]*model.Post, int, er
 	}
 
 	if len(unknownRepliesPosts) > 0 {
-		if err := s.populateReplyCount(transaction, unknownRepliesPosts); err != nil {
+		if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
 			mlog.Error("Unable to populate the reply count in some posts.", mlog.Err(err))
 		}
-	}
-
-	if err := transaction.Commit(); err != nil {
-		// don't need to rollback here since the transaction is already closed
-		return posts, -1, errors.Wrap(err, "commit_transaction")
 	}
 
 	return posts, -1, nil
@@ -221,7 +221,7 @@ func (s *SqlPostStore) Save(post *model.Post) (*model.Post, error) {
 	return posts[0], nil
 }
 
-func (s *SqlPostStore) populateReplyCount(transaction *gorp.Transaction, posts []*model.Post) error {
+func (s *SqlPostStore) populateReplyCount(posts []*model.Post) error {
 	rootIds := []string{}
 	for _, post := range posts {
 		rootIds = append(rootIds, post.RootId)
@@ -236,7 +236,7 @@ func (s *SqlPostStore) populateReplyCount(transaction *gorp.Transaction, posts [
 	if err != nil {
 		return errors.Wrap(err, "post_tosql")
 	}
-	_, err = transaction.Select(&countList, queryString, args...)
+	_, err = s.GetMaster().Select(&countList, queryString, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to count Posts")
 	}
@@ -1947,20 +1947,32 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, posts []*model.Post) error {
 	postsByRoot := map[string][]*model.Post{}
+	var rootIds []string
 	for _, post := range posts {
 		// skip if post is not a part of a thread
 		if len(post.RootId) == 0 {
 			continue
 		}
+		rootIds = append(rootIds, post.RootId)
 		postsByRoot[post.RootId] = append(postsByRoot[post.RootId], post)
 	}
+	if len(rootIds) == 0 {
+		return nil
+	}
 	now := model.GetMillis()
+	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
+	var threadsByRoots []*model.Thread
+	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
+		return err
+	}
+
+	threadByRoot := map[string]*model.Thread{}
+	for _, thread := range threadsByRoots {
+		threadByRoot[thread.PostId] = thread
+	}
+
 	for rootId, posts := range postsByRoot {
-		var thread model.Thread
-		if err := transaction.SelectOne(&thread, "SELECT * from Threads WHERE PostId=:PostId", map[string]interface{}{"PostId": rootId}); err != nil {
-			if err != sql.ErrNoRows {
-				return err
-			}
+		if thread, found := threadByRoot[rootId]; !found {
 			// calculate participants
 			var participants model.StringArray
 			if _, err := transaction.Select(&participants, "SELECT DISTINCT UserId FROM Posts WHERE RootId=:RootId", map[string]interface{}{"RootId": rootId}); err != nil {
@@ -1972,13 +1984,12 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 				return err
 			}
 			// no metadata entry, create one
-			thread = model.Thread{
+			if err := transaction.Insert(&model.Thread{
 				PostId:      rootId,
 				ReplyCount:  count,
 				LastReplyAt: now,
 				Who:         participants,
-			}
-			if err := transaction.Insert(&thread); err != nil {
+			}); err != nil {
 				return err
 			}
 		} else {
@@ -1990,7 +2001,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 					thread.Who = append(thread.Who, post.UserId)
 				}
 			}
-			if _, err := transaction.Update(&thread); err != nil {
+			if _, err := transaction.Update(thread); err != nil {
 				return err
 			}
 		}
