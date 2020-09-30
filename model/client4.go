@@ -334,6 +334,10 @@ func (c *Client4) GetSystemRoute() string {
 	return "/system"
 }
 
+func (c *Client4) GetCloudRoute() string {
+	return "/cloud"
+}
+
 func (c *Client4) GetTestEmailRoute() string {
 	return "/email/test"
 }
@@ -5605,4 +5609,44 @@ func (c *Client4) UploadData(uploadId string, data io.Reader) (*FileInfo, *Respo
 	}
 	defer closeBody(r)
 	return FileInfoFromJson(r.Body), BuildResponse(r)
+}
+
+// Cloud Section
+
+func (c *Client4) GetCloudProducts() ([]*Product, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/products", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var cloudProducts []*Product
+	json.NewDecoder(r.Body).Decode(&cloudProducts)
+
+	return cloudProducts, BuildResponse(r)
+}
+
+func (c *Client4) CreateCustomerPayment() (*StripeSetupIntent, *Response) {
+	r, appErr := c.DoApiPost(c.GetCloudRoute()+"/payment", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var setupIntent *StripeSetupIntent
+	json.NewDecoder(r.Body).Decode(&setupIntent)
+
+	return setupIntent, BuildResponse(r)
+}
+
+func (c *Client4) ConfirmCustomerPayment(confirmRequest *ConfirmPaymentMethodRequest) *Response {
+	json, _ := json.Marshal(confirmRequest)
+
+	r, appErr := c.doApiPostBytes(c.GetCloudRoute()+"/payment/confirm", json)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return BuildResponse(r)
 }

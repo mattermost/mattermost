@@ -630,6 +630,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.srv.Saml
 }
+func (a *App) Cloud() einterfaces.CloudInterface {
+	return a.srv.Cloud
+}
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.srv.HTTPService
 }
@@ -673,9 +676,4 @@ func (a *App) SetServer(srv *Server) {
 }
 func (a *App) GetT() goi18n.TranslateFunc {
 	return a.t
-}
-
-// TODO: change this to make a server method.
-func (a *App) SetLog(l *mlog.Logger) {
-	a.srv.Log = l
 }

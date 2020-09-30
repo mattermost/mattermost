@@ -120,6 +120,12 @@ func RegisterMessageExportInterface(f func(*Server) einterfaces.MessageExportInt
 	messageExportInterface = f
 }
 
+var cloudInterface func(*App) einterfaces.CloudInterface
+
+func RegisterCloudInterface(f func(*App) einterfaces.CloudInterface) {
+	cloudInterface = f
+}
+
 var metricsInterface func(*Server) einterfaces.MetricsInterface
 
 func RegisterMetricsInterface(f func(*Server) einterfaces.MetricsInterface) {
@@ -194,5 +200,8 @@ func (a *App) initEnterprise() {
 				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
+	}
+	if cloudInterface != nil {
+		a.srv.Cloud = cloudInterface(a)
 	}
 }

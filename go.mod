@@ -9,6 +9,7 @@ require (
 	github.com/RoaringBitmap/roaring v0.5.0 // indirect
 	github.com/armon/go-metrics v0.3.4 // indirect
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
+	github.com/aws/aws-sdk-go v1.31.4
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/blevesearch/bleve v1.0.9
