@@ -12,7 +12,6 @@ executors:
       image: "ubuntu-1604:201903-01"
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
-
 jobs:
   setup:
     working_directory: ~/mattermost/mattermost-server
@@ -171,9 +170,10 @@ jobs:
             make build-cmd BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             make package BUILD_NUMBER='${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}'
             curl -sL https://sentry.io/get-cli/ | bash
-            export VERSION=$(sentry-cli releases propose-version)
-            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server $VERSION
-            sentry-cli --log-level=debug releases set-commits --auto $VERSION
+            echo Sentry will use version `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases new  --finalize -p mattermost-server `git rev-parse HEAD`
+            sentry-cli --log-level=debug releases set-commits --auto `git rev-parse HEAD`
+
       - store_artifacts:
           path: ~/mattermost/mattermost-server/dist/mattermost-team-linux-amd64.tar.gz
       - store_artifacts:
@@ -381,7 +381,7 @@ jobs:
 
   upload-s3:
     docker:
-    - image: 'circleci/python:2.7'
+      - image: 'circleci/python:2.7'
     working_directory: ~/mattermost/enterprise
     steps:
       - attach_workspace:
@@ -420,9 +420,9 @@ workflows:
       - setup:
           filters:
             branches:
-                ignore:
-                  - master
-                  - /^release-.*/
+              ignore:
+                - master
+                - /^release-.*/
       - check-deps:
           context: sast-webhook
           requires:

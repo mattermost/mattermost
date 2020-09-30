@@ -535,12 +535,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:        model.CHANNEL_PRIVATE,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel2",
@@ -549,12 +549,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:        model.CHANNEL_OPEN,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// Confirm that they're not in the Channels category in the DB
 		count, countErr := s.GetMaster().SelectInt(`
@@ -597,12 +597,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 		}, 10)
 		require.Nil(t, nErr)
 
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// Ensure that no channels are returned
 		res, err := ss.Channel().GetSidebarCategory(channelsCategory.Id)
@@ -636,12 +636,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:        model.CHANNEL_PRIVATE,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:        "channel2",
@@ -650,12 +650,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:        model.CHANNEL_OPEN,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// And assign one to another category
 		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
@@ -735,12 +735,12 @@ func testGetSidebarCategory(t *testing.T, ss store.Store, s SqlSupplier) {
 			Type:   model.CHANNEL_GROUP,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   gmChannel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// Ensure that the DM is returned
 		res, err := ss.Channel().GetSidebarCategory(dmsCategory.Id)
@@ -989,12 +989,12 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 			TeamId: teamId,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// Assign it to favorites
 		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{
@@ -1229,18 +1229,18 @@ func testUpdateSidebarCategories(t *testing.T, ss store.Store, s SqlSupplier) {
 			TeamId: teamId,
 		}, 10)
 		require.Nil(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		require.Nil(t, nErr)
+		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId2,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
-		require.Nil(t, err)
+		require.Nil(t, nErr)
 
 		// Have user1 favorite it
 		_, err = ss.Channel().UpdateSidebarCategories(userId, teamId, []*model.SidebarCategoryWithChannels{

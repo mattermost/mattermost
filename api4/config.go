@@ -65,7 +65,11 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+	} else {
+		w.Write([]byte(cfg.ToJson()))
+	}
 }
 
 func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -156,7 +160,11 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("updateConfig")
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+	} else {
+		w.Write([]byte(cfg.ToJson()))
+	}
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -210,7 +218,7 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	appCfg := c.App.Config()
-	if *appCfg.ServiceSettings.SiteURL != "" && (cfg.ServiceSettings.SiteURL == nil || *cfg.ServiceSettings.SiteURL == "") {
+	if *appCfg.ServiceSettings.SiteURL != "" && cfg.ServiceSettings.SiteURL != nil && *cfg.ServiceSettings.SiteURL == "" {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.clear_siteurl.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -259,7 +267,11 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-	w.Write([]byte(cfg.ToJson()))
+	if c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && *cfg.ExperimentalSettings.RestrictSystemAdmin {
+		w.Write([]byte(cfg.ToJsonFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)))
+	} else {
+		w.Write([]byte(cfg.ToJson()))
+	}
 }
 
 func makeFilterConfigByPermission(accessType filterType) func(c *Context, structField reflect.StructField) bool {
@@ -285,7 +297,7 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				continue
 			}
 			// ConfigAccessTagWriteRestrictable trumps all other permissions
-			if tagValue == model.ConfigAccessTagWriteRestrictable {
+			if tagValue == model.ConfigAccessTagWriteRestrictable || tagValue == model.ConfigAccessTagCloudRestrictable {
 				if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin && accessType == filterTypeWrite {
 					return false
 				}
@@ -300,6 +312,9 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 				continue
 			}
 			if tagValue == model.ConfigAccessTagWriteRestrictable {
+				continue
+			}
+			if tagValue == model.ConfigAccessTagCloudRestrictable {
 				continue
 			}
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)

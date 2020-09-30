@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v5/config"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/stretchr/testify/assert"
@@ -63,6 +64,36 @@ func TestGetPing(t *testing.T) {
 			assert.Equal(t, model.STATUS_UNHEALTHY, status)
 		})
 
+	})
+
+	t.Run("ping feature flag test", func(t *testing.T) {
+		resp, appErr := th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err := ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		respString := string(respBytes)
+		require.NotContains(t, respString, "TestFeatureFlag")
+
+		// Run the enviroment variable override code to test
+		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalue")
+		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		memoryStore, err := config.NewMemoryStore()
+		require.Nil(t, err)
+		retrievedConfig := memoryStore.Get()
+
+		// replace config with generated config
+		oldConfig := th.App.Config().Clone()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *retrievedConfig })
+
+		resp, appErr = th.Client.DoApiGet(th.Client.GetSystemRoute()+"/ping", "")
+		require.Nil(t, appErr)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		respBytes, err = ioutil.ReadAll(resp.Body)
+		require.Nil(t, err)
+		respString = string(respBytes)
+		require.Contains(t, respString, "testvalue")
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg = *oldConfig })
 	})
 }
 
@@ -275,6 +306,12 @@ func TestGetLogs(t *testing.T) {
 		logs, resp = c.GetLogs(-1, -1)
 		CheckNoError(t, resp)
 		require.NotEmpty(t, logs, "should not be empty")
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+		_, resp := th.Client.GetLogs(0, 10)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	_, resp := th.Client.GetLogs(0, 10)

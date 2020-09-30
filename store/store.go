@@ -41,6 +41,7 @@ type Store interface {
 	Emoji() EmojiStore
 	Status() StatusStore
 	FileInfo() FileInfoStore
+	UploadSession() UploadSessionStore
 	Reaction() ReactionStore
 	Role() RoleStore
 	Scheme() SchemeStore
@@ -49,6 +50,7 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	ProductNotices() ProductNoticesStore
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
@@ -93,40 +95,40 @@ type TeamStore interface {
 	AnalyticsPrivateTeamCount() (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
-	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
-	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, *model.AppError)
-	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
-	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, *model.AppError)
-	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, *model.AppError)
-	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
-	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
-	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
-	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
-	RemoveMember(teamId string, userId string) *model.AppError
-	RemoveMembers(teamId string, userIds []string) *model.AppError
-	RemoveAllMembersByTeam(teamId string) *model.AppError
-	RemoveAllMembersByUser(userId string) *model.AppError
-	UpdateLastTeamIconUpdate(teamId string, curTime int64) *model.AppError
-	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, *model.AppError)
-	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, *model.AppError)
-	ResetAllTeamSchemes() *model.AppError
-	ClearAllCustomRoleAssignments() *model.AppError
-	AnalyticsGetTeamCountForScheme(schemeId string) (int64, *model.AppError)
-	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, *model.AppError)
-	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, *model.AppError)
-	UserBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError)
-	GetUserTeamIds(userId string, allowFromCache bool) ([]string, *model.AppError)
+	UpdateMember(member *model.TeamMember) (*model.TeamMember, error)
+	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
+	GetMember(teamId string, userId string) (*model.TeamMember, error)
+	GetMembers(teamId string, offset int, limit int, teamMembersGetOptions *model.TeamMembersGetOptions) ([]*model.TeamMember, error)
+	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, error)
+	GetTotalMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
+	GetActiveMemberCount(teamId string, restrictions *model.ViewUsersRestrictions) (int64, error)
+	GetTeamsForUser(userId string) ([]*model.TeamMember, error)
+	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, error)
+	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, error)
+	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, error)
+	RemoveMember(teamId string, userId string) error
+	RemoveMembers(teamId string, userIds []string) error
+	RemoveAllMembersByTeam(teamId string) error
+	RemoveAllMembersByUser(userId string) error
+	UpdateLastTeamIconUpdate(teamId string, curTime int64) error
+	GetTeamsByScheme(schemeId string, offset int, limit int) ([]*model.Team, error)
+	MigrateTeamMembers(fromTeamId string, fromUserId string) (map[string]string, error)
+	ResetAllTeamSchemes() error
+	ClearAllCustomRoleAssignments() error
+	AnalyticsGetTeamCountForScheme(schemeId string) (int64, error)
+	GetAllForExportAfter(limit int, afterId string) ([]*model.TeamForExport, error)
+	GetTeamMembersForExport(userId string) ([]*model.TeamMemberForExport, error)
+	UserBelongsToTeams(userId string, teamIds []string) (bool, error)
+	GetUserTeamIds(userId string, allowFromCache bool) ([]string, error)
 	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
 
 	// UpdateMembersRole sets all of the given team members to admins and all of the other members of the team to
 	// non-admin members.
-	UpdateMembersRole(teamID string, userIDs []string) *model.AppError
+	UpdateMembersRole(teamID string, userIDs []string) error
 
 	// GroupSyncedTeamCount returns the count of non-deleted group-constrained teams.
-	GroupSyncedTeamCount() (int64, *model.AppError)
+	GroupSyncedTeamCount() (int64, error)
 }
 
 type ChannelStore interface {
@@ -162,39 +164,39 @@ type ChannelStore interface {
 	GetAll(teamId string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
 	GetForPost(postId string) (*model.Channel, error)
-	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
-	SaveMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
-	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
-	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, *model.AppError)
-	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
-	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
-	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
-	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError)
+	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
+	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
+	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, error)
+	GetMember(channelId string, userId string) (*model.ChannelMember, error)
+	GetChannelMembersTimezones(channelId string) ([]model.StringMap, error)
+	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
+	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
-	GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError)
+	GetMemberForPost(postId string, userId string) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
-	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
-	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError)
+	GetMemberCount(channelId string, allowFromCache bool) (int64, error)
+	GetMemberCountsByGroup(channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, error)
 	InvalidatePinnedPostCount(channelId string)
-	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, *model.AppError)
+	GetPinnedPostCount(channelId string, allowFromCache bool) (int64, error)
 	InvalidateGuestCount(channelId string)
-	GetGuestCount(channelId string, allowFromCache bool) (int64, *model.AppError)
-	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
-	RemoveMember(channelId string, userId string) *model.AppError
-	RemoveMembers(channelId string, userIds []string) *model.AppError
-	PermanentDeleteMembersByUser(userId string) *model.AppError
-	PermanentDeleteMembersByChannel(channelId string) *model.AppError
-	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
-	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, *model.AppError)
-	CountPostsAfter(channelId string, timestamp int64, userId string) (int, *model.AppError)
-	IncrementMentionCount(channelId string, userId string) *model.AppError
-	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
-	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
-	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetGuestCount(channelId string, allowFromCache bool) (int64, error)
+	GetPinnedPosts(channelId string) (*model.PostList, error)
+	RemoveMember(channelId string, userId string) error
+	RemoveMembers(channelId string, userIds []string) error
+	PermanentDeleteMembersByUser(userId string) error
+	PermanentDeleteMembersByChannel(channelId string) error
+	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error)
+	UpdateLastViewedAtPost(unreadPost *model.Post, userID string, mentionCount int) (*model.ChannelUnreadAt, error)
+	CountPostsAfter(channelId string, timestamp int64, userId string) (int, error)
+	IncrementMentionCount(channelId string, userId string) error
+	AnalyticsTypeCount(teamId string, channelType string) (int64, error)
+	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, error)
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, error)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
@@ -253,7 +255,7 @@ type PostStore interface {
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
 	PermanentDeleteByChannel(channelId string) error
-	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetPosts(options model.GetPostsOptions, allowFromCache bool) (*model.PostList, error)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error)
 	// @openTracingParams userId, teamId, offset, limit
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error)
@@ -265,25 +267,25 @@ type PostStore interface {
 	GetPostIdAfterTime(channelId string, time int64) (string, error)
 	GetPostIdBeforeTime(channelId string, time int64) (string, error)
 	GetEtag(channelId string, allowFromCache bool) string
-	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError)
-	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
-	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError)
-	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError)
+	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error)
+	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error)
+	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
+	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, error)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
-	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
-	Overwrite(post *model.Post) (*model.Post, *model.AppError)
-	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, *model.AppError)
-	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
-	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	GetOldest() (*model.Post, *model.AppError)
+	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, error)
+	Overwrite(post *model.Post) (*model.Post, error)
+	OverwriteMultiple(posts []*model.Post) ([]*model.Post, int, error)
+	GetPostsByIds(postIds []string) ([]*model.Post, error)
+	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, error)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
-	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
-	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
-	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, *model.AppError)
-	GetOldestEntityCreationTime() (int64, *model.AppError)
+	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, error)
+	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, error)
+	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, error)
+	SearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error)
+	GetOldestEntityCreationTime() (int64, error)
 }
 
 type UserStore interface {
@@ -301,8 +303,8 @@ type UserStore interface {
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
-	GetProfilesInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
-	GetProfilesInChannelByStatus(channelId string, offset int, limit int) ([]*model.User, *model.AppError)
+	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) (map[string]*model.User, *model.AppError)
 	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -325,6 +327,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64, options model.UserCountOptions) (int64, *model.AppError)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
 	GetUnreadCount(userId string) (int64, *model.AppError)
 	GetUnreadCountForChannel(userId string, channelId string) (int64, *model.AppError)
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
@@ -337,6 +340,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
+	AnalyticsGetExternalUsers(hostDomain string) (bool, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
 	AnalyticsGetGuestCount() (int64, *model.AppError)
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
@@ -436,6 +440,7 @@ type SystemStore interface {
 	GetByName(name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
 	InsertIfExists(system *model.System) (*model.System, error)
+	SaveOrUpdateWithWarnMetricHandling(system *model.System) error
 }
 
 type WebhookStore interface {
@@ -549,6 +554,14 @@ type FileInfoStore interface {
 	ClearCaches()
 }
 
+type UploadSessionStore interface {
+	Save(session *model.UploadSession) (*model.UploadSession, error)
+	Update(session *model.UploadSession) error
+	Get(id string) (*model.UploadSession, error)
+	GetForUser(userId string) ([]*model.UploadSession, error)
+	Delete(id string) error
+}
+
 type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
@@ -635,6 +648,13 @@ type TermsOfServiceStore interface {
 	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, error)
 	GetLatest(allowFromCache bool) (*model.TermsOfService, error)
 	Get(id string, allowFromCache bool) (*model.TermsOfService, error)
+}
+
+type ProductNoticesStore interface {
+	View(userId string, notices []string) error
+	Clear(notices []string) error
+	ClearOldNotices(currentNotices *model.ProductNotices) error
+	GetViews(userId string) ([]model.ProductNoticeViewState, error)
 }
 
 type UserTermsOfServiceStore interface {

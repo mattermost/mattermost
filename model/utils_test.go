@@ -776,3 +776,93 @@ func TestSanitizeUnicode(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidHttpUrl(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Description string
+		Value       string
+		Expected    bool
+	}{
+		{
+			"empty url",
+			"",
+			false,
+		},
+		{
+			"bad url",
+			"bad url",
+			false,
+		},
+		{
+			"relative url",
+			"/api/test",
+			false,
+		},
+		{
+			"relative url ending with slash",
+			"/some/url/",
+			false,
+		},
+		{
+			"url with invalid scheme",
+			"htp://mattermost.com",
+			false,
+		},
+		{
+			"url with just http",
+			"http://",
+			false,
+		},
+		{
+			"url with just https",
+			"https://",
+			false,
+		},
+		{
+			"url with extra slashes",
+			"https:///mattermost.com",
+			false,
+		},
+		{
+			"correct url with http scheme",
+			"http://mattemost.com",
+			true,
+		},
+		{
+			"correct url with https scheme",
+			"https://mattermost.com/api/test",
+			true,
+		},
+		{
+			"correct url with port",
+			"https://localhost:8080/test",
+			true,
+		},
+		{
+			"correct url without scheme",
+			"mattermost.com/some/url/",
+			false,
+		},
+		{
+			"correct url with extra slashes",
+			"https://mattermost.com/some//url",
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Description, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("panic: %v", r)
+				}
+			}()
+
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidHttpUrl(testCase.Value))
+		})
+	}
+}

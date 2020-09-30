@@ -24,6 +24,7 @@ type FileBackend interface {
 	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	WriteFile(fr io.Reader, path string) (int64, *model.AppError)
+	AppendFile(fr io.Reader, path string) (int64, *model.AppError)
 	RemoveFile(path string) *model.AppError
 
 	ListDirectory(path string) (*[]string, *model.AppError)
