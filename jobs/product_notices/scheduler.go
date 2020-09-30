@@ -4,8 +4,6 @@
 package product_notices
 
 import (
-	"github.com/mattermost/mattermost-server/v5/mlog"
-	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/app"
@@ -34,12 +32,7 @@ func (scheduler *Scheduler) Enabled(cfg *model.Config) bool {
 }
 
 func (scheduler *Scheduler) NextScheduleTime(cfg *model.Config, now time.Time, pendingJobs bool, lastSuccessfulJob *model.Job) *time.Time {
-	freq, err := strconv.ParseInt(app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS, 10, 32)
-	if err != nil {
-		mlog.Debug("Invalid NOTICES_JSON_FETCH_FREQUENCY_SECONDS variable provided!", mlog.String("value", app.NOTICES_JSON_FETCH_FREQUENCY_SECONDS))
-		freq = 3600
-	}
-	nextTime := time.Now().Add(time.Duration(freq) * time.Second)
+	nextTime := time.Now().Add(time.Duration(*cfg.AnnouncementSettings.NoticesFetchFrequency) * time.Second)
 	return &nextTime
 }
 
