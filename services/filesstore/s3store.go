@@ -34,6 +34,11 @@ type S3FileBackend struct {
 	trace      bool
 }
 
+const (
+	// This is not exported by minio. See: https://github.com/minio/minio-go/issues/1339
+	bucketNotFound = "NoSuchBucket"
+)
+
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
 //
@@ -73,20 +78,45 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	exists, err := s3Clnt.BucketExists(context.Background(), b.bucket)
-	if err != nil {
-		return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
+	var exists bool
+	// If a path prefix is present, we attempt to test the bucket by listing objects under the path
+	// and breaking after the first non-nil error. This is because the BucketExists call is only at a bucket level
+	// and sometimes the user might only be allowed access to the specified path prefix.
+	if b.pathPrefix != "" {
+		// In the case where the bucket exists, but the prefix doesn't, and the user has permissions for the entire bucket,
+		// this call cannot differentiate between bucket doesn't exist and prefix doesn't exist.
+		// In that case, it will just redundantly try to create the bucket. It's possible to avoid this with yet another call,
+		// but it's the cost of another network call either ways.
+		objInfoChan := s3Clnt.ListObjects(context.Background(), b.bucket, s3.ListObjectsOptions{Prefix: b.pathPrefix})
+		for obj := range objInfoChan {
+			if obj.Err != nil {
+				typedErr := s3.ToErrorResponse(obj.Err)
+				if typedErr.Code == bucketNotFound {
+					break
+				}
+				return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.list_objects.app_error", nil, obj.Err.Error(), http.StatusInternalServerError)
+			} else {
+				exists = true
+				break
+			}
+		}
+	} else {
+		exists, err = s3Clnt.BucketExists(context.Background(), b.bucket)
+		if err != nil {
+			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_exists.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
-	if !exists {
+	if exists {
+		mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
+	} else {
 		mlog.Warn("Bucket specified does not exist. Attempting to create...")
 		err := s3Clnt.MakeBucket(context.Background(), b.bucket, s3.MakeBucketOptions{Region: b.region})
 		if err != nil {
-			mlog.Error("Unable to create bucket.")
-			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucket_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
+
 	return nil
 }
 

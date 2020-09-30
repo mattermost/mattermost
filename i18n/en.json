@@ -1409,7 +1409,7 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Unable to create bucket."
   },
   {
@@ -1419,6 +1419,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error trying to list objects."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -5583,18 +5587,6 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Unable to authenticate to CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Internal error marshaling request to CWS"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Error processing request to CWS"
-  },
-  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -5801,6 +5793,10 @@
   {
     "id": "ent.elasticsearch.index_channel.error",
     "translation": "Failed to index the channel"
+  },
+  {
+    "id": "ent.elasticsearch.index_channels_batch.error",
+    "translation": ""
   },
   {
     "id": "ent.elasticsearch.index_post.error",
