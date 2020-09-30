@@ -107,7 +107,7 @@ const (
 	TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT  = ""
 	TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT = 300
 
-	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
+	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
 
 	FILE_SETTINGS_DEFAULT_DIRECTORY = "./data/"
 
@@ -161,8 +161,10 @@ const (
 
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
-	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
-	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
+	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR                    = "#f2a93b"
+	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR               = "#333333"
+	ANNOUNCEMENT_SETTINGS_DEFAULT_NOTICES_JSON_URL                = "https://notices.mattermost.com/"
+	ANNOUNCEMENT_SETTINGS_DEFAULT_NOTICES_FETCH_FREQUENCY_SECONDS = 3600
 
 	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
 
@@ -217,6 +219,8 @@ const (
 	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
+
+	CLOUD_SETTINGS_DEFAULT_CWS_URL = "https://customers.mattermost.com"
 
 	LOCAL_MODE_SOCKET_PATH = "/var/tmp/mattermost_local.socket"
 )
@@ -340,6 +344,7 @@ type ServiceSettings struct {
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
+	EnableAWSMetering                                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -618,7 +623,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableCustomEmoji == nil {
-		s.EnableCustomEmoji = NewBool(false)
+		s.EnableCustomEmoji = NewBool(true)
 	}
 
 	if s.EnableEmojiPicker == nil {
@@ -626,7 +631,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.EnableGifPicker == nil {
-		s.EnableGifPicker = NewBool(false)
+		s.EnableGifPicker = NewBool(true)
 	}
 
 	if s.GfycatApiKey == nil || *s.GfycatApiKey == "" {
@@ -752,6 +757,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.LocalModeSocketLocation == nil {
 		s.LocalModeSocketLocation = NewString(LOCAL_MODE_SOCKET_PATH)
+	}
+
+	if s.EnableAWSMetering == nil {
+		s.EnableAWSMetering = NewBool(false)
 	}
 }
 
@@ -1029,7 +1038,7 @@ type SqlSettings struct {
 
 func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.DriverName == nil {
-		s.DriverName = NewString(DATABASE_DRIVER_MYSQL)
+		s.DriverName = NewString(DATABASE_DRIVER_POSTGRES)
 	}
 
 	if s.DataSource == nil {
@@ -1665,13 +1674,16 @@ func (s *SupportSettings) SetDefaults() {
 }
 
 type AnnouncementSettings struct {
-	EnableBanner         *bool   `access:"site"`
-	BannerText           *string `access:"site"`
-	BannerColor          *string `access:"site"`
-	BannerTextColor      *string `access:"site"`
-	AllowBannerDismissal *bool   `access:"site"`
-	AdminNoticesEnabled  *bool   `access:"site"`
-	UserNoticesEnabled   *bool   `access:"site"`
+	EnableBanner          *bool   `access:"site"`
+	BannerText            *string `access:"site"`
+	BannerColor           *string `access:"site"`
+	BannerTextColor       *string `access:"site"`
+	AllowBannerDismissal  *bool   `access:"site"`
+	AdminNoticesEnabled   *bool   `access:"site"`
+	UserNoticesEnabled    *bool   `access:"site"`
+	NoticesURL            *string `access:"site,write_restrictable"`
+	NoticesFetchFrequency *int    `access:"site,write_restrictable"`
+	NoticesSkipCache      *bool   `access:"site,write_restrictable"`
 }
 
 func (s *AnnouncementSettings) SetDefaults() {
@@ -1702,6 +1714,16 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.UserNoticesEnabled == nil {
 		s.UserNoticesEnabled = NewBool(true)
 	}
+	if s.NoticesURL == nil {
+		s.NoticesURL = NewString(ANNOUNCEMENT_SETTINGS_DEFAULT_NOTICES_JSON_URL)
+	}
+	if s.NoticesSkipCache == nil {
+		s.NoticesSkipCache = NewBool(false)
+	}
+	if s.NoticesFetchFrequency == nil {
+		s.NoticesFetchFrequency = NewInt(ANNOUNCEMENT_SETTINGS_DEFAULT_NOTICES_FETCH_FREQUENCY_SECONDS)
+	}
+
 }
 
 type ThemeSettings struct {
@@ -1904,7 +1926,7 @@ func (s *TeamSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalViewArchivedChannels == nil {
-		s.ExperimentalViewArchivedChannels = NewBool(false)
+		s.ExperimentalViewArchivedChannels = NewBool(true)
 	}
 
 	if s.LockTeammateNameDisplay == nil {
@@ -1936,8 +1958,8 @@ type LdapSettings struct {
 	UserFilter        *string `access:"authentication"`
 	GroupFilter       *string `access:"authentication"`
 	GuestFilter       *string `access:"authentication"`
-	EnableAdminFilter *bool   `access:"authentication"`
-	AdminFilter       *string `access:"authentication"`
+	EnableAdminFilter *bool
+	AdminFilter       *string
 
 	// Group Mapping
 	GroupDisplayNameAttribute *string `access:"authentication"`
@@ -2546,6 +2568,16 @@ func (s *JobSettings) SetDefaults() {
 	}
 }
 
+type CloudSettings struct {
+	CWSUrl *string `access:"environment,write_restrictable"`
+}
+
+func (s *CloudSettings) SetDefaults() {
+	if s.CWSUrl == nil {
+		s.CWSUrl = NewString(CLOUD_SETTINGS_DEFAULT_CWS_URL)
+	}
+}
+
 type PluginState struct {
 	Enable bool
 }
@@ -2716,7 +2748,7 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 
 	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(false)
+		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
@@ -2854,6 +2886,8 @@ type Config struct {
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings
 	ImageProxySettings        ImageProxySettings
+	CloudSettings             CloudSettings
+	FeatureFlags              *FeatureFlags `json:",omitempty"`
 }
 
 func (o *Config) Clone() *Config {
@@ -2940,6 +2974,11 @@ func (o *Config) SetDefaults() {
 	o.DisplaySettings.SetDefaults()
 	o.GuestAccountsSettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
+	o.CloudSettings.SetDefaults()
+	if o.FeatureFlags == nil {
+		o.FeatureFlags = &FeatureFlags{}
+		o.FeatureFlags.SetDefaults()
+	}
 }
 
 func (o *Config) IsValid() *AppError {

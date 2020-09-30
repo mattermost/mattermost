@@ -449,10 +449,6 @@ func TestNoticeValidation(t *testing.T) {
 func TestNoticeFetch(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
-		*cfg.AnnouncementSettings.UserNoticesEnabled = true
-	})
 
 	notices := model.ProductNotices{model.ProductNotice{
 		Conditions: model.Conditions{},
@@ -491,8 +487,11 @@ func TestNoticeFetch(t *testing.T) {
 		}
 	}))
 	defer server1.Close()
-
-	NOTICES_JSON_URL = fmt.Sprintf("http://%s/notices.json", server1.Listener.Addr().String())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.AdminNoticesEnabled = true
+		*cfg.AnnouncementSettings.UserNoticesEnabled = true
+		*cfg.AnnouncementSettings.NoticesURL = fmt.Sprintf("http://%s/notices.json", server1.Listener.Addr().String())
+	})
 
 	// fetch fake notices
 	appErr = th.App.UpdateProductNotices()
@@ -518,7 +517,9 @@ func TestNoticeFetch(t *testing.T) {
 	require.Len(t, views, 1)
 
 	// fetch another set
-	NOTICES_JSON_URL = fmt.Sprintf("http://%s/notices2.json", server1.Listener.Addr().String())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AnnouncementSettings.NoticesURL = fmt.Sprintf("http://%s/notices2.json", server1.Listener.Addr().String())
+	})
 
 	// fetch fake notices
 	appErr = th.App.UpdateProductNotices()
