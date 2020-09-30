@@ -15,7 +15,7 @@ Major additional concepts are:
 * `Get` and `Select` to go quickly from query to struct/slice
 
 In addition to the [godoc API documentation](http://godoc.org/github.com/jmoiron/sqlx),
-there is also some [standard documentation](http://jmoiron.github.io/sqlx/) that
+there is also some [user documentation](http://jmoiron.github.io/sqlx/) that
 explains how to use `database/sql` along with sqlx.
 
 ## Recent Changes

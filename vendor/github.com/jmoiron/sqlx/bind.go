@@ -23,7 +23,7 @@ const (
 // BindType returns the bindtype for a given database given a drivername.
 func BindType(driverName string) int {
 	switch driverName {
-	case "postgres", "pgx", "pq-timeouts", "cloudsqlpostgres":
+	case "postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql":
 		return DOLLAR
 	case "mysql":
 		return QUESTION
@@ -117,7 +117,11 @@ func In(query string, args ...interface{}) (string, []interface{}, error) {
 
 	for i, arg := range args {
 		if a, ok := arg.(driver.Valuer); ok {
-			arg, _ = a.Value()
+			var err error
+			arg, err = a.Value()
+			if err != nil {
+				return "", nil, err
+			}
 		}
 		v := reflect.ValueOf(arg)
 		t := reflectx.Deref(v.Type())
