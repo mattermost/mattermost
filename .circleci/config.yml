@@ -218,7 +218,7 @@ jobs:
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             docker run -it --net circleci_mm-test \
-              --env-file mattermost-server/build/dotenv/test.env \
+              --env-file="mattermost-server/build/dotenv/test.env" \
               --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
@@ -284,8 +284,8 @@ jobs:
 
             source mattermost-server/build/dotenv/test-schema-validation-postgres.env
             docker run -it --net circleci_mm-test \
-              --env-file mattermost-server/build/dotenv/test-schema-validation-postgres.env \
-              --env-file mattermost-server/build/dotenv/test-schema-validation.env \
+              --env-file="mattermost-server/build/dotenv/test-schema-validation-postgres.env" \
+              --env-file="mattermost-server/build/dotenv/test-schema-validation.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
@@ -313,8 +313,8 @@ jobs:
 
             source mattermost-server/build/dotenv/test-schema-validation-mysql.env
             docker run -it --net circleci_mm-test \
-              --env-file mattermost-server/build/dotenv/test-schema-validation-mysql.env \
-              --env-file mattermost-server/build/dotenv/test-schema-validation.env \
+              --env-file="mattermost-server/build/dotenv/test-schema-validation-mysql.env" \
+              --env-file="mattermost-server/build/dotenv/test-schema-validation.env" \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
