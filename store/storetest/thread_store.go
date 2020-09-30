@@ -138,4 +138,63 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Greater(t, thread2.LastReplyAt, thread1.LastReplyAt)
 	})
 
+	t.Run("Deleting reply should update the thread", func(t *testing.T) {
+		rootPost := model.Post{}
+		rootPost.RootId = model.NewId()
+		rootPost.ChannelId = model.NewId()
+		rootPost.UserId = model.NewId()
+		rootPost.Message = "zz" + model.NewId() + "b"
+
+		replyPost := model.Post{}
+		replyPost.ChannelId = rootPost.ChannelId
+		replyPost.UserId = model.NewId()
+		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.RootId = rootPost.RootId
+
+		newPosts, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost, &replyPost})
+		require.Nil(t, err)
+
+		thread1, err := ss.Thread().Get(newPosts[0].RootId)
+		require.Nil(t, err)
+		require.EqualValues(t, thread1.ReplyCount, 2)
+		require.Len(t, thread1.Who, 2)
+
+		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
+		require.Nil(t, err)
+
+		thread2, err := ss.Thread().Get(rootPost.RootId)
+		require.Nil(t, err)
+		require.EqualValues(t, thread2.ReplyCount, 1)
+		require.Len(t, thread2.Who, 1)
+	})
+
+	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
+		rootPost := model.Post{}
+		rootPost.ChannelId = model.NewId()
+		rootPost.UserId = model.NewId()
+		rootPost.Message = "zz" + model.NewId() + "b"
+
+		newPosts1, _, err := ss.Post().SaveMultiple([]*model.Post{&rootPost})
+		require.Nil(t, err)
+
+		replyPost := model.Post{}
+		replyPost.ChannelId = rootPost.ChannelId
+		replyPost.UserId = model.NewId()
+		replyPost.Message = "zz" + model.NewId() + "b"
+		replyPost.RootId = newPosts1[0].Id
+
+		_, _, err = ss.Post().SaveMultiple([]*model.Post{&replyPost})
+		require.Nil(t, err)
+
+		thread1, err := ss.Thread().Get(newPosts1[0].Id)
+		require.Nil(t, err)
+		require.EqualValues(t, thread1.ReplyCount, 1)
+		require.Len(t, thread1.Who, 1)
+
+		err = ss.Post().Delete(rootPost.Id, 123, model.NewId())
+		require.Nil(t, err)
+
+		thread2, err := ss.Thread().Get(rootPost.Id)
+		require.Nil(t, thread2)
+	})
 }

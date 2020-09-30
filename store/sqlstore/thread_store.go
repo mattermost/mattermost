@@ -8,6 +8,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/pkg/errors"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 type SqlThreadStore struct {
@@ -25,6 +27,7 @@ func newSqlThreadStore(sqlStore SqlStore) store.ThreadStore {
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Thread{}, "Threads").SetKeys(false, "PostId")
 		table.ColMap("PostId").SetMaxSize(26)
+		table.ColMap("Who").SetMaxSize(0)
 	}
 
 	return s
@@ -83,7 +86,8 @@ func (s *SqlThreadStore) Update(thread *model.Thread) (*model.Thread, error) {
 
 func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 	var thread model.Thread
-	err := s.GetReplica().SelectOne(&thread, "SELECT * from Threads WHERE PostId=:PostId", map[string]interface{}{"PostId": id})
+	query, args, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": id}).ToSql()
+	err := s.GetReplica().SelectOne(&thread, query, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Thread", id)
@@ -95,7 +99,8 @@ func (s *SqlThreadStore) Get(id string) (*model.Thread, error) {
 }
 
 func (s *SqlThreadStore) Delete(threadId string) error {
-	if _, err := s.GetMaster().Exec("DELETE FROM Threads Where PostId = :Id", map[string]interface{}{"Id": threadId}); err != nil {
+	query, args, _ := s.getQueryBuilder().Delete("Threads").Where(sq.Eq{"PostId": threadId}).ToSql()
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
 		return errors.Wrap(err, "failed to update threads")
 	}
 
