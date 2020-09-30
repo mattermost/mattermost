@@ -1405,7 +1405,7 @@ func (a *OpenTracingAppLayer) CompleteOAuth(service string, body io.ReadCloser, 
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData io.Reader, email, office365UserId string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CompleteSwitchWithOAuth")
 
@@ -1417,7 +1417,7 @@ func (a *OpenTracingAppLayer) CompleteSwitchWithOAuth(service string, userData i
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CompleteSwitchWithOAuth(service, userData, email)
+	resultVar0, resultVar1 := a.app.CompleteSwitchWithOAuth(service, userData, email, office365UserId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -1888,7 +1888,7 @@ func (a *OpenTracingAppLayer) CreateOAuthStateToken(extra string) (*model.Token,
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader, teamId, office365UserId string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateOAuthUser")
 
@@ -1900,7 +1900,7 @@ func (a *OpenTracingAppLayer) CreateOAuthUser(service string, userData io.Reader
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateOAuthUser(service, userData, teamId)
+	resultVar0, resultVar1 := a.app.CreateOAuthUser(service, userData, teamId, office365UserId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -10172,7 +10172,7 @@ func (a *OpenTracingAppLayer) LogAuditRecWithLevel(rec *audit.Record, level mlog
 	a.app.LogAuditRecWithLevel(rec, level, err)
 }
 
-func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, teamId, office365UserId string) (*model.User, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.LoginByOAuth")
 
@@ -10184,7 +10184,7 @@ func (a *OpenTracingAppLayer) LoginByOAuth(service string, userData io.Reader, t
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.LoginByOAuth(service, userData, teamId)
+	resultVar0, resultVar1 := a.app.LoginByOAuth(service, userData, teamId, office365UserId)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

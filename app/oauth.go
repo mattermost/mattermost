@@ -5,13 +5,19 @@ package app
 
 import (
 	"bytes"
+	"crypto/rsa"
+	_ "crypto/sha256"
+	"encoding/base64"
 	b64 "encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -21,14 +27,14 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/square/go-jose/jwt"
 )
 
 const (
 	OAUTH_COOKIE_MAX_AGE_SECONDS = 30 * 60 // 30 minutes
 	COOKIE_OAUTH                 = "MMOAUTH"
+	JWT_TOKEN_PUBLIC             = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3sKcJSD4cHwTY5jYm5lNEzqk3wON1CaARO5EoWIQt5u+X+ZnW61CiRZpWpfhKwRYU153td5R8p+AJDWT+NcEJ0MHU3KiuIEPmbgJpS7qkyURuHRucDM2lO4L4XfIlvizQrlyJnJcd09uLErZEO9PcvKiDHoois2B4fGj7CsAe5UZgExJvACDlsQSku2JUyDmZUZP2/u/gCuqNJM5o0hW7FKRI3MFoYCsqSEmHnnumuJ2jF0RHDRWQpodhlAR6uKLoiWHqHO3aG7scxYMj5cMzkpe1Kq/Dm5yyHkMCSJ/JaRhwymFfV/SWkqd3n+WVZT0ADLEq0RNi9tqZ43noUnO/wIDAQAB-----END PUBLIC KEY-----"
 )
-
-var OPENID_SERVICES = []string{model.SERVICE_OPENID, model.SERVICE_GITLAB, model.SERVICE_GOOGLE, model.SERVICE_OFFICE365}
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
@@ -552,19 +558,19 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 
 	switch action {
 	case model.OAUTH_ACTION_SIGNUP:
-		return a.CreateOAuthUser(service, body, teamId)
+		return a.CreateOAuthUser(service, body, teamId, props["office365UserId"])
 	case model.OAUTH_ACTION_LOGIN:
-		return a.LoginByOAuth(service, body, teamId)
+		return a.LoginByOAuth(service, body, teamId, props["office365UserId"])
 	case model.OAUTH_ACTION_EMAIL_TO_SSO:
-		return a.CompleteSwitchWithOAuth(service, body, props["email"])
+		return a.CompleteSwitchWithOAuth(service, body, props["email"], props["office365UserId"])
 	case model.OAUTH_ACTION_SSO_TO_EMAIL:
-		return a.LoginByOAuth(service, body, teamId)
+		return a.LoginByOAuth(service, body, teamId, props["office365UserId"])
 	default:
-		return a.LoginByOAuth(service, body, teamId)
+		return a.LoginByOAuth(service, body, teamId, props["office365UserId"])
 	}
 }
 
-func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(service string, userData io.Reader, teamId, office365UserId string) (*model.User, *model.AppError) {
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
@@ -579,6 +585,10 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 
 	mlog.Debug(string(buf.Bytes()))
 	authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
+
+	if service == model.SERVICE_OFFICE365 {
+		*authUser.AuthData = office365UserId
+	}
 
 	authData := ""
 	if authUser.AuthData != nil {
@@ -599,7 +609,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 
 	if err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
+			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId, office365UserId)
 		} else {
 			return nil, err
 		}
@@ -626,7 +636,7 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	return user, nil
 }
 
-func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email string) (*model.User, *model.AppError) {
+func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email, office365UserId string) (*model.User, *model.AppError) {
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.unavailable.app_error",
@@ -634,6 +644,10 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 	}
 	ssoUser := provider.GetUserFromJson(userData)
 	ssoEmail := ssoUser.Email
+
+	if service == model.SERVICE_OFFICE365 {
+		*ssoUser.AuthData = office365UserId
+	}
 
 	authData := ""
 	if ssoUser.AuthData != nil {
@@ -863,7 +877,41 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	var buf bytes.Buffer
 	tee := io.TeeReader(resp.Body, &buf)
 	ar := model.AccessResponseFromJson(tee)
+	// HOSSEIN THIS IS ACCESS TOKEN
+	if service == model.SERVICE_OFFICE365 {
+		tokenString := ar.IdToken
+		sso := a.Config().GetSSOService(model.SERVICE_OFFICE365)
+		openIdMetaData, err := model.RetrieveDiscoveryDocument(*sso.DiscoveryEndpoint)
+		if err != nil {
+			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.get_authorization_code.unable_to_retrieve_discovery_document", nil, err.Error(), http.StatusInternalServerError)
+		}
+		fmt.Printf("\n\n\n\n\n\n\n\n\n Token String: %+v \n\n\n\n\n\n\n\n\n\n\n", tokenString)
 
+		token, tokenErr := jwt.ParseSigned(tokenString)
+		fmt.Printf("\n\n\n\n\n\n\n\n\n Token: %+v \n\n\n\n\n\n\n\n\n\n\n", token)
+
+		kid := token.Headers[0].KeyID
+		jwkKey, _ := model.RetrieveJwk(openIdMetaData.JWKSURL, kid)
+		fmt.Printf("\n\n\n\n\n\n\n\n\n KID: %+v \n\n\n\n\n\n\n\n\n\n\n", kid)
+		fmt.Printf("\n\n\n\n\n\n\n\n\n JWKKEY: %+v \n\n\n\n\n\n\n\n\n\n\n", jwkKey)
+
+		rsaPublicKey, _ := getRSAPublicKeyFromJwt(jwkKey)
+
+		fmt.Printf("\n\n\n\n\n\n\n\n\n RSA PUBLIC KEY: %+v \n\n\n\n\n\n\n\n\n\n\n", rsaPublicKey)
+
+		if tokenErr != nil {
+			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_parse_error", nil, tokenErr.Error(), http.StatusInternalServerError)
+		}
+		claims := model.Office365IdToken{}
+		if tokenErr = token.Claims(rsaPublicKey, &claims); tokenErr != nil {
+			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.signature_verify_error", nil, tokenErr.Error(), http.StatusInternalServerError)
+		}
+		var re = regexp.MustCompile("^0+")
+		office365UserId := re.ReplaceAllString(strings.Replace(claims.Id, "-", "", -1), "")
+		stateProps["office365UserId"] = office365UserId
+		fmt.Printf("\n\n\n\n\n\n\n\n\n %+v \n\n\n\n\n\n\n\n\n\n\n", office365UserId)
+
+	}
 	mlog.Debug(string(buf.String()))
 	if ar == nil || resp.StatusCode != http.StatusOK {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d", buf.String(), resp.StatusCode), http.StatusInternalServerError)
@@ -921,6 +969,24 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	// Note that resp.Body is not closed here, so it must be closed by the caller
 	return resp.Body, teamId, stateProps, nil
+}
+
+func getRSAPublicKeyFromJwt(key *model.JWK) (rsaKey *rsa.PublicKey, err error) {
+	if err != nil {
+		return nil, err
+	}
+	n, _ := base64.RawURLEncoding.DecodeString(key.N)
+	e, _ := base64.RawURLEncoding.DecodeString(key.E)
+	z := new(big.Int)
+	z.SetBytes(n)
+	//decoding key.E returns a three byte slice, https://golang.org/pkg/encoding/binary/#Read and other conversions fail
+	//since they are expecting to read as many bytes as the size of int being returned (4 bytes for uint32 for example)
+	var buffer bytes.Buffer
+	buffer.WriteByte(0)
+	buffer.Write(e)
+	exponent := binary.BigEndian.Uint32(buffer.Bytes())
+	publicKey := &rsa.PublicKey{N: z, E: int(exponent)}
+	return publicKey, nil
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {

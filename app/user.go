@@ -318,7 +318,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId, office365UserId string) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -331,6 +331,10 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 
 	if user == nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "", http.StatusInternalServerError)
+	}
+
+	if service == model.SERVICE_OFFICE365 {
+		*user.AuthData = office365UserId
 	}
 
 	suchan := make(chan store.StoreResult, 1)

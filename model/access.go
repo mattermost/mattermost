@@ -34,6 +34,10 @@ type AccessResponse struct {
 	IdToken      string `json:"id_token"`
 }
 
+type Office365IdToken struct {
+	Id string `json:"oid"`
+}
+
 // IsValid validates the AccessData and returns an error if it isn't configured
 // correctly.
 func (ad *AccessData) IsValid() *AppError {

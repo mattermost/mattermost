@@ -42,6 +42,20 @@ type providerJSON struct {
 	Algorithms  []string `json:"id_token_signing_alg_values_supported"`
 }
 
+type JWKS struct {
+	Keys []JWK
+}
+
+type JWK struct {
+	Alg string
+	Kty string
+	X5c []string
+	N   string
+	E   string
+	Kid string
+	X5t string
+}
+
 // IsValid validates the app and returns an error if it isn't configured
 // correctly.
 func (a *OAuthApp) IsValid() *AppError {

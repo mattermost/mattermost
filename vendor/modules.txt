@@ -493,6 +493,9 @@ github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
+# github.com/square/go-jose v2.5.1+incompatible
+## explicit
+github.com/square/go-jose/jwt
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 ## explicit
 github.com/ssor/bom
@@ -599,6 +602,7 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
+golang.org/x/crypto/pbkdf2
 # golang.org/x/image v0.0.0-20200801110659-972c09e46d76
 ## explicit
 golang.org/x/image/bmp
@@ -797,6 +801,11 @@ gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/olivere/elastic.v6 v6.2.34
 ## explicit
 gopkg.in/olivere/elastic.v6
+# gopkg.in/square/go-jose.v2 v2.5.1
+## explicit
+gopkg.in/square/go-jose.v2
+gopkg.in/square/go-jose.v2/cipher
+gopkg.in/square/go-jose.v2/json
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/mattermost/ldap"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -955,6 +956,27 @@ func RetrieveDiscoveryDocument(url string) (ssoSettings *providerJSON, err error
 	var openIdResponse providerJSON
 	json.Unmarshal(responseData, &openIdResponse)
 	return &openIdResponse, nil
+}
+
+func RetrieveJwk(url, kid string) (jwk *JWK, err error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	responseData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var jwks JWKS
+	json.Unmarshal(responseData, &jwks)
+	for _, jwk := range jwks.Keys {
+		if jwk.Kid == kid {
+			return &jwk, nil
+		}
+	}
+	return nil, errors.New("JWK with kid you passed in was not found")
 }
 
 func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
