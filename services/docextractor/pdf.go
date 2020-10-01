@@ -22,10 +22,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 		"pdf": true,
 	}
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
-	if supportedExtensions[extension] {
-		return true
-	}
-	return false
+	return supportedExtensions[extension]
 }
 
 func (pe *pdfExtractor) Extract(filename string, r io.Reader) (string, error) {

@@ -37,10 +37,7 @@ func (mpe *mmPreviewExtractor) Match(filename string) bool {
 		"ods":  true,
 	}
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
-	if supportedExtensions[extension] {
-		return true
-	}
-	return false
+	return supportedExtensions[extension]
 }
 
 func (mpe *mmPreviewExtractor) Extract(filename string, file io.Reader) (string, error) {

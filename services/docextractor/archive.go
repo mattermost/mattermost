@@ -45,8 +45,8 @@ func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
 		text.WriteString(file.Name() + " ")
 		if ae.SubExtractor != nil {
 			filename := filepath.Base(file.Name())
-			subtext, err := ae.SubExtractor.Extract(filename, file)
-			if err == nil {
+			subtext, extractErr := ae.SubExtractor.Extract(filename, file)
+			if extractErr == nil {
 				text.WriteString(subtext + " ")
 			}
 		}
