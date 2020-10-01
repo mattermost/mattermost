@@ -45,7 +45,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(subscription)
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscription", "app.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getSubscription", "api.cloud.request_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
