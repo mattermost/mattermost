@@ -49,7 +49,7 @@
   },
   {
     "id": "actiance.export.marshalToXml.appError",
-    "translation": ""
+    "translation": "Unable to convert export to XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
