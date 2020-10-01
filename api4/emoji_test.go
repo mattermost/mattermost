@@ -5,8 +5,11 @@ package api4
 
 import (
 	"bytes"
+	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 	"image"
 	_ "image/gif"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +36,20 @@ func TestCreateEmoji(t *testing.T) {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
+	emojiWidth := app.MaxEmojiWidth * 2
+	emojiHeight := app.MaxEmojiHeight * 2
+	// check that emoji gets resized and is of expected type
+	checkEmojiFile := func(id, expectedImageType string) {
+		path, _ := fileutils.FindDir("data")
+		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
+		require.NoError(t, fileErr)
+		config, imageType, err := image.DecodeConfig(file)
+		require.NoError(t, err)
+		require.Equal(t, expectedImageType, imageType)
+		require.LessOrEqual(t, config.Width, app.MaxEmojiWidth)
+		require.LessOrEqual(t, config.Height, app.MaxEmojiHeight)
+	}
+
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
@@ -42,11 +59,14 @@ func TestCreateEmoji(t *testing.T) {
 	_, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNotImplementedStatus(t, resp)
 
+	// enable emoji creation for next cases
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
 	// try to create a valid gif emoji when they're enabled
-	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, emojiWidth, emojiHeight), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "gif")
 
 	// try to create an emoji with a duplicate name
 	emoji2 := &model.Emoji{
@@ -63,9 +83,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, 10, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestAnimatedGif(t, emojiWidth, emojiHeight, 10), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "gif")
 
 	// try to create a valid jpeg emoji
 	emoji = &model.Emoji{
@@ -73,9 +94,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from jpeg to png
 
 	// try to create a valid png emoji
 	emoji = &model.Emoji{
@@ -83,9 +105,10 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, 10, 10), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.gif")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
+	checkEmojiFile(newEmoji.Id, "png")
 
 	// try to create an emoji that's too wide
 	emoji = &model.Emoji{
