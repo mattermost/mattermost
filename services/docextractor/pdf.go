@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package docextractor
 
 import (
@@ -40,22 +43,6 @@ func (pe *pdfExtractor) Extract(filename string, r io.Reader) (string, error) {
 	reader, err := pdf.NewReader(f, size)
 	if err != nil {
 		return "", err
-	}
-
-	text := ""
-	totalPage := reader.NumPage()
-	for pageIndex := 1; pageIndex <= totalPage; pageIndex++ {
-		p := reader.Page(pageIndex)
-		if p.V.IsNull() {
-			continue
-		}
-
-		rows, _ := p.GetTextByRow()
-		for _, row := range rows {
-			for _, word := range row.Content {
-				text += " " + fmt.Sprintf(word.S)
-			}
-		}
 	}
 
 	var buf bytes.Buffer

@@ -1,4 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package docextractor
+
+// MMPreview is a micro-service to convert from any libreoffice supported
+// format into a PDF file, and then we use the regular pdf extractor to convert
+// it into plain text.
 
 import (
 	"bytes"
@@ -8,17 +15,17 @@ import (
 	"path"
 	"strings"
 
-	"code.sajari.com/docconv"
 	"github.com/pkg/errors"
 )
 
 type mmPreviewExtractor struct {
-	url    string
-	secret string
+	url          string
+	secret       string
+	pdfExtractor pdfExtractor
 }
 
-func newMMPreviewExtractor(url string, secret string) *mmPreviewExtractor {
-	return &mmPreviewExtractor{url: url, secret: secret}
+func newMMPreviewExtractor(url string, secret string, pdfExtractor pdfExtractor) *mmPreviewExtractor {
+	return &mmPreviewExtractor{url: url, secret: secret, pdfExtractor: pdfExtractor}
 }
 
 func (mpe *mmPreviewExtractor) Match(filename string) bool {
@@ -57,11 +64,7 @@ func (mpe *mmPreviewExtractor) Extract(filename string, file io.Reader) (string,
 	if resp.StatusCode != 200 {
 		return "", errors.New("Unable to generate file preview using mmpreview (The server has replied with an error)")
 	}
-	text, _, err := docconv.ConvertPDF(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(text), nil
+	return mpe.pdfExtractor.Extract(filename, resp.Body)
 }
 
 func createMultipartFormData(fieldName, fileName string, fileData io.Reader) (bytes.Buffer, *multipart.Writer, error) {

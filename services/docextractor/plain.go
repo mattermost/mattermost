@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package docextractor
 
 import (
@@ -14,15 +17,8 @@ func (pe *plainExtractor) Match(filename string) bool {
 }
 
 func (pe *plainExtractor) Extract(filename string, r io.Reader) (string, error) {
-	validRanges := []*unicode.RangeTable{
-		unicode.L,
-		unicode.M,
-		unicode.N,
-		unicode.P,
-		unicode.S,
-		unicode.Zs,
-		unicode.White_Space,
-	}
+	// This detects any visible character plus any whitespace
+	validRanges := append(unicode.GraphicRanges, unicode.White_Space)
 
 	text, _ := ioutil.ReadAll(r)
 	count := 0

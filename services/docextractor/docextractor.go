@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package docextractor
 
 import (
@@ -32,7 +35,7 @@ func ExtractWithExtraExtractors(filename string, r io.Reader, settings ExtractSe
 	}
 
 	if settings.MMPreviewURL != "" {
-		enabledExtractors.Add(newMMPreviewExtractor(settings.MMPreviewURL, settings.MMPreviewSecret))
+		enabledExtractors.Add(newMMPreviewExtractor(settings.MMPreviewURL, settings.MMPreviewSecret, pdfExtractor{}))
 	}
 	enabledExtractors.Add(&plainExtractor{})
 

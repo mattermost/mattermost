@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package docextractor
 
 import (
@@ -6,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mholt/archiver/v3"
 )
@@ -16,10 +20,7 @@ type archiveExtractor struct {
 
 func (ae *archiveExtractor) Match(filename string) bool {
 	_, err := archiver.ByExtension(filename)
-	if err == nil {
-		return true
-	}
-	return false
+	return err == nil
 }
 
 func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
@@ -39,16 +40,14 @@ func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
 		return "", fmt.Errorf("error copying data into temporary file: %v", err)
 	}
 
-	text := ""
+	var text strings.Builder
 	err = archiver.Walk(f.Name(), func(file archiver.File) error {
-		text += file.Name()
-		text += " "
+		text.WriteString(file.Name() + " ")
 		if ae.SubExtractor != nil {
 			filename := filepath.Base(file.Name())
 			subtext, err := ae.SubExtractor.Extract(filename, file)
 			if err == nil {
-				text += subtext
-				text += " "
+				text.WriteString(subtext + " ")
 			}
 		}
 		return nil
@@ -57,5 +56,5 @@ func (ae *archiveExtractor) Extract(name string, r io.Reader) (string, error) {
 		return "", err
 	}
 
-	return text, nil
+	return text.String(), nil
 }
