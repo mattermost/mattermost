@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -29,12 +30,19 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
 	errChan := make(chan *model.AppError, 1)
+	hookHasRunCh := make(chan struct{})
+
 	go func() {
 		defer w.Close()
+		defer close(hookHasRunCh)
 		defer close(errChan)
 		var rejErr *model.AppError
+		var once sync.Once
 		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			once.Do(func() {
+				hookHasRunCh <- struct{}{}
+			})
 			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
@@ -50,6 +58,11 @@ func (a *App) runPluginsHook(info *model.FileInfo, file io.Reader) *model.AppErr
 			errChan <- rejErr
 		}
 	}()
+
+	// If the plugin hook has not run we can return early.
+	if _, ok := <-hookHasRunCh; !ok {
+		return nil
+	}
 
 	tmpPath := filePath + ".tmp"
 	written, err := a.WriteFile(r, tmpPath)
