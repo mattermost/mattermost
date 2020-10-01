@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "actiance.export.marshalToXml.appError",
+    "translation": ""
+  },
+  {
     "id": "api.admin.add_certificate.array.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -5629,10 +5633,6 @@
   {
     "id": "ent.account_migration.get_saml_users_failed",
     "translation": "Unable to get SAML users."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
