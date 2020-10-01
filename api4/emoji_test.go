@@ -43,6 +43,7 @@ func TestCreateEmoji(t *testing.T) {
 		path, _ := fileutils.FindDir("data")
 		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
 		require.NoError(t, fileErr)
+		defer file.Close()
 		config, imageType, err := image.DecodeConfig(file)
 		require.NoError(t, err)
 		require.Equal(t, expectedImageType, imageType)
