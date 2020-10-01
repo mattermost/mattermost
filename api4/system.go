@@ -79,6 +79,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
+	testflag := c.App.Config().FeatureFlags.TestFeature
+	if testflag != "off" {
+		s["TestFeatureFlag"] = testflag
+	}
+
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
 		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
