@@ -37,9 +37,10 @@ func TestCreateEmoji(t *testing.T) {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
-	emojiWidth := app.MaxEmojiWidth * 2
+	// constants to be used along with checkEmojiFile
+	emojiWidth := app.MaxEmojiWidth
 	emojiHeight := app.MaxEmojiHeight * 2
-	// check that emoji gets resized and is of expected type
+	// check that emoji gets resized correctly, respecting proportions, and is of expected type
 	checkEmojiFile := func(id, expectedImageType string) {
 		path, _ := fileutils.FindDir("data")
 		file, fileErr := os.Open(filepath.Join(path, "/emoji/"+id+"/image"))
@@ -48,8 +49,8 @@ func TestCreateEmoji(t *testing.T) {
 		config, imageType, err := image.DecodeConfig(file)
 		require.NoError(t, err)
 		require.Equal(t, expectedImageType, imageType)
-		require.LessOrEqual(t, config.Width, app.MaxEmojiWidth)
-		require.LessOrEqual(t, config.Height, app.MaxEmojiHeight)
+		require.Equal(t, emojiWidth/2, config.Width)
+		require.Equal(t, emojiHeight/2, config.Height)
 	}
 
 	emoji := &model.Emoji{
