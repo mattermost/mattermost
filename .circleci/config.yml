@@ -211,6 +211,7 @@ jobs:
           command: |
             sleep 5
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://postgres:5432; do echo waiting for postgres; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
           name: Run Tests
@@ -283,6 +284,7 @@ jobs:
           command: |
             sleep 5
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+            docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://postgres:5432; do echo waiting for postgres; sleep 5; done;"
             docker run --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
           name: Postgres schema migration validation
