@@ -11,10 +11,10 @@ import (
 )
 
 func TestThreadStore(t *testing.T, ss store.Store, s SqlSupplier) {
-	t.Run("SaveMultiple", func(t *testing.T) { testThreadStoreSaveMultiple(t, ss) })
+	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
 }
 
-func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
+func testThreadStorePopulation(t *testing.T, ss store.Store) {
 	makeSomePosts := func() []*model.Post {
 		o1 := model.Post{}
 		o1.ChannelId = model.NewId()
@@ -55,7 +55,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Who)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
 		o5 := model.Post{}
 		o5.ChannelId = model.NewId()
@@ -70,7 +70,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(3), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId, o5.UserId}, thread.Who)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId, o5.UserId}, thread.Participants)
 	})
 
 	t.Run("Delete a reply updates count on a thread", func(t *testing.T) {
@@ -79,7 +79,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Who)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
 		err = ss.Post().Delete(newPosts[1].Id, 1234, model.NewId())
 		require.Nil(t, err, "couldn't delete post")
@@ -88,7 +88,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		require.Nil(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(1), thread.ReplyCount)
-		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId}, thread.Who)
+		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId}, thread.Participants)
 	})
 
 	t.Run("Update reply should update the UpdateAt of the thread", func(t *testing.T) {
@@ -157,7 +157,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts[0].RootId)
 		require.Nil(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 2)
-		require.Len(t, thread1.Who, 2)
+		require.Len(t, thread1.Participants, 2)
 
 		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
 		require.Nil(t, err)
@@ -165,7 +165,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		thread2, err := ss.Thread().Get(rootPost.RootId)
 		require.Nil(t, err)
 		require.EqualValues(t, thread2.ReplyCount, 1)
-		require.Len(t, thread2.Who, 1)
+		require.Len(t, thread2.Participants, 1)
 	})
 
 	t.Run("Deleting root post should delete the thread", func(t *testing.T) {
@@ -189,7 +189,7 @@ func testThreadStoreSaveMultiple(t *testing.T, ss store.Store) {
 		thread1, err := ss.Thread().Get(newPosts1[0].Id)
 		require.Nil(t, err)
 		require.EqualValues(t, thread1.ReplyCount, 1)
-		require.Len(t, thread1.Who, 1)
+		require.Len(t, thread1.Participants, 1)
 
 		err = ss.Post().Delete(rootPost.Id, 123, model.NewId())
 		require.Nil(t, err)

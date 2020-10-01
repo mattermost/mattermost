@@ -6,21 +6,20 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"github.com/mattermost/gorp"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
-
 	sq "github.com/Masterminds/squirrel"
+	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/store"
+	"github.com/mattermost/mattermost-server/v5/store/searchlayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -1932,7 +1931,7 @@ func (s *SqlPostStore) cleanupThreads(postId, rootId, userId string) error {
 		}
 		if thread != nil {
 			thread.ReplyCount -= 1
-			thread.Who = thread.Who.Remove(userId)
+			thread.Participants = thread.Participants.Remove(userId)
 			if _, err = s.Thread().Update(thread); err != nil {
 				return errors.Wrap(err, "failed to update thread")
 			}
@@ -1985,20 +1984,20 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			}
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
-				PostId:      rootId,
-				ReplyCount:  count,
-				LastReplyAt: now,
-				Who:         participants,
+				PostId:       rootId,
+				ReplyCount:   count,
+				LastReplyAt:  now,
+				Participants: participants,
 			}); err != nil {
 				return err
 			}
 		} else {
+			// metadata exists, update it
+			thread.LastReplyAt = now
 			for _, post := range posts {
-				// metadata exists, update it
-				thread.LastReplyAt = now
 				thread.ReplyCount += 1
-				if !thread.Who.Contains(post.UserId) {
-					thread.Who = append(thread.Who, post.UserId)
+				if !thread.Participants.Contains(post.UserId) {
+					thread.Participants = append(thread.Participants, post.UserId)
 				}
 			}
 			if _, err := transaction.Update(thread); err != nil {
