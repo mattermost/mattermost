@@ -53,10 +53,6 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) InitEnterprise() {
-	a.initEnterprise()
-}
-
 func (a *App) InitServer() {
 	a.srv.AppInitializedOnce.Do(func() {
 		a.initEnterprise()
