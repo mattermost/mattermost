@@ -94,7 +94,7 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestJpeg(t, emojiWidth, emojiHeight), "image.jpeg")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "png") // emoji must be converted from jpeg to png
@@ -105,7 +105,7 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.gif")
+	newEmoji, resp = Client.CreateEmoji(emoji, utils.CreateTestPng(t, emojiWidth, emojiHeight), "image.png")
 	CheckNoError(t, resp)
 	require.Equal(t, newEmoji.Name, emoji.Name, "create with wrong name")
 	checkEmojiFile(newEmoji.Id, "png")
