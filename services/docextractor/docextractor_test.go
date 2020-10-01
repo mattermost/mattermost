@@ -146,10 +146,7 @@ func TestExtract(t *testing.T) {
 type customTestPdfExtractor struct{}
 
 func (te *customTestPdfExtractor) Match(filename string) bool {
-	if strings.HasSuffix(filename, ".pdf") {
-		return true
-	}
-	return false
+	return strings.HasSuffix(filename, ".pdf")
 }
 
 func (te *customTestPdfExtractor) Extract(filename string, r io.Reader) (string, error) {
