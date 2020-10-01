@@ -11,6 +11,11 @@ services:
       MYSQL_PASSWORD: mostest
       MYSQL_USER: mmuser
       MYSQL_DATABASE: mattermost_test
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
   postgres:
     image: "postgres:9.4"
     restart: always
@@ -23,6 +28,12 @@ services:
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
+    healthcheck:
+#      test: [ "CMD", "pg_isready", "-h", "localhost" ]
+      test: [ "CMD", "psql", "-d", "mattermost_test", "-U", "mmuser", "-c", "SHOW config_file"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
     command: "server /data"
