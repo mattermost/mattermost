@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -1293,6 +1294,50 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FAKE_SETTING, c.SqlSettings.DataSourceSearchReplicas[0])
 }
 
+func TestConfigFilteredByTag(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	cfgMap := structToMapFilteredByTag(c, ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	// Remove entire sections but the map is still there
+	clusterSettings, ok := cfgMap["SqlSettings"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, 0, len(clusterSettings))
+
+	// Some fields are removed if they have the filtering tag
+	serviceSettings, ok := cfgMap["ServiceSettings"].(map[string]interface{})
+	require.True(t, ok)
+	_, ok = serviceSettings["ListenAddress"]
+	require.False(t, ok)
+}
+
+func TestConfigToJSONFiltered(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	jsonCfgFiltered := c.ToJsonFiltered(ConfigAccessTagType, ConfigAccessTagCloudRestrictable)
+
+	unmarshaledCfg := make(map[string]json.RawMessage)
+	err := json.Unmarshal([]byte(jsonCfgFiltered), &unmarshaledCfg)
+	require.NoError(t, err)
+
+	_, ok := unmarshaledCfg["SqlSettings"]
+	require.False(t, ok)
+
+	serviceSettingsRaw, ok := unmarshaledCfg["ServiceSettings"]
+	require.True(t, ok)
+
+	unmarshaledServiceSettings := make(map[string]json.RawMessage)
+	err = json.Unmarshal([]byte(serviceSettingsRaw), &unmarshaledServiceSettings)
+	require.NoError(t, err)
+
+	_, ok = unmarshaledServiceSettings["ListenAddress"]
+	require.False(t, ok)
+	_, ok = unmarshaledServiceSettings["SiteURL"]
+	require.True(t, ok)
+}
+
 func TestConfigMarketplaceDefaults(t *testing.T) {
 	t.Parallel()
 
@@ -1325,4 +1370,22 @@ func TestConfigMarketplaceDefaults(t *testing.T) {
 		require.True(t, *c.PluginSettings.EnableMarketplace)
 		require.Equal(t, "https://marketplace.example.com", *c.PluginSettings.MarketplaceUrl)
 	})
+}
+
+func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
+	cfg := Config{}
+	cfg.SetDefaults()
+
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "off", cfg.FeatureFlags.TestFeature)
+
+	cfg = Config{
+		FeatureFlags: &FeatureFlags{
+			TestFeature: "somevalue",
+		},
+	}
+	cfg.SetDefaults()
+	require.NotNil(t, cfg.FeatureFlags)
+	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
+
 }

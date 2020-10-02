@@ -376,6 +376,8 @@ func (a *App) installExtractedPlugin(manifest *model.Manifest, fromPluginDir str
 		updatedManifest, _, err := pluginsEnvironment.Activate(manifest.Id)
 		if err != nil {
 			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if updatedManifest == nil {
+			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.restart.app_error", nil, "failed to activate plugin: plugin already active", http.StatusInternalServerError)
 		}
 		manifest = updatedManifest
 	}
