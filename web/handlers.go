@@ -92,6 +92,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
+			mlog.String("host", r.Host),
+			mlog.String("scheme", r.Header.Get(model.HEADER_FORWARDED_PROTO)),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -152,7 +154,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	siteURLHeader := *c.App.Config().ServiceSettings.SiteURL + subpath
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())

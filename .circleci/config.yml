@@ -420,9 +420,10 @@ workflows:
       - setup:
           filters:
             branches:
-              ignore:
-                - master
-                - /^release-.*/
+                ignore:
+                  - master
+                  - /^release-.*/
+                  - cloud-ga
       - check-deps:
           context: sast-webhook
           requires:
