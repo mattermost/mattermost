@@ -2585,7 +2585,7 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable                      *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
+	Enable                      *bool                             `access:"plugins,write_restrictable"`
 	EnableUploads               *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	AllowInsecureDownloadUrl    *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
 	EnableHealthCheck           *bool                             `access:"plugins,write_restrictable,cloud_restrictable"`
