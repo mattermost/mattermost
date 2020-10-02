@@ -548,6 +548,7 @@ type StatusStore interface {
 
 type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, error)
+	Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
