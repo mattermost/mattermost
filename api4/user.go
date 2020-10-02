@@ -116,7 +116,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		token, nErr := c.App.Srv().Store.Token().GetByToken(tokenId)
+		token, nErr := c.App.GetTokenFromTokenString(tokenId);
 		if nErr != nil {
 			var status int
 			switch nErr.(type) {

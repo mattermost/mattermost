@@ -1667,6 +1667,15 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	return rtoken, nil
 }
 
+func (a *App) GetTokenFromTokenString(token string) (*model.Token, error) {
+	rtoken, err := a.Srv().Store.Token().GetByToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	return rtoken, nil
+}
+
 // GetTotalUsersStats is used for the DM list total
 func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
 	count, err := a.Srv().Store.User().Count(model.UserCountOptions{
