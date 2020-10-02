@@ -219,7 +219,7 @@ jobs:
             mkdir -p mattermost-server/client/plugins
             docker run -it --net circleci_mm-test \
               --env-file="mattermost-server/build/dotenv/test.env" \
-              --env MM_SQLSETTINGS_DATASOURCE="<<parameters.dbsource>>" \
+              --env MM_SQLSETTINGS_DATASOURCE=<<parameters.dbsource>> \
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
