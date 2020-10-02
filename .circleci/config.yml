@@ -418,6 +418,7 @@ workflows:
                 ignore:
                   - master
                   - /^release-.*/
+                  - cloud-beta
       - check-deps:
           context: sast-webhook
           requires:
