@@ -47,7 +47,10 @@ const (
 func (b *S3FileBackend) s3New() (*s3.Client, error) {
 	var creds *credentials.Credentials
 
-	if b.accessKey == "" && b.secretKey == "" {
+	isCloud := os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+	if isCloud {
+		creds = credentials.New(customProvider{isSignV2: b.signV2})
+	} else if b.accessKey == "" && b.secretKey == "" {
 		creds = credentials.NewIAM("")
 	} else if b.signV2 {
 		creds = credentials.NewStatic(b.accessKey, b.secretKey, "", credentials.SignatureV2)
@@ -60,6 +63,24 @@ func (b *S3FileBackend) s3New() (*s3.Client, error) {
 		Secure: b.secure,
 		Region: b.region,
 	}
+
+	// If this is a cloud installation, we override the default transport.
+	if isCloud {
+		tr, err := s3.DefaultTransport(b.secure)
+		if err != nil {
+			return nil, err
+		}
+		scheme := "http"
+		if b.secure {
+			scheme = "https"
+		}
+		opts.Transport = &customTransport{
+			base:   tr,
+			host:   b.endpoint,
+			scheme: scheme,
+		}
+	}
+
 	s3Clnt, err := s3.New(b.endpoint, &opts)
 	if err != nil {
 		return nil, err
