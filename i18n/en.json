@@ -472,6 +472,18 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member."
   },
   {
+    "id": "api.cloud.app_error",
+    "translation": "Internal error during cloud api request."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Your license does not support cloud requests."
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Error processing request to CWS."
+  },
+  {
     "id": "api.command.admin_only.app_error",
     "translation": "Integrations have been limited to admins only."
   },
@@ -1397,7 +1409,7 @@
     "translation": "Don't have permissions to write to local path specified or other error."
   },
   {
-    "id": "api.file.test_connection.s3.bucked_create.app_error",
+    "id": "api.file.test_connection.s3.bucket_create.app_error",
     "translation": "Unable to create bucket."
   },
   {
@@ -1407,6 +1419,10 @@
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "Bad connection to S3 or minio."
+  },
+  {
+    "id": "api.file.test_connection.s3.list_objects.app_error",
+    "translation": "Error trying to list objects."
   },
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
@@ -5623,6 +5639,18 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.cloud.authentication_failed",
+    "translation": "Unable to authenticate to CWS"
+  },
+  {
+    "id": "ent.cloud.json_encode.error",
+    "translation": "Internal error marshaling request to CWS"
+  },
+  {
+    "id": "ent.cloud.request_error",
+    "translation": "Error processing request to CWS"
+  },
+  {
     "id": "ent.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
   },
@@ -7329,6 +7357,14 @@
   {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
+  },
+  {
+    "id": "model.plugin_command_crash.error.app_error",
+    "translation": "/{{.Command}} command crashed the {{.PluginId}} plugin. Please contact your system administrator"
+  },
+  {
+    "id": "model.plugin_command_error.error.app_error",
+    "translation": "Plugin for /{{.Command}} is not working. Please contact your system administrator"
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
