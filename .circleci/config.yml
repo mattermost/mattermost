@@ -217,10 +217,10 @@ jobs:
           command: |
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
+            export MM_SQLSETTINGS_DATASOURCE=<<parameters.dbsource>>
+            export MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>>
             docker run -it --net circleci_mm-test \
               --env-file=mattermost-server/build/dotenv/test.env \
-              --env MM_SQLSETTINGS_DATASOURCE=<<parameters.dbsource>> \
-              --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
