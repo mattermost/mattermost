@@ -6,8 +6,6 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/disintegration/imaging"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"image"
 	"image/gif"
 	"image/jpeg"
@@ -16,6 +14,9 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/disintegration/imaging"
+	"github.com/mattermost/mattermost-server/v5/mlog"
 )
 
 const (
@@ -50,6 +51,7 @@ type FileInfo struct {
 	ThumbnailPath   string  `json:"-"` // not sent back to the client
 	PreviewPath     string  `json:"-"` // not sent back to the client
 	Name            string  `json:"name"`
+	Content         string  `json:"-"`
 	Extension       string  `json:"extension"`
 	Size            int64   `json:"size"`
 	MimeType        string  `json:"mime_type"`
