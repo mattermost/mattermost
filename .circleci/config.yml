@@ -218,7 +218,7 @@ jobs:
             ulimit -n 8096
             mkdir -p mattermost-server/client/plugins
             docker run -it --net circleci_mm-test \
-              --env-file="mattermost-server/build/dotenv/test.env" \
+              --env-file=mattermost-server/build/dotenv/test.env \
               --env MM_SQLSETTINGS_DATASOURCE=<<parameters.dbsource>> \
               --env MM_SQLSETTINGS_DRIVERNAME=<<parameters.dbdriver>> \
               -v ~/mattermost:/mattermost \
@@ -289,7 +289,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="$LATEST" ARGS="version" run-cli'
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE=$LATEST ARGS="version" run-cli'
 
             echo "Generating dump"
             docker-compose --no-ansi exec -T postgres pg_dump --schema-only -d migrated -U mmuser > migrated.sql
@@ -319,7 +319,7 @@ jobs:
               -v ~/mattermost:/mattermost \
               -w /mattermost/mattermost-server \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE="$LATEST" ARGS="version" run-cli'
+              bash -c 'ulimit -n 8096; make ARGS="version" run-cli && make MM_SQLSETTINGS_DATASOURCE=$LATEST ARGS="version" run-cli'
 
             echo "Ignoring known MySQL mismatch: ChannelMembers.SchemeGuest"
             docker-compose --no-ansi exec -T mysql mysql -D migrated -uroot -pmostest -e "ALTER TABLE ChannelMembers DROP COLUMN SchemeGuest;"
@@ -433,14 +433,14 @@ workflows:
       - test:
           name: test-mysql
           dbdriver: mysql
-          dbsource: "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+          dbsource: mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8
           requires:
             - check-app-layers
             - check-store-layers
       - test:
           name: test-postgres
           dbdriver: postgres
-          dbsource: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          dbsource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
           requires:
             - check-app-layers
             - check-store-layers
