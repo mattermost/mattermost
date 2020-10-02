@@ -264,15 +264,8 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, *model.App
 		contentType = "binary/octet-stream"
 	}
 
-	var sse encrypt.ServerSide
-	if b.encrypt {
-		sse = encrypt.NewSSE()
-	}
-	options := s3.PutObjectOptions{
-		ContentType:          contentType,
-		ServerSideEncryption: sse,
-	}
-
+	options := s3PutOptions(b.encrypt, contentType)
+	sse := options.ServerSideEncryption
 	partName := fp + ".part"
 	info, err := s3Clnt.PutObject(context.Background(), b.bucket, partName, fr, -1, options)
 	defer s3Clnt.RemoveObject(context.Background(), b.bucket, partName, s3.RemoveObjectOptions{})
@@ -393,6 +386,9 @@ func s3PutOptions(encrypted bool, contentType string) s3.PutObjectOptions {
 		options.ServerSideEncryption = encrypt.NewSSE()
 	}
 	options.ContentType = contentType
+	// We set the part size to the minimum allowed value of 5MBs
+	// to avoid an excessive allocation in minio.PutObject implementation.
+	options.PartSize = 1024 * 1024 * 5
 
 	return options
 }
