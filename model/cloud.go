@@ -65,3 +65,16 @@ type PaymentMethod struct {
 	CardBrand string `json:"card_brand"`
 	Name      string `json:"name"`
 }
+
+// Subscription model represents a subscription on the system.
+type Subscription struct {
+	ID         string   `json:"id"`
+	CustomerID string   `json:"customer_id"`
+	ProductID  string   `json:"product_id"`
+	AddOns     []string `json:"add_ons"`
+	StartAt    int64    `json:"start_at"`
+	EndAt      int64    `json:"end_at"`
+	CreateAt   int64    `json:"create_at"`
+	Seats      int      `json:"seats"`
+	DNS        string   `json:"dns"`
+}

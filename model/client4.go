@@ -5657,9 +5657,22 @@ func (c *Client4) GetCloudCustomer() (*CloudCustomer, *Response) {
 		return nil, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
-
-	var cloudCustomer *CloudCustomer
+  
+  var cloudCustomer *CloudCustomer
 	json.NewDecoder(r.Body).Decode(&cloudCustomer)
 
 	return cloudCustomer, BuildResponse(r)
+}
+
+func (c *Client4) GetSubscription() (*Subscription, *Response) {
+	r, appErr := c.DoApiGet(c.GetCloudRoute()+"/subscription", "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	var subscription *Subscription
+	json.NewDecoder(r.Body).Decode(&subscription)
+
+	return subscription, BuildResponse(r)
 }

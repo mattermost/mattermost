@@ -14,4 +14,6 @@ type CloudInterface interface {
 	ConfirmCustomerPayment(*model.ConfirmPaymentMethodRequest) *model.AppError
 
 	GetCloudCustomer() (*model.CloudCustomer, *model.AppError)
+
+	GetSubscription() (*model.Subscription, *model.AppError)
 }
