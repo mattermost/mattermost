@@ -89,8 +89,8 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 
 	if stream != nil {
 		return multipart.NewReader(stream, boundary), nil
-	} 
-	
+	}
+
 	return multipart.NewReader(req.Body, boundary), nil
 }
 
