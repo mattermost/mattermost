@@ -154,6 +154,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
+	c.Log.Debug(model.HEADER_FORWARDED_PROTO + ": " + r.Header.Get(model.HEADER_FORWARDED_PROTO))
 	c.Log.Debug("Site URL Header: " + siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
