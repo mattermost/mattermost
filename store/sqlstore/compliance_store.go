@@ -209,7 +209,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 }
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.MessageExport, error) {
-	props := map[string]interface{}{"StartTime": after, "Limit": limit}
+	props := map[string]interface{}{"StartTime": after, "Limit": limit / 2}
 
 	var explictDeleteAtIndex, explictUpdateAtIndex string
 
