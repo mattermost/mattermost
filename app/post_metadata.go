@@ -77,6 +77,8 @@ func (a *App) OverrideIconURLIfEmoji(post *model.Post) {
 		return
 	}
 
+	emojiName = strings.ReplaceAll(emojiName, ":", "")
+
 	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
 		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
 	} else {
