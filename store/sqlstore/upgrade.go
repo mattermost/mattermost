@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	CURRENT_SCHEMA_VERSION   = VERSION_5_29_0
-	VERSION_5_29_0           = "5.29.0"
+	CURRENT_SCHEMA_VERSION   = VERSION_5_28_0
 	VERSION_5_28_0           = "5.28.0"
 	VERSION_5_27_0           = "5.27.0"
 	VERSION_5_26_0           = "5.26.0"
@@ -861,7 +860,7 @@ func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 
 	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "text", "text")
 
-	// saveSchemaVersion(sqlStore, VERSION_5_28_0)
+	// saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	// }
 }
 
