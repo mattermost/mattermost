@@ -66,7 +66,7 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 
 	// check if notice date range matches current
 	if cnd.DisplayDate != nil {
-		now := time.Now().UTC()
+		now := time.Now().UTC().Round(time.Hour * 24)
 		c, err2 := date_constraints.NewConstraint(*cnd.DisplayDate)
 		if err2 != nil {
 			return false, errors.Wrapf(err2, "Cannot parse date range %s", *cnd.DisplayDate)
@@ -79,7 +79,8 @@ func noticeMatchesConditions(config *model.Config, preferences store.PreferenceS
 	// check if current server version is notice range
 	serverVersion, err := semver.NewVersion(model.BuildNumber)
 	if err != nil {
-		mlog.Warn("Skipping server version check, build number is not in semver format", mlog.String("build_number", model.BuildNumber))
+		mlog.Warn("Build number is not in semver format", mlog.String("build_number", model.BuildNumber))
+		return false, nil
 	} else {
 		for _, v := range cnd.ServerVersion {
 			c, err := semver.NewConstraint(v)
