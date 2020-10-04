@@ -858,7 +858,7 @@ func upgradeDatabaseToVersion528(sqlStore SqlStore) {
 func upgradeDatabaseToVersion529(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_28_0, VERSION_5_29_0) {
 
-	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "text", "text")
+	sqlStore.CreateColumnIfNotExistsNoDefault("FileInfo", "Content", "text", "longtext")
 
 	// saveSchemaVersion(sqlStore, VERSION_5_29_0)
 	// }
