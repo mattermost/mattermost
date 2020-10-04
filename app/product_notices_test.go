@@ -212,7 +212,6 @@ func TestNoticeValidation(t *testing.T) {
 			wantOk:  true,
 		},
 
-
 		{
 			name: "notice with server version check that is invalid",
 			args: args{
