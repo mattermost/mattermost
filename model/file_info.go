@@ -51,7 +51,6 @@ type FileInfo struct {
 	ThumbnailPath   string  `json:"-"` // not sent back to the client
 	PreviewPath     string  `json:"-"` // not sent back to the client
 	Name            string  `json:"name"`
-	Content         string  `json:"-"`
 	Extension       string  `json:"extension"`
 	Size            int64   `json:"size"`
 	MimeType        string  `json:"mime_type"`
@@ -59,6 +58,7 @@ type FileInfo struct {
 	Height          int     `json:"height,omitempty"`
 	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
 	MiniPreview     *[]byte `json:"mini_preview"` // declared as *[]byte to avoid postgres/mysql differences in deserialization
+	Content         string  `json:"-"`
 }
 
 func (fi *FileInfo) ToJson() string {
