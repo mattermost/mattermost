@@ -1167,7 +1167,7 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 	reaction := &model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    th.BasicPost.Id,
-		EmojiName:   "smile",
+		EmojiName: "smile",
 		CreateAt:  model.GetMillis() - 10000,
 	}
 	_, err := th.App.SaveReactionForPost(reaction)
@@ -1209,10 +1209,10 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	reaction := &model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    th.BasicPost.Id,
-		EmojiName:   "star",
+		EmojiName: "star",
 		CreateAt:  model.GetMillis() - 10000,
 	}
-	
+
 	err := th.App.DeleteReactionForPost(reaction)
 
 	require.Nil(t, err)
