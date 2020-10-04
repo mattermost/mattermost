@@ -16,6 +16,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -115,7 +116,7 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
-	newStore func() store.Store
+	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            cache.Cache
@@ -286,34 +287,49 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "Unable to connect to cache provider")
 	}
 
-	s.sessionCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.SESSION_CACHE_SIZE,
-	})
-	s.seenPendingPostIdsCache = s.CacheProvider.NewCache(&cache.CacheOptions{
+	var err error
+	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.SESSION_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: runtime.NumCPU() - 1,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create session cache")
+	}
+	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PENDING_POST_IDS_CACHE_SIZE,
-	})
-	s.statusCache = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: model.STATUS_CACHE_SIZE,
-	})
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
+	}
+	if s.statusCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
+		Size:           model.STATUS_CACHE_SIZE,
+		Striped:        true,
+		StripedBuckets: runtime.NumCPU() - 1,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create status cache")
+	}
 
 	s.createPushNotificationsHub()
 
-	if err := utils.InitTranslations(s.Config().LocalizationSettings); err != nil {
-		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	if err2 := utils.InitTranslations(s.Config().LocalizationSettings); err2 != nil {
+		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
 	}
 
 	s.initEnterprise()
 
 	if s.newStore == nil {
-		s.newStore = func() store.Store {
+		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.NewSqlSupplier(s.Config().SqlSettings, s.Metrics)
+			lcl, err2 := localcachelayer.NewLocalCacheLayer(
+				retrylayer.New(s.sqlStore),
+				s.Metrics,
+				s.Cluster,
+				s.CacheProvider,
+			)
+			if err2 != nil {
+				return nil, errors.Wrap(err2, "cannot create local cache layer")
+			}
 			searchStore := searchlayer.NewSearchLayer(
-				localcachelayer.NewLocalCacheLayer(
-					retrylayer.New(s.sqlStore),
-					s.Metrics,
-					s.Cluster,
-					s.CacheProvider,
-				),
+				lcl,
 				s.SearchEngine,
 				s.Config(),
 			)
@@ -330,17 +346,20 @@ func NewServer(options ...Option) (*Server, error) {
 			return timerlayer.New(
 				searchStore,
 				s.Metrics,
-			)
+			), nil
 		}
 	}
 
-	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
-		mlog.Error("Failed to parse server templates", mlog.Err(err))
+	if htmlTemplateWatcher, err2 := utils.NewHTMLTemplateWatcher("templates"); err2 != nil {
+		mlog.Error("Failed to parse server templates", mlog.Err(err2))
 	} else {
 		s.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	s.Store = s.newStore()
+	s.Store, err = s.newStore()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot create store")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()

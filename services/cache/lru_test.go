@@ -14,7 +14,7 @@ import (
 )
 
 func TestLRU(t *testing.T) {
-	l := NewLRU(&LRUOptions{
+	l := NewLRU(LRUOptions{
 		Size:                   128,
 		DefaultExpiry:          0,
 		InvalidateClusterEvent: "",
@@ -82,7 +82,7 @@ func TestLRU(t *testing.T) {
 }
 
 func TestLRUExpire(t *testing.T) {
-	l := NewLRU(&LRUOptions{
+	l := NewLRU(LRUOptions{
 		Size:                   128,
 		DefaultExpiry:          1 * time.Second,
 		InvalidateClusterEvent: "",
@@ -104,7 +104,7 @@ func TestLRUExpire(t *testing.T) {
 }
 
 func TestLRUMarshalUnMarshal(t *testing.T) {
-	l := NewLRU(&LRUOptions{
+	l := NewLRU(LRUOptions{
 		Size:                   1,
 		DefaultExpiry:          0,
 		InvalidateClusterEvent: "",
@@ -298,7 +298,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("simple=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -348,7 +348,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("complex=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -431,7 +431,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("User=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -464,7 +464,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("UserMap=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -544,7 +544,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("Post=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -568,7 +568,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("Status=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
@@ -604,7 +604,7 @@ func BenchmarkLRU(b *testing.B) {
 
 	b.Run("Session=new", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			l2 := NewLRU(&LRUOptions{
+			l2 := NewLRU(LRUOptions{
 				Size:                   1,
 				DefaultExpiry:          0,
 				InvalidateClusterEvent: "",
