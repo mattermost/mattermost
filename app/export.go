@@ -156,7 +156,7 @@ func (a *App) exportAllChannels(writer io.Writer) *model.AppError {
 		channels, err := a.Srv().Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
 
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllChannels", "app.channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(channels) == 0 {
@@ -296,9 +296,9 @@ func (a *App) buildUserTeamAndChannelMemberships(userId string) (*[]UserTeamImpo
 func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]UserChannelImportData, *model.AppError) {
 	var memberships []UserChannelImportData
 
-	members, err := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
-	if err != nil {
-		return nil, err
+	members, nErr := a.Srv().Store.Channel().GetChannelMembersForExport(userId, teamId)
+	if nErr != nil {
+		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
@@ -518,7 +518,7 @@ func (a *App) exportAllDirectChannels(writer io.Writer) *model.AppError {
 	for {
 		channels, err := a.Srv().Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
 		if err != nil {
-			return err
+			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if len(channels) == 0 {

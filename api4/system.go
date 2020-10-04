@@ -79,6 +79,11 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
+	testflag := c.App.Config().FeatureFlags.TestFeature
+	if testflag != "off" {
+		s["TestFeatureFlag"] = testflag
+	}
+
 	actualGoroutines := runtime.NumGoroutine()
 	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold > 0 && actualGoroutines >= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
 		mlog.Warn("The number of running goroutines is over the health threshold", mlog.Int("goroutines", actualGoroutines), mlog.Int("health_threshold", *c.App.Config().ServiceSettings.GoroutineHealthThreshold))
@@ -92,21 +97,14 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 
-		// Database Write Check
-		currentTime := fmt.Sprintf("%d", time.Now().Unix())
-		healthCheckKey := fmt.Sprintf("health_check_%s", c.App.GetClusterId())
-
-		writeErr := c.App.Srv().Store.System().SaveOrUpdate(&model.System{
-			Name:  healthCheckKey,
-			Value: currentTime,
-		})
+		writeErr := c.App.DBHealthCheckWrite()
 		if writeErr != nil {
 			mlog.Warn("Unable to write to database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
 
-		_, writeErr = c.App.Srv().Store.System().PermanentDeleteByName(healthCheckKey)
+		writeErr = c.App.DBHealthCheckDelete()
 		if writeErr != nil {
 			mlog.Warn("Unable to remove ping health check value from database.", mlog.Err(writeErr))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY

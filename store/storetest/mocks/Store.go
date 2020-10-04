@@ -549,6 +549,22 @@ func (_m *Store) TermsOfService() store.TermsOfServiceStore {
 	return r0
 }
 
+// Thread provides a mock function with given fields:
+func (_m *Store) Thread() store.ThreadStore {
+	ret := _m.Called()
+
+	var r0 store.ThreadStore
+	if rf, ok := ret.Get(0).(func() store.ThreadStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ThreadStore)
+		}
+	}
+
+	return r0
+}
+
 // Token provides a mock function with given fields:
 func (_m *Store) Token() store.TokenStore {
 	ret := _m.Called()

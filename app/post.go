@@ -1264,6 +1264,8 @@ func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.File
 		return nil, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	a.generateMiniPreviewForInfos(fileInfos)
+
 	return fileInfos, nil
 }
 
